@@ -37,6 +37,22 @@ export async function queryPerplexity(messages: PerplexityMessage[]): Promise<st
   return data.choices[0].message.content;
 }
 
+export async function searchCompanies(query: string): Promise<string[]> {
+  const messages: PerplexityMessage[] = [
+    {
+      role: "system",
+      content: "You are a business intelligence analyst. List exactly 5 real company names that match the search criteria. Format your response as a simple list with one company name per line, nothing else."
+    },
+    {
+      role: "user",
+      content: `Find 5 companies that match this criteria: ${query}`
+    }
+  ];
+
+  const response = await queryPerplexity(messages);
+  return response.split('\n').filter(line => line.trim()).slice(0, 5);
+}
+
 export async function analyzeCompany(
   companyName: string, 
   prompt: string
@@ -56,7 +72,6 @@ export async function analyzeCompany(
 }
 
 export function parseCompanyData(analysisResults: string[]): Partial<Company> {
-  // Extract key information from AI responses
   const companyData: Partial<Company> = {
     services: [],
     validationPoints: [],
@@ -65,7 +80,6 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
   };
 
   for (const result of analysisResults) {
-    // Basic extraction - this can be enhanced with more sophisticated parsing
     if (result.includes("employees") || result.includes("staff")) {
       const sizeMatch = result.match(/(\d+)\s*(employees|staff)/i);
       if (sizeMatch) {
@@ -81,14 +95,13 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       }
     }
 
-    // Extract services
     if (result.toLowerCase().includes("services") || result.toLowerCase().includes("offerings")) {
       const services = result
         .split(/[.,;]/)
         .filter(s => 
-          s.toLowerCase().includes("education") || 
-          s.toLowerCase().includes("training") ||
-          s.toLowerCase().includes("course")
+          s.toLowerCase().includes("service") || 
+          s.toLowerCase().includes("offering") ||
+          s.toLowerCase().includes("solution")
         )
         .map(s => s.trim())
         .filter(s => s.length > 0);
@@ -98,7 +111,6 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       }
     }
 
-    // Extract validation points
     const validationPoints = result
       .split(/[.!?]/)
       .map(s => s.trim())
@@ -111,8 +123,7 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       companyData.validationPoints = validationPoints;
     }
 
-    // Calculate a basic score based on various factors
-    let score = 50; // Base score
+    let score = 50;
     if (companyData.size && companyData.size > 50) score += 10;
     if (companyData.age && companyData.age > 5) score += 10;
     if (companyData.services && companyData.services.length > 2) score += 10;
@@ -128,18 +139,16 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
   const contacts: Partial<Contact>[] = [];
 
   for (const result of analysisResults) {
-    // Look for patterns that might indicate contact information
     const emailMatches = result.match(/[\w.-]+@[\w.-]+\.\w+/g) || [];
     const nameMatches = result.match(/([A-Z][a-z]+ [A-Z][a-z]+)/g) || [];
     const roleMatches = result.match(/(CEO|CTO|Director|Manager|Head of|Founder)/gi) || [];
 
-    // Combine the information into contact objects
     for (let i = 0; i < Math.max(emailMatches.length, nameMatches.length); i++) {
       contacts.push({
         name: nameMatches[i] || "Unknown",
         email: emailMatches[i] || null,
         role: roleMatches[i] || null,
-        priority: i < 3 ? i + 1 : 3 // Prioritize first 3 contacts
+        priority: i < 3 ? i + 1 : 3
       });
     }
   }

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { analyzeCompany, parseCompanyData, extractContacts } from "./lib/perplexity";
+import { searchCompanies, analyzeCompany, parseCompanyData, extractContacts } from "./lib/perplexity";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express) {
@@ -22,61 +22,70 @@ export function registerRoutes(app: Express) {
     res.json(company);
   });
 
-  app.post("/api/companies/analyze", async (req, res) => {
-    const { companyName } = req.body;
+  app.post("/api/companies/search", async (req, res) => {
+    const { query } = req.body;
 
     try {
-      // Get all search approaches
+      // Search for matching companies
+      const companyNames = await searchCompanies(query);
+
+      // Get search approaches for analysis
       const approaches = await storage.listSearchApproaches();
+      const activeApproaches = approaches.filter(approach => approach.active);
 
-      // Run analysis for each approach
-      const analysisResults = await Promise.all(
-        approaches
-          .filter(approach => approach.active)
-          .map(approach => 
-            analyzeCompany(companyName, approach.prompt)
-          )
+      // Analyze each company
+      const companies = await Promise.all(
+        companyNames.map(async (companyName) => {
+          // Run analysis for each approach
+          const analysisResults = await Promise.all(
+            activeApproaches.map(approach => 
+              analyzeCompany(companyName, approach.prompt)
+            )
+          );
+
+          // Parse results
+          const companyData = parseCompanyData(analysisResults);
+          const contacts = extractContacts(analysisResults);
+
+          // Create company record
+          const company = await storage.createCompany({
+            name: companyName,
+            ...companyData,
+            age: companyData.age ?? null,
+            size: companyData.size ?? null,
+            website: companyData.website ?? null,
+            ranking: companyData.ranking ?? null,
+            linkedinProminence: companyData.linkedinProminence ?? null,
+            customerCount: companyData.customerCount ?? null,
+            rating: companyData.rating ?? null,
+            services: companyData.services ?? null,
+            validationPoints: companyData.validationPoints ?? null,
+            totalScore: companyData.totalScore ?? null,
+            snapshot: companyData.snapshot ?? null
+          });
+
+          // Create contact records
+          const validContacts = contacts.filter(contact => contact.name && contact.name !== "Unknown");
+          await Promise.all(
+            validContacts.map(contact =>
+              storage.createContact({
+                companyId: company.id,
+                name: contact.name!,
+                role: contact.role ?? null,
+                email: contact.email ?? null,
+                priority: contact.priority ?? null
+              })
+            )
+          );
+
+          return company;
+        })
       );
 
-      // Parse results
-      const companyData = parseCompanyData(analysisResults);
-      const contacts = extractContacts(analysisResults);
-
-      // Create company record
-      const company = await storage.createCompany({
-        name: companyName,
-        ...companyData,
-        age: companyData.age ?? null,
-        size: companyData.size ?? null,
-        website: companyData.website ?? null,
-        ranking: companyData.ranking ?? null,
-        linkedinProminence: companyData.linkedinProminence ?? null,
-        customerCount: companyData.customerCount ?? null,
-        rating: companyData.rating ?? null,
-        services: companyData.services ?? null,
-        validationPoints: companyData.validationPoints ?? null,
-        totalScore: companyData.totalScore ?? null,
-        snapshot: companyData.snapshot ?? null
-      });
-
-      // Create contact records
-      const validContacts = contacts.filter(contact => contact.name && contact.name !== "Unknown");
-      await Promise.all(
-        validContacts.map(contact =>
-          storage.createContact({
-            companyId: company.id,
-            name: contact.name!,
-            role: contact.role ?? null,
-            email: contact.email ?? null,
-            priority: contact.priority ?? null
-          })
-        )
-      );
-
-      res.json(company);
+      res.json(companies);
     } catch (error) {
       res.status(500).json({ 
-        message: "Error analyzing company",
+        message: "Error searching companies",
         error: (error as Error).message 
       });
     }
