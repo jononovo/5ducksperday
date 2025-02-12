@@ -1,0 +1,101 @@
+import type { Express } from "express";
+import { createServer } from "http";
+import { storage } from "./storage";
+import { analyzeCompany, parseCompanyData, extractContacts } from "./lib/perplexity";
+import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema } from "@shared/schema";
+
+export function registerRoutes(app: Express) {
+  const httpServer = createServer(app);
+
+  // Companies
+  app.get("/api/companies", async (_req, res) => {
+    const companies = await storage.listCompanies();
+    res.json(companies);
+  });
+
+  app.get("/api/companies/:id", async (req, res) => {
+    const company = await storage.getCompany(parseInt(req.params.id));
+    if (!company) {
+      res.status(404).json({ message: "Company not found" });
+      return;
+    }
+    res.json(company);
+  });
+
+  app.post("/api/companies/analyze", async (req, res) => {
+    const { companyName } = req.body;
+    
+    try {
+      // Get all search approaches
+      const approaches = await storage.listSearchApproaches();
+      
+      // Run analysis for each approach
+      const analysisResults = await Promise.all(
+        approaches.map(approach => 
+          analyzeCompany(companyName, approach.prompt)
+        )
+      );
+
+      // Parse results
+      const companyData = parseCompanyData(analysisResults);
+      const contacts = extractContacts(analysisResults);
+
+      // Create company record
+      const company = await storage.createCompany({
+        name: companyName,
+        ...companyData
+      });
+
+      // Create contact records
+      await Promise.all(
+        contacts.map(contact =>
+          storage.createContact({
+            companyId: company.id,
+            ...contact
+          })
+        )
+      );
+
+      res.json(company);
+    } catch (error) {
+      res.status(500).json({ 
+        message: "Error analyzing company",
+        error: (error as Error).message 
+      });
+    }
+  });
+
+  // Contacts
+  app.get("/api/companies/:companyId/contacts", async (req, res) => {
+    const contacts = await storage.listContactsByCompany(parseInt(req.params.companyId));
+    res.json(contacts);
+  });
+
+  // Search Approaches
+  app.get("/api/search-approaches", async (_req, res) => {
+    const approaches = await storage.listSearchApproaches();
+    res.json(approaches);
+  });
+
+  app.patch("/api/search-approaches/:id", async (req, res) => {
+    const result = insertSearchApproachSchema.partial().safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ message: "Invalid request body" });
+      return;
+    }
+
+    const updated = await storage.updateSearchApproach(
+      parseInt(req.params.id),
+      result.data
+    );
+
+    if (!updated) {
+      res.status(404).json({ message: "Search approach not found" });
+      return;
+    }
+
+    res.json(updated);
+  });
+
+  return httpServer;
+}

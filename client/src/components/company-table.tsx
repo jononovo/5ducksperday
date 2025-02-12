@@ -1,0 +1,68 @@
+import { useNavigate } from "wouter";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
+import type { Company } from "@shared/schema";
+
+interface CompanyTableProps {
+  companies: Company[];
+}
+
+export default function CompanyTable({ companies }: CompanyTableProps) {
+  const navigate = useNavigate();
+
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Company Name</TableHead>
+            <TableHead>Size</TableHead>
+            <TableHead>Success Score</TableHead>
+            <TableHead>Services</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {companies.map((company) => (
+            <TableRow key={company.id}>
+              <TableCell className="font-medium">{company.name}</TableCell>
+              <TableCell>{company.size} employees</TableCell>
+              <TableCell>
+                <Badge variant={company.totalScore > 70 ? "default" : "secondary"}>
+                  {company.totalScore}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-1 flex-wrap">
+                  {company.services?.map((service, i) => (
+                    <Badge key={i} variant="outline">
+                      {service}
+                    </Badge>
+                  ))}
+                </div>
+              </TableCell>
+              <TableCell>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => navigate(`/companies/${company.id}`)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
