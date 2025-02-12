@@ -7,6 +7,7 @@ import Planning from "@/pages/planning";
 import Lists from "@/pages/lists";
 import ListDetails from "@/pages/list-details";
 import Campaigns from "@/pages/campaigns";
+import CampaignDetails from "@/pages/campaign-details";
 import Outreach from "@/pages/outreach";
 import DatabasePage from "@/pages/database";
 import CompanyDetails from "@/pages/company-details";
@@ -23,6 +24,8 @@ function Router() {
         <Route path="/lists" component={Lists} />
         <Route path="/lists/:listId" component={ListDetails} />
         <Route path="/campaigns" component={Campaigns} />
+        <Route path="/campaigns/new" component={CampaignDetails} />
+        <Route path="/campaigns/:id" component={CampaignDetails} />
         <Route path="/outreach" component={Outreach} />
         <Route path="/database" component={DatabasePage} />
         <Route path="/companies/:id" component={CompanyDetails} />
