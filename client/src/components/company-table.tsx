@@ -27,7 +27,7 @@ export default function CompanyTable({ companies }: CompanyTableProps) {
             <TableHead>Company Name</TableHead>
             <TableHead>Size</TableHead>
             <TableHead>Success Score</TableHead>
-            <TableHead>Services</TableHead>
+            <TableHead>Differentiation</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -42,11 +42,11 @@ export default function CompanyTable({ companies }: CompanyTableProps) {
                 </Badge>
               </TableCell>
               <TableCell>
-                <div className="flex gap-1 flex-wrap">
-                  {company.services?.map((service, i) => (
-                    <Badge key={i} variant="outline">
-                      {service}
-                    </Badge>
+                <div className="flex flex-col gap-1">
+                  {company.differentiation?.map((point, i) => (
+                    <p key={i} className="text-sm text-muted-foreground">
+                      • {point}
+                    </p>
                   ))}
                 </div>
               </TableCell>

@@ -13,6 +13,7 @@ export const companies = pgTable("companies", {
   rating: integer("rating"),
   services: text("services").array(),
   validationPoints: text("validation_points").array(),
+  differentiation: text("differentiation").array(),
   totalScore: integer("total_score"),
   snapshot: jsonb("snapshot"),
   createdAt: timestamp("created_at").defaultNow()
@@ -48,6 +49,7 @@ const companySchema = z.object({
   rating: z.number().nullable(),
   services: z.array(z.string()).nullable(),
   validationPoints: z.array(z.string()).nullable(),
+  differentiation: z.array(z.string()).nullable(),
   totalScore: z.number().nullable(),
   snapshot: z.record(z.unknown()).nullable()
 });

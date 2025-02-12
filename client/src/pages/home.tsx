@@ -18,6 +18,10 @@ export default function Home() {
     queryKey: ["/api/search-approaches"],
   });
 
+  const handleAnalysisComplete = () => {
+    setIsAnalyzing(false);
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex flex-col gap-8">
@@ -28,6 +32,7 @@ export default function Home() {
           <CardContent>
             <PromptEditor 
               onAnalyze={() => setIsAnalyzing(true)}
+              onComplete={handleAnalysisComplete}
               isAnalyzing={isAnalyzing}
             />
           </CardContent>

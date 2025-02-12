@@ -48,7 +48,8 @@ export class MemStorage implements IStorage {
       { name: "Customer Base", prompt: "Research and describe the customer base, target market, and market reach of [COMPANY].", order: 5, active: true },
       { name: "Online Presence", prompt: "Evaluate the online presence, website metrics, and digital footprint of [COMPANY].", order: 6, active: true },
       { name: "Services Analysis", prompt: "Detail the educational services, programs, and products offered by [COMPANY], particularly in coding and STEM education.", order: 7, active: true },
-      { name: "Competitive Analysis", prompt: "Compare [COMPANY] with similar educational companies in the market, focusing on their unique selling propositions.", order: 8, active: true }
+      { name: "Competitive Analysis", prompt: "Compare [COMPANY] with similar educational companies in the market, focusing on their unique selling propositions.", order: 8, active: true },
+      { name: "Differentiation Analysis", prompt: "Identify the top 3 unique differentiators that set [COMPANY] apart from competitors. Focus on their competitive advantages and unique value propositions.", order: 9, active: true }
     ];
 
     for (const approach of defaultApproaches) {

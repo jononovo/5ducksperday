@@ -68,6 +68,11 @@ export async function analyzeCompany(
     }
   ];
 
+  // Add specific differentiation analysis
+  if (prompt.toLowerCase().includes("differentiation")) {
+    messages[0].content += " Focus on unique selling propositions and competitive advantages. Provide exactly 3 short, impactful bullet points.";
+  }
+
   return queryPerplexity(messages);
 }
 
@@ -75,11 +80,33 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
   const companyData: Partial<Company> = {
     services: [],
     validationPoints: [],
+    differentiation: [],
     totalScore: 0,
     snapshot: {}
   };
 
   for (const result of analysisResults) {
+    // Extract differentiation points
+    if (result.toLowerCase().includes("differentiat") || result.toLowerCase().includes("unique")) {
+      const points = result
+        .split(/[.!?•]/)
+        .map(s => s.trim())
+        .filter(s => 
+          s.length > 0 && 
+          s.length <= 30 &&
+          (s.toLowerCase().includes("unique") || 
+           s.toLowerCase().includes("only") ||
+           s.toLowerCase().includes("leading") ||
+           s.toLowerCase().includes("best"))
+        )
+        .slice(0, 3);
+
+      if (points.length > 0) {
+        companyData.differentiation = points;
+      }
+    }
+
+    // Rest of the parsing logic remains unchanged
     if (result.includes("employees") || result.includes("staff")) {
       const sizeMatch = result.match(/(\d+)\s*(employees|staff)/i);
       if (sizeMatch) {
@@ -127,7 +154,8 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
     if (companyData.size && companyData.size > 50) score += 10;
     if (companyData.age && companyData.age > 5) score += 10;
     if (companyData.services && companyData.services.length > 2) score += 10;
-    if (companyData.validationPoints && companyData.validationPoints.length > 0) score += 20;
+    if (companyData.validationPoints && companyData.validationPoints.length > 0) score += 10;
+    if (companyData.differentiation && companyData.differentiation.length === 3) score += 10;
 
     companyData.totalScore = Math.min(100, score);
   }

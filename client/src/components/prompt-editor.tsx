@@ -9,10 +9,11 @@ import { Loader2, Search } from "lucide-react";
 
 interface PromptEditorProps {
   onAnalyze: () => void;
+  onComplete: () => void;
   isAnalyzing: boolean;
 }
 
-export default function PromptEditor({ onAnalyze, isAnalyzing }: PromptEditorProps) {
+export default function PromptEditor({ onAnalyze, onComplete, isAnalyzing }: PromptEditorProps) {
   const editorRef = useRef<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -28,7 +29,7 @@ export default function PromptEditor({ onAnalyze, isAnalyzing }: PromptEditorPro
         title: "Search Complete",
         description: "Company analysis has been completed successfully.",
       });
-      onAnalyze();
+      onComplete();
     },
     onError: (error) => {
       toast({
@@ -36,6 +37,7 @@ export default function PromptEditor({ onAnalyze, isAnalyzing }: PromptEditorPro
         description: error.message,
         variant: "destructive",
       });
+      onComplete();
     },
   });
 
@@ -52,6 +54,7 @@ export default function PromptEditor({ onAnalyze, isAnalyzing }: PromptEditorPro
       });
       return;
     }
+    onAnalyze();
     searchMutation.mutate(query);
   };
 
