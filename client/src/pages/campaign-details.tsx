@@ -86,19 +86,23 @@ export default function CampaignDetails() {
       if (lists) {
         setSelectedListIds(lists.split(',').map(Number));
       }
+    } else if (campaignLists.length > 0) {
+      setSelectedListIds(campaignLists.map(list => list.listId));
     }
-  }, [params?.id]);
+  }, [params?.id, campaignLists]);
 
   // Create/Update campaign
   const mutation = useMutation({
     mutationFn: async (data: any) => {
+      const payload = {
+        ...data,
+        lists: selectedListIds,
+      };
+
       const res = await apiRequest(
         params?.id ? "PATCH" : "POST",
         params?.id ? `/api/campaigns/${params.id}` : "/api/campaigns",
-        {
-          ...data,
-          lists: selectedListIds,
-        }
+        payload
       );
       return res.json();
     },
@@ -120,7 +124,12 @@ export default function CampaignDetails() {
   });
 
   const onSubmit = (data: any) => {
-    mutation.mutate(data);
+    // Make sure to include the campaign status if we're updating
+    const submissionData = {
+      ...data,
+      status: campaign?.status || 'draft',
+    };
+    mutation.mutate(submissionData);
   };
 
   return (
