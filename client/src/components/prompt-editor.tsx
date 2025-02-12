@@ -58,6 +58,7 @@ export default function PromptEditor({ onAnalyze, isAnalyzing }: PromptEditorPro
   return (
     <Card className="p-4">
       <Editor
+        apiKey="fjabklzyygfhfq8550mc9ts3lm6xh2bbgbuyoxo2huzgyp8e"
         onInit={(_evt, editor) => editorRef.current = editor}
         init={{
           height: 300,
