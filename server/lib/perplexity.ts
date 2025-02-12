@@ -14,27 +14,40 @@ interface PerplexityResponse {
 }
 
 export async function queryPerplexity(messages: PerplexityMessage[]): Promise<string> {
-  const response = await fetch("https://api.perplexity.ai/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "llama-3.1-sonar-small-128k-online",
-      messages,
-      temperature: 0.2,
-      max_tokens: 1000,
-      stream: false
-    })
-  });
-
-  if (!response.ok) {
-    throw new Error(`Perplexity API error: ${response.statusText}`);
+  const apiKey = process.env.PERPLEXITY_API_KEY;
+  if (!apiKey) {
+    throw new Error("Perplexity API key is not configured. Please set the PERPLEXITY_API_KEY environment variable.");
   }
 
-  const data = await response.json() as PerplexityResponse;
-  return data.choices[0].message.content;
+  try {
+    const response = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-sonar-small-128k-online",
+        messages,
+        temperature: 0.2,
+        max_tokens: 1000,
+        stream: false
+      })
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Perplexity API error (${response.status}): ${errorBody || response.statusText}`);
+    }
+
+    const data = await response.json() as PerplexityResponse;
+    return data.choices[0].message.content;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to query Perplexity API: ${error.message}`);
+    }
+    throw error;
+  }
 }
 
 export async function searchCompanies(query: string): Promise<string[]> {

@@ -25,6 +25,13 @@ export function registerRoutes(app: Express) {
   app.post("/api/companies/search", async (req, res) => {
     const { query } = req.body;
 
+    if (!query || typeof query !== 'string') {
+      res.status(400).json({ 
+        message: "Invalid request: query must be a non-empty string"
+      });
+      return;
+    }
+
     try {
       // Search for matching companies
       const companyNames = await searchCompanies(query);
@@ -32,6 +39,13 @@ export function registerRoutes(app: Express) {
       // Get search approaches for analysis
       const approaches = await storage.listSearchApproaches();
       const activeApproaches = approaches.filter(approach => approach.active);
+
+      if (activeApproaches.length === 0) {
+        res.status(400).json({
+          message: "No active search approaches found. Please activate at least one search approach."
+        });
+        return;
+      }
 
       // Analyze each company
       const companies = await Promise.all(
@@ -84,9 +98,9 @@ export function registerRoutes(app: Express) {
 
       res.json(companies);
     } catch (error) {
+      console.error('Company search error:', error);
       res.status(500).json({ 
-        message: "Error searching companies",
-        error: (error as Error).message 
+        message: error instanceof Error ? error.message : "An unexpected error occurred during company search"
       });
     }
   });
