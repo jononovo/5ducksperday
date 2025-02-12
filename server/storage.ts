@@ -3,10 +3,12 @@ import {
   type Contact, type InsertContact,
   type SearchApproach, type InsertSearchApproach,
   type List, type InsertList,
-  companies, contacts, searchApproaches, lists
+  type Campaign, type InsertCampaign,
+  type CampaignList, type InsertCampaignList,
+  companies, contacts, searchApproaches, lists, campaigns, campaignLists
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, max } from "drizzle-orm";
+import { eq, max, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Lists
@@ -14,6 +16,15 @@ export interface IStorage {
   listLists(): Promise<List[]>;
   createList(list: InsertList): Promise<List>;
   getNextListId(): Promise<number>;
+
+  // Campaigns
+  getCampaign(id: number): Promise<Campaign | undefined>;
+  listCampaigns(): Promise<Campaign[]>;
+  createCampaign(campaign: InsertCampaign): Promise<Campaign>;
+  getNextCampaignId(): Promise<string>;
+  addListsToCampaign(campaignId: number, listIds: number[]): Promise<CampaignList[]>;
+  getListsByCampaign(campaignId: number): Promise<List[]>;
+  getCampaignStats(campaignId: number): Promise<{ totalLists: number; totalCompanies: number; }>;
 
   // Companies
   getCompany(id: number): Promise<Company | undefined>;
@@ -56,6 +67,78 @@ export class DatabaseStorage implements IStorage {
       .select({ maxListId: max(lists.listId) })
       .from(lists);
     return (result?.maxListId || 1000) + 1;
+  }
+
+  // Campaigns
+  async getCampaign(id: number): Promise<Campaign | undefined> {
+    const [campaign] = await db.select().from(campaigns).where(eq(campaigns.id, id));
+    return campaign;
+  }
+
+  async listCampaigns(): Promise<Campaign[]> {
+    return db.select().from(campaigns).orderBy(campaigns.createdAt);
+  }
+
+  async createCampaign(campaign: InsertCampaign): Promise<Campaign> {
+    const [created] = await db.insert(campaigns).values(campaign).returning();
+    return created;
+  }
+
+  async getNextCampaignId(): Promise<string> {
+    const [result] = await db
+      .select({ maxId: sql<string>`MAX(${campaigns.campaignId})` })
+      .from(campaigns);
+
+    if (!result?.maxId) {
+      return 'CM-00100';
+    }
+
+    const currentNumber = parseInt(result.maxId.split('-')[1]);
+    return `CM-${String(currentNumber + 1).padStart(5, '0')}`;
+  }
+
+  async addListsToCampaign(campaignId: number, listIds: number[]): Promise<CampaignList[]> {
+    const campaignLists = listIds.map(listId => ({
+      campaignId,
+      listId
+    }));
+
+    return db.insert(campaignLists).values(campaignLists).returning();
+  }
+
+  async getListsByCampaign(campaignId: number): Promise<List[]> {
+    return db
+      .select({
+        id: lists.id,
+        listId: lists.listId,
+        prompt: lists.prompt,
+        resultCount: lists.resultCount,
+        createdAt: lists.createdAt
+      })
+      .from(lists)
+      .innerJoin(campaignLists, eq(lists.listId, campaignLists.listId))
+      .where(eq(campaignLists.campaignId, campaignId));
+  }
+
+  async getCampaignStats(campaignId: number): Promise<{ totalLists: number; totalCompanies: number; }> {
+    // Get total lists
+    const [listsResult] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(campaignLists)
+      .where(eq(campaignLists.campaignId, campaignId));
+
+    // Get total companies across all lists in the campaign
+    const [companiesResult] = await db
+      .select({ count: sql<number>`COUNT(DISTINCT ${companies.id})` })
+      .from(companies)
+      .innerJoin(lists, eq(companies.listId, lists.listId))
+      .innerJoin(campaignLists, eq(lists.listId, campaignLists.listId))
+      .where(eq(campaignLists.campaignId, campaignId));
+
+    return {
+      totalLists: listsResult?.count || 0,
+      totalCompanies: companiesResult?.count || 0
+    };
   }
 
   // Companies

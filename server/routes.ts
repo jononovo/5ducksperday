@@ -196,5 +196,52 @@ export function registerRoutes(app: Express) {
     res.json(updated);
   });
 
+  // Campaigns
+  app.get("/api/campaigns", async (_req, res) => {
+    const campaigns = await storage.listCampaigns();
+    res.json(campaigns);
+  });
+
+  app.get("/api/campaigns/:id", async (req, res) => {
+    const campaign = await storage.getCampaign(parseInt(req.params.id));
+    if (!campaign) {
+      res.status(404).json({ message: "Campaign not found" });
+      return;
+    }
+    res.json(campaign);
+  });
+
+  app.post("/api/campaigns", async (req, res) => {
+    try {
+      const campaignId = await storage.getNextCampaignId();
+      const campaign = await storage.createCampaign({
+        ...req.body,
+        campaignId,
+      });
+
+      // If lists are provided, add them to the campaign
+      if (req.body.lists && Array.isArray(req.body.lists)) {
+        await storage.addListsToCampaign(campaign.id, req.body.lists);
+      }
+
+      res.json(campaign);
+    } catch (error) {
+      console.error('Campaign creation error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred while creating the campaign"
+      });
+    }
+  });
+
+  app.get("/api/campaigns/:id/lists", async (req, res) => {
+    const lists = await storage.getListsByCampaign(parseInt(req.params.id));
+    res.json(lists);
+  });
+
+  app.get("/api/campaigns/:id/stats", async (req, res) => {
+    const stats = await storage.getCampaignStats(parseInt(req.params.id));
+    res.json(stats);
+  });
+
   return httpServer;
 }

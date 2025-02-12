@@ -9,6 +9,23 @@ export const lists = pgTable("lists", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+export const campaigns = pgTable("campaigns", {
+  id: serial("id").primaryKey(),
+  campaignId: text("campaign_id").notNull(),  // Format: CM-00100
+  name: text("name").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default('draft'),
+  startDate: timestamp("start_date"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+export const campaignLists = pgTable("campaign_lists", {
+  id: serial("id").primaryKey(),
+  campaignId: integer("campaign_id").notNull(),
+  listId: integer("list_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 export const companies = pgTable("companies", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -53,6 +70,19 @@ const listSchema = z.object({
   resultCount: z.number().min(0)
 });
 
+const campaignSchema = z.object({
+  campaignId: z.string().regex(/^CM-\d{5}$/, "Campaign ID must be in format CM-00100"),
+  name: z.string().min(1, "Campaign name is required"),
+  description: z.string().optional(),
+  status: z.enum(['draft', 'active', 'completed', 'paused']),
+  startDate: z.date().optional()
+});
+
+const campaignListSchema = z.object({
+  campaignId: z.number(),
+  listId: z.number()
+});
+
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required"),
   listId: z.number().nullable(),
@@ -86,12 +116,18 @@ const searchApproachSchema = z.object({
 });
 
 export const insertListSchema = listSchema;
+export const insertCampaignSchema = campaignSchema;
+export const insertCampaignListSchema = campaignListSchema;
 export const insertCompanySchema = companySchema;
 export const insertContactSchema = contactSchema;
 export const insertSearchApproachSchema = searchApproachSchema;
 
 export type List = typeof lists.$inferSelect;
 export type InsertList = z.infer<typeof insertListSchema>;
+export type Campaign = typeof campaigns.$inferSelect;
+export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
+export type CampaignList = typeof campaignLists.$inferSelect;
+export type InsertCampaignList = z.infer<typeof insertCampaignListSchema>;
 export type Company = typeof companies.$inferSelect;
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
 export type Contact = typeof contacts.$inferSelect;
