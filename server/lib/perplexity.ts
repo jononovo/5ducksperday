@@ -66,6 +66,21 @@ export async function searchCompanies(query: string): Promise<string[]> {
   return response.split('\n').filter(line => line.trim()).slice(0, 5);
 }
 
+export async function searchLeadership(companyName: string): Promise<string> {
+  const messages: PerplexityMessage[] = [
+    {
+      role: "system",
+      content: "You are a business intelligence analyst. Find the key leadership team members of the company. Focus on C-level executives, founders, directors, and department heads. Include their full names, roles, and business email addresses when available. Be precise and factual."
+    },
+    {
+      role: "user",
+      content: `Who are the key leadership team members of ${companyName}? Please include their full names, roles, and business email addresses if available. Focus on C-level executives, founders, and directors.`
+    }
+  ];
+
+  return queryPerplexity(messages);
+}
+
 export async function analyzeCompany(
   companyName: string, 
   prompt: string
@@ -86,7 +101,13 @@ export async function analyzeCompany(
     messages[0].content += " Focus on unique selling propositions and competitive advantages. Provide exactly 3 short, impactful bullet points.";
   }
 
-  return queryPerplexity(messages);
+  const initialAnalysis = await queryPerplexity(messages);
+
+  // Additional leadership search
+  const leadershipInfo = await searchLeadership(companyName);
+
+  // Combine both results
+  return `${initialAnalysis}\n\nLeadership Information:\n${leadershipInfo}`;
 }
 
 export function parseCompanyData(analysisResults: string[]): Partial<Company> {
