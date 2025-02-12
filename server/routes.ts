@@ -212,25 +212,30 @@ export function registerRoutes(app: Express) {
   });
 
   app.post("/api/campaigns", async (req, res) => {
-    const result = insertCampaignSchema.safeParse({
-      ...req.body,
-      campaignId: 0, 
-      totalCompanies: 0
-    });
-
-    if (!result.success) {
-      res.status(400).json({ message: "Invalid request body" });
-      return;
-    }
-
     try {
       // Get next available campaign ID (starting from 2001)
       const campaignId = await storage.getNextCampaignId();
 
+      const result = insertCampaignSchema.safeParse({
+        ...req.body,
+        campaignId,
+        totalCompanies: 0
+      });
+
+      if (!result.success) {
+        res.status(400).json({ 
+          message: "Invalid request body",
+          errors: result.error.errors 
+        });
+        return;
+      }
+
       // Create the campaign
       const campaign = await storage.createCampaign({
         ...result.data,
-        campaignId
+        description: result.data.description || null,
+        startDate: result.data.startDate || null,
+        status: result.data.status || 'draft'
       });
 
       res.json(campaign);

@@ -2,7 +2,6 @@ import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { format } from "date-fns";
 import {
   Card,
   CardContent,
@@ -55,13 +54,23 @@ export default function CampaignDetails() {
       const formattedData = {
         ...data,
         description: data.description || null,
-        startDate: data.startDate || null
+        startDate: data.startDate || null,
+        status: "draft"
       };
+
+      console.log('Submitting campaign data:', formattedData);
+
       const res = await apiRequest(
         isNew ? "POST" : "PATCH",
         `/api/campaigns${isNew ? "" : `/${params?.id}`}`,
         formattedData
       );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to save campaign');
+      }
+
       return res.json();
     },
     onSuccess: () => {
@@ -73,6 +82,7 @@ export default function CampaignDetails() {
       navigate("/campaigns");
     },
     onError: (error: Error) => {
+      console.error('Campaign save error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -82,6 +92,7 @@ export default function CampaignDetails() {
   });
 
   const onSubmit = (data: InsertCampaign) => {
+    console.log('Form submitted with data:', data);
     saveMutation.mutate(data);
   };
 
