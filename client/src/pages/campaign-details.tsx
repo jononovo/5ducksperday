@@ -42,17 +42,18 @@ export default function CampaignDetails() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedListIds, setSelectedListIds] = useState<number[]>([]);
+  const isEditMode = !!params?.id;
 
   // Get campaign data if editing
   const { data: campaign } = useQuery<Campaign>({
     queryKey: [`/api/campaigns/${params?.id}`],
-    enabled: !!params?.id,
+    enabled: isEditMode,
   });
 
   // Get lists if editing a campaign
   const { data: campaignLists = [] } = useQuery<List[]>({
     queryKey: [`/api/campaigns/${params?.id}/lists`],
-    enabled: !!params?.id,
+    enabled: isEditMode,
   });
 
   // Form setup
@@ -80,7 +81,7 @@ export default function CampaignDetails() {
 
   // Handle lists from URL when creating
   useEffect(() => {
-    if (!params?.id) {
+    if (!isEditMode) {
       const searchParams = new URLSearchParams(window.location.search);
       const lists = searchParams.get('lists');
       if (lists) {
@@ -89,7 +90,7 @@ export default function CampaignDetails() {
     } else if (campaignLists.length > 0) {
       setSelectedListIds(campaignLists.map(list => list.listId));
     }
-  }, [params?.id, campaignLists]);
+  }, [isEditMode, campaignLists]);
 
   // Create/Update campaign
   const mutation = useMutation({
@@ -100,14 +101,14 @@ export default function CampaignDetails() {
       };
 
       const res = await apiRequest(
-        params?.id ? "PATCH" : "POST",
-        params?.id ? `/api/campaigns/${params.id}` : "/api/campaigns",
+        isEditMode ? "PATCH" : "POST",
+        isEditMode ? `/api/campaigns/${params?.id}` : "/api/campaigns",
         payload
       );
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || `Failed to ${params?.id ? 'update' : 'create'} campaign`);
+        throw new Error(error.message || `Failed to ${isEditMode ? 'update' : 'create'} campaign`);
       }
 
       return res.json();
@@ -115,14 +116,14 @@ export default function CampaignDetails() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });
       toast({
-        title: `Campaign ${params?.id ? "updated" : "created"}`,
-        description: `Campaign has been successfully ${params?.id ? "updated" : "created"}.`,
+        title: `Campaign ${isEditMode ? "updated" : "created"}`,
+        description: `Campaign has been successfully ${isEditMode ? "updated" : "created"}.`,
       });
       navigate("/campaigns");
     },
     onError: (error: Error) => {
       toast({
-        title: `Failed to ${params?.id ? "update" : "create"} campaign`,
+        title: `Failed to ${isEditMode ? "update" : "create"} campaign`,
         description: error.message,
         variant: "destructive",
       });
@@ -133,8 +134,7 @@ export default function CampaignDetails() {
     try {
       const submissionData = {
         ...data,
-        status: campaign?.status || 'draft',
-        campaignId: campaign?.campaignId, // Added campaignId for updates
+        status: "draft",
       };
       await mutation.mutateAsync(submissionData);
     } catch (error) {
@@ -158,7 +158,7 @@ export default function CampaignDetails() {
           <Card>
             <CardHeader>
               <CardTitle>
-                {params?.id ? "Edit Campaign" : "Create New Campaign"}
+                {isEditMode ? "Edit Campaign" : "Create New Campaign"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -279,7 +279,7 @@ export default function CampaignDetails() {
               {mutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {params?.id ? "Update Campaign" : "Create Campaign"}
+              {isEditMode ? "Update Campaign" : "Create Campaign"}
             </Button>
           </div>
         </form>
