@@ -152,6 +152,38 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async updateCampaign(id: number, updates: Partial<Campaign>): Promise<Campaign | undefined> {
+    if (isNaN(id)) {
+      return undefined;
+    }
+    const [updated] = await db
+      .update(campaigns)
+      .set(updates)
+      .where(eq(campaigns.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateCampaignLists(campaignId: number, listIds: number[]): Promise<void> {
+    if (isNaN(campaignId)) {
+      return;
+    }
+
+    // Delete existing campaign lists
+    await db
+      .delete(campaignLists)
+      .where(eq(campaignLists.campaignId, campaignId));
+
+    // Add new campaign lists
+    if (listIds.length > 0) {
+      const values = listIds.map(listId => ({
+        campaignId,
+        listId,
+      }));
+      await db.insert(campaignLists).values(values);
+    }
+  }
+
   // Companies
   async getCompany(id: number): Promise<Company | undefined> {
     if (isNaN(id)) {

@@ -257,6 +257,40 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  app.patch("/api/campaigns/:id", async (req, res) => {
+    try {
+      const campaignId = parseInt(req.params.id);
+      if (isNaN(campaignId)) {
+        res.status(400).json({ message: "Invalid campaign ID" });
+        return;
+      }
+
+      const result = insertCampaignSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        res.status(400).json({ message: "Invalid request body", errors: result.error.errors });
+        return;
+      }
+
+      const updated = await storage.updateCampaign(campaignId, result.data);
+      if (!updated) {
+        res.status(404).json({ message: "Campaign not found" });
+        return;
+      }
+
+      // If lists are provided, update campaign lists
+      if (req.body.lists && Array.isArray(req.body.lists)) {
+        await storage.updateCampaignLists(campaignId, req.body.lists);
+      }
+
+      res.json(updated);
+    } catch (error) {
+      console.error('Campaign update error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred while updating the campaign"
+      });
+    }
+  });
+
   app.get("/api/campaigns/:id/lists", async (req, res) => {
     const campaignId = parseInt(req.params.id);
     if (isNaN(campaignId)) {
