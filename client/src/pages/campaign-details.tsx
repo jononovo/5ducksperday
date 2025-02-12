@@ -107,7 +107,7 @@ export default function CampaignDetails() {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || 'Failed to save campaign');
+        throw new Error(error.message || `Failed to ${params?.id ? 'update' : 'create'} campaign`);
       }
 
       return res.json();
@@ -134,6 +134,7 @@ export default function CampaignDetails() {
       const submissionData = {
         ...data,
         status: campaign?.status || 'draft',
+        campaignId: campaign?.campaignId, // Added campaignId for updates
       };
       await mutation.mutateAsync(submissionData);
     } catch (error) {
@@ -222,9 +223,6 @@ export default function CampaignDetails() {
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) =>
-                            date < new Date()
-                          }
                           initialFocus
                         />
                       </PopoverContent>
