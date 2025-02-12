@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail } from "lucide-react";
+import { Mail, Send, Save } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -8,11 +8,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import type { List, Company } from "@shared/schema";
 import { useState } from "react";
 
 export default function Outreach() {
   const [selectedListId, setSelectedListId] = useState<string>();
+  const [emailPrompt, setEmailPrompt] = useState("");
+  const [emailContent, setEmailContent] = useState("");
 
   const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
@@ -26,9 +30,15 @@ export default function Outreach() {
   // Get the first company from the list
   const currentCompany = companies[0];
 
-  console.log('Selected List ID:', selectedListId);
-  console.log('Companies:', companies);
-  console.log('Current Company:', currentCompany);
+  const handleSaveEmail = () => {
+    // TODO: Implement save functionality
+    console.log('Saving email template:', { emailPrompt, emailContent });
+  };
+
+  const handleSendEmail = () => {
+    // TODO: Implement send functionality
+    console.log('Sending email:', { emailPrompt, emailContent });
+  };
 
   return (
     <div className="container mx-auto py-8">
@@ -91,7 +101,7 @@ export default function Outreach() {
                       </div>
                     ) : (
                       <p className="text-muted-foreground">
-                        {selectedListId 
+                        {selectedListId
                           ? "No companies found in this list"
                           : "Select a list to view company details"}
                       </p>
@@ -103,16 +113,60 @@ export default function Outreach() {
           </Card>
         </div>
 
-        {/* Right Column */}
+        {/* Right Column - Email Creation */}
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Outreach Content</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                Email Creation
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Select a list and company to begin outreach
-              </p>
+            <CardContent className="space-y-6">
+              {/* Email Prompt Field */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  Email Creation Prompt
+                </label>
+                <Textarea
+                  placeholder="Enter your prompt for email generation..."
+                  value={emailPrompt}
+                  onChange={(e) => setEmailPrompt(e.target.value)}
+                  className="resize-none"
+                  rows={4}
+                />
+              </div>
+
+              {/* Email Content Field */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  Email Content
+                </label>
+                <Textarea
+                  placeholder="Enter or edit the generated email content..."
+                  value={emailContent}
+                  onChange={(e) => setEmailContent(e.target.value)}
+                  className="min-h-[400px]"
+                  rows={20}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={handleSaveEmail}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Template
+                </Button>
+                <Button
+                  onClick={handleSendEmail}
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Send Email
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
