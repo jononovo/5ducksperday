@@ -60,33 +60,30 @@ export default function Outreach() {
                 <Card>
                   <CardContent className="pt-6">
                     {currentCompany ? (
-                      <div className="space-y-4">
+                      <div className="space-y-6">
+                        {/* Company Name - More prominent */}
                         <div>
-                          <h4 className="font-medium">Name</h4>
-                          <p>{currentCompany.name}</p>
+                          <h2 className="text-xl font-semibold mb-1">{currentCompany.name}</h2>
+                          {currentCompany.size && (
+                            <p className="text-muted-foreground">
+                              {currentCompany.size} employees
+                            </p>
+                          )}
                         </div>
-                        {currentCompany.website && (
-                          <div>
-                            <h4 className="font-medium">Website</h4>
-                            <p>{currentCompany.website}</p>
-                          </div>
-                        )}
-                        {currentCompany.size && (
-                          <div>
-                            <h4 className="font-medium">Company Size</h4>
-                            <p>{currentCompany.size} employees</p>
-                          </div>
-                        )}
-                        {currentCompany.services && currentCompany.services.length > 0 && (
-                          <div>
-                            <h4 className="font-medium">Services</h4>
-                            <ul className="list-disc pl-4">
+
+                        {/* Services Section */}
+                        <div>
+                          <h4 className="font-medium mb-2">Services & Description</h4>
+                          {currentCompany.services && currentCompany.services.length > 0 ? (
+                            <ul className="list-disc pl-4 space-y-1">
                               {currentCompany.services.map((service, index) => (
-                                <li key={index}>{service}</li>
+                                <li key={index} className="text-muted-foreground">{service}</li>
                               ))}
                             </ul>
-                          </div>
-                        )}
+                          ) : (
+                            <p className="text-muted-foreground italic">No services information available</p>
+                          )}
+                        </div>
                       </div>
                     ) : (
                       <p className="text-muted-foreground">
