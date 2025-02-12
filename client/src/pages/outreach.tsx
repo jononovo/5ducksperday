@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Send, Save } from "lucide-react";
+import { Mail, Send, Save, Wand2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -40,6 +40,11 @@ export default function Outreach() {
     console.log('Sending email:', { emailPrompt, emailContent });
   };
 
+  const handleGenerateEmail = () => {
+    // TODO: Implement email generation
+    console.log('Generating email from prompt:', emailPrompt);
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="grid grid-cols-2 gap-6">
@@ -49,7 +54,6 @@ export default function Outreach() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Mail className="w-5 h-5" />
-                List Selection
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -117,10 +121,15 @@ export default function Outreach() {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="w-5 h-5" />
-                Email Creation
-              </CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="w-5 h-5" />
+                </CardTitle>
+                <Button onClick={handleGenerateEmail}>
+                  <Wand2 className="w-4 h-4 mr-2" />
+                  Generate Email
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Email Prompt Field */}
