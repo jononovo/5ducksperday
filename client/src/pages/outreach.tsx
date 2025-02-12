@@ -19,12 +19,16 @@ export default function Outreach() {
   });
 
   const { data: companies = [] } = useQuery<Company[]>({
-    queryKey: ["/api/lists", selectedListId, "companies"],
+    queryKey: [`/api/lists/${selectedListId}/companies`],
     enabled: !!selectedListId,
   });
 
   // Get the first company from the list
   const currentCompany = companies[0];
+
+  console.log('Selected List ID:', selectedListId);
+  console.log('Companies:', companies);
+  console.log('Current Company:', currentCompany);
 
   return (
     <div className="container mx-auto py-8">
