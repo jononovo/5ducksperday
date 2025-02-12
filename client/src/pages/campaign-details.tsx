@@ -93,9 +93,9 @@ export default function CampaignDetails() {
 
   // Create/Update campaign
   const mutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (values: any) => {
       const payload = {
-        ...data,
+        ...values,
         lists: selectedListIds,
       };
 
@@ -104,6 +104,12 @@ export default function CampaignDetails() {
         params?.id ? `/api/campaigns/${params.id}` : "/api/campaigns",
         payload
       );
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to save campaign');
+      }
+
       return res.json();
     },
     onSuccess: () => {
@@ -123,13 +129,16 @@ export default function CampaignDetails() {
     },
   });
 
-  const onSubmit = (data: any) => {
-    // Make sure to include the campaign status if we're updating
-    const submissionData = {
-      ...data,
-      status: campaign?.status || 'draft',
-    };
-    mutation.mutate(submissionData);
+  const onSubmit = async (data: any) => {
+    try {
+      const submissionData = {
+        ...data,
+        status: campaign?.status || 'draft',
+      };
+      await mutation.mutateAsync(submissionData);
+    } catch (error) {
+      console.error('Form submission error:', error);
+    }
   };
 
   return (
