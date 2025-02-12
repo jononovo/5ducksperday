@@ -119,7 +119,7 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       }
     }
 
-    // Rest of the parsing logic remains unchanged
+    // Rest of the parsing logic 
     if (result.includes("employees") || result.includes("staff")) {
       const sizeMatch = result.match(/(\d+)\s*(employees|staff)/i);
       if (sizeMatch) {
@@ -177,22 +177,88 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
 }
 
 export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
-  const contacts: Partial<Contact>[] = [];
+  const contactMap = new Map<string, Partial<Contact>>();
+
+  // Role priority scoring
+  const getRolePriority = (role: string): number => {
+    const normalizedRole = role.toLowerCase();
+    if (normalizedRole.includes('ceo') || normalizedRole.includes('founder') || normalizedRole.includes('president')) return 1;
+    if (normalizedRole.includes('cto') || normalizedRole.includes('coo') || normalizedRole.includes('cfo')) return 2;
+    if (normalizedRole.includes('director') || normalizedRole.includes('vp') || normalizedRole.includes('head')) return 3;
+    if (normalizedRole.includes('manager') || normalizedRole.includes('lead')) return 4;
+    return 5;
+  };
+
+  // Email validation
+  const isValidEmail = (email: string): boolean => {
+    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email) &&
+           !email.includes('example.com') &&
+           !email.includes('domain.com');
+  };
 
   for (const result of analysisResults) {
-    const emailMatches = result.match(/[\w.-]+@[\w.-]+\.\w+/g) || [];
-    const nameMatches = result.match(/([A-Z][a-z]+ [A-Z][a-z]+)/g) || [];
-    const roleMatches = result.match(/(CEO|CTO|Director|Manager|Head of|Founder)/gi) || [];
+    // Extract names with titles (e.g., "John Smith, CEO" or "CEO John Smith")
+    const nameRolePatterns = [
+      /([A-Z][a-z]+ [A-Z][a-z]+)(?:,?\s*)(CEO|CTO|CFO|Director|VP|President|Founder|Manager|Head of[^,\.]*)/gi,
+      /(CEO|CTO|CFO|Director|VP|President|Founder|Manager|Head of[^,\.]*)(?:\s+)([A-Z][a-z]+ [A-Z][a-z]+)/gi
+    ];
 
-    for (let i = 0; i < Math.max(emailMatches.length, nameMatches.length); i++) {
-      contacts.push({
-        name: nameMatches[i] || "Unknown",
-        email: emailMatches[i] || null,
-        role: roleMatches[i] || null,
-        priority: i < 3 ? i + 1 : 3
-      });
+    for (const pattern of nameRolePatterns) {
+      let match;
+      while ((match = pattern.exec(result)) !== null) {
+        const [, nameOrRole1, roleOrName2] = match;
+        const isNameFirst = /^[A-Z]/.test(nameOrRole1);
+        const name = isNameFirst ? nameOrRole1 : roleOrName2;
+        const role = isNameFirst ? roleOrName2 : nameOrRole1;
+
+        if (!contactMap.has(name)) {
+          contactMap.set(name, {
+            name,
+            role,
+            email: null,
+            priority: getRolePriority(role)
+          });
+        }
+      }
+    }
+
+    // Extract and match emails
+    const emailMatches = result.match(/[\w.-]+@[\w.-]+\.\w+/g) || [];
+    for (const email of emailMatches) {
+      if (!isValidEmail(email)) continue;
+
+      // Try to find the name associated with this email in the surrounding text
+      const surroundingText = result.substring(
+        Math.max(0, result.indexOf(email) - 100),
+        Math.min(result.length, result.indexOf(email) + 100)
+      );
+
+      // Look for names near the email
+      const nearbyName = Array.from(contactMap.keys()).find(name => 
+        surroundingText.includes(name)
+      );
+
+      if (nearbyName) {
+        const contact = contactMap.get(nearbyName)!;
+        contact.email = email;
+        // Increase priority if they have a direct email
+        contact.priority = Math.max(1, contact.priority! - 1);
+      }
     }
   }
 
-  return contacts;
+  // Convert to array, sort by priority, and limit to top 5
+  return Array.from(contactMap.values())
+    .sort((a, b) => {
+      // First by priority
+      const priorityDiff = (a.priority || 5) - (b.priority || 5);
+      if (priorityDiff !== 0) return priorityDiff;
+
+      // Then prefer contacts with email
+      if (a.email && !b.email) return -1;
+      if (!a.email && b.email) return 1;
+
+      return 0;
+    })
+    .slice(0, 5);
 }
