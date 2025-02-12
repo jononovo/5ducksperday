@@ -13,11 +13,27 @@ interface PerplexityResponse {
   }>;
 }
 
+// Simple delay between requests
+const REQUEST_DELAY = 1000; // 1 second
+let lastRequestTime = 0;
+
+async function wait(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export async function queryPerplexity(messages: PerplexityMessage[]): Promise<string> {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) {
     throw new Error("Perplexity API key is not configured. Please set the PERPLEXITY_API_KEY environment variable.");
   }
+
+  // Ensure minimum delay between requests
+  const now = Date.now();
+  const timeSinceLastRequest = now - lastRequestTime;
+  if (timeSinceLastRequest < REQUEST_DELAY) {
+    await wait(REQUEST_DELAY - timeSinceLastRequest);
+  }
+  lastRequestTime = Date.now();
 
   try {
     const response = await fetch("https://api.perplexity.ai/chat/completions", {
