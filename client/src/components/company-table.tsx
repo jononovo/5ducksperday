@@ -1,4 +1,4 @@
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import {
   Table,
   TableBody,
@@ -17,7 +17,7 @@ interface CompanyTableProps {
 }
 
 export default function CompanyTable({ companies }: CompanyTableProps) {
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
 
   return (
     <div className="rounded-md border">
@@ -37,8 +37,8 @@ export default function CompanyTable({ companies }: CompanyTableProps) {
               <TableCell className="font-medium">{company.name}</TableCell>
               <TableCell>{company.size} employees</TableCell>
               <TableCell>
-                <Badge variant={company.totalScore > 70 ? "default" : "secondary"}>
-                  {company.totalScore}
+                <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}>
+                  {company.totalScore ?? 'N/A'}
                 </Badge>
               </TableCell>
               <TableCell>

@@ -24,16 +24,18 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/companies/analyze", async (req, res) => {
     const { companyName } = req.body;
-    
+
     try {
       // Get all search approaches
       const approaches = await storage.listSearchApproaches();
-      
+
       // Run analysis for each approach
       const analysisResults = await Promise.all(
-        approaches.map(approach => 
-          analyzeCompany(companyName, approach.prompt)
-        )
+        approaches
+          .filter(approach => approach.active)
+          .map(approach => 
+            analyzeCompany(companyName, approach.prompt)
+          )
       );
 
       // Parse results
@@ -43,15 +45,30 @@ export function registerRoutes(app: Express) {
       // Create company record
       const company = await storage.createCompany({
         name: companyName,
-        ...companyData
+        ...companyData,
+        age: companyData.age ?? null,
+        size: companyData.size ?? null,
+        website: companyData.website ?? null,
+        ranking: companyData.ranking ?? null,
+        linkedinProminence: companyData.linkedinProminence ?? null,
+        customerCount: companyData.customerCount ?? null,
+        rating: companyData.rating ?? null,
+        services: companyData.services ?? null,
+        validationPoints: companyData.validationPoints ?? null,
+        totalScore: companyData.totalScore ?? null,
+        snapshot: companyData.snapshot ?? null
       });
 
       // Create contact records
+      const validContacts = contacts.filter(contact => contact.name && contact.name !== "Unknown");
       await Promise.all(
-        contacts.map(contact =>
+        validContacts.map(contact =>
           storage.createContact({
             companyId: company.id,
-            ...contact
+            name: contact.name!,
+            role: contact.role ?? null,
+            email: contact.email ?? null,
+            priority: contact.priority ?? null
           })
         )
       );

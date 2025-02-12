@@ -1,5 +1,4 @@
-import { pgTable, text, serial, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import { pgTable, text, serial, integer, jsonb, timestamp, boolean } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 export const companies = pgTable("companies", {
@@ -37,19 +36,40 @@ export const searchApproaches = pgTable("search_approaches", {
   active: boolean("active").default(true)
 });
 
-export const insertCompanySchema = createInsertSchema(companies).omit({ 
-  id: true,
-  createdAt: true 
+// Create Zod schemas for validation
+const companySchema = z.object({
+  name: z.string().min(1, "Company name is required"),
+  age: z.number().nullable(),
+  size: z.number().nullable(),
+  website: z.string().nullable(),
+  ranking: z.number().nullable(),
+  linkedinProminence: z.number().nullable(),
+  customerCount: z.number().nullable(),
+  rating: z.number().nullable(),
+  services: z.array(z.string()).nullable(),
+  validationPoints: z.array(z.string()).nullable(),
+  totalScore: z.number().nullable(),
+  snapshot: z.record(z.unknown()).nullable()
 });
 
-export const insertContactSchema = createInsertSchema(contacts).omit({ 
-  id: true,
-  createdAt: true 
+const contactSchema = z.object({
+  name: z.string().min(1, "Contact name is required"),
+  companyId: z.number(),
+  role: z.string().nullable(),
+  email: z.string().email().nullable(),
+  priority: z.number().min(1).max(3).nullable()
 });
 
-export const insertSearchApproachSchema = createInsertSchema(searchApproaches).omit({
-  id: true
+const searchApproachSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  prompt: z.string().min(1, "Prompt is required"),
+  order: z.number().min(1),
+  active: z.boolean().nullable()
 });
+
+export const insertCompanySchema = companySchema;
+export const insertContactSchema = contactSchema;
+export const insertSearchApproachSchema = searchApproachSchema;
 
 export type Company = typeof companies.$inferSelect;
 export type InsertCompany = z.infer<typeof insertCompanySchema>;

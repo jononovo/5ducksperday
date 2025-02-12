@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { Editor } from "@tinymce/tinymce-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -15,6 +15,7 @@ interface PromptEditorProps {
 export default function PromptEditor({ onAnalyze, isAnalyzing }: PromptEditorProps) {
   const editorRef = useRef<any>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const analyzeMutation = useMutation({
     mutationFn: async (companyName: string) => {
@@ -22,10 +23,12 @@ export default function PromptEditor({ onAnalyze, isAnalyzing }: PromptEditorPro
       return res.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
       toast({
         title: "Analysis Complete",
         description: "Company analysis has been completed successfully.",
       });
+      onAnalyze();
     },
     onError: (error) => {
       toast({
@@ -38,10 +41,18 @@ export default function PromptEditor({ onAnalyze, isAnalyzing }: PromptEditorPro
 
   const handleAnalyze = () => {
     if (!editorRef.current) return;
-    
+
     const content = editorRef.current.getContent();
-    onAnalyze();
-    analyzeMutation.mutate(content);
+    const plainText = content.replace(/<[^>]+>/g, '').trim();
+    if (!plainText) {
+      toast({
+        title: "Empty Input",
+        description: "Please enter a company name to analyze.",
+        variant: "destructive",
+      });
+      return;
+    }
+    analyzeMutation.mutate(plainText);
   };
 
   return (
@@ -52,14 +63,15 @@ export default function PromptEditor({ onAnalyze, isAnalyzing }: PromptEditorPro
           height: 300,
           menubar: false,
           plugins: [
-            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'advlist', 'autolink', 'lists', 'link', 'charmap', 'preview',
             'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+            'insertdatetime', 'media', 'table', 'help', 'wordcount'
           ],
           toolbar: 'undo redo | blocks | ' +
             'bold italic forecolor | alignleft aligncenter ' +
             'alignright alignjustify | bullist numlist outdent indent | ' +
             'removeformat | help',
+          placeholder: 'Enter a company name to analyze...',
         }}
       />
       <div className="mt-4 flex justify-end">

@@ -15,7 +15,7 @@ export interface IStorage {
   getContact(id: number): Promise<Contact | undefined>;
   listContactsByCompany(companyId: number): Promise<Contact[]>;
   createContact(contact: InsertContact): Promise<Contact>;
-  
+
   // Search Approaches
   getSearchApproach(id: number): Promise<SearchApproach | undefined>;
   listSearchApproaches(): Promise<SearchApproach[]>;
@@ -34,21 +34,21 @@ export class MemStorage implements IStorage {
     this.contacts = new Map();
     this.searchApproaches = new Map();
     this.currentIds = { companies: 1, contacts: 1, searchApproaches: 1 };
-    
+
     // Initialize default search approaches
     this.initializeSearchApproaches();
   }
 
   private async initializeSearchApproaches() {
     const defaultApproaches = [
-      { name: "Company Overview", prompt: "Provide a detailed overview of [COMPANY]", order: 1, active: true },
-      { name: "Leadership Analysis", prompt: "List the key leadership team members of [COMPANY]", order: 2, active: true },
-      { name: "Contact Discovery", prompt: "Find contact information for leadership at [COMPANY]", order: 3, active: true },
-      { name: "Market Position", prompt: "Analyze market position and success metrics for [COMPANY]", order: 4, active: true },
-      { name: "Customer Base", prompt: "Research customer base and market reach of [COMPANY]", order: 5, active: true },
-      { name: "Online Presence", prompt: "Evaluate online presence and website metrics for [COMPANY]", order: 6, active: true },
-      { name: "Services Analysis", prompt: "Detail the services and products offered by [COMPANY]", order: 7, active: true },
-      { name: "Competitive Analysis", prompt: "Compare [COMPANY] with similar companies in the market", order: 8, active: true }
+      { name: "Company Overview", prompt: "Provide a detailed overview of [COMPANY], including its age, size, and main business focus.", order: 1, active: true },
+      { name: "Leadership Analysis", prompt: "List and analyze the key leadership team members of [COMPANY], including their roles and experience.", order: 2, active: true },
+      { name: "Contact Discovery", prompt: "Find contact information and email addresses for leadership and key decision makers at [COMPANY].", order: 3, active: true },
+      { name: "Market Position", prompt: "Analyze the market position, success metrics, and industry standing of [COMPANY].", order: 4, active: true },
+      { name: "Customer Base", prompt: "Research and describe the customer base, target market, and market reach of [COMPANY].", order: 5, active: true },
+      { name: "Online Presence", prompt: "Evaluate the online presence, website metrics, and digital footprint of [COMPANY].", order: 6, active: true },
+      { name: "Services Analysis", prompt: "Detail the educational services, programs, and products offered by [COMPANY], particularly in coding and STEM education.", order: 7, active: true },
+      { name: "Competitive Analysis", prompt: "Compare [COMPANY] with similar educational companies in the market, focusing on their unique selling propositions.", order: 8, active: true }
     ];
 
     for (const approach of defaultApproaches) {
@@ -67,7 +67,11 @@ export class MemStorage implements IStorage {
 
   async createCompany(company: InsertCompany): Promise<Company> {
     const id = this.currentIds.companies++;
-    const newCompany = { ...company, id, createdAt: new Date() };
+    const newCompany: Company = { 
+      id, 
+      ...company, 
+      createdAt: new Date()
+    };
     this.companies.set(id, newCompany);
     return newCompany;
   }
@@ -75,7 +79,7 @@ export class MemStorage implements IStorage {
   async updateCompany(id: number, updates: Partial<Company>): Promise<Company | undefined> {
     const company = this.companies.get(id);
     if (!company) return undefined;
-    
+
     const updatedCompany = { ...company, ...updates };
     this.companies.set(id, updatedCompany);
     return updatedCompany;
@@ -93,7 +97,11 @@ export class MemStorage implements IStorage {
 
   async createContact(contact: InsertContact): Promise<Contact> {
     const id = this.currentIds.contacts++;
-    const newContact = { ...contact, id, createdAt: new Date() };
+    const newContact: Contact = {
+      id,
+      ...contact,
+      createdAt: new Date()
+    };
     this.contacts.set(id, newContact);
     return newContact;
   }
@@ -110,7 +118,7 @@ export class MemStorage implements IStorage {
 
   async createSearchApproach(approach: InsertSearchApproach): Promise<SearchApproach> {
     const id = this.currentIds.searchApproaches++;
-    const newApproach = { ...approach, id };
+    const newApproach: SearchApproach = { id, ...approach };
     this.searchApproaches.set(id, newApproach);
     return newApproach;
   }
@@ -118,7 +126,7 @@ export class MemStorage implements IStorage {
   async updateSearchApproach(id: number, updates: Partial<SearchApproach>): Promise<SearchApproach | undefined> {
     const approach = this.searchApproaches.get(id);
     if (!approach) return undefined;
-    
+
     const updatedApproach = { ...approach, ...updates };
     this.searchApproaches.set(id, updatedApproach);
     return updatedApproach;

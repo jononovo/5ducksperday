@@ -1,4 +1,4 @@
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -36,12 +36,11 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "wouter";
 import type { Company, Contact } from "@shared/schema";
 
 export default function CompanyDetails() {
   const [, params] = useRoute("/companies/:id");
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
 
   const { data: company } = useQuery<Company>({
     queryKey: [`/api/companies/${params?.id}`],
@@ -109,9 +108,9 @@ export default function CompanyDetails() {
               </div>
               <Badge 
                 className="text-lg py-2"
-                variant={company.totalScore > 70 ? "default" : "secondary"}
+                variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}
               >
-                Score: {company.totalScore}
+                Score: {company.totalScore ?? 'N/A'}
               </Badge>
             </div>
           </CardHeader>
