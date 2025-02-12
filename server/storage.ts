@@ -71,6 +71,9 @@ export class DatabaseStorage implements IStorage {
 
   // Campaigns
   async getCampaign(id: number): Promise<Campaign | undefined> {
+    if (isNaN(id)) {
+      return undefined;
+    }
     const [campaign] = await db.select().from(campaigns).where(eq(campaigns.id, id));
     return campaign;
   }
@@ -98,15 +101,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async addListsToCampaign(campaignId: number, listIds: number[]): Promise<CampaignList[]> {
-    const campaignLists = listIds.map(listId => ({
+    const values = listIds.map(listId => ({
       campaignId,
-      listId
+      listId,
     }));
 
-    return db.insert(campaignLists).values(campaignLists).returning();
+    return db.insert(campaignLists).values(values).returning();
   }
 
   async getListsByCampaign(campaignId: number): Promise<List[]> {
+    if (isNaN(campaignId)) {
+      return [];
+    }
+
     return db
       .select({
         id: lists.id,
@@ -121,6 +128,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCampaignStats(campaignId: number): Promise<{ totalLists: number; totalCompanies: number; }> {
+    if (isNaN(campaignId)) {
+      return { totalLists: 0, totalCompanies: 0 };
+    }
+
     // Get total lists
     const [listsResult] = await db
       .select({ count: sql<number>`COUNT(*)` })
@@ -143,6 +154,9 @@ export class DatabaseStorage implements IStorage {
 
   // Companies
   async getCompany(id: number): Promise<Company | undefined> {
+    if (isNaN(id)) {
+      return undefined;
+    }
     const [company] = await db.select().from(companies).where(eq(companies.id, id));
     return company;
   }
@@ -152,6 +166,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async listCompaniesByList(listId: number): Promise<Company[]> {
+    if (isNaN(listId)) {
+      return [];
+    }
     return db.select().from(companies).where(eq(companies.listId, listId));
   }
 
@@ -161,6 +178,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCompany(id: number, updates: Partial<Company>): Promise<Company | undefined> {
+    if (isNaN(id)) {
+      return undefined;
+    }
     const [updated] = await db
       .update(companies)
       .set(updates)
@@ -170,6 +190,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCompanyList(companyId: number, listId: number): Promise<Company | undefined> {
+    if (isNaN(companyId) || isNaN(listId)) {
+      return undefined;
+    }
     const [updated] = await db
       .update(companies)
       .set({ listId })
@@ -180,11 +203,17 @@ export class DatabaseStorage implements IStorage {
 
   // Contacts
   async getContact(id: number): Promise<Contact | undefined> {
+    if (isNaN(id)) {
+      return undefined;
+    }
     const [contact] = await db.select().from(contacts).where(eq(contacts.id, id));
     return contact;
   }
 
   async listContactsByCompany(companyId: number): Promise<Contact[]> {
+    if (isNaN(companyId)) {
+      return [];
+    }
     return db.select().from(contacts).where(eq(contacts.companyId, companyId));
   }
 
@@ -195,6 +224,9 @@ export class DatabaseStorage implements IStorage {
 
   // Search Approaches
   async getSearchApproach(id: number): Promise<SearchApproach | undefined> {
+    if (isNaN(id)) {
+      return undefined;
+    }
     const [approach] = await db.select().from(searchApproaches).where(eq(searchApproaches.id, id));
     return approach;
   }
@@ -209,6 +241,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSearchApproach(id: number, updates: Partial<SearchApproach>): Promise<SearchApproach | undefined> {
+    if (isNaN(id)) {
+      return undefined;
+    }
     const [updated] = await db
       .update(searchApproaches)
       .set(updates)
