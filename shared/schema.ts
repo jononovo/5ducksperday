@@ -1,9 +1,18 @@
 import { pgTable, text, serial, integer, jsonb, timestamp, boolean } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
+export const lists = pgTable("lists", {
+  id: serial("id").primaryKey(),
+  listId: integer("list_id").notNull(),  // This will start from 1001
+  prompt: text("prompt").notNull(),
+  resultCount: integer("result_count").notNull(),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 export const companies = pgTable("companies", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  listId: integer("list_id"),  // Reference to the list this company belongs to
   age: integer("age"),
   size: integer("size"),
   website: text("website"),
@@ -38,8 +47,15 @@ export const searchApproaches = pgTable("search_approaches", {
 });
 
 // Create Zod schemas for validation
+const listSchema = z.object({
+  listId: z.number().min(1001),
+  prompt: z.string().min(1, "Search prompt is required"),
+  resultCount: z.number().min(0)
+});
+
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required"),
+  listId: z.number().nullable(),
   age: z.number().nullable(),
   size: z.number().nullable(),
   website: z.string().nullable(),
@@ -69,10 +85,13 @@ const searchApproachSchema = z.object({
   active: z.boolean().nullable()
 });
 
+export const insertListSchema = listSchema;
 export const insertCompanySchema = companySchema;
 export const insertContactSchema = contactSchema;
 export const insertSearchApproachSchema = searchApproachSchema;
 
+export type List = typeof lists.$inferSelect;
+export type InsertList = z.infer<typeof insertListSchema>;
 export type Company = typeof companies.$inferSelect;
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
 export type Contact = typeof contacts.$inferSelect;

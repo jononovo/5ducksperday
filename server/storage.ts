@@ -2,17 +2,26 @@ import {
   type Company, type InsertCompany,
   type Contact, type InsertContact,
   type SearchApproach, type InsertSearchApproach,
-  companies, contacts, searchApproaches
+  type List, type InsertList,
+  companies, contacts, searchApproaches, lists
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, max } from "drizzle-orm";
 
 export interface IStorage {
+  // Lists
+  getList(listId: number): Promise<List | undefined>;
+  listLists(): Promise<List[]>;
+  createList(list: InsertList): Promise<List>;
+  getNextListId(): Promise<number>;
+
   // Companies
   getCompany(id: number): Promise<Company | undefined>;
   listCompanies(): Promise<Company[]>;
+  listCompaniesByList(listId: number): Promise<Company[]>;
   createCompany(company: InsertCompany): Promise<Company>;
   updateCompany(id: number, company: Partial<Company>): Promise<Company | undefined>;
+  updateCompanyList(companyId: number, listId: number): Promise<Company | undefined>;
 
   // Contacts
   getContact(id: number): Promise<Contact | undefined>;
@@ -27,6 +36,28 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // Lists
+  async getList(listId: number): Promise<List | undefined> {
+    const [list] = await db.select().from(lists).where(eq(lists.listId, listId));
+    return list;
+  }
+
+  async listLists(): Promise<List[]> {
+    return db.select().from(lists).orderBy(lists.listId);
+  }
+
+  async createList(list: InsertList): Promise<List> {
+    const [created] = await db.insert(lists).values(list).returning();
+    return created;
+  }
+
+  async getNextListId(): Promise<number> {
+    const [result] = await db
+      .select({ maxListId: max(lists.listId) })
+      .from(lists);
+    return (result?.maxListId || 1000) + 1;
+  }
+
   // Companies
   async getCompany(id: number): Promise<Company | undefined> {
     const [company] = await db.select().from(companies).where(eq(companies.id, id));
@@ -35,6 +66,10 @@ export class DatabaseStorage implements IStorage {
 
   async listCompanies(): Promise<Company[]> {
     return db.select().from(companies);
+  }
+
+  async listCompaniesByList(listId: number): Promise<Company[]> {
+    return db.select().from(companies).where(eq(companies.listId, listId));
   }
 
   async createCompany(company: InsertCompany): Promise<Company> {
@@ -47,6 +82,15 @@ export class DatabaseStorage implements IStorage {
       .update(companies)
       .set(updates)
       .where(eq(companies.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateCompanyList(companyId: number, listId: number): Promise<Company | undefined> {
+    const [updated] = await db
+      .update(companies)
+      .set({ listId })
+      .where(eq(companies.id, companyId))
       .returning();
     return updated;
   }

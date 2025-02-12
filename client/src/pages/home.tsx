@@ -1,25 +1,72 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
 import SearchApproaches from "@/components/search-approaches";
-import { Search } from "lucide-react";
+import { ListPlus, Search } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-  const { data: companies = [] } = useQuery({
-    queryKey: ["/api/companies"],
-  });
+  const [currentQuery, setCurrentQuery] = useState<string | null>(null);
+  const [currentResults, setCurrentResults] = useState<any[] | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: searchApproaches = [] } = useQuery({
     queryKey: ["/api/search-approaches"],
   });
 
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentQuery || !currentResults) return;
+      const res = await apiRequest("POST", "/api/lists", {
+        companies: currentResults,
+        prompt: currentQuery
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
+      toast({
+        title: "List Saved",
+        description: "The search results have been saved as a new list.",
+      });
+      setIsSaved(true);
+    },
+    onError: (error) => {
+      toast({
+        title: "Save Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleAnalysisComplete = () => {
     setIsAnalyzing(false);
+  };
+
+  const handleSearchResults = (query: string, results: any[]) => {
+    setCurrentQuery(query);
+    setCurrentResults(results);
+    setIsSaved(false);
+  };
+
+  const handleSaveList = () => {
+    if (!currentResults || !currentQuery) {
+      toast({
+        title: "Cannot Save",
+        description: "Please perform a search first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    saveMutation.mutate();
   };
 
   return (
@@ -33,6 +80,7 @@ export default function Home() {
             <PromptEditor 
               onAnalyze={() => setIsAnalyzing(true)}
               onComplete={handleAnalysisComplete}
+              onSearchResults={handleSearchResults}
               isAnalyzing={isAnalyzing}
             />
           </CardContent>
@@ -53,10 +101,27 @@ export default function Home() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Companies Analysis</CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle>Companies Analysis</CardTitle>
+                {currentResults && (
+                  <Button
+                    variant="outline"
+                    onClick={handleSaveList}
+                    disabled={isSaved || saveMutation.isPending}
+                  >
+                    <ListPlus className="mr-2 h-4 w-4" />
+                    {isSaved ? "Saved" : "Save as List"}
+                  </Button>
+                )}
+              </div>
+              {currentQuery && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Search: {currentQuery}
+                </p>
+              )}
             </CardHeader>
             <CardContent>
-              <CompanyTable companies={companies} />
+              <CompanyTable companies={currentResults || []} />
             </CardContent>
           </Card>
         </div>

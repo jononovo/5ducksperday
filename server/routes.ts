@@ -2,10 +2,56 @@ import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
 import { searchCompanies, analyzeCompany, parseCompanyData, extractContacts } from "./lib/perplexity";
-import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema } from "@shared/schema";
+import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express) {
   const httpServer = createServer(app);
+
+  // Lists
+  app.get("/api/lists", async (_req, res) => {
+    const lists = await storage.listLists();
+    res.json(lists);
+  });
+
+  app.get("/api/lists/:listId/companies", async (req, res) => {
+    const companies = await storage.listCompaniesByList(parseInt(req.params.listId));
+    res.json(companies);
+  });
+
+  app.post("/api/lists", async (req, res) => {
+    const { companies, prompt } = req.body;
+
+    if (!Array.isArray(companies) || !prompt || typeof prompt !== 'string') {
+      res.status(400).json({ message: "Invalid request: companies must be an array and prompt must be a string" });
+      return;
+    }
+
+    try {
+      // Get next available list ID (starting from 1001)
+      const listId = await storage.getNextListId();
+
+      // Create the list
+      const list = await storage.createList({
+        listId,
+        prompt,
+        resultCount: companies.length
+      });
+
+      // Update companies with the list ID
+      await Promise.all(
+        companies.map(company => 
+          storage.updateCompanyList(company.id, listId)
+        )
+      );
+
+      res.json(list);
+    } catch (error) {
+      console.error('List creation error:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "An unexpected error occurred while creating the list"
+      });
+    }
+  });
 
   // Companies
   app.get("/api/companies", async (_req, res) => {
@@ -65,6 +111,7 @@ export function registerRoutes(app: Express) {
           const company = await storage.createCompany({
             name: companyName,
             ...companyData,
+            listId: null,
             age: companyData.age ?? null,
             size: companyData.size ?? null,
             website: companyData.website ?? null,
@@ -96,7 +143,10 @@ export function registerRoutes(app: Express) {
         })
       );
 
-      res.json(companies);
+      res.json({
+        companies,
+        query,
+      });
     } catch (error) {
       console.error('Company search error:', error);
       res.status(500).json({ 

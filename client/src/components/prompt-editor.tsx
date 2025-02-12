@@ -10,10 +10,11 @@ import { Loader2, Search } from "lucide-react";
 interface PromptEditorProps {
   onAnalyze: () => void;
   onComplete: () => void;
+  onSearchResults: (query: string, results: any[]) => void;
   isAnalyzing: boolean;
 }
 
-export default function PromptEditor({ onAnalyze, onComplete, isAnalyzing }: PromptEditorProps) {
+export default function PromptEditor({ onAnalyze, onComplete, onSearchResults, isAnalyzing }: PromptEditorProps) {
   const editorRef = useRef<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -23,8 +24,9 @@ export default function PromptEditor({ onAnalyze, onComplete, isAnalyzing }: Pro
       const res = await apiRequest("POST", "/api/companies/search", { query });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
+      onSearchResults(data.query, data.companies);
       toast({
         title: "Search Complete",
         description: "Company analysis has been completed successfully.",
