@@ -11,14 +11,45 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { List, Company } from "@shared/schema";
-import { useState } from "react";
+import type { List, Company, Contact } from "@shared/schema";
+import { useState, useEffect } from "react";
+
+// Define interface for the saved state
+interface SavedOutreachState {
+  selectedListId?: string;
+  selectedContactId: number | null;
+  emailPrompt: string;
+  emailContent: string;
+}
 
 export default function Outreach() {
   const [selectedListId, setSelectedListId] = useState<string>();
   const [emailPrompt, setEmailPrompt] = useState("");
   const [emailContent, setEmailContent] = useState("");
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
+
+  // Load state from localStorage on component mount
+  useEffect(() => {
+    const savedState = localStorage.getItem('outreachState');
+    if (savedState) {
+      const parsed = JSON.parse(savedState) as SavedOutreachState;
+      setSelectedListId(parsed.selectedListId);
+      setSelectedContactId(parsed.selectedContactId);
+      setEmailPrompt(parsed.emailPrompt);
+      setEmailContent(parsed.emailContent);
+    }
+  }, []);
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    const stateToSave: SavedOutreachState = {
+      selectedListId,
+      selectedContactId,
+      emailPrompt,
+      emailContent
+    };
+    localStorage.setItem('outreachState', JSON.stringify(stateToSave));
+  }, [selectedListId, selectedContactId, emailPrompt, emailContent]);
 
   const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
@@ -32,14 +63,14 @@ export default function Outreach() {
   // Get the first company from the list
   const currentCompany = companies[0];
 
-  const { data: contacts = [] } = useQuery({
+  const { data: contacts = [] } = useQuery<Contact[]>({
     queryKey: [`/api/companies/${currentCompany?.id}/contacts`],
     enabled: !!currentCompany?.id,
   });
 
   // Get top 3 leadership contacts
   const topContacts = contacts
-    .filter(contact => contact.priority === 1 || contact.priority === 2)
+    ?.filter(contact => contact.priority === 1 || contact.priority === 2)
     .slice(0, 3);
 
   const handleSaveEmail = () => {
@@ -86,7 +117,7 @@ export default function Outreach() {
               </Select>
 
               {/* Key Members Section */}
-              {topContacts.length > 0 && (
+              {topContacts && topContacts.length > 0 && (
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold mb-4">Key Members</h3>
                   <div className="space-y-2">
