@@ -1,0 +1,52 @@
+Create a tool that 
+
+1.takes a prompt.
+
+I am offering a coding platform white label solution. 
+With this company can offer our existing or new coding lessons to the clientele under their own brand.
+
+I need the top 10 potential business fuck off customers in Chile who may want to buy to augment their educational business:
+
+Target, medium sized private Coding, Stem, Steam, and other K-12 educational companies in the US .
+
+2. searches 8 different approaches around the company to
+A. Enrich the company snapshot (short list of data points)
+B. Find the Leadership team members.
+C. Find the email of leadership team members.
+D. Alternatively, either a general contact email, or an email of a related person in the company.
+
+
+Each of the 8 diffeernt search approaches should be an editable prompt via the workflow interface.
+
+3. Compile the results into a snapshot/list of the company with these data points:
+
+- Age of company
+- Size of company
+- relative success
+- ranking of website
+- prominence of LI profiles of leadership
+- number of customers or probably success of company
+- online ratings and reviews
+- services offered
+- summary of key points that validate it as target.
+- Final Total Customer Probability Score 
+
+4. Filter the top 50 results in order of probability of success using a ranking system.
+ - Put a weight to each element within the business snapshop . Resulting in a final score for each business.
+ 
+5. Add the top 1- 3 contacts within each target business.
+ - Populate an email or suggested contact method for the suggested priority decision-maker.
+ -  If an email is available for a certain person, but not another, prioritize the one with the email available.
+ 
+Make sure all this is entered into a simple, and easy to use table ( or DB, but the DB must be easily viewable on a webpage per Target company or even as a whole.) Perhaps even google sheet could be used for this, but it may be easier to host a simple table elsewhere.
+
+Use n8n for the workflow management.
+
+
+
+
+
+
+Use n8n for workflow.
+
+Use tinyMCE for the editor
