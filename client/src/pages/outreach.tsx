@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { List, Company, Contact } from "@shared/schema";
 import { useState, useEffect } from "react";
+import QuickTemplates from "@/components/quick-templates";
+import type { EmailTemplate } from "@shared/schema";
 
 // Define interface for the saved state
 interface SavedOutreachState {
@@ -211,6 +213,14 @@ export default function Outreach() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Quick Templates Section */}
+              <QuickTemplates
+                onSelectTemplate={(template: EmailTemplate) => {
+                  setEmailPrompt(template.description || "");
+                  setEmailContent(template.content);
+                }}
+              />
+
               {/* Email Prompt Field */}
               <div>
                 <label className="text-sm font-medium mb-2 block">

@@ -65,6 +65,18 @@ export const campaignLists = pgTable("campaign_lists", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// New table for email templates
+export const emailTemplates = pgTable("email_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  description: text("description"),
+  category: text("category").default('general'),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 // Create Zod schemas for validation
 const listSchema = z.object({
   listId: z.number().min(1001),
@@ -119,12 +131,22 @@ const campaignListSchema = z.object({
   listId: z.number()
 });
 
+// New schema for email templates
+const emailTemplateSchema = z.object({
+  name: z.string().min(1, "Template name is required"),
+  subject: z.string().min(1, "Subject is required"),
+  content: z.string().min(1, "Content is required"),
+  description: z.string().optional(),
+  category: z.string().default('general')
+});
+
 export const insertListSchema = listSchema;
 export const insertCompanySchema = companySchema;
 export const insertContactSchema = contactSchema;
 export const insertSearchApproachSchema = searchApproachSchema;
 export const insertCampaignSchema = campaignSchema;
 export const insertCampaignListSchema = campaignListSchema;
+export const insertEmailTemplateSchema = emailTemplateSchema;
 
 export type List = typeof lists.$inferSelect;
 export type InsertList = z.infer<typeof insertListSchema>;
@@ -138,3 +160,5 @@ export type Campaign = typeof campaigns.$inferSelect;
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 export type CampaignList = typeof campaignLists.$inferSelect;
 export type InsertCampaignList = z.infer<typeof insertCampaignListSchema>;
+export type EmailTemplate = typeof emailTemplates.$inferSelect;
+export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;

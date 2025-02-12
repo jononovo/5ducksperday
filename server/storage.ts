@@ -5,8 +5,9 @@ import {
   type List, type InsertList,
   type Campaign, type InsertCampaign,
   type CampaignList, type InsertCampaignList,
+  type EmailTemplate, type InsertEmailTemplate,
   companies, contacts, searchApproaches, lists,
-  campaigns, campaignLists
+  campaigns, campaignLists, emailTemplates
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, max } from "drizzle-orm";
@@ -49,6 +50,13 @@ export interface IStorage {
   removeListFromCampaign(campaignId: number, listId: number): Promise<void>;
   getListsByCampaign(campaignId: number): Promise<List[]>;
   updateCampaignTotalCompanies(campaignId: number): Promise<void>;
+
+  // Email Templates
+  getEmailTemplate(id: number): Promise<EmailTemplate | undefined>;
+  listEmailTemplates(): Promise<EmailTemplate[]>;
+  createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate>;
+  updateEmailTemplate(id: number, template: Partial<EmailTemplate>): Promise<EmailTemplate | undefined>;
+  deleteEmailTemplate(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -222,6 +230,34 @@ export class DatabaseStorage implements IStorage {
       .where(eq(campaigns.campaignId, campaignId));
   }
 
+  // Email Templates
+  async getEmailTemplate(id: number): Promise<EmailTemplate | undefined> {
+    const [template] = await db.select().from(emailTemplates).where(eq(emailTemplates.id, id));
+    return template;
+  }
+
+  async listEmailTemplates(): Promise<EmailTemplate[]> {
+    return db.select().from(emailTemplates).orderBy(emailTemplates.createdAt);
+  }
+
+  async createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate> {
+    const [created] = await db.insert(emailTemplates).values(template).returning();
+    return created;
+  }
+
+  async updateEmailTemplate(id: number, updates: Partial<EmailTemplate>): Promise<EmailTemplate | undefined> {
+    const [updated] = await db
+      .update(emailTemplates)
+      .set(updates)
+      .where(eq(emailTemplates.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteEmailTemplate(id: number): Promise<void> {
+    await db.delete(emailTemplates).where(eq(emailTemplates.id, id));
+  }
+
   // Initialize default search approaches if none exist
   async initializeDefaultSearchApproaches() {
     const existing = await this.listSearchApproaches();
@@ -243,9 +279,46 @@ export class DatabaseStorage implements IStorage {
       }
     }
   }
+
+  // Initialize default email templates if none exist
+  async initializeDefaultEmailTemplates() {
+    const existing = await this.listEmailTemplates();
+    if (existing.length === 0) {
+      const defaultTemplates = [
+        {
+          name: "Professional Introduction",
+          subject: "Exploring Partnership Opportunities with [Company]",
+          content: "Dear [Name],\n\nI hope this email finds you well. I came across [Company] and was impressed by your work in [Industry]. I believe there might be some interesting opportunities for collaboration between our organizations.\n\nWould you be open to a brief conversation to explore potential synergies?\n\nBest regards,\n[Your Name]",
+          description: "A professional first contact template",
+          category: "outreach"
+        },
+        {
+          name: "Follow-up",
+          subject: "Following up on our previous conversation",
+          content: "Hi [Name],\n\nI wanted to follow up on our previous conversation about [Topic]. Have you had a chance to review the information I shared?\n\nI'm happy to provide any additional details or address any questions you might have.\n\nBest regards,\n[Your Name]",
+          description: "A gentle follow-up template",
+          category: "follow-up"
+        },
+        {
+          name: "Product Demo Request",
+          subject: "Quick demo of our solution for [Company]",
+          content: "Hello [Name],\n\nI'd love to show you how our solution could help [Company] with [specific pain point]. Would you be available for a 15-minute demo this week?\n\nI can be flexible with timing to accommodate your schedule.\n\nBest regards,\n[Your Name]",
+          description: "Template for requesting a product demo",
+          category: "sales"
+        }
+      ];
+
+      for (const template of defaultTemplates) {
+        await this.createEmailTemplate(template);
+      }
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
 
-// Initialize default search approaches
-storage.initializeDefaultSearchApproaches().catch(console.error);
+// Initialize default data
+Promise.all([
+  storage.initializeDefaultSearchApproaches(),
+  storage.initializeDefaultEmailTemplates()
+]).catch(console.error);
