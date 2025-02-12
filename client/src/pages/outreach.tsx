@@ -8,12 +8,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { List } from "@shared/schema";
+import type { List, Company } from "@shared/schema";
+import { useState } from "react";
 
 export default function Outreach() {
+  const [selectedListId, setSelectedListId] = useState<string>();
+
   const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
   });
+
+  const { data: companies = [] } = useQuery<Company[]>({
+    queryKey: ["/api/lists", selectedListId, "companies"],
+    enabled: !!selectedListId,
+  });
+
+  // Get the first company from the list
+  const currentCompany = companies[0];
 
   return (
     <div className="container mx-auto py-8">
@@ -28,7 +39,10 @@ export default function Outreach() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Select>
+              <Select
+                value={selectedListId}
+                onValueChange={setSelectedListId}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a list" />
                 </SelectTrigger>
@@ -45,9 +59,42 @@ export default function Outreach() {
                 <h3 className="text-lg font-semibold mb-4">Company Summary</h3>
                 <Card>
                   <CardContent className="pt-6">
-                    <p className="text-muted-foreground">
-                      Select a list to view company details
-                    </p>
+                    {currentCompany ? (
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-medium">Name</h4>
+                          <p>{currentCompany.name}</p>
+                        </div>
+                        {currentCompany.website && (
+                          <div>
+                            <h4 className="font-medium">Website</h4>
+                            <p>{currentCompany.website}</p>
+                          </div>
+                        )}
+                        {currentCompany.size && (
+                          <div>
+                            <h4 className="font-medium">Company Size</h4>
+                            <p>{currentCompany.size} employees</p>
+                          </div>
+                        )}
+                        {currentCompany.services && currentCompany.services.length > 0 && (
+                          <div>
+                            <h4 className="font-medium">Services</h4>
+                            <ul className="list-disc pl-4">
+                              {currentCompany.services.map((service, index) => (
+                                <li key={index}>{service}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">
+                        {selectedListId 
+                          ? "No companies found in this list"
+                          : "Select a list to view company details"}
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </div>
