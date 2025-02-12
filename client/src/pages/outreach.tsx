@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { List, Company } from "@shared/schema";
 import { useState } from "react";
 
@@ -17,6 +18,7 @@ export default function Outreach() {
   const [selectedListId, setSelectedListId] = useState<string>();
   const [emailPrompt, setEmailPrompt] = useState("");
   const [emailContent, setEmailContent] = useState("");
+  const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
 
   const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
@@ -29,6 +31,16 @@ export default function Outreach() {
 
   // Get the first company from the list
   const currentCompany = companies[0];
+
+  const { data: contacts = [] } = useQuery({
+    queryKey: [`/api/companies/${currentCompany?.id}/contacts`],
+    enabled: !!currentCompany?.id,
+  });
+
+  // Get top 3 leadership contacts
+  const topContacts = contacts
+    .filter(contact => contact.priority === 1 || contact.priority === 2)
+    .slice(0, 3);
 
   const handleSaveEmail = () => {
     // TODO: Implement save functionality
@@ -72,6 +84,42 @@ export default function Outreach() {
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Key Members Section */}
+              {topContacts.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-4">Key Members</h3>
+                  <div className="space-y-2">
+                    {topContacts.map((contact) => (
+                      <button
+                        key={contact.id}
+                        className={cn(
+                          "w-full text-left p-3 rounded-lg transition-colors",
+                          "hover:bg-accent hover:text-accent-foreground",
+                          selectedContactId === contact.id && "bg-primary text-primary-foreground",
+                          selectedContactId !== contact.id && "bg-card hover:bg-accent"
+                        )}
+                        onClick={() => setSelectedContactId(contact.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">{contact.name}</span>
+                          <span className="text-sm">
+                            Priority {contact.priority}
+                          </span>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {contact.email && (
+                            <span className="block">{contact.email}</span>
+                          )}
+                          {contact.role && (
+                            <span className="block">{contact.role}</span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-4">Company Summary</h3>
