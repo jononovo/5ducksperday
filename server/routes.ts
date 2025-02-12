@@ -212,7 +212,12 @@ export function registerRoutes(app: Express) {
   });
 
   app.post("/api/campaigns", async (req, res) => {
-    const result = insertCampaignSchema.safeParse(req.body);
+    const result = insertCampaignSchema.safeParse({
+      ...req.body,
+      campaignId: 0, 
+      totalCompanies: 0
+    });
+
     if (!result.success) {
       res.status(400).json({ message: "Invalid request body" });
       return;

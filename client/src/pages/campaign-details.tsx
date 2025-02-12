@@ -52,10 +52,14 @@ export default function CampaignDetails() {
 
   const saveMutation = useMutation({
     mutationFn: async (data: InsertCampaign) => {
+      const formattedData = {
+        ...data,
+        startDate: data.startDate ? new Date(data.startDate).toISOString() : null
+      };
       const res = await apiRequest(
         "POST",
         `/api/campaigns${isNew ? "" : `/${params?.id}`}`,
-        data
+        formattedData
       );
       return res.json();
     },
@@ -67,7 +71,7 @@ export default function CampaignDetails() {
       });
       navigate("/campaigns");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
         description: error.message,
@@ -143,7 +147,7 @@ export default function CampaignDetails() {
                         type="date"
                         {...field}
                         value={field.value ? format(new Date(field.value), "yyyy-MM-dd") : ""}
-                        onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
+                        onChange={(e) => field.onChange(e.target.value ? e.target.value : null)}
                       />
                     </FormControl>
                     <FormMessage />
