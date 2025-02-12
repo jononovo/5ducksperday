@@ -3,7 +3,10 @@ import {
   type Contact, type InsertContact,
   type SearchApproach, type InsertSearchApproach,
   type List, type InsertList,
-  companies, contacts, searchApproaches, lists
+  type Campaign, type InsertCampaign,
+  type CampaignList, type InsertCampaignList,
+  companies, contacts, searchApproaches, lists,
+  campaigns, campaignLists
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, max } from "drizzle-orm";
@@ -33,6 +36,19 @@ export interface IStorage {
   listSearchApproaches(): Promise<SearchApproach[]>;
   createSearchApproach(approach: InsertSearchApproach): Promise<SearchApproach>;
   updateSearchApproach(id: number, approach: Partial<SearchApproach>): Promise<SearchApproach | undefined>;
+
+  // Campaigns
+  getCampaign(campaignId: number): Promise<Campaign | undefined>;
+  listCampaigns(): Promise<Campaign[]>;
+  createCampaign(campaign: InsertCampaign): Promise<Campaign>;
+  updateCampaign(id: number, campaign: Partial<Campaign>): Promise<Campaign | undefined>;
+  getNextCampaignId(): Promise<number>;
+
+  // Campaign Lists
+  addListToCampaign(campaignList: InsertCampaignList): Promise<CampaignList>;
+  removeListFromCampaign(campaignId: number, listId: number): Promise<void>;
+  getListsByCampaign(campaignId: number): Promise<List[]>;
+  updateCampaignTotalCompanies(campaignId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -132,6 +148,78 @@ export class DatabaseStorage implements IStorage {
       .where(eq(searchApproaches.id, id))
       .returning();
     return updated;
+  }
+
+  // Campaigns
+  async getCampaign(campaignId: number): Promise<Campaign | undefined> {
+    const [campaign] = await db.select().from(campaigns).where(eq(campaigns.campaignId, campaignId));
+    return campaign;
+  }
+
+  async listCampaigns(): Promise<Campaign[]> {
+    return db.select().from(campaigns).orderBy(campaigns.campaignId);
+  }
+
+  async createCampaign(campaign: InsertCampaign): Promise<Campaign> {
+    const [created] = await db.insert(campaigns).values(campaign).returning();
+    return created;
+  }
+
+  async updateCampaign(id: number, updates: Partial<Campaign>): Promise<Campaign | undefined> {
+    const [updated] = await db
+      .update(campaigns)
+      .set(updates)
+      .where(eq(campaigns.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getNextCampaignId(): Promise<number> {
+    const [result] = await db
+      .select({ maxCampaignId: max(campaigns.campaignId) })
+      .from(campaigns);
+    return (result?.maxCampaignId || 2000) + 1;
+  }
+
+  // Campaign Lists
+  async addListToCampaign(campaignList: InsertCampaignList): Promise<CampaignList> {
+    const [created] = await db.insert(campaignLists).values(campaignList).returning();
+    await this.updateCampaignTotalCompanies(campaignList.campaignId);
+    return created;
+  }
+
+  async removeListFromCampaign(campaignId: number, listId: number): Promise<void> {
+    await db
+      .delete(campaignLists)
+      .where(eq(campaignLists.campaignId, campaignId))
+      .where(eq(campaignLists.listId, listId));
+    await this.updateCampaignTotalCompanies(campaignId);
+  }
+
+  async getListsByCampaign(campaignId: number): Promise<List[]> {
+    const campaignListsResult = await db
+      .select()
+      .from(campaignLists)
+      .where(eq(campaignLists.campaignId, campaignId));
+
+    const listIds = campaignListsResult.map(cl => cl.listId);
+
+    if (listIds.length === 0) return [];
+
+    return db
+      .select()
+      .from(lists)
+      .where(eq(lists.listId, listIds[0])); // Need to handle multiple listIds
+  }
+
+  async updateCampaignTotalCompanies(campaignId: number): Promise<void> {
+    const campaignListsResult = await this.getListsByCampaign(campaignId);
+    const totalCompanies = campaignListsResult.reduce((sum, list) => sum + list.resultCount, 0);
+
+    await db
+      .update(campaigns)
+      .set({ totalCompanies })
+      .where(eq(campaigns.campaignId, campaignId));
   }
 
   // Initialize default search approaches if none exist

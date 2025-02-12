@@ -46,6 +46,25 @@ export const searchApproaches = pgTable("search_approaches", {
   active: boolean("active").default(true)
 });
 
+// New tables for campaigns
+export const campaigns = pgTable("campaigns", {
+  id: serial("id").primaryKey(),
+  campaignId: integer("campaign_id").notNull(),  // This will start from 2001
+  name: text("name").notNull(),
+  description: text("description"),
+  status: text("status").default('draft'),  // draft, active, completed, paused
+  startDate: timestamp("start_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  totalCompanies: integer("total_companies").default(0)
+});
+
+export const campaignLists = pgTable("campaign_lists", {
+  id: serial("id").primaryKey(),
+  campaignId: integer("campaign_id").notNull(),
+  listId: integer("list_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 // Create Zod schemas for validation
 const listSchema = z.object({
   listId: z.number().min(1001),
@@ -85,10 +104,27 @@ const searchApproachSchema = z.object({
   active: z.boolean().nullable()
 });
 
+// New schemas for campaigns
+const campaignSchema = z.object({
+  campaignId: z.number().min(2001),
+  name: z.string().min(1, "Campaign name is required"),
+  description: z.string().nullable(),
+  status: z.enum(['draft', 'active', 'completed', 'paused']).default('draft'),
+  startDate: z.date().nullable(),
+  totalCompanies: z.number().default(0)
+});
+
+const campaignListSchema = z.object({
+  campaignId: z.number(),
+  listId: z.number()
+});
+
 export const insertListSchema = listSchema;
 export const insertCompanySchema = companySchema;
 export const insertContactSchema = contactSchema;
 export const insertSearchApproachSchema = searchApproachSchema;
+export const insertCampaignSchema = campaignSchema;
+export const insertCampaignListSchema = campaignListSchema;
 
 export type List = typeof lists.$inferSelect;
 export type InsertList = z.infer<typeof insertListSchema>;
@@ -98,3 +134,7 @@ export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
 export type SearchApproach = typeof searchApproaches.$inferSelect;
 export type InsertSearchApproach = z.infer<typeof insertSearchApproachSchema>;
+export type Campaign = typeof campaigns.$inferSelect;
+export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
+export type CampaignList = typeof campaignLists.$inferSelect;
+export type InsertCampaignList = z.infer<typeof insertCampaignListSchema>;

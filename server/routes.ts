@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
 import { searchCompanies, analyzeCompany, parseCompanyData, extractContacts } from "./lib/perplexity";
-import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema } from "@shared/schema";
+import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -190,6 +190,67 @@ export function registerRoutes(app: Express) {
 
     if (!updated) {
       res.status(404).json({ message: "Search approach not found" });
+      return;
+    }
+
+    res.json(updated);
+  });
+
+  // Campaigns
+  app.get("/api/campaigns", async (_req, res) => {
+    const campaigns = await storage.listCampaigns();
+    res.json(campaigns);
+  });
+
+  app.get("/api/campaigns/:campaignId", async (req, res) => {
+    const campaign = await storage.getCampaign(parseInt(req.params.campaignId));
+    if (!campaign) {
+      res.status(404).json({ message: "Campaign not found" });
+      return;
+    }
+    res.json(campaign);
+  });
+
+  app.post("/api/campaigns", async (req, res) => {
+    const result = insertCampaignSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ message: "Invalid request body" });
+      return;
+    }
+
+    try {
+      // Get next available campaign ID (starting from 2001)
+      const campaignId = await storage.getNextCampaignId();
+
+      // Create the campaign
+      const campaign = await storage.createCampaign({
+        ...result.data,
+        campaignId
+      });
+
+      res.json(campaign);
+    } catch (error) {
+      console.error('Campaign creation error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred while creating the campaign"
+      });
+    }
+  });
+
+  app.patch("/api/campaigns/:campaignId", async (req, res) => {
+    const result = insertCampaignSchema.partial().safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ message: "Invalid request body" });
+      return;
+    }
+
+    const updated = await storage.updateCampaign(
+      parseInt(req.params.campaignId),
+      result.data
+    );
+
+    if (!updated) {
+      res.status(404).json({ message: "Campaign not found" });
       return;
     }
 
