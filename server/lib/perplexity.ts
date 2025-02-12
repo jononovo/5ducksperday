@@ -119,7 +119,7 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       }
     }
 
-    // Rest of the parsing logic remains unchanged
+    // Rest of the parsing logic 
     if (result.includes("employees") || result.includes("staff")) {
       const sizeMatch = result.match(/(\d+)\s*(employees|staff)/i);
       if (sizeMatch) {
@@ -177,22 +177,101 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
 }
 
 export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
-  const contacts: Partial<Contact>[] = [];
+  const contactMap = new Map<string, Partial<Contact> & { score: number }>();
+
+  // Leadership roles with their importance scores
+  const leadershipRoles = {
+    'CEO': 10,
+    'Chief Executive Officer': 10,
+    'Founder': 9,
+    'Co-Founder': 9,
+    'CTO': 8,
+    'Chief Technology Officer': 8,
+    'Director': 7,
+    'Managing Director': 7,
+    'VP': 6,
+    'Vice President': 6,
+    'Head of': 5,
+    'Manager': 4
+  };
+
+  const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
+  const nameRegex = /([A-Z][a-z]{1,20}\s+[A-Z][a-z]{1,20}(?:\s+[A-Z][a-z]{1,20})?)/g;
 
   for (const result of analysisResults) {
-    const emailMatches = result.match(/[\w.-]+@[\w.-]+\.\w+/g) || [];
-    const nameMatches = result.match(/([A-Z][a-z]+ [A-Z][a-z]+)/g) || [];
-    const roleMatches = result.match(/(CEO|CTO|Director|Manager|Head of|Founder)/gi) || [];
+    const names = result.match(nameRegex) || [];
+    const emails = result.match(emailRegex) || [];
 
-    for (let i = 0; i < Math.max(emailMatches.length, nameMatches.length); i++) {
-      contacts.push({
-        name: nameMatches[i] || "Unknown",
-        email: emailMatches[i] || null,
-        role: roleMatches[i] || null,
-        priority: i < 3 ? i + 1 : 3
-      });
+    // Extract roles with context
+    const roleMatches = Object.keys(leadershipRoles).flatMap(role => {
+      const regex = new RegExp(`(${role}[\\s-](?:of|at|for)?\\s[\\w\\s&]+)`, 'gi');
+      const matches = result.match(regex) || [];
+      return matches.map(match => ({ role: role, fullContext: match }));
+    });
+
+    for (const name of names) {
+      // Skip common false positives
+      if (
+        name.includes('Company') || 
+        name.includes('Service') || 
+        name.includes('Product') ||
+        name.length > 50
+      ) {
+        continue;
+      }
+
+      // Find closest role mention
+      const nearestRole = roleMatches.find(r => 
+        result.indexOf(r.fullContext) - result.indexOf(name) < 100 && 
+        result.indexOf(r.fullContext) - result.indexOf(name) > -100
+      );
+
+      // Find closest email
+      const nearestEmail = emails.find(email => 
+        result.indexOf(email) - result.indexOf(name) < 100 && 
+        result.indexOf(email) - result.indexOf(name) > -100
+      );
+
+      // Calculate contact score
+      let score = 0;
+      if (nearestRole) {
+        const roleScore = leadershipRoles[nearestRole.role as keyof typeof leadershipRoles] || 0;
+        score += roleScore;
+      }
+      if (nearestEmail) {
+        // Boost score if email contains part of the name (indicating it's likely a real match)
+        const nameParts = name.toLowerCase().split(' ');
+        const emailParts = nearestEmail.toLowerCase().split('@')[0].split(/[.-]/);
+        if (nameParts.some(part => emailParts.some(ep => ep.includes(part)))) {
+          score += 5;
+        }
+        score += 3; // Base score for having any email
+      }
+
+      const contactKey = `${name}-${nearestRole?.role || ''}-${nearestEmail || ''}`;
+
+      if (!contactMap.has(contactKey) || contactMap.get(contactKey)!.score < score) {
+        contactMap.set(contactKey, {
+          name,
+          email: nearestEmail || null,
+          role: nearestRole?.role || null,
+          priority: 3, // Will be adjusted based on ranking
+          score
+        });
+      }
     }
   }
 
-  return contacts;
+  // Convert to array, sort by score, and take top 5
+  const sortedContacts = Array.from(contactMap.values())
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5)
+    .map((contact, index) => ({
+      name: contact.name,
+      email: contact.email,
+      role: contact.role,
+      priority: index < 2 ? 1 : index < 4 ? 2 : 3
+    }));
+
+  return sortedContacts;
 }
