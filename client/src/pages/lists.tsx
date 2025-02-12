@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListChecks } from "lucide-react";
 import {
@@ -14,6 +15,7 @@ export default function Lists() {
   const { data: lists = [] } = useQuery({
     queryKey: ["/api/lists"],
   });
+  const [, navigate] = useLocation();
 
   return (
     <div className="container mx-auto py-8">
@@ -35,7 +37,11 @@ export default function Lists() {
             </TableHeader>
             <TableBody>
               {lists.map((list) => (
-                <TableRow key={list.id}>
+                <TableRow 
+                  key={list.id}
+                  className="cursor-pointer hover:bg-muted"
+                  onClick={() => navigate(`/lists/${list.listId}`)}
+                >
                   <TableCell>{list.listId}</TableCell>
                   <TableCell>{list.prompt}</TableCell>
                   <TableCell>{list.resultCount}</TableCell>

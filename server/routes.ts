@@ -13,6 +13,15 @@ export function registerRoutes(app: Express) {
     res.json(lists);
   });
 
+  app.get("/api/lists/:listId", async (req, res) => {
+    const list = await storage.getList(parseInt(req.params.listId));
+    if (!list) {
+      res.status(404).json({ message: "List not found" });
+      return;
+    }
+    res.json(list);
+  });
+
   app.get("/api/lists/:listId/companies", async (req, res) => {
     const companies = await storage.listCompaniesByList(parseInt(req.params.listId));
     res.json(companies);
@@ -39,7 +48,7 @@ export function registerRoutes(app: Express) {
 
       // Update companies with the list ID
       await Promise.all(
-        companies.map(company => 
+        companies.map(company =>
           storage.updateCompanyList(company.id, listId)
         )
       );
@@ -47,7 +56,7 @@ export function registerRoutes(app: Express) {
       res.json(list);
     } catch (error) {
       console.error('List creation error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: error instanceof Error ? error.message : "An unexpected error occurred while creating the list"
       });
     }
@@ -72,7 +81,7 @@ export function registerRoutes(app: Express) {
     const { query } = req.body;
 
     if (!query || typeof query !== 'string') {
-      res.status(400).json({ 
+      res.status(400).json({
         message: "Invalid request: query must be a non-empty string"
       });
       return;
@@ -98,7 +107,7 @@ export function registerRoutes(app: Express) {
         companyNames.map(async (companyName) => {
           // Run analysis for each approach
           const analysisResults = await Promise.all(
-            activeApproaches.map(approach => 
+            activeApproaches.map(approach =>
               analyzeCompany(companyName, approach.prompt)
             )
           );
@@ -149,7 +158,7 @@ export function registerRoutes(app: Express) {
       });
     } catch (error) {
       console.error('Company search error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: error instanceof Error ? error.message : "An unexpected error occurred during company search"
       });
     }

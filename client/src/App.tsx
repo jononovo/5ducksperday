@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Home from "@/pages/home";
 import Planning from "@/pages/planning";
 import Lists from "@/pages/lists";
+import ListDetails from "@/pages/list-details";
 import Campaigns from "@/pages/campaigns";
 import Outreach from "@/pages/outreach";
 import DatabasePage from "@/pages/database";
@@ -20,6 +21,7 @@ function Router() {
         <Route path="/planning" component={Planning} />
         <Route path="/" component={Home} />
         <Route path="/lists" component={Lists} />
+        <Route path="/lists/:listId" component={ListDetails} />
         <Route path="/campaigns" component={Campaigns} />
         <Route path="/outreach" component={Outreach} />
         <Route path="/database" component={DatabasePage} />
