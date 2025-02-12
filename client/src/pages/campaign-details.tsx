@@ -37,8 +37,8 @@ export default function CampaignDetails() {
     resolver: zodResolver(insertCampaignSchema),
     defaultValues: {
       name: "",
-      description: null,
-      startDate: null,
+      description: "",
+      startDate: "",
       status: "draft",
       campaignId: 0,
       totalCompanies: 0
@@ -54,10 +54,11 @@ export default function CampaignDetails() {
     mutationFn: async (data: InsertCampaign) => {
       const formattedData = {
         ...data,
-        startDate: data.startDate ? new Date(data.startDate).toISOString() : null
+        description: data.description || null,
+        startDate: data.startDate || null
       };
       const res = await apiRequest(
-        "POST",
+        isNew ? "POST" : "PATCH",
         `/api/campaigns${isNew ? "" : `/${params?.id}`}`,
         formattedData
       );
@@ -141,13 +142,13 @@ export default function CampaignDetails() {
                 name="startDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Start Date</FormLabel>
+                    <FormLabel>Start Date (Optional)</FormLabel>
                     <FormControl>
                       <Input
                         type="date"
                         {...field}
-                        value={field.value ? format(new Date(field.value), "yyyy-MM-dd") : ""}
-                        onChange={(e) => field.onChange(e.target.value ? e.target.value : null)}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value)}
                       />
                     </FormControl>
                     <FormMessage />

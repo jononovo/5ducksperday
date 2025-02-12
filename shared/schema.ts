@@ -110,7 +110,7 @@ const campaignSchema = z.object({
   name: z.string().min(1, "Campaign name is required"),
   description: z.string().nullable(),
   status: z.enum(['draft', 'active', 'completed', 'paused']).default('draft'),
-  startDate: z.date().nullable(),
+  startDate: z.string().nullable(),
   totalCompanies: z.number().default(0)
 });
 
