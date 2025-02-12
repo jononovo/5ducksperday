@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
 import { searchCompanies, analyzeCompany, parseCompanyData, extractContacts } from "./lib/perplexity";
-import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
+import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -69,13 +69,7 @@ export function registerRoutes(app: Express) {
   });
 
   app.get("/api/companies/:id", async (req, res) => {
-    const companyId = parseInt(req.params.id);
-    if (isNaN(companyId)) {
-      res.status(400).json({ message: "Invalid company ID" });
-      return;
-    }
-
-    const company = await storage.getCompany(companyId);
+    const company = await storage.getCompany(parseInt(req.params.id));
     if (!company) {
       res.status(404).json({ message: "Company not found" });
       return;
@@ -172,13 +166,7 @@ export function registerRoutes(app: Express) {
 
   // Contacts
   app.get("/api/companies/:companyId/contacts", async (req, res) => {
-    const companyId = parseInt(req.params.companyId);
-    if (isNaN(companyId)) {
-      res.status(400).json({ message: "Invalid company ID" });
-      return;
-    }
-
-    const contacts = await storage.listContactsByCompany(companyId);
+    const contacts = await storage.listContactsByCompany(parseInt(req.params.companyId));
     res.json(contacts);
   });
 
@@ -206,111 +194,6 @@ export function registerRoutes(app: Express) {
     }
 
     res.json(updated);
-  });
-
-  // Campaigns
-  app.get("/api/campaigns", async (_req, res) => {
-    const campaigns = await storage.listCampaigns();
-    res.json(campaigns);
-  });
-
-  app.get("/api/campaigns/:id", async (req, res) => {
-    const campaignId = parseInt(req.params.id);
-    if (isNaN(campaignId)) {
-      res.status(400).json({ message: "Invalid campaign ID" });
-      return;
-    }
-
-    const campaign = await storage.getCampaign(campaignId);
-    if (!campaign) {
-      res.status(404).json({ message: "Campaign not found" });
-      return;
-    }
-    res.json(campaign);
-  });
-
-  app.post("/api/campaigns", async (req, res) => {
-    try {
-      const result = insertCampaignSchema.safeParse(req.body);
-      if (!result.success) {
-        res.status(400).json({ message: "Invalid request body", errors: result.error.errors });
-        return;
-      }
-
-      const campaignId = await storage.getNextCampaignId();
-      const campaign = await storage.createCampaign({
-        ...result.data,
-        campaignId,
-      });
-
-      // If lists are provided, add them to the campaign
-      if (req.body.lists && Array.isArray(req.body.lists)) {
-        await storage.addListsToCampaign(campaign.id, req.body.lists);
-      }
-
-      res.json(campaign);
-    } catch (error) {
-      console.error('Campaign creation error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred while creating the campaign"
-      });
-    }
-  });
-
-  app.patch("/api/campaigns/:id", async (req, res) => {
-    try {
-      const campaignId = parseInt(req.params.id);
-      if (isNaN(campaignId)) {
-        res.status(400).json({ message: "Invalid campaign ID" });
-        return;
-      }
-
-      const result = insertCampaignSchema.partial().safeParse(req.body);
-      if (!result.success) {
-        res.status(400).json({ message: "Invalid request body", errors: result.error.errors });
-        return;
-      }
-
-      const updated = await storage.updateCampaign(campaignId, result.data);
-      if (!updated) {
-        res.status(404).json({ message: "Campaign not found" });
-        return;
-      }
-
-      // If lists are provided, update campaign lists
-      if (req.body.lists && Array.isArray(req.body.lists)) {
-        await storage.updateCampaignLists(campaignId, req.body.lists);
-      }
-
-      res.json(updated);
-    } catch (error) {
-      console.error('Campaign update error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred while updating the campaign"
-      });
-    }
-  });
-
-  app.get("/api/campaigns/:id/lists", async (req, res) => {
-    const campaignId = parseInt(req.params.id);
-    if (isNaN(campaignId)) {
-      res.status(400).json({ message: "Invalid campaign ID" });
-      return;
-    }
-
-    const lists = await storage.getListsByCampaign(campaignId);
-    res.json(lists);
-  });
-
-  app.get("/api/campaigns/:id/stats", async (req, res) => {
-    const campaignId = parseInt(req.params.id);
-    if (isNaN(campaignId)) {
-      res.status(400).json({ message: "Invalid campaign ID" });
-      return;
-    }
-
-    const stats = await storage.getCampaignStats(campaignId);
-    res.json(stats);
   });
 
   return httpServer;
