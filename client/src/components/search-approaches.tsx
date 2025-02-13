@@ -105,7 +105,7 @@ const SEARCH_SECTIONS = {
   sector_listings: {
     id: "sector_listings",
     label: "Sector Specific Listings",
-    description: "Here we search for online listings sites within the sector determined by the original prompt. For example, if the prompt mentions tech and education, then we would look into edtech. If medical equipment sourcing, then we would orient around there. Select type of business:",
+    description: "For example, if the prompt mentions tech and education, then we would look into edtech listings sites. Select type/s of business:",
     searches: [
       {
         id: "sector-tech",
