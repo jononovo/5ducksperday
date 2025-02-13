@@ -213,14 +213,6 @@ export default function Outreach() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Quick Templates Section */}
-              <QuickTemplates
-                onSelectTemplate={(template: EmailTemplate) => {
-                  setEmailPrompt(template.description || "");
-                  setEmailContent(template.content);
-                }}
-              />
-
               {/* Email Prompt Field */}
               <div>
                 <label className="text-sm font-medium mb-2 block">
@@ -264,6 +256,16 @@ export default function Outreach() {
                   <Send className="w-4 h-4 mr-2" />
                   Send Email
                 </Button>
+              </div>
+
+              {/* Quick Templates Section - Moved below email content and buttons */}
+              <div className="mt-8 pt-6 border-t">
+                <QuickTemplates
+                  onSelectTemplate={(template: EmailTemplate) => {
+                    setEmailPrompt(template.description || "");
+                    setEmailContent(template.content);
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
