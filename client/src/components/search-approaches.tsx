@@ -18,32 +18,6 @@ interface SearchApproachesProps {
 }
 
 const SEARCH_SECTIONS = {
-  local: {
-    id: "local",
-    label: "Local Sources",
-    searches: [
-      {
-        id: "local-news",
-        label: "Local News Search",
-        description: "Search local news sources for company leadership mentions and activities"
-      },
-      {
-        id: "business-associations",
-        label: "Business Associations Search",
-        description: "Search local chambers of commerce and business association memberships"
-      },
-      {
-        id: "local-events",
-        label: "Local Events Search",
-        description: "Search local business events, conferences, and speaking engagements"
-      },
-      {
-        id: "local-classifieds",
-        label: "Local Classifieds or Lists",
-        description: "Search classifieds for company info and local classifieds"
-      }
-    ]
-  },
   digital: {
     id: "digital",
     label: "Digital Sources",
@@ -57,27 +31,6 @@ const SEARCH_SECTIONS = {
         id: "yelp-search",
         label: "Yelp Search",
         description: "Check for Yelp"
-      }
-    ]
-  },
-  social: {
-    id: "social",
-    label: "Social Sources",
-    searches: [
-      {
-        id: "social-linkedin",
-        label: "LinkedIn Search",
-        description: "Search LinkedIn for company profiles and employees"
-      },
-      {
-        id: "social-twitter",
-        label: "Twitter Search",
-        description: "Search Twitter for social mentions and engagement"
-      },
-      {
-        id: "social-facebook",
-        label: "Facebook Search",
-        description: "Search Facebook for social presence and community engagement"
       }
     ]
   },
@@ -126,6 +79,57 @@ const SEARCH_SECTIONS = {
   }
 };
 
+// Additional sections that are shown based on the search approach
+const APPROACH_SPECIFIC_SECTIONS = {
+  local: {
+    id: "local",
+    label: "Local Sources",
+    searches: [
+      {
+        id: "local-news",
+        label: "Local News Search",
+        description: "Search local news sources for company leadership mentions and activities"
+      },
+      {
+        id: "business-associations",
+        label: "Business Associations Search",
+        description: "Search local chambers of commerce and business association memberships"
+      },
+      {
+        id: "local-events",
+        label: "Local Events Search",
+        description: "Search local business events, conferences, and speaking engagements"
+      },
+      {
+        id: "local-classifieds",
+        label: "Local Classifieds or Lists",
+        description: "Search classifieds for company info and local classifieds"
+      }
+    ]
+  },
+  social: {
+    id: "social",
+    label: "Social Sources",
+    searches: [
+      {
+        id: "social-linkedin",
+        label: "LinkedIn Search",
+        description: "Search LinkedIn for company profiles and employees"
+      },
+      {
+        id: "social-twitter",
+        label: "Twitter Search",
+        description: "Search Twitter for social mentions and engagement"
+      },
+      {
+        id: "social-facebook",
+        label: "Facebook Search",
+        description: "Search Facebook for social presence and community engagement"
+      }
+    ]
+  }
+};
+
 interface SubSearchesProps {
   approach: SearchApproach;
   isEditing: boolean;
@@ -163,7 +167,15 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
     }
   };
 
-  const renderSearchSection = (section: typeof SEARCH_SECTIONS.local) => {
+  // Determine which sections to show based on the approach name
+  const approachName = approach.name.toLowerCase();
+  const sectionsToShow = {
+    ...SEARCH_SECTIONS,
+    ...(approachName.includes('contact discovery') ? { local: APPROACH_SPECIFIC_SECTIONS.local } : {}),
+    ...(approachName.includes('online presence') ? { social: APPROACH_SPECIFIC_SECTIONS.social } : {})
+  };
+
+  const renderSearchSection = (section: typeof SEARCH_SECTIONS.digital) => {
     // Calculate checkboxes state based on current selection
     const allChecked = section.searches.every(search => currentSubsearches[search.id]);
     const someChecked = section.searches.some(search => currentSubsearches[search.id]);
@@ -235,7 +247,7 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
   return (
     <div className="mt-4">
       <Accordion type="multiple" className="w-full">
-        {Object.values(SEARCH_SECTIONS).map(section => renderSearchSection(section))}
+        {Object.values(sectionsToShow).map(section => renderSearchSection(section))}
       </Accordion>
     </div>
   );
