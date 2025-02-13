@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -137,21 +137,52 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
     return null;
   }
 
-  // Parse the existing subsearches from the approach config
-  const subsearches = (approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {};
+  // Parse the existing subsearches from the approach config (default state)
+  const defaultSubsearches = (approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {};
+
+  // State for user's current selection
+  const [currentSubsearches, setCurrentSubsearches] = useState<Record<string, boolean>>(defaultSubsearches);
+
+  // Update current selection when default changes (during editing)
+  useEffect(() => {
+    if (isEditing) {
+      setCurrentSubsearches(defaultSubsearches);
+    }
+  }, [isEditing, defaultSubsearches]);
+
+  const handleCheckboxChange = (id: string, checked: boolean) => {
+    if (isEditing && onSubSearchChange) {
+      // In edit mode, update both default and current state
+      onSubSearchChange(id, checked);
+    } else {
+      // In normal mode, only update current state
+      setCurrentSubsearches(prev => ({
+        ...prev,
+        [id]: checked
+      }));
+    }
+  };
 
   const renderSearchSection = (section: typeof SEARCH_SECTIONS.local) => {
-    // Calculate if all checkboxes in this section are checked
-    const allChecked = section.searches.every(search => subsearches[search.id]);
-    const someChecked = section.searches.some(search => subsearches[search.id]);
+    // Calculate checkboxes state based on current selection
+    const allChecked = section.searches.every(search => currentSubsearches[search.id]);
+    const someChecked = section.searches.some(search => currentSubsearches[search.id]);
 
     // Handle master checkbox change for this section
     const handleMasterCheckboxChange = (checked: boolean) => {
+      const newState = { ...currentSubsearches };
+      section.searches.forEach(search => {
+        newState[search.id] = checked;
+      });
+
       if (isEditing && onSubSearchChange) {
+        // In edit mode, update all subsearches through the parent
         section.searches.forEach(search => {
           onSubSearchChange(search.id, checked);
         });
       }
+      // Always update current state
+      setCurrentSubsearches(newState);
     };
 
     return (
@@ -162,7 +193,6 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
               id={`master-${section.id}`}
               checked={allChecked}
               data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
-              disabled={!isEditing}
               onCheckedChange={handleMasterCheckboxChange}
               onClick={(e) => e.stopPropagation()}
               className="mr-2"
@@ -179,12 +209,8 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
               <div key={search.id} className="flex items-start space-x-2">
                 <Checkbox
                   id={search.id}
-                  checked={subsearches[search.id] || false}
-                  disabled={!isEditing}
-                  onCheckedChange={isEditing && onSubSearchChange ? 
-                    (checked) => onSubSearchChange(search.id, checked as boolean) : 
-                    undefined
-                  }
+                  checked={currentSubsearches[search.id] || false}
+                  onCheckedChange={(checked) => handleCheckboxChange(search.id, checked as boolean)}
                   className="mt-1"
                 />
                 <div className="grid gap-1.5 leading-none">
@@ -288,7 +314,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   onChange={(e) => setEditedPrompt(e.target.value)}
                   className="min-h-[100px]"
                 />
-                <SubSearches 
+                <SubSearches
                   approach={{
                     ...approach,
                     config: { subsearches: editedSubSearches }
@@ -297,14 +323,14 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   onSubSearchChange={handleSubSearchChange}
                 />
                 <div className="flex gap-2">
-                  <Button 
+                  <Button
                     size="sm"
                     onClick={() => handleSave(approach.id)}
                     disabled={updateMutation.isPending}
                   >
                     Save
                   </Button>
-                  <Button 
+                  <Button
                     size="sm"
                     variant="outline"
                     onClick={() => {
@@ -321,7 +347,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">{approach.prompt}</p>
                 <SubSearches approach={approach} isEditing={false} />
-                <Button 
+                <Button
                   size="sm"
                   variant="outline"
                   onClick={() => handleEdit(approach)}
