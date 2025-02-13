@@ -217,7 +217,9 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
   // Common organization suffix patterns to filter out
   const orgSuffixes = [
     'Inc', 'LLC', 'Ltd', 'Limited', 'Corp', 'Corporation', 'Co', 'Company',
-    'Group', 'Holdings', 'Services', 'Solutions', 'Technologies', 'Systems'
+    'Group', 'Holdings', 'Services', 'Solutions', 'Technologies', 'Systems',
+    'Partners', 'Consulting', 'Associates', 'International', 'Global',
+    'Enterprises', 'Industries', 'Networks', 'Interactive', 'Digital'
   ];
 
   // Words that indicate a goal or objective rather than a person
@@ -238,6 +240,14 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
     'president', 'vice-president', 'vice president', 'ceo', 'cto', 'cfo',
     'director', 'manager', 'head', 'lead', 'chief', 'executive',
     'vp', 'svp', 'evp', 'avp', 'founder', 'co-founder'
+  ];
+
+  // Location and institution keywords
+  const locationInstitutionKeywords = [
+    'university', 'college', 'institute', 'school', 'academy',
+    'state', 'technical', 'center', 'north', 'south', 'east', 'west',
+    'central', 'regional', 'national', 'international', 'city', 'county',
+    'district', 'area', 'zone', 'valley', 'coast', 'bay', 'lake', 'mountain'
   ];
 
   for (const result of analysisResults) {
@@ -274,6 +284,14 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
 
         // Filter out if surrounded by goal-related keywords
         if (goalKeywords.some(keyword => context.includes(keyword))) {
+          return false;
+        }
+
+        // Filter out location/institution names
+        if (locationInstitutionKeywords.some(keyword => 
+          name.toLowerCase().includes(keyword) ||
+          context.includes(keyword)
+        )) {
           return false;
         }
 
@@ -377,7 +395,7 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
       name: contact.name,
       email: contact.email,
       role: contact.role,
-      priority: index < 2 ? 1 : index < 4 ? 2 : 3
+      priority: contact.score >= 15 ? 1 : contact.score >= 10 ? 2 : 3 // Stricter priority assignment based on score
     }));
 
   return sortedContacts;
