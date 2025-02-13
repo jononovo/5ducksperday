@@ -79,6 +79,9 @@ Content-Type: application/json
                   <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
                     {`"prompt": "List and analyze the key leadership team members of [COMPANY], including their roles and experience."`}
                   </pre>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Note: Both Leadership Analysis and Contact Discovery contribute to the contacts array in the response.
+                  </p>
                 </div>
 
                 <div>
@@ -86,6 +89,9 @@ Content-Type: application/json
                   <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
                     {`"prompt": "Find contact information and email addresses for leadership and key decision makers at [COMPANY]."`}
                   </pre>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Note: Works in conjunction with Leadership Analysis to enhance contact information quality.
+                  </p>
                 </div>
 
                 <div>
