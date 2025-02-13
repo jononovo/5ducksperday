@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,12 @@ import { ListPlus, Search } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+// Define interface for the saved state
+interface SavedSearchState {
+  currentQuery: string | null;
+  currentResults: any[] | null;
+}
+
 export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentQuery, setCurrentQuery] = useState<string | null>(null);
@@ -16,6 +22,25 @@ export default function Home() {
   const [isSaved, setIsSaved] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Load state from localStorage on component mount
+  useEffect(() => {
+    const savedState = localStorage.getItem('searchState');
+    if (savedState) {
+      const parsed = JSON.parse(savedState) as SavedSearchState;
+      setCurrentQuery(parsed.currentQuery);
+      setCurrentResults(parsed.currentResults);
+    }
+  }, []);
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    const stateToSave: SavedSearchState = {
+      currentQuery,
+      currentResults
+    };
+    localStorage.setItem('searchState', JSON.stringify(stateToSave));
+  }, [currentQuery, currentResults]);
 
   const { data: searchApproaches = [] } = useQuery({
     queryKey: ["/api/search-approaches"],
@@ -82,6 +107,7 @@ export default function Home() {
               onComplete={handleAnalysisComplete}
               onSearchResults={handleSearchResults}
               isAnalyzing={isAnalyzing}
+              initialPrompt={currentQuery || ""} // Pass the current query to PromptEditor
             />
           </CardContent>
         </Card>

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { Editor } from "@tinymce/tinymce-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,12 +12,26 @@ interface PromptEditorProps {
   onComplete: () => void;
   onSearchResults: (query: string, results: any[]) => void;
   isAnalyzing: boolean;
+  initialPrompt?: string;
 }
 
-export default function PromptEditor({ onAnalyze, onComplete, onSearchResults, isAnalyzing }: PromptEditorProps) {
+export default function PromptEditor({ 
+  onAnalyze, 
+  onComplete, 
+  onSearchResults, 
+  isAnalyzing,
+  initialPrompt = ""
+}: PromptEditorProps) {
   const editorRef = useRef<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Set initial content when editor is initialized
+  useEffect(() => {
+    if (editorRef.current && initialPrompt) {
+      editorRef.current.setContent(initialPrompt);
+    }
+  }, [initialPrompt]);
 
   const searchMutation = useMutation({
     mutationFn: async (query: string) => {
