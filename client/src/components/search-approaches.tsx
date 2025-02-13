@@ -49,36 +49,66 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
   // Parse the existing subsearches from the approach config
   const subsearches = (approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {};
 
+  // Calculate if all checkboxes are checked
+  const allChecked = SUB_SEARCHES.every(search => subsearches[search.id]);
+  const someChecked = SUB_SEARCHES.some(search => subsearches[search.id]);
+
+  // Handle master checkbox change
+  const handleMasterCheckboxChange = (checked: boolean) => {
+    if (isEditing && onSubSearchChange) {
+      SUB_SEARCHES.forEach(search => {
+        onSubSearchChange(search.id, checked);
+      });
+    }
+  };
+
   return (
-    <div className="mt-4 space-y-4">
-      <h4 className="text-sm font-medium">Additional Search Areas:</h4>
-      <div className="space-y-4">
-        {SUB_SEARCHES.map((search) => (
-          <div key={search.id} className="flex items-start space-x-2">
+    <div className="mt-4">
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="local-sources">
+          <AccordionTrigger className="flex items-center gap-2 py-2">
             <Checkbox
-              id={search.id}
-              checked={subsearches[search.id] || false}
+              id="master-checkbox"
+              checked={allChecked}
+              indeterminate={!allChecked && someChecked}
               disabled={!isEditing}
-              onCheckedChange={isEditing && onSubSearchChange ? 
-                (checked) => onSubSearchChange(search.id, checked as boolean) : 
-                undefined
-              }
-              className="mt-1"
+              onCheckedChange={handleMasterCheckboxChange}
+              onClick={(e) => e.stopPropagation()}
+              className="mr-2"
             />
-            <div className="grid gap-1.5 leading-none">
-              <label
-                htmlFor={search.id}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {search.label}
-              </label>
-              <p className="text-sm text-muted-foreground">
-                {search.description}
-              </p>
+            <span>Local Sources</span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-4 pl-6">
+              {SUB_SEARCHES.map((search) => (
+                <div key={search.id} className="flex items-start space-x-2">
+                  <Checkbox
+                    id={search.id}
+                    checked={subsearches[search.id] || false}
+                    disabled={!isEditing}
+                    onCheckedChange={isEditing && onSubSearchChange ? 
+                      (checked) => onSubSearchChange(search.id, checked as boolean) : 
+                      undefined
+                    }
+                    className="mt-1"
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <label
+                      htmlFor={search.id}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {search.label}
+                    </label>
+                    <p className="text-sm text-muted-foreground">
+                      {search.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        ))}
-      </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }
