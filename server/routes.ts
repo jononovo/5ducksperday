@@ -247,10 +247,10 @@ export function registerRoutes(app: Express) {
           validContacts.map(async contact => {
             // Get enhanced contact details if local sources are enabled
             const enhancedDetails = localSourcesEnabled
-              ? await searchContactDetails(contact.name!, company.name, true)
+              ? await searchContactDetails(contact.name!, company.name, true, subsearches)
               : {};
 
-            return storage.createContact({
+            const contactData = {
               companyId,
               name: contact.name!,
               role: enhancedDetails.role || contact.role || null,
@@ -262,7 +262,13 @@ export function registerRoutes(app: Express) {
               department: enhancedDetails.department || null,
               location: enhancedDetails.location || null,
               verificationSource: localSourcesEnabled ? 'Local Sources' : null
-            });
+            };
+
+            const createdContact = await storage.createContact(contactData);
+            return {
+              ...createdContact,
+              completedSearches: enhancedDetails.completedSearches || []
+            };
           })
         );
 

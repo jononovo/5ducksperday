@@ -12,6 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import type { SearchApproach } from "@shared/schema";
+import { Check } from "lucide-react";
 
 interface SearchApproachesProps {
   approaches: SearchApproach[];
@@ -130,20 +131,17 @@ interface SubSearchesProps {
   approach: SearchApproach;
   isEditing: boolean;
   onSubSearchChange?: (id: string, checked: boolean) => void;
+  completedSearches?: string[];
 }
 
-function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProps) {
+function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches = [] }: SubSearchesProps) {
   if (!approach.name.toLowerCase().includes('leadership')) {
     return null;
   }
 
-  // Parse the existing subsearches from the approach config (default state)
   const defaultSubsearches = (approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {};
-
-  // State for user's current selection
   const [currentSubsearches, setCurrentSubsearches] = useState<Record<string, boolean>>(defaultSubsearches);
 
-  // Update current selection when default changes (during editing)
   useEffect(() => {
     if (isEditing) {
       setCurrentSubsearches(defaultSubsearches);
@@ -152,10 +150,8 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
     if (isEditing && onSubSearchChange) {
-      // In edit mode, update both default and current state
       onSubSearchChange(id, checked);
     } else {
-      // In normal mode, only update current state
       setCurrentSubsearches(prev => ({
         ...prev,
         [id]: checked
@@ -164,11 +160,9 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
   };
 
   const renderSearchSection = (section: typeof SEARCH_SECTIONS.local) => {
-    // Calculate checkboxes state based on current selection
     const allChecked = section.searches.every(search => currentSubsearches[search.id]);
     const someChecked = section.searches.some(search => currentSubsearches[search.id]);
 
-    // Handle master checkbox change for this section
     const handleMasterCheckboxChange = (checked: boolean) => {
       const newState = { ...currentSubsearches };
       section.searches.forEach(search => {
@@ -176,12 +170,10 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
       });
 
       if (isEditing && onSubSearchChange) {
-        // In edit mode, update all subsearches through the parent
         section.searches.forEach(search => {
           onSubSearchChange(search.id, checked);
         });
       }
-      // Always update current state
       setCurrentSubsearches(newState);
     };
 
@@ -207,12 +199,17 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
           <div className="space-y-4 pl-6">
             {section.searches.map((search) => (
               <div key={search.id} className="flex items-start space-x-2">
-                <Checkbox
-                  id={search.id}
-                  checked={currentSubsearches[search.id] || false}
-                  onCheckedChange={(checked) => handleCheckboxChange(search.id, checked as boolean)}
-                  className="mt-1"
-                />
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id={search.id}
+                    checked={currentSubsearches[search.id] || false}
+                    onCheckedChange={(checked) => handleCheckboxChange(search.id, checked as boolean)}
+                    className="mt-1"
+                  />
+                  {completedSearches.includes(search.id) && (
+                    <Check className="h-4 w-4 text-green-500" />
+                  )}
+                </div>
                 <div className="grid gap-1.5 leading-none">
                   <label
                     htmlFor={search.id}
@@ -246,6 +243,8 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editedPrompt, setEditedPrompt] = useState("");
   const [editedSubSearches, setEditedSubSearches] = useState<Record<string, boolean>>({});
+  const [completedSearches, setCompletedSearches] = useState<string[]>([]); // Added state for completed searches
+
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
@@ -257,16 +256,18 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       setEditingId(null);
       setEditedPrompt("");
       setEditedSubSearches({});
+      setCompletedSearches([]); //Clear completed searches on success
     },
   });
 
   const handleEdit = (approach: SearchApproach) => {
     setEditingId(approach.id);
     setEditedPrompt(approach.prompt);
-    // Initialize subsearches from existing config
     setEditedSubSearches(
       ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean>) || {}
     );
+    // Inferring completedSearches from approach data - needs adjustment based on actual data structure
+    setCompletedSearches(approach.completedSearches || []);
   };
 
   const handleSave = (id: number) => {
@@ -276,7 +277,8 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
         prompt: editedPrompt,
         config: {
           subsearches: editedSubSearches
-        }
+        },
+        completedSearches: completedSearches // Add completedSearches to the update
       }
     });
   };
@@ -321,6 +323,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   }}
                   isEditing={true}
                   onSubSearchChange={handleSubSearchChange}
+                  completedSearches={completedSearches} // Pass completedSearches prop
                 />
                 <div className="flex gap-2">
                   <Button
@@ -337,6 +340,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                       setEditingId(null);
                       setEditedPrompt("");
                       setEditedSubSearches({});
+                      setCompletedSearches([]); //Clear completed searches on cancel
                     }}
                   >
                     Cancel
@@ -346,7 +350,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">{approach.prompt}</p>
-                <SubSearches approach={approach} isEditing={false} />
+                <SubSearches approach={approach} isEditing={false} completedSearches={completedSearches} /> {/* Pass completedSearches prop */}
                 <Button
                   size="sm"
                   variant="outline"

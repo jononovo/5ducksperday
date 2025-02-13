@@ -407,29 +407,79 @@ interface LocalSourcesSearchResult {
   linkedinUrl?: string | null;
   location?: string | null;
   department?: string | null;
+  completedSearches?: string[]; // Add tracking of completed searches
 }
 
-async function deepSearchLocalSources(name: string, company: string): Promise<LocalSourcesSearchResult> {
-  const messages: PerplexityMessage[] = [
+async function deepSearchLocalSources(name: string, company: string, enabledSearches: Record<string, boolean>): Promise<LocalSourcesSearchResult> {
+  const completedSearches: string[] = [];
+  const details: LocalSourcesSearchResult = {};
+
+  // Create base messages for all searches
+  const baseMessages: PerplexityMessage[] = [
     {
       role: "system",
-      content: `You are a specialized contact researcher focusing on local business sources. Search for detailed professional information about the specified person from local business associations, chambers of commerce, local news, and events. Include:
-1. Full name and variations
-2. Current and past roles
-3. Local business associations
-4. Speaking engagements
-5. Local awards or recognition
-6. Community involvement
-Format the response to be easily parsed, using clear labels for each piece of information.`
-    },
-    {
-      role: "user",
-      content: `Find detailed local business information for ${name} associated with ${company}. Include any local business connections, speaking events, or community involvement.`
+      content: `You are a specialized contact researcher focusing on local business sources. Format your response using clear labels for each piece of information.`
     }
   ];
 
-  const response = await queryPerplexity(messages);
-  return parseLocalSourceDetails(response);
+  // Perform enabled searches sequentially
+  if (enabledSearches['local-news']) {
+    const newsMessages = [...baseMessages];
+    newsMessages[0].content += ` Focus on local news articles, press releases, and media coverage.`;
+    newsMessages.push({
+      role: "user",
+      content: `Find information about ${name} from ${company} in local news sources, including speaking engagements and community involvement.`
+    });
+
+    const newsResponse = await queryPerplexity(newsMessages);
+    const newsDetails = parseLocalSourceDetails(newsResponse);
+    Object.assign(details, newsDetails);
+    completedSearches.push('local-news');
+  }
+
+  if (enabledSearches['business-associations']) {
+    const assocMessages = [...baseMessages];
+    assocMessages[0].content += ` Focus on business associations, chambers of commerce, and professional organizations.`;
+    assocMessages.push({
+      role: "user",
+      content: `Find information about ${name} from ${company} in local business association memberships and leadership roles.`
+    });
+
+    const assocResponse = await queryPerplexity(assocMessages);
+    const assocDetails = parseLocalSourceDetails(assocResponse);
+    Object.assign(details, assocDetails);
+    completedSearches.push('business-associations');
+  }
+
+  if (enabledSearches['local-events']) {
+    const eventMessages = [...baseMessages];
+    eventMessages[0].content += ` Focus on local business events, conferences, and speaking engagements.`;
+    eventMessages.push({
+      role: "user",
+      content: `Find information about ${name} from ${company} in local business events and speaking engagements.`
+    });
+
+    const eventResponse = await queryPerplexity(eventMessages);
+    const eventDetails = parseLocalSourceDetails(eventResponse);
+    Object.assign(details, eventDetails);
+    completedSearches.push('local-events');
+  }
+
+  if (enabledSearches['local-classifieds']) {
+    const classifiedMessages = [...baseMessages];
+    classifiedMessages[0].content += ` Focus on local business listings and classifieds.`;
+    classifiedMessages.push({
+      role: "user",
+      content: `Find information about ${name} from ${company} in local business listings and classifieds.`
+    });
+
+    const classifiedResponse = await queryPerplexity(classifiedMessages);
+    const classifiedDetails = parseLocalSourceDetails(classifiedResponse);
+    Object.assign(details, classifiedDetails);
+    completedSearches.push('local-classifieds');
+  }
+
+  return { ...details, completedSearches };
 }
 
 function parseLocalSourceDetails(response: string): LocalSourcesSearchResult {
@@ -471,8 +521,9 @@ function parseLocalSourceDetails(response: string): LocalSourcesSearchResult {
 export async function searchContactDetails(
   name: string, 
   company: string, 
-  includeLocalSources: boolean = false
-): Promise<Partial<Contact>> {
+  includeLocalSources: boolean = false,
+  enabledSearches: Record<string, boolean> = {}
+): Promise<Partial<Contact> & { completedSearches?: string[] }> {
   // Basic contact details
   const messages: PerplexityMessage[] = [
     {
@@ -495,11 +546,12 @@ Format your response in a structured way that's easy to parse.`
   let contactDetails = parseContactDetails(response);
 
   if (includeLocalSources) {
-    const localDetails = await deepSearchLocalSources(name, company);
+    const localDetails = await deepSearchLocalSources(name, company, enabledSearches);
     contactDetails = {
       ...contactDetails,
       ...localDetails,
-      verificationSource: 'Local Sources' as const
+      verificationSource: 'Local Sources' as const,
+      completedSearches: localDetails.completedSearches
     };
   }
 
