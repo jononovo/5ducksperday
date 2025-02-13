@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { 
   Accordion,
   AccordionContent,
@@ -21,8 +22,8 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   const [editedPrompt, setEditedPrompt] = useState("");
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, prompt }: { id: number; prompt: string }) => {
-      const res = await apiRequest("PATCH", `/api/search-approaches/${id}`, { prompt });
+    mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
+      const res = await apiRequest("PATCH", `/api/search-approaches/${id}`, updates);
       return res.json();
     },
     onSuccess: () => {
@@ -37,14 +38,25 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   };
 
   const handleSave = (id: number) => {
-    updateMutation.mutate({ id, prompt: editedPrompt });
+    updateMutation.mutate({ id, updates: { prompt: editedPrompt } });
+  };
+
+  const handleToggle = (id: number, active: boolean) => {
+    updateMutation.mutate({ id, updates: { active } });
   };
 
   return (
     <Accordion type="single" collapsible className="w-full">
       {approaches.map((approach) => (
         <AccordionItem key={approach.id} value={approach.id.toString()}>
-          <AccordionTrigger>{approach.name}</AccordionTrigger>
+          <div className="flex items-center justify-between px-4">
+            <Switch
+              checked={approach.active ?? false}
+              onCheckedChange={(checked) => handleToggle(approach.id, checked)}
+              className="my-4"
+            />
+            <AccordionTrigger className="flex-1">{approach.name}</AccordionTrigger>
+          </div>
           <AccordionContent>
             {editingId === approach.id ? (
               <div className="space-y-4">
