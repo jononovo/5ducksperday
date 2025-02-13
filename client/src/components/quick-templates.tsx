@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import {
   Select,
@@ -7,9 +6,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { FileText, Plus } from "lucide-react";
+import { FileText } from "lucide-react";
 import type { EmailTemplate } from "@shared/schema";
+import CreateTemplateModal from "./create-template-modal";
 
 interface QuickTemplatesProps {
   onSelectTemplate: (template: EmailTemplate) => void;
@@ -31,10 +30,7 @@ export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Quick Templates</h3>
-        <Button variant="outline" size="sm">
-          <Plus className="w-4 h-4 mr-2" />
-          New Template
-        </Button>
+        <CreateTemplateModal />
       </div>
 
       <div className="space-y-2">
