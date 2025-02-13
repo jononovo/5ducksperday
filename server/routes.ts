@@ -3,6 +3,7 @@ import { createServer } from "http";
 import { storage } from "./storage";
 import { searchCompanies, analyzeCompany, parseCompanyData, extractContacts } from "./lib/perplexity";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
+import {insertEmailTemplateSchema} from "@shared/schema"; // Assuming this schema exists
 
 export function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -265,6 +266,32 @@ export function registerRoutes(app: Express) {
     }
 
     res.json(updated);
+  });
+
+  // Email Templates
+  app.get("/api/email-templates", async (_req, res) => {
+    const templates = await storage.listEmailTemplates();
+    res.json(templates);
+  });
+
+  app.get("/api/email-templates/:id", async (req, res) => {
+    const template = await storage.getEmailTemplate(parseInt(req.params.id));
+    if (!template) {
+      res.status(404).json({ message: "Template not found" });
+      return;
+    }
+    res.json(template);
+  });
+
+  app.post("/api/email-templates", async (req, res) => {
+    const result = insertEmailTemplateSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ message: "Invalid request body" });
+      return;
+    }
+
+    const template = await storage.createEmailTemplate(result.data);
+    res.json(template);
   });
 
   return httpServer;
