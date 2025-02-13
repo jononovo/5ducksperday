@@ -118,16 +118,19 @@ export function registerRoutes(app: Express) {
           const companyData = parseCompanyData(analysisResults);
           const contacts = extractContacts(analysisResults);
 
-          // Create company record
+          // Ensure website and alternativeProfileUrl are properly handled
+          const website = companyData.website?.trim() || null;
+          const alternativeProfileUrl = companyData.alternativeProfileUrl?.trim() || null;
+
+          // Create company record with explicit field mapping
           const company = await storage.createCompany({
             name: companyName,
-            ...companyData,
             listId: null,
             age: companyData.age ?? null,
             size: companyData.size ?? null,
-            website: companyData.website ?? null,
-            alternativeProfileUrl: companyData.alternativeProfileUrl ?? null,
-            defaultContactEmail: companyData.defaultContactEmail ?? null,
+            website: website,
+            alternativeProfileUrl: alternativeProfileUrl,
+            defaultContactEmail: companyData.defaultContactEmail?.trim() ?? null,
             ranking: companyData.ranking ?? null,
             linkedinProminence: companyData.linkedinProminence ?? null,
             customerCount: companyData.customerCount ?? null,
