@@ -226,6 +226,20 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
     'success', 'growth', 'development', 'innovation', 'leadership'
   ];
 
+  // Add common page headers and standalone titles to filter out
+  const pageHeaderKeywords = [
+    'additional information', 'contact information', 'overview',
+    'summary', 'details', 'about us', 'our team', 'leadership team',
+    'management', 'board of directors', 'executive team'
+  ];
+
+  // Standalone titles that shouldn't be treated as names
+  const standaloneTitles = [
+    'president', 'vice-president', 'vice president', 'ceo', 'cto', 'cfo',
+    'director', 'manager', 'head', 'lead', 'chief', 'executive',
+    'vp', 'svp', 'evp', 'avp', 'founder', 'co-founder'
+  ];
+
   for (const result of analysisResults) {
     const names = Array.from(result.matchAll(nameRegex))
       .map(match => match[0])
@@ -238,13 +252,44 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
           return false;
         }
 
-        // Filter out if the name is surrounded by goal-related keywords
+        // Filter out standalone titles
+        if (standaloneTitles.some(title => 
+          name.toLowerCase() === title ||
+          name.toLowerCase().startsWith(title + ' of') ||
+          name.toLowerCase().endsWith(' ' + title)
+        )) {
+          return false;
+        }
+
+        // Get surrounding context (increased context window)
         const context = result.substring(
-          Math.max(0, result.indexOf(name) - 30),
-          Math.min(result.length, result.indexOf(name) + name.length + 30)
+          Math.max(0, result.indexOf(name) - 50),
+          Math.min(result.length, result.indexOf(name) + name.length + 50)
         ).toLowerCase();
 
+        // Filter out if it appears to be a page header
+        if (pageHeaderKeywords.some(header => context.includes(header))) {
+          return false;
+        }
+
+        // Filter out if surrounded by goal-related keywords
         if (goalKeywords.some(keyword => context.includes(keyword))) {
+          return false;
+        }
+
+        // Validate name structure more strictly
+        const nameParts = name.split(' ');
+        const isValidName = (
+          nameParts.length >= 2 && // Must have at least first and last name
+          nameParts.length <= 3 && // No more than three parts (First Middle Last)
+          nameParts.every(part => 
+            part.length >= 2 && // Each part must be at least 2 chars
+            part.length <= 20 && // Each part must be no more than 20 chars
+            /^[A-Z][a-z]+$/.test(part) // Must start with capital letter, followed by lowercase
+          )
+        );
+
+        if (!isValidName) {
           return false;
         }
 
@@ -257,7 +302,6 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
           name.includes('Technology') ||
           name.length > 50 ||
           /\d/.test(name) || // Contains numbers
-          name.split(' ').length > 3 || // Too many words to be a person's name
           name.split(' ').some(word => word.length > 20) // Words too long
         );
       });
