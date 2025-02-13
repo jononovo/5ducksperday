@@ -225,34 +225,54 @@ export function registerRoutes(app: Express) {
         return;
       }
 
-      // Perform new leadership analysis
-      const analysisResult = await analyzeCompany(company.name, leadershipApproach.prompt);
-      const newContacts = extractContacts([analysisResult]);
+      // Check if local sources search is enabled
+      const config = leadershipApproach.config as Record<string, unknown>;
+      const subsearches = (config?.subsearches || {}) as Record<string, boolean>;
+      const localSourcesEnabled = subsearches['local-news'] || 
+                                subsearches['business-associations'] || 
+                                subsearches['local-events'] || 
+                                subsearches['local-classifieds'];
 
-      // Remove existing contacts
-      await storage.deleteContactsByCompany(companyId);
+      try {
+        // Perform new leadership analysis
+        const analysisResult = await analyzeCompany(company.name, leadershipApproach.prompt);
+        const newContacts = extractContacts([analysisResult]);
 
-      // Create new contacts
-      const validContacts = newContacts.filter(contact => contact.name && contact.name !== "Unknown");
-      const createdContacts = await Promise.all(
-        validContacts.map(contact =>
-          storage.createContact({
-            companyId,
-            name: contact.name!,
-            role: contact.role ?? null,
-            email: contact.email ?? null,
-            priority: contact.priority ?? null,
-            linkedinUrl: null,
-            twitterHandle: null,
-            phoneNumber: null,
-            department: null,
-            location: null,
-            verificationSource: null
+        // Remove existing contacts
+        await storage.deleteContactsByCompany(companyId);
+
+        // Create new contacts with enhanced details if local sources are enabled
+        const validContacts = newContacts.filter(contact => contact.name && contact.name !== "Unknown");
+        const createdContacts = await Promise.all(
+          validContacts.map(async contact => {
+            // Get enhanced contact details if local sources are enabled
+            const enhancedDetails = localSourcesEnabled
+              ? await searchContactDetails(contact.name!, company.name, true)
+              : {};
+
+            return storage.createContact({
+              companyId,
+              name: contact.name!,
+              role: enhancedDetails.role || contact.role || null,
+              email: enhancedDetails.email || contact.email || null,
+              priority: contact.priority ?? null,
+              linkedinUrl: enhancedDetails.linkedinUrl || null,
+              twitterHandle: null,
+              phoneNumber: null,
+              department: enhancedDetails.department || null,
+              location: enhancedDetails.location || null,
+              verificationSource: localSourcesEnabled ? 'Local Sources' : null
+            });
           })
-        )
-      );
+        );
 
-      res.json(createdContacts);
+        res.json(createdContacts);
+      } catch (error) {
+        console.error('Contact enrichment error:', error);
+        res.status(500).json({
+          message: error instanceof Error ? error.message : "An unexpected error occurred during contact enrichment"
+        });
+      }
     } catch (error) {
       console.error('Contact enrichment error:', error);
       res.status(500).json({
