@@ -54,14 +54,9 @@ const SEARCH_SECTIONS = {
         description: "Search Google My Business listings and reviews"
       },
       {
-        id: "digital-twitter",
-        label: "Twitter Search",
-        description: "Search Twitter for company mentions and activity"
-      },
-      {
-        id: "digital-facebook",
-        label: "Facebook Search",
-        description: "Search Facebook for company pages and activity"
+        id: "yelp-search",
+        label: "Yelp Search",
+        description: "Check for Yelp"
       }
     ]
   },
@@ -91,19 +86,19 @@ const SEARCH_SECTIONS = {
     label: "Startup Sources",
     searches: [
       {
-        id: "startup-linkedin",
-        label: "LinkedIn Search",
-        description: "Search LinkedIn for startup activity and funding news"
+        id: "startup-angelist",
+        label: "Angelist",
+        description: "Search Angelist for startup information and funding details"
       },
       {
-        id: "startup-twitter",
-        label: "Twitter Search",
-        description: "Search Twitter for startup announcements and updates"
+        id: "startup-crunchbase",
+        label: "Crunchbase",
+        description: "Search Crunchbase for company data and investment history"
       },
       {
-        id: "startup-facebook",
-        label: "Facebook Search",
-        description: "Search Facebook for startup community engagement"
+        id: "startup-other",
+        label: "Other Sources",
+        description: "Search other startup-focused platforms and databases"
       }
     ]
   },
