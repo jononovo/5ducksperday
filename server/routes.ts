@@ -322,12 +322,22 @@ ${company.services ? `Services: ${company.services.join(', ')}` : ''}
 
 ${contact ? `Recipient: ${contact.name}${contact.role ? ` (${contact.role})` : ''}` : 'No specific recipient selected'}
 
-Write only the body of the email, no subject line. Keep it concise and professional.`
+First, provide a short, engaging subject line prefixed with "Subject: ".
+Then, on a new line, write the body of the email. Keep both subject and content concise and professional.`
         }
       ];
 
-      const generatedContent = await queryPerplexity(messages);
-      res.json({ content: generatedContent });
+      const response = await queryPerplexity(messages);
+
+      // Split response into subject and content
+      const parts = response.split('\n').filter(line => line.trim());
+      const subjectLine = parts[0].replace(/^Subject:\s*/i, '').trim();
+      const content = parts.slice(1).join('\n').trim();
+
+      res.json({ 
+        subject: subjectLine,
+        content: content 
+      });
     } catch (error) {
       console.error('Email generation error:', error);
       res.status(500).json({

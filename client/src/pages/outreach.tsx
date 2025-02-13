@@ -115,7 +115,10 @@ export default function Outreach() {
       return res.json();
     },
     onSuccess: (data) => {
-      // Insert generated content above existing content
+      // Set the subject if empty and update content
+      if (!emailSubject) {
+        setEmailSubject(data.subject);
+      }
       setEmailContent(prev => `${data.content}\n\n${prev}`);
       toast({
         title: "Email Generated",
