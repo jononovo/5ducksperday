@@ -171,8 +171,8 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
   const approachName = approach.name.toLowerCase();
   const sectionsToShow = {
     ...SEARCH_SECTIONS,
-    ...(approachName.includes('contact discovery') ? { local: APPROACH_SPECIFIC_SECTIONS.local } : {}),
-    ...(approachName.includes('online presence') ? { social: APPROACH_SPECIFIC_SECTIONS.social } : {})
+    ...(approachName.includes('contact') ? { local: APPROACH_SPECIFIC_SECTIONS.local } : {}),
+    ...(approachName.includes('online') ? { social: APPROACH_SPECIFIC_SECTIONS.social } : {})
   };
 
   const renderSearchSection = (section: typeof SEARCH_SECTIONS.digital) => {
