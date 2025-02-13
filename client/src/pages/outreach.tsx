@@ -119,6 +119,11 @@ export default function Outreach() {
       if (!emailSubject) {
         setEmailSubject(data.subject);
       }
+      // Set the email if a contact is selected and has an email
+      const selectedContact = contacts.find(c => c.id === selectedContactId);
+      if (selectedContact?.email && !toEmail) {
+        setToEmail(selectedContact.email);
+      }
       setEmailContent(prev => `${data.content}\n\n${prev}`);
       toast({
         title: "Email Generated",
