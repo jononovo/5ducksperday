@@ -1,5 +1,5 @@
 import { useRoute, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -34,21 +34,71 @@ import {
   ArrowLeft,
   Star,
   TrendingUp,
+  Search,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Company, Contact } from "@shared/schema";
 
 export default function CompanyDetails() {
   const [, params] = useRoute("/companies/:id");
   const [, navigate] = useLocation();
+  const { toast } = useToast();
 
   const { data: company } = useQuery<Company>({
     queryKey: [`/api/companies/${params?.id}`],
   });
 
-  const { data: contacts = [] } = useQuery<Contact[]>({
+  const { data: contacts = [], refetch: refetchContacts } = useQuery<Contact[]>({
     queryKey: [`/api/companies/${params?.id}/contacts`],
   });
+
+  // Add mutation for contact search
+  const contactSearchMutation = useMutation({
+    mutationFn: async (contact: Contact) => {
+      const response = await apiRequest("POST", "/api/contacts/search", {
+        name: contact.name,
+        company: company?.name
+      });
+      return response.json();
+    },
+    onSuccess: async (data) => {
+      await refetchContacts();
+      toast({
+        title: "Contact Enriched",
+        description: "Additional contact details have been found and saved.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Enrichment Failed",
+        description: error instanceof Error ? error.message : "Failed to enrich contact details",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handler for enriching all contacts
+  const handleEnrichContacts = async () => {
+    try {
+      // Process each contact sequentially
+      for (const contact of contacts) {
+        await contactSearchMutation.mutateAsync(contact);
+      }
+    } catch (error) {
+      console.error('Error enriching contacts:', error);
+    }
+  };
+
+  // Handler for deep searching contacts
+  const handleDeepSearch = () => {
+    toast({
+      title: "Deep Search",
+      description: "Deep search functionality coming soon!",
+    });
+  };
 
   if (!company) {
     return null;
@@ -106,7 +156,7 @@ export default function CompanyDetails() {
                   Company Age: {company.age} years
                 </CardDescription>
               </div>
-              <Badge 
+              <Badge
                 className="text-lg py-2"
                 variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}
               >
@@ -191,10 +241,31 @@ export default function CompanyDetails() {
         {/* Contacts Table */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Key Contacts
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Key Contacts
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleEnrichContacts}
+                  disabled={contactSearchMutation.isPending}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${contactSearchMutation.isPending ? 'animate-spin' : ''}`} />
+                  Enrich
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDeepSearch}
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  Deep Search
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
