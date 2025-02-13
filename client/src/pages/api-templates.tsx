@@ -1,15 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Code2 } from "lucide-react";
+import { Code2, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 export default function ApiTemplates() {
+  const [, setLocation] = useLocation();
+
   return (
     <div className="container mx-auto py-8">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Code2 className="w-5 h-5" />
-            API Request Templates
-          </CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setLocation('/')}
+              className="mr-2"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <CardTitle className="flex items-center gap-2">
+              <Code2 className="w-5 h-5" />
+              API Request Templates
+            </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-8">
