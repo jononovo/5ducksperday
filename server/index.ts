@@ -1,7 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { n8nService } from "./n8n/service";
 
 const app = express();
 app.use(express.json());
@@ -57,25 +56,5 @@ app.use((req, res, next) => {
   const PORT = 5000;
   server.listen(PORT, "0.0.0.0", () => {
     log(`Express server serving on port ${PORT}`);
-  });
-
-  // Start n8n service in the background
-  try {
-    await n8nService.start();
-    log('n8n service started successfully');
-  } catch (error) {
-    log('Failed to start n8n service, continuing without it');
-    console.error(error);
-  }
-
-  // Graceful shutdown
-  process.on('SIGTERM', async () => {
-    try {
-      await n8nService.stop();
-      process.exit(0);
-    } catch (error) {
-      console.error('Error during shutdown:', error);
-      process.exit(1);
-    }
   });
 })();
