@@ -17,23 +17,108 @@ interface SearchApproachesProps {
   approaches: SearchApproach[];
 }
 
-const SUB_SEARCHES = [
-  {
-    id: "local-news",
-    label: "Local News Search",
-    description: "Search local news sources for company leadership mentions and activities"
+const SEARCH_SECTIONS = {
+  local: {
+    id: "local",
+    label: "Local Sources",
+    searches: [
+      {
+        id: "local-news",
+        label: "Local News Search",
+        description: "Search local news sources for company leadership mentions and activities"
+      },
+      {
+        id: "business-associations",
+        label: "Business Associations Search",
+        description: "Search local chambers of commerce and business association memberships"
+      },
+      {
+        id: "local-events",
+        label: "Local Events Search",
+        description: "Search local business events, conferences, and speaking engagements"
+      },
+      {
+        id: "local-classifieds",
+        label: "Local Classifieds or Lists",
+        description: "Search classifieds for company info and local classifieds"
+      }
+    ]
   },
-  {
-    id: "business-associations",
-    label: "Business Associations Search",
-    description: "Search local chambers of commerce and business association memberships"
+  digital: {
+    id: "digital",
+    label: "Digital Sources",
+    searches: [
+      {
+        id: "google-business",
+        label: "Google My Business",
+        description: "Search Google My Business listings and reviews"
+      },
+      {
+        id: "digital-twitter",
+        label: "Twitter Search",
+        description: "Search Twitter for company mentions and activity"
+      },
+      {
+        id: "digital-facebook",
+        label: "Facebook Search",
+        description: "Search Facebook for company pages and activity"
+      }
+    ]
   },
-  {
-    id: "local-events",
-    label: "Local Events Search",
-    description: "Search local business events, conferences, and speaking engagements"
+  social: {
+    id: "social",
+    label: "Social Sources",
+    searches: [
+      {
+        id: "social-linkedin",
+        label: "LinkedIn Search",
+        description: "Search LinkedIn for company profiles and employees"
+      },
+      {
+        id: "social-twitter",
+        label: "Twitter Search",
+        description: "Search Twitter for social mentions and engagement"
+      },
+      {
+        id: "social-facebook",
+        label: "Facebook Search",
+        description: "Search Facebook for social presence and community engagement"
+      }
+    ]
+  },
+  startup: {
+    id: "startup",
+    label: "Startup Sources",
+    searches: [
+      {
+        id: "startup-linkedin",
+        label: "LinkedIn Search",
+        description: "Search LinkedIn for startup activity and funding news"
+      },
+      {
+        id: "startup-twitter",
+        label: "Twitter Search",
+        description: "Search Twitter for startup announcements and updates"
+      },
+      {
+        id: "startup-facebook",
+        label: "Facebook Search",
+        description: "Search Facebook for startup community engagement"
+      }
+    ]
+  },
+  sector: {
+    id: "sector",
+    label: "Sector Specific Startup",
+    searches: [
+      {
+        id: "sector-startup",
+        label: "Startup",
+        description: "Search for sector-specific startup information and news"
+      }
+    ]
   }
-];
+};
 
 interface SubSearchesProps {
   approach: SearchApproach;
@@ -49,65 +134,71 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
   // Parse the existing subsearches from the approach config
   const subsearches = (approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {};
 
-  // Calculate if all checkboxes are checked
-  const allChecked = SUB_SEARCHES.every(search => subsearches[search.id]);
-  const someChecked = SUB_SEARCHES.some(search => subsearches[search.id]);
+  const renderSearchSection = (section: typeof SEARCH_SECTIONS.local) => {
+    // Calculate if all checkboxes in this section are checked
+    const allChecked = section.searches.every(search => subsearches[search.id]);
+    const someChecked = section.searches.some(search => subsearches[search.id]);
 
-  // Handle master checkbox change
-  const handleMasterCheckboxChange = (checked: boolean) => {
-    if (isEditing && onSubSearchChange) {
-      SUB_SEARCHES.forEach(search => {
-        onSubSearchChange(search.id, checked);
-      });
-    }
+    // Handle master checkbox change for this section
+    const handleMasterCheckboxChange = (checked: boolean) => {
+      if (isEditing && onSubSearchChange) {
+        section.searches.forEach(search => {
+          onSubSearchChange(search.id, checked);
+        });
+      }
+    };
+
+    return (
+      <AccordionItem key={section.id} value={section.id}>
+        <AccordionTrigger className="flex items-center gap-2 py-2">
+          <Checkbox
+            id={`master-${section.id}`}
+            checked={allChecked}
+            data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
+            disabled={!isEditing}
+            onCheckedChange={handleMasterCheckboxChange}
+            onClick={(e) => e.stopPropagation()}
+            className="mr-2"
+          />
+          <span>{section.label}</span>
+        </AccordionTrigger>
+        <AccordionContent>
+          <div className="space-y-4 pl-6">
+            {section.searches.map((search) => (
+              <div key={search.id} className="flex items-start space-x-2">
+                <Checkbox
+                  id={search.id}
+                  checked={subsearches[search.id] || false}
+                  disabled={!isEditing}
+                  onCheckedChange={isEditing && onSubSearchChange ? 
+                    (checked) => onSubSearchChange(search.id, checked as boolean) : 
+                    undefined
+                  }
+                  className="mt-1"
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <label
+                    htmlFor={search.id}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {search.label}
+                  </label>
+                  <p className="text-sm text-muted-foreground">
+                    {search.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    );
   };
 
   return (
     <div className="mt-4">
-      <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="local-sources">
-          <AccordionTrigger className="flex items-center gap-2 py-2">
-            <Checkbox
-              id="master-checkbox"
-              checked={allChecked}
-              indeterminate={!allChecked && someChecked}
-              disabled={!isEditing}
-              onCheckedChange={handleMasterCheckboxChange}
-              onClick={(e) => e.stopPropagation()}
-              className="mr-2"
-            />
-            <span>Local Sources</span>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-4 pl-6">
-              {SUB_SEARCHES.map((search) => (
-                <div key={search.id} className="flex items-start space-x-2">
-                  <Checkbox
-                    id={search.id}
-                    checked={subsearches[search.id] || false}
-                    disabled={!isEditing}
-                    onCheckedChange={isEditing && onSubSearchChange ? 
-                      (checked) => onSubSearchChange(search.id, checked as boolean) : 
-                      undefined
-                    }
-                    className="mt-1"
-                  />
-                  <div className="grid gap-1.5 leading-none">
-                    <label
-                      htmlFor={search.id}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {search.label}
-                    </label>
-                    <p className="text-sm text-muted-foreground">
-                      {search.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
+      <Accordion type="multiple" className="w-full">
+        {Object.values(SEARCH_SECTIONS).map(section => renderSearchSection(section))}
       </Accordion>
     </div>
   );
