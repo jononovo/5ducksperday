@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserCircle, Send, Save, Wand2, Copy, ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import QuickTemplates from "@/components/quick-templates";
 import type { EmailTemplate } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 // Define interface for the saved state
 interface SavedOutreachState {
@@ -91,9 +92,54 @@ export default function Outreach() {
     console.log('Sending email:', { emailPrompt, emailContent });
   };
 
+  const generateEmailMutation = useMutation({
+    mutationFn: async () => {
+      const selectedContact = contacts.find(c => c.id === selectedContactId);
+      const payload = {
+        emailPrompt,
+        contact: selectedContact || null,
+        company: currentCompany
+      };
+      const res = await apiRequest("POST", "/api/generate-email", payload);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      // Insert generated content above existing content
+      setEmailContent(prev => `${data.content}\n\n${prev}`);
+      toast({
+        title: "Email Generated",
+        description: "New content has been added above the existing email.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate email content",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleGenerateEmail = () => {
-    // TODO: Implement email generation
-    console.log('Generating email from prompt:', emailPrompt);
+    if (!currentCompany) {
+      toast({
+        title: "No Company Selected",
+        description: "Please select a company first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!emailPrompt) {
+      toast({
+        title: "No Prompt Provided",
+        description: "Please enter an email creation prompt",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    generateEmailMutation.mutate();
   };
 
   const handleCopyContact = (contact: Contact, e: React.MouseEvent) => {

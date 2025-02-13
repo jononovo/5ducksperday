@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { searchCompanies, analyzeCompany, parseCompanyData, extractContacts } from "./lib/perplexity";
+import { searchCompanies, analyzeCompany, parseCompanyData, extractContacts, queryPerplexity } from "./lib/perplexity";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
-import {insertEmailTemplateSchema} from "@shared/schema"; // Assuming this schema exists
+import {insertEmailTemplateSchema} from "@shared/schema"; 
 
 export function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -292,6 +292,48 @@ export function registerRoutes(app: Express) {
 
     const template = await storage.createEmailTemplate(result.data);
     res.json(template);
+  });
+
+  // Add new route for email generation
+  app.post("/api/generate-email", async (req, res) => {
+    const { emailPrompt, contact, company } = req.body;
+
+    if (!emailPrompt || !company) {
+      res.status(400).json({ message: "Missing required parameters" });
+      return;
+    }
+
+    try {
+      // Construct the prompt for Perplexity
+      const messages = [
+        {
+          role: "system",
+          content: "You are a professional business email writer. Write personalized, engaging emails that are concise and effective. Focus on building genuine connections while maintaining professionalism."
+        },
+        {
+          role: "user",
+          content: `Write a business email based on this context:
+
+Prompt: ${emailPrompt}
+
+Company: ${company.name}
+${company.size ? `Size: ${company.size} employees` : ''}
+${company.services ? `Services: ${company.services.join(', ')}` : ''}
+
+${contact ? `Recipient: ${contact.name}${contact.role ? ` (${contact.role})` : ''}` : 'No specific recipient selected'}
+
+Write only the body of the email, no subject line. Keep it concise and professional.`
+        }
+      ];
+
+      const generatedContent = await queryPerplexity(messages);
+      res.json({ content: generatedContent });
+    } catch (error) {
+      console.error('Email generation error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred during email generation"
+      });
+    }
   });
 
   return httpServer;
