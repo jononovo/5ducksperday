@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import {
   Select,
@@ -19,8 +20,11 @@ export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps
     queryKey: ["/api/email-templates"],
   });
 
-  const handleTemplateSelect = (templateId: string) => {
-    const template = templates.find(t => t.id.toString() === templateId);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
+
+  const handleInsertTemplate = () => {
+    if (!selectedTemplateId) return;
+    const template = templates.find(t => t.id.toString() === selectedTemplateId);
     if (template) {
       onSelectTemplate(template);
     }
@@ -36,26 +40,36 @@ export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps
         </Button>
       </div>
 
-      <Select onValueChange={handleTemplateSelect}>
-        <SelectTrigger>
-          <SelectValue placeholder="Select a template" />
-        </SelectTrigger>
-        <SelectContent>
-          {templates.map((template) => (
-            <SelectItem 
-              key={template.id} 
-              value={template.id.toString()}
-              className="flex items-center gap-2"
-            >
-              <FileText className="w-4 h-4" />
-              <div>
-                <div className="font-medium">{template.name}</div>
-                <div className="text-xs text-muted-foreground">{template.description}</div>
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="space-y-2">
+        <Select onValueChange={setSelectedTemplateId} value={selectedTemplateId}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a template" />
+          </SelectTrigger>
+          <SelectContent>
+            {templates.map((template) => (
+              <SelectItem 
+                key={template.id} 
+                value={template.id.toString()}
+                className="flex items-center gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                <div>
+                  <div className="font-medium">{template.name}</div>
+                  <div className="text-xs text-muted-foreground">{template.description}</div>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Button 
+          onClick={handleInsertTemplate} 
+          disabled={!selectedTemplateId}
+          className="w-full"
+        >
+          Insert Template
+        </Button>
+      </div>
     </div>
   );
 }
