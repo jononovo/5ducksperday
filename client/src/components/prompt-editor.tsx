@@ -28,10 +28,10 @@ export default function PromptEditor({
 
   // Set initial content when editor is initialized
   useEffect(() => {
-    if (editorRef.current && initialPrompt) {
+    if (editorRef.current) {
       editorRef.current.setContent(initialPrompt);
     }
-  }, [initialPrompt]);
+  }, [initialPrompt, editorRef.current]);
 
   const searchMutation = useMutation({
     mutationFn: async (query: string) => {
@@ -78,7 +78,13 @@ export default function PromptEditor({
     <Card className="p-4">
       <Editor
         apiKey="fjabklzyygfhfq8550mc9ts3lm6xh2bbgbuyoxo2huzgyp8e"
-        onInit={(_evt, editor) => editorRef.current = editor}
+        onInit={(_evt, editor) => {
+          editorRef.current = editor;
+          if (initialPrompt) {
+            editor.setContent(initialPrompt);
+          }
+        }}
+        initialValue={initialPrompt}
         init={{
           height: 300,
           menubar: false,
