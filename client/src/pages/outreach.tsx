@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Send, Save, Wand2, Copy, ChevronLeft, ChevronRight } from "lucide-react";
+import { UserCircle, Send, Save, Wand2, Copy, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -130,7 +130,7 @@ export default function Outreach() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <Mail className="w-5 h-5" />
+                  <UserCircle className="w-5 h-5" />
                   {companies.length > 0 && (
                     <div className="flex items-center gap-2 ml-4">
                       <Button
@@ -275,7 +275,7 @@ export default function Outreach() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="flex items-center gap-2">
-                  <Mail className="w-5 h-5" />
+                  <Send className="w-5 h-5" /> {/*Corrected Icon Here*/}
                 </CardTitle>
                 <Button onClick={handleGenerateEmail}>
                   <Wand2 className="w-4 h-4 mr-2" />
