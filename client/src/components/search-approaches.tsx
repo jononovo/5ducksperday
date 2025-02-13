@@ -49,13 +49,15 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     <Accordion type="single" collapsible className="w-full">
       {approaches.map((approach) => (
         <AccordionItem key={approach.id} value={approach.id.toString()}>
-          <div className="flex items-center justify-between px-4">
+          <div className="flex items-center gap-2 px-1">
             <Switch
               checked={approach.active ?? false}
               onCheckedChange={(checked) => handleToggle(approach.id, checked)}
-              className="my-4"
+              className="scale-75"
             />
-            <AccordionTrigger className="flex-1">{approach.name}</AccordionTrigger>
+            <AccordionTrigger className="flex-1 hover:no-underline">
+              {approach.name}
+            </AccordionTrigger>
           </div>
           <AccordionContent>
             {editingId === approach.id ? (
