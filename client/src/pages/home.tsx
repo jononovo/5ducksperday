@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
 import SearchApproaches from "@/components/search-approaches";
-import { ListPlus, Search } from "lucide-react";
+import { ListPlus, Search, Code2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 // Define interface for the saved state
 interface SavedSearchState {
@@ -22,6 +23,7 @@ export default function Home() {
   const [isSaved, setIsSaved] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Load state from localStorage on component mount
   useEffect(() => {
@@ -115,10 +117,20 @@ export default function Home() {
         <div className="grid md:grid-cols-2 gap-8">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="w-5 h-5" />
-                Search Approaches
-              </CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2">
+                  <Search className="w-5 h-5" />
+                  Search Approaches
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setLocation('/api-templates')}
+                  className="ml-2"
+                >
+                  <Code2 className="h-5 w-5" />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <SearchApproaches approaches={searchApproaches} />
