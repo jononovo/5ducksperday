@@ -20,11 +20,8 @@ export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps
     queryKey: ["/api/email-templates"],
   });
 
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
-
-  const handleInsertTemplate = () => {
-    if (!selectedTemplateId) return;
-    const template = templates.find(t => t.id.toString() === selectedTemplateId);
+  const handleTemplateChange = (templateId: string) => {
+    const template = templates.find(t => t.id.toString() === templateId);
     if (template) {
       onSelectTemplate(template);
     }
@@ -41,7 +38,7 @@ export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps
       </div>
 
       <div className="space-y-2">
-        <Select onValueChange={setSelectedTemplateId} value={selectedTemplateId}>
+        <Select onValueChange={handleTemplateChange}>
           <SelectTrigger>
             <SelectValue placeholder="Select a template" />
           </SelectTrigger>
@@ -61,14 +58,6 @@ export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps
             ))}
           </SelectContent>
         </Select>
-
-        <Button 
-          onClick={handleInsertTemplate} 
-          disabled={!selectedTemplateId}
-          className="w-full"
-        >
-          Insert Template
-        </Button>
       </div>
     </div>
   );
