@@ -91,12 +91,13 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
-      const res = await apiRequest("PATCH", `/api/search-approaches/${id}`, updates);
-      return res.json();
+      const response = await apiRequest("PATCH", `/api/search-approaches/${id}`, updates);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/search-approaches"] });
       setEditingId(null);
+      setEditedPrompt("");
       setEditedSubSearches({});
     },
   });
@@ -116,7 +117,6 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       updates: {
         prompt: editedPrompt,
         config: {
-          ...((approaches.find(a => a.id === id)?.config || {}) as Record<string, unknown>),
           subsearches: editedSubSearches
         }
       }
@@ -159,10 +159,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                 <SubSearches 
                   approach={{
                     ...approach,
-                    config: { 
-                      ...approach.config,
-                      subsearches: editedSubSearches
-                    }
+                    config: { subsearches: editedSubSearches }
                   }}
                   isEditing={true}
                   onSubSearchChange={handleSubSearchChange}
@@ -180,6 +177,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                     variant="outline"
                     onClick={() => {
                       setEditingId(null);
+                      setEditedPrompt("");
                       setEditedSubSearches({});
                     }}
                   >
