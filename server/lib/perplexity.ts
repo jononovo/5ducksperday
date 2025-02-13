@@ -67,7 +67,7 @@ export async function searchCompanies(query: string): Promise<string[]> {
 }
 
 export async function analyzeCompany(
-  companyName: string, 
+  companyName: string,
   prompt: string
 ): Promise<string> {
   const messages: PerplexityMessage[] = [
@@ -99,18 +99,32 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
   };
 
   for (const result of analysisResults) {
+    // Extract website URLs
+    const websiteRegex = /(?:website|url|web\s*site):\s*(https?:\/\/[^\s,)]+)/i;
+    const websiteMatch = result.match(websiteRegex);
+    if (websiteMatch) {
+      companyData.website = websiteMatch[1];
+    }
+
+    // Extract profile URLs (LinkedIn, etc.)
+    const profileRegex = /(?:profile|linkedin|company\s*profile):\s*(https?:\/\/[^\s,)]+)/i;
+    const profileMatch = result.match(profileRegex);
+    if (profileMatch) {
+      companyData.alternativeProfileUrl = profileMatch[1];
+    }
+
     // Extract differentiation points
     if (result.toLowerCase().includes("differentiat") || result.toLowerCase().includes("unique")) {
       const points = result
         .split(/[.!?•]/)
         .map(s => s.trim())
-        .filter(s => 
-          s.length > 0 && 
+        .filter(s =>
+          s.length > 0 &&
           s.length <= 30 &&
-          (s.toLowerCase().includes("unique") || 
-           s.toLowerCase().includes("only") ||
-           s.toLowerCase().includes("leading") ||
-           s.toLowerCase().includes("best"))
+          (s.toLowerCase().includes("unique") ||
+            s.toLowerCase().includes("only") ||
+            s.toLowerCase().includes("leading") ||
+            s.toLowerCase().includes("best"))
         )
         .slice(0, 3);
 
@@ -119,7 +133,7 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       }
     }
 
-    // Rest of the parsing logic 
+    // Rest of the parsing logic
     if (result.includes("employees") || result.includes("staff")) {
       const sizeMatch = result.match(/(\d+)\s*(employees|staff)/i);
       if (sizeMatch) {
@@ -138,8 +152,8 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
     if (result.toLowerCase().includes("services") || result.toLowerCase().includes("offerings")) {
       const services = result
         .split(/[.,;]/)
-        .filter(s => 
-          s.toLowerCase().includes("service") || 
+        .filter(s =>
+          s.toLowerCase().includes("service") ||
           s.toLowerCase().includes("offering") ||
           s.toLowerCase().includes("solution")
         )
@@ -154,8 +168,8 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
     const validationPoints = result
       .split(/[.!?]/)
       .map(s => s.trim())
-      .filter(s => 
-        s.length > 20 && 
+      .filter(s =>
+        s.length > 20 &&
         (s.includes("success") || s.includes("achievement") || s.includes("award"))
       );
 
@@ -212,8 +226,8 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
     for (const name of names) {
       // Skip common false positives
       if (
-        name.includes('Company') || 
-        name.includes('Service') || 
+        name.includes('Company') ||
+        name.includes('Service') ||
         name.includes('Product') ||
         name.length > 50
       ) {
@@ -221,14 +235,14 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
       }
 
       // Find closest role mention
-      const nearestRole = roleMatches.find(r => 
-        result.indexOf(r.fullContext) - result.indexOf(name) < 100 && 
+      const nearestRole = roleMatches.find(r =>
+        result.indexOf(r.fullContext) - result.indexOf(name) < 100 &&
         result.indexOf(r.fullContext) - result.indexOf(name) > -100
       );
 
       // Find closest email
-      const nearestEmail = emails.find(email => 
-        result.indexOf(email) - result.indexOf(name) < 100 && 
+      const nearestEmail = emails.find(email =>
+        result.indexOf(email) - result.indexOf(name) < 100 &&
         result.indexOf(email) - result.indexOf(name) > -100
       );
 
