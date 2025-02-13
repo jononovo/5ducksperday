@@ -1,7 +1,3 @@
-DATABASE_URL=postgresql://username:password@host:port/database
-PERPLEXITY_API_KEY=your_perplexity_api_key
-```
-
 ## Database Setup and Migration
 
 ### 1. Database Creation
