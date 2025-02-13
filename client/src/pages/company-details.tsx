@@ -55,41 +55,39 @@ export default function CompanyDetails() {
     queryKey: [`/api/companies/${params?.id}/contacts`],
   });
 
-  // Add mutation for contact search
+  // Update mutation to use new endpoint
   const contactSearchMutation = useMutation({
-    mutationFn: async (contact: Contact) => {
-      const response = await apiRequest("POST", "/api/contacts/search", {
-        name: contact.name,
-        company: company?.name
-      });
+    mutationFn: async () => {
+      const response = await apiRequest("POST", `/api/companies/${company?.id}/enrich-contacts`);
       return response.json();
     },
     onSuccess: async (data) => {
       await refetchContacts();
       toast({
-        title: "Contact Enriched",
-        description: "Additional contact details have been found and saved.",
+        title: "Contacts Updated",
+        description: "Successfully refreshed company contact information.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Enrichment Failed",
-        description: error instanceof Error ? error.message : "Failed to enrich contact details",
+        title: "Update Failed",
+        description: error instanceof Error ? error.message : "Failed to update contact information",
         variant: "destructive",
       });
     },
   });
 
-  // Handler for enriching all contacts
-  const handleEnrichContacts = async () => {
-    try {
-      // Process each contact sequentially
-      for (const contact of contacts) {
-        await contactSearchMutation.mutateAsync(contact);
-      }
-    } catch (error) {
-      console.error('Error enriching contacts:', error);
+  // Simplify the handler since we're now doing a single API call
+  const handleEnrichContacts = () => {
+    if (!company) {
+      toast({
+        title: "Error",
+        description: "No company selected",
+        variant: "destructive",
+      });
+      return;
     }
+    contactSearchMutation.mutate();
   };
 
   // Handler for deep searching contacts

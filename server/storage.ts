@@ -61,6 +61,7 @@ export interface IStorage {
   // Add new methods for detailed contact search
   enrichContact(id: number, contactData: Partial<Contact>): Promise<Contact | undefined>;
   searchContactDetails(contactInfo: { name: string; company: string }): Promise<Partial<Contact>>;
+  deleteContactsByCompany(companyId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -335,6 +336,9 @@ export class DatabaseStorage implements IStorage {
     // This is just a placeholder - the actual implementation will be in the routes
     // using the Perplexity API for detailed contact searches
     return {};
+  }
+  async deleteContactsByCompany(companyId: number): Promise<void> {
+    await db.delete(contacts).where(eq(contacts.companyId, companyId));
   }
 }
 

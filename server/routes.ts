@@ -172,6 +172,65 @@ export function registerRoutes(app: Express) {
     res.json(contacts);
   });
 
+  app.post("/api/companies/:companyId/enrich-contacts", async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.companyId);
+      const company = await storage.getCompany(companyId);
+
+      if (!company) {
+        res.status(404).json({ message: "Company not found" });
+        return;
+      }
+
+      // Get the leadership analysis approach
+      const approaches = await storage.listSearchApproaches();
+      const leadershipApproach = approaches.find(a => 
+        a.name.toLowerCase().includes("leadership") && a.active
+      );
+
+      if (!leadershipApproach) {
+        res.status(400).json({
+          message: "Leadership analysis approach is not available or not active"
+        });
+        return;
+      }
+
+      // Perform new leadership analysis
+      const analysisResult = await analyzeCompany(company.name, leadershipApproach.prompt);
+      const newContacts = extractContacts([analysisResult]);
+
+      // Remove existing contacts
+      await storage.deleteContactsByCompany(companyId);
+
+      // Create new contacts
+      const validContacts = newContacts.filter(contact => contact.name && contact.name !== "Unknown");
+      const createdContacts = await Promise.all(
+        validContacts.map(contact =>
+          storage.createContact({
+            companyId,
+            name: contact.name!,
+            role: contact.role ?? null,
+            email: contact.email ?? null,
+            priority: contact.priority ?? null,
+            linkedinUrl: null,
+            twitterHandle: null,
+            phoneNumber: null,
+            department: null,
+            location: null,
+            verificationSource: null
+          })
+        )
+      );
+
+      res.json(createdContacts);
+    } catch (error) {
+      console.error('Contact enrichment error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred during contact enrichment"
+      });
+    }
+  });
+
   // Add new contact search endpoint
   app.post("/api/contacts/search", async (req, res) => {
     const { name, company } = req.body;
