@@ -275,3 +275,61 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
 
   return sortedContacts;
 }
+
+export async function searchContactDetails(name: string, company: string): Promise<Partial<Contact>> {
+  const messages: PerplexityMessage[] = [
+    {
+      role: "system",
+      content: `You are a contact information researcher. Find detailed professional information about the specified person. Focus on:
+1. Current role and department
+2. Professional email format
+3. LinkedIn profile URL
+4. Location
+5. Other verifiable contact details
+Format your response in a structured way that's easy to parse.`
+    },
+    {
+      role: "user",
+      content: `Find detailed professional contact information for ${name} at ${company}. Include email, LinkedIn URL, role details, and location if available.`
+    }
+  ];
+
+  const response = await queryPerplexity(messages);
+  return parseContactDetails(response);
+}
+
+function parseContactDetails(response: string): Partial<Contact> {
+  const contact: Partial<Contact> = {};
+
+  // Look for email patterns
+  const emailMatch = response.match(/[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/);
+  if (emailMatch) {
+    contact.email = emailMatch[0];
+  }
+
+  // Look for LinkedIn URL
+  const linkedinMatch = response.match(/linkedin\.com\/in\/[\w-]+/);
+  if (linkedinMatch) {
+    contact.linkedinUrl = `https://www.${linkedinMatch[0]}`;
+  }
+
+  // Look for role information
+  const roleMatch = response.match(/(?:role|position|title):\s*([^.\n]+)/i);
+  if (roleMatch) {
+    contact.role = roleMatch[1].trim();
+  }
+
+  // Look for department
+  const deptMatch = response.match(/(?:department|division):\s*([^.\n]+)/i);
+  if (deptMatch) {
+    contact.department = deptMatch[1].trim();
+  }
+
+  // Look for location
+  const locationMatch = response.match(/(?:location|based in|located in):\s*([^.\n]+)/i);
+  if (locationMatch) {
+    contact.location = locationMatch[1].trim();
+  }
+
+  return contact;
+}

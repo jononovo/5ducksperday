@@ -11,10 +11,10 @@ export default function ApiTemplates() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
-              onClick={() => setLocation('/')}
+              onClick={() => setLocation("/")}
               className="mr-2"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -76,12 +76,45 @@ Content-Type: application/json
 
                 <div>
                   <h4 className="text-md font-medium mb-2">Leadership Analysis</h4>
-                  <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
-                    {`"prompt": "List and analyze the key leadership team members of [COMPANY], including their roles and experience."`}
-                  </pre>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Note: Both Leadership Analysis and Contact Discovery contribute to the contacts array in the response.
-                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <h5 className="text-sm font-medium mb-2">Request 1: Initial Analysis</h5>
+                      <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
+                        {`"prompt": "List and analyze the key leadership team members of [COMPANY], including their roles and experience."`}
+                      </pre>
+                    </div>
+
+                    <div>
+                      <h5 className="text-sm font-medium mb-2">Request 2: Detailed Contact Search</h5>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        For each identified leader, you can perform a detailed contact search:
+                      </p>
+                      <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
+                        {`POST /api/contacts/search
+Content-Type: application/json
+
+{
+  "name": "John Smith",
+  "company": "Example Corp"
+}`}
+                      </pre>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Response:
+                      </p>
+                      <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
+                        {`{
+  "email": "string | null",
+  "role": "string | null",
+  "linkedinUrl": "string | null",
+  "twitterHandle": "string | null",
+  "phoneNumber": "string | null",
+  "department": "string | null",
+  "location": "string | null",
+  "verificationSource": "string | null"
+}`}
+                      </pre>
+                    </div>
+                  </div>
                 </div>
 
                 <div>

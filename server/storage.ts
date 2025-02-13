@@ -57,6 +57,10 @@ export interface IStorage {
   createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate>;
   updateEmailTemplate(id: number, template: Partial<EmailTemplate>): Promise<EmailTemplate | undefined>;
   deleteEmailTemplate(id: number): Promise<void>;
+
+  // Add new methods for detailed contact search
+  enrichContact(id: number, contactData: Partial<Contact>): Promise<Contact | undefined>;
+  searchContactDetails(contactInfo: { name: string; company: string }): Promise<Partial<Contact>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -312,6 +316,25 @@ export class DatabaseStorage implements IStorage {
         await this.createEmailTemplate(template);
       }
     }
+  }
+
+  // Add new methods for detailed contact search
+  async enrichContact(id: number, contactData: Partial<Contact>): Promise<Contact | undefined> {
+    const [updated] = await db
+      .update(contacts)
+      .set({
+        ...contactData,
+        lastEnriched: new Date()
+      })
+      .where(eq(contacts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async searchContactDetails(contactInfo: { name: string; company: string }): Promise<Partial<Contact>> {
+    // This is just a placeholder - the actual implementation will be in the routes
+    // using the Perplexity API for detailed contact searches
+    return {};
   }
 }
 

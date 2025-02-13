@@ -35,6 +35,13 @@ export const contacts = pgTable("contacts", {
   role: text("role"),
   email: text("email"),
   priority: integer("priority"),
+  linkedinUrl: text("linkedin_url"),
+  twitterHandle: text("twitter_handle"),
+  phoneNumber: text("phone_number"),
+  department: text("department"),
+  location: text("location"),
+  verificationSource: text("verification_source"),
+  lastEnriched: timestamp("last_enriched"),
   createdAt: timestamp("created_at").defaultNow()
 });
 
@@ -106,7 +113,13 @@ const contactSchema = z.object({
   companyId: z.number(),
   role: z.string().nullable(),
   email: z.string().email().nullable(),
-  priority: z.number().min(1).max(3).nullable()
+  priority: z.number().min(1).max(3).nullable(),
+  linkedinUrl: z.string().url().nullable(),
+  twitterHandle: z.string().nullable(),
+  phoneNumber: z.string().nullable(),
+  department: z.string().nullable(),
+  location: z.string().nullable(),
+  verificationSource: z.string().nullable()
 });
 
 const searchApproachSchema = z.object({

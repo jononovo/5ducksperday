@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { searchCompanies, analyzeCompany, parseCompanyData, extractContacts, queryPerplexity } from "./lib/perplexity";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
 import {insertEmailTemplateSchema} from "@shared/schema"; 
+import { searchContactDetails } from "./lib/perplexity";
 
 export function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -170,6 +171,37 @@ export function registerRoutes(app: Express) {
     const contacts = await storage.listContactsByCompany(parseInt(req.params.companyId));
     res.json(contacts);
   });
+
+  // Add new contact search endpoint
+  app.post("/api/contacts/search", async (req, res) => {
+    const { name, company } = req.body;
+
+    if (!name || !company) {
+      res.status(400).json({
+        message: "Both name and company are required"
+      });
+      return;
+    }
+
+    try {
+      const contactDetails = await searchContactDetails(name, company);
+
+      if (Object.keys(contactDetails).length === 0) {
+        res.status(404).json({
+          message: "No additional contact details found"
+        });
+        return;
+      }
+
+      res.json(contactDetails);
+    } catch (error) {
+      console.error('Contact search error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred during contact search"
+      });
+    }
+  });
+
 
   // Search Approaches
   app.get("/api/search-approaches", async (_req, res) => {
