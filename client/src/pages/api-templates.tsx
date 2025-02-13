@@ -34,26 +34,29 @@ export default function ApiTemplates() {
 Content-Type: application/json
 
 {
-  "query": "mid-sized plumbers in Atlanta"
+  "query": "mid-sized tech companies in Seattle"
 }`}
               </pre>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-2">Search Approach Update</h3>
+              <h3 className="text-lg font-semibold mb-2">Search Approach Configuration</h3>
               <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
                 {`PATCH /api/search-approaches/:id
 Content-Type: application/json
 
 {
-  "active": boolean,
-  "prompt": "string"
+  "active": true,
+  "prompt": "List and analyze the key leadership team members of [COMPANY], including their roles and experience."
 }`}
               </pre>
+              <p className="text-sm text-muted-foreground mt-2">
+                Note: The [COMPANY] placeholder is automatically replaced with the target company name.
+              </p>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-2">Response Format</h3>
+              <h3 className="text-lg font-semibold mb-2">Search Response Format</h3>
               <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
                 {`{
   "companies": [
@@ -63,12 +66,23 @@ Content-Type: application/json
       "size": number | null,
       "services": string[] | null,
       "validationPoints": string[] | null,
-      "totalScore": number
+      "totalScore": number,
+      "contacts": [
+        {
+          "name": string,
+          "role": string | null,
+          "email": string | null,
+          "priority": number
+        }
+      ]
     }
   ],
   "query": string
 }`}
               </pre>
+              <p className="text-sm text-muted-foreground mt-2">
+                When Leadership Analysis is enabled, the response includes detailed contact information in the contacts array.
+              </p>
             </div>
           </div>
         </CardContent>
