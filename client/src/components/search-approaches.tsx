@@ -56,7 +56,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
               className="scale-75"
             />
             <AccordionTrigger className="flex-1 hover:no-underline">
-              {approach.name}
+              <span className="mr-4">{approach.name}</span>
             </AccordionTrigger>
           </div>
           <AccordionContent>
