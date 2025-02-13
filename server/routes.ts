@@ -126,6 +126,8 @@ export function registerRoutes(app: Express) {
             age: companyData.age ?? null,
             size: companyData.size ?? null,
             website: companyData.website ?? null,
+            alternativeProfileUrl: companyData.alternativeProfileUrl ?? null,
+            defaultContactEmail: companyData.defaultContactEmail ?? null,
             ranking: companyData.ranking ?? null,
             linkedinProminence: companyData.linkedinProminence ?? null,
             customerCount: companyData.customerCount ?? null,
@@ -133,11 +135,30 @@ export function registerRoutes(app: Express) {
             services: companyData.services ?? null,
             validationPoints: companyData.validationPoints ?? null,
             totalScore: companyData.totalScore ?? null,
-            snapshot: companyData.snapshot ?? null
+            snapshot: companyData.snapshot || null
           });
 
           // Create contact records
           const validContacts = contacts.filter(contact => contact.name && contact.name !== "Unknown");
+
+          // Create default company contact if email exists
+          if (company.defaultContactEmail) {
+            await storage.createContact({
+              companyId: company.id,
+              name: company.name,
+              role: 'General Contact',
+              email: company.defaultContactEmail,
+              priority: 3, // Low priority for general contact
+              linkedinUrl: null,
+              twitterHandle: null,
+              phoneNumber: null,
+              department: 'General',
+              location: null,
+              verificationSource: 'Company Website'
+            });
+          }
+
+          // Create other contact records
           await Promise.all(
             validContacts.map(contact =>
               storage.createContact({
@@ -145,7 +166,13 @@ export function registerRoutes(app: Express) {
                 name: contact.name!,
                 role: contact.role ?? null,
                 email: contact.email ?? null,
-                priority: contact.priority ?? null
+                priority: contact.priority ?? null,
+                linkedinUrl: null,
+                twitterHandle: null,
+                phoneNumber: null,
+                department: null,
+                location: null,
+                verificationSource: null
               })
             )
           );
