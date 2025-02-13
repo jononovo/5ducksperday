@@ -159,7 +159,10 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                 <SubSearches 
                   approach={{
                     ...approach,
-                    config: { ...approach.config, subsearches: editedSubSearches }
+                    config: { 
+                      ...approach.config,
+                      subsearches: editedSubSearches
+                    }
                   }}
                   isEditing={true}
                   onSubSearchChange={handleSubSearchChange}
