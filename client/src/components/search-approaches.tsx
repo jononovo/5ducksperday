@@ -4,6 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Accordion,
   AccordionContent,
@@ -14,6 +15,62 @@ import type { SearchApproach } from "@shared/schema";
 
 interface SearchApproachesProps {
   approaches: SearchApproach[];
+}
+
+const SUB_SEARCHES = [
+  {
+    id: "local-news",
+    label: "Local News Search",
+    description: "Search local news sources for company leadership mentions and activities"
+  },
+  {
+    id: "business-associations",
+    label: "Business Associations Search",
+    description: "Search local chambers of commerce and business association memberships"
+  },
+  {
+    id: "local-events",
+    label: "Local Events Search",
+    description: "Search local business events, conferences, and speaking engagements"
+  }
+];
+
+function SubSearches({ approach, isEditing }: { approach: SearchApproach, isEditing: boolean }) {
+  if (!approach.name.toLowerCase().includes('leadership')) {
+    return null;
+  }
+
+  // Parse the existing subsearches from the approach config or use defaults
+  const subsearches = approach.config?.subsearches || {};
+
+  return (
+    <div className="mt-4 space-y-4">
+      <h4 className="text-sm font-medium">Additional Search Areas:</h4>
+      <div className="space-y-4">
+        {SUB_SEARCHES.map((search) => (
+          <div key={search.id} className="flex items-start space-x-2">
+            <Checkbox
+              id={search.id}
+              checked={subsearches[search.id] || false}
+              disabled={!isEditing}
+              className="mt-1"
+            />
+            <div className="grid gap-1.5 leading-none">
+              <label
+                htmlFor={search.id}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {search.label}
+              </label>
+              <p className="text-sm text-muted-foreground">
+                {search.description}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function SearchApproaches({ approaches }: SearchApproachesProps) {
@@ -67,6 +124,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   onChange={(e) => setEditedPrompt(e.target.value)}
                   className="min-h-[100px]"
                 />
+                <SubSearches approach={approach} isEditing={true} />
                 <div className="flex gap-2">
                   <Button 
                     size="sm"
@@ -87,6 +145,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">{approach.prompt}</p>
+                <SubSearches approach={approach} isEditing={false} />
                 <Button 
                   size="sm"
                   variant="outline"
