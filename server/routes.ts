@@ -106,7 +106,7 @@ export function registerRoutes(app: Express) {
       // Analyze each company
       const companies = await Promise.all(
         companyNames.map(async (companyName) => {
-          // Run analysis for each approach
+          // Run analysis for each active approach
           const analysisResults = await Promise.all(
             activeApproaches.map(approach =>
               analyzeCompany(companyName, approach.prompt)
