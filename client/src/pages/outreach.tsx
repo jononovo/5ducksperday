@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Send, Save, Wand2 } from "lucide-react";
+import { Mail, Send, Save, Wand2, Copy } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -15,6 +15,7 @@ import type { List, Company, Contact } from "@shared/schema";
 import { useState, useEffect } from "react";
 import QuickTemplates from "@/components/quick-templates";
 import type { EmailTemplate } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 
 // Define interface for the saved state
 interface SavedOutreachState {
@@ -29,6 +30,7 @@ export default function Outreach() {
   const [emailPrompt, setEmailPrompt] = useState("");
   const [emailContent, setEmailContent] = useState("");
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
+  const { toast } = useToast();
 
   // Load state from localStorage on component mount
   useEffect(() => {
@@ -90,6 +92,17 @@ export default function Outreach() {
     console.log('Generating email from prompt:', emailPrompt);
   };
 
+  const handleCopyContact = (contact: Contact, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the parent button click
+    const textToCopy = `${contact.name}${contact.email ? ` <${contact.email}>` : ''}`;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      toast({
+        title: "Copied to clipboard",
+        description: `Contact information for ${contact.name} has been copied.`
+      });
+    });
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="grid grid-cols-2 gap-6">
@@ -127,7 +140,7 @@ export default function Outreach() {
                       <button
                         key={contact.id}
                         className={cn(
-                          "w-full text-left p-3 rounded-lg transition-colors",
+                          "w-full text-left p-3 rounded-lg transition-colors relative",
                           "hover:bg-accent hover:text-accent-foreground",
                           selectedContactId === contact.id && "bg-primary text-primary-foreground",
                           selectedContactId !== contact.id && "bg-card hover:bg-accent"
@@ -148,6 +161,18 @@ export default function Outreach() {
                             <span className="block">{contact.role}</span>
                           )}
                         </div>
+                        {/* Copy button */}
+                        <button
+                          className={cn(
+                            "absolute bottom-2 right-2 p-1.5 rounded-md",
+                            "hover:bg-background/80 transition-colors",
+                            "text-muted-foreground hover:text-foreground",
+                            selectedContactId === contact.id && "hover:bg-primary-foreground/20 text-primary-foreground"
+                          )}
+                          onClick={(e) => handleCopyContact(contact, e)}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
                       </button>
                     ))}
                   </div>
