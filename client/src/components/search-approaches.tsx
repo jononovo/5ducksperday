@@ -102,14 +102,25 @@ const SEARCH_SECTIONS = {
       }
     ]
   },
-  sector: {
-    id: "sector",
-    label: "Sector Specific Startup",
+  sector_listings: {
+    id: "sector_listings",
+    label: "Sector Specific Listings",
+    description: "Here we search for online listings sites within the sector determined by the original prompt. For example, if the prompt mentions tech and education, then we would look into edtech. If medical equipment sourcing, then we would orient around there. Select type of business:",
     searches: [
       {
-        id: "sector-startup",
-        label: "Startup",
-        description: "Search for sector-specific startup information and news"
+        id: "sector-tech",
+        label: "Tech Startup",
+        description: "Search for technology startup listings and directories"
+      },
+      {
+        id: "sector-small",
+        label: "Small Business",
+        description: "Search for small business listings and directories"
+      },
+      {
+        id: "sector-contractor",
+        label: "Contractor",
+        description: "Search for contractor and service provider listings"
       }
     ]
   }
@@ -155,7 +166,12 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
             onClick={(e) => e.stopPropagation()}
             className="mr-2"
           />
-          <span>{section.label}</span>
+          <div>
+            <span>{section.label}</span>
+            {section.description && (
+              <p className="text-xs text-muted-foreground mt-1">{section.description}</p>
+            )}
+          </div>
         </AccordionTrigger>
         <AccordionContent>
           <div className="space-y-4 pl-6">
