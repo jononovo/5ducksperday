@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Select,
@@ -6,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import type { EmailTemplate } from "@shared/schema";
 import CreateTemplateModal from "./create-template-modal";
@@ -15,12 +17,15 @@ interface QuickTemplatesProps {
 }
 
 export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps) {
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
+
   const { data: templates = [] } = useQuery<EmailTemplate[]>({
     queryKey: ["/api/email-templates"],
   });
 
-  const handleTemplateChange = (templateId: string) => {
-    const template = templates.find(t => t.id.toString() === templateId);
+  const handleInsertTemplate = () => {
+    if (!selectedTemplateId) return;
+    const template = templates.find(t => t.id.toString() === selectedTemplateId);
     if (template) {
       onSelectTemplate(template);
     }
@@ -34,7 +39,7 @@ export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps
       </div>
 
       <div className="space-y-2">
-        <Select onValueChange={handleTemplateChange}>
+        <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
           <SelectTrigger>
             <SelectValue placeholder="Select a template" />
           </SelectTrigger>
@@ -54,6 +59,14 @@ export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps
             ))}
           </SelectContent>
         </Select>
+
+        <Button 
+          onClick={handleInsertTemplate} 
+          disabled={!selectedTemplateId}
+          className="w-full"
+        >
+          Insert Template
+        </Button>
       </div>
     </div>
   );
