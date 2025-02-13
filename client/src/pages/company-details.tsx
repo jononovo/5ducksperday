@@ -36,7 +36,7 @@ import {
   TrendingUp,
   Search,
   RefreshCw,
-  Link2, // Added import for Link2
+  Link2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -304,33 +304,38 @@ export default function CompanyDetails() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {company.website && (
-                <a
-                  href={company.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <Globe className="h-5 w-5" />
-                  <span>Company Website</span>
-                  <span className="text-sm text-muted-foreground">({company.website})</span>
-                </a>
-              )}
-              {company.alternativeProfileUrl && (
-                <a
-                  href={company.alternativeProfileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <Link2 className="h-5 w-5" />
-                  <span>Company Profile</span>
-                  <span className="text-sm text-muted-foreground">({company.alternativeProfileUrl})</span>
-                </a>
-              )}
-              {!company.website && !company.alternativeProfileUrl && (
-                <p className="text-muted-foreground italic">No external links available</p>
-              )}
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Globe className="h-5 w-5" />
+                <span>Company Website:</span>
+                {company.website ? (
+                  <a
+                    href={company.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    {company.website}
+                  </a>
+                ) : (
+                  <span className="italic">No website available</span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Link2 className="h-5 w-5" />
+                <span>Company Profile:</span>
+                {company.alternativeProfileUrl ? (
+                  <a
+                    href={company.alternativeProfileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    {company.alternativeProfileUrl}
+                  </a>
+                ) : (
+                  <span className="italic">No profile link available</span>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
