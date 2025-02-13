@@ -36,6 +36,7 @@ import {
   TrendingUp,
   Search,
   RefreshCw,
+  Link2, // Added import for Link2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -290,6 +291,47 @@ export default function CompanyDetails() {
                 ))}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+
+        {/* External Links Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              External Links
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {company.website && (
+                <a
+                  href={company.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Globe className="h-5 w-5" />
+                  <span>Company Website</span>
+                  <span className="text-sm text-muted-foreground">({company.website})</span>
+                </a>
+              )}
+              {company.alternativeProfileUrl && (
+                <a
+                  href={company.alternativeProfileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Link2 className="h-5 w-5" />
+                  <span>Company Profile</span>
+                  <span className="text-sm text-muted-foreground">({company.alternativeProfileUrl})</span>
+                </a>
+              )}
+              {!company.website && !company.alternativeProfileUrl && (
+                <p className="text-muted-foreground italic">No external links available</p>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
