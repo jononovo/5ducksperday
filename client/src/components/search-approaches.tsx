@@ -156,23 +156,23 @@ function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProp
 
     return (
       <AccordionItem key={section.id} value={section.id}>
-        <AccordionTrigger className="flex items-center gap-2 py-2">
-          <Checkbox
-            id={`master-${section.id}`}
-            checked={allChecked}
-            data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
-            disabled={!isEditing}
-            onCheckedChange={handleMasterCheckboxChange}
-            onClick={(e) => e.stopPropagation()}
-            className="mr-2"
-          />
-          <div>
+        <div>
+          <AccordionTrigger className="flex items-center gap-2 py-2">
+            <Checkbox
+              id={`master-${section.id}`}
+              checked={allChecked}
+              data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
+              disabled={!isEditing}
+              onCheckedChange={handleMasterCheckboxChange}
+              onClick={(e) => e.stopPropagation()}
+              className="mr-2"
+            />
             <span>{section.label}</span>
-            {section.description && (
-              <p className="text-xs text-muted-foreground mt-1">{section.description}</p>
-            )}
-          </div>
-        </AccordionTrigger>
+          </AccordionTrigger>
+          {section.id === 'sector_listings' && section.description && (
+            <p className="text-xs text-muted-foreground mt-1 ml-10 mb-2">{section.description}</p>
+          )}
+        </div>
         <AccordionContent>
           <div className="space-y-4 pl-6">
             {section.searches.map((search) => (
