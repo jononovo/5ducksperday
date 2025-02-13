@@ -209,11 +209,59 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
     'Manager': 4
   };
 
+  // Enhanced regex patterns
   const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
-  const nameRegex = /([A-Z][a-z]{1,20}\s+[A-Z][a-z]{1,20}(?:\s+[A-Z][a-z]{1,20})?)/g;
+  // More strict name pattern requiring first and last name
+  const nameRegex = /([A-Z][a-z]{1,20})\s+([A-Z][a-z]{1,20})(?:\s+[A-Z][a-z]{1,20})?/g;
+
+  // Common organization suffix patterns to filter out
+  const orgSuffixes = [
+    'Inc', 'LLC', 'Ltd', 'Limited', 'Corp', 'Corporation', 'Co', 'Company',
+    'Group', 'Holdings', 'Services', 'Solutions', 'Technologies', 'Systems'
+  ];
+
+  // Words that indicate a goal or objective rather than a person
+  const goalKeywords = [
+    'mission', 'vision', 'goal', 'objective', 'strategy', 'approach',
+    'success', 'growth', 'development', 'innovation', 'leadership'
+  ];
 
   for (const result of analysisResults) {
-    const names = result.match(nameRegex) || [];
+    const names = Array.from(result.matchAll(nameRegex))
+      .map(match => match[0])
+      .filter(name => {
+        // Filter out organization names and goals
+        if (orgSuffixes.some(suffix =>
+          name.includes(suffix) ||
+          name.includes(suffix.toUpperCase())
+        )) {
+          return false;
+        }
+
+        // Filter out if the name is surrounded by goal-related keywords
+        const context = result.substring(
+          Math.max(0, result.indexOf(name) - 30),
+          Math.min(result.length, result.indexOf(name) + name.length + 30)
+        ).toLowerCase();
+
+        if (goalKeywords.some(keyword => context.includes(keyword))) {
+          return false;
+        }
+
+        // Skip common false positives
+        return !(
+          name.includes('Company') ||
+          name.includes('Service') ||
+          name.includes('Product') ||
+          name.includes('Platform') ||
+          name.includes('Technology') ||
+          name.length > 50 ||
+          /\d/.test(name) || // Contains numbers
+          name.split(' ').length > 3 || // Too many words to be a person's name
+          name.split(' ').some(word => word.length > 20) // Words too long
+        );
+      });
+
     const emails = result.match(emailRegex) || [];
 
     // Extract roles with context
@@ -224,54 +272,55 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
     });
 
     for (const name of names) {
-      // Skip common false positives
-      if (
-        name.includes('Company') ||
-        name.includes('Service') ||
-        name.includes('Product') ||
-        name.length > 50
-      ) {
-        continue;
-      }
-
-      // Find closest role mention
       const nearestRole = roleMatches.find(r =>
         result.indexOf(r.fullContext) - result.indexOf(name) < 100 &&
         result.indexOf(r.fullContext) - result.indexOf(name) > -100
       );
 
-      // Find closest email
       const nearestEmail = emails.find(email =>
         result.indexOf(email) - result.indexOf(name) < 100 &&
-        result.indexOf(email) - result.indexOf(name) > -100
+        result.indexOf(email) - result.indexOf(name) > -100 &&
+        !orgSuffixes.some(suffix => email.toLowerCase().includes(suffix.toLowerCase())) // Additional check for organizational emails
       );
 
-      // Calculate contact score
       let score = 0;
       if (nearestRole) {
         const roleScore = leadershipRoles[nearestRole.role as keyof typeof leadershipRoles] || 0;
         score += roleScore;
+
+        // Boost score if role directly precedes or follows the name
+        if (Math.abs(result.indexOf(nearestRole.fullContext) - result.indexOf(name)) < 30) {
+          score += 3;
+        }
       }
+
       if (nearestEmail) {
-        // Boost score if email contains part of the name (indicating it's likely a real match)
         const nameParts = name.toLowerCase().split(' ');
         const emailParts = nearestEmail.toLowerCase().split('@')[0].split(/[.-]/);
-        if (nameParts.some(part => emailParts.some(ep => ep.includes(part)))) {
+
+        // More strict email matching
+        if (nameParts.some(part =>
+          part.length > 2 && // Avoid matching on very short name parts
+          emailParts.some(ep => ep.includes(part))
+        )) {
           score += 5;
         }
-        score += 3; // Base score for having any email
+        score += 3;
       }
 
-      const contactKey = `${name}-${nearestRole?.role || ''}-${nearestEmail || ''}`;
+      // Only include contacts that meet minimum validation criteria
+      if (score >= 5) { // Increased minimum score threshold
+        const contactKey = `${name}-${nearestRole?.role || ''}-${nearestEmail || ''}`;
 
-      if (!contactMap.has(contactKey) || contactMap.get(contactKey)!.score < score) {
-        contactMap.set(contactKey, {
-          name,
-          email: nearestEmail || null,
-          role: nearestRole?.role || null,
-          priority: 3, // Will be adjusted based on ranking
-          score
-        });
+        if (!contactMap.has(contactKey) || contactMap.get(contactKey)!.score < score) {
+          contactMap.set(contactKey, {
+            name,
+            email: nearestEmail || null,
+            role: nearestRole?.role || null,
+            priority: 3,
+            score
+          });
+        }
       }
     }
   }
