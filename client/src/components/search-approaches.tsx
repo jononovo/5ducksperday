@@ -35,13 +35,19 @@ const SUB_SEARCHES = [
   }
 ];
 
-function SubSearches({ approach, isEditing }: { approach: SearchApproach, isEditing: boolean }) {
+interface SubSearchesProps {
+  approach: SearchApproach;
+  isEditing: boolean;
+  onSubSearchChange?: (id: string, checked: boolean) => void;
+}
+
+function SubSearches({ approach, isEditing, onSubSearchChange }: SubSearchesProps) {
   if (!approach.name.toLowerCase().includes('leadership')) {
     return null;
   }
 
-  // Parse the existing subsearches from the approach config or use defaults
-  const subsearches = approach.config?.subsearches || {};
+  // Parse the existing subsearches from the approach config
+  const subsearches = (approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {};
 
   return (
     <div className="mt-4 space-y-4">
@@ -53,6 +59,10 @@ function SubSearches({ approach, isEditing }: { approach: SearchApproach, isEdit
               id={search.id}
               checked={subsearches[search.id] || false}
               disabled={!isEditing}
+              onCheckedChange={isEditing && onSubSearchChange ? 
+                (checked) => onSubSearchChange(search.id, checked as boolean) : 
+                undefined
+              }
               className="mt-1"
             />
             <div className="grid gap-1.5 leading-none">
@@ -77,6 +87,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editedPrompt, setEditedPrompt] = useState("");
+  const [editedSubSearches, setEditedSubSearches] = useState<Record<string, boolean>>({});
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
@@ -86,16 +97,34 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/search-approaches"] });
       setEditingId(null);
+      setEditedSubSearches({});
     },
   });
 
   const handleEdit = (approach: SearchApproach) => {
     setEditingId(approach.id);
     setEditedPrompt(approach.prompt);
+    setEditedSubSearches((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {});
   };
 
   const handleSave = (id: number) => {
-    updateMutation.mutate({ id, updates: { prompt: editedPrompt } });
+    updateMutation.mutate({
+      id,
+      updates: {
+        prompt: editedPrompt,
+        config: {
+          ...((approaches.find(a => a.id === id)?.config || {}) as Record<string, unknown>),
+          subsearches: editedSubSearches
+        }
+      }
+    });
+  };
+
+  const handleSubSearchChange = (id: string, checked: boolean) => {
+    setEditedSubSearches(prev => ({
+      ...prev,
+      [id]: checked
+    }));
   };
 
   const handleToggle = (id: number, active: boolean) => {
@@ -124,7 +153,11 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   onChange={(e) => setEditedPrompt(e.target.value)}
                   className="min-h-[100px]"
                 />
-                <SubSearches approach={approach} isEditing={true} />
+                <SubSearches 
+                  approach={approach} 
+                  isEditing={true}
+                  onSubSearchChange={handleSubSearchChange}
+                />
                 <div className="flex gap-2">
                   <Button 
                     size="sm"
@@ -136,7 +169,10 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   <Button 
                     size="sm"
                     variant="outline"
-                    onClick={() => setEditingId(null)}
+                    onClick={() => {
+                      setEditingId(null);
+                      setEditedSubSearches({});
+                    }}
                   >
                     Cancel
                   </Button>

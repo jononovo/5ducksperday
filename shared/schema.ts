@@ -50,7 +50,8 @@ export const searchApproaches = pgTable("search_approaches", {
   name: text("name").notNull(),
   prompt: text("prompt").notNull(),
   order: integer("order").notNull(),
-  active: boolean("active").default(true)
+  active: boolean("active").default(true),
+  config: jsonb("config").default({}).notNull()
 });
 
 // New tables for campaigns
@@ -126,7 +127,8 @@ const searchApproachSchema = z.object({
   name: z.string().min(1, "Name is required"),
   prompt: z.string().min(1, "Prompt is required"),
   order: z.number().min(1),
-  active: z.boolean().nullable()
+  active: z.boolean().nullable(),
+  config: z.record(z.unknown()).default({})
 });
 
 // New schemas for campaigns
