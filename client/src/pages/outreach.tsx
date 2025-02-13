@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Send, Save, Wand2, Copy } from "lucide-react";
+import { Mail, Send, Save, Wand2, Copy, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -23,6 +23,7 @@ interface SavedOutreachState {
   selectedContactId: number | null;
   emailPrompt: string;
   emailContent: string;
+  currentCompanyIndex: number;
 }
 
 export default function Outreach() {
@@ -30,6 +31,7 @@ export default function Outreach() {
   const [emailPrompt, setEmailPrompt] = useState("");
   const [emailContent, setEmailContent] = useState("");
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
+  const [currentCompanyIndex, setCurrentCompanyIndex] = useState(0);
   const { toast } = useToast();
 
   // Load state from localStorage on component mount
@@ -41,6 +43,7 @@ export default function Outreach() {
       setSelectedContactId(parsed.selectedContactId);
       setEmailPrompt(parsed.emailPrompt);
       setEmailContent(parsed.emailContent);
+      setCurrentCompanyIndex(parsed.currentCompanyIndex || 0);
     }
   }, []);
 
@@ -50,10 +53,11 @@ export default function Outreach() {
       selectedListId,
       selectedContactId,
       emailPrompt,
-      emailContent
+      emailContent,
+      currentCompanyIndex
     };
     localStorage.setItem('outreachState', JSON.stringify(stateToSave));
-  }, [selectedListId, selectedContactId, emailPrompt, emailContent]);
+  }, [selectedListId, selectedContactId, emailPrompt, emailContent, currentCompanyIndex]);
 
   const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
@@ -64,8 +68,8 @@ export default function Outreach() {
     enabled: !!selectedListId,
   });
 
-  // Get the first company from the list
-  const currentCompany = companies[0];
+  // Get the current company based on the index
+  const currentCompany = companies[currentCompanyIndex];
 
   const { data: contacts = [] } = useQuery<Contact[]>({
     queryKey: [`/api/companies/${currentCompany?.id}/contacts`],
@@ -103,6 +107,20 @@ export default function Outreach() {
     });
   };
 
+  const handlePrevCompany = () => {
+    if (currentCompanyIndex > 0) {
+      setCurrentCompanyIndex(prev => prev - 1);
+      setSelectedContactId(null); // Reset selected contact when changing company
+    }
+  };
+
+  const handleNextCompany = () => {
+    if (currentCompanyIndex < companies.length - 1) {
+      setCurrentCompanyIndex(prev => prev + 1);
+      setSelectedContactId(null); // Reset selected contact when changing company
+    }
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="grid grid-cols-2 gap-6">
@@ -117,7 +135,10 @@ export default function Outreach() {
             <CardContent>
               <Select
                 value={selectedListId}
-                onValueChange={setSelectedListId}
+                onValueChange={(value) => {
+                  setSelectedListId(value);
+                  setCurrentCompanyIndex(0); // Reset company index when changing list
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a list" />
@@ -218,6 +239,33 @@ export default function Outreach() {
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Navigation Buttons */}
+                {companies.length > 0 && (
+                  <div className="flex justify-between mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePrevCompany}
+                      disabled={currentCompanyIndex === 0}
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-2" />
+                      Previous
+                    </Button>
+                    <span className="text-sm text-muted-foreground self-center">
+                      {currentCompanyIndex + 1} of {companies.length}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNextCompany}
+                      disabled={currentCompanyIndex === companies.length - 1}
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
