@@ -104,7 +104,10 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   const handleEdit = (approach: SearchApproach) => {
     setEditingId(approach.id);
     setEditedPrompt(approach.prompt);
-    setEditedSubSearches((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {});
+    // Initialize subsearches from existing config
+    setEditedSubSearches(
+      ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean>) || {}
+    );
   };
 
   const handleSave = (id: number) => {
@@ -154,7 +157,10 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   className="min-h-[100px]"
                 />
                 <SubSearches 
-                  approach={approach} 
+                  approach={{
+                    ...approach,
+                    config: { ...approach.config, subsearches: editedSubSearches }
+                  }}
                   isEditing={true}
                   onSubSearchChange={handleSubSearchChange}
                 />
