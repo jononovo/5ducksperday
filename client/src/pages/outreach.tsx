@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input"; // Import Input component
 import { cn } from "@/lib/utils";
 import type { List, Company, Contact } from "@shared/schema";
 import { useState, useEffect } from "react";
@@ -24,6 +25,8 @@ interface SavedOutreachState {
   selectedContactId: number | null;
   emailPrompt: string;
   emailContent: string;
+  toEmail: string;
+  emailSubject: string;
   currentCompanyIndex: number;
 }
 
@@ -31,6 +34,8 @@ export default function Outreach() {
   const [selectedListId, setSelectedListId] = useState<string>();
   const [emailPrompt, setEmailPrompt] = useState("");
   const [emailContent, setEmailContent] = useState("");
+  const [toEmail, setToEmail] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [currentCompanyIndex, setCurrentCompanyIndex] = useState(0);
   const { toast } = useToast();
@@ -44,6 +49,8 @@ export default function Outreach() {
       setSelectedContactId(parsed.selectedContactId);
       setEmailPrompt(parsed.emailPrompt);
       setEmailContent(parsed.emailContent);
+      setToEmail(parsed.toEmail || "");
+      setEmailSubject(parsed.emailSubject || "");
       setCurrentCompanyIndex(parsed.currentCompanyIndex || 0);
     }
   }, []);
@@ -55,10 +62,12 @@ export default function Outreach() {
       selectedContactId,
       emailPrompt,
       emailContent,
+      toEmail,
+      emailSubject,
       currentCompanyIndex
     };
     localStorage.setItem('outreachState', JSON.stringify(stateToSave));
-  }, [selectedListId, selectedContactId, emailPrompt, emailContent, currentCompanyIndex]);
+  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, currentCompanyIndex]);
 
   const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
@@ -84,12 +93,12 @@ export default function Outreach() {
 
   const handleSaveEmail = () => {
     // TODO: Implement save functionality
-    console.log('Saving email template:', { emailPrompt, emailContent });
+    console.log('Saving email template:', { emailPrompt, emailContent, toEmail, emailSubject });
   };
 
   const handleSendEmail = () => {
     // TODO: Implement send functionality
-    console.log('Sending email:', { emailPrompt, emailContent });
+    console.log('Sending email:', { emailPrompt, emailContent, toEmail, emailSubject });
   };
 
   const generateEmailMutation = useMutation({
@@ -98,7 +107,9 @@ export default function Outreach() {
       const payload = {
         emailPrompt,
         contact: selectedContact || null,
-        company: currentCompany
+        company: currentCompany,
+        toEmail,
+        emailSubject
       };
       const res = await apiRequest("POST", "/api/generate-email", payload);
       return res.json();
@@ -341,6 +352,31 @@ export default function Outreach() {
                   onChange={(e) => setEmailPrompt(e.target.value)}
                   className="resize-none"
                   rows={4}
+                />
+              </div>
+
+              {/* To Email Field */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  To Email
+                </label>
+                <Input
+                  placeholder="Recipient email address..."
+                  value={toEmail}
+                  onChange={(e) => setToEmail(e.target.value)}
+                  type="email"
+                />
+              </div>
+
+              {/* Email Subject Field */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  Email Subject
+                </label>
+                <Input
+                  placeholder="Enter email subject..."
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
                 />
               </div>
 
