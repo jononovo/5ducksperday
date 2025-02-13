@@ -128,9 +128,34 @@ export default function Outreach() {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="w-5 h-5" />
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="w-5 h-5" />
+                  {companies.length > 0 && (
+                    <div className="flex items-center gap-2 ml-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handlePrevCompany}
+                        disabled={currentCompanyIndex === 0}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      <span className="text-sm text-muted-foreground">
+                        {currentCompanyIndex + 1} of {companies.length}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleNextCompany}
+                        disabled={currentCompanyIndex === companies.length - 1}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </CardTitle>
+              </div>
             </CardHeader>
             <CardContent>
               <Select
@@ -239,33 +264,6 @@ export default function Outreach() {
                     )}
                   </CardContent>
                 </Card>
-
-                {/* Navigation Buttons */}
-                {companies.length > 0 && (
-                  <div className="flex justify-between mt-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handlePrevCompany}
-                      disabled={currentCompanyIndex === 0}
-                    >
-                      <ChevronLeft className="w-4 h-4 mr-2" />
-                      Previous
-                    </Button>
-                    <span className="text-sm text-muted-foreground self-center">
-                      {currentCompanyIndex + 1} of {companies.length}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleNextCompany}
-                      disabled={currentCompanyIndex === companies.length - 1}
-                    >
-                      Next
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
