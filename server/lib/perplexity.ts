@@ -201,11 +201,14 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
       'Co-Founder': 9,
       'CTO': 8,
       'Chief Technology Officer': 8,
-      'Director': 7,
+      'COO': 8,
+      'Chief Operating Officer': 8,
+      'President': 8,
       'Managing Director': 7,
       'VP': 6,
       'Vice President': 6,
       'Head of': 5,
+      'Operations Manager': 5,
       'Manager': 4
     };
 
@@ -328,7 +331,8 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
 
       // Extract roles with context
       const roleMatches = Object.keys(leadershipRoles).flatMap(role => {
-        const regex = new RegExp(`(${role}[\\s-](?:of|at|for)?\\s[\\w\\s&]+)`, 'gi');
+        // Make the role matching more flexible
+        const regex = new RegExp(`(${role}[\\s-](?:of|at|for)?\\s[\\w\\s&]+|(?:is|as)\\s+(?:the\\s+)?${role}|${role}\\s+(?:position|role))`, 'gi');
         const matches = result.match(regex) || [];
         return matches.map(match => ({ role: role, fullContext: match }));
       });
