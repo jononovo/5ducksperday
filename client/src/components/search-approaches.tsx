@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,47 +66,40 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
     });
   };
 
-  const handleSubSearchChange = (id: string, checked: boolean) => {
-    setEditedSubSearches(prev => ({
-      ...prev,
-      [id]: checked
-    }));
-  };
-
   const handleToggle = (id: number, active: boolean) => {
     updateMutation.mutate({ id, updates: { active } });
   };
 
   return (
-    <Accordion type="single" collapsible className="w-full">
+    <Accordion type="multiple" className="w-full">
       {approaches.map((approach) => {
-        // Get subsearches from approach config
         const subsearches = ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean>) || {};
+        const isActive = approach.active ?? false;
         const hasActiveSearches = Object.values(subsearches).some(v => v);
 
         return (
           <AccordionItem key={approach.id} value={approach.id.toString()}>
-            <div className="flex items-center justify-between px-4 py-2">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center px-4 py-2">
+              <AccordionTrigger className="flex-1 hover:no-underline">
+                <span>{approach.name}</span>
+              </AccordionTrigger>
+              <div className="flex items-center gap-2 ml-2">
+                {isActive && hasActiveSearches && (
+                  <>
+                    {isSearching && (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
+                    {!isSearching && approach.completedSearches?.length > 0 && (
+                      <Check className="h-4 w-4 text-green-500" />
+                    )}
+                  </>
+                )}
                 <Switch
-                  checked={approach.active ?? false}
+                  checked={isActive}
                   onCheckedChange={(checked) => handleToggle(approach.id, checked)}
                   className="scale-75"
                 />
-                <AccordionTrigger className="hover:no-underline">
-                  <span className="mr-4">{approach.name}</span>
-                </AccordionTrigger>
               </div>
-              {approach.active && hasActiveSearches && (
-                <div className="flex items-center gap-2">
-                  {isSearching && (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  )}
-                  {!isSearching && (
-                    <Check className="h-4 w-4 text-green-500" />
-                  )}
-                </div>
-              )}
             </div>
             <AccordionContent>
               <div className="space-y-4 p-4">
@@ -159,13 +152,57 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
                 ) : (
                   <>
                     <p className="text-sm text-muted-foreground">{approach.prompt}</p>
-                    <SubSearches 
-                      approach={approach}
-                      isEditing={false}
-                      onSubSearchChange={handleSubSearchChange}
-                      completedSearches={approach.completedSearches || []}
-                      isSearching={isSearching}
-                    />
+                    <Accordion type="multiple" className="w-full space-y-2">
+                      {Object.values(SEARCH_SECTIONS).map((section) => (
+                        <AccordionItem key={section.id} value={section.id}>
+                          <AccordionTrigger className="px-4 py-2">
+                            <div className="flex items-center justify-between w-full">
+                              <span className={!isActive ? "text-muted-foreground/50" : ""}>
+                                {section.label}
+                              </span>
+                              <Checkbox
+                                id={`master-${section.id}`}
+                                checked={section.searches.every(s => subsearches[s.id])}
+                                className={!isActive ? "text-muted-foreground/50" : ""}
+                                disabled={!isActive}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="pl-8 space-y-3">
+                            {section.searches.map((search) => (
+                              <div key={search.id} className="flex items-start gap-3">
+                                <div className="flex-1">
+                                  <label
+                                    htmlFor={search.id}
+                                    className={`text-sm font-medium block ${!isActive ? "text-muted-foreground/50" : ""}`}
+                                  >
+                                    {search.label}
+                                  </label>
+                                  <p className={`text-sm ${!isActive ? "text-muted-foreground/30" : "text-muted-foreground"}`}>
+                                    {search.description}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-2 pt-1">
+                                  <Checkbox
+                                    id={search.id}
+                                    checked={subsearches[search.id] || false}
+                                    className={!isActive ? "text-muted-foreground/50" : ""}
+                                    disabled={!isActive}
+                                  />
+                                  {isActive && isSearching && subsearches[search.id] && (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  )}
+                                  {isActive && !isSearching && approach.completedSearches?.includes(search.id) && (
+                                    <Check className="h-4 w-4 text-green-500" />
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
                     <Button
                       size="sm"
                       variant="outline"
@@ -178,151 +215,9 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
               </div>
             </AccordionContent>
           </AccordionItem>
-        );
+        )
       })}
     </Accordion>
-  );
-}
-
-interface SubSearchesProps {
-  approach: SearchApproach;
-  isEditing: boolean;
-  onSubSearchChange?: (id: string, checked: boolean) => void;
-  completedSearches?: string[];
-  isSearching?: boolean;
-}
-
-function SubSearches({ 
-  approach, 
-  isEditing, 
-  onSubSearchChange, 
-  completedSearches = [], 
-  isSearching = false 
-}: SubSearchesProps) {
-  if (!approach.name.toLowerCase().includes('decision-maker')) {
-    return null;
-  }
-
-  const defaultSubsearches = (approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {};
-  const [currentSubsearches, setCurrentSubsearches] = useState<Record<string, boolean>>(defaultSubsearches);
-
-  const isApproachActive = approach.active ?? false;
-
-  useEffect(() => {
-    if (isEditing) {
-      setCurrentSubsearches(defaultSubsearches);
-    }
-  }, [isEditing, defaultSubsearches]);
-
-  const handleCheckboxChange = (id: string, checked: boolean) => {
-    if (!isApproachActive) return;
-
-    if (isEditing && onSubSearchChange) {
-      onSubSearchChange(id, checked);
-    } else {
-      setCurrentSubsearches(prev => ({
-        ...prev,
-        [id]: checked
-      }));
-    }
-  };
-
-  const renderSearchSection = (section: typeof SEARCH_SECTIONS.local) => {
-    const allChecked = section.searches.every(search => currentSubsearches[search.id]);
-    const someChecked = section.searches.some(search => currentSubsearches[search.id]);
-
-    const handleMasterCheckboxChange = (checked: boolean) => {
-      if (!isApproachActive) return;
-
-      const newState = { ...currentSubsearches };
-      section.searches.forEach(search => {
-        newState[search.id] = checked;
-      });
-
-      if (isEditing && onSubSearchChange) {
-        section.searches.forEach(search => {
-          onSubSearchChange(search.id, checked);
-        });
-      }
-      setCurrentSubsearches(newState);
-    };
-
-    const isProcessing = (searchId: string) => 
-      currentSubsearches[searchId] && isSearching && !completedSearches.includes(searchId);
-
-    const isCompleted = (searchId: string) =>
-      currentSubsearches[searchId] && completedSearches.includes(searchId);
-
-    return (
-      <AccordionItem key={section.id} value={section.id}>
-        <div className="flex flex-col">
-          <AccordionTrigger className="flex items-center justify-between py-2 px-4">
-            <div className="flex items-center gap-2 flex-1">
-              <Checkbox
-                id={`master-${section.id}`}
-                checked={allChecked}
-                data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
-                onCheckedChange={handleMasterCheckboxChange}
-                onClick={(e) => e.stopPropagation()}
-                disabled={!isApproachActive}
-                className={!isApproachActive ? "text-muted-foreground opacity-50" : ""}
-              />
-              <span>{section.label}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {isApproachActive && section.searches.some(s => isProcessing(s.id)) && (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              )}
-              {isApproachActive && section.searches.some(s => isCompleted(s.id)) && (
-                <Check className="h-4 w-4 text-green-500" />
-              )}
-            </div>
-          </AccordionTrigger>
-        </div>
-        <AccordionContent>
-          <div className="space-y-4 pl-6">
-            {section.searches.map((search) => (
-              <div key={search.id} className="flex items-start gap-4">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id={search.id}
-                    checked={currentSubsearches[search.id] || false}
-                    onCheckedChange={(checked) => handleCheckboxChange(search.id, checked as boolean)}
-                    disabled={!isApproachActive}
-                    className={!isApproachActive ? "text-muted-foreground opacity-50" : ""}
-                  />
-                  {isApproachActive && isProcessing(search.id) && (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  )}
-                  {isApproachActive && isCompleted(search.id) && (
-                    <Check className="h-4 w-4 text-green-500" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <label
-                    htmlFor={search.id}
-                    className={`text-sm font-medium leading-none ${!isApproachActive ? "text-muted-foreground" : ""}`}
-                  >
-                    {search.label}
-                  </label>
-                  <p className={`text-sm ${!isApproachActive ? "text-muted-foreground opacity-75" : "text-muted-foreground"} mt-1`}>
-                    {search.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    );
-  };
-
-  return (
-    <div className="mt-4">
-      <Accordion type="multiple" className="w-full">
-        {Object.values(SEARCH_SECTIONS).map(section => renderSearchSection(section))}
-      </Accordion>
-    </div>
   );
 }
 
