@@ -95,11 +95,19 @@ export function registerRoutes(app: Express) {
 
       // Get search approaches for analysis
       const approaches = await storage.listSearchApproaches();
-      const activeApproaches = approaches.filter(approach => approach.active);
 
-      if (activeApproaches.length === 0) {
+      // Get Company Overview and Leadership Analysis approaches
+      const companyOverview = approaches.find(a => 
+        a.name === "Company Overview" && a.active
+      );
+
+      const leadershipAnalysis = approaches.find(a => 
+        a.name === "Leadership Analysis" && a.active
+      );
+
+      if (!companyOverview) {
         res.status(400).json({
-          message: "No active search approaches found. Please activate at least one search approach."
+          message: "Company Overview approach is not active. Please activate it to proceed."
         });
         return;
       }
@@ -107,12 +115,15 @@ export function registerRoutes(app: Express) {
       // Analyze each company
       const companies = await Promise.all(
         companyNames.map(async (companyName) => {
-          // Run analysis for each active approach
-          const analysisResults = await Promise.all(
-            activeApproaches.map(approach =>
-              analyzeCompany(companyName, approach.prompt)
-            )
-          );
+          // First run Company Overview analysis
+          const overviewResult = await analyzeCompany(companyName, companyOverview.prompt);
+          const analysisResults = [overviewResult];
+
+          // If Leadership Analysis is active, run it immediately after
+          if (leadershipAnalysis?.active) {
+            const leadershipResult = await analyzeCompany(companyName, leadershipAnalysis.prompt);
+            analysisResults.push(leadershipResult);
+          }
 
           // Parse results
           const companyData = parseCompanyData(analysisResults);
@@ -133,67 +144,15 @@ export function registerRoutes(app: Express) {
             rating: companyData.rating ?? null,
             services: companyData.services ?? null,
             validationPoints: companyData.validationPoints ?? null,
+            differentiation: companyData.differentiation ?? null,
             totalScore: companyData.totalScore ?? null,
             snapshot: companyData.snapshot || null
           });
 
-          // Perform immediate contact enrichment for decision-makers
+          // Create contacts from the leadership analysis
           const validContacts = contacts.filter(contact => contact.name && contact.name !== "Unknown");
 
-          // Get the leadership analysis approach
-          const leadershipApproach = approaches.find(a => 
-            a.name.toLowerCase().includes("leadership") && a.active
-          );
-
-          if (leadershipApproach) {
-            console.log('Starting immediate leadership analysis for company:', companyName);
-
-            // Extract subsearches configuration
-            const config = leadershipApproach.config as Record<string, unknown>;
-            const subsearches = (config?.subsearches || {}) as Record<string, boolean>;
-
-            // Perform leadership analysis
-            const leadershipAnalysis = await analyzeCompany(companyName, leadershipApproach.prompt);
-            const enrichedContacts = extractContacts([leadershipAnalysis]);
-
-            // Enrich each contact with additional details
-            const createdContacts = await Promise.all(
-              enrichedContacts
-                .filter(contact => contact.name && contact.name !== "Unknown")
-                .map(async contact => {
-                  console.log(`Processing immediate contact enrichment for: ${contact.name}`);
-
-                  // Get enhanced contact details with local sources search
-                  const enhancedDetails = await searchContactDetails(
-                    contact.name!,
-                    companyName,
-                    true,
-                    subsearches
-                  );
-
-                  const contactData = {
-                    companyId: company.id,
-                    name: contact.name!,
-                    role: enhancedDetails.role || contact.role || null,
-                    email: enhancedDetails.email || contact.email || null,
-                    priority: contact.priority ?? null,
-                    linkedinUrl: enhancedDetails.linkedinUrl || null,
-                    twitterHandle: null,
-                    phoneNumber: null,
-                    department: enhancedDetails.department || null,
-                    location: enhancedDetails.location || null,
-                    verificationSource: 'Leadership Analysis',
-                    completedSearches: enhancedDetails.completedSearches || []
-                  };
-
-                  return storage.createContact(contactData);
-                })
-            );
-
-            return { ...company, contacts: createdContacts };
-          }
-
-          // Fallback to creating contacts without enrichment if leadership approach is not available
+          // Create contact records with basic information
           const createdContacts = await Promise.all(
             validContacts.map(contact =>
               storage.createContact({
@@ -207,7 +166,7 @@ export function registerRoutes(app: Express) {
                 phoneNumber: null,
                 department: null,
                 location: null,
-                verificationSource: null
+                verificationSource: 'Leadership Analysis'
               })
             )
           );
