@@ -215,12 +215,12 @@ export function registerRoutes(app: Express) {
       // Get the decision-maker analysis approach
       const approaches = await storage.listSearchApproaches();
       const decisionMakerApproach = approaches.find(a => 
-        a.name === "Decision-maker Analysis" && a.active
+        a.name === "Decision-maker Analysis"
       );
 
       if (!decisionMakerApproach) {
         res.status(400).json({
-          message: "Decision-maker analysis approach is not available or not active"
+          message: "Decision-maker analysis approach is not configured"
         });
         return;
       }
