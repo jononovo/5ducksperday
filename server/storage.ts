@@ -6,24 +6,13 @@ import {
   type Campaign, type InsertCampaign,
   type CampaignList, type InsertCampaignList,
   type EmailTemplate, type InsertEmailTemplate,
+  type ContactFeedback, type InsertContactFeedback,
   companies, contacts, searchApproaches, lists,
   campaigns, campaignLists, emailTemplates,
-  contactFeedback, // Add this import
-  type ContactFeedback, type InsertContactFeedback
+  contactFeedback
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, max } from "drizzle-orm";
-
-// Assuming these types are defined elsewhere (not provided in original code)
-type ContactFeedback = {
-  id: number;
-  contactId: number;
-  feedbackType: 'excellent' | 'ok' | 'terrible';
-  comment?: string;
-  createdAt: Date;
-};
-
-type InsertContactFeedback = Omit<ContactFeedback, 'id' | 'createdAt'>;
 
 export interface IStorage {
   // Lists
@@ -76,9 +65,8 @@ export interface IStorage {
   // Add new methods for detailed contact search
   enrichContact(id: number, contactData: Partial<Contact>): Promise<Contact | undefined>;
   searchContactDetails(contactInfo: { name: string; company: string }): Promise<Partial<Contact>>;
-  deleteContactsByCompany(companyId: number): Promise<void>;
 
-  // New methods for contact validation and feedback
+  // Contact validation and feedback
   addContactFeedback(feedback: InsertContactFeedback): Promise<ContactFeedback>;
   getContactFeedback(contactId: number): Promise<ContactFeedback[]>;
   updateContactConfidenceScore(id: number, score: number): Promise<Contact | undefined>;

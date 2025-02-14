@@ -25,6 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { SearchApproach } from "@shared/schema";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -67,7 +68,7 @@ export default function Home() {
     localStorage.setItem('searchState', JSON.stringify(stateToSave));
   }, [currentQuery, currentResults]);
 
-  const { data: searchApproaches = [] } = useQuery({
+  const { data: searchApproaches = [] } = useQuery<SearchApproach[]>({
     queryKey: ["/api/search-approaches"],
   });
 
