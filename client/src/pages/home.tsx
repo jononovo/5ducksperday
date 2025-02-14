@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
 import SearchApproaches from "@/components/search-approaches";
 import { ListPlus, Search, Code2 } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
 // Define interface for the saved state
@@ -21,8 +19,6 @@ export default function Home() {
   const [currentQuery, setCurrentQuery] = useState<string | null>(null);
   const [currentResults, setCurrentResults] = useState<any[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
   // Load state from localStorage on component mount
@@ -48,32 +44,6 @@ export default function Home() {
     queryKey: ["/api/search-approaches"],
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentQuery || !currentResults) return;
-      const res = await apiRequest("POST", "/api/lists", {
-        companies: currentResults,
-        prompt: currentQuery
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
-      toast({
-        title: "List Saved",
-        description: "The search results have been saved as a new list.",
-      });
-      setIsSaved(true);
-    },
-    onError: (error) => {
-      toast({
-        title: "Save Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleAnalysisComplete = () => {
     setIsAnalyzing(false);
   };
@@ -85,15 +55,7 @@ export default function Home() {
   };
 
   const handleSaveList = () => {
-    if (!currentResults || !currentQuery) {
-      toast({
-        title: "Cannot Save",
-        description: "Please perform a search first.",
-        variant: "destructive",
-      });
-      return;
-    }
-    saveMutation.mutate();
+    setIsSaved(true);
   };
 
   return (
@@ -126,7 +88,6 @@ export default function Home() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setLocation('/api-templates')}
-                  className="ml-2"
                 >
                   <Code2 className="h-5 w-5" />
                 </Button>
@@ -134,10 +95,8 @@ export default function Home() {
             </CardHeader>
             <CardContent className="p-3">
               <SearchApproaches 
-                approaches={searchApproaches.map((approach: any) => ({
-                  ...approach,
-                  isSearching: isAnalyzing,
-                }))}
+                approaches={searchApproaches}
+                isSearching={isAnalyzing}
               />
             </CardContent>
           </Card>
@@ -150,7 +109,7 @@ export default function Home() {
                   <Button
                     variant="outline"
                     onClick={handleSaveList}
-                    disabled={isSaved || saveMutation.isPending}
+                    disabled={isSaved}
                   >
                     <ListPlus className="mr-2 h-4 w-4" />
                     {isSaved ? "Saved" : "Save as List"}
