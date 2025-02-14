@@ -159,6 +159,13 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
                 ) : (
                   <>
                     <p className="text-sm text-muted-foreground">{approach.prompt}</p>
+                    <SubSearches 
+                      approach={approach}
+                      isEditing={false}
+                      onSubSearchChange={handleSubSearchChange}
+                      completedSearches={approach.completedSearches || []}
+                      isSearching={isSearching}
+                    />
                     <Button
                       size="sm"
                       variant="outline"
@@ -177,7 +184,13 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
   );
 }
 
-//SubSearches component remains unchanged
+interface SubSearchesProps {
+  approach: SearchApproach;
+  isEditing: boolean;
+  onSubSearchChange?: (id: string, checked: boolean) => void;
+  completedSearches?: string[];
+  isSearching?: boolean;
+}
 
 function SubSearches({ 
   approach, 
@@ -193,6 +206,8 @@ function SubSearches({
   const defaultSubsearches = (approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {};
   const [currentSubsearches, setCurrentSubsearches] = useState<Record<string, boolean>>(defaultSubsearches);
 
+  const isApproachActive = approach.active ?? false;
+
   useEffect(() => {
     if (isEditing) {
       setCurrentSubsearches(defaultSubsearches);
@@ -200,6 +215,8 @@ function SubSearches({
   }, [isEditing, defaultSubsearches]);
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
+    if (!isApproachActive) return;
+
     if (isEditing && onSubSearchChange) {
       onSubSearchChange(id, checked);
     } else {
@@ -215,6 +232,8 @@ function SubSearches({
     const someChecked = section.searches.some(search => currentSubsearches[search.id]);
 
     const handleMasterCheckboxChange = (checked: boolean) => {
+      if (!isApproachActive) return;
+
       const newState = { ...currentSubsearches };
       section.searches.forEach(search => {
         newState[search.id] = checked;
@@ -245,14 +264,16 @@ function SubSearches({
                 data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
                 onCheckedChange={handleMasterCheckboxChange}
                 onClick={(e) => e.stopPropagation()}
+                disabled={!isApproachActive}
+                className={!isApproachActive ? "text-muted-foreground opacity-50" : ""}
               />
               <span>{section.label}</span>
             </div>
             <div className="flex items-center gap-2">
-              {section.searches.some(s => isProcessing(s.id)) && (
+              {isApproachActive && section.searches.some(s => isProcessing(s.id)) && (
                 <Loader2 className="h-4 w-4 animate-spin" />
               )}
-              {section.searches.some(s => isCompleted(s.id)) && (
+              {isApproachActive && section.searches.some(s => isCompleted(s.id)) && (
                 <Check className="h-4 w-4 text-green-500" />
               )}
             </div>
@@ -267,22 +288,24 @@ function SubSearches({
                     id={search.id}
                     checked={currentSubsearches[search.id] || false}
                     onCheckedChange={(checked) => handleCheckboxChange(search.id, checked as boolean)}
+                    disabled={!isApproachActive}
+                    className={!isApproachActive ? "text-muted-foreground opacity-50" : ""}
                   />
-                  {isProcessing(search.id) && (
+                  {isApproachActive && isProcessing(search.id) && (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   )}
-                  {isCompleted(search.id) && (
+                  {isApproachActive && isCompleted(search.id) && (
                     <Check className="h-4 w-4 text-green-500" />
                   )}
                 </div>
                 <div className="flex-1">
                   <label
                     htmlFor={search.id}
-                    className="text-sm font-medium leading-none"
+                    className={`text-sm font-medium leading-none ${!isApproachActive ? "text-muted-foreground" : ""}`}
                   >
                     {search.label}
                   </label>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className={`text-sm ${!isApproachActive ? "text-muted-foreground opacity-75" : "text-muted-foreground"} mt-1`}>
                     {search.description}
                   </p>
                 </div>
@@ -301,14 +324,6 @@ function SubSearches({
       </Accordion>
     </div>
   );
-}
-
-interface SubSearchesProps {
-  approach: SearchApproach;
-  isEditing: boolean;
-  onSubSearchChange?: (id: string, checked: boolean) => void;
-  completedSearches?: string[];
-  isSearching?: boolean;
 }
 
 const SEARCH_SECTIONS = {
