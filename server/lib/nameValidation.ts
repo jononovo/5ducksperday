@@ -130,7 +130,7 @@ function calculateNameConfidenceScore(name: string, context: string): number {
   if (emailMatch) {
     const email = emailMatch[0].toLowerCase();
     const nameWords = name.toLowerCase().split(/\s+/);
-    if (nameWords.some(word => 
+    if (nameWords.some(word =>
       word.length > 2 && email.includes(word)
     )) {
       score += 20;
@@ -165,7 +165,7 @@ export interface ValidationOptions {
 const defaultOptions: ValidationOptions = {
   useLocalValidation: true,
   localValidationWeight: 0.3,
-  minimumScore: 20
+  minimumScore: 20  // Lowered from previous value
 };
 
 export function combineValidationScores(
@@ -182,10 +182,11 @@ export function combineValidationScores(
     (aiScore * (1 - weight)) + (localResult.score * weight)
   );
 
-  // Additional penalty for generic names
+  // Reduced penalty for generic names
   if (localResult.isGeneric) {
-    return Math.max(10, combinedScore - 30);
+    return Math.max(20, combinedScore - 20);  // Less severe penalty
   }
 
+  // Lower minimum score threshold
   return Math.max(options.minimumScore || 20, Math.min(100, combinedScore));
 }

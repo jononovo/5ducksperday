@@ -129,13 +129,13 @@ export async function extractContacts(
         localResult,
         {
           ...validationOptions,
-          localValidationWeight: 0.3,
-          minimumScore: 30  // Lower minimum score threshold
+          localValidationWeight: 0.25,  // Give more weight to AI score
+          minimumScore: 20  // Lower minimum score threshold
         }
       );
 
       // Lower threshold for acceptance to allow more prospects
-      if (finalScore >= 30) {
+      if (finalScore >= 20) {  // Lowered from 30
         const nameIndex = result.indexOf(name);
         const contextWindow = result.slice(
           Math.max(0, nameIndex - 100),
@@ -151,9 +151,9 @@ export async function extractContacts(
           .filter(email => {
             const nameParts = name.toLowerCase().split(/\s+/);
             const emailLower = email.toLowerCase();
-            // Accept email if it contains any part of the name that's at least 3 chars
+            // Accept email if it contains any part of the name that's at least 2 chars
             return nameParts.some(part => 
-              part.length >= 3 && emailLower.includes(part)
+              part.length >= 2 && emailLower.includes(part)
             );
           });
 
