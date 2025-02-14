@@ -153,20 +153,23 @@ interface SubSearchesProps {
   completedSearches?: string[];
   onOptionChange?: (optionId: string, checked: boolean) => void;
   searchOptions?: Record<string, boolean>;
+  searchSections: typeof DEFAULT_SEARCH_SECTIONS;
+  onSearchSectionsChange: (sections: typeof DEFAULT_SEARCH_SECTIONS) => void;
 }
 
-function SubSearches({ 
-  approach, 
-  isEditing, 
-  onSubSearchChange, 
-  completedSearches = [], 
+function SubSearches({
+  approach,
+  isEditing,
+  onSubSearchChange,
+  completedSearches = [],
   onOptionChange,
-  searchOptions = {}
+  searchOptions = {},
+  searchSections,
+  onSearchSectionsChange
 }: SubSearchesProps) {
   const isCompanyOverview = approach.name.toLowerCase().includes('company overview');
   const isDecisionMaker = approach.name.toLowerCase().includes('decision-maker');
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
-  const [searchSections, setSearchSections] = useState(DEFAULT_SEARCH_SECTIONS);
 
   if (!isCompanyOverview && !isDecisionMaker) {
     return null;
@@ -178,13 +181,8 @@ function SubSearches({
   useEffect(() => {
     if (isEditing) {
       setCurrentSubsearches(defaultSubsearches);
-      // Load saved section configurations if they exist
-      const savedSections = (approach.config as any)?.searchSections;
-      if (savedSections) {
-        setSearchSections(savedSections);
-      }
     }
-  }, [isEditing, defaultSubsearches, approach.config]);
+  }, [isEditing, defaultSubsearches]);
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
     if (isEditing && onSubSearchChange) {
@@ -203,22 +201,21 @@ function SubSearches({
 
   const handleSectionSave = (sectionId: string) => {
     setEditingSectionId(null);
-    // Here you would typically save the updated searchSections to your backend
-
   };
 
   const handleSearchOptionUpdate = (sectionId: string, searchId: string, field: 'label' | 'description', value: string) => {
-    setSearchSections(prev => ({
-      ...prev,
+    const updatedSections = {
+      ...searchSections,
       [sectionId]: {
-        ...prev[sectionId],
-        searches: prev[sectionId].searches.map(search =>
+        ...searchSections[sectionId],
+        searches: searchSections[sectionId].searches.map(search =>
           search.id === searchId
             ? { ...search, [field]: value }
             : search
         )
       }
-    }));
+    };
+    onSearchSectionsChange(updatedSections);
   };
 
   const renderSearchSection = (section: typeof DEFAULT_SEARCH_SECTIONS.search_options) => {
@@ -232,12 +229,12 @@ function SubSearches({
       return null;
     }
 
-    const allChecked = section.searches.every(search => 
-      section.id === 'search_options' 
+    const allChecked = section.searches.every(search =>
+      section.id === 'search_options'
         ? searchOptions?.[search.id.replace('-', '').replace('-', '')] ?? false
         : currentSubsearches[search.id] ?? false
     );
-    const someChecked = section.searches.some(search => 
+    const someChecked = section.searches.some(search =>
       section.id === 'search_options'
         ? searchOptions?.[search.id.replace('-', '').replace('-', '')] ?? false
         : currentSubsearches[search.id] ?? false
@@ -303,7 +300,7 @@ function SubSearches({
             {section.searches.map((search) => {
               const isSearchOption = section.id === 'search_options';
               const optionId = isSearchOption ? search.id.replace('-', '').replace('-', '') : search.id;
-              const checked = isSearchOption 
+              const checked = isSearchOption
                 ? searchOptions?.[optionId] ?? false
                 : currentSubsearches[search.id] ?? false;
 
@@ -389,6 +386,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     ignoreFranchises: false,
     locallyHeadquartered: false,
   });
+  const [searchSections, setSearchSections] = useState(DEFAULT_SEARCH_SECTIONS);
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
@@ -404,6 +402,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       setEditedSubSearches({});
       setCompletedSearches([]);
       setSearchOptions({ ignoreFranchises: false, locallyHeadquartered: false });
+      setSearchSections(DEFAULT_SEARCH_SECTIONS);
     },
   });
 
@@ -420,6 +419,13 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       ignoreFranchises: (approach.config as any)?.searchOptions?.ignoreFranchises || false,
       locallyHeadquartered: (approach.config as any)?.searchOptions?.locallyHeadquartered || false,
     });
+    // Load saved section configurations if they exist
+    const savedSections = (approach.config as any)?.searchSections;
+    if (savedSections) {
+      setSearchSections(savedSections);
+    } else {
+      setSearchSections(DEFAULT_SEARCH_SECTIONS);
+    }
   };
 
   const handleSave = (id: number) => {
@@ -455,6 +461,10 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       ...prev,
       [optionId]: checked
     }));
+  };
+
+  const handleSearchSectionsChange = (newSections: typeof DEFAULT_SEARCH_SECTIONS) => {
+    setSearchSections(newSections);
   };
 
   return (
@@ -511,6 +521,8 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   completedSearches={completedSearches}
                   searchOptions={searchOptions}
                   onOptionChange={handleSearchOptionChange}
+                  searchSections={searchSections}
+                  onSearchSectionsChange={handleSearchSectionsChange}
                 />
                 <div className="flex gap-2">
                   <Button
@@ -531,6 +543,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                       setEditedSubSearches({});
                       setCompletedSearches([]);
                       setSearchOptions({ ignoreFranchises: false, locallyHeadquartered: false });
+                      setSearchSections(DEFAULT_SEARCH_SECTIONS);
                     }}
                   >
                     Cancel
@@ -540,12 +553,14 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">{approach.prompt}</p>
-                <SubSearches 
-                  approach={approach} 
-                  isEditing={false} 
+                <SubSearches
+                  approach={approach}
+                  isEditing={false}
                   completedSearches={completedSearches}
                   searchOptions={searchOptions}
                   onOptionChange={handleSearchOptionChange}
+                  searchSections={searchSections}
+                  onSearchSectionsChange={handleSearchSectionsChange}
                 />
                 <Button
                   size="sm"
