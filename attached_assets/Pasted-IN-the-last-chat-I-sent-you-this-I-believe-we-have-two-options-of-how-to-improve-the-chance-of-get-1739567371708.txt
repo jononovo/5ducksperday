@@ -1,0 +1,84 @@
+IN the last chat I sent you this:
+
+I believe we have two options of how to improve the chance of getting correct contact names in our search:
+
+API Call to Filter: Serve the contact list to an affordable ai to sort out and remove designations, titles, partner organizations and headers that are all not names, but often listed as such.
+1A. This could be a cheap, secondary API call that would provide a probability score on the name of the contact.
+1B. Contacts with low probability score would be pushed down until rarely visible.
+
+Build internal ML database based on manual feedback from contact lists.
+2A. For example, we could add on tap of the contact name, a mini-menu to rate the name as:
+
+Excellent: Correct for company
+OK: At least a real-looking name
+Terrible: Not a name at all.
+Over time, our list of positives and negatives should build a better probability analysis and remove them.
+
+But I'm not sure if this would be helpful, or would actually help the AI search tool be more effective.
+
+What do you think?
+====
+You responded with the below:
+
+I'll create a plan that combines both your suggested approaches - AI filtering and user feedback. This hybrid approach will provide immediate improvements through AI validation while building a valuable training dataset through user feedback. The plan will include:
+
+AI Validation Service:
+Add a lightweight AI endpoint for name validation
+Implement probability scoring system
+Integrate with existing contact processing
+
+User Feedback System:
+Add UI components for name rating
+Create feedback data storage
+Implement probability adjustment based on feedback
+
+Integration:
+Update contact display logic to use new probability scores
+Implement sorting/filtering based on combined scores
+Add monitoring for validation accuracy
+Would you like me to proceed with this plan?
+
+====
+
+I approved it.
+
+So you then made this implementation plan:
+
+Thank you for these thoughtful suggestions about improving contact name validation. Let me analyze both options:
+
+Option 1 (AI Filter API):
+Pros:
+
+Immediate implementation possible
+Consistent results
+Can leverage existing AI models
+No training period needed
+Cons:
+
+Additional API costs
+Latency from extra API calls
+Dependency on external service
+Option 2 (Internal ML Database):
+Pros:
+
+Improves over time with user feedback
+No additional API costs
+Domain-specific learning
+User engagement through feedback
+Cons:
+
+Takes time to build sufficient training data
+Initial accuracy might be lower
+Requires storage and management of feedback data
+I recommend implementing Option 1 first, then gradually transitioning to Option 2. Here's why:
+
+We can use the AI filter API's results as initial training data for our ML system
+The feedback UI from Option 2 can still be implemented alongside Option 1
+Over time, as we collect enough user feedback, we can reduce dependency on the external API
+Would you like me to proceed with implementing either or both of these approaches?
+
+====
+
+So far you have added the user Feedback functionality to the names in the "Top Prospects" list.
+
+Please continue with the plan.
