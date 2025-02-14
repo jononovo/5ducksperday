@@ -97,12 +97,11 @@ export async function extractContacts(
   }
 
   const contacts: Partial<Contact>[] = [];
-  // More precise name regex that requires capitalization and reasonable length
-  const nameRegex = /(?<!@)([A-Z][a-z]{1,20}(?:\s+[A-Z][a-z]{1,20}){1,2})(?!\w)/g;
+  // Less strict name regex to allow more matches
+  const nameRegex = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g;
   const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
   const roleRegex = /(?:is|as|serves\s+as)\s+(?:the|a|an)\s+([^,.]+?(?:Manager|Director|Officer|Executive|Lead|Head|Chief|Founder|Owner|President|CEO|CTO|CFO))/gi;
 
-  // Known placeholder names to filter out
   const placeholderNames = new Set([
     'john doe', 'jane doe', 'john smith', 'jane smith',
     'test user', 'demo user', 'example user'
@@ -124,35 +123,37 @@ export async function extractContacts(
       const aiScore = aiScores[name];
       const localResult = validateNameLocally(name, result);
 
-      // Combine scores with configurable weights
+      // Lower weight for local validation to give AI more influence
       const finalScore = combineValidationScores(
         aiScore,
         localResult,
         {
           ...validationOptions,
-          localValidationWeight: validationOptions?.localValidationWeight || 0.4
+          localValidationWeight: 0.3,
+          minimumScore: 30  // Lower minimum score threshold
         }
       );
 
-      // Higher threshold for acceptance
-      if (finalScore >= (validationOptions?.minimumScore || 40)) {
+      // Lower threshold for acceptance to allow more prospects
+      if (finalScore >= 30) {
         const nameIndex = result.indexOf(name);
         const contextWindow = result.slice(
           Math.max(0, nameIndex - 100),
           nameIndex + 200
         );
 
-        // Extract role with more context
         const roleMatch = [...contextWindow.matchAll(roleRegex)];
         const role = roleMatch.length > 0 ? roleMatch[0][1].trim() : null;
 
-        // Find relevant email more precisely
+        // More lenient email matching
         const emailMatches = Array.from(result.match(emailRegex) || [])
           .filter(email => !isPlaceholderEmail(email))
           .filter(email => {
             const nameParts = name.toLowerCase().split(/\s+/);
+            const emailLower = email.toLowerCase();
+            // Accept email if it contains any part of the name that's at least 3 chars
             return nameParts.some(part => 
-              email.toLowerCase().includes(part) && part.length > 2
+              part.length >= 3 && emailLower.includes(part)
             );
           });
 
