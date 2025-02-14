@@ -48,6 +48,86 @@ export async function validateNames(names: string[]): Promise<Record<string, num
   }
 }
 
+export async function extractContacts(
+  analysisResults: string[],
+  validationOptions?: ValidationOptions
+): Promise<Partial<Contact>[]> {
+  if (!Array.isArray(analysisResults)) {
+    console.warn('analysisResults is not an array, returning empty array');
+    return [];
+  }
+
+  const nameRegex = /([A-Z][a-z]{1,20})\s+([A-Z][a-z]{1,20})(?:\s+[A-Z][a-z]{1,20})?/g;
+  const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
+
+  // Extract all potential names from the results
+  const potentialNames = new Set<string>();
+  for (const result of analysisResults) {
+    if (typeof result !== 'string') continue;
+    const matches = Array.from(result.matchAll(nameRegex));
+    matches.forEach(match => potentialNames.add(match[0]));
+  }
+
+  // Validate all names at once using AI
+  const names = Array.from(potentialNames);
+  if (names.length === 0) return [];
+
+  const aiScores = await validateNames(names);
+
+  // Process contacts with validated names
+  const contacts: Partial<Contact>[] = [];
+
+  for (const result of analysisResults) {
+    if (typeof result !== 'string') continue;
+
+    const names = Array.from(result.matchAll(nameRegex)).map(m => m[0]);
+    const emails = Array.from(result.match(emailRegex) || [])
+      .filter(email => !isPlaceholderEmail(email));
+
+    for (const name of names) {
+      const aiScore = aiScores[name] || 10;
+      let finalScore = aiScore;
+
+      // Apply local validation if enabled
+      if (validationOptions?.useLocalValidation) {
+        const localResult = validateNameLocally(name, result);
+        finalScore = combineValidationScores(aiScore, localResult, validationOptions);
+      }
+
+      if (finalScore > (validationOptions?.minimumScore || 20)) {
+        const nearestEmail = emails.find(email =>
+          Math.abs(result.indexOf(email) - result.indexOf(name)) < 200
+        );
+
+        contacts.push({
+          name,
+          email: nearestEmail || null,
+          probability: finalScore,
+          nameConfidenceScore: finalScore
+        });
+      }
+    }
+  }
+
+  // Ensure we're returning an array, sorted by probability
+  return Array.isArray(contacts) ? 
+    contacts.sort((a, b) => (b.probability || 0) - (a.probability || 0)) :
+    [];
+}
+
+// Helper function for validation
+function isPlaceholderEmail(email: string): boolean {
+  const placeholderPatterns = [
+    /first[._]?name/i,
+    /last[._]?name/i,
+    /first[._]?initial/i,
+    /company(domain)?\.com$/i,
+    /example\.com$/i,
+    /domain\.com$/i
+  ];
+  return placeholderPatterns.some(pattern => pattern.test(email));
+}
+
 export async function queryPerplexity(messages: PerplexityMessage[]): Promise<string> {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) {
@@ -85,72 +165,6 @@ export async function queryPerplexity(messages: PerplexityMessage[]): Promise<st
   }
 }
 
-// Helper functions for validation
-function isPlaceholderEmail(email: string): boolean {
-  const placeholderPatterns = [
-    /first[._]?name/i,
-    /last[._]?name/i,
-    /first[._]?initial/i,
-    /company(domain)?\.com$/i,
-    /example\.com$/i,
-    /domain\.com$/i
-  ];
-  return placeholderPatterns.some(pattern => pattern.test(email));
-}
-
-export async function extractContacts(
-  analysisResults: string[],
-  validationOptions?: ValidationOptions
-): Promise<Partial<Contact>[]> {
-  const nameRegex = /([A-Z][a-z]{1,20})\s+([A-Z][a-z]{1,20})(?:\s+[A-Z][a-z]{1,20})?/g;
-  const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
-
-  // Extract all potential names from the results
-  const potentialNames = new Set<string>();
-  for (const result of analysisResults) {
-    const matches = Array.from(result.matchAll(nameRegex));
-    matches.forEach(match => potentialNames.add(match[0]));
-  }
-
-  // Validate all names at once using AI
-  const names = Array.from(potentialNames);
-  const aiScores = await validateNames(names);
-
-  // Process contacts with validated names
-  const contacts: Partial<Contact>[] = [];
-
-  for (const result of analysisResults) {
-    const names = Array.from(result.matchAll(nameRegex)).map(m => m[0]);
-    const emails = Array.from(result.match(emailRegex) || [])
-      .filter(email => !isPlaceholderEmail(email));
-
-    for (const name of names) {
-      const aiScore = aiScores[name] || 10;
-      let finalScore = aiScore;
-
-      // Apply local validation if enabled
-      if (validationOptions?.useLocalValidation) {
-        const localResult = validateNameLocally(name, result);
-        finalScore = combineValidationScores(aiScore, localResult, validationOptions);
-      }
-
-      if (finalScore > (validationOptions?.minimumScore || 20)) {
-        const nearestEmail = emails.find(email =>
-          Math.abs(result.indexOf(email) - result.indexOf(name)) < 200
-        );
-
-        contacts.push({
-          name,
-          email: nearestEmail || null,
-          probability: finalScore,
-          nameConfidenceScore: finalScore
-        });
-      }
-    }
-  }
-
-  return contacts.sort((a, b) => (b.probability || 0) - (a.probability || 0));
-}
 
 // Company search and analysis functions
 export async function searchCompanies(query: string): Promise<string[]> {
