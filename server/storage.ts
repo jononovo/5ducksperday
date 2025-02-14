@@ -22,8 +22,6 @@ type ContactFeedback = {
 };
 
 type InsertContactFeedback = Omit<ContactFeedback, 'id' | 'createdAt'>;
-type contactFeedback = any; // Placeholder until schema is provided
-
 
 export interface IStorage {
   // Lists
@@ -376,6 +374,7 @@ export class DatabaseStorage implements IStorage {
 
   // New methods for contact validation and feedback
   async addContactFeedback(feedback: InsertContactFeedback): Promise<ContactFeedback> {
+    // Add the feedback record
     const [created] = await db.insert(contactFeedback).values(feedback).returning();
 
     // Update the contact's aggregate feedback score
