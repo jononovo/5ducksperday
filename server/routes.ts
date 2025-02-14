@@ -96,13 +96,13 @@ export function registerRoutes(app: Express) {
       // Get search approaches for analysis
       const approaches = await storage.listSearchApproaches();
 
-      // Get Company Overview and Leadership Analysis approaches
+      // Get Company Overview and Decision-maker Analysis approaches
       const companyOverview = approaches.find(a => 
         a.name === "Company Overview" && a.active
       );
 
-      const leadershipAnalysis = approaches.find(a => 
-        a.name === "Leadership Analysis" && a.active
+      const decisionMakerAnalysis = approaches.find(a => 
+        a.name === "Decision-maker Analysis" && a.active
       );
 
       if (!companyOverview) {
@@ -119,10 +119,10 @@ export function registerRoutes(app: Express) {
           const overviewResult = await analyzeCompany(companyName, companyOverview.prompt);
           const analysisResults = [overviewResult];
 
-          // If Leadership Analysis is active, run it immediately after
-          if (leadershipAnalysis?.active) {
-            const leadershipResult = await analyzeCompany(companyName, leadershipAnalysis.prompt);
-            analysisResults.push(leadershipResult);
+          // If Decision-maker Analysis is active, run it immediately after
+          if (decisionMakerAnalysis?.active) {
+            const decisionMakerResult = await analyzeCompany(companyName, decisionMakerAnalysis.prompt);
+            analysisResults.push(decisionMakerResult);
           }
 
           // Parse results
@@ -149,7 +149,7 @@ export function registerRoutes(app: Express) {
             snapshot: companyData.snapshot || null
           });
 
-          // Create contacts from the leadership analysis
+          // Create contacts from the decision-maker analysis
           const validContacts = contacts.filter(contact => contact.name && contact.name !== "Unknown");
 
           // Create contact records with basic information
@@ -166,7 +166,7 @@ export function registerRoutes(app: Express) {
                 phoneNumber: null,
                 department: null,
                 location: null,
-                verificationSource: 'Leadership Analysis'
+                verificationSource: 'Decision-maker Analysis'
               })
             )
           );
