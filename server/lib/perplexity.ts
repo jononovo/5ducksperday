@@ -209,7 +209,7 @@ function isGenericName(name: string): boolean {
     'contact', 'person', 'representative', 'individual'
   ];
 
-  return genericTerms.some(term => 
+  return genericTerms.some(term =>
     name.toLowerCase().includes(term.toLowerCase()) ||
     name.split(' ').some(part => term.toLowerCase() === part.toLowerCase())
   );
@@ -218,43 +218,40 @@ function isGenericName(name: string): boolean {
 export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
   const contactMap = new Map<string, Partial<Contact> & { score: number }>();
 
-  // Leadership roles with their importance scores
-  const leadershipRoles = {
+  // Primary decision-maker roles
+  const decisionMakerRoles = {
     'CEO': 10,
     'Chief Executive Officer': 10,
-    'Founder': 9,
-    'Co-Founder': 9,
+    'Founder': 10,
+    'Co-Founder': 10,
+    'Owner': 10,
+    'Managing Director': 9,
+    'President': 9,
+    'Principal': 9
+  };
+
+  // Secondary leadership roles for fallback
+  const leadershipRoles = {
     'CTO': 8,
     'Chief Technology Officer': 8,
     'COO': 8,
     'Chief Operating Officer': 8,
-    'President': 8,
-    'Managing Director': 7,
-    'VP': 6,
-    'Vice President': 6,
-    'Head of': 5,
-    'Operations Manager': 5,
-    'Manager': 4
+    'CFO': 8,
+    'Chief Financial Officer': 8,
+    'VP': 7,
+    'Vice President': 7,
+    'Director': 6,
+    'Head of': 5
   };
 
   // Enhanced regex patterns
   const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
-  // More strict name pattern requiring first and last name
   const nameRegex = /([A-Z][a-z]{1,20})\s+([A-Z][a-z]{1,20})(?:\s+[A-Z][a-z]{1,20})?/g;
 
-  // Common organization suffix patterns to filter out
+  // Organization suffixes to filter out
   const orgSuffixes = [
     'Inc', 'LLC', 'Ltd', 'Limited', 'Corp', 'Corporation', 'Co', 'Company',
-    'Group', 'Holdings', 'Services', 'Solutions', 'Technologies', 'Systems',
-    'Partners', 'Consulting', 'Associates', 'International', 'Global',
-    'Enterprises', 'Industries', 'Networks', 'Interactive', 'Digital'
-  ];
-
-  // List of titles that should never be treated as names
-  const titleExclusions = [
-    ...Object.keys(leadershipRoles),
-    'Director', 'Executive', 'Officer', 'Manager', 'Lead', 'Chief',
-    'Head', 'Principal', 'Senior', 'Junior', 'Associate', 'Assistant'
+    'Group', 'Holdings', 'Services', 'Solutions', 'Technologies', 'Systems'
   ];
 
   for (const result of analysisResults) {
@@ -269,36 +266,30 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
           return false;
         }
 
-        // Filter out standalone titles and generic names
-        if (titleExclusions.some(title => 
-          name === title ||
-          name.startsWith(title + ' ') ||
-          name.endsWith(' ' + title)
-        ) || isGenericName(name)) {
+        // Filter out generic names
+        if (isGenericName(name)) {
           return false;
         }
 
         // Additional validation for names
         const nameParts = name.split(' ');
-        const isValidName = (
+        return (
           nameParts.length >= 2 && // Must have at least first and last name
-          nameParts.length <= 3 && // No more than three parts (First Middle Last)
-          nameParts.every(part => 
+          nameParts.length <= 3 && // No more than three parts
+          nameParts.every(part =>
             part.length >= 2 && // Each part must be at least 2 chars
             part.length <= 20 && // Each part must be no more than 20 chars
-            /^[A-Z][a-z]+$/.test(part) && // Must start with capital letter, followed by lowercase
-            !titleExclusions.includes(part) // Part itself is not a title
+            /^[A-Z][a-z]+$/.test(part) // Must start with capital letter, followed by lowercase
           )
         );
-
-        return isValidName;
       });
 
     const emails = (result.match(emailRegex) || [])
       .filter(email => !isPlaceholderEmail(email));
 
     for (const name of names) {
-      const nearestRole = Object.entries(leadershipRoles).find(([role]) =>
+      // First try to find decision-maker roles
+      let nearestRole = Object.entries(decisionMakerRoles).find(([role]) =>
         result.toLowerCase().includes(`${name.toLowerCase()}`) &&
         result.toLowerCase().includes(role.toLowerCase()) &&
         Math.abs(
@@ -307,30 +298,33 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
         ) < 100
       );
 
-      const nearestEmail = emails.find(email =>
-        result.indexOf(email) - result.indexOf(name) < 100 &&
-        result.indexOf(email) - result.indexOf(name) > -100
-      );
+      // If no decision-maker role found, try leadership roles
+      if (!nearestRole) {
+        nearestRole = Object.entries(leadershipRoles).find(([role]) =>
+          result.toLowerCase().includes(`${name.toLowerCase()}`) &&
+          result.toLowerCase().includes(role.toLowerCase()) &&
+          Math.abs(
+            result.toLowerCase().indexOf(name.toLowerCase()) -
+            result.toLowerCase().indexOf(role.toLowerCase())
+          ) < 100
+        );
+      }
 
-      let score = 0;
       if (nearestRole) {
-        score += nearestRole[1];
-      }
+        const nearestEmail = emails.find(email =>
+          result.indexOf(email) - result.indexOf(name) < 100 &&
+          result.indexOf(email) - result.indexOf(name) > -100
+        );
 
-      if (nearestEmail) {
-        score += 5;
-      }
-
-      // Only include contacts that meet minimum validation criteria
-      if (score >= 5) {
-        const contactKey = `${name}-${nearestRole?.[0] || ''}-${nearestEmail || ''}`;
+        const score = nearestRole[1] + (nearestEmail ? 5 : 0);
+        const contactKey = `${name}-${nearestRole[0]}-${nearestEmail || ''}`;
 
         if (!contactMap.has(contactKey) || contactMap.get(contactKey)!.score < score) {
           contactMap.set(contactKey, {
             name,
             email: nearestEmail || null,
-            role: nearestRole?.[0] || null,
-            priority: score >= 15 ? 1 : score >= 10 ? 2 : 3,
+            role: nearestRole[0],
+            priority: nearestRole[1] >= 9 ? 1 : nearestRole[1] >= 7 ? 2 : 3, // Priority based on role importance
             score
           });
         }
@@ -338,9 +332,10 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
     }
   }
 
+  // Return only the highest scored contacts
   return Array.from(contactMap.values())
     .sort((a, b) => b.score - a.score)
-    .slice(0, 5);
+    .slice(0, 3); // Limit to top 3 contacts
 }
 
 function parseLocalSourceDetails(response: string): LocalSourcesSearchResult {
@@ -474,8 +469,8 @@ async function deepSearchLocalSources(name: string, company: string, enabledSear
 
 
 export async function searchContactDetails(
-  name: string, 
-  company: string, 
+  name: string,
+  company: string,
   includeLocalSources: boolean = false,
   enabledSearches: Record<string, boolean> = {}
 ): Promise<LocalSourcesSearchResult & Partial<Contact>> {
