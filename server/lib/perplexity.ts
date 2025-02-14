@@ -100,30 +100,26 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
     snapshot: {}
   };
 
+  // Collect contacts separately since they're not part of Company type
+  const contactsList: Partial<Contact>[] = [];
+
   for (const result of analysisResults) {
     try {
       // Try to parse the result as JSON first (for structured responses)
       const jsonData = JSON.parse(result);
 
       // Extract decision makers as contacts
-      const contacts: Partial<Contact>[] = [];
-
       // Process up to 5 decision makers
       for (let i = 1; i <= 5; i++) {
         const decisionMaker = jsonData[`decision_maker_${i}`];
         if (decisionMaker?.name) {
-          contacts.push({
+          contactsList.push({
             name: decisionMaker.name,
             role: decisionMaker.designation,
             email: decisionMaker.email,
-            probability: i // Changed to probability
+            probability: i // Priority based on order
           });
         }
-      }
-
-      // Add the contacts to company data
-      if (contacts.length > 0) {
-        companyData.contacts = contacts;
       }
 
       // Extract other fields from JSON response
@@ -136,7 +132,7 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       console.log('Falling back to text parsing for result:', e);
     }
 
-    // Rest of the existing parsing logic for non-JSON responses
+    // Rest of the parsing logic remains unchanged
     const websiteRegex = /(?:website|url|web\s*site):\s*(https?:\/\/[^\s,)]+)/i;
     const websiteMatch = result.match(websiteRegex);
     if (websiteMatch) {
@@ -180,11 +176,16 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
     // Calculate score based on available information
     let score = 50;
     if (companyData.size && companyData.size > 50) score += 10;
-    if (companyData.contacts && companyData.contacts.length > 0) score += 20;
     if (companyData.differentiation && companyData.differentiation.length === 3) score += 20;
 
     companyData.totalScore = Math.min(100, score);
   }
+
+  // Store contacts in snapshot for later retrieval
+  companyData.snapshot = {
+    ...companyData.snapshot,
+    extractedContacts: contactsList
+  };
 
   return companyData;
 }
@@ -498,11 +499,11 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
   return Array.from(contactMap.values())
     .map(contact => {
       const contextForName = analysisResults.find(result =>
-        result.includes(contact.name)
+        result.includes(contact.name || '')
       ) || '';
 
       const confidenceScore = calculateNameConfidenceScore(
-        contact.name,
+        contact.name || '',
         contextForName
       );
 
