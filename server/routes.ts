@@ -237,13 +237,14 @@ export function registerRoutes(app: Express) {
         );
         console.log('Decision-maker analysis result:', analysisResult);
 
+        // Extract contacts focusing on core fields only
         const newContacts = extractContacts([analysisResult]);
         console.log('Extracted contacts:', newContacts);
 
         // Remove existing contacts
         await storage.deleteContactsByCompany(companyId);
 
-        // Create new contacts with enhanced details
+        // Create new contacts with only the essential fields
         const validContacts = newContacts.filter(contact => contact.name && contact.name !== "Unknown");
         console.log('Valid contacts for enrichment:', validContacts);
 
@@ -251,7 +252,7 @@ export function registerRoutes(app: Express) {
           validContacts.map(async contact => {
             console.log(`Processing contact enrichment for: ${contact.name}`);
 
-            const contactData = {
+            return storage.createContact({
               companyId,
               name: contact.name!,
               role: contact.role || null,
@@ -263,9 +264,7 @@ export function registerRoutes(app: Express) {
               department: null,
               location: null,
               verificationSource: 'Decision-maker Analysis'
-            };
-
-            return storage.createContact(contactData);
+            });
           })
         );
 
