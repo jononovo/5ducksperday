@@ -266,7 +266,7 @@ export default function Outreach() {
                             (contact.probability || 0) >= 90 ? "default" :
                             (contact.probability || 0) >= 70 ? "secondary" : "outline"
                           }>
-                            {contact.probability || 0}% match
+                            {contact.probability || 0}
                           </Badge>
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">
