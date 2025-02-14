@@ -190,131 +190,157 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
   return companyData;
 }
 
+function isPlaceholderEmail(email: string): boolean {
+  const placeholderPatterns = [
+    /first[._]?name/i,
+    /last[._]?name/i,
+    /first[._]?initial/i,
+    /company(domain)?\.com$/i,
+    /example\.com$/i,
+    /domain\.com$/i
+  ];
+  return placeholderPatterns.some(pattern => pattern.test(email));
+}
+
+function isGenericName(name: string): boolean {
+  const genericTerms = [
+    'leadership', 'team', 'member', 'staff', 'employee', 'general',
+    'key', 'role', 'position', 'department', 'division', 'management',
+    'contact', 'person', 'representative', 'individual'
+  ];
+
+  return genericTerms.some(term => 
+    name.toLowerCase().includes(term.toLowerCase()) ||
+    name.split(' ').some(part => term.toLowerCase() === part.toLowerCase())
+  );
+}
+
 export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
-    const contactMap = new Map<string, Partial<Contact> & { score: number }>();
+  const contactMap = new Map<string, Partial<Contact> & { score: number }>();
 
-    // Leadership roles with their importance scores
-    const leadershipRoles = {
-      'CEO': 10,
-      'Chief Executive Officer': 10,
-      'Founder': 9,
-      'Co-Founder': 9,
-      'CTO': 8,
-      'Chief Technology Officer': 8,
-      'COO': 8,
-      'Chief Operating Officer': 8,
-      'President': 8,
-      'Managing Director': 7,
-      'VP': 6,
-      'Vice President': 6,
-      'Head of': 5,
-      'Operations Manager': 5,
-      'Manager': 4
-    };
+  // Leadership roles with their importance scores
+  const leadershipRoles = {
+    'CEO': 10,
+    'Chief Executive Officer': 10,
+    'Founder': 9,
+    'Co-Founder': 9,
+    'CTO': 8,
+    'Chief Technology Officer': 8,
+    'COO': 8,
+    'Chief Operating Officer': 8,
+    'President': 8,
+    'Managing Director': 7,
+    'VP': 6,
+    'Vice President': 6,
+    'Head of': 5,
+    'Operations Manager': 5,
+    'Manager': 4
+  };
 
-    // Enhanced regex patterns
-    const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
-    // More strict name pattern requiring first and last name
-    const nameRegex = /([A-Z][a-z]{1,20})\s+([A-Z][a-z]{1,20})(?:\s+[A-Z][a-z]{1,20})?/g;
+  // Enhanced regex patterns
+  const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
+  // More strict name pattern requiring first and last name
+  const nameRegex = /([A-Z][a-z]{1,20})\s+([A-Z][a-z]{1,20})(?:\s+[A-Z][a-z]{1,20})?/g;
 
-    // Common organization suffix patterns to filter out
-    const orgSuffixes = [
-      'Inc', 'LLC', 'Ltd', 'Limited', 'Corp', 'Corporation', 'Co', 'Company',
-      'Group', 'Holdings', 'Services', 'Solutions', 'Technologies', 'Systems',
-      'Partners', 'Consulting', 'Associates', 'International', 'Global',
-      'Enterprises', 'Industries', 'Networks', 'Interactive', 'Digital'
-    ];
+  // Common organization suffix patterns to filter out
+  const orgSuffixes = [
+    'Inc', 'LLC', 'Ltd', 'Limited', 'Corp', 'Corporation', 'Co', 'Company',
+    'Group', 'Holdings', 'Services', 'Solutions', 'Technologies', 'Systems',
+    'Partners', 'Consulting', 'Associates', 'International', 'Global',
+    'Enterprises', 'Industries', 'Networks', 'Interactive', 'Digital'
+  ];
 
-    // List of titles that should never be treated as names
-    const titleExclusions = [
-      ...Object.keys(leadershipRoles),
-      'Director', 'Executive', 'Officer', 'Manager', 'Lead', 'Chief',
-      'Head', 'Principal', 'Senior', 'Junior', 'Associate', 'Assistant'
-    ];
+  // List of titles that should never be treated as names
+  const titleExclusions = [
+    ...Object.keys(leadershipRoles),
+    'Director', 'Executive', 'Officer', 'Manager', 'Lead', 'Chief',
+    'Head', 'Principal', 'Senior', 'Junior', 'Associate', 'Assistant'
+  ];
 
-    for (const result of analysisResults) {
-      const names = Array.from(result.matchAll(nameRegex))
-        .map(match => match[0])
-        .filter(name => {
-          // Filter out organization names
-          if (orgSuffixes.some(suffix =>
-            name.includes(suffix) ||
-            name.includes(suffix.toUpperCase())
-          )) {
-            return false;
-          }
-
-          // Filter out standalone titles
-          if (titleExclusions.some(title => 
-            name === title ||
-            name.startsWith(title + ' ') ||
-            name.endsWith(' ' + title)
-          )) {
-            return false;
-          }
-
-          // Additional validation for names
-          const nameParts = name.split(' ');
-          const isValidName = (
-            nameParts.length >= 2 && // Must have at least first and last name
-            nameParts.length <= 3 && // No more than three parts (First Middle Last)
-            nameParts.every(part => 
-              part.length >= 2 && // Each part must be at least 2 chars
-              part.length <= 20 && // Each part must be no more than 20 chars
-              /^[A-Z][a-z]+$/.test(part) && // Must start with capital letter, followed by lowercase
-              !titleExclusions.includes(part) // Part itself is not a title
-            )
-          );
-
-          return isValidName;
-        });
-
-      const emails = (result.match(emailRegex) || [])
-        .filter(email => !email.includes('first_initial') && !email.includes('company.com'));
-
-      for (const name of names) {
-        const nearestRole = Object.entries(leadershipRoles).find(([role]) =>
-          result.toLowerCase().includes(`${name.toLowerCase()}`) &&
-          result.toLowerCase().includes(role.toLowerCase()) &&
-          Math.abs(
-            result.toLowerCase().indexOf(name.toLowerCase()) -
-            result.toLowerCase().indexOf(role.toLowerCase())
-          ) < 100
-        );
-
-        const nearestEmail = emails.find(email =>
-          result.indexOf(email) - result.indexOf(name) < 100 &&
-          result.indexOf(email) - result.indexOf(name) > -100
-        );
-
-        let score = 0;
-        if (nearestRole) {
-          score += nearestRole[1];
+  for (const result of analysisResults) {
+    const names = Array.from(result.matchAll(nameRegex))
+      .map(match => match[0])
+      .filter(name => {
+        // Filter out organization names
+        if (orgSuffixes.some(suffix =>
+          name.includes(suffix) ||
+          name.includes(suffix.toUpperCase())
+        )) {
+          return false;
         }
 
-        if (nearestEmail) {
-          score += 5;
+        // Filter out standalone titles and generic names
+        if (titleExclusions.some(title => 
+          name === title ||
+          name.startsWith(title + ' ') ||
+          name.endsWith(' ' + title)
+        ) || isGenericName(name)) {
+          return false;
         }
 
-        // Only include contacts that meet minimum validation criteria
-        if (score >= 5) {
-          const contactKey = `${name}-${nearestRole?.[0] || ''}-${nearestEmail || ''}`;
+        // Additional validation for names
+        const nameParts = name.split(' ');
+        const isValidName = (
+          nameParts.length >= 2 && // Must have at least first and last name
+          nameParts.length <= 3 && // No more than three parts (First Middle Last)
+          nameParts.every(part => 
+            part.length >= 2 && // Each part must be at least 2 chars
+            part.length <= 20 && // Each part must be no more than 20 chars
+            /^[A-Z][a-z]+$/.test(part) && // Must start with capital letter, followed by lowercase
+            !titleExclusions.includes(part) // Part itself is not a title
+          )
+        );
 
-          if (!contactMap.has(contactKey) || contactMap.get(contactKey)!.score < score) {
-            contactMap.set(contactKey, {
-              name,
-              email: nearestEmail || null,
-              role: nearestRole?.[0] || null,
-              priority: score >= 15 ? 1 : score >= 10 ? 2 : 3
-            });
-          }
+        return isValidName;
+      });
+
+    const emails = (result.match(emailRegex) || [])
+      .filter(email => !isPlaceholderEmail(email));
+
+    for (const name of names) {
+      const nearestRole = Object.entries(leadershipRoles).find(([role]) =>
+        result.toLowerCase().includes(`${name.toLowerCase()}`) &&
+        result.toLowerCase().includes(role.toLowerCase()) &&
+        Math.abs(
+          result.toLowerCase().indexOf(name.toLowerCase()) -
+          result.toLowerCase().indexOf(role.toLowerCase())
+        ) < 100
+      );
+
+      const nearestEmail = emails.find(email =>
+        result.indexOf(email) - result.indexOf(name) < 100 &&
+        result.indexOf(email) - result.indexOf(name) > -100
+      );
+
+      let score = 0;
+      if (nearestRole) {
+        score += nearestRole[1];
+      }
+
+      if (nearestEmail) {
+        score += 5;
+      }
+
+      // Only include contacts that meet minimum validation criteria
+      if (score >= 5) {
+        const contactKey = `${name}-${nearestRole?.[0] || ''}-${nearestEmail || ''}`;
+
+        if (!contactMap.has(contactKey) || contactMap.get(contactKey)!.score < score) {
+          contactMap.set(contactKey, {
+            name,
+            email: nearestEmail || null,
+            role: nearestRole?.[0] || null,
+            priority: score >= 15 ? 1 : score >= 10 ? 2 : 3,
+            score
+          });
         }
       }
     }
+  }
 
-    return Array.from(contactMap.values())
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
+  return Array.from(contactMap.values())
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
 }
 
 function parseLocalSourceDetails(response: string): LocalSourcesSearchResult {
@@ -322,13 +348,13 @@ function parseLocalSourceDetails(response: string): LocalSourcesSearchResult {
 
   // Extract email if found - only match actual email addresses
   const emailMatch = response.match(/(?:email|contact):\s*([\w.+-]+@[\w-]+\.[a-zA-Z]{2,})/i);
-  if (emailMatch && !emailMatch[1].includes('first_initial') && !emailMatch[1].includes('company.com')) {
+  if (emailMatch && !isPlaceholderEmail(emailMatch[1])) {
     details.email = emailMatch[1];
   }
 
   // Extract role information
   const roleMatch = response.match(/(?:role|position|title):\s*([^.\n]+)/i);
-  if (roleMatch) {
+  if (roleMatch && !isGenericName(roleMatch[1])) {
     details.role = roleMatch[1].trim();
   }
 
@@ -495,7 +521,7 @@ function parseContactDetails(response: string): Partial<Contact> {
 
   // Extract email if found
   const emailMatch = response.match(/[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/);
-  if (emailMatch) {
+  if (emailMatch && !isPlaceholderEmail(emailMatch[0])) {
     contact.email = emailMatch[0];
   }
 
@@ -507,7 +533,7 @@ function parseContactDetails(response: string): Partial<Contact> {
 
   // Extract role information
   const roleMatch = response.match(/(?:role|position|title):\s*([^.\n]+)/i);
-  if (roleMatch) {
+  if (roleMatch && !isGenericName(roleMatch[1])) {
     contact.role = roleMatch[1].trim();
   }
 
