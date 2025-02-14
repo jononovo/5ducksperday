@@ -68,22 +68,24 @@ export async function searchCompanies(query: string): Promise<string[]> {
 
 export async function analyzeCompany(
   companyName: string,
-  prompt: string
+  userPrompt: string,
+  technicalPrompt?: string | null,
+  responseStructure?: string | null
 ): Promise<string> {
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: "You are a business intelligence analyst. Provide detailed, factual information about companies."
+      content: technicalPrompt || "You are a business intelligence analyst. Provide detailed, factual information about companies."
     },
     {
       role: "user",
-      content: prompt.replace("[COMPANY]", companyName)
+      content: (userPrompt || "").replace("[COMPANY]", companyName)
     }
   ];
 
-  // Add specific differentiation analysis
-  if (prompt.toLowerCase().includes("differentiation")) {
-    messages[0].content += " Focus on unique selling propositions and competitive advantages. Provide exactly 3 short, impactful bullet points.";
+  // If response structure is provided, append it to the system message
+  if (responseStructure) {
+    messages[0].content += `\n\nProvide your response in the following JSON structure:\n${responseStructure}`;
   }
 
   return queryPerplexity(messages);

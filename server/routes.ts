@@ -96,7 +96,6 @@ export function registerRoutes(app: Express) {
       // Get search approaches for analysis
       const approaches = await storage.listSearchApproaches();
 
-      // Get Company Overview and Decision-maker Analysis approaches
       const companyOverview = approaches.find(a => 
         a.name === "Company Overview" && a.active
       );
@@ -112,16 +111,26 @@ export function registerRoutes(app: Express) {
         return;
       }
 
-      // Analyze each company
+      // Analyze each company using technical prompts and response structures
       const companies = await Promise.all(
         companyNames.map(async (companyName) => {
-          // First run Company Overview analysis
-          const overviewResult = await analyzeCompany(companyName, companyOverview.prompt);
+          // Run Company Overview analysis with technical prompt
+          const overviewResult = await analyzeCompany(
+            companyName, 
+            companyOverview.prompt,
+            companyOverview.technicalPrompt,
+            companyOverview.responseStructure
+          );
           const analysisResults = [overviewResult];
 
-          // If Decision-maker Analysis is active, run it immediately after
+          // If Decision-maker Analysis is active, run it with technical prompt
           if (decisionMakerAnalysis?.active) {
-            const decisionMakerResult = await analyzeCompany(companyName, decisionMakerAnalysis.prompt);
+            const decisionMakerResult = await analyzeCompany(
+              companyName, 
+              decisionMakerAnalysis.prompt,
+              decisionMakerAnalysis.technicalPrompt,
+              decisionMakerAnalysis.responseStructure
+            );
             analysisResults.push(decisionMakerResult);
           }
 
@@ -146,7 +155,7 @@ export function registerRoutes(app: Express) {
             validationPoints: companyData.validationPoints ?? null,
             differentiation: companyData.differentiation ?? null,
             totalScore: companyData.totalScore ?? null,
-            snapshot: companyData.snapshot || null
+            snapshot: companyData.snapshot || {}
           });
 
           // Create contacts from the decision-maker analysis
