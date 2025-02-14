@@ -201,34 +201,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          {/* Results Section */}
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Companies Analysis</CardTitle>
-                {currentResults && (
-                  <Button
-                    variant="outline"
-                    onClick={handleSaveList}
-                    disabled={isSaved || saveMutation.isPending}
-                  >
-                    <ListPlus className="mr-2 h-4 w-4" />
-                    {isSaved ? "Saved" : "Save as List"}
-                  </Button>
-                )}
-              </div>
-              {currentQuery && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Search: {currentQuery}
-                </p>
-              )}
-            </CardHeader>
-            <CardContent className="p-3">
-              <CompanyTable companies={currentResults || []} />
-            </CardContent>
-          </Card>
-
-          {/* Top Prospects Section */}
+          {/* Top Prospects Section - Moved above Companies Analysis */}
           {currentResults && currentResults.length > 0 && (
             <Card>
               <CardHeader>
@@ -302,6 +275,33 @@ export default function Home() {
               </CardContent>
             </Card>
           )}
+
+          {/* Results Section */}
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Companies Analysis</CardTitle>
+                {currentResults && (
+                  <Button
+                    variant="outline"
+                    onClick={handleSaveList}
+                    disabled={isSaved || saveMutation.isPending}
+                  >
+                    <ListPlus className="mr-2 h-4 w-4" />
+                    {isSaved ? "Saved" : "Save as List"}
+                  </Button>
+                )}
+              </div>
+              {currentQuery && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Search: {currentQuery}
+                </p>
+              )}
+            </CardHeader>
+            <CardContent className="p-3">
+              <CompanyTable companies={currentResults || []} />
+            </CardContent>
+          </Card>
         </div>
 
         {/* Search Flow Section - 3 columns */}
@@ -309,12 +309,12 @@ export default function Home() {
           <Card>
             <CardHeader>
               <div className="space-y-4">
-                <div 
+                <div
                   className="flex items-center justify-between cursor-pointer"
                   onClick={() => setIsSearchFlowExpanded(!isSearchFlowExpanded)}
                 >
-                  <CardTitle className="flex items-center gap-2 text-sm">
-                    <Search className="w-4 h-4" />
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Search className="w-5 h-5" />
                     Search Flow
                     {isSearchFlowExpanded ? (
                       <ChevronUp className="w-4 h-4" />

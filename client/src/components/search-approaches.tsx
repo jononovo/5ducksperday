@@ -274,7 +274,7 @@ function SubSearches({
                 onClick={(e) => e.stopPropagation()}
                 className="mr-2"
               />
-              <span>{section.label}</span>
+              <span className="text-sm font-medium">{section.label}</span>
             </AccordionTrigger>
             {isEditing && (
               <Button
