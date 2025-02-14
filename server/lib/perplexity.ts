@@ -550,8 +550,8 @@ Format your response in a structured way that's easy to parse.`
     contactDetails = {
       ...contactDetails,
       ...localDetails,
-      verificationSource: 'Local Sources' as const,
-      completedSearches: localDetails.completedSearches
+      verificationSource: 'Local Sources',
+      completedSearches: localDetails.completedSearches || []
     };
   }
 

@@ -44,7 +44,8 @@ export const contacts = pgTable("contacts", {
   location: text("location"),
   verificationSource: text("verification_source"),
   lastEnriched: timestamp("last_enriched"),
-  createdAt: timestamp("created_at").defaultNow()
+  createdAt: timestamp("created_at").defaultNow(),
+  completedSearches: text("completed_searches").array() // Add completed searches array
 });
 
 export const searchApproaches = pgTable("search_approaches", {
@@ -125,7 +126,8 @@ const contactSchema = z.object({
   phoneNumber: z.string().nullable(),
   department: z.string().nullable(),
   location: z.string().nullable(),
-  verificationSource: z.string().nullable()
+  verificationSource: z.string().nullable(),
+  completedSearches: z.array(z.string()).optional() // Add to schema
 });
 
 const searchApproachSchema = z.object({
