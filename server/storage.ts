@@ -293,7 +293,6 @@ export class DatabaseStorage implements IStorage {
     await db.delete(emailTemplates).where(eq(emailTemplates.id, id));
   }
 
-  // Initialize default search approaches if none exist
   async initializeDefaultSearchApproaches() {
     const existing = await this.listSearchApproaches();
     if (existing.length === 0) {
@@ -312,7 +311,30 @@ export class DatabaseStorage implements IStorage {
           prompt: "Identify and analyze the key decision-makers at [COMPANY]. Focus on C-level executives, owners, founders, and other top-level decision-makers. Include their roles and any available contact information.",
           order: 2,
           active: true,
-          config: {},
+          config: {
+            subSearches: [
+              {
+                name: "Local Sources",
+                description: "Search local business directories and regional databases"
+              },
+              {
+                name: "Digital Sources",
+                description: "Analyze company websites and digital presence"
+              },
+              {
+                name: "Social Sources",
+                description: "Review professional social networks and platforms"
+              },
+              {
+                name: "Start Sources",
+                description: "Examine startup databases and funding platforms"
+              },
+              {
+                name: "Sector Specific Listings",
+                description: "Search industry-specific directories and listings"
+              }
+            ]
+          },
           technicalPrompt: "Identify key decision-makers at [COMPANY], including roles and contact information.",
           responseStructure: "JSON with fields: decisionMakers"
         },
