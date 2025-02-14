@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search } from "lucide-react";
@@ -26,9 +26,28 @@ export default function PromptEditor({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch active search flows
+  const { data: searchFlows = [] } = useQuery({
+    queryKey: ["/api/search-approaches"],
+  });
+
   const searchMutation = useMutation({
     mutationFn: async (searchQuery: string) => {
-      const res = await apiRequest("POST", "/api/companies/search", { query: searchQuery });
+      // Get active flows and their configurations
+      const activeFlows = searchFlows
+        .filter((flow: any) => flow.active)
+        .map((flow: any) => ({
+          id: flow.id,
+          name: flow.name,
+          config: flow.config,
+          completedSearches: flow.completedSearches || []
+        }));
+
+      // Include active flows in the search request
+      const res = await apiRequest("POST", "/api/companies/search", { 
+        query: searchQuery,
+        flows: activeFlows
+      });
       return res.json();
     },
     onSuccess: (data) => {

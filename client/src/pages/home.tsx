@@ -120,7 +120,7 @@ export default function Home() {
               <div className="flex justify-between items-center">
                 <CardTitle className="flex items-center gap-2">
                   <Search className="w-5 h-5" />
-                  Search Approaches
+                  Search Flow
                 </CardTitle>
                 <Button
                   variant="ghost"
