@@ -523,7 +523,7 @@ export async function searchContactDetails(
   company: string, 
   includeLocalSources: boolean = false,
   enabledSearches: Record<string, boolean> = {}
-): Promise<Partial<Contact> & { completedSearches?: string[] }> {
+): Promise<LocalSourcesSearchResult & Partial<Contact>> {
   // Basic contact details
   const messages: PerplexityMessage[] = [
     {
@@ -547,7 +547,7 @@ Format your response in a structured way that's easy to parse.`
 
   if (includeLocalSources) {
     const localDetails = await deepSearchLocalSources(name, company, enabledSearches);
-    contactDetails = {
+    return {
       ...contactDetails,
       ...localDetails,
       verificationSource: 'Local Sources',
@@ -555,7 +555,10 @@ Format your response in a structured way that's easy to parse.`
     };
   }
 
-  return contactDetails;
+  return {
+    ...contactDetails,
+    completedSearches: []
+  };
 }
 
 function parseContactDetails(response: string): Partial<Contact> {

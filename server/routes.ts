@@ -225,14 +225,15 @@ export function registerRoutes(app: Express) {
         return;
       }
 
-      // Check if local sources search is enabled and get subsearches
+      // Extract subsearches configuration
       const config = leadershipApproach.config as Record<string, unknown>;
       const subsearches = (config?.subsearches || {}) as Record<string, boolean>;
 
-      console.log('Enabled subsearches:', subsearches); // Add logging
+      console.log('Leadership analysis config:', config);
+      console.log('Enabled subsearches:', subsearches);
 
       try {
-        // Perform new leadership analysis
+        // Perform leadership analysis
         const analysisResult = await analyzeCompany(company.name, leadershipApproach.prompt);
         const newContacts = extractContacts([analysisResult]);
 
@@ -244,17 +245,17 @@ export function registerRoutes(app: Express) {
 
         const createdContacts = await Promise.all(
           validContacts.map(async contact => {
-            console.log(`Processing deep search for contact: ${contact.name}`); // Add logging
+            console.log(`Processing contact enrichment for: ${contact.name}`);
 
-            // Get enhanced contact details with proper subsearches
+            // Get enhanced contact details with local sources search
             const enhancedDetails = await searchContactDetails(
               contact.name!,
               company.name,
-              true, // Always include local sources for deep search
-              subsearches // Pass enabled subsearches
+              true, // Always include local sources for leadership analysis
+              subsearches // Pass enabled subsearches configuration
             );
 
-            console.log('Enhanced details:', enhancedDetails); // Add logging
+            console.log('Enhanced contact details:', enhancedDetails);
 
             const contactData = {
               companyId,
@@ -267,7 +268,8 @@ export function registerRoutes(app: Express) {
               phoneNumber: null,
               department: enhancedDetails.department || null,
               location: enhancedDetails.location || null,
-              verificationSource: 'Local Sources'
+              verificationSource: 'Leadership Analysis',
+              completedSearches: enhancedDetails.completedSearches || []
             };
 
             const createdContact = await storage.createContact(contactData);
