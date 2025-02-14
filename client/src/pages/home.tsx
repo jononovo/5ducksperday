@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
 import SearchApproaches from "@/components/search-approaches";
-import { ListPlus, Search, Code2, UserCircle, Banknote } from "lucide-react";
+import { ListPlus, Search, Code2, UserCircle, Banknote, Eye } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -20,16 +20,21 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { Company, Contact } from "@shared/schema";
 
+// Extend Company type to include contacts
+interface CompanyWithContacts extends Company {
+  contacts?: (Contact & { companyName?: string })[];
+}
+
 // Define interface for the saved state
 interface SavedSearchState {
   currentQuery: string | null;
-  currentResults: Company[] | null;
+  currentResults: CompanyWithContacts[] | null;
 }
 
 export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentQuery, setCurrentQuery] = useState<string | null>(null);
-  const [currentResults, setCurrentResults] = useState<Company[] | null>(null);
+  const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [pendingContactId, setPendingContactId] = useState<number | null>(null);
   const { toast } = useToast();
@@ -89,7 +94,7 @@ export default function Home() {
     setIsAnalyzing(false);
   };
 
-  const handleSearchResults = (query: string, results: Company[]) => {
+  const handleSearchResults = (query: string, results: CompanyWithContacts[]) => {
     setCurrentQuery(query);
     setCurrentResults(results);
     setIsSaved(false);
@@ -111,12 +116,12 @@ export default function Home() {
   const getTopProspects = () => {
     if (!currentResults) return [];
 
-    const allContacts: Contact[] = [];
+    const allContacts: (Contact & { companyName: string })[] = [];
     currentResults.forEach(company => {
       if (company.contacts) {
         allContacts.push(...company.contacts.map(contact => ({
           ...contact,
-          companyName: company.name // Add company name to contact
+          companyName: company.name
         })));
       }
     });
@@ -258,16 +263,25 @@ export default function Home() {
                         </TableCell>
                         <TableCell>{contact.email || 'N/A'}</TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEnrichContact(contact.id)}
-                            disabled={isContactPending(contact.id) || isContactEnriched(contact)}
-                            className={isContactEnriched(contact) ? "text-muted-foreground" : ""}
-                          >
-                            <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? 'animate-spin' : ''}`} />
-                            {isContactEnriched(contact) ? 'Enriched' : 'Enrich'}
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setLocation(`/contacts/${contact.id}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEnrichContact(contact.id)}
+                              disabled={isContactPending(contact.id) || isContactEnriched(contact)}
+                              className={isContactEnriched(contact) ? "text-muted-foreground" : ""}
+                            >
+                              <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? 'animate-spin' : ''}`} />
+                              {isContactEnriched(contact) ? 'Enriched' : 'Enrich'}
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

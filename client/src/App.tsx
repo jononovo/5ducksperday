@@ -11,9 +11,10 @@ import CampaignDetails from "@/pages/campaign-details";
 import Outreach from "@/pages/outreach";
 import DatabasePage from "@/pages/database";
 import CompanyDetails from "@/pages/company-details";
-import ApiTemplates from "@/pages/api-templates"; // New import
+import ApiTemplates from "@/pages/api-templates";
 import NotFound from "@/pages/not-found";
 import MainNav from "@/components/main-nav";
+import ContactDetails from "@/pages/contact-details"; // Added import
 
 function Router() {
   return (
@@ -29,7 +30,8 @@ function Router() {
         <Route path="/outreach" component={Outreach} />
         <Route path="/database" component={DatabasePage} />
         <Route path="/companies/:id" component={CompanyDetails} />
-        <Route path="/api-templates" component={ApiTemplates} /> {/* New route */}
+        <Route path="/contacts/:id" component={ContactDetails} /> {/* New route */}
+        <Route path="/api-templates" component={ApiTemplates} />
         <Route component={NotFound} />
       </Switch>
     </>
