@@ -203,15 +203,121 @@ function isPlaceholderEmail(email: string): boolean {
 
 function isGenericName(name: string): boolean {
   const genericTerms = [
+    // Existing terms
     'leadership', 'team', 'member', 'staff', 'employee', 'general',
     'key', 'role', 'position', 'department', 'division', 'management',
-    'contact', 'person', 'representative', 'individual'
+    'contact', 'person', 'representative', 'individual',
+    // Additional generic terms
+    'business', 'company', 'enterprise', 'organization', 'corporation',
+    'admin', 'administrator', 'manager', 'executive', 'professional',
+    'specialist', 'coordinator', 'associate', 'analyst', 'consultant',
+    'service', 'support', 'office', 'personnel', 'resource',
+    'operation', 'development', 'sales', 'marketing', 'customer'
   ];
 
-  return genericTerms.some(term =>
-    name.toLowerCase().includes(term.toLowerCase()) ||
-    name.split(' ').some(part => term.toLowerCase() === part.toLowerCase())
-  );
+  const name_lower = name.toLowerCase();
+
+  // Check for exact matches of generic terms
+  if (genericTerms.some(term => name_lower === term)) {
+    return true;
+  }
+
+  // Check for partial matches that might indicate a generic title
+  if (genericTerms.some(term =>
+    name_lower.includes(term) ||
+    name_lower.startsWith(term) ||
+    name_lower.endsWith(term)
+  )) {
+    return true;
+  }
+
+  // Check for common patterns that might indicate a generic or placeholder name
+  const genericPatterns = [
+    /^[a-z\s]+$/i,  // All lowercase or uppercase
+    /^(mr|mrs|ms|dr|prof)\.\s+[a-z]+$/i,  // Title without full name
+    /^(the|our|your|their)\s+/i,  // Possessive starts
+    /\d+/,  // Contains numbers
+    /^[a-z]{1,2}\s+[a-z]{1,2}$/i,  // Very short names
+    /^(contact|info|support|help|sales|service)/i,  // Common department starts
+    /^[^a-z]+$/i  // Contains no letters
+  ];
+
+  if (genericPatterns.some(pattern => pattern.test(name_lower))) {
+    return true;
+  }
+
+  return false;
+}
+
+function validateNameFormat(name: string): boolean {
+  // Split the name into parts
+  const parts = name.split(/\s+/);
+
+  // Basic validation rules
+  const validNameRules = [
+    // Each part should be 2-20 characters
+    parts.every(part => part.length >= 2 && part.length <= 20),
+
+    // Must have at least two parts (first and last name)
+    parts.length >= 2 && parts.length <= 4,
+
+    // Each part should start with a capital letter followed by lowercase
+    parts.every(part => /^[A-Z][a-z]+$/.test(part)),
+
+    // No numbers or special characters
+    !/[0-9!@#$%^&*(),.?":{}|<>]/.test(name),
+
+    // Not too many repeated characters
+    !parts.some(part => /(.)(?=\1{2,})/g.test(part))
+  ];
+
+  return validNameRules.every(rule => rule);
+}
+
+function calculateNameConfidenceScore(name: string, context: string): number {
+  let score = 0;
+  const namePattern = /[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}/;
+
+  // Base score for proper name format
+  if (namePattern.test(name)) {
+    score += 30;
+  }
+
+  // Additional points for context indicators
+  const contextIndicators = {
+    leadership: ['leads', 'directs', 'manages', 'founded', 'oversees'],
+    title: ['ceo', 'cto', 'founder', 'president', 'director'],
+    introduction: ['meet', 'introducing', 'led by', 'headed by', 'under the leadership of'],
+    verification: ['linkedin', 'profile', 'contact', 'verified', 'official']
+  };
+
+  const contextLower = context.toLowerCase();
+
+  // Check context indicators
+  Object.values(contextIndicators).forEach(indicators => {
+    if (indicators.some(indicator => contextLower.includes(indicator))) {
+      score += 10;
+    }
+  });
+
+  // Proximity to email
+  const emailPattern = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/;
+  if (emailPattern.test(context)) {
+    score += 15;
+  }
+
+  // Title case name format
+  if (name.split(' ').every(part => /^[A-Z][a-z]+$/.test(part))) {
+    score += 20;
+  }
+
+  // Length and format checks
+  const nameParts = name.split(' ');
+  if (nameParts.length === 2 || nameParts.length === 3) {
+    score += 15;
+  }
+
+  return Math.min(100, score);
 }
 
 export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
@@ -486,6 +592,7 @@ async function deepSearchLocalSources(name: string, company: string, enabledSear
     return { completedSearches };
   }
 }
+
 
 
 export async function searchContactDetails(
