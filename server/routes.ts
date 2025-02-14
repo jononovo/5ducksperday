@@ -284,36 +284,46 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Add new contact search endpoint
-  app.post("/api/contacts/search", async (req, res) => {
-    const { name, company } = req.body;
-
-    if (!name || !company) {
-      res.status(400).json({
-        message: "Both name and company are required"
-      });
-      return;
-    }
-
+  // Add new route for enriching a single contact
+  app.post("/api/contacts/:contactId/enrich", async (req, res) => {
     try {
-      const contactDetails = await searchContactDetails(name, company);
+      const contactId = parseInt(req.params.contactId);
+      const contact = await storage.getContact(contactId);
 
-      if (Object.keys(contactDetails).length === 0) {
-        res.status(404).json({
-          message: "No additional contact details found"
-        });
+      if (!contact) {
+        res.status(404).json({ message: "Contact not found" });
         return;
       }
 
-      res.json(contactDetails);
+      const company = await storage.getCompany(contact.companyId);
+      if (!company) {
+        res.status(404).json({ message: "Company not found" });
+        return;
+      }
+
+      // Search for additional contact details
+      const enrichedDetails = await searchContactDetails(contact.name, company.name);
+
+      // Update contact with enriched information
+      const updatedContact = await storage.updateContact(contactId, {
+        ...contact,
+        email: enrichedDetails.email || contact.email,
+        linkedinUrl: enrichedDetails.linkedinUrl || contact.linkedinUrl,
+        twitterHandle: enrichedDetails.twitterHandle || contact.twitterHandle,
+        phoneNumber: enrichedDetails.phoneNumber || contact.phoneNumber,
+        department: enrichedDetails.department || contact.department,
+        location: enrichedDetails.location || contact.location,
+        completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
+      });
+
+      res.json(updatedContact);
     } catch (error) {
-      console.error('Contact search error:', error);
+      console.error('Contact enrichment error:', error);
       res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred during contact search"
+        message: error instanceof Error ? error.message : "An unexpected error occurred during contact enrichment"
       });
     }
   });
-
 
   // Search Approaches
   app.get("/api/search-approaches", async (_req, res) => {
@@ -489,6 +499,77 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       });
     }
   });
+
+  // Add new route for enriching a single contact
+  app.post("/api/contacts/:contactId/enrich", async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.contactId);
+      const contact = await storage.getContact(contactId);
+
+      if (!contact) {
+        res.status(404).json({ message: "Contact not found" });
+        return;
+      }
+
+      const company = await storage.getCompany(contact.companyId);
+      if (!company) {
+        res.status(404).json({ message: "Company not found" });
+        return;
+      }
+
+      // Search for additional contact details
+      const enrichedDetails = await searchContactDetails(contact.name, company.name);
+
+      // Update contact with enriched information
+      const updatedContact = await storage.updateContact(contactId, {
+        ...contact,
+        email: enrichedDetails.email || contact.email,
+        linkedinUrl: enrichedDetails.linkedinUrl || contact.linkedinUrl,
+        twitterHandle: enrichedDetails.twitterHandle || contact.twitterHandle,
+        phoneNumber: enrichedDetails.phoneNumber || contact.phoneNumber,
+        department: enrichedDetails.department || contact.department,
+        location: enrichedDetails.location || contact.location,
+        completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
+      });
+
+      res.json(updatedContact);
+    } catch (error) {
+      console.error('Contact enrichment error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred during contact enrichment"
+      });
+    }
+  });
+  
+  app.post("/api/contacts/search", async (req, res) => {
+    const { name, company } = req.body;
+
+    if (!name || !company) {
+      res.status(400).json({
+        message: "Both name and company are required"
+      });
+      return;
+    }
+
+    try {
+      const contactDetails = await searchContactDetails(name, company);
+
+      if (Object.keys(contactDetails).length === 0) {
+        res.status(404).json({
+          message: "No additional contact details found"
+        });
+        return;
+      }
+
+      res.json(contactDetails);
+    } catch (error) {
+      console.error('Contact search error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred during contact search"
+      });
+    }
+  });
+
 
   return httpServer;
 }

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
 import SearchApproaches from "@/components/search-approaches";
-import { ListPlus, Search, Code2, UserCircle } from "lucide-react";
+import { ListPlus, Search, Code2, UserCircle, Banknote } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -126,6 +126,45 @@ export default function Home() {
       .slice(0, 10);
   };
 
+  // Add mutation for enriching contacts
+  const enrichContactMutation = useMutation({
+    mutationFn: async (contactId: number) => {
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/enrich`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Update the currentResults with the enriched contact
+      setCurrentResults(prev => {
+        if (!prev) return null;
+        return prev.map(company => ({
+          ...company,
+          contacts: company.contacts?.map(contact =>
+            contact.id === data.id ? data : contact
+          )
+        }));
+      });
+      toast({
+        title: "Contact Enriched",
+        description: "Successfully updated contact information.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Enrichment Failed",
+        description: error instanceof Error ? error.message : "Failed to enrich contact information",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEnrichContact = (contactId: number) => {
+    enrichContactMutation.mutate(contactId);
+  };
+
+  const isContactEnriched = (contact: Contact) => {
+    return contact.completedSearches?.includes('contact_enrichment') || false;
+  };
+
   return (
     <div className="container mx-auto py-6">
       <div className="grid grid-cols-12 gap-4">
@@ -137,12 +176,12 @@ export default function Home() {
               <CardTitle>Search for target businesses</CardTitle>
             </CardHeader>
             <CardContent>
-              <PromptEditor 
+              <PromptEditor
                 onAnalyze={() => setIsAnalyzing(true)}
                 onComplete={handleAnalysisComplete}
                 onSearchResults={handleSearchResults}
                 isAnalyzing={isAnalyzing}
-                initialPrompt={currentQuery || ""} 
+                initialPrompt={currentQuery || ""}
               />
             </CardContent>
           </Card>
@@ -195,6 +234,7 @@ export default function Home() {
                       <TableHead>Role</TableHead>
                       <TableHead>Priority</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -209,11 +249,23 @@ export default function Home() {
                           </Badge>
                         </TableCell>
                         <TableCell>{contact.email || 'N/A'}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEnrichContact(contact.id)}
+                            disabled={enrichContactMutation.isPending || isContactEnriched(contact)}
+                            className={isContactEnriched(contact) ? "text-muted-foreground" : ""}
+                          >
+                            <Banknote className={`w-4 h-4 mr-2 ${enrichContactMutation.isPending ? 'animate-spin' : ''}`} />
+                            {isContactEnriched(contact) ? 'Enriched' : 'Enrich'}
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {getTopProspects().length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        <TableCell colSpan={6} className="text-center text-muted-foreground">
                           No high-priority contacts found in the search results
                         </TableCell>
                       </TableRow>
