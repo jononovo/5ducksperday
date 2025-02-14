@@ -118,18 +118,14 @@ export function registerRoutes(app: Express) {
           const companyData = parseCompanyData(analysisResults);
           const contacts = extractContacts(analysisResults);
 
-          // Ensure website and alternativeProfileUrl are properly handled
-          const website = companyData.website?.trim() || null;
-          const alternativeProfileUrl = companyData.alternativeProfileUrl?.trim() || null;
-
           // Create company record with explicit field mapping
           const company = await storage.createCompany({
             name: companyName,
             listId: null,
             age: companyData.age ?? null,
             size: companyData.size ?? null,
-            website: website,
-            alternativeProfileUrl: alternativeProfileUrl,
+            website: companyData.website?.trim() || null,
+            alternativeProfileUrl: companyData.alternativeProfileUrl?.trim() || null,
             defaultContactEmail: companyData.defaultContactEmail?.trim() ?? null,
             ranking: companyData.ranking ?? null,
             linkedinProminence: companyData.linkedinProminence ?? null,
@@ -141,28 +137,64 @@ export function registerRoutes(app: Express) {
             snapshot: companyData.snapshot || null
           });
 
-          // Create contact records
+          // Perform immediate contact enrichment for decision-makers
           const validContacts = contacts.filter(contact => contact.name && contact.name !== "Unknown");
 
-          // Create default company contact if email exists
-          if (company.defaultContactEmail) {
-            await storage.createContact({
-              companyId: company.id,
-              name: company.name,
-              role: 'General Contact',
-              email: company.defaultContactEmail,
-              priority: 3, // Low priority for general contact
-              linkedinUrl: null,
-              twitterHandle: null,
-              phoneNumber: null,
-              department: 'General',
-              location: null,
-              verificationSource: 'Company Website'
-            });
+          // Get the leadership analysis approach
+          const leadershipApproach = approaches.find(a => 
+            a.name.toLowerCase().includes("leadership") && a.active
+          );
+
+          if (leadershipApproach) {
+            console.log('Starting immediate leadership analysis for company:', companyName);
+
+            // Extract subsearches configuration
+            const config = leadershipApproach.config as Record<string, unknown>;
+            const subsearches = (config?.subsearches || {}) as Record<string, boolean>;
+
+            // Perform leadership analysis
+            const leadershipAnalysis = await analyzeCompany(companyName, leadershipApproach.prompt);
+            const enrichedContacts = extractContacts([leadershipAnalysis]);
+
+            // Enrich each contact with additional details
+            const createdContacts = await Promise.all(
+              enrichedContacts
+                .filter(contact => contact.name && contact.name !== "Unknown")
+                .map(async contact => {
+                  console.log(`Processing immediate contact enrichment for: ${contact.name}`);
+
+                  // Get enhanced contact details with local sources search
+                  const enhancedDetails = await searchContactDetails(
+                    contact.name!,
+                    companyName,
+                    true,
+                    subsearches
+                  );
+
+                  const contactData = {
+                    companyId: company.id,
+                    name: contact.name!,
+                    role: enhancedDetails.role || contact.role || null,
+                    email: enhancedDetails.email || contact.email || null,
+                    priority: contact.priority ?? null,
+                    linkedinUrl: enhancedDetails.linkedinUrl || null,
+                    twitterHandle: null,
+                    phoneNumber: null,
+                    department: enhancedDetails.department || null,
+                    location: enhancedDetails.location || null,
+                    verificationSource: 'Leadership Analysis',
+                    completedSearches: enhancedDetails.completedSearches || []
+                  };
+
+                  return storage.createContact(contactData);
+                })
+            );
+
+            return { ...company, contacts: createdContacts };
           }
 
-          // Create other contact records
-          await Promise.all(
+          // Fallback to creating contacts without enrichment if leadership approach is not available
+          const createdContacts = await Promise.all(
             validContacts.map(contact =>
               storage.createContact({
                 companyId: company.id,
@@ -180,7 +212,7 @@ export function registerRoutes(app: Express) {
             )
           );
 
-          return company;
+          return { ...company, contacts: createdContacts };
         })
       );
 
