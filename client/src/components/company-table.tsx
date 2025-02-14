@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Globe, Link2 } from "lucide-react";
+import { Eye } from "lucide-react";
 import type { Company } from "@shared/schema";
 
 interface CompanyTableProps {
@@ -26,9 +26,7 @@ export default function CompanyTable({ companies }: CompanyTableProps) {
           <TableRow>
             <TableHead>Company Name</TableHead>
             <TableHead>Size</TableHead>
-            <TableHead>Links</TableHead>
             <TableHead>Success Score</TableHead>
-            <TableHead>Differentiation</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -38,44 +36,9 @@ export default function CompanyTable({ companies }: CompanyTableProps) {
               <TableCell className="font-medium">{company.name}</TableCell>
               <TableCell>{company.size} employees</TableCell>
               <TableCell>
-                <div className="flex flex-col gap-2">
-                  {company.website && (
-                    <a 
-                      href={company.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
-                    >
-                      <Globe className="h-4 w-4" />
-                      Website
-                    </a>
-                  )}
-                  {company.alternativeProfileUrl && (
-                    <a 
-                      href={company.alternativeProfileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
-                    >
-                      <Link2 className="h-4 w-4" />
-                      Profile
-                    </a>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
                 <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}>
                   {company.totalScore ?? 'N/A'}
                 </Badge>
-              </TableCell>
-              <TableCell>
-                <div className="flex flex-col gap-1">
-                  {company.differentiation?.map((point, i) => (
-                    <p key={i} className="text-sm text-muted-foreground">
-                      • {point}
-                    </p>
-                  ))}
-                </div>
               </TableCell>
               <TableCell>
                 <Button
