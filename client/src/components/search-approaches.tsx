@@ -12,7 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import type { SearchApproach } from "@shared/schema";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 
 interface SearchApproachesProps {
   approaches: SearchApproach[];
@@ -177,6 +177,9 @@ function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches
       setCurrentSubsearches(newState);
     };
 
+    const isProcessing = (searchId: string) => 
+      currentSubsearches[searchId] && !completedSearches.includes(searchId);
+
     return (
       <AccordionItem key={section.id} value={section.id}>
         <div>
@@ -189,9 +192,15 @@ function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches
               onClick={(e) => e.stopPropagation()}
               className="mr-2"
             />
-            <span>{section.label}</span>
+            <span className="flex-1">{section.label}</span>
+            {section.searches.some(s => isProcessing(s.id)) && (
+              <Loader2 className="h-4 w-4 animate-spin ml-2" />
+            )}
+            {section.searches.every(s => completedSearches.includes(s.id)) && section.searches.some(s => currentSubsearches[s.id]) && (
+              <Check className="h-4 w-4 text-green-500 ml-2" />
+            )}
           </AccordionTrigger>
-          {section.id === 'sector_listings' && section.description && (
+          {section.description && (
             <p className="text-xs text-muted-foreground mt-1 ml-10 mb-2">{section.description}</p>
           )}
         </div>
@@ -206,7 +215,10 @@ function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches
                     onCheckedChange={(checked) => handleCheckboxChange(search.id, checked as boolean)}
                     className="mt-1"
                   />
-                  {completedSearches.includes(search.id) && (
+                  {isProcessing(search.id) && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
+                  {completedSearches.includes(search.id) && currentSubsearches[search.id] && (
                     <Check className="h-4 w-4 text-green-500" />
                   )}
                 </div>
