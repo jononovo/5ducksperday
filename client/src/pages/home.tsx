@@ -31,6 +31,7 @@ export default function Home() {
   const [currentQuery, setCurrentQuery] = useState<string | null>(null);
   const [currentResults, setCurrentResults] = useState<Company[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
+  const [pendingContactId, setPendingContactId] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -129,6 +130,7 @@ export default function Home() {
   // Add mutation for enriching contacts
   const enrichContactMutation = useMutation({
     mutationFn: async (contactId: number) => {
+      setPendingContactId(contactId);
       const response = await apiRequest("POST", `/api/contacts/${contactId}/enrich`);
       return response.json();
     },
@@ -147,6 +149,7 @@ export default function Home() {
         title: "Contact Enriched",
         description: "Successfully updated contact information.",
       });
+      setPendingContactId(null);
     },
     onError: (error) => {
       toast({
@@ -154,6 +157,7 @@ export default function Home() {
         description: error instanceof Error ? error.message : "Failed to enrich contact information",
         variant: "destructive",
       });
+      setPendingContactId(null);
     },
   });
 
@@ -163,6 +167,10 @@ export default function Home() {
 
   const isContactEnriched = (contact: Contact) => {
     return contact.completedSearches?.includes('contact_enrichment') || false;
+  };
+
+  const isContactPending = (contactId: number) => {
+    return pendingContactId === contactId;
   };
 
   return (
@@ -254,10 +262,10 @@ export default function Home() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEnrichContact(contact.id)}
-                            disabled={enrichContactMutation.isPending || isContactEnriched(contact)}
+                            disabled={isContactPending(contact.id) || isContactEnriched(contact)}
                             className={isContactEnriched(contact) ? "text-muted-foreground" : ""}
                           >
-                            <Banknote className={`w-4 h-4 mr-2 ${enrichContactMutation.isPending ? 'animate-spin' : ''}`} />
+                            <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? 'animate-spin' : ''}`} />
                             {isContactEnriched(contact) ? 'Enriched' : 'Enrich'}
                           </Button>
                         </TableCell>
