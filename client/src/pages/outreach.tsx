@@ -18,6 +18,7 @@ import QuickTemplates from "@/components/quick-templates";
 import type { EmailTemplate } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Badge } from "@/components/ui/badge";
 
 // Define interface for the saved state
 interface SavedOutreachState {
@@ -88,7 +89,8 @@ export default function Outreach() {
 
   // Get top 3 leadership contacts
   const topContacts = contacts
-    ?.filter(contact => contact.priority === 1 || contact.priority === 2)
+    ?.filter(contact => contact.probability && contact.probability >= 70) // Filter high probability contacts
+    .sort((a, b) => (b.probability || 0) - (a.probability || 0)) // Sort by probability
     .slice(0, 3);
 
   const handleSaveEmail = () => {
@@ -260,9 +262,12 @@ export default function Outreach() {
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-medium">{contact.name}</span>
-                          <span className="text-sm">
-                            Priority {contact.priority}
-                          </span>
+                          <Badge variant={
+                            (contact.probability || 0) >= 90 ? "default" :
+                            (contact.probability || 0) >= 70 ? "secondary" : "outline"
+                          }>
+                            {contact.probability || 0}% match
+                          </Badge>
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">
                           {contact.email && (

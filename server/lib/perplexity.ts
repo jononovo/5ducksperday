@@ -116,7 +116,7 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
             name: decisionMaker.name,
             role: decisionMaker.designation,
             email: decisionMaker.email,
-            priority: i
+            probability: i // Changed to probability
           });
         }
       }
@@ -451,7 +451,7 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
             name,
             email: nearestEmail || null,
             role: bestRole || 'Leader',
-            priority: bestScore >= 12 ? 1 : bestScore >= 8 ? 2 : 3,
+            probability: Math.min(100, bestScore * 5), // Convert score to probability (0-100)
             score: bestScore
           });
         }

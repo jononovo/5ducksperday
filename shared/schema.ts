@@ -36,7 +36,7 @@ export const contacts = pgTable("contacts", {
   name: text("name").notNull(),
   role: text("role"),
   email: text("email"),
-  priority: integer("priority"),
+  probability: integer("probability"), // Changed from priority to probability
   linkedinUrl: text("linkedin_url"),
   twitterHandle: text("twitter_handle"),
   phoneNumber: text("phone_number"),
@@ -45,7 +45,7 @@ export const contacts = pgTable("contacts", {
   verificationSource: text("verification_source"),
   lastEnriched: timestamp("last_enriched"),
   createdAt: timestamp("created_at").defaultNow(),
-  completedSearches: text("completed_searches").array() // Add completed searches array
+  completedSearches: text("completed_searches").array()
 });
 
 export const searchApproaches = pgTable("search_approaches", {
@@ -122,14 +122,14 @@ const contactSchema = z.object({
   companyId: z.number(),
   role: z.string().nullable(),
   email: z.string().email().nullable(),
-  priority: z.number().min(1).max(3).nullable(),
+  probability: z.number().min(1).max(100).nullable(), // Changed validation
   linkedinUrl: z.string().url().nullable(),
   twitterHandle: z.string().nullable(),
   phoneNumber: z.string().nullable(),
   department: z.string().nullable(),
   location: z.string().nullable(),
   verificationSource: z.string().nullable(),
-  completedSearches: z.array(z.string()).optional() // Add to schema
+  completedSearches: z.array(z.string()).optional()
 });
 
 const searchApproachSchema = z.object({

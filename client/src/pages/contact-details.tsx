@@ -85,8 +85,11 @@ export default function ContactDetails() {
                   {contact.role} at {company?.name}
                 </CardDescription>
               </div>
-              <Badge variant={contact.priority === 1 ? "default" : "secondary"}>
-                Priority {contact.priority ?? "N/A"}
+              <Badge variant={
+                (contact.probability || 0) >= 90 ? "default" :
+                (contact.probability || 0) >= 70 ? "secondary" : "outline"
+              }>
+                {contact.probability || 0}% match
               </Badge>
             </div>
           </CardHeader>
