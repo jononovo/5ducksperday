@@ -76,12 +76,6 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
               <div className="flex justify-between items-center w-full">
                 <span>{approach.name}</span>
               </div>
-              <div className="flex items-center">
-                <Checkbox
-                  className="opacity-50 pointer-events-none ml-4"
-                  checked={false}
-                />
-              </div>
             </AccordionTrigger>
           </div>
           <AccordionContent>
@@ -150,15 +144,6 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
                             <span className={!approach.active ? "text-muted-foreground/50" : ""}>
                               {section.label}
                             </span>
-                          </div>
-                          <div className="flex items-center">
-                            <Checkbox
-                              id={`master-${section.id}`}
-                              checked={section.searches.every(s => ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {})[s.id])}
-                              className={!approach.active ? "text-muted-foreground/50 ml-4" : "ml-4"}
-                              disabled={!approach.active}
-                              onClick={(e) => e.stopPropagation()}
-                            />
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pl-8 space-y-3">
