@@ -7,7 +7,9 @@ import {
   type CampaignList, type InsertCampaignList,
   type EmailTemplate, type InsertEmailTemplate,
   companies, contacts, searchApproaches, lists,
-  campaigns, campaignLists, emailTemplates
+  campaigns, campaignLists, emailTemplates,
+  contactFeedback, // Add this import
+  type ContactFeedback, type InsertContactFeedback
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, max } from "drizzle-orm";
