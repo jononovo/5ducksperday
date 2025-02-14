@@ -195,7 +195,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCampaign(campaign: InsertCampaign): Promise<Campaign> {
-    const [created] = await db.insert(campaigns).values(campaign).returning();
+    const [created] = await db.insert(campaigns)
+      .values({
+        ...campaign,
+        status: campaign.status || 'draft',
+        totalCompanies: campaign.totalCompanies || 0
+      })
+      .returning();
     return created;
   }
 
@@ -223,10 +229,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async removeListFromCampaign(campaignId: number, listId: number): Promise<void> {
-    await db
-      .delete(campaignLists)
-      .where(eq(campaignLists.campaignId, campaignId))
-      .where(eq(campaignLists.listId, listId));
+    await db.delete(campaignLists)
+      .where(
+        eq(campaignLists.campaignId, campaignId)
+      )
+      .where(
+        eq(campaignLists.listId, listId)
+      );
     await this.updateCampaignTotalCompanies(campaignId);
   }
 
@@ -289,15 +298,87 @@ export class DatabaseStorage implements IStorage {
     const existing = await this.listSearchApproaches();
     if (existing.length === 0) {
       const defaultApproaches = [
-        { name: "Company Overview", prompt: "Provide a detailed overview of [COMPANY], including its age, size, and main business focus.", order: 1, active: true },
-        { name: "Decision-maker Analysis", prompt: "Identify and analyze the key decision-makers at [COMPANY]. Focus on C-level executives, owners, founders, and other top-level decision-makers. Include their roles and any available contact information.", order: 2, active: true },
-        { name: "Email Discovery", prompt: "Find contact information and email addresses for leadership and key decision makers at [COMPANY].", order: 3, active: true },
-        { name: "Market Position", prompt: "Analyze the market position, success metrics, and industry standing of [COMPANY].", order: 4, active: true },
-        { name: "Customer Base", prompt: "Research and describe the customer base, target market, and market reach of [COMPANY].", order: 5, active: true },
-        { name: "Online Presence", prompt: "Evaluate the online presence, website metrics, and digital footprint of [COMPANY].", order: 6, active: true },
-        { name: "Services Analysis", prompt: "Detail the educational services, programs, and products offered by [COMPANY], particularly in coding and STEM education.", order: 7, active: true },
-        { name: "Competitive Analysis", prompt: "Compare [COMPANY] with similar educational companies in the market, focusing on their unique selling propositions.", order: 8, active: true },
-        { name: "Differentiation Analysis", prompt: "Identify the top 3 unique differentiators that set [COMPANY] apart from competitors. Focus on their competitive advantages and unique value propositions.", order: 9, active: true }
+        {
+          name: "Company Overview",
+          prompt: "Provide a detailed overview of [COMPANY], including its age, size, and main business focus.",
+          order: 1,
+          active: true,
+          config: {},
+          technicalPrompt: "Analyze company details focusing on age, size, and core business activities.",
+          responseStructure: "JSON with fields: age, size, mainFocus"
+        },
+        {
+          name: "Decision-maker Analysis",
+          prompt: "Identify and analyze the key decision-makers at [COMPANY]. Focus on C-level executives, owners, founders, and other top-level decision-makers. Include their roles and any available contact information.",
+          order: 2,
+          active: true,
+          config: {},
+          technicalPrompt: "Identify key decision-makers at [COMPANY], including roles and contact information.",
+          responseStructure: "JSON with fields: decisionMakers"
+        },
+        {
+          name: "Email Discovery",
+          prompt: "Find contact information and email addresses for leadership and key decision makers at [COMPANY].",
+          order: 3,
+          active: true,
+          config: {},
+          technicalPrompt: "Discover contact information and email addresses for leadership and key decision-makers at [COMPANY].",
+          responseStructure: "JSON with fields: emails"
+        },
+        {
+          name: "Market Position",
+          prompt: "Analyze the market position, success metrics, and industry standing of [COMPANY].",
+          order: 4,
+          active: true,
+          config: {},
+          technicalPrompt: "Analyze the market position, success metrics, and industry standing of [COMPANY].",
+          responseStructure: "JSON with fields: marketPosition, successMetrics, industryStanding"
+        },
+        {
+          name: "Customer Base",
+          prompt: "Research and describe the customer base, target market, and market reach of [COMPANY].",
+          order: 5,
+          active: true,
+          config: {},
+          technicalPrompt: "Research and describe the customer base, target market, and market reach of [COMPANY].",
+          responseStructure: "JSON with fields: customerBase, targetMarket, marketReach"
+        },
+        {
+          name: "Online Presence",
+          prompt: "Evaluate the online presence, website metrics, and digital footprint of [COMPANY].",
+          order: 6,
+          active: true,
+          config: {},
+          technicalPrompt: "Evaluate the online presence, website metrics, and digital footprint of [COMPANY].",
+          responseStructure: "JSON with fields: onlinePresence, websiteMetrics, digitalFootprint"
+        },
+        {
+          name: "Services Analysis",
+          prompt: "Detail the educational services, programs, and products offered by [COMPANY], particularly in coding and STEM education.",
+          order: 7,
+          active: true,
+          config: {},
+          technicalPrompt: "Detail educational services, programs, and products offered by [COMPANY], focusing on coding and STEM education.",
+          responseStructure: "JSON with fields: services, programs, products"
+        },
+        {
+          name: "Competitive Analysis",
+          prompt: "Compare [COMPANY] with similar educational companies in the market, focusing on their unique selling propositions.",
+          order: 8,
+          active: true,
+          config: {},
+          technicalPrompt: "Compare [COMPANY] with similar educational companies, highlighting unique selling propositions.",
+          responseStructure: "JSON with fields: competitors, uniqueSellingPropositions"
+        },
+        {
+          name: "Differentiation Analysis",
+          prompt: "Identify the top 3 unique differentiators that set [COMPANY] apart from competitors. Focus on their competitive advantages and unique value propositions.",
+          order: 9,
+          active: true,
+          config: {},
+          technicalPrompt: "Identify top 3 unique differentiators for [COMPANY] compared to competitors, emphasizing competitive advantages and unique value propositions.",
+          responseStructure: "JSON with fields: top3Differentiators, competitiveAdvantages, uniqueValuePropositions"
+        }
       ];
 
       for (const approach of defaultApproaches) {
