@@ -284,47 +284,6 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Add new route for enriching a single contact
-  app.post("/api/contacts/:contactId/enrich", async (req, res) => {
-    try {
-      const contactId = parseInt(req.params.contactId);
-      const contact = await storage.getContact(contactId);
-
-      if (!contact) {
-        res.status(404).json({ message: "Contact not found" });
-        return;
-      }
-
-      const company = await storage.getCompany(contact.companyId);
-      if (!company) {
-        res.status(404).json({ message: "Company not found" });
-        return;
-      }
-
-      // Search for additional contact details
-      const enrichedDetails = await searchContactDetails(contact.name, company.name);
-
-      // Update contact with enriched information
-      const updatedContact = await storage.updateContact(contactId, {
-        ...contact,
-        email: enrichedDetails.email || contact.email,
-        linkedinUrl: enrichedDetails.linkedinUrl || contact.linkedinUrl,
-        twitterHandle: enrichedDetails.twitterHandle || contact.twitterHandle,
-        phoneNumber: enrichedDetails.phoneNumber || contact.phoneNumber,
-        department: enrichedDetails.department || contact.department,
-        location: enrichedDetails.location || contact.location,
-        completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
-      });
-
-      res.json(updatedContact);
-    } catch (error) {
-      console.error('Contact enrichment error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred during contact enrichment"
-      });
-    }
-  });
-
   // Search Approaches
   app.get("/api/search-approaches", async (_req, res) => {
     const approaches = await storage.listSearchApproaches();
@@ -504,21 +463,26 @@ Then, on a new line, write the body of the email. Keep both subject and content 
   app.post("/api/contacts/:contactId/enrich", async (req, res) => {
     try {
       const contactId = parseInt(req.params.contactId);
-      const contact = await storage.getContact(contactId);
+      console.log('Starting enrichment for contact:', contactId);
 
+      const contact = await storage.getContact(contactId);
       if (!contact) {
         res.status(404).json({ message: "Contact not found" });
         return;
       }
+      console.log('Found contact:', contact);
 
       const company = await storage.getCompany(contact.companyId);
       if (!company) {
         res.status(404).json({ message: "Company not found" });
         return;
       }
+      console.log('Found company:', company.name);
 
       // Search for additional contact details
+      console.log('Searching for contact details...');
       const enrichedDetails = await searchContactDetails(contact.name, company.name);
+      console.log('Enriched details found:', enrichedDetails);
 
       // Update contact with enriched information
       const updatedContact = await storage.updateContact(contactId, {
@@ -531,6 +495,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         location: enrichedDetails.location || contact.location,
         completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
       });
+      console.log('Updated contact:', updatedContact);
 
       res.json(updatedContact);
     } catch (error) {
