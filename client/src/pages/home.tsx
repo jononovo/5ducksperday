@@ -246,7 +246,7 @@ export default function Home() {
                       <TableHead>Name</TableHead>
                       <TableHead>Company</TableHead>
                       <TableHead>Role</TableHead>
-                      <TableHead>Match Score</TableHead>
+                      <TableHead>Score</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -262,7 +262,7 @@ export default function Home() {
                             (contact.probability || 0) >= 90 ? "default" :
                             (contact.probability || 0) >= 70 ? "secondary" : "outline"
                           }>
-                            {contact.probability || 0}% match
+                            {contact.probability || 0}
                           </Badge>
                         </TableCell>
                         <TableCell>{contact.email || 'N/A'}</TableCell>
