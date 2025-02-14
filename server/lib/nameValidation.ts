@@ -110,34 +110,29 @@ function calculateNameConfidenceScore(name: string, context: string): number {
     score -= 15;
   }
 
-  // Context validation
+  // Context validation with increased weights for professional indicators
   const contextIndicators = {
-    leadership: ['leads', 'directs', 'manages', 'founded', 'oversees'],
-    verification: ['linkedin', 'profile', 'verified', 'official'],
-    introduction: ['meet', 'introducing', 'led by', 'headed by'],
-    professional: ['experienced', 'professional', 'expert', 'specialist']
+    leadership: ['leads', 'directs', 'manages', 'founded', 'oversees', 'heads'],
+    verification: ['linkedin', 'profile', 'verified', 'official', 'biography'],
+    introduction: ['meet', 'introducing', 'led by', 'headed by', 'welcome'],
+    professional: ['experienced', 'professional', 'expert', 'specialist', 'certified']
   };
 
   const contextLower = context.toLowerCase();
   Object.entries(contextIndicators).forEach(([category, indicators]) => {
     if (indicators.some(indicator => contextLower.includes(indicator))) {
-      score += category === 'verification' ? 15 : 10;
+      // Increased weights for professional context
+      score += category === 'verification' ? 20 : 15;
     }
   });
 
-  // Email correlation
-  const emailMatch = context.match(/[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/);
-  if (emailMatch) {
-    const email = emailMatch[0].toLowerCase();
-    const nameWords = name.toLowerCase().split(/\s+/);
-    if (nameWords.some(word =>
-      word.length > 2 && email.includes(word)
-    )) {
-      score += 20;
-    }
+  // Professional title check (positive indicator)
+  const titleNearName = /(?:Mr\.|Mrs\.|Ms\.|Dr\.|Prof\.)\s+[A-Z]/i.test(context);
+  if (titleNearName) {
+    score += 15;
   }
 
-  // Red flags
+  // Red flags with adjusted penalties
   const redFlags = [
     /\d+/,  // Numbers
     /[^a-zA-Z\s'-]/,  // Special characters
@@ -149,7 +144,7 @@ function calculateNameConfidenceScore(name: string, context: string): number {
 
   redFlags.forEach(flag => {
     if (flag.test(name)) {
-      score -= 30;
+      score -= 25; // Reduced penalty
     }
   });
 

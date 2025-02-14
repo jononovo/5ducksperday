@@ -145,25 +145,43 @@ export async function extractContacts(
         const roleMatch = [...contextWindow.matchAll(roleRegex)];
         const role = roleMatch.length > 0 ? roleMatch[0][1].trim() : null;
 
-        // More lenient email matching
+        // More flexible email matching
         const emailMatches = Array.from(result.match(emailRegex) || [])
           .filter(email => !isPlaceholderEmail(email))
           .filter(email => {
-            const nameParts = name.toLowerCase().split(/\s+/);
             const emailLower = email.toLowerCase();
-            // Accept email if it contains any part of the name that's at least 2 chars
-            return nameParts.some(part => 
+
+            // First try name-based matching (high confidence)
+            const nameParts = name.toLowerCase().split(/\s+/);
+            const hasNameMatch = nameParts.some(part => 
               part.length >= 2 && emailLower.includes(part)
             );
+
+            // If no name match, check if it's a valid business email
+            if (!hasNameMatch) {
+              return isValidBusinessEmail(email);
+            }
+
+            return true;
           });
 
         const nearestEmail = emailMatches.length > 0 ? emailMatches[0] : null;
+
+        // Adjust confidence score based on email match type
+        let emailBonus = 0;
+        if (nearestEmail) {
+          const nameParts = name.toLowerCase().split(/\s+/);
+          const hasNameInEmail = nameParts.some(part => 
+            part.length >= 2 && nearestEmail.toLowerCase().includes(part)
+          );
+          emailBonus = hasNameInEmail ? 15 : 5;  // Higher bonus for name match
+        }
 
         contacts.push({
           name,
           email: nearestEmail,
           role,
-          probability: finalScore,
+          probability: Math.min(100, finalScore + emailBonus),
           nameConfidenceScore: finalScore,
           lastValidated: new Date()
         });
@@ -187,9 +205,25 @@ function isPlaceholderEmail(email: string): boolean {
     /first[._]?initial/i,
     /company(domain)?\.com$/i,
     /example\.com$/i,
-    /domain\.com$/i
+    /domain\.com$/i,
+    /test[._]?user/i,
+    /demo[._]?user/i,
+    /noreply/i,
+    /donotreply/i
   ];
   return placeholderPatterns.some(pattern => pattern.test(email));
+}
+
+function isValidBusinessEmail(email: string): boolean {
+  // Common business email patterns
+  const businessPatterns = [
+    /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/,  // Basic email format
+    /^(?!support|info|sales|contact|help|admin|webmaster|postmaster).*@/i,  // Not generic addresses
+    /^[a-z]{1,3}[._][a-z]+@/i,  // Initials pattern (e.g., j.smith@)
+    /^[a-z]+\.[a-z]+@/i,  // firstname.lastname pattern
+  ];
+
+  return businessPatterns.some(pattern => pattern.test(email));
 }
 
 // Query Perplexity AI API
