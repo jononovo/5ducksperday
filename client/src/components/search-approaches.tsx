@@ -20,6 +20,23 @@ interface SearchApproachesProps {
 }
 
 const SEARCH_SECTIONS = {
+  search_options: {
+    id: "search_options",
+    label: "Search Options",
+    description: "Configure additional search parameters",
+    searches: [
+      {
+        id: "ignore-franchises",
+        label: "Ignore Franchises",
+        description: "Exclude franchise businesses from search results"
+      },
+      {
+        id: "local-hq",
+        label: "Locally Headquartered",
+        description: "Only include companies with local headquarters"
+      }
+    ]
+  },
   local: {
     id: "local",
     label: "Local Sources",
@@ -133,10 +150,22 @@ interface SubSearchesProps {
   isEditing: boolean;
   onSubSearchChange?: (id: string, checked: boolean) => void;
   completedSearches?: string[];
+  onOptionChange?: (optionId: string, checked: boolean) => void;
+  searchOptions?: Record<string, boolean>;
 }
 
-function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches = [] }: SubSearchesProps) {
-  if (!approach.name.toLowerCase().includes('decision-maker')) {
+function SubSearches({ 
+  approach, 
+  isEditing, 
+  onSubSearchChange, 
+  completedSearches = [], 
+  onOptionChange,
+  searchOptions = {}
+}: SubSearchesProps) {
+  const isCompanyOverview = approach.name.toLowerCase().includes('company overview');
+  const isDecisionMaker = approach.name.toLowerCase().includes('decision-maker');
+
+  if (!isCompanyOverview && !isDecisionMaker) {
     return null;
   }
 
@@ -161,21 +190,48 @@ function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches
   };
 
   const renderSearchSection = (section: typeof SEARCH_SECTIONS.local) => {
-    const allChecked = section.searches.every(search => currentSubsearches[search.id]);
-    const someChecked = section.searches.some(search => currentSubsearches[search.id]);
+    // Skip search options section for Decision-maker Analysis
+    if (section.id === 'search_options' && !isCompanyOverview) {
+      return null;
+    }
+
+    // Skip other sections for Company Overview
+    if (section.id !== 'search_options' && isCompanyOverview) {
+      return null;
+    }
+
+    const allChecked = section.searches.every(search => 
+      section.id === 'search_options' 
+        ? searchOptions?.[search.id.replace('-', '').replace('-', '')] ?? false
+        : currentSubsearches[search.id] ?? false
+    );
+    const someChecked = section.searches.some(search => 
+      section.id === 'search_options'
+        ? searchOptions?.[search.id.replace('-', '').replace('-', '')] ?? false
+        : currentSubsearches[search.id] ?? false
+    );
 
     const handleMasterCheckboxChange = (checked: boolean) => {
-      const newState = { ...currentSubsearches };
-      section.searches.forEach(search => {
-        newState[search.id] = checked;
-      });
-
-      if (isEditing && onSubSearchChange) {
+      if (section.id === 'search_options') {
+        if (onOptionChange) {
+          section.searches.forEach(search => {
+            const optionId = search.id.replace('-', '').replace('-', '');
+            onOptionChange(optionId, checked);
+          });
+        }
+      } else {
+        const newState = { ...currentSubsearches };
         section.searches.forEach(search => {
-          onSubSearchChange(search.id, checked);
+          newState[search.id] = checked;
         });
+
+        if (isEditing && onSubSearchChange) {
+          section.searches.forEach(search => {
+            onSubSearchChange(search.id, checked);
+          });
+        }
+        setCurrentSubsearches(newState);
       }
-      setCurrentSubsearches(newState);
     };
 
     return (
@@ -192,38 +248,52 @@ function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches
             />
             <span>{section.label}</span>
           </AccordionTrigger>
-          {section.id === 'sector_listings' && section.description && (
+          {section.description && (
             <p className="text-xs text-muted-foreground mt-1 ml-10 mb-2">{section.description}</p>
           )}
         </div>
         <AccordionContent>
           <div className="space-y-4 pl-6">
-            {section.searches.map((search) => (
-              <div key={search.id} className="flex items-start space-x-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id={search.id}
-                    checked={currentSubsearches[search.id] || false}
-                    onCheckedChange={(checked) => handleCheckboxChange(search.id, checked as boolean)}
-                    className="mt-1"
-                  />
-                  {completedSearches.includes(search.id) && (
-                    <Check className="h-4 w-4 text-green-500" />
-                  )}
+            {section.searches.map((search) => {
+              const isSearchOption = section.id === 'search_options';
+              const optionId = isSearchOption ? search.id.replace('-', '').replace('-', '') : search.id;
+              const checked = isSearchOption 
+                ? searchOptions?.[optionId] ?? false
+                : currentSubsearches[search.id] ?? false;
+
+              return (
+                <div key={search.id} className="flex items-start space-x-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={search.id}
+                      checked={checked}
+                      onCheckedChange={(checked) => {
+                        if (isSearchOption && onOptionChange) {
+                          onOptionChange(optionId, checked as boolean);
+                        } else {
+                          handleCheckboxChange(search.id, checked as boolean);
+                        }
+                      }}
+                      className="mt-1"
+                    />
+                    {completedSearches.includes(search.id) && (
+                      <Check className="h-4 w-4 text-green-500" />
+                    )}
+                  </div>
+                  <div className="grid gap-1.5 leading-none">
+                    <label
+                      htmlFor={search.id}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {search.label}
+                    </label>
+                    <p className="text-sm text-muted-foreground">
+                      {search.description}
+                    </p>
+                  </div>
                 </div>
-                <div className="grid gap-1.5 leading-none">
-                  <label
-                    htmlFor={search.id}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {search.label}
-                  </label>
-                  <p className="text-sm text-muted-foreground">
-                    {search.description}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </AccordionContent>
       </AccordionItem>
@@ -235,40 +305,6 @@ function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches
       <Accordion type="multiple" className="w-full">
         {Object.values(SEARCH_SECTIONS).map(section => renderSearchSection(section))}
       </Accordion>
-    </div>
-  );
-}
-
-interface SearchOptionsProps {
-  onOptionChange: (optionId: string, checked: boolean) => void;
-  options: Record<string, boolean>;
-}
-
-function SearchOptions({ onOptionChange, options }: SearchOptionsProps) {
-  return (
-    <div className="flex flex-wrap gap-4 mt-2">
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="ignore-franchises"
-          checked={options.ignoreFranchises || false}
-          onCheckedChange={(checked) => onOptionChange('ignoreFranchises', checked as boolean)}
-          className="h-4 w-4"
-        />
-        <Label htmlFor="ignore-franchises" className="text-sm">
-          Ignore franchises
-        </Label>
-      </div>
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="local-hq"
-          checked={options.locallyHeadquartered || false}
-          onCheckedChange={(checked) => onOptionChange('locallyHeadquartered', checked as boolean)}
-          className="h-4 w-4"
-        />
-        <Label htmlFor="local-hq" className="text-sm">
-          Locally headquartered
-        </Label>
-      </div>
     </div>
   );
 }
@@ -315,7 +351,6 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     setSearchOptions({
       ignoreFranchises: (approach.config as any)?.searchOptions?.ignoreFranchises || false,
       locallyHeadquartered: (approach.config as any)?.searchOptions?.locallyHeadquartered || false,
-
     });
   };
 
@@ -378,10 +413,6 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                     placeholder="Enter the user-facing prompt..."
                     className="min-h-[100px]"
                   />
-                  <SearchOptions
-                    options={searchOptions}
-                    onOptionChange={handleSearchOptionChange}
-                  />
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-2 block">Technical Prompt</label>
@@ -409,6 +440,8 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   isEditing={true}
                   onSubSearchChange={handleSubSearchChange}
                   completedSearches={completedSearches}
+                  searchOptions={searchOptions}
+                  onOptionChange={handleSearchOptionChange}
                 />
                 <div className="flex gap-2">
                   <Button
@@ -438,11 +471,13 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">{approach.prompt}</p>
-                <SearchOptions
-                  options={searchOptions}
+                <SubSearches 
+                  approach={approach} 
+                  isEditing={false} 
+                  completedSearches={completedSearches}
+                  searchOptions={searchOptions}
                   onOptionChange={handleSearchOptionChange}
                 />
-                <SubSearches approach={approach} isEditing={false} completedSearches={completedSearches} />
                 <Button
                   size="sm"
                   variant="outline"
