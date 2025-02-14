@@ -12,7 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import type { SearchApproach } from "@shared/schema";
-import { Check } from "lucide-react";
+import { Check, Star } from "lucide-react";
 
 interface SearchApproachesProps {
   approaches: SearchApproach[];
@@ -311,7 +311,10 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
               className="scale-75"
             />
             <AccordionTrigger className="flex-1 hover:no-underline">
-              <span className="mr-4">{approach.name}</span>
+              <div className="flex items-center gap-2">
+                <span>{approach.name}</span>
+                <Star className="h-4 w-4 text-muted-foreground/50" />
+              </div>
             </AccordionTrigger>
           </div>
           <AccordionContent>
