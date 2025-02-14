@@ -133,7 +133,12 @@ export default function Home() {
               </div>
             </CardHeader>
             <CardContent className="p-3">
-              <SearchApproaches approaches={searchApproaches} />
+              <SearchApproaches 
+                approaches={searchApproaches.map((approach: any) => ({
+                  ...approach,
+                  isSearching: isAnalyzing,
+                }))}
+              />
             </CardContent>
           </Card>
 

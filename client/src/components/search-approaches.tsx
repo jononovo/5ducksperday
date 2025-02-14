@@ -132,9 +132,16 @@ interface SubSearchesProps {
   isEditing: boolean;
   onSubSearchChange?: (id: string, checked: boolean) => void;
   completedSearches?: string[];
+  isSearching?: boolean;
 }
 
-function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches = [] }: SubSearchesProps) {
+function SubSearches({ 
+  approach, 
+  isEditing, 
+  onSubSearchChange, 
+  completedSearches = [], 
+  isSearching = false 
+}: SubSearchesProps) {
   if (!approach.name.toLowerCase().includes('decision-maker')) {
     return null;
   }
@@ -178,58 +185,60 @@ function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches
     };
 
     const isProcessing = (searchId: string) => 
-      currentSubsearches[searchId] && !completedSearches.includes(searchId);
+      currentSubsearches[searchId] && isSearching && !completedSearches.includes(searchId);
+
+    const isCompleted = (searchId: string) =>
+      currentSubsearches[searchId] && completedSearches.includes(searchId);
 
     return (
       <AccordionItem key={section.id} value={section.id}>
-        <div>
-          <AccordionTrigger className="flex items-center gap-2 py-2">
-            <Checkbox
-              id={`master-${section.id}`}
-              checked={allChecked}
-              data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
-              onCheckedChange={handleMasterCheckboxChange}
-              onClick={(e) => e.stopPropagation()}
-              className="mr-2"
-            />
-            <span className="flex-1">{section.label}</span>
-            {section.searches.some(s => isProcessing(s.id)) && (
-              <Loader2 className="h-4 w-4 animate-spin ml-2" />
-            )}
-            {section.searches.every(s => completedSearches.includes(s.id)) && section.searches.some(s => currentSubsearches[s.id]) && (
-              <Check className="h-4 w-4 text-green-500 ml-2" />
-            )}
+        <div className="flex flex-col">
+          <AccordionTrigger className="flex items-center justify-between py-2 px-4">
+            <div className="flex items-center gap-2 flex-1">
+              <Checkbox
+                id={`master-${section.id}`}
+                checked={allChecked}
+                data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
+                onCheckedChange={handleMasterCheckboxChange}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <span>{section.label}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {section.searches.some(s => isProcessing(s.id)) && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              {section.searches.some(s => isCompleted(s.id)) && (
+                <Check className="h-4 w-4 text-green-500" />
+              )}
+            </div>
           </AccordionTrigger>
-          {section.description && (
-            <p className="text-xs text-muted-foreground mt-1 ml-10 mb-2">{section.description}</p>
-          )}
         </div>
         <AccordionContent>
           <div className="space-y-4 pl-6">
             {section.searches.map((search) => (
-              <div key={search.id} className="flex items-start space-x-2">
-                <div className="flex items-center space-x-2">
+              <div key={search.id} className="flex items-start gap-4">
+                <div className="flex items-center gap-2">
                   <Checkbox
                     id={search.id}
                     checked={currentSubsearches[search.id] || false}
                     onCheckedChange={(checked) => handleCheckboxChange(search.id, checked as boolean)}
-                    className="mt-1"
                   />
                   {isProcessing(search.id) && (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   )}
-                  {completedSearches.includes(search.id) && currentSubsearches[search.id] && (
+                  {isCompleted(search.id) && (
                     <Check className="h-4 w-4 text-green-500" />
                   )}
                 </div>
-                <div className="grid gap-1.5 leading-none">
+                <div className="flex-1">
                   <label
                     htmlFor={search.id}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-sm font-medium leading-none"
                   >
                     {search.label}
                   </label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground mt-1">
                     {search.description}
                   </p>
                 </div>
@@ -316,7 +325,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     <Accordion type="single" collapsible className="w-full">
       {approaches.map((approach) => (
         <AccordionItem key={approach.id} value={approach.id.toString()}>
-          <div className="flex items-center gap-2 px-1">
+          <div className="flex items-center gap-2 px-4">
             <Switch
               checked={approach.active ?? false}
               onCheckedChange={(checked) => handleToggle(approach.id, checked)}
@@ -328,7 +337,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
           </div>
           <AccordionContent>
             {editingId === approach.id ? (
-              <div className="space-y-4">
+              <div className="space-y-4 p-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">User-Facing Prompt</label>
                   <Textarea
@@ -364,6 +373,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   isEditing={true}
                   onSubSearchChange={handleSubSearchChange}
                   completedSearches={completedSearches}
+                  isSearching={false}
                 />
                 <div className="flex gap-2">
                   <Button
@@ -390,9 +400,14 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 p-4">
                 <p className="text-sm text-muted-foreground">{approach.prompt}</p>
-                <SubSearches approach={approach} isEditing={false} completedSearches={completedSearches} />
+                <SubSearches 
+                  approach={approach} 
+                  isEditing={false} 
+                  completedSearches={approach.completedSearches || []}
+                  isSearching={true}
+                />
                 <Button
                   size="sm"
                   variant="outline"
