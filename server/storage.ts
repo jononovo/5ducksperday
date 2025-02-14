@@ -31,6 +31,8 @@ export interface IStorage {
   getContact(id: number): Promise<Contact | undefined>;
   listContactsByCompany(companyId: number): Promise<Contact[]>;
   createContact(contact: InsertContact): Promise<Contact>;
+  updateContact(id: number, contact: Partial<Contact>): Promise<Contact | undefined>;
+  deleteContactsByCompany(companyId: number): Promise<void>;
 
   // Search Approaches
   getSearchApproach(id: number): Promise<SearchApproach | undefined>;
@@ -137,6 +139,18 @@ export class DatabaseStorage implements IStorage {
   async createContact(contact: InsertContact): Promise<Contact> {
     const [created] = await db.insert(contacts).values(contact).returning();
     return created;
+  }
+
+  async updateContact(id: number, updates: Partial<Contact>): Promise<Contact | undefined> {
+    const [updated] = await db
+      .update(contacts)
+      .set({
+        ...updates,
+        lastEnriched: new Date()
+      })
+      .where(eq(contacts.id, id))
+      .returning();
+    return updated;
   }
 
   // Search Approaches
