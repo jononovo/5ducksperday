@@ -35,44 +35,47 @@ function isGenericName(name: string): boolean {
     'business', 'company', 'enterprise', 'organization', 'corporation',
     'admin', 'professional', 'consultant',
     'service', 'support', 'office', 'personnel', 'resource',
-    'operation', 'development', 'sales', 'marketing', 'customer'
+    'operation', 'development', 'sales', 'marketing', 'customer',
+
+    // Common placeholder names
+    'john doe', 'jane doe', 'john smith', 'jane smith',
+    'test', 'demo', 'example', 'user', 'admin'
   ];
 
   const name_lower = name.toLowerCase();
+
+  // Check for placeholder patterns
+  if (
+    /^[a-z]+\s+[a-z]+$/i.test(name) && // Simple two-word name
+    genericTerms.includes(name_lower)    // Matches known placeholder
+  ) {
+    return true;
+  }
 
   // Check for job title patterns
   const jobTitlePatterns = [
     /^(chief|vice|senior|junior|assistant)\s+/i,
     /\b(officer|manager|director|head|lead)\b/i,
     /^(c[A-Za-z]o)$/i,  // Matches CEO, CTO, CFO, etc.
-    /(president|founder|owner|partner)$/i
+    /(president|founder|owner|partner)$/i,
+    /^(mr|mrs|ms|dr|prof)\.\s*$/i  // Just a title
   ];
 
   if (jobTitlePatterns.some(pattern => pattern.test(name))) {
     return true;
   }
 
-  if (genericTerms.some(term => name_lower === term)) {
-    return true;
-  }
-
-  if (genericTerms.some(term =>
-    name_lower.includes(term) ||
-    name_lower.startsWith(term) ||
-    name_lower.endsWith(term)
-  )) {
-    return true;
-  }
-
+  // Generic patterns indicating non-names
   const genericPatterns = [
     /^[a-z\s]+$/i,  // All lowercase or uppercase
-    /^(mr|mrs|ms|dr|prof)\.\s*$/i,  // Just a title without a name
+    /^(mr|mrs|ms|dr|prof)\.\s*$/i,  // Just a title
     /^(the|our|your|their)\s+/i,  // Possessive starts
     /\d+/,  // Contains numbers
-    /^[a-z]{1,2}\s+[a-z]{1,2}$/i,  // Very short names
+    /^[a-z]{1,2}\s+[a-z]{1,2}$/i,  // Very short words
     /^(contact|info|support|help|sales|service)/i,  // Common department starts
     /^[^a-z]+$/i,  // Contains no letters
-    /^[A-Z\s]+$/  // All capitals (likely an acronym or title)
+    /^[A-Z\s]+$/,  // All capitals
+    /[!@#$%^&*(),.?":{}|<>]/  // Contains special characters
   ];
 
   return genericPatterns.some(pattern => pattern.test(name));
@@ -82,36 +85,66 @@ function calculateNameConfidenceScore(name: string, context: string): number {
   let score = 0;
   const namePattern = /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}$/;
 
+  // Base score for proper name format
   if (namePattern.test(name)) {
     score += 30;
   } else {
-    return 10;
+    return 10; // Early return for obviously incorrect formats
   }
 
+  // Check name length and word count
+  const nameParts = name.split(/\s+/);
+  if (nameParts.length === 2) {
+    score += 20; // Common firstname lastname format
+  } else if (nameParts.length === 3) {
+    score += 15; // Possible middle name
+  } else {
+    score -= 20; // Unusual number of name parts
+  }
+
+  // Name part length checks
+  const hasReasonableLengths = nameParts.every(part => part.length >= 2 && part.length <= 20);
+  if (hasReasonableLengths) {
+    score += 10;
+  } else {
+    score -= 15;
+  }
+
+  // Context validation
   const contextIndicators = {
     leadership: ['leads', 'directs', 'manages', 'founded', 'oversees'],
-    title: ['ceo', 'cto', 'founder', 'president', 'director'],
-    introduction: ['meet', 'introducing', 'led by', 'headed by', 'under the leadership of'],
-    verification: ['linkedin', 'profile', 'contact', 'verified', 'official'],
-    designation: ['mr', 'ms', 'mrs', 'dr', 'prof']
+    verification: ['linkedin', 'profile', 'verified', 'official'],
+    introduction: ['meet', 'introducing', 'led by', 'headed by'],
+    professional: ['experienced', 'professional', 'expert', 'specialist']
   };
 
   const contextLower = context.toLowerCase();
-  const nameLower = name.toLowerCase();
-
   Object.entries(contextIndicators).forEach(([category, indicators]) => {
     if (indicators.some(indicator => contextLower.includes(indicator))) {
       score += category === 'verification' ? 15 : 10;
     }
   });
 
+  // Email correlation
+  const emailMatch = context.match(/[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/);
+  if (emailMatch) {
+    const email = emailMatch[0].toLowerCase();
+    const nameWords = name.toLowerCase().split(/\s+/);
+    if (nameWords.some(word => 
+      word.length > 2 && email.includes(word)
+    )) {
+      score += 20;
+    }
+  }
+
+  // Red flags
   const redFlags = [
-    /\d+/,  // Contains numbers
-    /[^a-zA-Z\s'-]/,  // Contains special characters (except hyphen and apostrophe)
-    /^[a-z]/,  // Doesn't start with capital letter
-    /\s[a-z]/,  // Word doesn't start with capital letter
-    /(.)\1{2,}/,  // Three or more repeated characters
-    /^[A-Z\s]+$/  // All capitals (likely an acronym or title)
+    /\d+/,  // Numbers
+    /[^a-zA-Z\s'-]/,  // Special characters
+    /^[a-z]/,  // Lowercase start
+    /\s[a-z]/,  // Word doesn't start with capital
+    /(.)\1{2,}/,  // Repeated characters
+    /^[A-Z\s]+$/  // All capitals
   ];
 
   redFlags.forEach(flag => {
@@ -119,22 +152,6 @@ function calculateNameConfidenceScore(name: string, context: string): number {
       score -= 30;
     }
   });
-
-  const nameParts = name.split(/\s+/);
-  if (nameParts.length === 2 || nameParts.length === 3) {
-    score += 15;
-  } else {
-    score -= 20;
-  }
-
-  const emailMatch = context.match(/[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/);
-  if (emailMatch) {
-    const email = emailMatch[0].toLowerCase();
-    const nameWords = nameLower.split(/\s+/);
-    if (nameWords.some(word => email.includes(word))) {
-      score += 20;
-    }
-  }
 
   return Math.max(10, Math.min(100, score));
 }
@@ -165,5 +182,10 @@ export function combineValidationScores(
     (aiScore * (1 - weight)) + (localResult.score * weight)
   );
 
-  return Math.max(10, Math.min(100, combinedScore));
+  // Additional penalty for generic names
+  if (localResult.isGeneric) {
+    return Math.max(10, combinedScore - 30);
+  }
+
+  return Math.max(options.minimumScore || 20, Math.min(100, combinedScore));
 }
