@@ -98,79 +98,77 @@ export default function Home() {
 
   return (
     <div className="container mx-auto py-6">
-      <div className="flex flex-col gap-6">
-        {/* Search and Flow Controls - Side by Side */}
-        <div className="grid grid-cols-12 gap-4">
-          {/* Main Search Section - Takes up 9 columns */}
-          <div className="col-span-9">
-            <Card>
-              <CardHeader>
-                <CardTitle>Search for target businesses</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PromptEditor 
-                  onAnalyze={() => setIsAnalyzing(true)}
-                  onComplete={handleAnalysisComplete}
-                  onSearchResults={handleSearchResults}
-                  isAnalyzing={isAnalyzing}
-                  initialPrompt={currentQuery || ""} 
-                />
-              </CardContent>
-            </Card>
-          </div>
+      <div className="grid grid-cols-12 gap-4">
+        {/* Main Content Area - 9 columns */}
+        <div className="col-span-9 space-y-4">
+          {/* Search Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Search for target businesses</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PromptEditor 
+                onAnalyze={() => setIsAnalyzing(true)}
+                onComplete={handleAnalysisComplete}
+                onSearchResults={handleSearchResults}
+                isAnalyzing={isAnalyzing}
+                initialPrompt={currentQuery || ""} 
+              />
+            </CardContent>
+          </Card>
 
-          {/* Search Flow Section - Takes up 3 columns */}
-          <div className="col-span-3">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle className="flex items-center gap-2 text-sm">
-                    <Search className="w-4 h-4" />
-                    Search Flow
-                  </CardTitle>
+          {/* Results Section */}
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Companies Analysis</CardTitle>
+                {currentResults && (
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setLocation('/api-templates')}
-                    className="ml-2"
+                    variant="outline"
+                    onClick={handleSaveList}
+                    disabled={isSaved || saveMutation.isPending}
                   >
-                    <Code2 className="h-4 w-4" />
+                    <ListPlus className="mr-2 h-4 w-4" />
+                    {isSaved ? "Saved" : "Save as List"}
                   </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-2">
-                <SearchApproaches approaches={searchApproaches} />
-              </CardContent>
-            </Card>
-          </div>
+                )}
+              </div>
+              {currentQuery && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Search: {currentQuery}
+                </p>
+              )}
+            </CardHeader>
+            <CardContent className="p-3">
+              <CompanyTable companies={currentResults || []} />
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Results Section - Full Width Below */}
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>Companies Analysis</CardTitle>
-              {currentResults && (
+        {/* Search Flow Section - 3 columns */}
+        <div className="col-span-3">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Search className="w-4 h-4" />
+                  Search Flow
+                </CardTitle>
                 <Button
-                  variant="outline"
-                  onClick={handleSaveList}
-                  disabled={isSaved || saveMutation.isPending}
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setLocation('/api-templates')}
+                  className="ml-2"
                 >
-                  <ListPlus className="mr-2 h-4 w-4" />
-                  {isSaved ? "Saved" : "Save as List"}
+                  <Code2 className="h-4 w-4" />
                 </Button>
-              )}
-            </div>
-            {currentQuery && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Search: {currentQuery}
-              </p>
-            )}
-          </CardHeader>
-          <CardContent className="p-3">
-            <CompanyTable companies={currentResults || []} />
-          </CardContent>
-        </Card>
+              </div>
+            </CardHeader>
+            <CardContent className="p-2">
+              <SearchApproaches approaches={searchApproaches} />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
