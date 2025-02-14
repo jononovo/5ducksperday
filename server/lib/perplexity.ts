@@ -19,13 +19,18 @@ export async function validateNames(names: string[]): Promise<Record<string, num
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: `You are a name validation service. For each name in the provided list, return a single integer score (1-100) indicating the probability that it is a real person's name. 
+      content: `You are a name validation service. For each name in the provided list, return a JSON object with name-score pairs. Scores should be integers between 1-100.
+
       Score Guidelines:
       - 80-100: Clearly a real full name (e.g. "John Smith")
       - 50-79: Possibly a real name but uncommon or incomplete
-      - 1-49: Likely not a real name (e.g. job titles, departments, or generic terms)
+      - 1-49: Likely not a real name (e.g. job titles, departments)
 
-      Return ONLY a JSON object with names as keys and scores as integer values. No other text.`
+      Example response:
+      {
+        "John Smith": 90,
+        "Sales Team": 20
+      }`
     },
     {
       role: "user",
@@ -35,19 +40,26 @@ export async function validateNames(names: string[]): Promise<Record<string, num
 
   try {
     const response = await queryPerplexity(messages);
-    try {
-      const scores = JSON.parse(response) as Record<string, number>;
-      return scores;
-    } catch (e) {
-      console.error('Failed to parse name validation response:', e);
-      return names.reduce((acc, name) => ({ ...acc, [name]: 10 }), {});
+
+    // Try to extract JSON from the response
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch (e) {
+        console.error('Failed to parse extracted JSON:', e);
+      }
     }
+
+    // Fallback: return default scores
+    return names.reduce((acc, name) => ({ ...acc, [name]: 50 }), {});
   } catch (error) {
     console.error('Error validating names:', error);
-    return names.reduce((acc, name) => ({ ...acc, [name]: 10 }), {});
+    return names.reduce((acc, name) => ({ ...acc, [name]: 50 }), {});
   }
 }
 
+// Extract contacts from analysis results
 export async function extractContacts(
   analysisResults: string[],
   validationOptions?: ValidationOptions
@@ -57,35 +69,22 @@ export async function extractContacts(
     return [];
   }
 
-  const nameRegex = /([A-Z][a-z]{1,20})\s+([A-Z][a-z]{1,20})(?:\s+[A-Z][a-z]{1,20})?/g;
-  const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
-
-  // Extract all potential names from the results
-  const potentialNames = new Set<string>();
-  for (const result of analysisResults) {
-    if (typeof result !== 'string') continue;
-    const matches = Array.from(result.matchAll(nameRegex));
-    matches.forEach(match => potentialNames.add(match[0]));
-  }
-
-  // Validate all names at once using AI
-  const names = Array.from(potentialNames);
-  if (names.length === 0) return [];
-
-  const aiScores = await validateNames(names);
-
-  // Process contacts with validated names
   const contacts: Partial<Contact>[] = [];
+  const nameRegex = /([A-Z][a-z]{1,20}(?:\s+[A-Z][a-z]{1,20})+)/g;
+  const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
+  const roleRegex = /(?:is|as)\s+(?:the|a|an)\s+([^,.]+?(?:Manager|Director|Officer|Executive|Lead|Head|Chief|Founder|Owner|President|CEO|CTO|CFO))/gi;
 
   for (const result of analysisResults) {
     if (typeof result !== 'string') continue;
 
     const names = Array.from(result.matchAll(nameRegex)).map(m => m[0]);
-    const emails = Array.from(result.match(emailRegex) || [])
-      .filter(email => !isPlaceholderEmail(email));
+    if (names.length === 0) continue;
+
+    // Validate all names at once
+    const aiScores = await validateNames(names);
 
     for (const name of names) {
-      const aiScore = aiScores[name] || 10;
+      const aiScore = aiScores[name] || 50;
       let finalScore = aiScore;
 
       // Apply local validation if enabled
@@ -94,14 +93,26 @@ export async function extractContacts(
         finalScore = combineValidationScores(aiScore, localResult, validationOptions);
       }
 
-      if (finalScore > (validationOptions?.minimumScore || 20)) {
+      if (finalScore >= (validationOptions?.minimumScore || 20)) {
+        // Find contextually related information
+        const nameIndex = result.indexOf(name);
+        const contextWindow = result.slice(Math.max(0, nameIndex - 100), nameIndex + 200);
+
+        // Extract role from context
+        const roleMatch = [...contextWindow.matchAll(roleRegex)];
+        const role = roleMatch.length > 0 ? roleMatch[0][1].trim() : null;
+
+        // Find nearest email
+        const emails = Array.from(result.match(emailRegex) || [])
+          .filter(email => !isPlaceholderEmail(email));
         const nearestEmail = emails.find(email =>
-          Math.abs(result.indexOf(email) - result.indexOf(name)) < 200
+          Math.abs(result.indexOf(email) - nameIndex) < 200
         );
 
         contacts.push({
           name,
           email: nearestEmail || null,
+          role: role,
           probability: finalScore,
           nameConfidenceScore: finalScore
         });
@@ -109,10 +120,8 @@ export async function extractContacts(
     }
   }
 
-  // Ensure we're returning an array, sorted by probability
-  return Array.isArray(contacts) ?
-    contacts.sort((a, b) => (b.probability || 0) - (a.probability || 0)) :
-    [];
+  // Sort by probability and return
+  return contacts.sort((a, b) => (b.probability || 0) - (a.probability || 0));
 }
 
 // Helper function for validation
@@ -128,10 +137,11 @@ function isPlaceholderEmail(email: string): boolean {
   return placeholderPatterns.some(pattern => pattern.test(email));
 }
 
+// Query Perplexity AI API
 export async function queryPerplexity(messages: PerplexityMessage[]): Promise<string> {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) {
-    throw new Error("Perplexity API key is not configured. Please set the PERPLEXITY_API_KEY environment variable.");
+    throw new Error("Perplexity API key is not configured");
   }
 
   try {
@@ -151,20 +161,16 @@ export async function queryPerplexity(messages: PerplexityMessage[]): Promise<st
     });
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`Perplexity API error (${response.status}): ${errorBody || response.statusText}`);
+      throw new Error(`API error: ${response.status}`);
     }
 
     const data = await response.json() as PerplexityResponse;
     return data.choices[0].message.content;
   } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Failed to query Perplexity API: ${error.message}`);
-    }
+    console.error('Perplexity API error:', error);
     throw error;
   }
 }
-
 
 // Company search and analysis functions
 export async function searchCompanies(query: string): Promise<string[]> {
@@ -192,7 +198,7 @@ export async function analyzeCompany(
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: technicalPrompt || "You are a business intelligence analyst. Provide detailed, factual information about companies."
+      content: technicalPrompt || "You are a business intelligence analyst providing detailed company information."
     },
     {
       role: "user",
@@ -201,10 +207,77 @@ export async function analyzeCompany(
   ];
 
   if (responseStructure) {
-    messages[0].content += `\n\nProvide your response in the following JSON structure:\n${responseStructure}`;
+    messages[0].content += `\n\nFormat your response as JSON:\n${responseStructure}`;
   }
 
   return queryPerplexity(messages);
+}
+
+export function parseCompanyData(analysisResults: string[]): Partial<Company> {
+  const companyData: Partial<Company> = {
+    services: [],
+    validationPoints: [],
+    differentiation: [],
+    totalScore: 0
+  };
+
+  try {
+    for (const result of analysisResults) {
+      // Try parsing as JSON first
+      try {
+        const jsonData = JSON.parse(result);
+        if (jsonData.size && typeof jsonData.size === 'number') {
+          companyData.size = jsonData.size;
+        }
+        if (jsonData.services) {
+          companyData.services = jsonData.services;
+        }
+        continue;
+      } catch (e) {
+        // Fall back to text parsing
+      }
+
+      // Parse company size carefully
+      if (result.includes("employees") || result.includes("staff")) {
+        const sizeMatch = result.match(/(\d+)[\s-]*(?:\d+)?\s*(employees|staff)/i);
+        if (sizeMatch) {
+          // If there's a range like "2-20", take the higher number
+          const numbers = sizeMatch[1].split('-').map(n => parseInt(n.trim()));
+          companyData.size = Math.max(...numbers.filter(n => !isNaN(n)));
+        }
+      }
+
+      // Extract differentiators
+      if (result.toLowerCase().includes("different") || result.toLowerCase().includes("unique")) {
+        const points = result
+          .split(/[.!?•]/)
+          .map(s => s.trim())
+          .filter(s => 
+            s.length > 0 && 
+            s.length < 100 &&
+            (s.toLowerCase().includes("unique") ||
+             s.toLowerCase().includes("only") ||
+             s.toLowerCase().includes("leading"))
+          )
+          .slice(0, 3);
+
+        if (points.length > 0) {
+          companyData.differentiation = points;
+        }
+      }
+
+      // Calculate score
+      let score = 50;
+      if (companyData.size && companyData.size > 50) score += 10;
+      if (companyData.differentiation && companyData.differentiation.length > 0) score += 20;
+      if (companyData.services && companyData.services.length > 0) score += 20;
+      companyData.totalScore = Math.min(100, score);
+    }
+  } catch (error) {
+    console.error('Error parsing company data:', error);
+  }
+
+  return companyData;
 }
 
 export async function searchContactDetails(
@@ -214,17 +287,17 @@ export async function searchContactDetails(
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: `You are a contact information researcher. Find detailed professional information about the specified person. Focus on:
-        1. Current role and department
-        2. Professional email format
-        3. LinkedIn profile URL
+      content: `You are a contact information researcher. Find professional information about the specified person. Include:
+        1. Role and department
+        2. Professional email
+        3. LinkedIn URL
         4. Location
 
-        Format your response in a structured way that's easy to parse.`
+        Format your response in JSON.`
     },
     {
       role: "user",
-      content: `Find detailed professional contact information for ${name} at ${company}. Include email, LinkedIn URL, role details, and location if available.`
+      content: `Find professional contact information for ${name} at ${company}.`
     }
   ];
 
@@ -250,80 +323,10 @@ function parseContactDetails(response: string): Partial<Contact> {
     contact.role = roleMatch[1].trim();
   }
 
-  const deptMatch = response.match(/(?:department|division):\s*([^.\n]+)/i);
-  if (deptMatch) {
-    contact.department = deptMatch[1].trim();
-  }
-
   const locationMatch = response.match(/(?:location|based in|located in):\s*([^.\n]+)/i);
   if (locationMatch) {
     contact.location = locationMatch[1].trim();
   }
 
   return contact;
-}
-
-export function parseCompanyData(analysisResults: string[]): Partial<Company> {
-  const companyData: Partial<Company> = {
-    services: [],
-    validationPoints: [],
-    differentiation: [],
-    totalScore: 0,
-    snapshot: {}
-  };
-
-  try {
-    for (const result of analysisResults) {
-      try {
-        const jsonData = JSON.parse(result);
-        if (jsonData.website) companyData.website = jsonData.website;
-        if (jsonData.size) companyData.size = jsonData.size;
-        continue;
-      } catch (e) {
-        console.log('Falling back to text parsing for result:', e);
-      }
-
-      const websiteMatch = result.match(/(?:website|url|web\s*site):\s*(https?:\/\/[^\s,)]+)/i);
-      if (websiteMatch) companyData.website = websiteMatch[1];
-
-      const profileMatch = result.match(/(?:profile|linkedin|company\s*profile):\s*(https?:\/\/[^\s,)]+)/i);
-      if (profileMatch) companyData.alternativeProfileUrl = profileMatch[1];
-
-      if (result.toLowerCase().includes("differentiat") || result.toLowerCase().includes("unique")) {
-        const points = result
-          .split(/[.!?•]/)
-          .map(s => s.trim())
-          .filter(s =>
-            s.length > 0 &&
-            s.length <= 30 &&
-            (s.toLowerCase().includes("unique") ||
-              s.toLowerCase().includes("only") ||
-              s.toLowerCase().includes("leading") ||
-              s.toLowerCase().includes("best"))
-          )
-          .slice(0, 3);
-
-        if (points.length > 0) companyData.differentiation = points;
-      }
-
-      // Parse company size more carefully
-      if (result.includes("employees") || result.includes("staff")) {
-        const sizeMatch = result.match(/(\d+)[\s-]*(?:\d+)?\s*(employees|staff)/i);
-        if (sizeMatch) {
-          // If there's a range like "2-20", take the higher number
-          const numbers = sizeMatch[1].split('-').map(n => parseInt(n.trim()));
-          companyData.size = Math.max(...numbers);
-        }
-      }
-
-      let score = 50;
-      if (companyData.size && companyData.size > 50) score += 10;
-      if (companyData.differentiation && companyData.differentiation.length === 3) score += 20;
-      companyData.totalScore = Math.min(100, score);
-    }
-  } catch (error) {
-    console.error('Error parsing company data:', error);
-  }
-
-  return companyData;
 }
