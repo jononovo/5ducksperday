@@ -32,17 +32,32 @@ export default function ContactDetails() {
   const [, params] = useRoute("/contacts/:id");
   const [, navigate] = useLocation();
 
-  const { data: contact } = useQuery<Contact>({
+  const { data: contact, isLoading: contactLoading } = useQuery<Contact>({
     queryKey: [`/api/contacts/${params?.id}`],
+    enabled: !!params?.id,
   });
 
-  const { data: company } = useQuery<Company>({
+  const { data: company, isLoading: companyLoading } = useQuery<Company>({
     queryKey: [`/api/companies/${contact?.companyId}`],
     enabled: !!contact?.companyId,
   });
 
+  // Show loading state
+  if (contactLoading || companyLoading) {
+    return (
+      <div className="container mx-auto py-8">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Show not found state
   if (!contact) {
-    return null;
+    return (
+      <div className="container mx-auto py-8">
+        <p>Contact not found</p>
+      </div>
+    );
   }
 
   return (

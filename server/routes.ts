@@ -284,6 +284,46 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Add new route for getting a single contact
+  app.get("/api/contacts/:id", async (req, res) => {
+    const contact = await storage.getContact(parseInt(req.params.id));
+    if (!contact) {
+      res.status(404).json({ message: "Contact not found" });
+      return;
+    }
+    res.json(contact);
+  });
+
+  app.post("/api/contacts/search", async (req, res) => {
+    const { name, company } = req.body;
+
+    if (!name || !company) {
+      res.status(400).json({
+        message: "Both name and company are required"
+      });
+      return;
+    }
+
+    try {
+      const contactDetails = await searchContactDetails(name, company);
+
+      if (Object.keys(contactDetails).length === 0) {
+        res.status(404).json({
+          message: "No additional contact details found"
+        });
+        return;
+      }
+
+      res.json(contactDetails);
+    } catch (error) {
+      console.error('Contact search error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred during contact search"
+      });
+    }
+  });
+
+
   // Search Approaches
   app.get("/api/search-approaches", async (_req, res) => {
     const approaches = await storage.listSearchApproaches();
