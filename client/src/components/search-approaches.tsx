@@ -242,9 +242,10 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editedPrompt, setEditedPrompt] = useState("");
+  const [editedTechnicalPrompt, setEditedTechnicalPrompt] = useState("");
+  const [editedResponseStructure, setEditedResponseStructure] = useState("");
   const [editedSubSearches, setEditedSubSearches] = useState<Record<string, boolean>>({});
-  const [completedSearches, setCompletedSearches] = useState<string[]>([]); // Added state for completed searches
-
+  const [completedSearches, setCompletedSearches] = useState<string[]>([]);
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
@@ -255,18 +256,21 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       queryClient.invalidateQueries({ queryKey: ["/api/search-approaches"] });
       setEditingId(null);
       setEditedPrompt("");
+      setEditedTechnicalPrompt("");
+      setEditedResponseStructure("");
       setEditedSubSearches({});
-      setCompletedSearches([]); //Clear completed searches on success
+      setCompletedSearches([]);
     },
   });
 
   const handleEdit = (approach: SearchApproach) => {
     setEditingId(approach.id);
     setEditedPrompt(approach.prompt);
+    setEditedTechnicalPrompt(approach.technicalPrompt || "");
+    setEditedResponseStructure(approach.responseStructure || "");
     setEditedSubSearches(
       ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean>) || {}
     );
-    // Inferring completedSearches from approach data - needs adjustment based on actual data structure
     setCompletedSearches(approach.completedSearches || []);
   };
 
@@ -275,10 +279,12 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       id,
       updates: {
         prompt: editedPrompt,
+        technicalPrompt: editedTechnicalPrompt || null,
+        responseStructure: editedResponseStructure || null,
         config: {
           subsearches: editedSubSearches
         },
-        completedSearches: completedSearches // Add completedSearches to the update
+        completedSearches
       }
     });
   };
@@ -311,11 +317,33 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
           <AccordionContent>
             {editingId === approach.id ? (
               <div className="space-y-4">
-                <Textarea
-                  value={editedPrompt}
-                  onChange={(e) => setEditedPrompt(e.target.value)}
-                  className="min-h-[100px]"
-                />
+                <div>
+                  <label className="text-sm font-medium mb-2 block">User-Facing Prompt</label>
+                  <Textarea
+                    value={editedPrompt}
+                    onChange={(e) => setEditedPrompt(e.target.value)}
+                    placeholder="Enter the user-facing prompt..."
+                    className="min-h-[100px]"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Technical Prompt</label>
+                  <Textarea
+                    value={editedTechnicalPrompt}
+                    onChange={(e) => setEditedTechnicalPrompt(e.target.value)}
+                    placeholder="Enter the technical implementation prompt..."
+                    className="min-h-[100px]"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Response Structure</label>
+                  <Textarea
+                    value={editedResponseStructure}
+                    onChange={(e) => setEditedResponseStructure(e.target.value)}
+                    placeholder="Enter the expected JSON response structure..."
+                    className="min-h-[100px] font-mono"
+                  />
+                </div>
                 <SubSearches
                   approach={{
                     ...approach,
@@ -323,7 +351,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   }}
                   isEditing={true}
                   onSubSearchChange={handleSubSearchChange}
-                  completedSearches={completedSearches} // Pass completedSearches prop
+                  completedSearches={completedSearches}
                 />
                 <div className="flex gap-2">
                   <Button
@@ -339,8 +367,10 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                     onClick={() => {
                       setEditingId(null);
                       setEditedPrompt("");
+                      setEditedTechnicalPrompt("");
+                      setEditedResponseStructure("");
                       setEditedSubSearches({});
-                      setCompletedSearches([]); //Clear completed searches on cancel
+                      setCompletedSearches([]);
                     }}
                   >
                     Cancel
@@ -350,7 +380,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">{approach.prompt}</p>
-                <SubSearches approach={approach} isEditing={false} completedSearches={completedSearches} /> {/* Pass completedSearches prop */}
+                <SubSearches approach={approach} isEditing={false} completedSearches={completedSearches} />
                 <Button
                   size="sm"
                   variant="outline"
