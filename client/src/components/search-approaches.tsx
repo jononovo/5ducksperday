@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/accordion";
 import type { SearchApproach } from "@shared/schema";
 import { Check } from "lucide-react";
+import { Label } from "@/components/ui/label";
 
 interface SearchApproachesProps {
   approaches: SearchApproach[];
@@ -238,6 +239,40 @@ function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches
   );
 }
 
+interface SearchOptionsProps {
+  onOptionChange: (optionId: string, checked: boolean) => void;
+  options: Record<string, boolean>;
+}
+
+function SearchOptions({ onOptionChange, options }: SearchOptionsProps) {
+  return (
+    <div className="flex flex-wrap gap-4 mt-2">
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="ignore-franchises"
+          checked={options.ignoreFranchises || false}
+          onCheckedChange={(checked) => onOptionChange('ignoreFranchises', checked as boolean)}
+          className="h-4 w-4"
+        />
+        <Label htmlFor="ignore-franchises" className="text-sm">
+          Ignore franchises
+        </Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="local-hq"
+          checked={options.locallyHeadquartered || false}
+          onCheckedChange={(checked) => onOptionChange('locallyHeadquartered', checked as boolean)}
+          className="h-4 w-4"
+        />
+        <Label htmlFor="local-hq" className="text-sm">
+          Locally headquartered
+        </Label>
+      </div>
+    </div>
+  );
+}
+
 export default function SearchApproaches({ approaches }: SearchApproachesProps) {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -246,6 +281,10 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   const [editedResponseStructure, setEditedResponseStructure] = useState("");
   const [editedSubSearches, setEditedSubSearches] = useState<Record<string, boolean>>({});
   const [completedSearches, setCompletedSearches] = useState<string[]>([]);
+  const [searchOptions, setSearchOptions] = useState<Record<string, boolean>>({
+    ignoreFranchises: false,
+    locallyHeadquartered: false,
+  });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
@@ -260,6 +299,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       setEditedResponseStructure("");
       setEditedSubSearches({});
       setCompletedSearches([]);
+      setSearchOptions({ ignoreFranchises: false, locallyHeadquartered: false });
     },
   });
 
@@ -272,6 +312,11 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean>) || {}
     );
     setCompletedSearches(approach.completedSearches || []);
+    setSearchOptions({
+      ignoreFranchises: (approach.config as any)?.searchOptions?.ignoreFranchises || false,
+      locallyHeadquartered: (approach.config as any)?.searchOptions?.locallyHeadquartered || false,
+
+    });
   };
 
   const handleSave = (id: number) => {
@@ -282,7 +327,8 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
         technicalPrompt: editedTechnicalPrompt || null,
         responseStructure: editedResponseStructure || null,
         config: {
-          subsearches: editedSubSearches
+          subsearches: editedSubSearches,
+          searchOptions: searchOptions
         },
         completedSearches
       }
@@ -298,6 +344,13 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
 
   const handleToggle = (id: number, active: boolean) => {
     updateMutation.mutate({ id, updates: { active } });
+  };
+
+  const handleSearchOptionChange = (optionId: string, checked: boolean) => {
+    setSearchOptions(prev => ({
+      ...prev,
+      [optionId]: checked
+    }));
   };
 
   return (
@@ -324,6 +377,10 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                     onChange={(e) => setEditedPrompt(e.target.value)}
                     placeholder="Enter the user-facing prompt..."
                     className="min-h-[100px]"
+                  />
+                  <SearchOptions
+                    options={searchOptions}
+                    onOptionChange={handleSearchOptionChange}
                   />
                 </div>
                 <div>
@@ -371,6 +428,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                       setEditedResponseStructure("");
                       setEditedSubSearches({});
                       setCompletedSearches([]);
+                      setSearchOptions({ ignoreFranchises: false, locallyHeadquartered: false });
                     }}
                   >
                     Cancel
@@ -380,6 +438,10 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">{approach.prompt}</p>
+                <SearchOptions
+                  options={searchOptions}
+                  onOptionChange={handleSearchOptionChange}
+                />
                 <SubSearches approach={approach} isEditing={false} completedSearches={completedSearches} />
                 <Button
                   size="sm"
