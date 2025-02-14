@@ -56,7 +56,6 @@ export default function CompanyDetails() {
     queryKey: [`/api/companies/${params?.id}/contacts`],
   });
 
-  // Update mutation to use new endpoint
   const contactSearchMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", `/api/companies/${company?.id}/enrich-contacts`);
@@ -78,7 +77,6 @@ export default function CompanyDetails() {
     },
   });
 
-  // Simplify the handler since we're now doing a single API call
   const handleEnrichContacts = () => {
     if (!company) {
       toast({
@@ -91,7 +89,6 @@ export default function CompanyDetails() {
     contactSearchMutation.mutate();
   };
 
-  // Handler for deep searching contacts
   const handleDeepSearch = () => {
     toast({
       title: "Deep Search",
@@ -179,63 +176,6 @@ export default function CompanyDetails() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Performance Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5" />
-              Performance Metrics
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Services & Validation */}
-        <div className="grid md:grid-cols-2 gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Services Offered</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {company.services?.map((service, index) => (
-                  <Badge key={index} variant="secondary">
-                    {service}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Validation Points</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {company.validationPoints?.map((point, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-yellow-500" />
-                    <span>{point}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Contacts Table */}
         <Card>
@@ -336,6 +276,63 @@ export default function CompanyDetails() {
                   <span className="italic">No profile link available</span>
                 )}
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Services & Validation */}
+        <div className="grid md:grid-cols-2 gap-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Services Offered</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {company.services?.map((service, index) => (
+                  <Badge key={index} variant="secondary">
+                    {service}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Validation Points</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                {company.validationPoints?.map((point, index) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Performance Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5" />
+              Performance Metrics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
