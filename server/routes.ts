@@ -203,32 +203,32 @@ export function registerRoutes(app: Express) {
         return;
       }
 
-      // Get the leadership analysis approach
+      // Get the decision-maker analysis approach
       const approaches = await storage.listSearchApproaches();
-      const leadershipApproach = approaches.find(a => 
-        a.name.toLowerCase().includes("leadership") && a.active
+      const decisionMakerApproach = approaches.find(a => 
+        a.name === "Decision-maker Analysis" && a.active
       );
 
-      if (!leadershipApproach) {
+      if (!decisionMakerApproach) {
         res.status(400).json({
-          message: "Leadership analysis approach is not available or not active"
+          message: "Decision-maker analysis approach is not available or not active"
         });
         return;
       }
 
       // Extract subsearches configuration
-      const config = leadershipApproach.config as Record<string, unknown>;
+      const config = decisionMakerApproach.config as Record<string, unknown>;
       const subsearches = (config?.subsearches || {}) as Record<string, boolean>;
 
-      console.log('Leadership analysis config:', config);
+      console.log('Decision-maker analysis config:', config);
       console.log('Enabled subsearches:', subsearches);
 
       try {
-        console.log('Starting leadership analysis for company:', company.name);
+        console.log('Starting decision-maker analysis for company:', company.name);
 
-        // Perform leadership analysis
-        const analysisResult = await analyzeCompany(company.name, leadershipApproach.prompt);
-        console.log('Leadership analysis result:', analysisResult);
+        // Perform decision-maker analysis
+        const analysisResult = await analyzeCompany(company.name, decisionMakerApproach.prompt);
+        console.log('Decision-maker analysis result:', analysisResult);
 
         const newContacts = extractContacts([analysisResult]);
         console.log('Extracted contacts:', newContacts);
@@ -248,7 +248,7 @@ export function registerRoutes(app: Express) {
             const enhancedDetails = await searchContactDetails(
               contact.name!,
               company.name,
-              true, // Always include local sources for leadership analysis
+              true, // Always include local sources for decision-maker analysis
               subsearches // Pass enabled subsearches configuration
             );
 
@@ -265,7 +265,7 @@ export function registerRoutes(app: Express) {
               phoneNumber: null,
               department: enhancedDetails.department || null,
               location: enhancedDetails.location || null,
-              verificationSource: 'Leadership Analysis',
+              verificationSource: 'Decision-maker Analysis',
               completedSearches: enhancedDetails.completedSearches || []
             };
 
