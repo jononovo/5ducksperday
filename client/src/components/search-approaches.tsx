@@ -215,13 +215,18 @@ function SubSearches({
   };
 
   const renderSearchSection = (section: typeof DEFAULT_SEARCH_SECTIONS.search_options) => {
-    // Skip search options section for Decision-maker Analysis
-    if (section.id === 'search_options' && !isCompanyOverview) {
+    // For Company Overview, only show search options section
+    if (isCompanyOverview && section.id !== 'search_options') {
       return null;
     }
 
-    // Skip other sections for Company Overview
-    if (section.id !== 'search_options' && isCompanyOverview) {
+    // For Decision-maker Analysis, show all sections except search options
+    if (isDecisionMaker && section.id === 'search_options') {
+      return null;
+    }
+
+    // For all other approaches, don't show any sections
+    if (!isCompanyOverview && !isDecisionMaker) {
       return null;
     }
 
