@@ -20,7 +20,7 @@ export default function CompanyTable({ companies }: CompanyTableProps) {
   const [, navigate] = useLocation();
 
   return (
-    <div className="rounded-md border">
+    <div className="w-full">
       <Table>
         <TableHeader>
           <TableRow>

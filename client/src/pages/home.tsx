@@ -182,9 +182,9 @@ export default function Home() {
 
   return (
     <div className="container mx-auto py-6">
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-12 gap-6">
         {/* Main Content Area - 9 columns */}
-        <div className="col-span-9 space-y-4">
+        <div className="col-span-9 space-y-6">
           {/* Search Section */}
           <Card>
             <CardHeader>
@@ -203,7 +203,7 @@ export default function Home() {
 
           {/* Top Prospects Section - Moved above Companies Analysis */}
           {currentResults && currentResults.length > 0 && (
-            <Card>
+            <Card className="w-full">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <UserCircle className="w-5 h-5" />
@@ -213,71 +213,73 @@ export default function Home() {
                   Highest probability contacts across all companies
                 </p>
               </CardHeader>
-              <CardContent className="p-3">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Score</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {getTopProspects().map((contact) => (
-                      <TableRow key={contact.id}>
-                        <TableCell className="font-medium">{contact.name}</TableCell>
-                        <TableCell>{contact.companyName}</TableCell>
-                        <TableCell>{contact.role || 'N/A'}</TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            (contact.probability || 0) >= 90 ? "default" :
-                            (contact.probability || 0) >= 70 ? "secondary" : "outline"
-                          }>
-                            {contact.probability || 0}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{contact.email || 'N/A'}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setLocation(`/contacts/${contact.id}`)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEnrichContact(contact.id)}
-                              disabled={isContactPending(contact.id) || isContactEnriched(contact)}
-                              className={isContactEnriched(contact) ? "text-muted-foreground" : ""}
-                            >
-                              <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? 'animate-spin' : ''}`} />
-                              {isContactEnriched(contact) ? 'Enriched' : 'Enrich'}
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {getTopProspects().length === 0 && (
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center text-muted-foreground">
-                          No high-probability contacts found in the search results
-                        </TableCell>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Score</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {getTopProspects().map((contact) => (
+                        <TableRow key={contact.id}>
+                          <TableCell className="font-medium">{contact.name}</TableCell>
+                          <TableCell>{contact.companyName}</TableCell>
+                          <TableCell>{contact.role || 'N/A'}</TableCell>
+                          <TableCell>
+                            <Badge variant={
+                              (contact.probability || 0) >= 90 ? "default" :
+                              (contact.probability || 0) >= 70 ? "secondary" : "outline"
+                            }>
+                              {contact.probability || 0}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{contact.email || 'N/A'}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setLocation(`/contacts/${contact.id}`)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEnrichContact(contact.id)}
+                                disabled={isContactPending(contact.id) || isContactEnriched(contact)}
+                                className={isContactEnriched(contact) ? "text-muted-foreground" : ""}
+                              >
+                                <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? 'animate-spin' : ''}`} />
+                                {isContactEnriched(contact) ? 'Enriched' : 'Enrich'}
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {getTopProspects().length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                            No high-probability contacts found in the search results
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Results Section */}
-          <Card>
+          {/* Companies Analysis Section */}
+          <Card className="w-full">
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>Companies Analysis</CardTitle>
@@ -298,8 +300,10 @@ export default function Home() {
                 </p>
               )}
             </CardHeader>
-            <CardContent className="p-3">
-              <CompanyTable companies={currentResults || []} />
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <CompanyTable companies={currentResults || []} />
+              </div>
             </CardContent>
           </Card>
         </div>
