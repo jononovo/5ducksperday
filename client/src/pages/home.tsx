@@ -9,7 +9,6 @@ import { ListPlus, Search, Code2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import type { SearchApproach } from "@shared/schema";
 
 // Define interface for the saved state
 interface SavedSearchState {
@@ -22,7 +21,6 @@ export default function Home() {
   const [currentQuery, setCurrentQuery] = useState<string | null>(null);
   const [currentResults, setCurrentResults] = useState<any[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [currentApproachId, setCurrentApproachId] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -46,7 +44,7 @@ export default function Home() {
     localStorage.setItem('searchState', JSON.stringify(stateToSave));
   }, [currentQuery, currentResults]);
 
-  const { data: searchApproaches = [] } = useQuery<SearchApproach[]>({
+  const { data: searchApproaches = [] } = useQuery({
     queryKey: ["/api/search-approaches"],
   });
 
@@ -76,14 +74,8 @@ export default function Home() {
     },
   });
 
-  const handleAnalysisStart = (approachId: number) => {
-    setIsAnalyzing(true);
-    setCurrentApproachId(approachId);
-  };
-
   const handleAnalysisComplete = () => {
     setIsAnalyzing(false);
-    setCurrentApproachId(null);
   };
 
   const handleSearchResults = (query: string, results: any[]) => {
@@ -113,7 +105,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <PromptEditor 
-              onAnalyze={handleAnalysisStart}
+              onAnalyze={() => setIsAnalyzing(true)}
               onComplete={handleAnalysisComplete}
               onSearchResults={handleSearchResults}
               isAnalyzing={isAnalyzing}
@@ -141,11 +133,7 @@ export default function Home() {
               </div>
             </CardHeader>
             <CardContent className="p-3">
-              <SearchApproaches 
-                approaches={searchApproaches} 
-                isAnalyzing={isAnalyzing}
-                currentApproachId={currentApproachId}
-              />
+              <SearchApproaches approaches={searchApproaches} />
             </CardContent>
           </Card>
 

@@ -18,7 +18,6 @@ export const companies = pgTable("companies", {
   website: text("website"),
   alternativeProfileUrl: text("alternative_profile_url"), // New field for GMB, Yelp etc
   defaultContactEmail: text("default_contact_email"), // New field for company-wide contact
-  generalEmail: text("general_email"), // Add general email field
   ranking: integer("website_ranking"),
   linkedinProminence: integer("linkedin_prominence"),
   customerCount: integer("customer_count"),
@@ -107,7 +106,6 @@ const companySchema = z.object({
   website: z.string().nullable(),
   alternativeProfileUrl: z.string().nullable(),
   defaultContactEmail: z.string().email().nullable(),
-  generalEmail: z.string().email().nullable(), // Add general email validation
   ranking: z.number().nullable(),
   linkedinProminence: z.number().nullable(),
   customerCount: z.number().nullable(),

@@ -105,9 +105,25 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       // Try to parse the result as JSON first (for structured responses)
       const jsonData = JSON.parse(result);
 
-      // Extract general email if present in JSON response
-      if (jsonData.general_email && !isPlaceholderEmail(jsonData.general_email)) {
-        companyData.generalEmail = jsonData.general_email;
+      // Extract decision makers as contacts
+      const contacts: Partial<Contact>[] = [];
+
+      // Process up to 5 decision makers
+      for (let i = 1; i <= 5; i++) {
+        const decisionMaker = jsonData[`decision_maker_${i}`];
+        if (decisionMaker?.name) {
+          contacts.push({
+            name: decisionMaker.name,
+            role: decisionMaker.designation,
+            email: decisionMaker.email,
+            priority: i
+          });
+        }
+      }
+
+      // Add the contacts to company data
+      if (contacts.length > 0) {
+        companyData.contacts = contacts;
       }
 
       // Extract other fields from JSON response
@@ -120,13 +136,7 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       console.log('Falling back to text parsing for result:', e);
     }
 
-    // Add general email extraction from text
-    const emailRegex = /(?:general|contact|info|main)\s*email:\s*([\w.+-]+@[\w-]+\.[a-zA-Z]{2,})/i;
-    const emailMatch = result.match(emailRegex);
-    if (emailMatch && !isPlaceholderEmail(emailMatch[1])) {
-      companyData.generalEmail = emailMatch[1];
-    }
-
+    // Rest of the existing parsing logic for non-JSON responses
     const websiteRegex = /(?:website|url|web\s*site):\s*(https?:\/\/[^\s,)]+)/i;
     const websiteMatch = result.match(websiteRegex);
     if (websiteMatch) {
@@ -179,7 +189,7 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
   return companyData;
 }
 
-export function isPlaceholderEmail(email: string): boolean {
+function isPlaceholderEmail(email: string): boolean {
   const placeholderPatterns = [
     /first[._]?name/i,
     /last[._]?name/i,
@@ -191,7 +201,7 @@ export function isPlaceholderEmail(email: string): boolean {
   return placeholderPatterns.some(pattern => pattern.test(email));
 }
 
-export function isGenericName(name: string): boolean {
+function isGenericName(name: string): boolean {
   const genericTerms = [
     'leadership', 'team', 'member', 'staff', 'employee', 'general',
     'key', 'role', 'position', 'department', 'division', 'management',
@@ -476,7 +486,6 @@ async function deepSearchLocalSources(name: string, company: string, enabledSear
     return { completedSearches };
   }
 }
-
 
 
 export async function searchContactDetails(

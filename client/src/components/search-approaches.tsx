@@ -12,22 +12,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import type { SearchApproach } from "@shared/schema";
-import { Check, Star, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
 
-// Type definition for search section
-interface SearchSection {
-  id: string;
-  label: string;
-  description?: string;
-  searches: Array<{
-    id: string;
-    label: string;
-    description: string;
-  }>;
+interface SearchApproachesProps {
+  approaches: SearchApproach[];
 }
 
-const SEARCH_SECTIONS: Record<string, SearchSection> = {
+const SEARCH_SECTIONS = {
   local: {
     id: "local",
     label: "Local Sources",
@@ -168,7 +159,7 @@ function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches
     }
   };
 
-  const renderSearchSection = (section: SearchSection) => {
+  const renderSearchSection = (section: typeof SEARCH_SECTIONS.local) => {
     const allChecked = section.searches.every(search => currentSubsearches[search.id]);
     const someChecked = section.searches.some(search => currentSubsearches[search.id]);
 
@@ -247,13 +238,7 @@ function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches
   );
 }
 
-interface SearchApproachesProps {
-  approaches: SearchApproach[];
-  isAnalyzing?: boolean;
-  currentApproachId?: number;
-}
-
-export default function SearchApproaches({ approaches, isAnalyzing, currentApproachId }: SearchApproachesProps) {
+export default function SearchApproaches({ approaches }: SearchApproachesProps) {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editedPrompt, setEditedPrompt] = useState("");
@@ -261,13 +246,6 @@ export default function SearchApproaches({ approaches, isAnalyzing, currentAppro
   const [editedResponseStructure, setEditedResponseStructure] = useState("");
   const [editedSubSearches, setEditedSubSearches] = useState<Record<string, boolean>>({});
   const [completedSearches, setCompletedSearches] = useState<string[]>([]);
-
-  // Update completed searches when analysis completes
-  useEffect(() => {
-    if (!isAnalyzing && currentApproachId) {
-      setCompletedSearches(prev => [...prev, currentApproachId.toString()]);
-    }
-  }, [isAnalyzing, currentApproachId]);
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
@@ -281,6 +259,7 @@ export default function SearchApproaches({ approaches, isAnalyzing, currentAppro
       setEditedTechnicalPrompt("");
       setEditedResponseStructure("");
       setEditedSubSearches({});
+      setCompletedSearches([]);
     },
   });
 
@@ -292,6 +271,7 @@ export default function SearchApproaches({ approaches, isAnalyzing, currentAppro
     setEditedSubSearches(
       ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean>) || {}
     );
+    setCompletedSearches(approach.completedSearches || []);
   };
 
   const handleSave = (id: number) => {
@@ -303,35 +283,21 @@ export default function SearchApproaches({ approaches, isAnalyzing, currentAppro
         responseStructure: editedResponseStructure || null,
         config: {
           subsearches: editedSubSearches
-        }
+        },
+        completedSearches
       }
     });
   };
 
-  const handleToggle = (id: number, active: boolean) => {
-    updateMutation.mutate({ id, updates: { active } });
+  const handleSubSearchChange = (id: string, checked: boolean) => {
+    setEditedSubSearches(prev => ({
+      ...prev,
+      [id]: checked
+    }));
   };
 
-  const renderProgressIcon = (approachId: number) => {
-    if (isAnalyzing && currentApproachId === approachId) {
-      return (
-        <span className="inline-flex items-center justify-center w-4 h-4">
-          <Loader2 className="h-4 w-4 text-primary animate-spin" />
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center justify-center w-4 h-4">
-        <Star 
-          className={cn(
-            "h-4 w-4",
-            completedSearches.includes(approachId.toString()) 
-              ? "text-primary fill-primary" 
-              : "text-muted-foreground/50"
-          )}
-        />
-      </span>
-    );
+  const handleToggle = (id: number, active: boolean) => {
+    updateMutation.mutate({ id, updates: { active } });
   };
 
   return (
@@ -345,10 +311,7 @@ export default function SearchApproaches({ approaches, isAnalyzing, currentAppro
               className="scale-75"
             />
             <AccordionTrigger className="flex-1 hover:no-underline">
-              <div className="flex items-center gap-2">
-                <span>{approach.name}</span>
-                {renderProgressIcon(approach.id)}
-              </div>
+              <span className="mr-4">{approach.name}</span>
             </AccordionTrigger>
           </div>
           <AccordionContent>
@@ -407,7 +370,7 @@ export default function SearchApproaches({ approaches, isAnalyzing, currentAppro
                       setEditedTechnicalPrompt("");
                       setEditedResponseStructure("");
                       setEditedSubSearches({});
-                      
+                      setCompletedSearches([]);
                     }}
                   >
                     Cancel

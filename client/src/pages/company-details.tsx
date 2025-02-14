@@ -321,20 +321,6 @@ export default function CompanyDetails() {
                 )}
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Mail className="h-5 w-5" />
-                <span>General Email:</span>
-                {company.generalEmail ? (
-                  <a
-                    href={`mailto:${company.generalEmail}`}
-                    className="text-primary hover:underline"
-                  >
-                    {company.generalEmail}
-                  </a>
-                ) : (
-                  <span className="italic">No general email available</span>
-                )}
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
                 <Link2 className="h-5 w-5" />
                 <span>Company Profile:</span>
                 {company.alternativeProfileUrl ? (

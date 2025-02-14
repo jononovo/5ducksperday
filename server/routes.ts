@@ -147,7 +147,6 @@ export function registerRoutes(app: Express) {
             website: companyData.website?.trim() || null,
             alternativeProfileUrl: companyData.alternativeProfileUrl?.trim() || null,
             defaultContactEmail: companyData.defaultContactEmail?.trim() ?? null,
-            generalEmail: companyData.generalEmail?.trim() ?? null, // Add general email
             ranking: companyData.ranking ?? null,
             linkedinProminence: companyData.linkedinProminence ?? null,
             customerCount: companyData.customerCount ?? null,
