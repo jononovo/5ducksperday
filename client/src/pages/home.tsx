@@ -100,43 +100,49 @@ export default function Home() {
     <div className="container mx-auto py-6">
       <div className="flex flex-col gap-6">
         {/* Search and Flow Controls - Side by Side */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Search for target businesses</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PromptEditor 
-                onAnalyze={() => setIsAnalyzing(true)}
-                onComplete={handleAnalysisComplete}
-                onSearchResults={handleSearchResults}
-                isAnalyzing={isAnalyzing}
-                initialPrompt={currentQuery || ""} 
-              />
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-12 gap-4">
+          {/* Main Search Section - Takes up 9 columns */}
+          <div className="col-span-9">
+            <Card>
+              <CardHeader>
+                <CardTitle>Search for target businesses</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PromptEditor 
+                  onAnalyze={() => setIsAnalyzing(true)}
+                  onComplete={handleAnalysisComplete}
+                  onSearchResults={handleSearchResults}
+                  isAnalyzing={isAnalyzing}
+                  initialPrompt={currentQuery || ""} 
+                />
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center gap-2">
-                  <Search className="w-5 h-5" />
-                  Search Flow
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setLocation('/api-templates')}
-                  className="ml-2"
-                >
-                  <Code2 className="h-5 w-5" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-3">
-              <SearchApproaches approaches={searchApproaches} />
-            </CardContent>
-          </Card>
+          {/* Search Flow Section - Takes up 3 columns */}
+          <div className="col-span-3">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Search className="w-4 h-4" />
+                    Search Flow
+                  </CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setLocation('/api-templates')}
+                    className="ml-2"
+                  >
+                    <Code2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-2">
+                <SearchApproaches approaches={searchApproaches} />
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Results Section - Full Width Below */}
