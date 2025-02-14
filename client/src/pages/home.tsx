@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
 import SearchApproaches from "@/components/search-approaches";
-import { ListPlus, Search, Code2, UserCircle, Banknote, Eye, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, Star, MoreHorizontal } from "lucide-react";
+import { ListPlus, Search, Code2, UserCircle, Banknote, Eye, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, Star, MessageSquare } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -268,6 +268,7 @@ export default function Home() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>Feedback</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Company</TableHead>
                         <TableHead>Role</TableHead>
@@ -279,6 +280,29 @@ export default function Home() {
                     <TableBody>
                       {getTopProspects().map((contact) => (
                         <TableRow key={contact.id}>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "excellent")}>
+                                  <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                                  Excellent Match
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "ok")}>
+                                  <ThumbsUp className="h-4 w-4 mr-2 text-blue-500" />
+                                  OK Match
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "terrible")}>
+                                  <ThumbsDown className="h-4 w-4 mr-2 text-red-500" />
+                                  Not a Match
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
                           <TableCell className="font-medium">{contact.name}</TableCell>
                           <TableCell>{contact.companyName}</TableCell>
                           <TableCell>{contact.role || "N/A"}</TableCell>
@@ -315,34 +339,13 @@ export default function Home() {
                                 <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
                                 {isContactEnriched(contact) ? "Enriched" : "Enrich"}
                               </Button>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                  <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "excellent")}>
-                                    <Star className="h-4 w-4 mr-2 text-yellow-500" />
-                                    Excellent Match
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "ok")}>
-                                    <ThumbsUp className="h-4 w-4 mr-2 text-blue-500" />
-                                    OK Match
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "terrible")}>
-                                    <ThumbsDown className="h-4 w-4 mr-2 text-red-500" />
-                                    Not a Match
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
                             </div>
                           </TableCell>
                         </TableRow>
                       ))}
                       {getTopProspects().length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                          <TableCell colSpan={7} className="text-center text-muted-foreground">
                             No high-probability contacts found in the search results
                           </TableCell>
                         </TableRow>
