@@ -126,9 +126,10 @@ export default function Home() {
       }
     });
 
-    // Sort by priority (1 is highest) and take top 10
+    // Sort by probability (higher is better) and take top 10
     return allContacts
-      .sort((a, b) => (a.priority || 999) - (b.priority || 999))
+      .filter(contact => contact.probability && contact.probability >= 50) // Only show contacts with 50%+ probability
+      .sort((a, b) => (b.probability || 0) - (a.probability || 0))
       .slice(0, 10);
   };
 
@@ -235,7 +236,7 @@ export default function Home() {
                   Top Prospects
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  High-priority contacts across all companies
+                  Highest probability contacts across all companies
                 </p>
               </CardHeader>
               <CardContent className="p-3">
@@ -245,7 +246,7 @@ export default function Home() {
                       <TableHead>Name</TableHead>
                       <TableHead>Company</TableHead>
                       <TableHead>Role</TableHead>
-                      <TableHead>Priority</TableHead>
+                      <TableHead>Match Score</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -257,8 +258,11 @@ export default function Home() {
                         <TableCell>{contact.companyName}</TableCell>
                         <TableCell>{contact.role || 'N/A'}</TableCell>
                         <TableCell>
-                          <Badge variant={contact.priority === 1 ? "default" : "secondary"}>
-                            Priority {contact.priority || 'N/A'}
+                          <Badge variant={
+                            (contact.probability || 0) >= 90 ? "default" :
+                            (contact.probability || 0) >= 70 ? "secondary" : "outline"
+                          }>
+                            {contact.probability || 0}% match
                           </Badge>
                         </TableCell>
                         <TableCell>{contact.email || 'N/A'}</TableCell>
@@ -288,7 +292,7 @@ export default function Home() {
                     {getTopProspects().length === 0 && (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center text-muted-foreground">
-                          No high-priority contacts found in the search results
+                          No high-probability contacts found in the search results
                         </TableCell>
                       </TableRow>
                     )}
