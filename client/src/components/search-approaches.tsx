@@ -75,8 +75,10 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
             <AccordionTrigger className="flex-1 hover:no-underline">
               <div className="flex justify-between items-center w-full">
                 <span>{approach.name}</span>
-                <Checkbox 
-                  className="opacity-50 pointer-events-none ml-8" 
+              </div>
+              <div className="flex items-center">
+                <Checkbox
+                  className="opacity-50 pointer-events-none ml-4"
                   checked={false}
                 />
               </div>
@@ -143,19 +145,21 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
                   <Accordion type="multiple" className="w-full space-y-2">
                     {Object.values(SEARCH_SECTIONS).map((section) => (
                       <AccordionItem key={section.id} value={section.id}>
-                        <AccordionTrigger className="px-4 py-2">
-                          <div className="flex items-center justify-between w-full">
+                        <AccordionTrigger>
+                          <div className="flex justify-between items-center w-full">
                             <span className={!approach.active ? "text-muted-foreground/50" : ""}>
                               {section.label}
                             </span>
                           </div>
-                          <Checkbox
-                            id={`master-${section.id}`}
-                            checked={section.searches.every(s => ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {})[s.id])}
-                            className={!approach.active ? "text-muted-foreground/50 ml-8" : "ml-8"}
-                            disabled={!approach.active}
-                            onClick={(e) => e.stopPropagation()}
-                          />
+                          <div className="flex items-center">
+                            <Checkbox
+                              id={`master-${section.id}`}
+                              checked={section.searches.every(s => ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {})[s.id])}
+                              className={!approach.active ? "text-muted-foreground/50 ml-4" : "ml-4"}
+                              disabled={!approach.active}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
                         </AccordionTrigger>
                         <AccordionContent className="pl-8 space-y-3">
                           {section.searches.map((search) => (
