@@ -36,7 +36,7 @@ export const contacts = pgTable("contacts", {
   name: text("name").notNull(),
   role: text("role"),
   email: text("email"),
-  probability: integer("probability"), // Changed from priority to probability
+  probability: integer("probability"),
   linkedinUrl: text("linkedin_url"),
   twitterHandle: text("twitter_handle"),
   phoneNumber: text("phone_number"),
@@ -44,8 +44,20 @@ export const contacts = pgTable("contacts", {
   location: text("location"),
   verificationSource: text("verification_source"),
   lastEnriched: timestamp("last_enriched"),
+  // New fields for name validation
+  nameConfidenceScore: integer("name_confidence_score"), // AI-generated score
+  userFeedbackScore: integer("user_feedback_score"), // Aggregate user feedback
+  feedbackCount: integer("feedback_count").default(0), // Number of feedback entries
+  lastValidated: timestamp("last_validated"), // Last AI validation timestamp
   createdAt: timestamp("created_at").defaultNow(),
   completedSearches: text("completed_searches").array()
+});
+
+export const contactFeedback = pgTable("contact_feedback", {
+  id: serial("id").primaryKey(),
+  contactId: integer("contact_id").notNull(),
+  feedbackType: text("feedback_type").notNull(), // 'excellent', 'ok', 'terrible'
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 export const searchApproaches = pgTable("search_approaches", {
@@ -122,14 +134,22 @@ const contactSchema = z.object({
   companyId: z.number(),
   role: z.string().nullable(),
   email: z.string().email().nullable(),
-  probability: z.number().min(1).max(100).nullable(), // Changed validation
+  probability: z.number().min(1).max(100).nullable(),
   linkedinUrl: z.string().url().nullable(),
   twitterHandle: z.string().nullable(),
   phoneNumber: z.string().nullable(),
   department: z.string().nullable(),
   location: z.string().nullable(),
   verificationSource: z.string().nullable(),
+  nameConfidenceScore: z.number().min(0).max(100).nullable(),
+  userFeedbackScore: z.number().min(0).max(100).nullable(),
+  feedbackCount: z.number().min(0).nullable(),
   completedSearches: z.array(z.string()).optional()
+});
+
+const contactFeedbackSchema = z.object({
+  contactId: z.number(),
+  feedbackType: z.enum(['excellent', 'ok', 'terrible'])
 });
 
 const searchApproachSchema = z.object({
@@ -174,6 +194,7 @@ export const insertSearchApproachSchema = searchApproachSchema;
 export const insertCampaignSchema = campaignSchema;
 export const insertCampaignListSchema = campaignListSchema;
 export const insertEmailTemplateSchema = emailTemplateSchema;
+export const insertContactFeedbackSchema = contactFeedbackSchema;
 
 export type List = typeof lists.$inferSelect;
 export type InsertList = z.infer<typeof insertListSchema>;
@@ -189,3 +210,5 @@ export type CampaignList = typeof campaignLists.$inferSelect;
 export type InsertCampaignList = z.infer<typeof insertCampaignListSchema>;
 export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
+export type ContactFeedback = typeof contactFeedback.$inferSelect;
+export type InsertContactFeedback = z.infer<typeof insertContactFeedbackSchema>;

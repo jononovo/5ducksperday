@@ -288,36 +288,54 @@ function calculateNameConfidenceScore(name: string, context: string): number {
     leadership: ['leads', 'directs', 'manages', 'founded', 'oversees'],
     title: ['ceo', 'cto', 'founder', 'president', 'director'],
     introduction: ['meet', 'introducing', 'led by', 'headed by', 'under the leadership of'],
-    verification: ['linkedin', 'profile', 'contact', 'verified', 'official']
+    verification: ['linkedin', 'profile', 'contact', 'verified', 'official'],
+    designation: ['mr', 'ms', 'mrs', 'dr', 'prof']
   };
 
   const contextLower = context.toLowerCase();
+  const nameLower = name.toLowerCase();
 
   // Check context indicators
-  Object.values(contextIndicators).forEach(indicators => {
+  Object.entries(contextIndicators).forEach(([category, indicators]) => {
     if (indicators.some(indicator => contextLower.includes(indicator))) {
-      score += 10;
+      score += category === 'leadership' || category === 'verification' ? 15 : 10;
     }
   });
 
-  // Proximity to email
-  const emailPattern = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/;
-  if (emailPattern.test(context)) {
-    score += 15;
-  }
+  // Deduct points for common red flags
+  const redFlags = [
+    /\d+/,  // Contains numbers
+    /[^a-zA-Z\s'-]/,  // Contains special characters (except hyphen and apostrophe)
+    /^[a-z]/,  // Doesn't start with capital letter
+    /\s[a-z]/,  // Word doesn't start with capital letter
+    /(.)\1{2,}/  // Three or more repeated characters
+  ];
 
-  // Title case name format
-  if (name.split(' ').every(part => /^[A-Z][a-z]+$/.test(part))) {
-    score += 20;
-  }
+  redFlags.forEach(flag => {
+    if (flag.test(name)) {
+      score -= 20;
+    }
+  });
 
-  // Length and format checks
-  const nameParts = name.split(' ');
+  // Check name parts
+  const nameParts = name.split(/\s+/);
   if (nameParts.length === 2 || nameParts.length === 3) {
     score += 15;
+  } else {
+    score -= 10;
   }
 
-  return Math.min(100, score);
+  // Check for professional email correlation
+  const emailMatch = context.match(/[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/);
+  if (emailMatch) {
+    const email = emailMatch[0].toLowerCase();
+    const nameWords = nameLower.split(/\s+/);
+    if (nameWords.some(word => email.includes(word))) {
+      score += 20;
+    }
+  }
+
+  return Math.max(0, Math.min(100, score));
 }
 
 export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
@@ -478,8 +496,25 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
   }
 
   return Array.from(contactMap.values())
-    .sort((a, b) => b.score - a.score)
-    .map(({ score, ...contact }) => contact); // Remove internal score from output
+    .map(contact => {
+      const contextForName = analysisResults.find(result =>
+        result.includes(contact.name)
+      ) || '';
+
+      const confidenceScore = calculateNameConfidenceScore(
+        contact.name,
+        contextForName
+      );
+
+      return {
+        ...contact,
+        nameConfidenceScore: confidenceScore,
+        // Adjust probability based on confidence score
+        probability: Math.round((contact.probability || 0) * (confidenceScore / 100))
+      };
+    })
+    .sort((a, b) => (b.probability || 0) - (a.probability || 0))
+    .filter(contact => (contact.probability || 0) > 20); // Filter out very low probability contacts
 }
 
 function normalizeContactKey(name: string, email: string | null): string {
@@ -671,6 +706,7 @@ async function deepSearchLocalSources(name: string, company: string, enabledSear
     return { completedSearches };
   }
 }
+
 
 
 export async function searchContactDetails(

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
 import SearchApproaches from "@/components/search-approaches";
-import { ListPlus, Search, Code2, UserCircle, Banknote, Eye, ChevronDown, ChevronUp } from "lucide-react";
+import { ListPlus, Search, Code2, UserCircle, Banknote, Eye, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, Star, MoreHorizontal } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -19,6 +19,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import type { Company, Contact } from "@shared/schema";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -180,6 +186,50 @@ export default function Home() {
     return pendingContactId === contactId;
   };
 
+  // Add mutation for contact feedback
+  const feedbackMutation = useMutation({
+    mutationFn: async ({ contactId, feedbackType }: { contactId: number; feedbackType: string }) => {
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/feedback`, {
+        feedbackType,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Update the contact in the results
+      setCurrentResults((prev) => {
+        if (!prev) return null;
+        return prev.map((company) => ({
+          ...company,
+          contacts: company.contacts?.map((contact) =>
+            contact.id === data.contactId
+              ? {
+                  ...contact,
+                  userFeedbackScore: data.userFeedbackScore,
+                  feedbackCount: data.feedbackCount,
+                }
+              : contact
+          ),
+        }));
+      });
+
+      toast({
+        title: "Feedback Recorded",
+        description: "Thank you for helping improve our contact validation!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Feedback Failed",
+        description: error instanceof Error ? error.message : "Failed to record feedback",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleContactFeedback = (contactId: number, feedbackType: string) => {
+    feedbackMutation.mutate({ contactId, feedbackType });
+  };
+
   return (
     <div className="container mx-auto py-6">
       <div className="grid grid-cols-12 gap-6">
@@ -231,16 +281,21 @@ export default function Home() {
                         <TableRow key={contact.id}>
                           <TableCell className="font-medium">{contact.name}</TableCell>
                           <TableCell>{contact.companyName}</TableCell>
-                          <TableCell>{contact.role || 'N/A'}</TableCell>
+                          <TableCell>{contact.role || "N/A"}</TableCell>
                           <TableCell>
-                            <Badge variant={
-                              (contact.probability || 0) >= 90 ? "default" :
-                              (contact.probability || 0) >= 70 ? "secondary" : "outline"
-                            }>
+                            <Badge
+                              variant={
+                                (contact.probability || 0) >= 90
+                                  ? "default"
+                                  : (contact.probability || 0) >= 70
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                            >
                               {contact.probability || 0}
                             </Badge>
                           </TableCell>
-                          <TableCell>{contact.email || 'N/A'}</TableCell>
+                          <TableCell>{contact.email || "N/A"}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
                               <Button
@@ -257,9 +312,30 @@ export default function Home() {
                                 disabled={isContactPending(contact.id) || isContactEnriched(contact)}
                                 className={isContactEnriched(contact) ? "text-muted-foreground" : ""}
                               >
-                                <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? 'animate-spin' : ''}`} />
-                                {isContactEnriched(contact) ? 'Enriched' : 'Enrich'}
+                                <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
+                                {isContactEnriched(contact) ? "Enriched" : "Enrich"}
                               </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "excellent")}>
+                                    <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                                    Excellent Match
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "ok")}>
+                                    <ThumbsUp className="h-4 w-4 mr-2 text-blue-500" />
+                                    OK Match
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "terrible")}>
+                                    <ThumbsDown className="h-4 w-4 mr-2 text-red-500" />
+                                    Not a Match
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -330,7 +406,7 @@ export default function Home() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setLocation('/api-templates')}
+                  onClick={() => setLocation("/api-templates")}
                   className="w-full justify-start"
                 >
                   <Code2 className="h-4 w-4 mr-2" />

@@ -12,6 +12,19 @@ import {
 import { db } from "./db";
 import { eq, max } from "drizzle-orm";
 
+// Assuming these types are defined elsewhere (not provided in original code)
+type ContactFeedback = {
+  id: number;
+  contactId: number;
+  feedbackType: 'excellent' | 'ok' | 'terrible';
+  comment?: string;
+  createdAt: Date;
+};
+
+type InsertContactFeedback = Omit<ContactFeedback, 'id' | 'createdAt'>;
+type contactFeedback = any; // Placeholder until schema is provided
+
+
 export interface IStorage {
   // Lists
   getList(listId: number): Promise<List | undefined>;
@@ -64,6 +77,12 @@ export interface IStorage {
   enrichContact(id: number, contactData: Partial<Contact>): Promise<Contact | undefined>;
   searchContactDetails(contactInfo: { name: string; company: string }): Promise<Partial<Contact>>;
   deleteContactsByCompany(companyId: number): Promise<void>;
+
+  // New methods for contact validation and feedback
+  addContactFeedback(feedback: InsertContactFeedback): Promise<ContactFeedback>;
+  getContactFeedback(contactId: number): Promise<ContactFeedback[]>;
+  updateContactConfidenceScore(id: number, score: number): Promise<Contact | undefined>;
+  updateContactValidationStatus(id: number): Promise<Contact | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -353,6 +372,72 @@ export class DatabaseStorage implements IStorage {
   }
   async deleteContactsByCompany(companyId: number): Promise<void> {
     await db.delete(contacts).where(eq(contacts.companyId, companyId));
+  }
+
+  // New methods for contact validation and feedback
+  async addContactFeedback(feedback: InsertContactFeedback): Promise<ContactFeedback> {
+    const [created] = await db.insert(contactFeedback).values(feedback).returning();
+
+    // Update the contact's aggregate feedback score
+    const allFeedback = await this.getContactFeedback(feedback.contactId);
+    const feedbackScores = {
+      excellent: 100,
+      ok: 50,
+      terrible: 0
+    };
+
+    const totalScore = allFeedback.reduce((sum, item) =>
+      sum + feedbackScores[item.feedbackType as keyof typeof feedbackScores], 0);
+    const averageScore = Math.round(totalScore / allFeedback.length);
+
+    await this.updateContact(feedback.contactId, {
+      userFeedbackScore: averageScore,
+      feedbackCount: allFeedback.length
+    });
+
+    return created;
+  }
+
+  async getContactFeedback(contactId: number): Promise<ContactFeedback[]> {
+    return db
+      .select()
+      .from(contactFeedback)
+      .where(eq(contactFeedback.contactId, contactId))
+      .orderBy(contactFeedback.createdAt);
+  }
+
+  async updateContactConfidenceScore(id: number, score: number): Promise<Contact | undefined> {
+    const [updated] = await db
+      .update(contacts)
+      .set({
+        nameConfidenceScore: score,
+        lastValidated: new Date()
+      })
+      .where(eq(contacts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateContactValidationStatus(id: number): Promise<Contact | undefined> {
+    const contact = await this.getContact(id);
+    if (!contact) return undefined;
+
+    // Calculate combined score based on AI confidence and user feedback
+    const aiScore = contact.nameConfidenceScore || 0;
+    const userScore = contact.userFeedbackScore || 0;
+    const feedbackCount = contact.feedbackCount || 0;
+
+    // Weight scores based on feedback count
+    // As we get more feedback, user scores become more important
+    const userWeight = Math.min(feedbackCount * 0.2, 0.8); // Max 80% weight for user feedback
+    const aiWeight = 1 - userWeight;
+
+    const combinedScore = Math.round((aiScore * aiWeight) + (userScore * userWeight));
+
+    // Update the contact's probability based on combined score
+    return this.updateContact(id, {
+      probability: combinedScore
+    });
   }
 }
 
