@@ -12,7 +12,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import type { SearchApproach } from "@shared/schema";
-import { Check, Star } from "lucide-react";
+import { Check, Star, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SearchApproachesProps {
   approaches: SearchApproach[];
@@ -246,6 +247,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   const [editedResponseStructure, setEditedResponseStructure] = useState("");
   const [editedSubSearches, setEditedSubSearches] = useState<Record<string, boolean>>({});
   const [completedSearches, setCompletedSearches] = useState<string[]>([]);
+  const [activeSearch, setActiveSearch] = useState<string | null>(null);
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
@@ -260,6 +262,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       setEditedResponseStructure("");
       setEditedSubSearches({});
       setCompletedSearches([]);
+      setActiveSearch(null);
     },
   });
 
@@ -272,6 +275,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean>) || {}
     );
     setCompletedSearches(approach.completedSearches || []);
+    setActiveSearch(null); //Added to reset active search on edit
   };
 
   const handleSave = (id: number) => {
@@ -300,6 +304,16 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     updateMutation.mutate({ id, updates: { active } });
   };
 
+  const renderProgressIcon = (approachId: number) => {
+    if (activeSearch === approachId.toString()) {
+      return <Loader2 className="h-4 w-4 text-primary animate-spin" />;
+    }
+    if (completedSearches.includes(approachId.toString())) {
+      return <Star className="h-4 w-4 text-primary fill-primary" />;
+    }
+    return <Star className="h-4 w-4 text-muted-foreground/50" />;
+  };
+
   return (
     <Accordion type="single" collapsible className="w-full">
       {approaches.map((approach) => (
@@ -313,7 +327,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
             <AccordionTrigger className="flex-1 hover:no-underline">
               <div className="flex items-center gap-2">
                 <span>{approach.name}</span>
-                <Star className="h-4 w-4 text-muted-foreground/50" />
+                {renderProgressIcon(approach.id)}
               </div>
             </AccordionTrigger>
           </div>
@@ -374,6 +388,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                       setEditedResponseStructure("");
                       setEditedSubSearches({});
                       setCompletedSearches([]);
+                      setActiveSearch(null); //Added to reset active search on cancel
                     }}
                   >
                     Cancel
