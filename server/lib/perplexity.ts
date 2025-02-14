@@ -110,7 +110,7 @@ export async function extractContacts(
   }
 
   // Ensure we're returning an array, sorted by probability
-  return Array.isArray(contacts) ? 
+  return Array.isArray(contacts) ?
     contacts.sort((a, b) => (b.probability || 0) - (a.probability || 0)) :
     [];
 }
@@ -306,9 +306,14 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
         if (points.length > 0) companyData.differentiation = points;
       }
 
+      // Parse company size more carefully
       if (result.includes("employees") || result.includes("staff")) {
-        const sizeMatch = result.match(/(\d+)\s*(employees|staff)/i);
-        if (sizeMatch) companyData.size = parseInt(sizeMatch[1]);
+        const sizeMatch = result.match(/(\d+)[\s-]*(?:\d+)?\s*(employees|staff)/i);
+        if (sizeMatch) {
+          // If there's a range like "2-20", take the higher number
+          const numbers = sizeMatch[1].split('-').map(n => parseInt(n.trim()));
+          companyData.size = Math.max(...numbers);
+        }
       }
 
       let score = 50;
