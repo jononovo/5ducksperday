@@ -99,22 +99,23 @@ export default function Home() {
   return (
     <div className="container mx-auto py-6">
       <div className="flex flex-col gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Search for target businesses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PromptEditor 
-              onAnalyze={() => setIsAnalyzing(true)}
-              onComplete={handleAnalysisComplete}
-              onSearchResults={handleSearchResults}
-              isAnalyzing={isAnalyzing}
-              initialPrompt={currentQuery || ""} 
-            />
-          </CardContent>
-        </Card>
-
+        {/* Search and Flow Controls - Side by Side */}
         <div className="grid md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Search for target businesses</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PromptEditor 
+                onAnalyze={() => setIsAnalyzing(true)}
+                onComplete={handleAnalysisComplete}
+                onSearchResults={handleSearchResults}
+                isAnalyzing={isAnalyzing}
+                initialPrompt={currentQuery || ""} 
+              />
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
@@ -136,33 +137,34 @@ export default function Home() {
               <SearchApproaches approaches={searchApproaches} />
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Companies Analysis</CardTitle>
-                {currentResults && (
-                  <Button
-                    variant="outline"
-                    onClick={handleSaveList}
-                    disabled={isSaved || saveMutation.isPending}
-                  >
-                    <ListPlus className="mr-2 h-4 w-4" />
-                    {isSaved ? "Saved" : "Save as List"}
-                  </Button>
-                )}
-              </div>
-              {currentQuery && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Search: {currentQuery}
-                </p>
-              )}
-            </CardHeader>
-            <CardContent className="p-3">
-              <CompanyTable companies={currentResults || []} />
-            </CardContent>
-          </Card>
         </div>
+
+        {/* Results Section - Full Width Below */}
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>Companies Analysis</CardTitle>
+              {currentResults && (
+                <Button
+                  variant="outline"
+                  onClick={handleSaveList}
+                  disabled={isSaved || saveMutation.isPending}
+                >
+                  <ListPlus className="mr-2 h-4 w-4" />
+                  {isSaved ? "Saved" : "Save as List"}
+                </Button>
+              )}
+            </div>
+            {currentQuery && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Search: {currentQuery}
+              </p>
+            )}
+          </CardHeader>
+          <CardContent className="p-3">
+            <CompanyTable companies={currentResults || []} />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
