@@ -324,6 +324,49 @@ export function registerRoutes(app: Express) {
   });
 
 
+  // Add this route after the existing contacts routes
+  app.post("/api/contacts/:contactId/feedback", async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.contactId);
+      const { feedbackType } = req.body;
+
+      // Validate feedback type
+      if (!['excellent', 'ok', 'terrible'].includes(feedbackType)) {
+        res.status(400).json({
+          message: "Invalid feedback type. Must be 'excellent', 'ok', or 'terrible'"
+        });
+        return;
+      }
+
+      // Check if contact exists
+      const contact = await storage.getContact(contactId);
+      if (!contact) {
+        res.status(404).json({ message: "Contact not found" });
+        return;
+      }
+
+      // Add feedback
+      const feedback = await storage.addContactFeedback({
+        contactId,
+        feedbackType
+      });
+
+      // Get updated contact after feedback processing
+      const updatedContact = await storage.getContact(contactId);
+
+      res.json({
+        contactId,
+        userFeedbackScore: updatedContact?.userFeedbackScore,
+        feedbackCount: updatedContact?.feedbackCount
+      });
+    } catch (error) {
+      console.error('Contact feedback error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred while processing feedback"
+      });
+    }
+  });
+
   // Search Approaches
   app.get("/api/search-approaches", async (_req, res) => {
     const approaches = await storage.listSearchApproaches();
