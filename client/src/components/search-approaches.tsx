@@ -135,7 +135,7 @@ interface SubSearchesProps {
 }
 
 function SubSearches({ approach, isEditing, onSubSearchChange, completedSearches = [] }: SubSearchesProps) {
-  if (!approach.name.toLowerCase().includes('leadership')) {
+  if (!approach.name.toLowerCase().includes('decision-maker')) {
     return null;
   }
 
