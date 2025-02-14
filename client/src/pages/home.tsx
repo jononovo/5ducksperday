@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
 import SearchApproaches from "@/components/search-approaches";
-import { ListPlus, Search, Code2, UserCircle, Banknote, Eye } from "lucide-react";
+import { ListPlus, Search, Code2, UserCircle, Banknote, Eye, ChevronDown, ChevronUp } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -37,6 +37,7 @@ export default function Home() {
   const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [pendingContactId, setPendingContactId] = useState<number | null>(null);
+  const [isSearchFlowExpanded, setIsSearchFlowExpanded] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -307,24 +308,37 @@ export default function Home() {
         <div className="col-span-3">
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <Search className="w-4 h-4" />
-                  Search Flow
-                </CardTitle>
+              <div className="space-y-4">
+                <div 
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => setIsSearchFlowExpanded(!isSearchFlowExpanded)}
+                >
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Search className="w-4 h-4" />
+                    Search Flow
+                    {isSearchFlowExpanded ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </CardTitle>
+                </div>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="sm"
                   onClick={() => setLocation('/api-templates')}
-                  className="ml-2"
+                  className="w-full justify-start"
                 >
-                  <Code2 className="h-4 w-4" />
+                  <Code2 className="h-4 w-4 mr-2" />
+                  View API Templates
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-2">
-              <SearchApproaches approaches={searchApproaches} />
-            </CardContent>
+            {isSearchFlowExpanded && (
+              <CardContent className="p-2">
+                <SearchApproaches approaches={searchApproaches} />
+              </CardContent>
+            )}
           </Card>
         </div>
       </div>
