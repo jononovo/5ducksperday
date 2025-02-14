@@ -225,18 +225,16 @@ export function registerRoutes(app: Express) {
         return;
       }
 
-      // Extract subsearches configuration
-      const config = decisionMakerApproach.config as Record<string, unknown>;
-      const subsearches = (config?.subsearches || {}) as Record<string, boolean>;
-
-      console.log('Decision-maker analysis config:', config);
-      console.log('Enabled subsearches:', subsearches);
-
       try {
         console.log('Starting decision-maker analysis for company:', company.name);
 
-        // Perform decision-maker analysis
-        const analysisResult = await analyzeCompany(company.name, decisionMakerApproach.prompt);
+        // Perform decision-maker analysis with technical prompt
+        const analysisResult = await analyzeCompany(
+          company.name, 
+          decisionMakerApproach.prompt,
+          decisionMakerApproach.technicalPrompt,
+          decisionMakerApproach.responseStructure
+        );
         console.log('Decision-maker analysis result:', analysisResult);
 
         const newContacts = extractContacts([analysisResult]);
@@ -253,36 +251,21 @@ export function registerRoutes(app: Express) {
           validContacts.map(async contact => {
             console.log(`Processing contact enrichment for: ${contact.name}`);
 
-            // Get enhanced contact details with local sources search
-            const enhancedDetails = await searchContactDetails(
-              contact.name!,
-              company.name,
-              true, // Always include local sources for decision-maker analysis
-              subsearches // Pass enabled subsearches configuration
-            );
-
-            console.log('Enhanced contact details:', enhancedDetails);
-
             const contactData = {
               companyId,
               name: contact.name!,
-              role: enhancedDetails.role || contact.role || null,
-              email: enhancedDetails.email || contact.email || null,
+              role: contact.role || null,
+              email: contact.email || null,
               priority: contact.priority ?? null,
-              linkedinUrl: enhancedDetails.linkedinUrl || null,
+              linkedinUrl: null,
               twitterHandle: null,
               phoneNumber: null,
-              department: enhancedDetails.department || null,
-              location: enhancedDetails.location || null,
-              verificationSource: 'Decision-maker Analysis',
-              completedSearches: enhancedDetails.completedSearches || []
+              department: null,
+              location: null,
+              verificationSource: 'Decision-maker Analysis'
             };
 
-            const createdContact = await storage.createContact(contactData);
-            return {
-              ...createdContact,
-              completedSearches: enhancedDetails.completedSearches || []
-            };
+            return storage.createContact(contactData);
           })
         );
 
