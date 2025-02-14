@@ -261,18 +261,11 @@ export default function SearchApproaches({ approaches, isAnalyzing, currentAppro
   const [editedResponseStructure, setEditedResponseStructure] = useState("");
   const [editedSubSearches, setEditedSubSearches] = useState<Record<string, boolean>>({});
   const [completedSearches, setCompletedSearches] = useState<string[]>([]);
-  const [activeSearch, setActiveSearch] = useState<string | null>(null);
 
-  // Update active search when analyzing state changes
+  // Update completed searches when analysis completes
   useEffect(() => {
-    if (isAnalyzing && currentApproachId) {
-      setActiveSearch(currentApproachId.toString());
-    } else if (!isAnalyzing) {
-      setActiveSearch(null);
-      // When analysis completes, add the approach to completed searches
-      if (currentApproachId) {
-        setCompletedSearches(prev => [...prev, currentApproachId.toString()]);
-      }
+    if (!isAnalyzing && currentApproachId) {
+      setCompletedSearches(prev => [...prev, currentApproachId.toString()]);
     }
   }, [isAnalyzing, currentApproachId]);
 
@@ -288,8 +281,6 @@ export default function SearchApproaches({ approaches, isAnalyzing, currentAppro
       setEditedTechnicalPrompt("");
       setEditedResponseStructure("");
       setEditedSubSearches({});
-      setCompletedSearches([]);
-      setActiveSearch(null);
     },
   });
 
@@ -301,8 +292,6 @@ export default function SearchApproaches({ approaches, isAnalyzing, currentAppro
     setEditedSubSearches(
       ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean>) || {}
     );
-    setCompletedSearches(approach.completedSearches || []);
-    setActiveSearch(null);
   };
 
   const handleSave = (id: number) => {
@@ -314,17 +303,9 @@ export default function SearchApproaches({ approaches, isAnalyzing, currentAppro
         responseStructure: editedResponseStructure || null,
         config: {
           subsearches: editedSubSearches
-        },
-        completedSearches
+        }
       }
     });
-  };
-
-  const handleSubSearchChange = (id: string, checked: boolean) => {
-    setEditedSubSearches(prev => ({
-      ...prev,
-      [id]: checked
-    }));
   };
 
   const handleToggle = (id: number, active: boolean) => {
@@ -332,14 +313,25 @@ export default function SearchApproaches({ approaches, isAnalyzing, currentAppro
   };
 
   const renderProgressIcon = (approachId: number) => {
-    const isActive = isAnalyzing && currentApproachId === approachId;
-    if (isActive) {
-      return <Loader2 className="h-4 w-4 text-primary animate-spin" />;
+    if (isAnalyzing && currentApproachId === approachId) {
+      return (
+        <span className="inline-flex items-center justify-center w-4 h-4">
+          <Loader2 className="h-4 w-4 text-primary animate-spin" />
+        </span>
+      );
     }
-    if (completedSearches.includes(approachId.toString())) {
-      return <Star className="h-4 w-4 text-primary fill-primary" />;
-    }
-    return <Star className="h-4 w-4 text-muted-foreground/50" />;
+    return (
+      <span className="inline-flex items-center justify-center w-4 h-4">
+        <Star 
+          className={cn(
+            "h-4 w-4",
+            completedSearches.includes(approachId.toString()) 
+              ? "text-primary fill-primary" 
+              : "text-muted-foreground/50"
+          )}
+        />
+      </span>
+    );
   };
 
   return (
@@ -415,8 +407,7 @@ export default function SearchApproaches({ approaches, isAnalyzing, currentAppro
                       setEditedTechnicalPrompt("");
                       setEditedResponseStructure("");
                       setEditedSubSearches({});
-                      setCompletedSearches([]);
-                      setActiveSearch(null);
+                      
                     }}
                   >
                     Cancel
