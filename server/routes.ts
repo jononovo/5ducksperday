@@ -225,13 +225,11 @@ export function registerRoutes(app: Express) {
         return;
       }
 
-      // Check if local sources search is enabled
+      // Check if local sources search is enabled and get subsearches
       const config = leadershipApproach.config as Record<string, unknown>;
       const subsearches = (config?.subsearches || {}) as Record<string, boolean>;
-      const localSourcesEnabled = subsearches['local-news'] || 
-                                subsearches['business-associations'] || 
-                                subsearches['local-events'] || 
-                                subsearches['local-classifieds'];
+
+      console.log('Enabled subsearches:', subsearches); // Add logging
 
       try {
         // Perform new leadership analysis
@@ -241,14 +239,22 @@ export function registerRoutes(app: Express) {
         // Remove existing contacts
         await storage.deleteContactsByCompany(companyId);
 
-        // Create new contacts with enhanced details if local sources are enabled
+        // Create new contacts with enhanced details
         const validContacts = newContacts.filter(contact => contact.name && contact.name !== "Unknown");
+
         const createdContacts = await Promise.all(
           validContacts.map(async contact => {
-            // Get enhanced contact details if local sources are enabled
-            const enhancedDetails = localSourcesEnabled
-              ? await searchContactDetails(contact.name!, company.name, true, subsearches)
-              : {};
+            console.log(`Processing deep search for contact: ${contact.name}`); // Add logging
+
+            // Get enhanced contact details with proper subsearches
+            const enhancedDetails = await searchContactDetails(
+              contact.name!,
+              company.name,
+              true, // Always include local sources for deep search
+              subsearches // Pass enabled subsearches
+            );
+
+            console.log('Enhanced details:', enhancedDetails); // Add logging
 
             const contactData = {
               companyId,
@@ -261,7 +267,7 @@ export function registerRoutes(app: Express) {
               phoneNumber: null,
               department: enhancedDetails.department || null,
               location: enhancedDetails.location || null,
-              verificationSource: localSourcesEnabled ? 'Local Sources' : null
+              verificationSource: 'Local Sources'
             };
 
             const createdContact = await storage.createContact(contactData);

@@ -53,7 +53,8 @@ export const searchApproaches = pgTable("search_approaches", {
   prompt: text("prompt").notNull(),
   order: integer("order").notNull(),
   active: boolean("active").default(true),
-  config: jsonb("config").default({}).notNull()
+  config: jsonb("config").default({}).notNull(),
+  completedSearches: text("completed_searches").array()  // Add new column for completed searches
 });
 
 // New tables for campaigns
@@ -132,7 +133,8 @@ const searchApproachSchema = z.object({
   prompt: z.string().min(1, "Prompt is required"),
   order: z.number().min(1),
   active: z.boolean().nullable(),
-  config: z.record(z.unknown()).default({})
+  config: z.record(z.unknown()).default({}),
+  completedSearches: z.array(z.string()).optional()
 });
 
 // New schemas for campaigns
