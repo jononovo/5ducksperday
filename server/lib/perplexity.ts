@@ -101,7 +101,47 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
   };
 
   for (const result of analysisResults) {
-    // Extract website URLs
+    try {
+      // Try to parse the result as JSON first (for structured responses)
+      const jsonData = JSON.parse(result);
+
+      // Extract decision makers as contacts
+      const contacts: Partial<Contact>[] = [];
+
+      if (jsonData.decision_maker_1?.name) {
+        contacts.push({
+          name: jsonData.decision_maker_1.name,
+          role: jsonData.decision_maker_1.designation,
+          email: jsonData.decision_maker_1.email,
+          priority: 1
+        });
+      }
+
+      if (jsonData.decision_maker_2?.name) {
+        contacts.push({
+          name: jsonData.decision_maker_2.name,
+          role: jsonData.decision_maker_2.designation,
+          email: jsonData.decision_maker_2.email,
+          priority: 2
+        });
+      }
+
+      // Add the contacts to company data
+      if (contacts.length > 0) {
+        companyData.contacts = contacts;
+      }
+
+      // Extract other fields from JSON response
+      if (jsonData.website) companyData.website = jsonData.website;
+      if (jsonData.size) companyData.size = jsonData.size;
+
+      continue;
+    } catch (e) {
+      // If JSON parsing fails, continue with regular text parsing
+      console.log('Falling back to text parsing for result:', e);
+    }
+
+    // Rest of the existing parsing logic for non-JSON responses
     const websiteRegex = /(?:website|url|web\s*site):\s*(https?:\/\/[^\s,)]+)/i;
     const websiteMatch = result.match(websiteRegex);
     if (websiteMatch) {
@@ -135,7 +175,6 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       }
     }
 
-    // Rest of the parsing logic
     if (result.includes("employees") || result.includes("staff")) {
       const sizeMatch = result.match(/(\d+)\s*(employees|staff)/i);
       if (sizeMatch) {
@@ -143,48 +182,11 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       }
     }
 
-    if (result.includes("founded") || result.includes("established")) {
-      const yearMatch = result.match(/founded\s*in\s*(\d{4})/i);
-      if (yearMatch) {
-        const foundedYear = parseInt(yearMatch[1]);
-        companyData.age = new Date().getFullYear() - foundedYear;
-      }
-    }
-
-    if (result.toLowerCase().includes("services") || result.toLowerCase().includes("offerings")) {
-      const services = result
-        .split(/[.,;]/)
-        .filter(s =>
-          s.toLowerCase().includes("service") ||
-          s.toLowerCase().includes("offering") ||
-          s.toLowerCase().includes("solution")
-        )
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
-
-      if (services.length > 0) {
-        companyData.services = services;
-      }
-    }
-
-    const validationPoints = result
-      .split(/[.!?]/)
-      .map(s => s.trim())
-      .filter(s =>
-        s.length > 20 &&
-        (s.includes("success") || s.includes("achievement") || s.includes("award"))
-      );
-
-    if (validationPoints.length > 0) {
-      companyData.validationPoints = validationPoints;
-    }
-
+    // Calculate score based on available information
     let score = 50;
     if (companyData.size && companyData.size > 50) score += 10;
-    if (companyData.age && companyData.age > 5) score += 10;
-    if (companyData.services && companyData.services.length > 2) score += 10;
-    if (companyData.validationPoints && companyData.validationPoints.length > 0) score += 10;
-    if (companyData.differentiation && companyData.differentiation.length === 3) score += 10;
+    if (companyData.contacts && companyData.contacts.length > 0) score += 20;
+    if (companyData.differentiation && companyData.differentiation.length === 3) score += 20;
 
     companyData.totalScore = Math.min(100, score);
   }
