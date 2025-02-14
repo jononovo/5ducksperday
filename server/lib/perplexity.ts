@@ -218,33 +218,30 @@ function isGenericName(name: string): boolean {
 export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
   const contactMap = new Map<string, Partial<Contact> & { score: number }>();
 
-  // Primary decision-maker roles
-  const decisionMakerRoles = {
-    'CEO': 10,
-    'Chief Executive Officer': 10,
-    'Founder': 10,
-    'Co-Founder': 10,
-    'Owner': 10,
-    'Managing Director': 9,
-    'President': 9,
-    'Principal': 9
-  };
+  // Primary decision-maker roles with context variations
+  const decisionMakerPatterns = [
+    { role: 'CEO', variations: ['Chief Executive Officer', 'Chief Executive', 'CEO'], score: 10 },
+    { role: 'Owner', variations: ['Owner', 'Principal Owner', 'Managing Owner', 'Business Owner'], score: 10 },
+    { role: 'Founder', variations: ['Founder', 'Co-Founder', 'Founding Partner'], score: 10 },
+    { role: 'President', variations: ['President', 'Company President'], score: 9 },
+    { role: 'Managing Director', variations: ['Managing Director', 'MD'], score: 9 },
+    { role: 'Principal', variations: ['Principal', 'Managing Principal'], score: 9 }
+  ];
 
-  // Secondary leadership roles for fallback
-  const leadershipRoles = {
-    'CTO': 8,
-    'Chief Technology Officer': 8,
-    'COO': 8,
-    'Chief Operating Officer': 8,
-    'CFO': 8,
-    'Chief Financial Officer': 8,
-    'VP': 7,
-    'Vice President': 7,
-    'Director': 6,
-    'Head of': 5
-  };
+  // Leadership context indicators
+  const leadershipIndicators = [
+    'leads', 'founded', 'started', 'owns', 'runs', 'heads',
+    'established', 'launched', 'directs', 'manages', 'oversees'
+  ];
 
-  // Enhanced regex patterns
+  // Ownership context patterns
+  const ownershipPatterns = [
+    /founded (?:by|in \d{4} by)/i,
+    /(?:owned|run|managed|led) by/i,
+    /(?:the|company's) (?:owner|founder|principal)/i,
+    /(?:primary|main) decision[- ]maker/i
+  ];
+
   const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
   const nameRegex = /([A-Z][a-z]{1,20})\s+([A-Z][a-z]{1,20})(?:\s+[A-Z][a-z]{1,20})?/g;
 
@@ -258,7 +255,6 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
     const names = Array.from(result.matchAll(nameRegex))
       .map(match => match[0])
       .filter(name => {
-        // Filter out organization names
         if (orgSuffixes.some(suffix =>
           name.includes(suffix) ||
           name.includes(suffix.toUpperCase())
@@ -266,20 +262,18 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
           return false;
         }
 
-        // Filter out generic names
         if (isGenericName(name)) {
           return false;
         }
 
-        // Additional validation for names
         const nameParts = name.split(' ');
         return (
-          nameParts.length >= 2 && // Must have at least first and last name
-          nameParts.length <= 3 && // No more than three parts
+          nameParts.length >= 2 &&
+          nameParts.length <= 3 &&
           nameParts.every(part =>
-            part.length >= 2 && // Each part must be at least 2 chars
-            part.length <= 20 && // Each part must be no more than 20 chars
-            /^[A-Z][a-z]+$/.test(part) // Must start with capital letter, followed by lowercase
+            part.length >= 2 &&
+            part.length <= 20 &&
+            /^[A-Z][a-z]+$/.test(part)
           )
         );
       });
@@ -288,54 +282,81 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
       .filter(email => !isPlaceholderEmail(email));
 
     for (const name of names) {
-      // First try to find decision-maker roles
-      let nearestRole = Object.entries(decisionMakerRoles).find(([role]) =>
-        result.toLowerCase().includes(`${name.toLowerCase()}`) &&
-        result.toLowerCase().includes(role.toLowerCase()) &&
-        Math.abs(
-          result.toLowerCase().indexOf(name.toLowerCase()) -
-          result.toLowerCase().indexOf(role.toLowerCase())
-        ) < 100
-      );
+      let bestRole = null;
+      let bestScore = 0;
+      const nameContext = result.substring(
+        Math.max(0, result.indexOf(name) - 100),
+        Math.min(result.length, result.indexOf(name) + 100)
+      ).toLowerCase();
 
-      // If no decision-maker role found, try leadership roles
-      if (!nearestRole) {
-        nearestRole = Object.entries(leadershipRoles).find(([role]) =>
-          result.toLowerCase().includes(`${name.toLowerCase()}`) &&
-          result.toLowerCase().includes(role.toLowerCase()) &&
-          Math.abs(
-            result.toLowerCase().indexOf(name.toLowerCase()) -
-            result.toLowerCase().indexOf(role.toLowerCase())
-          ) < 100
-        );
+      // Check for decision-maker patterns
+      for (const pattern of decisionMakerPatterns) {
+        for (const variation of pattern.variations) {
+          if (nameContext.includes(variation.toLowerCase())) {
+            const distance = Math.abs(
+              nameContext.indexOf(variation.toLowerCase()) -
+              nameContext.indexOf(name.toLowerCase())
+            );
+            const proximityScore = Math.max(0, 5 - Math.floor(distance / 20));
+            const score = pattern.score + proximityScore;
+
+            if (score > bestScore) {
+              bestRole = pattern.role;
+              bestScore = score;
+            }
+          }
+        }
       }
 
-      if (nearestRole) {
+      // Check for leadership indicators
+      const hasLeadershipContext = leadershipIndicators.some(indicator =>
+        nameContext.includes(indicator)
+      );
+      if (hasLeadershipContext) {
+        bestScore += 3;
+      }
+
+      // Check for ownership context
+      const hasOwnershipContext = ownershipPatterns.some(pattern =>
+        pattern.test(nameContext)
+      );
+      if (hasOwnershipContext) {
+        bestScore += 5;
+      }
+
+      // If no direct role found but strong leadership context exists
+      if (!bestRole && (hasLeadershipContext || hasOwnershipContext)) {
+        bestRole = 'Owner'; // Assume ownership/leadership role
+        bestScore = 8; // Lower score due to assumption
+      }
+
+      if (bestRole || bestScore >= 8) {
         const nearestEmail = emails.find(email =>
-          result.indexOf(email) - result.indexOf(name) < 100 &&
-          result.indexOf(email) - result.indexOf(name) > -100
+          Math.abs(result.indexOf(email) - result.indexOf(name)) < 100
         );
 
-        const score = nearestRole[1] + (nearestEmail ? 5 : 0);
-        const contactKey = `${name}-${nearestRole[0]}-${nearestEmail || ''}`;
+        if (nearestEmail) {
+          bestScore += 5;
+        }
 
-        if (!contactMap.has(contactKey) || contactMap.get(contactKey)!.score < score) {
+        const contactKey = `${name}-${bestRole || 'Leader'}-${nearestEmail || ''}`;
+
+        if (!contactMap.has(contactKey) || contactMap.get(contactKey)!.score < bestScore) {
           contactMap.set(contactKey, {
             name,
             email: nearestEmail || null,
-            role: nearestRole[0],
-            priority: nearestRole[1] >= 9 ? 1 : nearestRole[1] >= 7 ? 2 : 3, // Priority based on role importance
-            score
+            role: bestRole || 'Leader',
+            priority: bestScore >= 12 ? 1 : bestScore >= 8 ? 2 : 3,
+            score: bestScore
           });
         }
       }
     }
   }
 
-  // Return only the highest scored contacts
   return Array.from(contactMap.values())
     .sort((a, b) => b.score - a.score)
-    .slice(0, 3); // Limit to top 3 contacts
+    .slice(0, 3);
 }
 
 function parseLocalSourceDetails(response: string): LocalSourcesSearchResult {
