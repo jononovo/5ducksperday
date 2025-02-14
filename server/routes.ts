@@ -169,7 +169,7 @@ export function registerRoutes(app: Express) {
                 name: contact.name!,
                 role: contact.role ?? null,
                 email: contact.email ?? null,
-                priority: contact.priority ?? null,
+                probability: contact.probability ?? null, // Changed from priority to probability
                 linkedinUrl: null,
                 twitterHandle: null,
                 phoneNumber: null,
