@@ -108,22 +108,17 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       // Extract decision makers as contacts
       const contacts: Partial<Contact>[] = [];
 
-      if (jsonData.decision_maker_1?.name) {
-        contacts.push({
-          name: jsonData.decision_maker_1.name,
-          role: jsonData.decision_maker_1.designation,
-          email: jsonData.decision_maker_1.email,
-          priority: 1
-        });
-      }
-
-      if (jsonData.decision_maker_2?.name) {
-        contacts.push({
-          name: jsonData.decision_maker_2.name,
-          role: jsonData.decision_maker_2.designation,
-          email: jsonData.decision_maker_2.email,
-          priority: 2
-        });
+      // Process up to 5 decision makers
+      for (let i = 1; i <= 5; i++) {
+        const decisionMaker = jsonData[`decision_maker_${i}`];
+        if (decisionMaker?.name) {
+          contacts.push({
+            name: decisionMaker.name,
+            role: decisionMaker.designation,
+            email: decisionMaker.email,
+            priority: i
+          });
+        }
       }
 
       // Add the contacts to company data
