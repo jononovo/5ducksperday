@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { Bird } from "lucide-react";
 
 const navigation = [
   { name: "Planning", href: "/planning" },
@@ -13,11 +14,15 @@ export default function MainNav() {
   const [location] = useLocation();
 
   return (
-    <nav className="flex space-x-4 border-b mb-6 px-6 py-4">
+    <nav className="flex items-center space-x-4 border-b mb-4 px-4 py-3">
+      <div className="flex items-center gap-2 mr-8">
+        <Bird className="h-6 w-6 text-primary" />
+        <span className="font-semibold text-lg">5 Chicks</span>
+      </div>
       {navigation.map((item) => {
         const isActive = item.href === location || 
           (item.href === "/" && location === "/");
-        
+
         return (
           <Link
             key={item.name}
@@ -26,7 +31,7 @@ export default function MainNav() {
               isActive
                 ? "text-primary font-semibold border-b-2 border-primary"
                 : "text-muted-foreground hover:text-foreground"
-            } px-3 py-2 text-sm font-medium transition-colors`}
+            } px-2 py-1.5 text-sm font-medium transition-colors`}
           >
             {item.name}
           </Link>

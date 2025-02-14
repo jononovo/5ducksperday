@@ -1,7 +1,7 @@
-import { useRef, useEffect } from "react";
-import { Editor } from "@tinymce/tinymce-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -22,20 +22,13 @@ export default function PromptEditor({
   isAnalyzing,
   initialPrompt = ""
 }: PromptEditorProps) {
-  const editorRef = useRef<any>(null);
+  const [query, setQuery] = useState(initialPrompt);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Set initial content when editor is initialized
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.setContent(initialPrompt);
-    }
-  }, [initialPrompt, editorRef.current]);
-
   const searchMutation = useMutation({
-    mutationFn: async (query: string) => {
-      const res = await apiRequest("POST", "/api/companies/search", { query });
+    mutationFn: async (searchQuery: string) => {
+      const res = await apiRequest("POST", "/api/companies/search", { query: searchQuery });
       return res.json();
     },
     onSuccess: (data) => {
@@ -58,11 +51,7 @@ export default function PromptEditor({
   });
 
   const handleSearch = () => {
-    if (!editorRef.current) return;
-
-    const content = editorRef.current.getContent();
-    const query = content.replace(/<[^>]+>/g, '').trim();
-    if (!query) {
+    if (!query.trim()) {
       toast({
         title: "Empty Query",
         description: "Please enter a search query.",
@@ -75,32 +64,14 @@ export default function PromptEditor({
   };
 
   return (
-    <Card className="p-4">
-      <Editor
-        apiKey="fjabklzyygfhfq8550mc9ts3lm6xh2bbgbuyoxo2huzgyp8e"
-        onInit={(_evt, editor) => {
-          editorRef.current = editor;
-          if (initialPrompt) {
-            editor.setContent(initialPrompt);
-          }
-        }}
-        initialValue={initialPrompt}
-        init={{
-          height: 300,
-          menubar: false,
-          plugins: [
-            'advlist', 'autolink', 'lists', 'link', 'charmap', 'preview',
-            'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'media', 'table', 'help', 'wordcount'
-          ],
-          toolbar: 'undo redo | blocks | ' +
-            'bold italic forecolor | alignleft aligncenter ' +
-            'alignright alignjustify | bullist numlist outdent indent | ' +
-            'removeformat | help',
-          placeholder: 'Enter a search query (e.g., "mid-sized plumbers in Atlanta")...',
-        }}
-      />
-      <div className="mt-4 flex justify-end">
+    <Card className="p-3">
+      <div className="flex gap-2">
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
+          className="flex-1"
+        />
         <Button 
           onClick={handleSearch} 
           disabled={isAnalyzing || searchMutation.isPending}
@@ -109,7 +80,7 @@ export default function PromptEditor({
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
           <Search className="mr-2 h-4 w-4" />
-          Search Companies
+          Search
         </Button>
       </div>
     </Card>

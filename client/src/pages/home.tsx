@@ -97,11 +97,11 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex flex-col gap-8">
+    <div className="container mx-auto py-6">
+      <div className="flex flex-col gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Business Intelligence Tool</CardTitle>
+            <CardTitle>Search for target businesses</CardTitle>
           </CardHeader>
           <CardContent>
             <PromptEditor 
@@ -109,12 +109,12 @@ export default function Home() {
               onComplete={handleAnalysisComplete}
               onSearchResults={handleSearchResults}
               isAnalyzing={isAnalyzing}
-              initialPrompt={currentQuery || ""} // Pass the current query to PromptEditor
+              initialPrompt={currentQuery || ""} 
             />
           </CardContent>
         </Card>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
@@ -132,7 +132,7 @@ export default function Home() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3">
               <SearchApproaches approaches={searchApproaches} />
             </CardContent>
           </Card>
@@ -158,7 +158,7 @@ export default function Home() {
                 </p>
               )}
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3">
               <CompanyTable companies={currentResults || []} />
             </CardContent>
           </Card>
