@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   Accordion,
   AccordionContent,
@@ -12,14 +13,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import type { SearchApproach } from "@shared/schema";
-import { Check } from "lucide-react";
+import { Check, Edit2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
 interface SearchApproachesProps {
   approaches: SearchApproach[];
 }
 
-const SEARCH_SECTIONS = {
+const DEFAULT_SEARCH_SECTIONS = {
   search_options: {
     id: "search_options",
     label: "Search Options",
@@ -164,6 +165,8 @@ function SubSearches({
 }: SubSearchesProps) {
   const isCompanyOverview = approach.name.toLowerCase().includes('company overview');
   const isDecisionMaker = approach.name.toLowerCase().includes('decision-maker');
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  const [searchSections, setSearchSections] = useState(DEFAULT_SEARCH_SECTIONS);
 
   if (!isCompanyOverview && !isDecisionMaker) {
     return null;
@@ -175,8 +178,13 @@ function SubSearches({
   useEffect(() => {
     if (isEditing) {
       setCurrentSubsearches(defaultSubsearches);
+      // Load saved section configurations if they exist
+      const savedSections = (approach.config as any)?.searchSections;
+      if (savedSections) {
+        setSearchSections(savedSections);
+      }
     }
-  }, [isEditing, defaultSubsearches]);
+  }, [isEditing, defaultSubsearches, approach.config]);
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
     if (isEditing && onSubSearchChange) {
@@ -189,7 +197,31 @@ function SubSearches({
     }
   };
 
-  const renderSearchSection = (section: typeof SEARCH_SECTIONS.local) => {
+  const handleSectionEdit = (sectionId: string) => {
+    setEditingSectionId(sectionId);
+  };
+
+  const handleSectionSave = (sectionId: string) => {
+    setEditingSectionId(null);
+    // Here you would typically save the updated searchSections to your backend
+
+  };
+
+  const handleSearchOptionUpdate = (sectionId: string, searchId: string, field: 'label' | 'description', value: string) => {
+    setSearchSections(prev => ({
+      ...prev,
+      [sectionId]: {
+        ...prev[sectionId],
+        searches: prev[sectionId].searches.map(search =>
+          search.id === searchId
+            ? { ...search, [field]: value }
+            : search
+        )
+      }
+    }));
+  };
+
+  const renderSearchSection = (section: typeof DEFAULT_SEARCH_SECTIONS.search_options) => {
     // Skip search options section for Decision-maker Analysis
     if (section.id === 'search_options' && !isCompanyOverview) {
       return null;
@@ -210,6 +242,8 @@ function SubSearches({
         ? searchOptions?.[search.id.replace('-', '').replace('-', '')] ?? false
         : currentSubsearches[search.id] ?? false
     );
+
+    const isEditingSection = editingSectionId === section.id;
 
     const handleMasterCheckboxChange = (checked: boolean) => {
       if (section.id === 'search_options') {
@@ -237,17 +271,29 @@ function SubSearches({
     return (
       <AccordionItem key={section.id} value={section.id}>
         <div>
-          <AccordionTrigger className="flex items-center gap-2 py-2">
-            <Checkbox
-              id={`master-${section.id}`}
-              checked={allChecked}
-              data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
-              onCheckedChange={handleMasterCheckboxChange}
-              onClick={(e) => e.stopPropagation()}
-              className="mr-2"
-            />
-            <span>{section.label}</span>
-          </AccordionTrigger>
+          <div className="flex items-center justify-between">
+            <AccordionTrigger className="flex items-center gap-2 py-2">
+              <Checkbox
+                id={`master-${section.id}`}
+                checked={allChecked}
+                data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
+                onCheckedChange={handleMasterCheckboxChange}
+                onClick={(e) => e.stopPropagation()}
+                className="mr-2"
+              />
+              <span>{section.label}</span>
+            </AccordionTrigger>
+            {isEditing && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => handleSectionEdit(section.id)}
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
           {section.description && (
             <p className="text-xs text-muted-foreground mt-1 ml-10 mb-2">{section.description}</p>
           )}
@@ -280,20 +326,42 @@ function SubSearches({
                       <Check className="h-4 w-4 text-green-500" />
                     )}
                   </div>
-                  <div className="grid gap-1.5 leading-none">
-                    <label
-                      htmlFor={search.id}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {search.label}
-                    </label>
-                    <p className="text-sm text-muted-foreground">
-                      {search.description}
-                    </p>
+                  <div className="grid gap-1.5 leading-none flex-1">
+                    {isEditingSection ? (
+                      <>
+                        <Input
+                          value={search.label}
+                          onChange={(e) => handleSearchOptionUpdate(section.id, search.id, 'label', e.target.value)}
+                          className="h-7 text-sm"
+                        />
+                        <Input
+                          value={search.description}
+                          onChange={(e) => handleSearchOptionUpdate(section.id, search.id, 'description', e.target.value)}
+                          className="h-7 text-sm text-muted-foreground"
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <label
+                          htmlFor={search.id}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {search.label}
+                        </label>
+                        <p className="text-sm text-muted-foreground">
+                          {search.description}
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
               );
             })}
+            {isEditingSection && (
+              <Button size="sm" onClick={() => handleSectionSave(section.id)} className="mt-4">
+                Save Changes
+              </Button>
+            )}
           </div>
         </AccordionContent>
       </AccordionItem>
@@ -303,7 +371,7 @@ function SubSearches({
   return (
     <div className="mt-4">
       <Accordion type="multiple" className="w-full">
-        {Object.values(SEARCH_SECTIONS).map(section => renderSearchSection(section))}
+        {Object.values(searchSections).map(section => renderSearchSection(section))}
       </Accordion>
     </div>
   );
@@ -363,7 +431,8 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
         responseStructure: editedResponseStructure || null,
         config: {
           subsearches: editedSubSearches,
-          searchOptions: searchOptions
+          searchOptions: searchOptions,
+          searchSections: searchSections
         },
         completedSearches
       }
