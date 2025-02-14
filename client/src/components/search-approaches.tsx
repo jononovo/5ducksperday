@@ -25,7 +25,6 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
   const [editedPrompt, setEditedPrompt] = useState("");
   const [editedTechnicalPrompt, setEditedTechnicalPrompt] = useState("");
   const [editedResponseStructure, setEditedResponseStructure] = useState("");
-  const [editedSubSearches, setEditedSubSearches] = useState<Record<string, boolean>>({});
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
@@ -38,7 +37,6 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
       setEditedPrompt("");
       setEditedTechnicalPrompt("");
       setEditedResponseStructure("");
-      setEditedSubSearches({});
     },
   });
 
@@ -47,9 +45,6 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
     setEditedPrompt(approach.prompt);
     setEditedTechnicalPrompt(approach.technicalPrompt || "");
     setEditedResponseStructure(approach.responseStructure || "");
-    setEditedSubSearches(
-      ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean>) || {}
-    );
   };
 
   const handleSave = (id: number) => {
@@ -58,10 +53,7 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
       updates: {
         prompt: editedPrompt,
         technicalPrompt: editedTechnicalPrompt || null,
-        responseStructure: editedResponseStructure || null,
-        config: {
-          subsearches: editedSubSearches
-        }
+        responseStructure: editedResponseStructure || null
       }
     });
   };
@@ -72,151 +64,139 @@ export default function SearchApproaches({ approaches, isSearching }: SearchAppr
 
   return (
     <Accordion type="multiple" className="w-full">
-      {approaches.map((approach) => {
-        const subsearches = ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean>) || {};
-        const isActive = approach.active ?? false;
-        const hasActiveSearches = Object.values(subsearches).some(v => v);
-
-        return (
-          <AccordionItem key={approach.id} value={approach.id.toString()}>
-            <div className="flex items-center px-4 py-2">
-              <AccordionTrigger className="flex-1 hover:no-underline">
+      {approaches.map((approach) => (
+        <AccordionItem key={approach.id} value={approach.id.toString()}>
+          <div className="flex items-center px-4 py-2">
+            <Switch
+              checked={approach.active ?? false}
+              onCheckedChange={(checked) => handleToggle(approach.id, checked)}
+              className="scale-75 mr-2"
+            />
+            <AccordionTrigger className="flex-1 hover:no-underline">
+              <div className="flex justify-between items-center w-full mr-4">
                 <span>{approach.name}</span>
-              </AccordionTrigger>
-              <div className="flex items-center gap-2 ml-2">
-                {isActive && hasActiveSearches && (
-                  <>
-                    {isSearching && (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    )}
-                    {!isSearching && approach.completedSearches?.length > 0 && (
-                      <Check className="h-4 w-4 text-green-500" />
-                    )}
-                  </>
-                )}
-                <Switch
-                  checked={isActive}
-                  onCheckedChange={(checked) => handleToggle(approach.id, checked)}
-                  className="scale-75"
+                <Checkbox 
+                  className="opacity-50 pointer-events-none" 
+                  checked={false}
                 />
               </div>
-            </div>
-            <AccordionContent>
-              <div className="space-y-4 p-4">
-                {editingId === approach.id ? (
-                  <>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">User-Facing Prompt</label>
-                      <Textarea
-                        value={editedPrompt}
-                        onChange={(e) => setEditedPrompt(e.target.value)}
-                        placeholder="Enter the user-facing prompt..."
-                        className="min-h-[100px]"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Technical Prompt</label>
-                      <Textarea
-                        value={editedTechnicalPrompt}
-                        onChange={(e) => setEditedTechnicalPrompt(e.target.value)}
-                        placeholder="Enter the technical implementation prompt..."
-                        className="min-h-[100px]"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Response Structure</label>
-                      <Textarea
-                        value={editedResponseStructure}
-                        onChange={(e) => setEditedResponseStructure(e.target.value)}
-                        placeholder="Enter the expected JSON response structure..."
-                        className="min-h-[100px] font-mono"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => handleSave(approach.id)}
-                        disabled={updateMutation.isPending}
-                      >
-                        Save
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setEditingId(null)}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm text-muted-foreground">{approach.prompt}</p>
-                    <Accordion type="multiple" className="w-full space-y-2">
-                      {Object.values(SEARCH_SECTIONS).map((section) => (
-                        <AccordionItem key={section.id} value={section.id}>
-                          <AccordionTrigger className="px-4 py-2">
-                            <div className="flex items-center justify-between w-full">
-                              <span className={!isActive ? "text-muted-foreground/50" : ""}>
-                                {section.label}
-                              </span>
-                              <Checkbox
-                                id={`master-${section.id}`}
-                                checked={section.searches.every(s => subsearches[s.id])}
-                                className={!isActive ? "text-muted-foreground/50" : ""}
-                                disabled={!isActive}
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="pl-8 space-y-3">
-                            {section.searches.map((search) => (
-                              <div key={search.id} className="flex items-start gap-3">
-                                <div className="flex-1">
-                                  <label
-                                    htmlFor={search.id}
-                                    className={`text-sm font-medium block ${!isActive ? "text-muted-foreground/50" : ""}`}
-                                  >
-                                    {search.label}
-                                  </label>
-                                  <p className={`text-sm ${!isActive ? "text-muted-foreground/30" : "text-muted-foreground"}`}>
-                                    {search.description}
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-2 pt-1">
-                                  <Checkbox
-                                    id={search.id}
-                                    checked={subsearches[search.id] || false}
-                                    className={!isActive ? "text-muted-foreground/50" : ""}
-                                    disabled={!isActive}
-                                  />
-                                  {isActive && isSearching && subsearches[search.id] && (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  )}
-                                  {isActive && !isSearching && approach.completedSearches?.includes(search.id) && (
-                                    <Check className="h-4 w-4 text-green-500" />
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
+            </AccordionTrigger>
+          </div>
+          <AccordionContent>
+            <div className="space-y-4 p-4">
+              {editingId === approach.id ? (
+                <>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">User-Facing Prompt</label>
+                    <Textarea
+                      value={editedPrompt}
+                      onChange={(e) => setEditedPrompt(e.target.value)}
+                      placeholder="Enter the user-facing prompt..."
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Technical Prompt</label>
+                    <Textarea
+                      value={editedTechnicalPrompt}
+                      onChange={(e) => setEditedTechnicalPrompt(e.target.value)}
+                      placeholder="Enter the technical implementation prompt..."
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Response Structure</label>
+                    <Textarea
+                      value={editedResponseStructure}
+                      onChange={(e) => setEditedResponseStructure(e.target.value)}
+                      placeholder="Enter the expected JSON response structure..."
+                      className="min-h-[100px] font-mono"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleSave(approach.id)}
+                      disabled={updateMutation.isPending}
+                    >
+                      Save
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleEdit(approach)}
+                      onClick={() => setEditingId(null)}
                     >
-                      Edit Prompt
+                      Cancel
                     </Button>
-                  </>
-                )}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        )
-      })}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">{approach.prompt}</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(approach)}
+                  >
+                    Edit Prompt
+                  </Button>
+                  <Accordion type="multiple" className="w-full space-y-2">
+                    {Object.values(SEARCH_SECTIONS).map((section) => (
+                      <AccordionItem key={section.id} value={section.id}>
+                        <AccordionTrigger className="px-4 py-2">
+                          <div className="flex items-center justify-between w-full">
+                            <span className={!approach.active ? "text-muted-foreground/50" : ""}>
+                              {section.label}
+                            </span>
+                            <Checkbox
+                              id={`master-${section.id}`}
+                              checked={section.searches.every(s => ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {})[s.id])}
+                              className={!approach.active ? "text-muted-foreground/50" : ""}
+                              disabled={!approach.active}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pl-8 space-y-3">
+                          {section.searches.map((search) => (
+                            <div key={search.id} className="flex items-start gap-3">
+                              <div className="flex-1">
+                                <label
+                                  htmlFor={search.id}
+                                  className={`text-sm font-medium block ${!approach.active ? "text-muted-foreground/50" : ""}`}
+                                >
+                                  {search.label}
+                                </label>
+                                <p className={`text-sm ${!approach.active ? "text-muted-foreground/30" : "text-muted-foreground"}`}>
+                                  {search.description}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 pt-1">
+                                <Checkbox
+                                  id={search.id}
+                                  checked={((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {})[search.id] || false}
+                                  className={!approach.active ? "text-muted-foreground/50" : ""}
+                                  disabled={!approach.active}
+                                />
+                                {approach.active && isSearching && ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {})[search.id] && (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                )}
+                                {approach.active && !isSearching && approach.completedSearches?.includes(search.id) && (
+                                  <Check className="h-4 w-4 text-green-500" />
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </>
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      ))}
     </Accordion>
   );
 }
