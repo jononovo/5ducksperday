@@ -136,29 +136,14 @@ export function registerRoutes(app: Express) {
 
           // Parse results
           const companyData = parseCompanyData(analysisResults);
-          const contacts = extractContacts(analysisResults);
-
-          // Create company record with explicit field mapping
-          const company = await storage.createCompany({
-            name: companyName,
-            listId: null,
-            age: companyData.age ?? null,
-            size: companyData.size ?? null,
-            website: companyData.website?.trim() || null,
-            alternativeProfileUrl: companyData.alternativeProfileUrl?.trim() || null,
-            defaultContactEmail: companyData.defaultContactEmail?.trim() ?? null,
-            ranking: companyData.ranking ?? null,
-            linkedinProminence: companyData.linkedinProminence ?? null,
-            customerCount: companyData.customerCount ?? null,
-            rating: companyData.rating ?? null,
-            services: companyData.services ?? null,
-            validationPoints: companyData.validationPoints ?? null,
-            differentiation: companyData.differentiation ?? null,
-            totalScore: companyData.totalScore ?? null,
-            snapshot: companyData.snapshot || {}
+          // Extract contacts with validation options
+          const contacts = await extractContacts(analysisResults, {
+            useLocalValidation: true,
+            localValidationWeight: 0.3,
+            minimumScore: 20
           });
 
-          // Create contacts from the decision-maker analysis
+          // Filter valid contacts after awaiting the contacts array
           const validContacts = contacts.filter(contact => contact.name && contact.name !== "Unknown");
 
           // Create contact records with basic information
@@ -169,7 +154,7 @@ export function registerRoutes(app: Express) {
                 name: contact.name!,
                 role: contact.role ?? null,
                 email: contact.email ?? null,
-                probability: contact.probability ?? null, // Changed from priority to probability
+                probability: contact.probability ?? null,
                 linkedinUrl: null,
                 twitterHandle: null,
                 phoneNumber: null,
