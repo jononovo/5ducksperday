@@ -136,6 +136,13 @@ export function registerRoutes(app: Express) {
 
           // Parse results
           const companyData = parseCompanyData(analysisResults);
+
+          // Create the company record first
+          const createdCompany = await storage.createCompany({
+            name: companyName,
+            ...companyData
+          });
+
           // Extract contacts with validation options
           const contacts = await extractContacts(analysisResults, {
             useLocalValidation: true,
@@ -150,7 +157,7 @@ export function registerRoutes(app: Express) {
           const createdContacts = await Promise.all(
             validContacts.map(contact =>
               storage.createContact({
-                companyId: company.id,
+                companyId: createdCompany.id,
                 name: contact.name!,
                 role: contact.role ?? null,
                 email: contact.email ?? null,
@@ -160,12 +167,15 @@ export function registerRoutes(app: Express) {
                 phoneNumber: null,
                 department: null,
                 location: null,
-                verificationSource: 'Decision-maker Analysis'
+                verificationSource: 'Decision-maker Analysis',
+                nameConfidenceScore: contact.nameConfidenceScore ?? null,
+                userFeedbackScore: null,
+                feedbackCount: 0
               })
             )
           );
 
-          return { ...company, contacts: createdContacts };
+          return { ...createdCompany, contacts: createdContacts };
         })
       );
 
