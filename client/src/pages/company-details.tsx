@@ -213,7 +213,7 @@ export default function CompanyDetails() {
                   <TableHead>Name</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Priority</TableHead>
+                  <TableHead>Score</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -223,8 +223,8 @@ export default function CompanyDetails() {
                     <TableCell>{contact.role}</TableCell>
                     <TableCell>{contact.email}</TableCell>
                     <TableCell>
-                      <Badge variant={contact.priority === 1 ? "default" : "secondary"}>
-                        Priority {contact.priority}
+                      <Badge variant={contact.probability && contact.probability >= 90 ? "default" : "secondary"}>
+                        {contact.probability || 0}
                       </Badge>
                     </TableCell>
                   </TableRow>
