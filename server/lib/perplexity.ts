@@ -357,103 +357,118 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
   ];
 
   for (const result of analysisResults) {
-    const names = Array.from(result.matchAll(nameRegex))
-      .map(match => match[0])
-      .filter(name => {
-        if (orgSuffixes.some(suffix =>
-          name.includes(suffix) ||
-          name.includes(suffix.toUpperCase())
-        )) {
-          return false;
+    try {
+      // Try to parse JSON first
+      const jsonData = JSON.parse(result);
+
+      // Extract decision makers from JSON structure
+      for (let i = 1; i <= 5; i++) {
+        const decisionMaker = jsonData[`decision_maker_${i}`];
+        if (decisionMaker?.name && !isGenericName(decisionMaker.name)) {
+          const probability = Math.min(100, (6 - i) * 20); // Higher probability for earlier entries
+          contactMap.set(decisionMaker.name, {
+            name: decisionMaker.name,
+            role: decisionMaker.designation,
+            email: decisionMaker.email,
+            probability,
+            score: probability / 5
+          });
         }
+      }
+    } catch (e) {
+      console.log('JSON parsing failed, falling back to text extraction:', e);
 
-        if (isGenericName(name)) {
-          return false;
-        }
+      const names = Array.from(result.matchAll(nameRegex))
+        .map(match => match[0])
+        .filter(name => {
+          // Relaxed name validation
+          if (orgSuffixes.some(suffix => 
+            name.includes(suffix) || 
+            name.includes(suffix.toUpperCase())
+          )) {
+            return false;
+          }
 
-        const nameParts = name.split(' ');
-        return (
-          nameParts.length >= 2 &&
-          nameParts.length <= 3 &&
-          nameParts.every(part =>
-            part.length >= 2 &&
-            part.length <= 20 &&
-            /^[A-Z][a-z]+$/.test(part)
-          )
-        );
-      });
+          const nameParts = name.split(' ');
+          return (
+            nameParts.length >= 2 &&
+            nameParts.length <= 3 &&
+            nameParts.every(part => 
+              part.length >= 2 && 
+              /^[A-Z][a-z]+$/.test(part)
+            )
+          );
+        });
 
-    const emails = (result.match(emailRegex) || [])
-      .filter(email => !isPlaceholderEmail(email));
+      const emails = (result.match(emailRegex) || [])
+        .filter(email => !isPlaceholderEmail(email));
 
-    for (const name of names) {
-      let bestRole = null;
-      let bestScore = 0;
-      const nameContext = result.substring(
-        Math.max(0, result.indexOf(name) - 100),
-        Math.min(result.length, result.indexOf(name) + 100)
-      ).toLowerCase();
+      for (const name of names) {
+        let bestRole = null;
+        let bestScore = 0;
+        const nameContext = result.substring(
+          Math.max(0, result.indexOf(name) - 100),
+          Math.min(result.length, result.indexOf(name) + 100)
+        ).toLowerCase();
 
-      // Check for decision-maker patterns
-      for (const pattern of decisionMakerPatterns) {
-        for (const variation of pattern.variations) {
-          if (nameContext.includes(variation.toLowerCase())) {
-            const distance = Math.abs(
-              nameContext.indexOf(variation.toLowerCase()) -
-              nameContext.indexOf(name.toLowerCase())
-            );
-            const proximityScore = Math.max(0, 5 - Math.floor(distance / 20));
-            const score = pattern.score + proximityScore;
+        // Check for decision-maker patterns
+        for (const pattern of decisionMakerPatterns) {
+          for (const variation of pattern.variations) {
+            if (nameContext.includes(variation.toLowerCase())) {
+              const distance = Math.abs(
+                nameContext.indexOf(variation.toLowerCase()) -
+                nameContext.indexOf(name.toLowerCase())
+              );
+              const proximityScore = Math.max(0, 5 - Math.floor(distance / 20));
+              const score = pattern.score + proximityScore;
 
-            if (score > bestScore) {
-              bestRole = pattern.role;
-              bestScore = score;
+              if (score > bestScore) {
+                bestRole = pattern.role;
+                bestScore = score;
+              }
             }
           }
         }
-      }
 
-      // Check for leadership indicators
-      const hasLeadershipContext = leadershipIndicators.some(indicator =>
-        nameContext.includes(indicator)
-      );
-      if (hasLeadershipContext) {
-        bestScore += 3;
-      }
-
-      // Check for ownership context
-      const hasOwnershipContext = ownershipPatterns.some(pattern =>
-        pattern.test(nameContext)
-      );
-      if (hasOwnershipContext) {
-        bestScore += 5;
-      }
-
-      // If no direct role found but strong leadership context exists
-      if (!bestRole && (hasLeadershipContext || hasOwnershipContext)) {
-        bestRole = 'Owner'; // Assume ownership/leadership role
-        bestScore = 8; // Lower score due to assumption
-      }
-
-      if (bestRole || bestScore >= 8) {
-        const nearestEmail = emails.find(email =>
-          Math.abs(result.indexOf(email) - result.indexOf(name)) < 100
+        // More lenient scoring for leadership context
+        const hasLeadershipContext = leadershipIndicators.some(indicator =>
+          nameContext.includes(indicator)
         );
+        if (hasLeadershipContext) {
+          bestScore += 3;
+        }
 
-        if (nearestEmail) {
+        // More lenient scoring for ownership context
+        const hasOwnershipContext = ownershipPatterns.some(pattern =>
+          pattern.test(nameContext)
+        );
+        if (hasOwnershipContext) {
           bestScore += 5;
         }
 
-        const contactKey = `${name}-${bestRole || 'Leader'}-${nearestEmail || ''}`;
+        // Lower threshold for accepting contacts
+        if (bestScore >= 5) { // Reduced from 8
+          const nearestEmail = emails.find(email =>
+            Math.abs(result.indexOf(email) - result.indexOf(name)) < 200 // Increased from 100
+          );
 
-        if (!contactMap.has(contactKey) || contactMap.get(contactKey)!.score < bestScore) {
-          contactMap.set(contactKey, {
-            name,
-            email: nearestEmail || null,
-            role: bestRole || 'Leader',
-            probability: Math.min(100, bestScore * 5), // Convert score to probability (0-100)
-            score: bestScore
-          });
+          if (nearestEmail) {
+            bestScore += 5;
+          }
+
+          const probability = Math.min(100, bestScore * 8); // More generous probability calculation
+
+          const contactKey = `${name}-${bestRole || 'Leader'}-${nearestEmail || ''}`;
+
+          if (!contactMap.has(contactKey) || contactMap.get(contactKey)!.score < bestScore) {
+            contactMap.set(contactKey, {
+              name,
+              email: nearestEmail || null,
+              role: bestRole || 'Leader',
+              probability,
+              score: bestScore
+            });
+          }
         }
       }
     }
@@ -461,7 +476,7 @@ export function extractContacts(analysisResults: string[]): Partial<Contact>[] {
 
   return Array.from(contactMap.values())
     .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
+    .map(({ score, ...contact }) => contact); // Remove internal score from output
 }
 
 function parseLocalSourceDetails(response: string): LocalSourcesSearchResult {
