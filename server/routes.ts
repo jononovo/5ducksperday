@@ -233,15 +233,21 @@ export function registerRoutes(app: Express) {
       console.log('Enabled subsearches:', subsearches);
 
       try {
+        console.log('Starting leadership analysis for company:', company.name);
+
         // Perform leadership analysis
         const analysisResult = await analyzeCompany(company.name, leadershipApproach.prompt);
+        console.log('Leadership analysis result:', analysisResult);
+
         const newContacts = extractContacts([analysisResult]);
+        console.log('Extracted contacts:', newContacts);
 
         // Remove existing contacts
         await storage.deleteContactsByCompany(companyId);
 
         // Create new contacts with enhanced details
         const validContacts = newContacts.filter(contact => contact.name && contact.name !== "Unknown");
+        console.log('Valid contacts for enrichment:', validContacts);
 
         const createdContacts = await Promise.all(
           validContacts.map(async contact => {
@@ -280,6 +286,7 @@ export function registerRoutes(app: Express) {
           })
         );
 
+        console.log('Created contacts:', createdContacts);
         res.json(createdContacts);
       } catch (error) {
         console.error('Contact enrichment error:', error);

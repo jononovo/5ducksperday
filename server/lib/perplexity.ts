@@ -414,72 +414,84 @@ async function deepSearchLocalSources(name: string, company: string, enabledSear
   const completedSearches: string[] = [];
   const details: LocalSourcesSearchResult = {};
 
-  // Create base messages for all searches
-  const baseMessages: PerplexityMessage[] = [
-    {
-      role: "system",
-      content: `You are a specialized contact researcher focusing on local business sources. Format your response using clear labels for each piece of information.`
+  try {
+    // Create base messages for all searches
+    const baseMessages: PerplexityMessage[] = [
+      {
+        role: "system",
+        content: `You are a specialized contact researcher focusing on local business sources. Format your response using clear labels for each piece of information found about ${name} from ${company}.`
+      }
+    ];
+
+    // Perform enabled searches sequentially
+    if (enabledSearches['local-news']) {
+      console.log('Executing local news search...');
+      const newsMessages = [...baseMessages];
+      newsMessages[0].content += ` Focus on local news articles, press releases, and media coverage.`;
+      newsMessages.push({
+        role: "user",
+        content: `Find information about ${name} from ${company} in local news sources, including speaking engagements and community involvement.`
+      });
+
+      const newsResponse = await queryPerplexity(newsMessages);
+      const newsDetails = parseLocalSourceDetails(newsResponse);
+      Object.assign(details, newsDetails);
+      completedSearches.push('local-news');
     }
-  ];
 
-  // Perform enabled searches sequentially
-  if (enabledSearches['local-news']) {
-    const newsMessages = [...baseMessages];
-    newsMessages[0].content += ` Focus on local news articles, press releases, and media coverage.`;
-    newsMessages.push({
-      role: "user",
-      content: `Find information about ${name} from ${company} in local news sources, including speaking engagements and community involvement.`
-    });
+    if (enabledSearches['business-associations']) {
+      console.log('Executing business associations search...');
+      const assocMessages = [...baseMessages];
+      assocMessages[0].content += ` Focus on business associations, chambers of commerce, and professional organizations.`;
+      assocMessages.push({
+        role: "user",
+        content: `Find information about ${name} from ${company} in local business association memberships and leadership roles.`
+      });
 
-    const newsResponse = await queryPerplexity(newsMessages);
-    const newsDetails = parseLocalSourceDetails(newsResponse);
-    Object.assign(details, newsDetails);
-    completedSearches.push('local-news');
+      const assocResponse = await queryPerplexity(assocMessages);
+      const assocDetails = parseLocalSourceDetails(assocResponse);
+      Object.assign(details, assocDetails);
+      completedSearches.push('business-associations');
+    }
+
+    if (enabledSearches['local-events']) {
+      console.log('Executing local events search...');
+      const eventMessages = [...baseMessages];
+      eventMessages[0].content += ` Focus on local business events, conferences, and speaking engagements.`;
+      eventMessages.push({
+        role: "user",
+        content: `Find information about ${name} from ${company} in local business events and speaking engagements.`
+      });
+
+      const eventResponse = await queryPerplexity(eventMessages);
+      const eventDetails = parseLocalSourceDetails(eventResponse);
+      Object.assign(details, eventDetails);
+      completedSearches.push('local-events');
+    }
+
+    if (enabledSearches['local-classifieds']) {
+      console.log('Executing local classifieds search...');
+      const classifiedMessages = [...baseMessages];
+      classifiedMessages[0].content += ` Focus on local business listings and classifieds.`;
+      classifiedMessages.push({
+        role: "user",
+        content: `Find information about ${name} from ${company} in local business listings and classifieds.`
+      });
+
+      const classifiedResponse = await queryPerplexity(classifiedMessages);
+      const classifiedDetails = parseLocalSourceDetails(classifiedResponse);
+      Object.assign(details, classifiedDetails);
+      completedSearches.push('local-classifieds');
+    }
+
+    console.log('Completed searches:', completedSearches);
+    console.log('Found details:', details);
+
+    return { ...details, completedSearches };
+  } catch (error) {
+    console.error('Error in deepSearchLocalSources:', error);
+    return { completedSearches };
   }
-
-  if (enabledSearches['business-associations']) {
-    const assocMessages = [...baseMessages];
-    assocMessages[0].content += ` Focus on business associations, chambers of commerce, and professional organizations.`;
-    assocMessages.push({
-      role: "user",
-      content: `Find information about ${name} from ${company} in local business association memberships and leadership roles.`
-    });
-
-    const assocResponse = await queryPerplexity(assocMessages);
-    const assocDetails = parseLocalSourceDetails(assocResponse);
-    Object.assign(details, assocDetails);
-    completedSearches.push('business-associations');
-  }
-
-  if (enabledSearches['local-events']) {
-    const eventMessages = [...baseMessages];
-    eventMessages[0].content += ` Focus on local business events, conferences, and speaking engagements.`;
-    eventMessages.push({
-      role: "user",
-      content: `Find information about ${name} from ${company} in local business events and speaking engagements.`
-    });
-
-    const eventResponse = await queryPerplexity(eventMessages);
-    const eventDetails = parseLocalSourceDetails(eventResponse);
-    Object.assign(details, eventDetails);
-    completedSearches.push('local-events');
-  }
-
-  if (enabledSearches['local-classifieds']) {
-    const classifiedMessages = [...baseMessages];
-    classifiedMessages[0].content += ` Focus on local business listings and classifieds.`;
-    classifiedMessages.push({
-      role: "user",
-      content: `Find information about ${name} from ${company} in local business listings and classifieds.`
-    });
-
-    const classifiedResponse = await queryPerplexity(classifiedMessages);
-    const classifiedDetails = parseLocalSourceDetails(classifiedResponse);
-    Object.assign(details, classifiedDetails);
-    completedSearches.push('local-classifieds');
-  }
-
-  return { ...details, completedSearches };
 }
 
 function parseLocalSourceDetails(response: string): LocalSourcesSearchResult {
