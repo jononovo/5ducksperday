@@ -16,6 +16,7 @@ interface PerplexityResponse {
 
 // Validate names using Perplexity AI
 export async function validateNames(names: string[]): Promise<Record<string, number>> {
+  console.log('Validating names with Perplexity API:', names);
   const messages: PerplexityMessage[] = [
     {
       role: "system",
@@ -45,19 +46,23 @@ export async function validateNames(names: string[]): Promise<Record<string, num
   ];
 
   try {
+    console.log('Sending request to Perplexity API');
     const response = await queryPerplexity(messages);
+    console.log('Received response from Perplexity API:', response);
 
     // Extract JSON more robustly
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
         const parsed = JSON.parse(jsonMatch[0]);
+        console.log('Successfully parsed API response:', parsed);
         // Validate scores are within range
         const validated: Record<string, number> = {};
         for (const [name, score] of Object.entries(parsed)) {
           if (typeof score === 'number' && score >= 1 && score <= 100) {
             validated[name] = score;
           } else {
+            console.log(`Invalid score for ${name}, using local validation`);
             // Use local validation as fallback
             const localScore = validateNameLocally(name).score;
             validated[name] = localScore;
@@ -70,7 +75,7 @@ export async function validateNames(names: string[]): Promise<Record<string, num
       }
     }
 
-    // If AI validation fails, use local validation
+    console.log('No valid JSON found in API response, falling back to local validation');
     return names.reduce((acc, name) => {
       const localScore = validateNameLocally(name).score;
       return { ...acc, [name]: localScore };
@@ -153,7 +158,7 @@ export async function extractContacts(
 
             // First try name-based matching (high confidence)
             const nameParts = name.toLowerCase().split(/\s+/);
-            const hasNameMatch = nameParts.some(part => 
+            const hasNameMatch = nameParts.some(part =>
               part.length >= 2 && emailLower.includes(part)
             );
 
@@ -171,7 +176,7 @@ export async function extractContacts(
         let emailBonus = 0;
         if (nearestEmail) {
           const nameParts = name.toLowerCase().split(/\s+/);
-          const hasNameInEmail = nameParts.some(part => 
+          const hasNameInEmail = nameParts.some(part =>
             part.length >= 2 && nearestEmail.toLowerCase().includes(part)
           );
           emailBonus = hasNameInEmail ? 15 : 5;  // Higher bonus for name match
@@ -192,7 +197,7 @@ export async function extractContacts(
   // Sort by probability and remove duplicates
   return contacts
     .sort((a, b) => (b.probability || 0) - (a.probability || 0))
-    .filter((contact, index, self) => 
+    .filter((contact, index, self) =>
       index === self.findIndex(c => c.name === contact.name)
     );
 }
@@ -341,12 +346,12 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
         const points = result
           .split(/[.!?•]/)
           .map(s => s.trim())
-          .filter(s => 
-            s.length > 0 && 
+          .filter(s =>
+            s.length > 0 &&
             s.length < 100 &&
             (s.toLowerCase().includes("unique") ||
-             s.toLowerCase().includes("only") ||
-             s.toLowerCase().includes("leading"))
+              s.toLowerCase().includes("only") ||
+              s.toLowerCase().includes("leading"))
           )
           .slice(0, 3);
 
