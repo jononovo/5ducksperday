@@ -302,7 +302,20 @@ export class DatabaseStorage implements IStorage {
           prompt: "Provide a detailed overview of [COMPANY], including its age, size, and main business focus.",
           order: 1,
           active: true,
-          config: {},
+          moduleType: "company_overview",
+          config: {
+            subsearches: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false
+            },
+            searchSections: {},
+            validationRules: {
+              requiredFields: [],
+              scoreThresholds: {},
+              minimumConfidence: 0
+            }
+          },
           technicalPrompt: "Analyze company details focusing on age, size, and core business activities.",
           responseStructure: "JSON with fields: age, size, mainFocus"
         },
@@ -311,29 +324,19 @@ export class DatabaseStorage implements IStorage {
           prompt: "Identify and analyze the key decision-makers at [COMPANY]. Focus on C-level executives, owners, founders, and other top-level decision-makers. Include their roles and any available contact information.",
           order: 2,
           active: true,
+          moduleType: "decision_maker",
           config: {
-            subSearches: [
-              {
-                name: "Local Sources",
-                description: "Search local business directories and regional databases"
-              },
-              {
-                name: "Digital Sources",
-                description: "Analyze company websites and digital presence"
-              },
-              {
-                name: "Social Sources",
-                description: "Review professional social networks and platforms"
-              },
-              {
-                name: "Start Sources",
-                description: "Examine startup databases and funding platforms"
-              },
-              {
-                name: "Sector Specific Listings",
-                description: "Search industry-specific directories and listings"
-              }
-            ]
+            subsearches: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false
+            },
+            searchSections: {},
+            validationRules: {
+              requiredFields: [],
+              scoreThresholds: {},
+              minimumConfidence: 0
+            }
           },
           technicalPrompt: "Identify key decision-makers at [COMPANY], including roles and contact information.",
           responseStructure: "JSON with fields: decisionMakers"
@@ -343,7 +346,20 @@ export class DatabaseStorage implements IStorage {
           prompt: "Find contact information and email addresses for leadership and key decision makers at [COMPANY].",
           order: 3,
           active: true,
-          config: {},
+          moduleType: "company_overview",
+          config: {
+            subsearches: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false
+            },
+            searchSections: {},
+            validationRules: {
+              requiredFields: [],
+              scoreThresholds: {},
+              minimumConfidence: 0
+            }
+          },
           technicalPrompt: "Discover contact information and email addresses for leadership and key decision-makers at [COMPANY].",
           responseStructure: "JSON with fields: emails"
         },
@@ -352,7 +368,20 @@ export class DatabaseStorage implements IStorage {
           prompt: "Analyze the market position, success metrics, and industry standing of [COMPANY].",
           order: 4,
           active: true,
-          config: {},
+          moduleType: "company_overview",
+          config: {
+            subsearches: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false
+            },
+            searchSections: {},
+            validationRules: {
+              requiredFields: [],
+              scoreThresholds: {},
+              minimumConfidence: 0
+            }
+          },
           technicalPrompt: "Analyze the market position, success metrics, and industry standing of [COMPANY].",
           responseStructure: "JSON with fields: marketPosition, successMetrics, industryStanding"
         },
@@ -361,45 +390,22 @@ export class DatabaseStorage implements IStorage {
           prompt: "Research and describe the customer base, target market, and market reach of [COMPANY].",
           order: 5,
           active: true,
-          config: {},
+          moduleType: "company_overview",
+          config: {
+            subsearches: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false
+            },
+            searchSections: {},
+            validationRules: {
+              requiredFields: [],
+              scoreThresholds: {},
+              minimumConfidence: 0
+            }
+          },
           technicalPrompt: "Research and describe the customer base, target market, and market reach of [COMPANY].",
           responseStructure: "JSON with fields: customerBase, targetMarket, marketReach"
-        },
-        {
-          name: "Online Presence",
-          prompt: "Evaluate the online presence, website metrics, and digital footprint of [COMPANY].",
-          order: 6,
-          active: true,
-          config: {},
-          technicalPrompt: "Evaluate the online presence, website metrics, and digital footprint of [COMPANY].",
-          responseStructure: "JSON with fields: onlinePresence, websiteMetrics, digitalFootprint"
-        },
-        {
-          name: "Services Analysis",
-          prompt: "Detail the educational services, programs, and products offered by [COMPANY], particularly in coding and STEM education.",
-          order: 7,
-          active: true,
-          config: {},
-          technicalPrompt: "Detail educational services, programs, and products offered by [COMPANY], focusing on coding and STEM education.",
-          responseStructure: "JSON with fields: services, programs, products"
-        },
-        {
-          name: "Competitive Analysis",
-          prompt: "Compare [COMPANY] with similar educational companies in the market, focusing on their unique selling propositions.",
-          order: 8,
-          active: true,
-          config: {},
-          technicalPrompt: "Compare [COMPANY] with similar educational companies, highlighting unique selling propositions.",
-          responseStructure: "JSON with fields: competitors, uniqueSellingPropositions"
-        },
-        {
-          name: "Differentiation Analysis",
-          prompt: "Identify the top 3 unique differentiators that set [COMPANY] apart from competitors. Focus on their competitive advantages and unique value propositions.",
-          order: 9,
-          active: true,
-          config: {},
-          technicalPrompt: "Identify top 3 unique differentiators for [COMPANY] compared to competitors, emphasizing competitive advantages and unique value propositions.",
-          responseStructure: "JSON with fields: top3Differentiators, competitiveAdvantages, uniqueValuePropositions"
         }
       ];
 
