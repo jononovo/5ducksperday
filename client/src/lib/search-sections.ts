@@ -124,20 +124,24 @@ export const SECTIONS_CONFIG = {
 // Helper function to get sections for a module type
 export const getSectionsByModuleType = (moduleType: string): Record<string, SearchSection> => {
   const moduleConfig = SECTIONS_CONFIG[moduleType as keyof typeof SECTIONS_CONFIG] || {};
+
+  // Get all subsections for this module type
   const result: Record<string, SearchSection> = {};
 
   Object.entries(moduleConfig).forEach(([sectionId, sectionConfig]) => {
+    const searches = sectionConfig.subsectionIds.map(subsectionId => {
+      const subsection = Object.values(SEARCH_SUBSECTIONS).find(s => s.id === subsectionId);
+      if (!subsection) {
+        throw new Error(`Subsection ${subsectionId} not found`);
+      }
+      return subsection;
+    });
+
     result[sectionId] = {
       id: sectionConfig.id,
       label: sectionConfig.label,
       description: sectionConfig.description,
-      searches: sectionConfig.subsectionIds.map(subsectionId => {
-        const subsection = Object.values(SEARCH_SUBSECTIONS).find(s => s.id === subsectionId);
-        if (!subsection) {
-          throw new Error(`Subsection ${subsectionId} not found`);
-        }
-        return subsection;
-      })
+      searches
     };
   });
 

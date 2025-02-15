@@ -50,12 +50,6 @@ function SubSearches({
     }
   }, [isEditing, approach.config]);
 
-  const handleCheckboxChange = (id: string, checked: boolean) => {
-    if (isEditing && onSubSearchChange) {
-      onSubSearchChange(id, checked);
-    }
-  };
-
   const handleMasterCheckboxChange = (checked: boolean, section: SearchSection) => {
     section.searches.forEach(search => {
       const id = search.id;
@@ -115,8 +109,8 @@ function SubSearches({
                     onCheckedChange={(checked) => {
                       if (isSearchOption && onOptionChange) {
                         onOptionChange(optionId, checked as boolean);
-                      } else {
-                        handleCheckboxChange(search.id, checked as boolean);
+                      } else if (onSubSearchChange) {
+                        onSubSearchChange(search.id, checked as boolean);
                       }
                     }}
                     className="mt-1"
@@ -163,10 +157,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   const [editedResponseStructure, setEditedResponseStructure] = useState("");
   const [editedSubSearches, setEditedSubSearches] = useState<Record<string, boolean>>({});
   const [completedSearches, setCompletedSearches] = useState<string[]>([]);
-  const [searchOptions, setSearchOptions] = useState<Record<string, boolean>>({
-    ignoreFranchises: false,
-    locallyHeadquartered: false,
-  });
+  const [searchOptions, setSearchOptions] = useState<Record<string, boolean>>({});
   const [searchSections, setSearchSections] = useState<Record<string, SearchSection>>({});
 
   const updateMutation = useMutation({
@@ -182,7 +173,8 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       setEditedResponseStructure("");
       setEditedSubSearches({});
       setCompletedSearches([]);
-      setSearchOptions({ ignoreFranchises: false, locallyHeadquartered: false });
+      setSearchOptions({});
+      setSearchSections({});
     },
   });
 
@@ -196,13 +188,16 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     );
     setCompletedSearches(approach.completedSearches || []);
 
-    // Set the correct sections and options based on module type
-    setSearchSections(getSectionsByModuleType(approach.moduleType));
+    // Get sections for this module type
+    const sections = getSectionsByModuleType(approach.moduleType);
+    setSearchSections(sections);
 
+    // Initialize search options for company overview
     if (approach.moduleType === 'company_overview') {
+      const config = approach.config as SearchModuleConfig;
       setSearchOptions({
-        ignoreFranchises: (approach.config as SearchModuleConfig).searchOptions?.ignoreFranchises || false,
-        locallyHeadquartered: (approach.config as SearchModuleConfig).searchOptions?.locallyHeadquartered || false,
+        ignoreFranchises: config.searchOptions?.ignoreFranchises || false,
+        locallyHeadquartered: config.searchOptions?.locallyHeadquartered || false,
       });
     } else {
       setSearchOptions({});
@@ -327,8 +322,8 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                       setEditedResponseStructure("");
                       setEditedSubSearches({});
                       setCompletedSearches([]);
-                      setSearchOptions({ ignoreFranchises: false, locallyHeadquartered: false });
-                      setSearchSections(getSectionsByModuleType(approach.moduleType));
+                      setSearchOptions({});
+                      setSearchSections({});
                     }}
                   >
                     Cancel
