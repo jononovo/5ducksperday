@@ -77,7 +77,7 @@ export const SEARCH_SUBSECTIONS = {
   }
 };
 
-// Section definitions with their associated subsection IDs
+// Section definitions - each section references subsection IDs
 export const SECTIONS_CONFIG = {
   company_overview: {
     search_options: {
@@ -121,21 +121,35 @@ export const SECTIONS_CONFIG = {
   }
 };
 
-// Helper function to get sections for a module type
-export const getSectionsByModuleType = (moduleType: string): Record<string, SearchSection> => {
-  const moduleConfig = SECTIONS_CONFIG[moduleType as keyof typeof SECTIONS_CONFIG] || {};
+// Get relevant subsection details for a specific section
+export function getSubsectionsForSection(sectionConfig: {
+  id: string;
+  subsectionIds: string[];
+}): Array<{
+  id: string;
+  label: string;
+  description: string;
+  implementation?: string;
+}> {
+  return sectionConfig.subsectionIds
+    .map(id => {
+      const subsection = Object.values(SEARCH_SUBSECTIONS).find(s => s.id === id);
+      if (!subsection) {
+        console.warn(`Subsection ${id} not found`);
+        return null;
+      }
+      return subsection;
+    })
+    .filter((s): s is NonNullable<typeof s> => s !== null);
+}
 
-  // Get all subsections for this module type
+// Get sections for a specific module type
+export function getSectionsByModuleType(moduleType: string): Record<string, SearchSection> {
+  const moduleConfig = SECTIONS_CONFIG[moduleType as keyof typeof SECTIONS_CONFIG] || {};
   const result: Record<string, SearchSection> = {};
 
   Object.entries(moduleConfig).forEach(([sectionId, sectionConfig]) => {
-    const searches = sectionConfig.subsectionIds.map(subsectionId => {
-      const subsection = Object.values(SEARCH_SUBSECTIONS).find(s => s.id === subsectionId);
-      if (!subsection) {
-        throw new Error(`Subsection ${subsectionId} not found`);
-      }
-      return subsection;
-    });
+    const searches = getSubsectionsForSection(sectionConfig);
 
     result[sectionId] = {
       id: sectionConfig.id,
@@ -146,10 +160,10 @@ export const getSectionsByModuleType = (moduleType: string): Record<string, Sear
   });
 
   return result;
-};
+}
 
-// Helper to get all possible search IDs for a module type
-export const getAllSearchIds = (moduleType: string): string[] => {
+// Get all possible search IDs for a module type
+export function getAllSearchIds(moduleType: string): string[] {
   const moduleConfig = SECTIONS_CONFIG[moduleType as keyof typeof SECTIONS_CONFIG] || {};
   return Object.values(moduleConfig).flatMap(section => section.subsectionIds);
-};
+}

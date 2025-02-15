@@ -25,63 +25,74 @@ interface SubSearchesProps {
   isEditing: boolean;
   onSubSearchChange?: (id: string, checked: boolean) => void;
   completedSearches?: string[];
-  onOptionChange?: (optionId: string, checked: boolean) => void;
-  searchOptions?: Record<string, boolean>;
-  searchSections: Record<string, SearchSection>;
-  onSearchSectionsChange: (sections: Record<string, SearchSection>) => void;
 }
 
 function SubSearches({
   approach,
   isEditing,
   onSubSearchChange,
-  completedSearches = [],
-  onOptionChange,
-  searchOptions = {},
-  searchSections,
-  onSearchSectionsChange
+  completedSearches = []
 }: SubSearchesProps) {
-  // Each approach stores its own subsearches
-  const [currentSubsearches, setCurrentSubsearches] = useState<Record<string, boolean>>({});
+  const config = approach.config as SearchModuleConfig;
+  const searchSections = getSectionsByModuleType(approach.moduleType);
+
+  // Track subsearches and options independently
+  const [subsearches, setSubsearches] = useState<Record<string, boolean>>(config?.subsearches || {});
+  const [searchOptions, setSearchOptions] = useState<Record<string, boolean>>(config?.searchOptions || {});
 
   useEffect(() => {
-    if (approach?.config?.subsearches) {
-      setCurrentSubsearches(approach.config.subsearches);
+    // Initialize from approach config
+    setSubsearches(config?.subsearches || {});
+    setSearchOptions(config?.searchOptions || {});
+  }, [config, approach.moduleType]);
+
+  const handleSubsearchChange = (id: string, checked: boolean) => {
+    if (onSubSearchChange) {
+      onSubSearchChange(id, checked);
     }
-  }, [approach?.config]);
+  };
+
+  const handleOptionChange = (id: string, checked: boolean) => {
+    setSearchOptions(prev => ({
+      ...prev,
+      [id.replace(/-/g, '')]: checked
+    }));
+  };
 
   const handleMasterCheckboxChange = (checked: boolean, section: SearchSection) => {
+    const isSearchOption = section.id === 'search_options';
     section.searches.forEach(search => {
-      const id = search.id;
-      if (section.id === 'search_options' && onOptionChange) {
-        onOptionChange(id.replace(/-/g, ''), checked);
-      } else if (onSubSearchChange) {
-        onSubSearchChange(id, checked);
+      if (isSearchOption) {
+        handleOptionChange(search.id, checked);
+      } else {
+        handleSubsearchChange(search.id, checked);
       }
     });
   };
 
-  const renderSearchSection = (section: SearchSection) => {
+  const renderSection = (section: SearchSection) => {
     const isSearchOption = section.id === 'search_options';
 
-    // For each section, check if it belongs to this module type
+    // Filter sections based on module type
     if (approach.moduleType === 'company_overview' && !isSearchOption) return null;
     if (approach.moduleType === 'decision_maker' && isSearchOption) return null;
 
-    const allChecked = section.searches.every(search =>
-      isSearchOption
-        ? searchOptions[search.id.replace(/-/g, '')] ?? false
-        : currentSubsearches[search.id] ?? false
-    );
+    const allChecked = section.searches.every(search => {
+      if (isSearchOption) {
+        return searchOptions[search.id.replace(/-/g, '')] ?? false;
+      }
+      return subsearches[search.id] ?? false;
+    });
 
-    const someChecked = section.searches.some(search =>
-      isSearchOption
-        ? searchOptions[search.id.replace(/-/g, '')] ?? false
-        : currentSubsearches[search.id] ?? false
-    );
+    const someChecked = section.searches.some(search => {
+      if (isSearchOption) {
+        return searchOptions[search.id.replace(/-/g, '')] ?? false;
+      }
+      return subsearches[search.id] ?? false;
+    });
 
     return (
-      <AccordionItem key={section.id} value={section.id} className="flex flex-col">
+      <AccordionItem key={section.id} value={section.id}>
         <div className="flex items-center">
           <Checkbox
             id={`master-${section.id}`}
@@ -100,10 +111,9 @@ function SubSearches({
         <AccordionContent>
           <div className="space-y-4 pl-6">
             {section.searches.map((search) => {
-              const optionId = isSearchOption ? search.id.replace(/-/g, '') : search.id;
               const checked = isSearchOption
-                ? searchOptions[optionId] ?? false
-                : currentSubsearches[search.id] ?? false;
+                ? searchOptions[search.id.replace(/-/g, '')] ?? false
+                : subsearches[search.id] ?? false;
 
               return (
                 <div key={search.id} className="flex items-start space-x-2">
@@ -111,10 +121,10 @@ function SubSearches({
                     id={search.id}
                     checked={checked}
                     onCheckedChange={(checked) => {
-                      if (isSearchOption && onOptionChange) {
-                        onOptionChange(optionId, checked as boolean);
-                      } else if (onSubSearchChange) {
-                        onSubSearchChange(search.id, checked as boolean);
+                      if (isSearchOption) {
+                        handleOptionChange(search.id, checked as boolean);
+                      } else {
+                        handleSubsearchChange(search.id, checked as boolean);
                       }
                     }}
                     className="mt-1"
@@ -147,7 +157,7 @@ function SubSearches({
   return (
     <div className="mt-4">
       <Accordion type="multiple" className="w-full">
-        {Object.values(searchSections).map(section => renderSearchSection(section))}
+        {Object.values(searchSections).map(renderSection)}
       </Accordion>
     </div>
   );
@@ -160,9 +170,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   const [editedTechnicalPrompt, setEditedTechnicalPrompt] = useState("");
   const [editedResponseStructure, setEditedResponseStructure] = useState("");
   const [editedSubSearches, setEditedSubSearches] = useState<Record<string, boolean>>({});
-  const [completedSearches, setCompletedSearches] = useState<string[]>([]);
   const [searchOptions, setSearchOptions] = useState<Record<string, boolean>>({});
-  const [searchSections, setSearchSections] = useState<Record<string, SearchSection>>({});
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
@@ -176,43 +184,26 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       setEditedTechnicalPrompt("");
       setEditedResponseStructure("");
       setEditedSubSearches({});
-      setCompletedSearches([]);
       setSearchOptions({});
-      setSearchSections({});
     },
   });
 
   const handleEdit = (approach: SearchApproach) => {
+    const config = approach.config as SearchModuleConfig;
+
     setEditingId(approach.id);
     setEditedPrompt(approach.prompt);
     setEditedTechnicalPrompt(approach.technicalPrompt || "");
     setEditedResponseStructure(approach.responseStructure || "");
-
-    // Load the approach's specific subsearches
-    setEditedSubSearches((approach.config as SearchModuleConfig)?.subsearches || {});
-    setCompletedSearches(approach.completedSearches || []);
-
-    // Get sections for this module type
-    const sections = getSectionsByModuleType(approach.moduleType);
-    setSearchSections(sections);
-
-    // Initialize module-specific options
-    if (approach.moduleType === 'company_overview') {
-      const config = approach.config as SearchModuleConfig;
-      setSearchOptions({
-        ignoreFranchises: config.searchOptions?.ignoreFranchises || false,
-        locallyHeadquartered: config.searchOptions?.locallyHeadquartered || false,
-      });
-    } else {
-      setSearchOptions({});
-    }
+    setEditedSubSearches(config?.subsearches || {});
+    setSearchOptions(config?.searchOptions || {});
   };
 
   const handleSave = (id: number) => {
     const config: SearchModuleConfig = {
       subsearches: editedSubSearches,
-      searchOptions: searchOptions,
-      searchSections,
+      searchOptions,
+      searchSections: {},
       validationRules: {
         requiredFields: [],
         scoreThresholds: {},
@@ -226,8 +217,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
         prompt: editedPrompt,
         technicalPrompt: editedTechnicalPrompt || null,
         responseStructure: editedResponseStructure || null,
-        config,
-        completedSearches
+        config
       }
     });
   };
@@ -241,13 +231,6 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
 
   const handleToggle = (id: number, active: boolean) => {
     updateMutation.mutate({ id, updates: { active } });
-  };
-
-  const handleSearchOptionChange = (optionId: string, checked: boolean) => {
-    setSearchOptions(prev => ({
-      ...prev,
-      [optionId]: checked
-    }));
   };
 
   return (
@@ -298,11 +281,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   approach={approach}
                   isEditing={true}
                   onSubSearchChange={handleSubSearchChange}
-                  completedSearches={completedSearches}
-                  searchOptions={searchOptions}
-                  onOptionChange={handleSearchOptionChange}
-                  searchSections={searchSections}
-                  onSearchSectionsChange={setSearchSections}
+                  completedSearches={approach.completedSearches}
                 />
                 <div className="flex gap-2">
                   <Button
@@ -321,9 +300,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                       setEditedTechnicalPrompt("");
                       setEditedResponseStructure("");
                       setEditedSubSearches({});
-                      setCompletedSearches([]);
                       setSearchOptions({});
-                      setSearchSections({});
                     }}
                   >
                     Cancel
@@ -337,10 +314,6 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   approach={approach}
                   isEditing={false}
                   completedSearches={approach.completedSearches}
-                  searchOptions={(approach.config as SearchModuleConfig)?.searchOptions || {}}
-                  onOptionChange={handleSearchOptionChange}
-                  searchSections={getSectionsByModuleType(approach.moduleType)}
-                  onSearchSectionsChange={setSearchSections}
                 />
                 <Button
                   size="sm"
