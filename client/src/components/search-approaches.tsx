@@ -34,7 +34,7 @@ function SubSearches({
   completedSearches = []
 }: SubSearchesProps) {
   const config = approach.config as SearchModuleConfig;
-  const searchSections = getSectionsByModuleType(approach.moduleType);
+  const searchSections = getSectionsByModuleType(approach.moduleType || 'company_overview');
 
   // Track subsearches and options independently
   const [subsearches, setSubsearches] = useState<Record<string, boolean>>(config?.subsearches || {});
@@ -74,6 +74,7 @@ function SubSearches({
     const isSearchOption = section.id === 'search_options';
 
     // Filter sections based on module type
+    if (!approach.moduleType) return null;
     if (approach.moduleType === 'company_overview' && !isSearchOption) return null;
     if (approach.moduleType === 'decision_maker' && isSearchOption) return null;
 

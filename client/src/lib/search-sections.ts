@@ -77,7 +77,7 @@ export const SEARCH_SUBSECTIONS = {
   }
 };
 
-// Section definitions - each section references subsection IDs
+// Section definitions for each module type
 export const SECTIONS_CONFIG = {
   company_overview: {
     search_options: {
@@ -124,6 +124,8 @@ export const SECTIONS_CONFIG = {
 // Get relevant subsection details for a specific section
 export function getSubsectionsForSection(sectionConfig: {
   id: string;
+  label: string;
+  description: string;
   subsectionIds: string[];
 }): Array<{
   id: string;
@@ -145,7 +147,9 @@ export function getSubsectionsForSection(sectionConfig: {
 
 // Get sections for a specific module type
 export function getSectionsByModuleType(moduleType: string): Record<string, SearchSection> {
-  const moduleConfig = SECTIONS_CONFIG[moduleType as keyof typeof SECTIONS_CONFIG] || {};
+  const moduleConfig = SECTIONS_CONFIG[moduleType as keyof typeof SECTIONS_CONFIG];
+  if (!moduleConfig) return {};
+
   const result: Record<string, SearchSection> = {};
 
   Object.entries(moduleConfig).forEach(([sectionId, sectionConfig]) => {
@@ -164,6 +168,6 @@ export function getSectionsByModuleType(moduleType: string): Record<string, Sear
 
 // Get all possible search IDs for a module type
 export function getAllSearchIds(moduleType: string): string[] {
-  const moduleConfig = SECTIONS_CONFIG[moduleType as keyof typeof SECTIONS_CONFIG] || {};
-  return Object.values(moduleConfig).flatMap(section => section.subsectionIds);
+  const moduleConfig = SECTIONS_CONFIG[moduleType as keyof typeof SECTIONS_CONFIG];
+  return moduleConfig ? Object.values(moduleConfig).flatMap(section => section.subsectionIds) : [];
 }
