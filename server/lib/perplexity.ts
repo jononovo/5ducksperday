@@ -16,7 +16,6 @@ interface PerplexityResponse {
 
 // Validate names using Perplexity AI
 export async function validateNames(names: string[]): Promise<Record<string, number>> {
-  console.log('Validating names with Perplexity API:', names);
   const messages: PerplexityMessage[] = [
     {
       role: "system",
@@ -47,22 +46,16 @@ export async function validateNames(names: string[]): Promise<Record<string, num
   ];
 
   try {
-    console.log('Sending request to Perplexity API');
     const response = await queryPerplexity(messages);
-    console.log('Received response from Perplexity API:', response);
-
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
         const parsed = JSON.parse(jsonMatch[0]);
-        console.log('Successfully parsed API response:', parsed);
-
         const validated: Record<string, number> = {};
         for (const [name, score] of Object.entries(parsed)) {
           if (typeof score === 'number' && score >= 1 && score <= 100) {
             validated[name] = score;
           } else {
-            console.log(`Invalid score for ${name}, using local validation`);
             const localScore = validateNameLocally(name).score;
             validated[name] = localScore;
           }
@@ -73,7 +66,6 @@ export async function validateNames(names: string[]): Promise<Record<string, num
       }
     }
 
-    console.log('No valid JSON found in API response, falling back to local validation');
     return names.reduce((acc, name) => {
       const localScore = validateNameLocally(name).score;
       return { ...acc, [name]: localScore };
@@ -86,19 +78,6 @@ export async function validateNames(names: string[]): Promise<Record<string, num
       return { ...acc, [name]: localScore };
     }, {});
   }
-}
-
-// Add new helper function to detect company-like names
-function isCompanyLikeName(name: string): boolean {
-  const companyPatterns = [
-    /^(?:the|a)\s+/i,  // Starts with "The" or "A"
-    /\b(?:inc|llc|ltd|corp|co|company|group|store)\b/i,  // Common company suffixes
-    /[&+]/,  // Company symbols
-    /\b(?:solutions|services|systems|technologies|tech)\b/i,  // Common business words
-    /[A-Z]{3,}/  // All caps sections (likely acronyms)
-  ];
-
-  return companyPatterns.some(pattern => pattern.test(name));
 }
 
 // Enhance contact extraction
@@ -124,9 +103,14 @@ export async function extractContacts(
   for (const result of analysisResults) {
     if (typeof result !== 'string') continue;
 
-    const names = Array.from(result.matchAll(nameRegex))
-      .map(m => m[0])
-      .filter(name => !placeholderNames.has(name.toLowerCase()));
+    let match;
+    const names = [];
+    while ((match = nameRegex.exec(result)) !== null) {
+      const name = match[0];
+      if (!placeholderNames.has(name.toLowerCase())) {
+        names.push(name);
+      }
+    }
 
     if (names.length === 0) continue;
 
@@ -137,26 +121,33 @@ export async function extractContacts(
       const localResult = validateNameLocally(name, result);
       const finalScore = combineValidationScores(aiScore, localResult, validationOptions);
 
-      if (finalScore >= 30) {  // Lower threshold to allow more contacts
+      if (finalScore >= 30) {
         const nameIndex = result.indexOf(name);
         const contextWindow = result.slice(
           Math.max(0, nameIndex - 100),
           nameIndex + 200
         );
 
-        const roleMatch = [...contextWindow.matchAll(roleRegex)];
-        const role = roleMatch.length > 0 ? roleMatch[0][1].trim() : null;
+        // Fix the role matching
+        let role = null;
+        let roleMatch;
+        while ((roleMatch = roleRegex.exec(contextWindow)) !== null) {
+          role = roleMatch[1].trim();
+          break; // Take first match
+        }
 
-        const emailMatches = Array.from(result.match(emailRegex) || [])
-          .filter(email => !isPlaceholderEmail(email))
-          .filter(email => {
+        const emailMatches = [];
+        while ((match = emailRegex.exec(result)) !== null) {
+          const email = match[0];
+          if (!isPlaceholderEmail(email)) {
             const emailLower = email.toLowerCase();
             const nameParts = name.toLowerCase().split(/\s+/);
-
-            // Less strict email matching
-            return isValidBusinessEmail(email) || 
-                   nameParts.some(part => part.length >= 2 && emailLower.includes(part));
-          });
+            if (isValidBusinessEmail(email) || 
+                nameParts.some(part => part.length >= 2 && emailLower.includes(part))) {
+              emailMatches.push(email);
+            }
+          }
+        }
 
         const nearestEmail = emailMatches.length > 0 ? emailMatches[0] : null;
 
@@ -197,7 +188,6 @@ function isPlaceholderEmail(email: string): boolean {
 }
 
 function isValidBusinessEmail(email: string): boolean {
-  // Common business email patterns
   const businessPatterns = [
     /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/,  // Basic email format
     /^(?!support|info|sales|contact|help|admin|webmaster|postmaster).*@/i,  // Not generic addresses
@@ -294,7 +284,6 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
 
   try {
     for (const result of analysisResults) {
-      // Try parsing as JSON first
       try {
         const jsonData = JSON.parse(result);
         if (jsonData.size && typeof jsonData.size === 'number') {
@@ -312,7 +301,6 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
       if (result.includes("employees") || result.includes("staff")) {
         const sizeMatch = result.match(/(\d+)[\s-]*(?:\d+)?\s*(employees|staff)/i);
         if (sizeMatch) {
-          // If there's a range like "2-20", take the higher number
           const numbers = sizeMatch[1].split('-').map(n => parseInt(n.trim()));
           companyData.size = Math.max(...numbers.filter(n => !isNaN(n)));
         }
@@ -363,7 +351,7 @@ export async function searchContactDetails(
         2. Professional email
         3. LinkedIn URL
         4. Location
-        
+
         Format your response in JSON.`
     },
     {
