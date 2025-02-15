@@ -215,15 +215,39 @@ function SubSearches({
     onSearchSectionsChange(updatedSections);
   };
 
-  const renderSearchSection = (section: SearchSection, handleMasterCheckboxChange: (checked: boolean, section: SearchSection) => void) => {
+  const handleMasterCheckboxChange = (checked: boolean, section: SearchSection) => {
+    if (section.id === 'search_options') {
+      if (onOptionChange) {
+        section.searches.forEach(search => {
+          const optionId = search.id.replace(/-/g, '');
+          onOptionChange(optionId, checked);
+        });
+      }
+    } else {
+      const newState = { ...currentSubsearches };
+      section.searches.forEach(search => {
+        newState[search.id] = checked;
+      });
+
+      if (isEditing && onSubSearchChange) {
+        section.searches.forEach(search => {
+          onSubSearchChange(search.id, checked);
+        });
+      }
+      setCurrentSubsearches(newState);
+    }
+  };
+
+  const renderSearchSection = (section: SearchSection) => {
+    const isSearchOption = section.id === 'search_options';
     const allChecked = section.searches.every(search =>
-      section.id === 'search_options'
+      isSearchOption
         ? searchOptions[search.id.replace(/-/g, '')] ?? false
         : currentSubsearches[search.id] ?? false
     );
 
     const someChecked = section.searches.some(search =>
-      section.id === 'search_options'
+      isSearchOption
         ? searchOptions[search.id.replace(/-/g, '')] ?? false
         : currentSubsearches[search.id] ?? false
     );
@@ -260,7 +284,6 @@ function SubSearches({
         <AccordionContent>
           <div className="space-y-4 pl-6">
             {section.searches.map((search) => {
-              const isSearchOption = section.id === 'search_options';
               const optionId = isSearchOption ? search.id.replace(/-/g, '') : search.id;
               const checked = isSearchOption
                 ? searchOptions[optionId] ?? false
@@ -337,35 +360,10 @@ function SubSearches({
     );
   };
 
-  const handleMasterCheckboxChange = (checked: boolean, section: SearchSection) => {
-    if (section.id === 'search_options') {
-      if (onOptionChange) {
-        section.searches.forEach(search => {
-          const optionId = search.id.replace(/-/g, '');
-          onOptionChange(optionId, checked);
-        });
-      }
-    } else {
-      const newState = { ...currentSubsearches };
-      section.searches.forEach(search => {
-        newState[search.id] = checked;
-      });
-
-      if (isEditing && onSubSearchChange) {
-        section.searches.forEach(search => {
-          onSubSearchChange(search.id, checked);
-        });
-      }
-      setCurrentSubsearches(newState);
-    }
-  };
-
-  const sectionsToRender = Object.values(searchSections);
-
   return (
     <div className="mt-4">
       <Accordion type="multiple" className="w-full">
-        {sectionsToRender.map(section => renderSearchSection(section, handleMasterCheckboxChange))}
+        {Object.values(searchSections).map(section => renderSearchSection(section))}
       </Accordion>
     </div>
   );
@@ -385,12 +383,6 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   });
   const [searchSections, setSearchSections] = useState<Record<string, SearchSection>>({});
 
-  useEffect(() => {
-    if (approaches.length > 0) {
-      setSearchSections(getSectionsByModuleType(approaches[0].moduleType));
-    }
-  }, [approaches]);
-
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
       const response = await apiRequest("PATCH", `/api/search-approaches/${id}`, updates);
@@ -405,7 +397,10 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       setEditedSubSearches({});
       setCompletedSearches([]);
       setSearchOptions({ ignoreFranchises: false, locallyHeadquartered: false });
-      setSearchSections(getSectionsByModuleType(approaches[0]?.moduleType || '')) ;
+      const initialModuleType = approaches[0]?.moduleType;
+      if (initialModuleType) {
+        setSearchSections(getSectionsByModuleType(initialModuleType));
+      }
     },
   });
 
@@ -419,15 +414,8 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     );
     setCompletedSearches(approach.completedSearches || []);
 
-    // Set the correct sections based on module type
-    const moduleSections = getSectionsByModuleType(approach.moduleType);
-    const savedSections = (approach.config as SearchModuleConfig).searchSections;
-
-    if (savedSections) {
-      setSearchSections(savedSections);
-    } else {
-      setSearchSections(moduleSections);
-    }
+    // Set the sections based on the module type
+    setSearchSections(getSectionsByModuleType(approach.moduleType));
 
     // Only set search options for company overview
     if (approach.moduleType === 'company_overview') {
@@ -441,17 +429,24 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   };
 
   const handleSave = (id: number) => {
+    const config: SearchModuleConfig = {
+      subsearches: editedSubSearches,
+      searchOptions: searchOptions,
+      searchSections: searchSections,
+      validationRules: {
+        requiredFields: [],
+        scoreThresholds: {},
+        minimumConfidence: 0
+      }
+    };
+
     updateMutation.mutate({
       id,
       updates: {
         prompt: editedPrompt,
         technicalPrompt: editedTechnicalPrompt || null,
         responseStructure: editedResponseStructure || null,
-        config: {
-          subsearches: editedSubSearches,
-          searchOptions: searchOptions,
-          searchSections: searchSections
-        },
+        config,
         completedSearches
       }
     });
@@ -481,114 +476,108 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
 
   return (
     <Accordion type="single" collapsible className="w-full">
-      {approaches.map((approach) => {
-        const currentSections = editingId === approach.id
-          ? searchSections
-          : (approach.config as SearchModuleConfig)?.searchSections || getSectionsByModuleType(approach.moduleType);
-
-        return (
-          <AccordionItem key={approach.id} value={approach.id.toString()}>
-            <div className="flex items-center gap-2 px-1">
-              <Switch
-                checked={approach.active ?? false}
-                onCheckedChange={(checked) => handleToggle(approach.id, checked)}
-                className="scale-75"
-              />
-              <AccordionTrigger className="flex-1 hover:no-underline">
-                <span className="mr-4">{approach.name}</span>
-              </AccordionTrigger>
-            </div>
-            <AccordionContent>
-              {editingId === approach.id ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">User-Facing Prompt</label>
-                    <Textarea
-                      value={editedPrompt}
-                      onChange={(e) => setEditedPrompt(e.target.value)}
-                      placeholder="Enter the user-facing prompt..."
-                      className="min-h-[100px]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Technical Prompt</label>
-                    <Textarea
-                      value={editedTechnicalPrompt}
-                      onChange={(e) => setEditedTechnicalPrompt(e.target.value)}
-                      placeholder="Enter the technical implementation prompt..."
-                      className="min-h-[100px]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Response Structure</label>
-                    <Textarea
-                      value={editedResponseStructure}
-                      onChange={(e) => setEditedResponseStructure(e.target.value)}
-                      placeholder="Enter the expected JSON response structure..."
-                      className="min-h-[100px] font-mono"
-                    />
-                  </div>
-                  <SubSearches
-                    approach={approach}
-                    isEditing={true}
-                    onSubSearchChange={handleSubSearchChange}
-                    completedSearches={completedSearches}
-                    searchOptions={searchOptions}
-                    onOptionChange={handleSearchOptionChange}
-                    searchSections={searchSections}
-                    onSearchSectionsChange={handleSearchSectionsChange}
+      {approaches.map((approach) => (
+        <AccordionItem key={approach.id} value={approach.id.toString()}>
+          <div className="flex items-center gap-2 px-1">
+            <Switch
+              checked={approach.active ?? false}
+              onCheckedChange={(checked) => handleToggle(approach.id, checked)}
+              className="scale-75"
+            />
+            <AccordionTrigger className="flex-1 hover:no-underline">
+              <span className="mr-4">{approach.name}</span>
+            </AccordionTrigger>
+          </div>
+          <AccordionContent>
+            {editingId === approach.id ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">User-Facing Prompt</label>
+                  <Textarea
+                    value={editedPrompt}
+                    onChange={(e) => setEditedPrompt(e.target.value)}
+                    placeholder="Enter the user-facing prompt..."
+                    className="min-h-[100px]"
                   />
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => handleSave(approach.id)}
-                      disabled={updateMutation.isPending}
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingId(null);
-                        setEditedPrompt("");
-                        setEditedTechnicalPrompt("");
-                        setEditedResponseStructure("");
-                        setEditedSubSearches({});
-                        setCompletedSearches([]);
-                        setSearchOptions({ ignoreFranchises: false, locallyHeadquartered: false });
-                        setSearchSections(getSectionsByModuleType(approaches[0]?.moduleType || ''));
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">{approach.prompt}</p>
-                  <SubSearches
-                    approach={approach}
-                    isEditing={false}
-                    completedSearches={completedSearches}
-                    searchOptions={searchOptions}
-                    onOptionChange={handleSearchOptionChange}
-                    searchSections={currentSections}
-                    onSearchSectionsChange={handleSearchSectionsChange}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Technical Prompt</label>
+                  <Textarea
+                    value={editedTechnicalPrompt}
+                    onChange={(e) => setEditedTechnicalPrompt(e.target.value)}
+                    placeholder="Enter the technical implementation prompt..."
+                    className="min-h-[100px]"
                   />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Response Structure</label>
+                  <Textarea
+                    value={editedResponseStructure}
+                    onChange={(e) => setEditedResponseStructure(e.target.value)}
+                    placeholder="Enter the expected JSON response structure..."
+                    className="min-h-[100px] font-mono"
+                  />
+                </div>
+                <SubSearches
+                  approach={approach}
+                  isEditing={true}
+                  onSubSearchChange={handleSubSearchChange}
+                  completedSearches={completedSearches}
+                  searchOptions={searchOptions}
+                  onOptionChange={handleSearchOptionChange}
+                  searchSections={searchSections}
+                  onSearchSectionsChange={handleSearchSectionsChange}
+                />
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => handleSave(approach.id)}
+                    disabled={updateMutation.isPending}
+                  >
+                    Save
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleEdit(approach)}
+                    onClick={() => {
+                      setEditingId(null);
+                      setEditedPrompt("");
+                      setEditedTechnicalPrompt("");
+                      setEditedResponseStructure("");
+                      setEditedSubSearches({});
+                      setCompletedSearches([]);
+                      setSearchOptions({ ignoreFranchises: false, locallyHeadquartered: false });
+                      setSearchSections(getSectionsByModuleType(approaches[0]?.moduleType || ''));
+                    }}
                   >
-                    Edit Prompt
+                    Cancel
                   </Button>
                 </div>
-              )}
-            </AccordionContent>
-          </AccordionItem>
-        );
-      })}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">{approach.prompt}</p>
+                <SubSearches
+                  approach={approach}
+                  isEditing={false}
+                  completedSearches={completedSearches}
+                  searchOptions={searchOptions}
+                  onOptionChange={handleSearchOptionChange}
+                  searchSections={getSectionsByModuleType(approach.moduleType)}
+                  onSearchSectionsChange={handleSearchSectionsChange}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleEdit(approach)}
+                >
+                  Edit Prompt
+                </Button>
+              </div>
+            )}
+          </AccordionContent>
+        </AccordionItem>
+      ))}
     </Accordion>
   );
 }
