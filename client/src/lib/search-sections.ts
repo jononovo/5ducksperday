@@ -218,6 +218,12 @@ export const SECTIONS_CONFIG = {
       description: "Search digital platforms for company presence",
       subsectionIds: ["gmb-search", "yelp-search"]
     },
+    social_sources: {
+      id: "social_sources",
+      label: "Social Sources",
+      description: "Search social media platforms",
+      subsectionIds: ["linkedin-search", "twitter-search", "facebook-search"]
+    },
     startup_sources: {
       id: "startup_sources",
       label: "Startup Sources",
