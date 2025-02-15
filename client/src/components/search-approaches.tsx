@@ -5,7 +5,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import {
   Accordion,
   AccordionContent,
@@ -13,141 +12,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import type { SearchApproach, SearchModuleConfig, SearchSection } from "@shared/schema";
-import { Check, Edit2 } from "lucide-react";
+import { Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { getSectionsByModuleType, SEARCH_SUBSECTIONS } from "@/lib/search-sections";
 
 interface SearchApproachesProps {
   approaches: SearchApproach[];
 }
-
-const COMPANY_OVERVIEW_SECTIONS: Record<string, SearchSection> = {
-  search_options: {
-    id: "search_options",
-    label: "Search Options",
-    description: "Configure additional search parameters",
-    searches: [
-      {
-        id: "ignore-franchises",
-        label: "Ignore Franchises",
-        description: "Exclude franchise businesses from search results"
-      },
-      {
-        id: "local-hq",
-        label: "Locally Headquartered",
-        description: "Only include companies with local headquarters"
-      }
-    ]
-  }
-};
-
-const DECISION_MAKER_SECTIONS: Record<string, SearchSection> = {
-  social_networks: {
-    id: "social_networks",
-    label: "Social Network Analysis",
-    description: "Search social networks for decision maker profiles",
-    searches: [
-      {
-        id: "linkedin-search",
-        label: "LinkedIn Analysis",
-        description: "Search for company decision makers on LinkedIn",
-        implementation: "Search LinkedIn for company executives and decision makers at [COMPANY]"
-      },
-      {
-        id: "twitter-search",
-        label: "Twitter Analysis",
-        description: "Analyze Twitter for executive activity",
-        implementation: "Find Twitter accounts of executives at [COMPANY]"
-      }
-    ]
-  },
-  professional_databases: {
-    id: "professional_databases",
-    label: "Professional Database Search",
-    description: "Search professional and industry databases",
-    searches: [
-      {
-        id: "industry-db",
-        label: "Industry Database Search",
-        description: "Search industry-specific databases",
-        implementation: "Search industry databases for key decision makers at [COMPANY]"
-      },
-      {
-        id: "professional-orgs",
-        label: "Professional Organizations",
-        description: "Search professional organization memberships",
-        implementation: "Find professional organization memberships for [COMPANY] executives"
-      }
-    ]
-  },
-  news_media: {
-    id: "news_media",
-    label: "News and Media Analysis",
-    description: "Analyze news and media mentions",
-    searches: [
-      {
-        id: "news-mentions",
-        label: "News Mentions",
-        description: "Search news articles for executive mentions",
-        implementation: "Find recent news articles mentioning [COMPANY] executives or leadership"
-      },
-      {
-        id: "press-releases",
-        label: "Press Release Analysis",
-        description: "Analyze company press releases",
-        implementation: "Search press releases from [COMPANY] for executive quotes and mentions"
-      }
-    ]
-  },
-  corporate_sources: {
-    id: "corporate_sources",
-    label: "Corporate Source Analysis",
-    description: "Analyze corporate documentation",
-    searches: [
-      {
-        id: "company-website",
-        label: "Company Website Analysis",
-        description: "Analyze company website for leadership info",
-        implementation: "Extract leadership information from [COMPANY]'s website"
-      },
-      {
-        id: "sec-filings",
-        label: "SEC Filing Analysis",
-        description: "Search SEC filings for officer information",
-        implementation: "Search SEC filings for [COMPANY] officer and director information"
-      }
-    ]
-  },
-  validation: {
-    id: "validation",
-    label: "Contact Validation",
-    description: "Validate extracted contact information",
-    searches: [
-      {
-        id: "email-validation",
-        label: "Email Validation",
-        description: "Verify extracted email addresses",
-        implementation: "Validate email addresses for [COMPANY] contacts"
-      },
-      {
-        id: "role-verification",
-        label: "Role Verification",
-        description: "Verify extracted roles and titles",
-        implementation: "Verify roles and titles for [COMPANY] contacts"
-      }
-    ]
-  }
-};
-
-const getSectionsByModuleType = (moduleType: string): Record<string, SearchSection> => {
-  switch (moduleType) {
-    case 'company_overview':
-      return COMPANY_OVERVIEW_SECTIONS;
-    case 'decision_maker':
-      return DECISION_MAKER_SECTIONS;
-    default:
-      return {};
-  }
-};
 
 interface SubSearchesProps {
   approach: SearchApproach;
@@ -170,7 +41,6 @@ function SubSearches({
   searchSections,
   onSearchSectionsChange
 }: SubSearchesProps) {
-  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [currentSubsearches, setCurrentSubsearches] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -183,63 +53,23 @@ function SubSearches({
   const handleCheckboxChange = (id: string, checked: boolean) => {
     if (isEditing && onSubSearchChange) {
       onSubSearchChange(id, checked);
-    } else {
-      setCurrentSubsearches(prev => ({
-        ...prev,
-        [id]: checked
-      }));
     }
-  };
-
-  const handleSectionEdit = (sectionId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setEditingSectionId(sectionId);
-  };
-
-  const handleSectionSave = (sectionId: string) => {
-    setEditingSectionId(null);
-  };
-
-  const handleSearchOptionUpdate = (sectionId: string, searchId: string, field: 'label' | 'description' | 'implementation', value: string) => {
-    const updatedSections = {
-      ...searchSections,
-      [sectionId]: {
-        ...searchSections[sectionId],
-        searches: searchSections[sectionId].searches.map(search =>
-          search.id === searchId
-            ? { ...search, [field]: value }
-            : search
-        )
-      }
-    };
-    onSearchSectionsChange(updatedSections);
   };
 
   const handleMasterCheckboxChange = (checked: boolean, section: SearchSection) => {
-    if (section.id === 'search_options') {
-      if (onOptionChange) {
-        section.searches.forEach(search => {
-          const optionId = search.id.replace(/-/g, '');
-          onOptionChange(optionId, checked);
-        });
+    section.searches.forEach(search => {
+      const id = search.id;
+      if (section.id === 'search_options' && onOptionChange) {
+        onOptionChange(id.replace(/-/g, ''), checked);
+      } else if (onSubSearchChange) {
+        onSubSearchChange(id, checked);
       }
-    } else {
-      const newState = { ...currentSubsearches };
-      section.searches.forEach(search => {
-        newState[search.id] = checked;
-      });
-
-      if (isEditing && onSubSearchChange) {
-        section.searches.forEach(search => {
-          onSubSearchChange(search.id, checked);
-        });
-      }
-      setCurrentSubsearches(newState);
-    }
+    });
   };
 
   const renderSearchSection = (section: SearchSection) => {
     const isSearchOption = section.id === 'search_options';
+
     const allChecked = section.searches.every(search =>
       isSearchOption
         ? searchOptions[search.id.replace(/-/g, '')] ?? false
@@ -251,8 +81,6 @@ function SubSearches({
         ? searchOptions[search.id.replace(/-/g, '')] ?? false
         : currentSubsearches[search.id] ?? false
     );
-
-    const isEditingSection = editingSectionId === section.id;
 
     return (
       <AccordionItem key={section.id} value={section.id} className="flex flex-col">
@@ -267,16 +95,6 @@ function SubSearches({
           <AccordionTrigger className="flex-1">
             <span className="text-sm font-medium">{section.label}</span>
           </AccordionTrigger>
-          {isEditing && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2"
-              onClick={(e) => handleSectionEdit(section.id, e)}
-            >
-              <Edit2 className="h-4 w-4" />
-            </Button>
-          )}
         </div>
         {section.description && (
           <p className="text-xs text-muted-foreground mt-1 ml-10 mb-2">{section.description}</p>
@@ -291,69 +109,37 @@ function SubSearches({
 
               return (
                 <div key={search.id} className="flex items-start space-x-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={search.id}
-                      checked={checked}
-                      onCheckedChange={(checked) => {
-                        if (isSearchOption && onOptionChange) {
-                          onOptionChange(optionId, checked as boolean);
-                        } else {
-                          handleCheckboxChange(search.id, checked as boolean);
-                        }
-                      }}
-                      className="mt-1"
-                    />
-                    {completedSearches.includes(search.id) && (
-                      <Check className="h-4 w-4 text-green-500" />
-                    )}
-                  </div>
+                  <Checkbox
+                    id={search.id}
+                    checked={checked}
+                    onCheckedChange={(checked) => {
+                      if (isSearchOption && onOptionChange) {
+                        onOptionChange(optionId, checked as boolean);
+                      } else {
+                        handleCheckboxChange(search.id, checked as boolean);
+                      }
+                    }}
+                    className="mt-1"
+                  />
                   <div className="grid gap-1.5 leading-none flex-1">
-                    {isEditingSection ? (
-                      <>
-                        <Input
-                          value={search.label}
-                          onChange={(e) => handleSearchOptionUpdate(section.id, search.id, 'label', e.target.value)}
-                          className="h-7 text-sm"
-                        />
-                        <Input
-                          value={search.description}
-                          onChange={(e) => handleSearchOptionUpdate(section.id, search.id, 'description', e.target.value)}
-                          className="h-7 text-sm text-muted-foreground"
-                        />
-                        {!isSearchOption && (
-                          <Input
-                            value={search.implementation || ''}
-                            onChange={(e) => handleSearchOptionUpdate(section.id, search.id, 'implementation', e.target.value)}
-                            className="h-7 text-sm text-muted-foreground"
-                          />
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <label
-                          htmlFor={search.id}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {search.label}
-                        </label>
-                        <p className="text-sm text-muted-foreground">
-                          {search.description}
-                        </p>
-                        {!isSearchOption && search.implementation && (
-                          <p className="text-sm text-muted-foreground">{search.implementation}</p>
-                        )}
-                      </>
+                    <label
+                      htmlFor={search.id}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {search.label}
+                    </label>
+                    <p className="text-sm text-muted-foreground">
+                      {search.description}
+                    </p>
+                    {!isSearchOption && search.implementation && (
+                      <p className="text-sm text-muted-foreground italic">
+                        {search.implementation}
+                      </p>
                     )}
                   </div>
                 </div>
               );
             })}
-            {isEditingSection && (
-              <Button size="sm" onClick={() => handleSectionSave(section.id)} className="mt-4">
-                Save Changes
-              </Button>
-            )}
           </div>
         </AccordionContent>
       </AccordionItem>
@@ -397,10 +183,6 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       setEditedSubSearches({});
       setCompletedSearches([]);
       setSearchOptions({ ignoreFranchises: false, locallyHeadquartered: false });
-      const initialModuleType = approaches[0]?.moduleType;
-      if (initialModuleType) {
-        setSearchSections(getSectionsByModuleType(initialModuleType));
-      }
     },
   });
 
@@ -414,10 +196,9 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     );
     setCompletedSearches(approach.completedSearches || []);
 
-    // Set the sections based on the module type
+    // Set the correct sections and options based on module type
     setSearchSections(getSectionsByModuleType(approach.moduleType));
 
-    // Only set search options for company overview
     if (approach.moduleType === 'company_overview') {
       setSearchOptions({
         ignoreFranchises: (approach.config as SearchModuleConfig).searchOptions?.ignoreFranchises || false,
@@ -547,7 +328,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                       setEditedSubSearches({});
                       setCompletedSearches([]);
                       setSearchOptions({ ignoreFranchises: false, locallyHeadquartered: false });
-                      setSearchSections(getSectionsByModuleType(approaches[0]?.moduleType || ''));
+                      setSearchSections(getSectionsByModuleType(approach.moduleType));
                     }}
                   >
                     Cancel
