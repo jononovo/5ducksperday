@@ -346,14 +346,140 @@ export class DatabaseStorage implements IStorage {
           prompt: "Find contact information and email addresses for leadership and key decision makers at [COMPANY].",
           order: 3,
           active: true,
-          moduleType: "company_overview",
+          moduleType: "decision_maker",
           config: {
             subsearches: {},
             searchOptions: {
               ignoreFranchises: false,
               locallyHeadquartered: false
             },
-            searchSections: {},
+            searchSections: {
+              local_sources: {
+                id: "local_sources",
+                label: "Local Sources",
+                description: "Search local sources for company and contact information",
+                searches: [
+                  {
+                    id: "local-news",
+                    label: "Local News Search",
+                    description: "Search local news sources for company leadership mentions and activities",
+                    implementation: "Search local news for [COMPANY] leadership mentions"
+                  },
+                  {
+                    id: "business-associations",
+                    label: "Business Associations Search",
+                    description: "Search local chambers of commerce and business association memberships",
+                    implementation: "Search business associations for [COMPANY] memberships"
+                  },
+                  {
+                    id: "local-events",
+                    label: "Local Events Search",
+                    description: "Search local business events, conferences, and speaking engagements",
+                    implementation: "Find [COMPANY] participation in local events"
+                  },
+                  {
+                    id: "local-classifieds",
+                    label: "Local Classifieds or Lists",
+                    description: "Search classifieds for company info and local classifieds",
+                    implementation: "Search local classifieds for [COMPANY] information"
+                  }
+                ]
+              },
+              digital_sources: {
+                id: "digital_sources",
+                label: "Digital Sources",
+                description: "Search digital platforms for company presence",
+                searches: [
+                  {
+                    id: "gmb-search",
+                    label: "Google My Business",
+                    description: "Search Google My Business listings and reviews",
+                    implementation: "Search GMB for [COMPANY] listing"
+                  },
+                  {
+                    id: "yelp-search",
+                    label: "Yelp Search",
+                    description: "Check for Yelp",
+                    implementation: "Search Yelp for [COMPANY] profile"
+                  }
+                ]
+              },
+              social_sources: {
+                id: "social_sources",
+                label: "Social Sources",
+                description: "Search social media platforms",
+                searches: [
+                  {
+                    id: "linkedin-search",
+                    label: "LinkedIn Search",
+                    description: "Search LinkedIn for company profiles and employees",
+                    implementation: "Search LinkedIn for [COMPANY] profile and employees"
+                  },
+                  {
+                    id: "twitter-search",
+                    label: "Twitter Search",
+                    description: "Search Twitter for social mentions and engagement",
+                    implementation: "Search Twitter for [COMPANY] mentions"
+                  },
+                  {
+                    id: "facebook-search",
+                    label: "Facebook Search",
+                    description: "Search Facebook for social presence and community engagement",
+                    implementation: "Search Facebook for [COMPANY] presence"
+                  }
+                ]
+              },
+              startup_sources: {
+                id: "startup_sources",
+                label: "Startup Sources",
+                description: "Search startup-focused platforms",
+                searches: [
+                  {
+                    id: "angellist-search",
+                    label: "Angelist",
+                    description: "Search Angelist for startup information and funding details",
+                    implementation: "Search Angellist for [COMPANY] profile"
+                  },
+                  {
+                    id: "crunchbase-search",
+                    label: "Crunchbase",
+                    description: "Search Crunchbase for company data and investment history",
+                    implementation: "Search Crunchbase for [COMPANY] data"
+                  },
+                  {
+                    id: "other-startup-sources",
+                    label: "Other Sources",
+                    description: "Search other startup-focused platforms and databases",
+                    implementation: "Search startup databases for [COMPANY]"
+                  }
+                ]
+              },
+              sector_listings: {
+                id: "sector_listings",
+                label: "Sector Specific Listings",
+                description: "Search sector-specific directories",
+                searches: [
+                  {
+                    id: "tech-startup-listings",
+                    label: "Tech Startup",
+                    description: "Search for technology startup listings and directories",
+                    implementation: "Search tech startup directories for [COMPANY]"
+                  },
+                  {
+                    id: "small-business-listings",
+                    label: "Small Business",
+                    description: "Search for small business listings and directories",
+                    implementation: "Search small business directories for [COMPANY]"
+                  },
+                  {
+                    id: "contractor-listings",
+                    label: "Contractor",
+                    description: "Search for contractor and service provider listings",
+                    implementation: "Search contractor directories for [COMPANY]"
+                  }
+                ]
+              }
+            },
             validationRules: {
               requiredFields: [],
               scoreThresholds: {},
