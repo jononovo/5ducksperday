@@ -215,17 +215,7 @@ function SubSearches({
     onSearchSectionsChange(updatedSections);
   };
 
-  const renderSearchSection = (section: SearchSection) => {
-    // For company overview, only show search options
-    if (approach.moduleType === 'company_overview' && section.id !== 'search_options') {
-      return null;
-    }
-
-    // For decision maker, exclude search options
-    if (approach.moduleType === 'decision_maker' && section.id === 'search_options') {
-      return null;
-    }
-
+  const renderSearchSection = (section: SearchSection, handleMasterCheckboxChange: (checked: boolean, section: SearchSection) => void) => {
     const allChecked = section.searches.every(search =>
       section.id === 'search_options'
         ? searchOptions[search.id.replace(/-/g, '')] ?? false
@@ -247,7 +237,7 @@ function SubSearches({
             id={`master-${section.id}`}
             checked={allChecked}
             data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
-            onCheckedChange={handleMasterCheckboxChange}
+            onCheckedChange={(checked) => handleMasterCheckboxChange(checked as boolean, section)}
             className="mr-2"
           />
           <AccordionTrigger className="flex-1">
@@ -308,11 +298,13 @@ function SubSearches({
                           onChange={(e) => handleSearchOptionUpdate(section.id, search.id, 'description', e.target.value)}
                           className="h-7 text-sm text-muted-foreground"
                         />
-                        <Input
-                          value={search.implementation || ''}
-                          onChange={(e) => handleSearchOptionUpdate(section.id, search.id, 'implementation', e.target.value)}
-                          className="h-7 text-sm text-muted-foreground"
-                        />
+                        {!isSearchOption && (
+                          <Input
+                            value={search.implementation || ''}
+                            onChange={(e) => handleSearchOptionUpdate(section.id, search.id, 'implementation', e.target.value)}
+                            className="h-7 text-sm text-muted-foreground"
+                          />
+                        )}
                       </>
                     ) : (
                       <>
@@ -325,7 +317,9 @@ function SubSearches({
                         <p className="text-sm text-muted-foreground">
                           {search.description}
                         </p>
-                        {search.implementation && <p className="text-sm text-muted-foreground">{search.implementation}</p>}
+                        {!isSearchOption && search.implementation && (
+                          <p className="text-sm text-muted-foreground">{search.implementation}</p>
+                        )}
                       </>
                     )}
                   </div>
@@ -343,7 +337,7 @@ function SubSearches({
     );
   };
 
-  const handleMasterCheckboxChange = (checked: boolean) => {
+  const handleMasterCheckboxChange = (checked: boolean, section: SearchSection) => {
     if (section.id === 'search_options') {
       if (onOptionChange) {
         section.searches.forEach(search => {
@@ -366,10 +360,12 @@ function SubSearches({
     }
   };
 
+  const sectionsToRender = Object.values(searchSections);
+
   return (
     <div className="mt-4">
       <Accordion type="multiple" className="w-full">
-        {Object.values(searchSections).map(section => renderSearchSection(section))}
+        {sectionsToRender.map(section => renderSearchSection(section, handleMasterCheckboxChange))}
       </Accordion>
     </div>
   );
@@ -387,8 +383,13 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     ignoreFranchises: false,
     locallyHeadquartered: false,
   });
-  const [searchSections, setSearchSections] = useState(getSectionsByModuleType(approaches[0]?.moduleType || ''));
+  const [searchSections, setSearchSections] = useState<Record<string, SearchSection>>({});
 
+  useEffect(() => {
+    if (approaches.length > 0) {
+      setSearchSections(getSectionsByModuleType(approaches[0].moduleType));
+    }
+  }, [approaches]);
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<SearchApproach> }) => {
