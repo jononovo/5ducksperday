@@ -7,14 +7,9 @@ export interface NameValidationResult {
 }
 
 export function validateNameLocally(name: string, context: string = ""): NameValidationResult {
-  // Check for company-like names first and penalize heavily
-  if (isCompanyName(name)) {
-    return { score: 10, isGeneric: true, confidence: 90 };
-  }
-
   const isGeneric = isGenericName(name);
   if (isGeneric) {
-    return { score: 20, isGeneric: true, confidence: 90 };
+    return { score: 30, isGeneric: true, confidence: 90 };
   }
 
   const score = calculateNameConfidenceScore(name, context);
@@ -23,18 +18,6 @@ export function validateNameLocally(name: string, context: string = ""): NameVal
     isGeneric: false,
     confidence: score > 80 ? 90 : score > 50 ? 70 : 50
   };
-}
-
-function isCompanyName(name: string): boolean {
-  const companyIndicators = [
-    /^(?:the|a)\s+/i,  // Starts with "The" or "A"
-    /\b(?:inc|llc|ltd|corp|co|company|group|store)\b/i,  // Common company suffixes
-    /[&+]/,  // Company symbols
-    /\b(?:solutions|services|systems|technologies|tech)\b/i,  // Common business words
-    /[A-Z]{3,}/  // All caps sections (likely acronyms)
-  ];
-
-  return companyIndicators.some(pattern => pattern.test(name));
 }
 
 function isGenericName(name: string): boolean {
@@ -61,15 +44,10 @@ function isGenericName(name: string): boolean {
 
   const name_lower = name.toLowerCase();
 
-  // Check for placeholder patterns
-  if (
-    /^[a-z]+\s+[a-z]+$/i.test(name) && // Simple two-word name
-    genericTerms.includes(name_lower)    // Matches known placeholder
-  ) {
+  if (genericTerms.includes(name_lower)) {
     return true;
   }
 
-  // Check for job title patterns
   const jobTitlePatterns = [
     /^(chief|vice|senior|junior|assistant)\s+/i,
     /\b(officer|manager|director|head|lead)\b/i,
@@ -82,41 +60,26 @@ function isGenericName(name: string): boolean {
     return true;
   }
 
-  // Generic patterns indicating non-names
-  const genericPatterns = [
-    /^[a-z\s]+$/i,  // All lowercase or uppercase
-    /^(mr|mrs|ms|dr|prof)\.\s*$/i,  // Just a title
-    /^(the|our|your|their)\s+/i,  // Possessive starts
-    /\d+/,  // Contains numbers
-    /^[a-z]{1,2}\s+[a-z]{1,2}$/i,  // Very short words
-    /^(contact|info|support|help|sales|service)/i,  // Common department starts
-    /^[^a-z]+$/i,  // Contains no letters
-    /^[A-Z\s]+$/,  // All capitals
-    /[!@#$%^&*(),.?":{}|<>]/  // Contains special characters
-  ];
-
-  return genericPatterns.some(pattern => pattern.test(name));
+  return false;
 }
 
 function calculateNameConfidenceScore(name: string, context: string): number {
-  let score = 0;
+  let score = 50; // Start with a neutral score
   const namePattern = /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}$/;
 
   // Base score for proper name format
   if (namePattern.test(name)) {
-    score += 30;
-  } else {
-    return 10; // Early return for obviously incorrect formats
+    score += 20;
   }
 
   // Check name length and word count
   const nameParts = name.split(/\s+/);
   if (nameParts.length === 2) {
-    score += 20; // Common firstname lastname format
+    score += 15; // Common firstname lastname format
   } else if (nameParts.length === 3) {
-    score += 15; // Possible middle name
+    score += 10; // Possible middle name
   } else {
-    score -= 20; // Unusual number of name parts
+    score -= 10; // Unusual number of name parts
   }
 
   // Name part length checks
@@ -124,32 +87,10 @@ function calculateNameConfidenceScore(name: string, context: string): number {
   if (hasReasonableLengths) {
     score += 10;
   } else {
-    score -= 15;
+    score -= 10;
   }
 
-  // Context validation with increased weights for professional indicators
-  const contextIndicators = {
-    leadership: ['leads', 'directs', 'manages', 'founded', 'oversees', 'heads'],
-    verification: ['linkedin', 'profile', 'verified', 'official', 'biography'],
-    introduction: ['meet', 'introducing', 'led by', 'headed by', 'welcome'],
-    professional: ['experienced', 'professional', 'expert', 'specialist', 'certified']
-  };
-
-  const contextLower = context.toLowerCase();
-  Object.entries(contextIndicators).forEach(([category, indicators]) => {
-    if (indicators.some(indicator => contextLower.includes(indicator))) {
-      // Increased weights for professional context
-      score += category === 'verification' ? 20 : 15;
-    }
-  });
-
-  // Professional title check (positive indicator)
-  const titleNearName = /(?:Mr\.|Mrs\.|Ms\.|Dr\.|Prof\.)\s+[A-Z]/i.test(context);
-  if (titleNearName) {
-    score += 15;
-  }
-
-  // Red flags with adjusted penalties
+  // Red flags with reduced penalties
   const redFlags = [
     /\d+/,  // Numbers
     /[^a-zA-Z\s'-]/,  // Special characters
@@ -161,23 +102,23 @@ function calculateNameConfidenceScore(name: string, context: string): number {
 
   redFlags.forEach(flag => {
     if (flag.test(name)) {
-      score -= 25; // Reduced penalty
+      score -= 15; // Reduced penalty
     }
   });
 
-  return Math.max(10, Math.min(100, score));
+  return Math.max(20, Math.min(100, score));
 }
 
 export interface ValidationOptions {
   useLocalValidation?: boolean;
-  localValidationWeight?: number;  // Between 0 and 1
+  localValidationWeight?: number;
   minimumScore?: number;
 }
 
 const defaultOptions: ValidationOptions = {
   useLocalValidation: true,
   localValidationWeight: 0.3,
-  minimumScore: 20  // Lowered from previous value
+  minimumScore: 30
 };
 
 export function combineValidationScores(
@@ -189,27 +130,15 @@ export function combineValidationScores(
     return aiScore;
   }
 
-  // Stronger weight for AI scores (75-25 split by default)
-  const weight = options.localValidationWeight || 0.25;
-
-  // If either score indicates it's a company name, use the lower score
-  if (aiScore < 30 || localResult.score < 30) {
-    console.log(`Low score detected (AI: ${aiScore}, Local: ${localResult.score}), using lower score`);
-    return Math.min(aiScore, localResult.score);
-  }
-
+  const weight = options.localValidationWeight || 0.3;
   const combinedScore = Math.round(
     (aiScore * (1 - weight)) + (localResult.score * weight)
   );
 
-  console.log(`Combining scores - AI: ${aiScore}, Local: ${localResult.score}, Weight: ${weight}, Final: ${combinedScore}`);
-
-  // Strong penalty for generic names
+  // Moderate penalty for generic names
   if (localResult.isGeneric) {
-    const penalizedScore = Math.max(20, combinedScore - 30);
-    console.log(`Generic name penalty applied, reduced score to: ${penalizedScore}`);
-    return penalizedScore;
+    return Math.max(30, combinedScore - 20);
   }
 
-  return Math.max(options.minimumScore || 20, Math.min(100, combinedScore));
+  return Math.max(options.minimumScore || 30, Math.min(100, combinedScore));
 }

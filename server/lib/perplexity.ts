@@ -22,23 +22,22 @@ export async function validateNames(names: string[]): Promise<Record<string, num
       role: "system",
       content: `You are a contact name validation service. Analyze each name and return a JSON object with scores between 1-100. Consider:
 
-      1. Common name patterns vs generic terms
+      1. Common name patterns
       2. Professional context
       3. Job title contamination
       4. Realistic vs placeholder names
-      5. Company name patterns - strongly penalize these
 
       Scoring rules:
       - 90-100: Full name with clear first/last (e.g. "Michael Johnson")
       - 70-89: Common but incomplete name (e.g. "Mike J.")
       - 40-69: Ambiguous or unusual (e.g. "M. Johnson III")
-      - 1-39: Company names or generic terms (e.g. "The Paper Store", "Sales Team")
-      - 1-10: Obviously not a person's name
+      - 20-39: Possibly not a name (e.g. "Sales Team")
+      - 1-19: Obviously not a person's name
 
       Return ONLY a JSON object like:
       {
         "Michael Johnson": 95,
-        "Sales Department": 10
+        "Sales Department": 25
       }`
     },
     {
@@ -52,24 +51,16 @@ export async function validateNames(names: string[]): Promise<Record<string, num
     const response = await queryPerplexity(messages);
     console.log('Received response from Perplexity API:', response);
 
-    // Extract JSON more robustly
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
         const parsed = JSON.parse(jsonMatch[0]);
         console.log('Successfully parsed API response:', parsed);
 
-        // Validate and process scores with strong company name penalties
         const validated: Record<string, number> = {};
         for (const [name, score] of Object.entries(parsed)) {
           if (typeof score === 'number' && score >= 1 && score <= 100) {
-            // Penalize company-like names more heavily
-            if (isCompanyLikeName(name)) {
-              console.log(`Company-like name detected: ${name}, reducing score`);
-              validated[name] = Math.min(score, 30); // Cap score for company names
-            } else {
-              validated[name] = score;
-            }
+            validated[name] = score;
           } else {
             console.log(`Invalid score for ${name}, using local validation`);
             const localScore = validateNameLocally(name).score;
@@ -121,7 +112,6 @@ export async function extractContacts(
   }
 
   const contacts: Partial<Contact>[] = [];
-  // Less strict name regex to allow more matches
   const nameRegex = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g;
   const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
   const roleRegex = /(?:is|as|serves\s+as)\s+(?:the|a|an)\s+([^,.]+?(?:Manager|Director|Officer|Executive|Lead|Head|Chief|Founder|Owner|President|CEO|CTO|CFO))/gi;
@@ -140,26 +130,14 @@ export async function extractContacts(
 
     if (names.length === 0) continue;
 
-    // Validate all names at once
     const aiScores = await validateNames(names);
 
     for (const name of names) {
-      const aiScore = aiScores[name];
+      const aiScore = aiScores[name] || 0;
       const localResult = validateNameLocally(name, result);
+      const finalScore = combineValidationScores(aiScore, localResult, validationOptions);
 
-      // Lower weight for local validation to give AI more influence
-      const finalScore = combineValidationScores(
-        aiScore,
-        localResult,
-        {
-          ...validationOptions,
-          localValidationWeight: 0.25,  // Give more weight to AI score
-          minimumScore: 20  // Lower minimum score threshold
-        }
-      );
-
-      // Lower threshold for acceptance to allow more prospects
-      if (finalScore >= 20) {  // Lowered from 30
+      if (finalScore >= 30) {  // Lower threshold to allow more contacts
         const nameIndex = result.indexOf(name);
         const contextWindow = result.slice(
           Math.max(0, nameIndex - 100),
@@ -169,43 +147,24 @@ export async function extractContacts(
         const roleMatch = [...contextWindow.matchAll(roleRegex)];
         const role = roleMatch.length > 0 ? roleMatch[0][1].trim() : null;
 
-        // More flexible email matching
         const emailMatches = Array.from(result.match(emailRegex) || [])
           .filter(email => !isPlaceholderEmail(email))
           .filter(email => {
             const emailLower = email.toLowerCase();
-
-            // First try name-based matching (high confidence)
             const nameParts = name.toLowerCase().split(/\s+/);
-            const hasNameMatch = nameParts.some(part =>
-              part.length >= 2 && emailLower.includes(part)
-            );
 
-            // If no name match, check if it's a valid business email
-            if (!hasNameMatch) {
-              return isValidBusinessEmail(email);
-            }
-
-            return true;
+            // Less strict email matching
+            return isValidBusinessEmail(email) || 
+                   nameParts.some(part => part.length >= 2 && emailLower.includes(part));
           });
 
         const nearestEmail = emailMatches.length > 0 ? emailMatches[0] : null;
-
-        // Adjust confidence score based on email match type
-        let emailBonus = 0;
-        if (nearestEmail) {
-          const nameParts = name.toLowerCase().split(/\s+/);
-          const hasNameInEmail = nameParts.some(part =>
-            part.length >= 2 && nearestEmail.toLowerCase().includes(part)
-          );
-          emailBonus = hasNameInEmail ? 15 : 5;  // Higher bonus for name match
-        }
 
         contacts.push({
           name,
           email: nearestEmail,
           role,
-          probability: Math.min(100, finalScore + emailBonus),
+          probability: finalScore,
           nameConfidenceScore: finalScore,
           lastValidated: new Date()
         });
@@ -213,7 +172,6 @@ export async function extractContacts(
     }
   }
 
-  // Sort by probability and remove duplicates
   return contacts
     .sort((a, b) => (b.probability || 0) - (a.probability || 0))
     .filter((contact, index, self) =>
