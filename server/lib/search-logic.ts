@@ -1,5 +1,5 @@
-import type { PerplexityMessage } from "./perplexity";
-import { queryPerplexity } from "./perplexity";
+import type { PerplexityMessage } from "./api-interactions";
+import { queryPerplexity } from "./api-interactions";
 import type { Company, Contact } from "@shared/schema";
 import { 
   analyzeCompanySize, 
@@ -11,7 +11,7 @@ import {
   isValidBusinessEmail,
   isPlaceholderEmail 
 } from "./results-analysis/contact-analysis";
-import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./nameValidation";
+import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./results-analysis/name-analysis";
 
 // Core search functions
 export async function searchCompanies(query: string): Promise<string[]> {
