@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search } from "lucide-react";
+import type { SearchModuleConfig } from "@shared/schema";
 
 interface PromptEditorProps {
   onAnalyze: () => void;
@@ -26,8 +27,15 @@ export default function PromptEditor({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch active search flows
-  const { data: searchFlows = [] } = useQuery({
+  // Fetch active search flows with proper typing
+  const { data: searchFlows = [] } = useQuery<Array<{
+    id: number;
+    name: string;
+    active: boolean;
+    config: SearchModuleConfig;
+    completedSearches: string[];
+    moduleType: string;
+  }>>({
     queryKey: ["/api/search-approaches"],
   });
 
@@ -35,15 +43,16 @@ export default function PromptEditor({
     mutationFn: async (searchQuery: string) => {
       // Get active flows and their configurations
       const activeFlows = searchFlows
-        .filter((flow: any) => flow.active)
-        .map((flow: any) => ({
+        .filter((flow) => flow.active)
+        .map((flow) => ({
           id: flow.id,
           name: flow.name,
+          moduleType: flow.moduleType,
           config: flow.config,
           completedSearches: flow.completedSearches || []
         }));
 
-      // Include active flows in the search request
+      // Ensure proper typing for the search request
       const res = await apiRequest("POST", "/api/companies/search", { 
         query: searchQuery,
         flows: activeFlows
@@ -59,7 +68,7 @@ export default function PromptEditor({
       });
       onComplete();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Search Failed",
         description: error.message,

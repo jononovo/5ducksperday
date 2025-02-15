@@ -68,11 +68,12 @@ export const searchApproaches = pgTable("search_approaches", {
   active: boolean("active").default(true),
   config: jsonb("config").default({}).notNull(),
   completedSearches: text("completed_searches").array(),
-  technicalPrompt: text("technical_prompt"),  // New field
-  responseStructure: text("response_structure")  // New field
+  technicalPrompt: text("technical_prompt"),
+  responseStructure: text("response_structure"),
+  moduleType: text("module_type").default('company_overview'),  // New field
+  validationRules: jsonb("validation_rules").default({})  // New field
 });
 
-// New tables for campaigns
 export const campaigns = pgTable("campaigns", {
   id: serial("id").primaryKey(),
   campaignId: integer("campaign_id").notNull(),  // This will start from 2001
@@ -91,7 +92,6 @@ export const campaignLists = pgTable("campaign_lists", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
-// New table for email templates
 export const emailTemplates = pgTable("email_templates", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -103,7 +103,6 @@ export const emailTemplates = pgTable("email_templates", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
-// Create Zod schemas for validation
 const listSchema = z.object({
   listId: z.number().min(1001),
   prompt: z.string().min(1, "Search prompt is required"),
@@ -152,18 +151,44 @@ const contactFeedbackSchema = z.object({
   feedbackType: z.enum(['excellent', 'ok', 'terrible'])
 });
 
+const searchModuleConfigSchema = z.object({
+  subsearches: z.record(z.boolean()).default({}),
+  searchOptions: z.object({
+    ignoreFranchises: z.boolean().default(false),
+    locallyHeadquartered: z.boolean().default(false)
+  }).default({}),
+  searchSections: z.record(z.object({
+    id: z.string(),
+    label: z.string(),
+    description: z.string().optional(),
+    searches: z.array(z.object({
+      id: z.string(),
+      label: z.string(),
+      description: z.string(),
+      implementation: z.string().optional(),
+      validationRules: z.record(z.unknown()).optional()
+    }))
+  })).default({}),
+  validationRules: z.object({
+    requiredFields: z.array(z.string()).default([]),
+    scoreThresholds: z.record(z.number()).default({}),
+    minimumConfidence: z.number().default(0)
+  }).default({})
+});
+
 const searchApproachSchema = z.object({
   name: z.string().min(1, "Name is required"),
   prompt: z.string().min(1, "Prompt is required"),
   order: z.number().min(1),
   active: z.boolean().nullable(),
-  config: z.record(z.unknown()).default({}),
+  config: searchModuleConfigSchema,
   completedSearches: z.array(z.string()).optional(),
   technicalPrompt: z.string().optional(),
-  responseStructure: z.string().optional()
+  responseStructure: z.string().optional(),
+  moduleType: z.enum(['company_overview', 'decision_maker', 'contact_enrichment']).default('company_overview'),
+  validationRules: z.record(z.unknown()).default({})
 });
 
-// New schemas for campaigns
 const campaignSchema = z.object({
   campaignId: z.number().min(2001),
   name: z.string().min(1, "Campaign name is required"),
@@ -178,7 +203,6 @@ const campaignListSchema = z.object({
   listId: z.number()
 });
 
-// New schema for email templates
 const emailTemplateSchema = z.object({
   name: z.string().min(1, "Template name is required"),
   subject: z.string().min(1, "Subject is required"),
@@ -212,3 +236,7 @@ export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
 export type ContactFeedback = typeof contactFeedback.$inferSelect;
 export type InsertContactFeedback = z.infer<typeof insertContactFeedbackSchema>;
+
+export type SearchModuleConfig = z.infer<typeof searchModuleConfigSchema>;
+export type SearchSection = SearchModuleConfig['searchSections'][string];
+export type SearchImplementation = SearchSection['searches'][number];
