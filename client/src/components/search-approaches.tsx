@@ -215,17 +215,14 @@ function SubSearches({
   };
 
   const renderSearchSection = (section: typeof DEFAULT_SEARCH_SECTIONS.search_options) => {
-    // For Company Overview, only show search options section
     if (isCompanyOverview && section.id !== 'search_options') {
       return null;
     }
 
-    // For Decision-maker Analysis, show all sections except search options
     if (isDecisionMaker && section.id === 'search_options') {
       return null;
     }
 
-    // For all other approaches, don't show any sections
     if (!isCompanyOverview && !isDecisionMaker) {
       return null;
     }
@@ -267,35 +264,32 @@ function SubSearches({
     };
 
     return (
-      <AccordionItem key={section.id} value={section.id}>
-        <div>
-          <div className="flex items-center justify-between">
-            <AccordionTrigger className="flex items-center gap-2 py-2">
-              <Checkbox
-                id={`master-${section.id}`}
-                checked={allChecked}
-                data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
-                onCheckedChange={handleMasterCheckboxChange}
-                onClick={(e) => e.stopPropagation()}
-                className="mr-2"
-              />
-              <span className="text-sm font-medium">{section.label}</span>
-            </AccordionTrigger>
-            {isEditing && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2"
-                onClick={(e) => handleSectionEdit(section.id, e)}
-              >
-                <Edit2 className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-          {section.description && (
-            <p className="text-xs text-muted-foreground mt-1 ml-10 mb-2">{section.description}</p>
+      <AccordionItem key={section.id} value={section.id} className="flex flex-col">
+        <div className="flex items-center">
+          <Checkbox
+            id={`master-${section.id}`}
+            checked={allChecked}
+            data-state={allChecked ? "checked" : someChecked ? "indeterminate" : "unchecked"}
+            onCheckedChange={handleMasterCheckboxChange}
+            className="mr-2"
+          />
+          <AccordionTrigger className="flex-1">
+            <span className="text-sm font-medium">{section.label}</span>
+          </AccordionTrigger>
+          {isEditing && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2"
+              onClick={(e) => handleSectionEdit(section.id, e)}
+            >
+              <Edit2 className="h-4 w-4" />
+            </Button>
           )}
         </div>
+        {section.description && (
+          <p className="text-xs text-muted-foreground mt-1 ml-10 mb-2">{section.description}</p>
+        )}
         <AccordionContent>
           <div className="space-y-4 pl-6">
             {section.searches.map((search) => {
@@ -421,7 +415,6 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       locallyHeadquartered: (approach.config as any)?.searchOptions?.locallyHeadquartered || false,
     });
 
-    // Load saved section configurations if they exist
     const savedSections = (approach.config as any)?.searchSections;
     if (savedSections) {
       setSearchSections(savedSections);
@@ -472,7 +465,6 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
   return (
     <Accordion type="single" collapsible className="w-full">
       {approaches.map((approach) => {
-        // Get the appropriate sections for this approach
         const currentSections = editingId === approach.id
           ? searchSections
           : ((approach.config as any)?.searchSections || DEFAULT_SEARCH_SECTIONS);
