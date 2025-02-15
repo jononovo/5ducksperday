@@ -360,25 +360,25 @@ export class DatabaseStorage implements IStorage {
                 description: "Search local sources for company and contact information",
                 searches: [
                   {
-                    id: "local-news",
+                    id: "local-news-search",
                     label: "Local News Search",
                     description: "Search local news sources for company leadership mentions and activities",
                     implementation: "Search local news for [COMPANY] leadership mentions"
                   },
                   {
-                    id: "business-associations",
+                    id: "business-associations-search",
                     label: "Business Associations Search",
                     description: "Search local chambers of commerce and business association memberships",
                     implementation: "Search business associations for [COMPANY] memberships"
                   },
                   {
-                    id: "local-events",
+                    id: "local-events-search",
                     label: "Local Events Search",
                     description: "Search local business events, conferences, and speaking engagements",
                     implementation: "Find [COMPANY] participation in local events"
                   },
                   {
-                    id: "local-classifieds",
+                    id: "local-classifieds-search",
                     label: "Local Classifieds or Lists",
                     description: "Search classifieds for company info and local classifieds",
                     implementation: "Search local classifieds for [COMPANY] information"
