@@ -100,74 +100,83 @@ export async function extractContacts(
     'test user', 'demo user', 'example user'
   ]);
 
-  for (const result of analysisResults) {
-    if (typeof result !== 'string') continue;
+  try {
+    for (const result of analysisResults) {
+      if (typeof result !== 'string') continue;
 
-    let match;
-    const names = [];
-    while ((match = nameRegex.exec(result)) !== null) {
-      const name = match[0];
-      if (!placeholderNames.has(name.toLowerCase())) {
-        names.push(name);
-      }
-    }
-
-    if (names.length === 0) continue;
-
-    const aiScores = await validateNames(names);
-
-    for (const name of names) {
-      const aiScore = aiScores[name] || 0;
-      const localResult = validateNameLocally(name, result);
-      const finalScore = combineValidationScores(aiScore, localResult, validationOptions);
-
-      if (finalScore >= 30) {
-        const nameIndex = result.indexOf(name);
-        const contextWindow = result.slice(
-          Math.max(0, nameIndex - 100),
-          nameIndex + 200
-        );
-
-        // Fix the role matching
-        let role = null;
-        let roleMatch;
-        while ((roleMatch = roleRegex.exec(contextWindow)) !== null) {
-          role = roleMatch[1].trim();
-          break; // Take first match
+      let match;
+      const names = [];
+      while ((match = nameRegex.exec(result)) !== null) {
+        const name = match[0];
+        if (!placeholderNames.has(name.toLowerCase())) {
+          names.push(name);
         }
+      }
 
-        const emailMatches = [];
-        while ((match = emailRegex.exec(result)) !== null) {
-          const email = match[0];
-          if (!isPlaceholderEmail(email)) {
-            const emailLower = email.toLowerCase();
-            const nameParts = name.toLowerCase().split(/\s+/);
-            if (isValidBusinessEmail(email) || 
-                nameParts.some(part => part.length >= 2 && emailLower.includes(part))) {
-              emailMatches.push(email);
+      if (names.length === 0) continue;
+
+      const aiScores = await validateNames(names);
+
+      for (const name of names) {
+        const aiScore = aiScores[name] || 0;
+        const localResult = validateNameLocally(name, result);
+        const finalScore = combineValidationScores(aiScore, localResult, validationOptions);
+
+        if (finalScore >= 30) {
+          const nameIndex = result.indexOf(name);
+          const contextWindow = result.slice(
+            Math.max(0, nameIndex - 100),
+            nameIndex + 200
+          );
+
+          let role = null;
+          roleRegex.lastIndex = 0; // Reset regex index
+          const roleMatch = roleRegex.exec(contextWindow);
+          if (roleMatch) {
+            role = roleMatch[1].trim();
+          }
+
+          const emailMatches: string[] = [];
+          emailRegex.lastIndex = 0; // Reset regex index
+          while ((match = emailRegex.exec(result)) !== null) {
+            const email = match[0];
+            if (!isPlaceholderEmail(email)) {
+              const emailLower = email.toLowerCase();
+              const nameParts = name.toLowerCase().split(/\s+/);
+              if (isValidBusinessEmail(email) || 
+                  nameParts.some(part => part.length >= 2 && emailLower.includes(part))) {
+                emailMatches.push(email);
+              }
             }
           }
+
+          const nearestEmail = emailMatches.length > 0 ? emailMatches[0] : null;
+
+          contacts.push({
+            name,
+            email: nearestEmail,
+            role,
+            probability: finalScore,
+            nameConfidenceScore: finalScore,
+            lastValidated: new Date()
+          });
         }
-
-        const nearestEmail = emailMatches.length > 0 ? emailMatches[0] : null;
-
-        contacts.push({
-          name,
-          email: nearestEmail,
-          role,
-          probability: finalScore,
-          nameConfidenceScore: finalScore,
-          lastValidated: new Date()
-        });
       }
     }
-  }
 
-  return contacts
-    .sort((a, b) => (b.probability || 0) - (a.probability || 0))
-    .filter((contact, index, self) =>
-      index === self.findIndex(c => c.name === contact.name)
-    );
+    // Ensure we're returning a valid array even if empty
+    return Array.isArray(contacts) ? 
+      contacts
+        .sort((a, b) => (b.probability || 0) - (a.probability || 0))
+        .filter((contact, index, self) =>
+          index === self.findIndex(c => c.name === contact.name)
+        ) : 
+      [];
+
+  } catch (error) {
+    console.error('Error in contact extraction:', error);
+    return []; // Return empty array on error
+  }
 }
 
 // Helper function for validation
