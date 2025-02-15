@@ -14,7 +14,7 @@ import {
 import type { SearchApproach, SearchModuleConfig, SearchSection } from "@shared/schema";
 import { Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { getSectionsByModuleType, SEARCH_SUBSECTIONS } from "@/lib/search-sections";
+import { getSectionsByModuleType, SEARCH_SUBSECTIONS, getAllSearchIds } from "@/lib/search-sections";
 
 interface SearchApproachesProps {
   approaches: SearchApproach[];
@@ -41,14 +41,14 @@ function SubSearches({
   searchSections,
   onSearchSectionsChange
 }: SubSearchesProps) {
+  // Each approach stores its own subsearches
   const [currentSubsearches, setCurrentSubsearches] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (isEditing) {
-      const defaultSubsearches = (approach.config as SearchModuleConfig)?.subsearches || {};
-      setCurrentSubsearches(defaultSubsearches);
+    if (approach?.config?.subsearches) {
+      setCurrentSubsearches(approach.config.subsearches);
     }
-  }, [isEditing, approach.config]);
+  }, [approach?.config]);
 
   const handleMasterCheckboxChange = (checked: boolean, section: SearchSection) => {
     section.searches.forEach(search => {
@@ -63,6 +63,10 @@ function SubSearches({
 
   const renderSearchSection = (section: SearchSection) => {
     const isSearchOption = section.id === 'search_options';
+
+    // For each section, check if it belongs to this module type
+    if (approach.moduleType === 'company_overview' && !isSearchOption) return null;
+    if (approach.moduleType === 'decision_maker' && isSearchOption) return null;
 
     const allChecked = section.searches.every(search =>
       isSearchOption
@@ -183,16 +187,16 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     setEditedPrompt(approach.prompt);
     setEditedTechnicalPrompt(approach.technicalPrompt || "");
     setEditedResponseStructure(approach.responseStructure || "");
-    setEditedSubSearches(
-      ((approach.config as SearchModuleConfig).subsearches) || {}
-    );
+
+    // Load the approach's specific subsearches
+    setEditedSubSearches((approach.config as SearchModuleConfig)?.subsearches || {});
     setCompletedSearches(approach.completedSearches || []);
 
     // Get sections for this module type
     const sections = getSectionsByModuleType(approach.moduleType);
     setSearchSections(sections);
 
-    // Initialize search options for company overview
+    // Initialize module-specific options
     if (approach.moduleType === 'company_overview') {
       const config = approach.config as SearchModuleConfig;
       setSearchOptions({
@@ -208,7 +212,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     const config: SearchModuleConfig = {
       subsearches: editedSubSearches,
       searchOptions: searchOptions,
-      searchSections: searchSections,
+      searchSections,
       validationRules: {
         requiredFields: [],
         scoreThresholds: {},
@@ -244,10 +248,6 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       ...prev,
       [optionId]: checked
     }));
-  };
-
-  const handleSearchSectionsChange = (newSections: Record<string, SearchSection>) => {
-    setSearchSections(newSections);
   };
 
   return (
@@ -302,7 +302,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                   searchOptions={searchOptions}
                   onOptionChange={handleSearchOptionChange}
                   searchSections={searchSections}
-                  onSearchSectionsChange={handleSearchSectionsChange}
+                  onSearchSectionsChange={setSearchSections}
                 />
                 <div className="flex gap-2">
                   <Button
@@ -336,11 +336,11 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
                 <SubSearches
                   approach={approach}
                   isEditing={false}
-                  completedSearches={completedSearches}
-                  searchOptions={searchOptions}
+                  completedSearches={approach.completedSearches}
+                  searchOptions={(approach.config as SearchModuleConfig)?.searchOptions || {}}
                   onOptionChange={handleSearchOptionChange}
                   searchSections={getSectionsByModuleType(approach.moduleType)}
-                  onSearchSectionsChange={handleSearchSectionsChange}
+                  onSearchSectionsChange={setSearchSections}
                 />
                 <Button
                   size="sm"
