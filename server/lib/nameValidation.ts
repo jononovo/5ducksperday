@@ -7,9 +7,14 @@ export interface NameValidationResult {
 }
 
 export function validateNameLocally(name: string, context: string = ""): NameValidationResult {
+  // Check for company-like names first and penalize heavily
+  if (isCompanyName(name)) {
+    return { score: 10, isGeneric: true, confidence: 90 };
+  }
+
   const isGeneric = isGenericName(name);
   if (isGeneric) {
-    return { score: 10, isGeneric: true, confidence: 90 };
+    return { score: 20, isGeneric: true, confidence: 90 };
   }
 
   const score = calculateNameConfidenceScore(name, context);
@@ -18,6 +23,18 @@ export function validateNameLocally(name: string, context: string = ""): NameVal
     isGeneric: false,
     confidence: score > 80 ? 90 : score > 50 ? 70 : 50
   };
+}
+
+function isCompanyName(name: string): boolean {
+  const companyIndicators = [
+    /^(?:the|a)\s+/i,  // Starts with "The" or "A"
+    /\b(?:inc|llc|ltd|corp|co|company|group|store)\b/i,  // Common company suffixes
+    /[&+]/,  // Company symbols
+    /\b(?:solutions|services|systems|technologies|tech)\b/i,  // Common business words
+    /[A-Z]{3,}/  // All caps sections (likely acronyms)
+  ];
+
+  return companyIndicators.some(pattern => pattern.test(name));
 }
 
 function isGenericName(name: string): boolean {
@@ -172,16 +189,27 @@ export function combineValidationScores(
     return aiScore;
   }
 
-  const weight = options.localValidationWeight || 0.3;
+  // Stronger weight for AI scores (75-25 split by default)
+  const weight = options.localValidationWeight || 0.25;
+
+  // If either score indicates it's a company name, use the lower score
+  if (aiScore < 30 || localResult.score < 30) {
+    console.log(`Low score detected (AI: ${aiScore}, Local: ${localResult.score}), using lower score`);
+    return Math.min(aiScore, localResult.score);
+  }
+
   const combinedScore = Math.round(
     (aiScore * (1 - weight)) + (localResult.score * weight)
   );
 
-  // Reduced penalty for generic names
+  console.log(`Combining scores - AI: ${aiScore}, Local: ${localResult.score}, Weight: ${weight}, Final: ${combinedScore}`);
+
+  // Strong penalty for generic names
   if (localResult.isGeneric) {
-    return Math.max(20, combinedScore - 20);  // Less severe penalty
+    const penalizedScore = Math.max(20, combinedScore - 30);
+    console.log(`Generic name penalty applied, reduced score to: ${penalizedScore}`);
+    return penalizedScore;
   }
 
-  // Lower minimum score threshold
   return Math.max(options.minimumScore || 20, Math.min(100, combinedScore));
 }

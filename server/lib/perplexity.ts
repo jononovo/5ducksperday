@@ -26,12 +26,14 @@ export async function validateNames(names: string[]): Promise<Record<string, num
       2. Professional context
       3. Job title contamination
       4. Realistic vs placeholder names
+      5. Company name patterns - strongly penalize these
 
       Scoring rules:
       - 90-100: Full name with clear first/last (e.g. "Michael Johnson")
       - 70-89: Common but incomplete name (e.g. "Mike J.")
       - 40-69: Ambiguous or unusual (e.g. "M. Johnson III")
-      - 1-39: Likely not a real name (e.g. "Sales Team", "John Doe")
+      - 1-39: Company names or generic terms (e.g. "The Paper Store", "Sales Team")
+      - 1-10: Obviously not a person's name
 
       Return ONLY a JSON object like:
       {
@@ -56,14 +58,20 @@ export async function validateNames(names: string[]): Promise<Record<string, num
       try {
         const parsed = JSON.parse(jsonMatch[0]);
         console.log('Successfully parsed API response:', parsed);
-        // Validate scores are within range
+
+        // Validate and process scores with strong company name penalties
         const validated: Record<string, number> = {};
         for (const [name, score] of Object.entries(parsed)) {
           if (typeof score === 'number' && score >= 1 && score <= 100) {
-            validated[name] = score;
+            // Penalize company-like names more heavily
+            if (isCompanyLikeName(name)) {
+              console.log(`Company-like name detected: ${name}, reducing score`);
+              validated[name] = Math.min(score, 30); // Cap score for company names
+            } else {
+              validated[name] = score;
+            }
           } else {
             console.log(`Invalid score for ${name}, using local validation`);
-            // Use local validation as fallback
             const localScore = validateNameLocally(name).score;
             validated[name] = localScore;
           }
@@ -71,7 +79,6 @@ export async function validateNames(names: string[]): Promise<Record<string, num
         return validated;
       } catch (e) {
         console.error('Failed to parse AI response:', e);
-        // Fall through to local validation
       }
     }
 
@@ -83,12 +90,24 @@ export async function validateNames(names: string[]): Promise<Record<string, num
 
   } catch (error) {
     console.error('Error in name validation:', error);
-    // Always fallback to local validation
     return names.reduce((acc, name) => {
       const localScore = validateNameLocally(name).score;
       return { ...acc, [name]: localScore };
     }, {});
   }
+}
+
+// Add new helper function to detect company-like names
+function isCompanyLikeName(name: string): boolean {
+  const companyPatterns = [
+    /^(?:the|a)\s+/i,  // Starts with "The" or "A"
+    /\b(?:inc|llc|ltd|corp|co|company|group|store)\b/i,  // Common company suffixes
+    /[&+]/,  // Company symbols
+    /\b(?:solutions|services|systems|technologies|tech)\b/i,  // Common business words
+    /[A-Z]{3,}/  // All caps sections (likely acronyms)
+  ];
+
+  return companyPatterns.some(pattern => pattern.test(name));
 }
 
 // Enhance contact extraction
