@@ -1,27 +1,18 @@
 import type { SearchModuleConfig, SearchSection, SearchImplementation } from '@shared/schema';
 import { validateNames, extractContacts, searchCompanies, analyzeCompany, parseCompanyData } from './perplexity';
 import type { Company, Contact } from '@shared/schema';
-
-import type { SearchModuleConfig, SearchSection } from '@shared/schema';
+import { 
+  analyzeCompanySize, 
+  analyzeDifferentiators,
+  calculateCompanyScore,
+  isFranchise,
+  isLocalHeadquarter 
+} from './results-analysis/company-analysis';
 
 // Define the structure of search module results
 export interface SearchModuleResult {
-  companies: Array<{
-    id?: number;
-    name: string;
-    size?: number | null;
-    services?: string[] | null;
-    validationPoints?: string[] | null;
-    differentiation?: string[] | null;
-    totalScore?: number;
-  }>;
-  contacts: Array<{
-    name: string;
-    role?: string | null;
-    email?: string | null;
-    probability?: number;
-    nameConfidenceScore?: number;
-  }>;
+  companies: Array<Partial<Company>>;
+  contacts: Array<Partial<Contact>>;
   metadata: {
     moduleType: string;
     completedSearches: string[];
@@ -141,16 +132,6 @@ export function getModuleConfig(moduleType: string): typeof COMPANY_OVERVIEW_MOD
   return module;
 }
 
-export interface SearchModuleResult {
-  companies: Partial<Company>[];
-  contacts: Partial<Contact>[];
-  metadata: {
-    moduleType: string;
-    completedSearches: string[];
-    validationScores: Record<string, number>;
-  };
-}
-
 export interface SearchModuleContext {
   query: string;
   config: SearchModuleConfig;
@@ -167,7 +148,7 @@ export interface SearchModule {
 export class CompanyOverviewModule implements SearchModule {
   async execute({ query, config }: SearchModuleContext): Promise<SearchModuleResult> {
     const completedSearches: string[] = [];
-    const companies: Partial<Company>[] = [];
+    const companies: Array<Partial<Company>> = [];
     const validationScores: Record<string, number> = {};
 
     try {
@@ -178,8 +159,8 @@ export class CompanyOverviewModule implements SearchModule {
         const searchOptions = config.searchOptions || {};
 
         // Skip if it matches exclusion criteria
-        if (searchOptions.ignoreFranchises && this.isFranchise(name)) continue;
-        if (searchOptions.locallyHeadquartered && !this.isLocalHeadquarter(name)) continue;
+        if (searchOptions.ignoreFranchises && isFranchise(name)) continue;
+        if (searchOptions.locallyHeadquartered && !isLocalHeadquarter(name)) continue;
 
         // Analyze based on enabled subsearches
         const analysisResults = await this.executeSubsearches(name, config);
@@ -214,7 +195,6 @@ export class CompanyOverviewModule implements SearchModule {
   }
 
   async validate(result: SearchModuleResult): Promise<boolean> {
-    // Implement validation logic
     const hasValidCompanies = result.companies.length > 0;
     const hasRequiredFields = result.companies.every(company =>
       company.name && company.services && company.services.length > 0
@@ -253,27 +233,13 @@ export class CompanyOverviewModule implements SearchModule {
 
     return results;
   }
-
-  private isFranchise(companyName: string): boolean {
-    // Implement franchise detection logic
-    const franchiseKeywords = ['franchise', 'franchising', 'franchisee'];
-    return franchiseKeywords.some(keyword =>
-      companyName.toLowerCase().includes(keyword)
-    );
-  }
-
-  private isLocalHeadquarter(companyName: string): boolean {
-    // Implement local headquarters detection logic
-    // This would need to be enhanced based on your specific requirements
-    return true; // Default to true for now
-  }
 }
 
-// Enhanced Decision Maker Module
+// Decision Maker Module
 export class DecisionMakerModule implements SearchModule {
   async execute({ query, config, previousResults }: SearchModuleContext): Promise<SearchModuleResult> {
     const companies = previousResults?.companies || [];
-    const contacts: Partial<Contact>[] = [];
+    const contacts: Array<Partial<Contact>> = [];
     const completedSearches: string[] = [];
     const validationScores: Record<string, number> = {};
 

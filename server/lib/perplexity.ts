@@ -1,10 +1,10 @@
-import type { Company, Contact } from "@shared/schema";
-import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./nameValidation";
-
-interface PerplexityMessage {
+export interface PerplexityMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
+
+import type { Company, Contact } from "@shared/schema";
+import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./nameValidation";
 
 interface PerplexityResponse {
   choices: Array<{
@@ -143,7 +143,7 @@ export async function extractContacts(
             if (!isPlaceholderEmail(email)) {
               const emailLower = email.toLowerCase();
               const nameParts = name.toLowerCase().split(/\s+/);
-              if (isValidBusinessEmail(email) || 
+              if (isValidBusinessEmail(email) ||
                   nameParts.some(part => part.length >= 2 && emailLower.includes(part))) {
                 emailMatches.push(email);
               }
@@ -165,12 +165,12 @@ export async function extractContacts(
     }
 
     // Ensure we're returning a valid array even if empty
-    return Array.isArray(contacts) ? 
+    return Array.isArray(contacts) ?
       contacts
         .sort((a, b) => (b.probability || 0) - (a.probability || 0))
         .filter((contact, index, self) =>
           index === self.findIndex(c => c.name === contact.name)
-        ) : 
+        ) :
       [];
 
   } catch (error) {
