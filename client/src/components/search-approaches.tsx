@@ -12,7 +12,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { SearchApproach } from "@shared/schema";
+import type { SearchApproach, SearchModuleConfig, SearchSection } from "@shared/schema";
 import { Check, Edit2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
@@ -20,7 +20,7 @@ interface SearchApproachesProps {
   approaches: SearchApproach[];
 }
 
-const DEFAULT_SEARCH_SECTIONS = {
+const DEFAULT_SEARCH_SECTIONS: Record<string, SearchSection> = {
   search_options: {
     id: "search_options",
     label: "Search Options",
@@ -38,109 +38,71 @@ const DEFAULT_SEARCH_SECTIONS = {
       }
     ]
   },
+  professional: {
+    id: "professional",
+    label: "Professional Networks",
+    description: "Search professional networks and databases",
+    searches: [
+      {
+        id: "linkedin-profiles",
+        label: "LinkedIn Profiles",
+        description: "Search LinkedIn for company decision makers"
+      },
+      {
+        id: "industry-databases",
+        label: "Industry Databases",
+        description: "Search professional industry databases"
+      }
+    ]
+  },
   local: {
     id: "local",
     label: "Local Sources",
+    description: "Search local business sources",
     searches: [
       {
         id: "local-news",
         label: "Local News Search",
-        description: "Search local news sources for company leadership mentions and activities"
+        description: "Search local news sources for company leadership mentions"
       },
       {
         id: "business-associations",
-        label: "Business Associations Search",
-        description: "Search local chambers of commerce and business association memberships"
-      },
-      {
-        id: "local-events",
-        label: "Local Events Search",
-        description: "Search local business events, conferences, and speaking engagements"
-      },
-      {
-        id: "local-classifieds",
-        label: "Local Classifieds or Lists",
-        description: "Search classifieds for company info and local classifieds"
-      }
-    ]
-  },
-  digital: {
-    id: "digital",
-    label: "Digital Sources",
-    searches: [
-      {
-        id: "google-business",
-        label: "Google My Business",
-        description: "Search Google My Business listings and reviews"
-      },
-      {
-        id: "yelp-search",
-        label: "Yelp Search",
-        description: "Check for Yelp"
+        label: "Business Associations",
+        description: "Search local chambers of commerce and associations"
       }
     ]
   },
   social: {
     id: "social",
-    label: "Social Sources",
+    label: "Social Media",
+    description: "Search social media platforms",
     searches: [
       {
-        id: "social-linkedin",
-        label: "LinkedIn Search",
-        description: "Search LinkedIn for company profiles and employees"
-      },
-      {
-        id: "social-twitter",
+        id: "twitter-search",
         label: "Twitter Search",
-        description: "Search Twitter for social mentions and engagement"
+        description: "Search Twitter for decision maker activity"
       },
       {
-        id: "social-facebook",
+        id: "facebook-search",
         label: "Facebook Search",
-        description: "Search Facebook for social presence and community engagement"
+        description: "Search Facebook for company pages and leadership"
       }
     ]
   },
-  startup: {
-    id: "startup",
-    label: "Startup Sources",
+  validation: {
+    id: "validation",
+    label: "Contact Validation",
+    description: "Validate and verify contact information",
     searches: [
       {
-        id: "startup-angelist",
-        label: "Angelist",
-        description: "Search Angelist for startup information and funding details"
+        id: "email-validation",
+        label: "Email Validation",
+        description: "Verify email addresses and formats"
       },
       {
-        id: "startup-crunchbase",
-        label: "Crunchbase",
-        description: "Search Crunchbase for company data and investment history"
-      },
-      {
-        id: "startup-other",
-        label: "Other Sources",
-        description: "Search other startup-focused platforms and databases"
-      }
-    ]
-  },
-  sector_listings: {
-    id: "sector_listings",
-    label: "Sector Specific Listings",
-    description: "For example, if the prompt mentions tech and education, then we would look into edtech listings sites. Select type/s of business:",
-    searches: [
-      {
-        id: "sector-tech",
-        label: "Tech Startup",
-        description: "Search for technology startup listings and directories"
-      },
-      {
-        id: "sector-small",
-        label: "Small Business",
-        description: "Search for small business listings and directories"
-      },
-      {
-        id: "sector-contractor",
-        label: "Contractor",
-        description: "Search for contractor and service provider listings"
+        id: "role-verification",
+        label: "Role Verification",
+        description: "Verify job titles and positions"
       }
     ]
   }
@@ -153,8 +115,8 @@ interface SubSearchesProps {
   completedSearches?: string[];
   onOptionChange?: (optionId: string, checked: boolean) => void;
   searchOptions?: Record<string, boolean>;
-  searchSections: typeof DEFAULT_SEARCH_SECTIONS;
-  onSearchSectionsChange: (sections: typeof DEFAULT_SEARCH_SECTIONS) => void;
+  searchSections: Record<string, SearchSection>;
+  onSearchSectionsChange: (sections: Record<string, SearchSection>) => void;
 }
 
 function SubSearches({
@@ -167,14 +129,14 @@ function SubSearches({
   searchSections,
   onSearchSectionsChange
 }: SubSearchesProps) {
-  const isCompanyOverview = approach.name.toLowerCase().includes('company overview');
-  const isDecisionMaker = approach.name.toLowerCase().includes('decision-maker');
+  const isCompanyOverview = approach.moduleType === 'company_overview';
+  const isDecisionMaker = approach.moduleType === 'decision_maker';
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [currentSubsearches, setCurrentSubsearches] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (isEditing) {
-      const defaultSubsearches = (approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean> || {};
+      const defaultSubsearches = (approach.config as SearchModuleConfig)?.subsearches || {};
       setCurrentSubsearches(defaultSubsearches);
     }
   }, [isEditing, approach.config]);
@@ -214,7 +176,7 @@ function SubSearches({
     onSearchSectionsChange(updatedSections);
   };
 
-  const renderSearchSection = (section: typeof DEFAULT_SEARCH_SECTIONS.search_options) => {
+  const renderSearchSection = (section: SearchSection) => {
     if (isCompanyOverview && section.id !== 'search_options') {
       return null;
     }
@@ -223,18 +185,15 @@ function SubSearches({
       return null;
     }
 
-    if (!isCompanyOverview && !isDecisionMaker) {
-      return null;
-    }
-
     const allChecked = section.searches.every(search =>
       section.id === 'search_options'
-        ? searchOptions?.[search.id.replace(/-/g, '')] ?? false
+        ? searchOptions[search.id.replace(/-/g, '')] ?? false
         : currentSubsearches[search.id] ?? false
     );
+
     const someChecked = section.searches.some(search =>
       section.id === 'search_options'
-        ? searchOptions?.[search.id.replace(/-/g, '')] ?? false
+        ? searchOptions[search.id.replace(/-/g, '')] ?? false
         : currentSubsearches[search.id] ?? false
     );
 
@@ -296,7 +255,7 @@ function SubSearches({
               const isSearchOption = section.id === 'search_options';
               const optionId = isSearchOption ? search.id.replace(/-/g, '') : search.id;
               const checked = isSearchOption
-                ? searchOptions?.[optionId] ?? false
+                ? searchOptions[optionId] ?? false
                 : currentSubsearches[search.id] ?? false;
 
               return (
@@ -407,15 +366,15 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     setEditedTechnicalPrompt(approach.technicalPrompt || "");
     setEditedResponseStructure(approach.responseStructure || "");
     setEditedSubSearches(
-      ((approach.config as Record<string, unknown>)?.subsearches as Record<string, boolean>) || {}
+      ((approach.config as SearchModuleConfig).subsearches) || {}
     );
     setCompletedSearches(approach.completedSearches || []);
     setSearchOptions({
-      ignoreFranchises: (approach.config as any)?.searchOptions?.ignoreFranchises || false,
-      locallyHeadquartered: (approach.config as any)?.searchOptions?.locallyHeadquartered || false,
+      ignoreFranchises: (approach.config as SearchModuleConfig).searchOptions?.ignoreFranchises || false,
+      locallyHeadquartered: (approach.config as SearchModuleConfig).searchOptions?.locallyHeadquartered || false,
     });
 
-    const savedSections = (approach.config as any)?.searchSections;
+    const savedSections = (approach.config as SearchModuleConfig).searchSections;
     if (savedSections) {
       setSearchSections(savedSections);
     } else {
@@ -458,7 +417,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
     }));
   };
 
-  const handleSearchSectionsChange = (newSections: typeof DEFAULT_SEARCH_SECTIONS) => {
+  const handleSearchSectionsChange = (newSections: Record<string, SearchSection>) => {
     setSearchSections(newSections);
   };
 
@@ -467,7 +426,7 @@ export default function SearchApproaches({ approaches }: SearchApproachesProps) 
       {approaches.map((approach) => {
         const currentSections = editingId === approach.id
           ? searchSections
-          : ((approach.config as any)?.searchSections || DEFAULT_SEARCH_SECTIONS);
+          : ((approach.config as SearchModuleConfig).searchSections || DEFAULT_SEARCH_SECTIONS);
 
         return (
           <AccordionItem key={approach.id} value={approach.id.toString()}>
