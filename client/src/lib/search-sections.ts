@@ -74,6 +74,94 @@ export const SEARCH_SUBSECTIONS = {
     label: "Role Verification",
     description: "Verify extracted roles and titles",
     implementation: "Verify roles and titles for [COMPANY] contacts"
+  },
+
+  // Local Sources
+  localNewsSearch: {
+    id: "local-news-search",
+    label: "Local News Search",
+    description: "Search local news sources for company leadership mentions and activities",
+    implementation: "Search local news for [COMPANY] leadership mentions"
+  },
+  businessAssociations: {
+    id: "business-associations-search",
+    label: "Business Associations Search",
+    description: "Search local chambers of commerce and business association memberships",
+    implementation: "Search business associations for [COMPANY] memberships"
+  },
+  localEvents: {
+    id: "local-events-search",
+    label: "Local Events Search",
+    description: "Search local business events, conferences, and speaking engagements",
+    implementation: "Find [COMPANY] participation in local events"
+  },
+  localClassifieds: {
+    id: "local-classifieds-search",
+    label: "Local Classifieds or Lists",
+    description: "Search classifieds for company info and local classifieds",
+    implementation: "Search local classifieds for [COMPANY] information"
+  },
+
+  // Digital Sources
+  gmbSearch: {
+    id: "gmb-search",
+    label: "Google My Business",
+    description: "Search Google My Business listings and reviews",
+    implementation: "Search GMB for [COMPANY] listing"
+  },
+  yelpSearch: {
+    id: "yelp-search",
+    label: "Yelp Search",
+    description: "Check for Yelp",
+    implementation: "Search Yelp for [COMPANY] profile"
+  },
+
+  // Social Sources
+  facebookSearch: {
+    id: "facebook-search",
+    label: "Facebook Search",
+    description: "Search Facebook for social presence and community engagement",
+    implementation: "Search Facebook for [COMPANY] presence"
+  },
+
+  // Startup Sources
+  angelistSearch: {
+    id: "angellist-search",
+    label: "Angelist",
+    description: "Search Angelist for startup information and funding details",
+    implementation: "Search Angellist for [COMPANY] profile"
+  },
+  crunchbaseSearch: {
+    id: "crunchbase-search",
+    label: "Crunchbase",
+    description: "Search Crunchbase for company data and investment history",
+    implementation: "Search Crunchbase for [COMPANY] data"
+  },
+  otherStartupSources: {
+    id: "other-startup-sources",
+    label: "Other Sources",
+    description: "Search other startup-focused platforms and databases",
+    implementation: "Search startup databases for [COMPANY]"
+  },
+
+  // Sector Specific Listings
+  techStartupListings: {
+    id: "tech-startup-listings",
+    label: "Tech Startup",
+    description: "Search for technology startup listings and directories",
+    implementation: "Search tech startup directories for [COMPANY]"
+  },
+  smallBusinessListings: {
+    id: "small-business-listings",
+    label: "Small Business",
+    description: "Search for small business listings and directories",
+    implementation: "Search small business directories for [COMPANY]"
+  },
+  contractorListings: {
+    id: "contractor-listings",
+    label: "Contractor",
+    description: "Search for contractor and service provider listings",
+    implementation: "Search contractor directories for [COMPANY]"
   }
 };
 
@@ -92,7 +180,7 @@ export const SECTIONS_CONFIG = {
       id: "social_networks",
       label: "Social Network Analysis",
       description: "Search social networks for decision maker profiles",
-      subsectionIds: ["linkedin-search", "twitter-search"]
+      subsectionIds: ["linkedin-search", "twitter-search", "facebook-search"]
     },
     professional_databases: {
       id: "professional_databases",
@@ -117,6 +205,30 @@ export const SECTIONS_CONFIG = {
       label: "Contact Validation",
       description: "Validate extracted contact information",
       subsectionIds: ["email-validation", "role-verification"]
+    },
+    local_sources: {
+      id: "local_sources",
+      label: "Local Sources",
+      description: "Search local sources for company and contact information",
+      subsectionIds: ["local-news-search", "business-associations-search", "local-events-search", "local-classifieds-search"]
+    },
+    digital_sources: {
+      id: "digital_sources",
+      label: "Digital Sources",
+      description: "Search digital platforms for company presence",
+      subsectionIds: ["gmb-search", "yelp-search"]
+    },
+    startup_sources: {
+      id: "startup_sources",
+      label: "Startup Sources",
+      description: "Search startup-focused platforms",
+      subsectionIds: ["angellist-search", "crunchbase-search", "other-startup-sources"]
+    },
+    sector_listings: {
+      id: "sector_listings",
+      label: "Sector Specific Listings",
+      description: "Search sector-specific directories",
+      subsectionIds: ["tech-startup-listings", "small-business-listings", "contractor-listings"]
     }
   }
 };
