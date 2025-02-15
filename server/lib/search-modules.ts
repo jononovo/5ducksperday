@@ -2,6 +2,145 @@ import type { SearchModuleConfig, SearchSection, SearchImplementation } from '@s
 import { validateNames, extractContacts, searchCompanies, analyzeCompany, parseCompanyData } from './perplexity';
 import type { Company, Contact } from '@shared/schema';
 
+import type { SearchModuleConfig, SearchSection } from '@shared/schema';
+
+// Define the structure of search module results
+export interface SearchModuleResult {
+  companies: Array<{
+    id?: number;
+    name: string;
+    size?: number | null;
+    services?: string[] | null;
+    validationPoints?: string[] | null;
+    differentiation?: string[] | null;
+    totalScore?: number;
+  }>;
+  contacts: Array<{
+    name: string;
+    role?: string | null;
+    email?: string | null;
+    probability?: number;
+    nameConfidenceScore?: number;
+  }>;
+  metadata: {
+    moduleType: string;
+    completedSearches: string[];
+    validationScores: Record<string, number>;
+  };
+}
+
+// Company Overview Module Configuration
+export const COMPANY_OVERVIEW_MODULE = {
+  type: 'company_overview',
+  defaultPrompt: "Provide a detailed overview of [COMPANY], including its age, size, and main business focus.",
+  technicalPrompt: `You are a business intelligence analyst. Analyze the company and provide structured information about:
+    1. Company size (employee count)
+    2. Core services offered
+    3. Market positioning
+    4. Key differentiators
+
+    Format your response as JSON with the following structure:
+    {
+      "size": number,
+      "services": string[],
+      "marketPosition": string,
+      "differentiators": string[]
+    }`,
+  responseStructure: {
+    size: "number - employee count",
+    services: "string[] - list of main services",
+    marketPosition: "string - brief market position description",
+    differentiators: "string[] - list of key differentiating factors"
+  }
+};
+
+// Decision Maker Module Configuration
+export const DECISION_MAKER_MODULE = {
+  type: 'decision_maker',
+  defaultPrompt: "Find key decision makers at [COMPANY], including their roles and contact information.",
+  technicalPrompt: `You are a business contact researcher. For each identified decision maker, provide:
+    1. Full name and title
+    2. Department/division
+    3. Professional contact details
+
+    Format your response as JSON with the following structure:
+    {
+      "contacts": [
+        {
+          "name": string,
+          "role": string,
+          "department": string,
+          "email": string | null,
+          "linkedinUrl": string | null
+        }
+      ]
+    }`,
+  responseStructure: {
+    contacts: [
+      {
+        name: "string - full name",
+        role: "string - job title",
+        department: "string - department name",
+        email: "string | null - business email if found",
+        linkedinUrl: "string | null - LinkedIn profile URL if found"
+      }
+    ]
+  },
+  validationRules: {
+    minimumConfidence: 30,
+    requireRole: true,
+    requireDepartment: false
+  }
+};
+
+// Email Discovery Module Configuration
+export const EMAIL_DISCOVERY_MODULE = {
+  type: 'email_discovery',
+  defaultPrompt: "Find and validate email addresses for key contacts at [COMPANY].",
+  technicalPrompt: `You are an email verification specialist. For each contact:
+    1. Find potential email addresses
+    2. Validate format and domain
+    3. Check for generic/role-based addresses
+
+    Format your response as JSON with the following structure:
+    {
+      "emails": [
+        {
+          "address": string,
+          "type": "personal" | "role" | "department",
+          "confidence": number,
+          "associatedName": string | null
+        }
+      ]
+    }`,
+  responseStructure: {
+    emails: [
+      {
+        address: "string - email address",
+        type: "string - 'personal', 'role', or 'department'",
+        confidence: "number - confidence score 0-100",
+        associatedName: "string | null - associated contact name if known"
+      }
+    ]
+  }
+};
+
+// All available search modules
+export const SEARCH_MODULES = {
+  company_overview: COMPANY_OVERVIEW_MODULE,
+  decision_maker: DECISION_MAKER_MODULE,
+  email_discovery: EMAIL_DISCOVERY_MODULE
+};
+
+// Helper function to get module configuration
+export function getModuleConfig(moduleType: string): typeof COMPANY_OVERVIEW_MODULE | typeof DECISION_MAKER_MODULE | typeof EMAIL_DISCOVERY_MODULE {
+  const module = SEARCH_MODULES[moduleType as keyof typeof SEARCH_MODULES];
+  if (!module) {
+    throw new Error(`Unknown module type: ${moduleType}`);
+  }
+  return module;
+}
+
 export interface SearchModuleResult {
   companies: Partial<Company>[];
   contacts: Partial<Contact>[];
@@ -34,10 +173,10 @@ export class CompanyOverviewModule implements SearchModule {
     try {
       // Base company search
       const companyNames = await searchCompanies(query);
-      
+
       for (const name of companyNames) {
         const searchOptions = config.searchOptions || {};
-        
+
         // Skip if it matches exclusion criteria
         if (searchOptions.ignoreFranchises && this.isFranchise(name)) continue;
         if (searchOptions.locallyHeadquartered && !this.isLocalHeadquarter(name)) continue;
@@ -45,14 +184,14 @@ export class CompanyOverviewModule implements SearchModule {
         // Analyze based on enabled subsearches
         const analysisResults = await this.executeSubsearches(name, config);
         const companyData = parseCompanyData(analysisResults);
-        
+
         if (companyData) {
           companies.push({
             name,
             ...companyData,
           });
           validationScores[name] = companyData.totalScore || 0;
-          
+
           // Track completed searches
           completedSearches.push(...Object.keys(config.subsearches || {})
             .filter(key => config.subsearches?.[key]));
@@ -77,10 +216,10 @@ export class CompanyOverviewModule implements SearchModule {
   async validate(result: SearchModuleResult): Promise<boolean> {
     // Implement validation logic
     const hasValidCompanies = result.companies.length > 0;
-    const hasRequiredFields = result.companies.every(company => 
+    const hasRequiredFields = result.companies.every(company =>
       company.name && company.services && company.services.length > 0
     );
-    
+
     return hasValidCompanies && hasRequiredFields;
   }
 
@@ -90,14 +229,14 @@ export class CompanyOverviewModule implements SearchModule {
   ): Promise<string[]> {
     const results: string[] = [];
     const subsearches = config.subsearches || {};
-    
+
     for (const [searchId, enabled] of Object.entries(subsearches)) {
       if (!enabled) continue;
 
       // Execute each enabled subsearch
       const section = Object.values(config.searchSections)
         .find(section => section.searches.some(search => search.id === searchId));
-      
+
       if (section) {
         const search = section.searches.find(s => s.id === searchId);
         if (search?.implementation) {
@@ -111,14 +250,14 @@ export class CompanyOverviewModule implements SearchModule {
         }
       }
     }
-    
+
     return results;
   }
 
   private isFranchise(companyName: string): boolean {
     // Implement franchise detection logic
     const franchiseKeywords = ['franchise', 'franchising', 'franchisee'];
-    return franchiseKeywords.some(keyword => 
+    return franchiseKeywords.some(keyword =>
       companyName.toLowerCase().includes(keyword)
     );
   }
@@ -218,10 +357,10 @@ export class DecisionMakerModule implements SearchModule {
   }
 
   async validate(result: SearchModuleResult): Promise<boolean> {
-    return result.contacts.length > 0 && 
-           result.contacts.every(contact => 
-             contact.name && 
-             contact.probability && 
+    return result.contacts.length > 0 &&
+           result.contacts.every(contact =>
+             contact.name &&
+             contact.probability &&
              contact.probability >= 30
            );
   }
@@ -233,8 +372,8 @@ export class DecisionMakerModule implements SearchModule {
       companies: previous.companies,
       contacts: [
         ...previous.contacts,
-        ...current.contacts.filter(newContact => 
-          !previous.contacts.some(existingContact => 
+        ...current.contacts.filter(newContact =>
+          !previous.contacts.some(existingContact =>
             existingContact.name === newContact.name
           )
         )
