@@ -142,8 +142,8 @@ export function combineValidationScores(
     (aiScore * (1 - weight)) + (localResult.score * weight)
   );
 
-  // Higher penalty for generic or placeholder names
-  if (localResult.isGeneric || isPlaceholderName(localResult.isGeneric)) {
+  // Higher penalty for generic names
+  if (localResult.isGeneric) {
     return Math.max(20, combinedScore - 30);
   }
 
