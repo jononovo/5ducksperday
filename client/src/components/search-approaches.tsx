@@ -38,12 +38,21 @@ function SubSearches({
 
   // Track subsearches and options independently
   const [subsearches, setSubsearches] = useState<Record<string, boolean>>(config?.subsearches || {});
-  const [searchOptions, setSearchOptions] = useState<Record<string, boolean>>(config?.searchOptions || {});
+  const [searchOptions, setSearchOptions] = useState<{
+    ignoreFranchises: boolean;
+    locallyHeadquartered: boolean;
+  }>(config?.searchOptions || {
+    ignoreFranchises: false,
+    locallyHeadquartered: false
+  });
 
   useEffect(() => {
     // Initialize from approach config
     setSubsearches(config?.subsearches || {});
-    setSearchOptions(config?.searchOptions || {});
+    setSearchOptions(config?.searchOptions || {
+      ignoreFranchises: false,
+      locallyHeadquartered: false
+    });
   }, [config, approach.moduleType]);
 
   const handleSubsearchChange = (id: string, checked: boolean) => {
@@ -76,21 +85,20 @@ function SubSearches({
     const isSearchOption = section.id === 'search_options';
     const moduleType = approach.moduleType;
 
-    // Filter sections based on module type and section type
+    // Only show search options for company overview
     if (moduleType === 'company_overview' && !isSearchOption) return null;
-    if (moduleType === 'decision_maker' && isSearchOption) return null;
-    if (moduleType === 'email_discovery' && !section.id.startsWith('email_')) return null;
+    if ((moduleType === 'decision_maker' || moduleType === 'email_discovery') && isSearchOption) return null;
 
     const allChecked = section.searches.every(search => {
       if (isSearchOption) {
-        return searchOptions[search.id.replace(/-/g, '')] ?? false;
+        return searchOptions[search.id.replace(/-/g, '') as keyof typeof searchOptions] ?? false;
       }
       return subsearches[search.id] ?? false;
     });
 
     const someChecked = section.searches.some(search => {
       if (isSearchOption) {
-        return searchOptions[search.id.replace(/-/g, '')] ?? false;
+        return searchOptions[search.id.replace(/-/g, '') as keyof typeof searchOptions] ?? false;
       }
       return subsearches[search.id] ?? false;
     });
@@ -116,7 +124,7 @@ function SubSearches({
           <div className="space-y-4 pl-6">
             {section.searches.map((search) => {
               const checked = isSearchOption
-                ? searchOptions[search.id.replace(/-/g, '')] ?? false
+                ? searchOptions[search.id.replace(/-/g, '') as keyof typeof searchOptions] ?? false
                 : subsearches[search.id] ?? false;
 
               return (
