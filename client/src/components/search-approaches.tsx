@@ -14,7 +14,7 @@ import {
 import type { SearchApproach, SearchModuleConfig, SearchSection } from "@shared/schema";
 import { Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { getSectionsByModuleType, SEARCH_SUBSECTIONS, getAllSearchIds } from "@/lib/search-sections";
+import { getSectionsByModuleType, SEARCH_SUBSECTIONS } from "@/lib/search-sections";
 
 interface SearchApproachesProps {
   approaches: SearchApproach[];
@@ -71,15 +71,15 @@ function SubSearches({
   };
 
   const renderSection = (section: SearchSection) => {
-    const isSearchOption = section.id === 'search_options';
-
-    // Update module type filtering logic
     if (!approach.moduleType) return null;
 
-    // Filter sections based on module type
-    if (approach.moduleType === 'company_overview' && !isSearchOption) return null;
-    if (approach.moduleType === 'decision_maker' && isSearchOption) return null;
-    if (approach.moduleType === 'email_discovery' && isSearchOption) return null;
+    const isSearchOption = section.id === 'search_options';
+    const moduleType = approach.moduleType;
+
+    // Filter sections based on module type and section type
+    if (moduleType === 'company_overview' && !isSearchOption) return null;
+    if (moduleType === 'decision_maker' && isSearchOption) return null;
+    if (moduleType === 'email_discovery' && !section.id.startsWith('email_')) return null;
 
     const allChecked = section.searches.every(search => {
       if (isSearchOption) {
