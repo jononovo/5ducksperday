@@ -2,7 +2,7 @@ import type { Company, Contact } from "@shared/schema";
 import { queryPerplexity } from "./api/perplexity-client";
 import { extractContacts } from "./results-analysis/contact-extraction";
 import { parseCompanyData } from "./results-analysis/company-parser";
-import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./results-analysis/name-expanded-validation";
+import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./results-analysis/contact-name-validation";
 
 export interface PerplexityMessage {
   role: "system" | "user" | "assistant";
