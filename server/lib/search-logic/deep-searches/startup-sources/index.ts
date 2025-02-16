@@ -1,10 +1,11 @@
 import { angellistSearch } from './angellist-search';
+import { crunchbaseSearch } from './crunchbase-search';
 import type { SearchModule } from '../../shared/types';
 
 export const startupSourcesModule: SearchModule = {
   name: "Startup Sources",
   description: "Search startup-focused platforms",
-  searches: [angellistSearch],
+  searches: [angellistSearch, crunchbaseSearch],
   config: {
     subsearches: {},
     searchOptions: {
@@ -23,3 +24,4 @@ export const startupSourcesModule: SearchModule = {
 };
 
 export * from './angellist-search';
+export * from './crunchbase-search';

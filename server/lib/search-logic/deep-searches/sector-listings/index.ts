@@ -1,4 +1,4 @@
-import { techStartupSearch } from './tech-startup-search';
+import { techStartupListingsSearch } from './tech-startup-search';
 import { smallBusinessSearch } from './small-business-search';
 import { contractorSearch } from './contractor-search';
 import type { SearchModule } from '../../shared/types';
@@ -6,7 +6,7 @@ import type { SearchModule } from '../../shared/types';
 export const sectorListingsModule: SearchModule = {
   name: "Sector Specific Listings",
   description: "Search sector-specific directories",
-  searches: [techStartupSearch, smallBusinessSearch, contractorSearch],
+  searches: [techStartupListingsSearch, smallBusinessSearch, contractorSearch],
   config: {
     subsearches: {},
     searchOptions: {

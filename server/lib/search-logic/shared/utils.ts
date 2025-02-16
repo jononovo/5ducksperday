@@ -1,4 +1,5 @@
 import type { SearchResult, SearchContext } from './types';
+import { moduleConfigurations } from '../deep-searches';
 
 export function validateSearchResult(
   result: SearchResult,
@@ -7,11 +8,11 @@ export function validateSearchResult(
   if (!result.content || result.content.trim() === '') {
     return false;
   }
-  
+
   if (result.confidence < minConfidence) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -45,4 +46,12 @@ export function combineSearchResults(
         : result.confidence
     }))
     .sort((a, b) => b.confidence - a.confidence);
+}
+
+// New utility function to get search configuration
+export function getSearchConfiguration(moduleId: string, searchId: string) {
+  const moduleConfig = moduleConfigurations[moduleId as keyof typeof moduleConfigurations];
+  if (!moduleConfig) return null;
+
+  return moduleConfig.searches.find(search => search.id === searchId);
 }

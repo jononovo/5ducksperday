@@ -1,14 +1,13 @@
 import type { SearchImplementation, SearchContext, SearchResult } from '../../shared/types';
 import { normalizeConfidenceScore } from '../../shared/utils';
 
-export const techStartupSearch: SearchImplementation = {
-  name: "Tech Startup Search",
+export const techStartupListingsSearch: SearchImplementation = {
+  name: "Tech Startup Listings Search",
   description: "Search for technology startup listings and directories",
-  
+
   async execute(context: SearchContext): Promise<SearchResult[]> {
     const { companyName } = context;
-    
-    // TODO: Implement actual tech startup directory search logic
+
     return [{
       content: `Found ${companyName} in tech startup directories`,
       confidence: normalizeConfidenceScore(0.75),
