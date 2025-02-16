@@ -6,7 +6,7 @@ import {
   analyzeDifferentiators,
   calculateCompanyScore 
 } from "./results-analysis/company-analysis";
-import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./results-analysis/name-expanded-validation";
+import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./results-analysis/contact-name-validation";
 import { extractContacts } from "./results-analysis/contact-extraction";
 
 // Core search functions

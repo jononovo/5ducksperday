@@ -1,5 +1,5 @@
 import type { Company, Contact } from "@shared/schema";
-import { validateNameLocally, combineValidationScores } from "./results-analysis/name-expanded-validation";
+import { validateNameLocally, combineValidationScores } from "./results-analysis/contact-name-validation";
 import { isPlaceholderEmail, isValidBusinessEmail, parseEmailDetails } from "./results-analysis/email-analysis";
 import { analyzeCompanySize, analyzeDifferentiators } from "./results-analysis/company-analysis";
 import { queryPerplexity } from "./api/perplexity-client";
