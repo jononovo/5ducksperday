@@ -1,4 +1,5 @@
 import type { Company } from "@shared/schema";
+import { analyzeCompanySize, analyzeDifferentiators, calculateCompanyScore } from "./company-analysis";
 
 export function parseCompanyData(analysisResults: string[]): Partial<Company> {
   const companyData: Partial<Company> = {
@@ -23,41 +24,21 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
         // Fall back to text parsing
       }
 
-      // Parse company size carefully
-      if (result.includes("employees") || result.includes("staff")) {
-        const sizeMatch = result.match(/(\d+)[\s-]*(?:\d+)?\s*(employees|staff)/i);
-        if (sizeMatch) {
-          const numbers = sizeMatch[1].split('-').map(n => parseInt(n.trim()));
-          companyData.size = Math.max(...numbers.filter(n => !isNaN(n)));
-        }
+      // Parse company size using the analysis function
+      const size = analyzeCompanySize(result);
+      if (size !== null) {
+        companyData.size = size;
       }
 
-      // Extract differentiators
-      if (result.toLowerCase().includes("different") || result.toLowerCase().includes("unique")) {
-        const points = result
-          .split(/[.!?•]/)
-          .map(s => s.trim())
-          .filter(s =>
-            s.length > 0 &&
-            s.length < 100 &&
-            (s.toLowerCase().includes("unique") ||
-              s.toLowerCase().includes("only") ||
-              s.toLowerCase().includes("leading"))
-          )
-          .slice(0, 3);
-
-        if (points.length > 0) {
-          companyData.differentiation = points;
-        }
+      // Extract differentiators using the analysis function
+      const differentiators = analyzeDifferentiators(result);
+      if (differentiators.length > 0) {
+        companyData.differentiation = differentiators;
       }
-
-      // Calculate score
-      let score = 50;
-      if (companyData.size && companyData.size > 50) score += 10;
-      if (companyData.differentiation && companyData.differentiation.length > 0) score += 20;
-      if (companyData.services && companyData.services.length > 0) score += 20;
-      companyData.totalScore = Math.min(100, score);
     }
+
+    // Calculate final score using the analysis function
+    companyData.totalScore = calculateCompanyScore(companyData);
   } catch (error) {
     console.error('Error parsing company data:', error);
   }
