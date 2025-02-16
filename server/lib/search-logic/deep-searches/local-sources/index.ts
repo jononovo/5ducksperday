@@ -1,5 +1,5 @@
 import { localNewsSearch } from './news-search';
-import { localBusinessAssociationsSearch } from './business-associations-search';
+import { localBusinessAssociationsSearch } from './local-business-associations-search';
 import { localEventsSearch } from './local-events-search';
 import { localClassifiedsSearch } from './local-classifieds-search';
 import type { SearchModule } from '../../shared/types';
@@ -31,6 +31,6 @@ export const localSourcesModule: SearchModule = {
 };
 
 export * from './news-search';
-export * from './business-associations-search';
+export * from './local-business-associations-search';
 export * from './local-events-search';
 export * from './local-classifieds-search';
