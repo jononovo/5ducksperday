@@ -46,15 +46,24 @@ export const patternPredictionStrategy: EmailSearchStrategy = {
       const attemptedPatterns: Record<string, string[]> = {};
       const predictedEmails: string[] = [];
 
-      // Get contact names from the company (this would come from other search results)
-      const sampleNames = [
-        "John Smith", // Example names - in real implementation these would come from other search results
-        "Jane Doe"
-      ];
+      // Get contact names from other search results or company context
+      // Instead of using sample names, we'll return early if no valid names are found
+      if (!context.existingContacts || context.existingContacts.length === 0) {
+        return {
+          source: "pattern_prediction",
+          emails: [],
+          metadata: {
+            searchDate: new Date().toISOString(),
+            error: "No valid contact names found for pattern prediction"
+          }
+        };
+      }
 
-      for (const name of sampleNames) {
-        const possibleEmails = generatePossibleEmails(name, companyDomain);
-        attemptedPatterns[name] = possibleEmails;
+      for (const contact of context.existingContacts) {
+        if (!contact.name) continue;
+
+        const possibleEmails = generatePossibleEmails(contact.name, companyDomain);
+        attemptedPatterns[contact.name] = possibleEmails;
 
         for (const email of possibleEmails) {
           if (validateEmailPattern(email) >= 70 && !isPlaceholderEmail(email)) {

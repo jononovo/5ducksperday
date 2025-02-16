@@ -6,6 +6,33 @@ export interface NameValidationResult {
   confidence: number;
 }
 
+// Centralized list of placeholder and generic terms
+const PLACEHOLDER_NAMES = new Set([
+  'john doe', 'jane doe', 'john smith', 'jane smith',
+  'test user', 'demo user', 'example user'
+]);
+
+const GENERIC_TERMS = new Set([
+  // Job titles and positions
+  'chief', 'executive', 'officer', 'ceo', 'cto', 'cfo', 'coo', 'president',
+  'director', 'manager', 'head', 'lead', 'senior', 'junior', 'principal',
+  'vice', 'assistant', 'associate', 'coordinator', 'specialist', 'analyst',
+  'administrator', 'supervisor', 'founder', 'co-founder', 'owner', 'partner',
+
+  // Generic business terms
+  'leadership', 'team', 'member', 'staff', 'employee', 'general',
+  'key', 'role', 'position', 'department', 'division', 'management',
+  'contact', 'person', 'representative', 'individual',
+  'business', 'company', 'enterprise', 'organization', 'corporation',
+  'admin', 'professional', 'consultant',
+  'service', 'support', 'office', 'personnel', 'resource',
+  'operation', 'development', 'sales', 'marketing', 'customer'
+]);
+
+export function isPlaceholderName(name: string): boolean {
+  return PLACEHOLDER_NAMES.has(name.toLowerCase());
+}
+
 export function validateNameLocally(name: string, context: string = ""): NameValidationResult {
   const isGeneric = isGenericName(name);
   if (isGeneric) {
@@ -21,30 +48,9 @@ export function validateNameLocally(name: string, context: string = ""): NameVal
 }
 
 function isGenericName(name: string): boolean {
-  const genericTerms = [
-    // Job titles and positions
-    'chief', 'executive', 'officer', 'ceo', 'cto', 'cfo', 'coo', 'president',
-    'director', 'manager', 'head', 'lead', 'senior', 'junior', 'principal',
-    'vice', 'assistant', 'associate', 'coordinator', 'specialist', 'analyst',
-    'administrator', 'supervisor', 'founder', 'co-founder', 'owner', 'partner',
-
-    // Generic terms
-    'leadership', 'team', 'member', 'staff', 'employee', 'general',
-    'key', 'role', 'position', 'department', 'division', 'management',
-    'contact', 'person', 'representative', 'individual',
-    'business', 'company', 'enterprise', 'organization', 'corporation',
-    'admin', 'professional', 'consultant',
-    'service', 'support', 'office', 'personnel', 'resource',
-    'operation', 'development', 'sales', 'marketing', 'customer',
-
-    // Common placeholder names
-    'john doe', 'jane doe', 'john smith', 'jane smith',
-    'test', 'demo', 'example', 'user', 'admin'
-  ];
-
   const name_lower = name.toLowerCase();
 
-  if (genericTerms.includes(name_lower)) {
+  if (PLACEHOLDER_NAMES.has(name_lower) || GENERIC_TERMS.has(name_lower)) {
     return true;
   }
 
@@ -56,16 +62,17 @@ function isGenericName(name: string): boolean {
     /^(mr|mrs|ms|dr|prof)\.\s*$/i  // Just a title
   ];
 
-  if (jobTitlePatterns.some(pattern => pattern.test(name))) {
-    return true;
-  }
-
-  return false;
+  return jobTitlePatterns.some(pattern => pattern.test(name));
 }
 
 function calculateNameConfidenceScore(name: string, context: string): number {
   let score = 50; // Start with a neutral score
   const namePattern = /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}$/;
+
+  // Immediately return low score for placeholder names
+  if (isPlaceholderName(name)) {
+    return 20;
+  }
 
   // Base score for proper name format
   if (namePattern.test(name)) {
@@ -102,7 +109,7 @@ function calculateNameConfidenceScore(name: string, context: string): number {
 
   redFlags.forEach(flag => {
     if (flag.test(name)) {
-      score -= 15; // Reduced penalty
+      score -= 15;
     }
   });
 
@@ -135,9 +142,9 @@ export function combineValidationScores(
     (aiScore * (1 - weight)) + (localResult.score * weight)
   );
 
-  // Moderate penalty for generic names
-  if (localResult.isGeneric) {
-    return Math.max(30, combinedScore - 20);
+  // Higher penalty for generic or placeholder names
+  if (localResult.isGeneric || isPlaceholderName(localResult.isGeneric)) {
+    return Math.max(20, combinedScore - 30);
   }
 
   return Math.max(options.minimumScore || 30, Math.min(100, combinedScore));
