@@ -73,10 +73,13 @@ function SubSearches({
   const renderSection = (section: SearchSection) => {
     const isSearchOption = section.id === 'search_options';
 
-    // Filter sections based on module type
+    // Update module type filtering logic
     if (!approach.moduleType) return null;
+
+    // Filter sections based on module type
     if (approach.moduleType === 'company_overview' && !isSearchOption) return null;
     if (approach.moduleType === 'decision_maker' && isSearchOption) return null;
+    if (approach.moduleType === 'email_discovery' && isSearchOption) return null;
 
     const allChecked = section.searches.every(search => {
       if (isSearchOption) {

@@ -63,7 +63,7 @@ export const SEARCH_SUBSECTIONS = {
     description: "Search SEC filings for officer information",
     implementation: "Search SEC filings for [COMPANY] officer and director information"
   },
-  emailValidation: {
+  contactEmailValidation: {
     id: "email-validation",
     label: "Email Validation",
     description: "Verify extracted email addresses",
@@ -162,6 +162,32 @@ export const SEARCH_SUBSECTIONS = {
     label: "Contractor",
     description: "Search for contractor and service provider listings",
     implementation: "Search contractor directories for [COMPANY]"
+  },
+
+  // Email Discovery specific subsections
+  emailPatternAnalysis: {
+    id: "email-pattern-analysis",
+    label: "Email Pattern Analysis",
+    description: "Analyze company email patterns and formats",
+    implementation: "Analyze email patterns used at [COMPANY]"
+  },
+  domainValidation: {
+    id: "domain-validation",
+    label: "Domain Validation",
+    description: "Validate company email domains",
+    implementation: "Validate email domains for [COMPANY]"
+  },
+  publicEmailSearch: {
+    id: "public-email-search",
+    label: "Public Email Search",
+    description: "Search public sources for email addresses",
+    implementation: "Search public sources for [COMPANY] email addresses"
+  },
+  emailVerification: {
+    id: "email-verification",
+    label: "Email Verification",
+    description: "Verify discovered email addresses",
+    implementation: "Verify email addresses for [COMPANY] contacts"
   }
 };
 
@@ -235,6 +261,20 @@ export const SECTIONS_CONFIG = {
       label: "Sector Specific Listings",
       description: "Search sector-specific directories",
       subsectionIds: ["tech-startup-listings", "small-business-listings", "contractor-listings"]
+    }
+  },
+  email_discovery: {
+    email_analysis: {
+      id: "email_analysis",
+      label: "Email Analysis",
+      description: "Analyze and discover email patterns",
+      subsectionIds: ["email-pattern-analysis", "domain-validation"]
+    },
+    discovery_methods: {
+      id: "discovery_methods",
+      label: "Discovery Methods",
+      description: "Methods for discovering email addresses",
+      subsectionIds: ["public-email-search", "email-verification"]
     }
   }
 };
