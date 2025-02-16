@@ -1,6 +1,7 @@
 import type { SearchModuleConfig, SearchSection, SearchImplementation } from '@shared/schema';
-import { validateNames, extractContacts, searchCompanies, analyzeCompany, parseCompanyData } from './perplexity';
+import { validateNames, extractContacts, searchCompanies, analyzeCompany, parseCompanyData, validateEmails } from './perplexity';
 import type { Company, Contact } from '@shared/schema';
+
 import { 
   analyzeCompanySize, 
   analyzeDifferentiators,
@@ -359,13 +360,153 @@ export class DecisionMakerModule implements SearchModule {
   }
 }
 
-// Factory function to create appropriate module instance
+// Email Discovery Module
+export class EmailDiscoveryModule implements SearchModule {
+  async execute({ query, config, previousResults }: SearchModuleContext): Promise<SearchModuleResult> {
+    const companies = previousResults?.companies || [];
+    const contacts: Array<Partial<Contact>> = [];
+    const completedSearches: string[] = [];
+    const validationScores: Record<string, number> = {};
+
+    try {
+      for (const company of companies) {
+        if (!company.name) continue;
+
+        // Execute enabled email discovery searches
+        const subsearches = config.subsearches || {};
+        const searchSections = config.searchSections || {};
+        const searchResults: string[] = [];
+
+        // Track which sections we've processed
+        const processedSections = new Set<string>();
+
+        for (const [searchId, enabled] of Object.entries(subsearches)) {
+          if (!enabled) continue;
+
+          const section = Object.values(searchSections)
+            .find(section => section.searches.some(search => search.id === searchId));
+
+          if (section && !processedSections.has(section.id)) {
+            processedSections.add(section.id);
+
+            // Execute all enabled searches in this section
+            const enabledSearches = section.searches
+              .filter(search => subsearches[search.id])
+              .filter(search => search.implementation);
+
+            for (const search of enabledSearches) {
+              try {
+                const result = await analyzeCompany(
+                  company.name,
+                  search.implementation!,
+                  null,
+                  null
+                );
+                searchResults.push(result);
+                completedSearches.push(search.id);
+              } catch (error) {
+                console.error(`Failed to execute search ${search.id}:`, error);
+              }
+            }
+          }
+        }
+
+        // Extract and validate emails
+        const extractedContacts = await extractContacts(searchResults);
+
+        // Validate emails
+        const validatedContacts = await Promise.all(
+          extractedContacts.map(async contact => {
+            if (contact.email) {
+              const validationResult = await validateEmails([contact.email]);
+              return {
+                ...contact,
+                probability: validationResult.score
+              };
+            }
+            return contact;
+          })
+        );
+
+        // Apply validation rules
+        const filteredContacts = validatedContacts.filter(contact => {
+          const validationRules = config.validationRules || {};
+          const minimumConfidence = validationRules.minimumConfidence || 0;
+
+          return contact.probability && contact.probability >= minimumConfidence;
+        });
+
+        contacts.push(...filteredContacts);
+
+        // Calculate validation scores
+        for (const contact of filteredContacts) {
+          if (contact.email) {
+            validationScores[contact.email] = contact.probability || 0;
+          }
+        }
+      }
+
+      return {
+        companies: [], // Email discovery module doesn't modify companies
+        contacts,
+        metadata: {
+          moduleType: 'email_discovery',
+          completedSearches,
+          validationScores
+        }
+      };
+    } catch (error) {
+      console.error('Error in EmailDiscoveryModule:', error);
+      throw error;
+    }
+  }
+
+  async validate(result: SearchModuleResult): Promise<boolean> {
+    return result.contacts.length > 0 &&
+           result.contacts.every(contact =>
+             contact.email &&
+             contact.probability &&
+             contact.probability >= 30
+           );
+  }
+
+  merge(current: SearchModuleResult, previous?: SearchModuleResult): SearchModuleResult {
+    if (!previous) return current;
+
+    return {
+      companies: previous.companies,
+      contacts: [
+        ...previous.contacts,
+        ...current.contacts.filter(newContact =>
+          !previous.contacts.some(existingContact =>
+            existingContact.email === newContact.email
+          )
+        )
+      ],
+      metadata: {
+        ...current.metadata,
+        completedSearches: [
+          ...(previous.metadata.completedSearches || []),
+          ...(current.metadata.completedSearches || [])
+        ],
+        validationScores: {
+          ...previous.metadata.validationScores,
+          ...current.metadata.validationScores
+        }
+      }
+    };
+  }
+}
+
+// Update factory function to include EmailDiscoveryModule
 export function createSearchModule(moduleType: string): SearchModule {
   switch (moduleType) {
     case 'company_overview':
       return new CompanyOverviewModule();
     case 'decision_maker':
       return new DecisionMakerModule();
+    case 'email_discovery':
+      return new EmailDiscoveryModule();
     default:
       throw new Error(`Unknown module type: ${moduleType}`);
   }
