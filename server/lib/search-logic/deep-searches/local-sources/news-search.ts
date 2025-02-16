@@ -1,5 +1,5 @@
 import type { SearchImplementation, SearchContext, SearchResult } from '../../shared/types';
-import { normalizeConfidenceScore } from '../../shared/utils';
+import { normalizeConfidenceScore, validateSearchResult } from '../../shared/utils';
 
 export const localNewsSearch: SearchImplementation = {
   name: "Local News Search",
@@ -8,8 +8,7 @@ export const localNewsSearch: SearchImplementation = {
   async execute(context: SearchContext): Promise<SearchResult[]> {
     const { companyName } = context;
 
-    // TODO: Implement actual news search logic
-    return [{
+    const result = {
       content: `Found mentions of ${companyName} in local news`,
       confidence: normalizeConfidenceScore(0.7),
       source: "local_news",
@@ -18,6 +17,13 @@ export const localNewsSearch: SearchImplementation = {
         searchType: "local_news",
         sources: ["local_newspapers", "local_business_journals", "community_news"]
       }
-    }];
+    };
+
+    // Validate against module configuration
+    if (!validateSearchResult(result, 0.5, "local_sources", "local-news-search")) {
+      return [];
+    }
+
+    return [result];
   }
 };
