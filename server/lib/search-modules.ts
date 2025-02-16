@@ -1,6 +1,8 @@
 import type { SearchModuleConfig, SearchSection, SearchImplementation } from '@shared/schema';
 import { validateNames, extractContacts, searchCompanies, analyzeCompany, parseCompanyData, validateEmails } from './perplexity';
 import type { Company, Contact } from '@shared/schema';
+import { emailDiscoveryModule } from './search-logic/email-discovery';
+import { validateEmailPattern, isValidBusinessEmail } from './results-analysis/email-analysis';
 
 import { 
   analyzeCompanySize, 
@@ -90,9 +92,10 @@ export const EMAIL_DISCOVERY_MODULE = {
   type: 'email_discovery',
   defaultPrompt: "Find and validate email addresses for key contacts at [COMPANY].",
   technicalPrompt: `You are an email verification specialist. For each contact:
-    1. Find potential email addresses
+    1. Find potential email addresses through multiple sources
     2. Validate format and domain
-    3. Check for generic/role-based addresses
+    3. Check against various verification methods
+    4. Assign confidence scores
 
     Format your response as JSON with the following structure:
     {
@@ -101,7 +104,9 @@ export const EMAIL_DISCOVERY_MODULE = {
           "address": string,
           "type": "personal" | "role" | "department",
           "confidence": number,
-          "associatedName": string | null
+          "associatedName": string | null,
+          "source": string,
+          "verificationMethod": string[]
         }
       ]
     }`,
@@ -111,7 +116,9 @@ export const EMAIL_DISCOVERY_MODULE = {
         address: "string - email address",
         type: "string - 'personal', 'role', or 'department'",
         confidence: "number - confidence score 0-100",
-        associatedName: "string | null - associated contact name if known"
+        associatedName: "string | null - associated contact name if known",
+        source: "string - where the email was found",
+        verificationMethod: "string[] - list of verification methods used"
       }
     ]
   }
@@ -370,78 +377,60 @@ export class EmailDiscoveryModule implements SearchModule {
 
     try {
       for (const company of companies) {
-        if (!company.name) continue;
+        if (!company.name || !company.website) continue;
 
-        // Execute enabled email discovery searches
+        // Execute each enabled search strategy
         const subsearches = config.subsearches || {};
-        const searchSections = config.searchSections || {};
-        const searchResults: string[] = [];
-
-        // Track which sections we've processed
-        const processedSections = new Set<string>();
+        const searchResults = [];
 
         for (const [searchId, enabled] of Object.entries(subsearches)) {
           if (!enabled) continue;
 
-          const section = Object.values(searchSections)
-            .find(section => section.searches.some(search => search.id === searchId));
+          const search = emailDiscoveryModule.searches.find(s => s.id === searchId);
+          if (!search?.implementation) continue;
 
-          if (section && !processedSections.has(section.id)) {
-            processedSections.add(section.id);
+          try {
+            const context = {
+              companyName: company.name,
+              companyWebsite: company.website,
+              companyDomain: new URL(company.website).hostname,
+              config,
+              options: {
+                timeout: 30000,
+                maxDepth: 2
+              }
+            };
 
-            // Execute all enabled searches in this section
-            const enabledSearches = section.searches
-              .filter(search => subsearches[search.id])
-              .filter(search => search.implementation);
+            // Execute the search implementation
+            const result = await search.implementation.execute(context);
+            if (result.emails?.length > 0) {
+              // First pass: local validation
+              const preValidatedEmails = result.emails.filter(email => {
+                const patternScore = validateEmailPattern(email);
+                return patternScore >= 50 && isValidBusinessEmail(email);
+              });
 
-            for (const search of enabledSearches) {
-              try {
-                const result = await analyzeCompany(
-                  company.name,
-                  search.implementation!,
-                  null,
-                  null
-                );
-                searchResults.push(result);
-                completedSearches.push(search.id);
-              } catch (error) {
-                console.error(`Failed to execute search ${search.id}:`, error);
+              if (preValidatedEmails.length > 0) {
+                // Add validated emails to contacts
+                for (const email of preValidatedEmails) {
+                  contacts.push({
+                    companyId: company.id,
+                    email,
+                    name: null, // Could be enriched later
+                    probability: result.metadata?.validationScore || 50,
+                    verificationSource: search.label
+                  });
+
+                  validationScores[email] = result.metadata?.validationScore || 50;
+                }
               }
             }
-          }
-        }
 
-        // Extract and validate emails
-        const extractedContacts = await extractContacts(searchResults);
+            completedSearches.push(searchId);
+            searchResults.push(result);
 
-        // Validate emails
-        const validatedContacts = await Promise.all(
-          extractedContacts.map(async contact => {
-            if (contact.email) {
-              const validationResult = await validateEmails([contact.email]);
-              return {
-                ...contact,
-                probability: validationResult.score
-              };
-            }
-            return contact;
-          })
-        );
-
-        // Apply validation rules
-        const filteredContacts = validatedContacts.filter(contact => {
-          const validationRules = config.validationRules || {};
-          const minimumConfidence = validationRules.minimumConfidence || 0;
-
-          return contact.probability && contact.probability >= minimumConfidence;
-        });
-
-        contacts.push(...filteredContacts);
-
-        // Calculate validation scores
-        for (const contact of filteredContacts) {
-          if (contact.email) {
-            validationScores[contact.email] = contact.probability || 0;
+          } catch (error) {
+            console.error(`Failed to execute search ${searchId}:`, error);
           }
         }
       }
@@ -455,6 +444,7 @@ export class EmailDiscoveryModule implements SearchModule {
           validationScores
         }
       };
+
     } catch (error) {
       console.error('Error in EmailDiscoveryModule:', error);
       throw error;
@@ -498,7 +488,7 @@ export class EmailDiscoveryModule implements SearchModule {
   }
 }
 
-// Update factory function to include EmailDiscoveryModule
+// Update factory function to use new EmailDiscoveryModule implementation
 export function createSearchModule(moduleType: string): SearchModule {
   switch (moduleType) {
     case 'company_overview':

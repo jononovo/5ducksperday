@@ -9,9 +9,12 @@ export interface SearchResult {
 
 export interface SearchContext {
   companyName: string;
+  companyWebsite?: string;
+  companyDomain?: string;
   config: SearchModuleConfig;
   options?: {
     timeout?: number;
+    maxDepth?: number;
     maxResults?: number;
     filters?: Record<string, unknown>;
   };
