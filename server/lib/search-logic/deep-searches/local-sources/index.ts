@@ -1,5 +1,5 @@
-import { newsSearch } from './news-search';
-import { businessAssociationsSearch } from './business-associations-search';
+import { localNewsSearch } from './news-search';
+import { localBusinessAssociationsSearch } from './business-associations-search';
 import { localEventsSearch } from './local-events-search';
 import { localClassifiedsSearch } from './local-classifieds-search';
 import type { SearchModule } from '../../shared/types';
@@ -8,8 +8,8 @@ export const localSourcesModule: SearchModule = {
   name: "Local Sources",
   description: "Search local sources for company and contact information",
   searches: [
-    newsSearch,
-    businessAssociationsSearch,
+    localNewsSearch,
+    localBusinessAssociationsSearch,
     localEventsSearch,
     localClassifiedsSearch
   ],
