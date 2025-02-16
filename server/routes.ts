@@ -1,10 +1,12 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { searchCompanies, analyzeCompany, parseCompanyData, extractContacts, queryPerplexity } from "./lib/perplexity";
+import { searchCompanies, analyzeCompany, extractContacts } from "./lib/perplexity";
+import { parseCompanyData } from "./lib/results-analysis/company-parser";
+import { queryPerplexity } from "./lib/api/perplexity-client";
+import { searchContactDetails } from "./lib/api-interactions";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
-import {insertEmailTemplateSchema} from "@shared/schema"; 
-import { searchContactDetails } from "./lib/perplexity";
+import { insertEmailTemplateSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -96,11 +98,11 @@ export function registerRoutes(app: Express) {
       // Get search approaches for analysis
       const approaches = await storage.listSearchApproaches();
 
-      const companyOverview = approaches.find(a => 
+      const companyOverview = approaches.find(a =>
         a.name === "Company Overview" && a.active
       );
 
-      const decisionMakerAnalysis = approaches.find(a => 
+      const decisionMakerAnalysis = approaches.find(a =>
         a.name === "Decision-maker Analysis" && a.active
       );
 
@@ -116,7 +118,7 @@ export function registerRoutes(app: Express) {
         companyNames.map(async (companyName) => {
           // Run Company Overview analysis with technical prompt
           const overviewResult = await analyzeCompany(
-            companyName, 
+            companyName,
             companyOverview.prompt,
             companyOverview.technicalPrompt,
             companyOverview.responseStructure
@@ -126,7 +128,7 @@ export function registerRoutes(app: Express) {
           // If Decision-maker Analysis is active, run it with technical prompt
           if (decisionMakerAnalysis?.active) {
             const decisionMakerResult = await analyzeCompany(
-              companyName, 
+              companyName,
               decisionMakerAnalysis.prompt,
               decisionMakerAnalysis.technicalPrompt,
               decisionMakerAnalysis.responseStructure
@@ -209,7 +211,7 @@ export function registerRoutes(app: Express) {
 
       // Get the decision-maker analysis approach
       const approaches = await storage.listSearchApproaches();
-      const decisionMakerApproach = approaches.find(a => 
+      const decisionMakerApproach = approaches.find(a =>
         a.name === "Decision-maker Analysis"
       );
 
@@ -225,7 +227,7 @@ export function registerRoutes(app: Express) {
 
         // Perform decision-maker analysis with technical prompt
         const analysisResult = await analyzeCompany(
-          company.name, 
+          company.name,
           decisionMakerApproach.prompt,
           decisionMakerApproach.technicalPrompt,
           decisionMakerApproach.responseStructure
@@ -415,9 +417,9 @@ export function registerRoutes(app: Express) {
       });
 
       if (!result.success) {
-        res.status(400).json({ 
+        res.status(400).json({
           message: "Invalid request body",
-          errors: result.error.errors 
+          errors: result.error.errors
         });
         return;
       }
@@ -525,9 +527,9 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const subjectLine = parts[0].replace(/^Subject:\s*/i, '').trim();
       const content = parts.slice(1).join('\n').trim();
 
-      res.json({ 
+      res.json({
         subject: subjectLine,
-        content: content 
+        content: content
       });
     } catch (error) {
       console.error('Email generation error:', error);
@@ -583,7 +585,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       });
     }
   });
-  
+
   app.post("/api/contacts/search", async (req, res) => {
     const { name, company } = req.body;
 
