@@ -2,10 +2,17 @@ import type { Company } from "@shared/schema";
 
 // Company-specific analysis functions
 export function analyzeCompanySize(result: string): number | null {
-  if (result.includes("employees") || result.includes("staff")) {
-    const sizeMatch = result.match(/(\d+)[\s-]*(?:\d+)?\s*(employees|staff)/i);
-    if (sizeMatch) {
-      const numbers = sizeMatch[1].split('-').map(n => parseInt(n.trim()));
+  const sizePatterns = [
+    /(\d+(?:,\d+)?(?:\s*-\s*\d+(?:,\d+)?)?)\s*(?:employees|staff)/i,
+    /team of\s+(\d+(?:,\d+)?)/i,
+    /staff size[:\s]+(\d+(?:,\d+)?)/i
+  ];
+
+  for (const pattern of sizePatterns) {
+    const match = result.match(pattern);
+    if (match) {
+      const sizeText = match[1].replace(/,/g, '');
+      const numbers = sizeText.split('-').map(n => parseInt(n.trim()));
       return Math.max(...numbers.filter(n => !isNaN(n)));
     }
   }
@@ -13,20 +20,26 @@ export function analyzeCompanySize(result: string): number | null {
 }
 
 export function analyzeDifferentiators(result: string): string[] {
-  if (result.toLowerCase().includes("different") || result.toLowerCase().includes("unique")) {
-    return result
-      .split(/[.!?•]/)
-      .map(s => s.trim())
-      .filter(s =>
-        s.length > 0 &&
-        s.length < 100 &&
-        (s.toLowerCase().includes("unique") ||
-          s.toLowerCase().includes("only") ||
-          s.toLowerCase().includes("leading"))
-      )
-      .slice(0, 3);
-  }
-  return [];
+  const differentiatorPatterns = [
+    /uniquely/i,
+    /different/i,
+    /unique/i,
+    /specialized in/i,
+    /industry leader/i,
+    /leading provider/i,
+    /innovative/i
+  ];
+
+  const sentences = result
+    .split(/[.!?]/)
+    .map(s => s.trim())
+    .filter(s => 
+      s.length > 0 && 
+      s.length < 200 &&
+      differentiatorPatterns.some(pattern => pattern.test(s))
+    );
+
+  return sentences.slice(0, 3);
 }
 
 export function isFranchise(companyName: string): boolean {
@@ -37,15 +50,33 @@ export function isFranchise(companyName: string): boolean {
 }
 
 export function isLocalHeadquarter(companyName: string): boolean {
-  // Enhanced local headquarters detection logic could be implemented here
-  // For now, returning true as per original implementation
-  return true;
+  const hqIndicators = ['headquarters', 'hq', 'main office', 'corporate office'];
+  return hqIndicators.some(indicator => 
+    companyName.toLowerCase().includes(indicator)
+  );
 }
 
 export function calculateCompanyScore(companyData: Partial<Company>): number {
-  let score = 50;
-  if (companyData.size && companyData.size > 50) score += 10;
-  if (companyData.differentiation && companyData.differentiation.length > 0) score += 20;
-  if (companyData.services && companyData.services.length > 0) score += 20;
-  return Math.min(100, score);
+  let score = 50; // Base score
+
+  // Size scoring (up to 20 points)
+  if (companyData.size) {
+    if (companyData.size > 1000) score += 20;
+    else if (companyData.size > 500) score += 15;
+    else if (companyData.size > 100) score += 10;
+    else if (companyData.size > 50) score += 5;
+  }
+
+  // Differentiators scoring (up to 15 points)
+  if (companyData.differentiation?.length) {
+    score += Math.min(companyData.differentiation.length * 5, 15);
+  }
+
+  // Services scoring (up to 15 points)
+  if (companyData.services?.length) {
+    score += Math.min(companyData.services.length * 3, 15);
+  }
+
+  // Ensure score stays within bounds
+  return Math.min(100, Math.max(0, score));
 }
