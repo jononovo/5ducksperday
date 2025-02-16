@@ -1,12 +1,12 @@
+import type { Company, Contact } from "@shared/schema";
+import { validateNameLocally, combineValidationScores } from "./results-analysis/name-expanded-validation";
+import { isPlaceholderEmail, isValidBusinessEmail, parseEmailDetails } from "./results-analysis/email-analysis";
+import { analyzeCompanySize, analyzeDifferentiators } from "./results-analysis/company-analysis";
+
 export interface PerplexityMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
-
-import type { Company, Contact } from "@shared/schema";
-import { validateNameLocally, combineValidationScores } from "./results-analysis/name-analysis";
-import { isPlaceholderEmail, isValidBusinessEmail, parseEmailDetails } from "./results-analysis/email-analysis";
-import { analyzeCompanySize, analyzeDifferentiators } from "./results-analysis/company-analysis";
 
 interface PerplexityResponse {
   choices: Array<{

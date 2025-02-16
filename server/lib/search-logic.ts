@@ -10,8 +10,8 @@ import {
   parseContactDetails,
   isValidBusinessEmail,
   isPlaceholderEmail 
-} from "./results-analysis/contact-analysis";
-import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./results-analysis/name-analysis";
+} from "./results-analysis/email-analysis";
+import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./results-analysis/name-expanded-validation";
 
 // Core search functions
 export async function searchCompanies(query: string): Promise<string[]> {

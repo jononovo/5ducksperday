@@ -4,7 +4,7 @@ export interface PerplexityMessage {
 }
 
 import type { Company, Contact } from "@shared/schema";
-import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./nameValidation";
+import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./results-analysis/name-expanded-validation";
 
 interface PerplexityResponse {
   choices: Array<{
