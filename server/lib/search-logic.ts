@@ -1,6 +1,7 @@
-import type { PerplexityMessage } from "./perplexity";
-import { queryPerplexity } from "./api/perplexity-client";
 import type { Company, Contact } from "@shared/schema";
+import { queryPerplexity } from "./api/perplexity-client";
+import type { PerplexityMessage } from "./types/perplexity";
+import { analyzeWithPerplexity } from "./perplexity";
 import { 
   analyzeCompanySize, 
   analyzeDifferentiators,

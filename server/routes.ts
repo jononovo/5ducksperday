@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { searchCompanies, analyzeCompany, extractContacts } from "./lib/perplexity";
+import { searchCompanies, analyzeCompany } from "./lib/search-logic";
+import { extractContacts } from "./lib/perplexity";
 import { parseCompanyData } from "./lib/results-analysis/company-parser";
 import { queryPerplexity } from "./lib/api/perplexity-client";
 import { searchContactDetails } from "./lib/api-interactions";

@@ -1,7 +1,7 @@
 import type { Contact } from "@shared/schema";
 import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./contact-name-validation";
 import { isPlaceholderEmail, isValidBusinessEmail } from "./email-analysis";
-import { validateNames } from "../perplexity";
+import { validateNames } from "../api-interactions";
 
 export async function extractContacts(
   analysisResults: string[],
