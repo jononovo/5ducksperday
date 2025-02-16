@@ -3,6 +3,34 @@ import { validateNameLocally, type ValidationOptions, combineValidationScores } 
 import { isPlaceholderEmail, isValidBusinessEmail } from "./email-analysis";
 import { validateNames } from "../api-interactions";
 
+// Common business email formats
+const EMAIL_FORMATS = [
+  (first: string, last: string) => `${first}.${last}`,
+  (first: string, last: string) => `${first[0]}${last}`,
+  (first: string, last: string) => `${first}${last[0]}`,
+  (first: string, last: string) => `${first}`,
+  (first: string, last: string) => `${last}`,
+  (first: string, last: string) => `${first[0]}.${last}`
+];
+
+function generatePossibleEmails(name: string, domain: string): string[] {
+  const nameParts = name.toLowerCase().split(/\s+/);
+  if (nameParts.length < 2) return [];
+
+  const firstName = nameParts[0];
+  const lastName = nameParts[nameParts.length - 1];
+
+  return EMAIL_FORMATS.map(format => 
+    `${format(firstName, lastName)}@${domain}`
+  );
+}
+
+function extractDomainFromContext(text: string): string | null {
+  const domainPattern = /(?:@|http:\/\/|https:\/\/|www\.)([a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,})/;
+  const match = text.match(domainPattern);
+  return match ? match[1] : null;
+}
+
 export async function extractContacts(
   analysisResults: string[],
   validationOptions?: ValidationOptions
@@ -25,6 +53,9 @@ export async function extractContacts(
   try {
     for (const result of analysisResults) {
       if (typeof result !== 'string') continue;
+
+      // Extract company domain from context
+      const domain = extractDomainFromContext(result);
 
       let match;
       const names = [];
@@ -58,27 +89,49 @@ export async function extractContacts(
             role = roleMatch[1].trim();
           }
 
-          const emailMatches: string[] = [];
+          // Enhanced email discovery
+          const emailMatches = new Set<string>();
+
+          // 1. Direct email matches from text
           emailRegex.lastIndex = 0;
           while ((match = emailRegex.exec(result)) !== null) {
-            const email = match[0];
-            if (!isPlaceholderEmail(email)) {
-              const emailLower = email.toLowerCase();
-              const nameParts = name.toLowerCase().split(/\s+/);
-              if (isValidBusinessEmail(email) ||
-                  nameParts.some(part => part.length >= 2 && emailLower.includes(part))) {
-                emailMatches.push(email);
+            const email = match[0].toLowerCase();
+            if (!isPlaceholderEmail(email) && isValidBusinessEmail(email)) {
+              emailMatches.add(email);
+            }
+          }
+
+          // 2. Generate potential business emails if domain found
+          if (domain) {
+            const predictedEmails = generatePossibleEmails(name, domain);
+            for (const email of predictedEmails) {
+              if (isValidBusinessEmail(email) && !isPlaceholderEmail(email)) {
+                emailMatches.add(email);
               }
             }
           }
 
+          // 3. Match name parts with found emails
+          const nameParts = name.toLowerCase().split(/\s+/);
+          emailRegex.lastIndex = 0;
+          while ((match = emailRegex.exec(result)) !== null) {
+            const email = match[0].toLowerCase();
+            if (!isPlaceholderEmail(email) &&
+                nameParts.some(part => part.length >= 2 && email.includes(part))) {
+              emailMatches.add(email);
+            }
+          }
+
+          const emailsArray = Array.from(emailMatches);
+
           contacts.push({
             name,
-            email: emailMatches[0] || null,
+            email: emailsArray.length > 0 ? emailsArray[0] : null,
             role,
             probability: finalScore,
             nameConfidenceScore: finalScore,
-            lastValidated: new Date()
+            lastValidated: new Date(),
+            alternativeEmails: emailsArray.slice(1)  // Store additional found emails
           });
         }
       }

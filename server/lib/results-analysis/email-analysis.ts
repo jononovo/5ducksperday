@@ -11,7 +11,10 @@ export function isPlaceholderEmail(email: string): boolean {
     /test[._]?user/i,
     /demo[._]?user/i,
     /noreply/i,
-    /donotreply/i
+    /donotreply/i,
+    /placeholder/i,
+    /tempmail/i,
+    /temp[._]?email/i
   ];
   return placeholderPatterns.some(pattern => pattern.test(email));
 }
@@ -22,47 +25,98 @@ export function isValidBusinessEmail(email: string): boolean {
     /^(?!support|info|sales|contact|help|admin|webmaster|postmaster).*@/i,  // Not generic addresses
     /^[a-z]{1,3}[._][a-z]+@/i,  // Initials pattern (e.g., j.smith@)
     /^[a-z]+\.[a-z]+@/i,  // firstname.lastname pattern
+    /^[a-z]+[0-9]{0,2}@/i,  // name with optional numbers
+    /^[a-z]+_[a-z]+@/i,  // underscore separated
   ];
-  return businessPatterns.some(pattern => pattern.test(email));
-}
 
-export function parseEmailDetails(response: string): Partial<Contact> {
-  const contact: Partial<Contact> = {};
-  
-  const emailMatch = response.match(/[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/);
-  if (emailMatch && !isPlaceholderEmail(emailMatch[0])) {
-    contact.email = emailMatch[0];
-  }
+  // Check if matches any valid business email pattern
+  const isValidPattern = businessPatterns.some(pattern => pattern.test(email));
 
-  return contact;
+  // Additional checks for common personal email domains
+  const personalDomains = [
+    '@gmail.com',
+    '@yahoo.com',
+    '@hotmail.com',
+    '@outlook.com',
+    '@aol.com',
+    '@icloud.com'
+  ];
+
+  const isPersonalDomain = personalDomains.some(domain => 
+    email.toLowerCase().endsWith(domain)
+  );
+
+  return isValidPattern && !isPersonalDomain;
 }
 
 export function validateEmailPattern(email: string): number {
   if (!email || typeof email !== 'string') return 0;
-  
+
   let score = 0;
-  
+
   // Basic email format check
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     score += 40;
-    
+
     // Business domain patterns
-    if (!/(@gmail\.com|@yahoo\.com|@hotmail\.com)$/i.test(email)) {
+    if (!/(@gmail\.com|@yahoo\.com|@hotmail\.com|@outlook\.com)$/i.test(email)) {
       score += 20;
     }
-    
+
     // Name pattern checks
     if (/^[a-z]+\.[a-z]+@/i.test(email)) { // firstname.lastname
       score += 20;
     } else if (/^[a-z]{1,3}\.[a-z]+@/i.test(email)) { // f.lastname or fml.lastname
       score += 15;
+    } else if (/^[a-z]+[0-9]{0,2}@/i.test(email)) { // name with optional numbers
+      score += 10;
     }
-    
+
     // No generic prefixes
-    if (!/^(info|contact|support|sales|admin|office|help)@/i.test(email)) {
+    if (!/^(info|contact|support|sales|admin|office|help|team|general)@/i.test(email)) {
       score += 20;
     }
+
+    // Domain reputation check
+    const domain = email.split('@')[1];
+    if (domain) {
+      // Penalize free email providers
+      if (/^(gmail|yahoo|hotmail|outlook|aol|protonmail)\./i.test(domain)) {
+        score -= 30;
+      }
+
+      // Bonus for .com/.net/.org domains
+      if (/\.(com|net|org)$/i.test(domain)) {
+        score += 10;
+      }
+    }
   }
-  
+
   return Math.min(100, score);
+}
+
+export function parseEmailDetails(response: string): Partial<Contact> {
+  const contact: Partial<Contact> = {};
+
+  // Extract email with context
+  const emailMatch = response.match(/[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g);
+  if (emailMatch) {
+    // Filter and sort emails by business relevance
+    const validEmails = emailMatch
+      .filter(email => !isPlaceholderEmail(email))
+      .sort((a, b) => {
+        const scoreA = validateEmailPattern(a);
+        const scoreB = validateEmailPattern(b);
+        return scoreB - scoreA;
+      });
+
+    if (validEmails.length > 0) {
+      contact.email = validEmails[0];
+      if (validEmails.length > 1) {
+        contact.alternativeEmails = validEmails.slice(1);
+      }
+    }
+  }
+
+  return contact;
 }
