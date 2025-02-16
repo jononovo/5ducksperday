@@ -1,0 +1,112 @@
+Local Sources
+Search local sources for company and contact information
+
+
+Local News Search
+Search local news sources for company leadership mentions and activities
+
+Search local news for [COMPANY] leadership mentions
+
+
+Business Associations Search
+Search local chambers of commerce and business association memberships
+
+Search business associations for [COMPANY] memberships
+
+
+Local Events Search
+Search local business events, conferences, and speaking engagements
+
+Find [COMPANY] participation in local events
+
+
+Local Classifieds or Lists
+Search classifieds for company info and local classifieds
+
+Search local classifieds for [COMPANY] information
+
+
+
+Digital Sources
+Search digital platforms for company presence
+
+
+Google My Business
+Search Google My Business listings and reviews
+
+Search GMB for [COMPANY] listing
+
+
+Yelp Search
+Check for Yelp
+
+Search Yelp for [COMPANY] profile
+
+
+
+Social Sources
+Search social media platforms
+
+
+LinkedIn Analysis
+Search for company decision makers on LinkedIn
+
+Search LinkedIn for company executives and decision makers at [COMPANY]
+
+
+Twitter Analysis
+Analyze Twitter for executive activity
+
+Find Twitter accounts of executives at [COMPANY]
+
+
+Facebook Search
+Search Facebook for social presence and community engagement
+
+Search Facebook for [COMPANY] presence
+
+
+
+Startup Sources
+Search startup-focused platforms
+
+
+Angelist
+Search Angelist for startup information and funding details
+
+Search Angellist for [COMPANY] profile
+
+
+Crunchbase
+Search Crunchbase for company data and investment history
+
+Search Crunchbase for [COMPANY] data
+
+
+Other Sources
+Search other startup-focused platforms and databases
+
+Search startup databases for [COMPANY]
+
+
+
+Sector Specific Listings
+Search sector-specific directories
+
+
+Tech Startup
+Search for technology startup listings and directories
+
+Search tech startup directories for [COMPANY]
+
+
+Small Business
+Search for small business listings and directories
+
+Search small business directories for [COMPANY]
+
+
+Contractor
+Search for contractor and service provider listings
+
+Search contractor directories for [COMPANY]
