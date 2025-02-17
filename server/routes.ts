@@ -190,32 +190,31 @@ export function registerRoutes(app: Express) {
         })
       );
 
-      // Only start email enrichment after all initial searches are complete
+      // Modified section for email enrichment
       if (emailEnrichmentModule?.active) {
-        console.log('Email enrichment module is active, checking for enrichment candidates...');
+        // Wait for all companies and contacts to be created first
+        const searchId = `search_${Date.now()}`;
 
-        // Get all contacts from all companies in this search
-        const allContacts = companies.flatMap(company => company.contacts);
+        // Process each company sequentially to avoid overwhelming the system
+        for (const company of companies) {
+          try {
+            // Get fresh contact data after initial creation and validation
+            const contacts = await storage.listContactsByCompany(company.id);
 
-        // Filter for top prospects across all companies
-        const topProspects = allContacts.filter(contact => 
-          contact.probability && contact.probability >= 50
-        );
-
-        console.log(`Found ${topProspects.length} top prospects for enrichment`);
-
-        if (topProspects.length > 0) {
-          // Start enrichment process after initial search is complete
-          const searchId = `search_${Date.now()}`;
-          for (const company of companies) {
-            const companyContacts = company.contacts.filter(contact => 
-              contact.probability && contact.probability >= 50
+            // Filter for validated top prospects
+            const topProspects = contacts.filter(contact => 
+              contact.nameConfidenceScore && 
+              contact.nameConfidenceScore >= 70 && 
+              !contact.completedSearches?.includes('contact_enrichment')
             );
 
-            if (companyContacts.length > 0) {
-              console.log(`Starting enrichment for ${companyContacts.length} contacts in company ${company.name}`);
+            if (topProspects.length > 0) {
+              console.log(`Starting enrichment for ${topProspects.length} contacts in company ${company.name}`);
               await postSearchEnrichmentService.startEnrichment(company.id, searchId);
             }
+          } catch (error) {
+            console.error(`Error starting enrichment for company ${company.name}:`, error);
+            // Continue with other companies even if one fails
           }
         }
       }

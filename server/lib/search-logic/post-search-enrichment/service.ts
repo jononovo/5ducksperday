@@ -9,24 +9,31 @@ class PostSearchEnrichmentService {
     // Get contacts for the company
     const contacts = await storage.listContactsByCompany(companyId);
 
-    // Filter for top prospects (probability >= 50)
+    // Filter for high-confidence prospects only
     const topProspects = contacts
-      .filter(contact => contact.probability && contact.probability >= 50)
-      .sort((a, b) => (b.probability || 0) - (a.probability || 0));
+      .filter(contact => {
+        const hasHighConfidence = contact.nameConfidenceScore && contact.nameConfidenceScore >= 70;
+        const notEnrichedYet = !contact.completedSearches?.includes('contact_enrichment');
+        return hasHighConfidence && notEnrichedYet;
+      })
+      .sort((a, b) => (b.nameConfidenceScore || 0) - (a.nameConfidenceScore || 0));
 
     if (topProspects.length === 0) {
-      console.log(`No top prospects found for company ${companyId}`);
-      throw new Error('No top prospects found to enrich');
+      console.log(`No qualified top prospects found for company ${companyId}`);
+      throw new Error('No qualified prospects found to enrich');
     }
 
-    console.log(`Found ${topProspects.length} top prospects for enrichment in company ${companyId}`);
+    console.log(`Found ${topProspects.length} qualified prospects for enrichment in company ${companyId}`);
 
-    // Create queue items
+    const company = await storage.getCompany(companyId);
+    if (!company) throw new Error('Company not found');
+
+    // Create queue items with proper prioritization
     const queueItems: EnrichmentQueueItem[] = topProspects.map(contact => ({
       contactId: contact.id,
       companyId,
       searchId,
-      priority: contact.probability || 50
+      priority: contact.nameConfidenceScore || 50
     }));
 
     // Add to queue and start processing
