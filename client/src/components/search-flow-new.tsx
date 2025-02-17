@@ -178,39 +178,9 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
           </Tooltip>
         </TooltipProvider>
 
-        <div className="flex-1 space-y-1.5">
+        <div className="flex-1">
           <AccordionTrigger className="hover:no-underline">
-            <div className="flex flex-col items-start">
-              <span className="font-medium text-base">{approach.name}</span>
-              {minimumConfidence > 0 && (
-                <div className="flex items-center gap-2 mt-1.5">
-                  <div className="flex items-center gap-2 flex-1 max-w-[200px]">
-                    <Progress
-                      value={minimumConfidence}
-                      className={`h-2 ${getConfidenceColor(minimumConfidence)}`}
-                    />
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs font-medium">
-                              {minimumConfidence}%
-                            </span>
-                            <InfoIcon className="h-3 w-3 text-muted-foreground" />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="text-sm">
-                            {getConfidenceLabel(minimumConfidence)}: Requires {minimumConfidence}%
-                            confidence in search results
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
-              )}
-            </div>
+            <span className="font-medium text-base">{approach.name}</span>
           </AccordionTrigger>
         </div>
       </div>
@@ -222,6 +192,43 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
             <AlertDescription>{validationError}</AlertDescription>
           </Alert>
         )}
+
+        {/* Confidence Threshold Section */}
+        {minimumConfidence > 0 && (
+          <div className="mb-4 p-4 bg-muted rounded-lg">
+            <h4 className="font-medium mb-2">Confidence Threshold</h4>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 max-w-[200px]">
+                <Progress
+                  value={minimumConfidence}
+                  className={`h-2 ${getConfidenceColor(minimumConfidence)}`}
+                />
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm font-medium">
+                        {minimumConfidence}%
+                      </span>
+                      <InfoIcon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-sm">
+                      {getConfidenceLabel(minimumConfidence)}: Requires {minimumConfidence}%
+                      confidence in search results
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Results below this confidence threshold will be filtered out
+            </p>
+          </div>
+        )}
+
         {isEditing ? (
           <div className="space-y-4">
             <div>
