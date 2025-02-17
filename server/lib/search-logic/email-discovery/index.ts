@@ -6,6 +6,7 @@ import { publicDirectoryStrategy } from './strategies/public-directory';
 import { socialProfileStrategy } from './strategies/social-profile';
 import { localBusinessAssociationsSearch } from '../deep-searches/local-sources/local-business-associations-search';
 import { localEventsSearch } from '../deep-searches/local-sources/local-events-search';
+import { emailEnrichmentService } from '../email-enrichment/email-enrichment-service';
 
 // Export module configuration
 export const emailDiscoveryModule = {
@@ -60,6 +61,23 @@ export const emailDiscoveryModule = {
       description: "Search local business events and conferences for contact discovery",
       implementation: localEventsSearch,
       defaultEnabled: true
+    },
+    {
+      id: "email-enrichment",
+      label: "Email Enrichment",
+      description: "Enrich discovered email addresses with additional data",
+      implementation: async (context) => {
+        const { companyId } = context;
+        if (!companyId) return [];
+
+        await emailEnrichmentService.enrichTopProspects(companyId);
+        return [{
+          content: "Email enrichment process started for top prospects",
+          confidence: 1,
+          source: "email_enrichment"
+        }];
+      },
+      defaultEnabled: false
     }
   ]
 };
