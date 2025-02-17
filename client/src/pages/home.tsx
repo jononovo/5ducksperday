@@ -24,7 +24,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { SearchApproach } from "@shared/schema";
 import SearchFlowNew from "@/components/search-flow-new";
 
 // Extend Company type to include contacts
