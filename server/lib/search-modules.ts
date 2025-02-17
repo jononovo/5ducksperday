@@ -54,10 +54,11 @@ export const COMPANY_OVERVIEW_MODULE = {
 export const DECISION_MAKER_MODULE = {
   type: 'decision_maker',
   defaultPrompt: "Find key decision makers at [COMPANY], including their roles and contact information.",
-  technicalPrompt: `You are a business contact researcher. For each identified decision maker, provide:
-    1. Full name and title
-    2. Department/division
-    3. Professional contact details
+  technicalPrompt: `You are a business contact researcher. Find only real, verifiable decision makers at the company. For each identified decision maker, provide:
+  
+    1. Full name 
+    2. position, title or role
+    3. Email address
 
     Format your response as JSON with the following structure:
     {
@@ -93,7 +94,7 @@ export const DECISION_MAKER_MODULE = {
 export const EMAIL_DISCOVERY_MODULE = {
   type: 'email_discovery',
   defaultPrompt: "Discover and validate email addresses for contacts at [COMPANY]",
-  technicalPrompt: `You are an email discovery specialist. For the given company and contacts:
+  technicalPrompt: `You are an email discovery specialist. For the given company contacts:
     1. Analyze company domain and email patterns
     2. Search public sources for email addresses
     3. Validate discovered emails through multiple methods
