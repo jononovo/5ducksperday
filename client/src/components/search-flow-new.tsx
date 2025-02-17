@@ -38,6 +38,12 @@ const APPROACH_ORDER = {
 function ApproachEditor({ approach }: { approach: SearchApproach }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState(approach.prompt);
+  const [editedTechnicalPrompt, setEditedTechnicalPrompt] = useState(
+    approach.technicalPrompt || ""
+  );
+  const [editedResponseStructure, setEditedResponseStructure] = useState(
+    approach.responseStructure || ""
+  );
   const [validationError, setValidationError] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -126,12 +132,16 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
   const handleSave = () => {
     updateMutation.mutate({
       prompt: editedPrompt,
+      technicalPrompt: editedTechnicalPrompt || null,
+      responseStructure: editedResponseStructure || null,
     });
   };
 
   const handleCancel = () => {
     setIsEditing(false);
     setEditedPrompt(approach.prompt);
+    setEditedTechnicalPrompt(approach.technicalPrompt || "");
+    setEditedResponseStructure(approach.responseStructure || "");
     setValidationError(null);
   };
 
@@ -216,17 +226,39 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Search Prompt
+                User-Facing Prompt
               </label>
               <Textarea
                 value={editedPrompt}
                 onChange={(e) => setEditedPrompt(e.target.value)}
-                placeholder="Enter the search prompt..."
+                placeholder="Enter the user-facing prompt..."
                 className="min-h-[100px]"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Use [COMPANY] as a placeholder for the target company name
               </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Technical Implementation
+              </label>
+              <Textarea
+                value={editedTechnicalPrompt}
+                onChange={(e) => setEditedTechnicalPrompt(e.target.value)}
+                placeholder="Enter the technical implementation details..."
+                className="min-h-[100px] font-mono text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Response Structure
+              </label>
+              <Textarea
+                value={editedResponseStructure}
+                onChange={(e) => setEditedResponseStructure(e.target.value)}
+                placeholder="Enter the expected JSON response structure..."
+                className="min-h-[100px] font-mono text-sm"
+              />
             </div>
             <div className="flex gap-2">
               <Button
@@ -246,16 +278,35 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
         ) : (
           <div className="space-y-4">
             <div className="space-y-2">
-              <h4 className="font-medium">Search Prompt</h4>
+              <h4 className="font-medium">Description</h4>
               <p className="text-sm text-muted-foreground">{approach.prompt}</p>
             </div>
+
+            {approach.technicalPrompt && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Technical Details</h4>
+                <p className="text-sm text-muted-foreground font-mono">
+                  {approach.technicalPrompt}
+                </p>
+              </div>
+            )}
+
+            {approach.responseStructure && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Expected Response</h4>
+                <pre className="text-sm bg-muted p-2 rounded-md font-mono">
+                  {approach.responseStructure}
+                </pre>
+              </div>
+            )}
+
             <Button
               size="sm"
               variant="outline"
               onClick={() => setIsEditing(true)}
             >
               <Edit3 className="w-4 h-4 mr-2" />
-              Edit Prompt
+              Edit Approach
             </Button>
           </div>
         )}
