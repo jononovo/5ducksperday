@@ -334,7 +334,6 @@ export default function SearchFlowNew({ approaches }: SearchFlowNewProps) {
 
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold">Search Flow Configuration</h3>
       <Accordion type="single" collapsible className="w-full">
         {sortedApproaches.map((approach) => (
           <ApproachEditor key={approach.id} approach={approach} />
