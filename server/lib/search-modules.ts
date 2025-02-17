@@ -90,37 +90,50 @@ export const DECISION_MAKER_MODULE = {
 // Email Discovery Module Configuration
 export const EMAIL_DISCOVERY_MODULE = {
   type: 'email_discovery',
-  defaultPrompt: "Find and validate email addresses for key contacts at [COMPANY].",
-  technicalPrompt: `You are an email verification specialist. For each contact:
-    1. Find potential email addresses through multiple sources
-    2. Validate format and domain
-    3. Check against various verification methods
-    4. Assign confidence scores
+  defaultPrompt: "Discover and validate email addresses for contacts at [COMPANY]",
+  technicalPrompt: `You are an email discovery specialist. For the given company and contacts:
+    1. Analyze company domain and email patterns
+    2. Search public sources for email addresses
+    3. Validate discovered emails through multiple methods
+    4. Assign confidence scores based on validation results
 
     Format your response as JSON with the following structure:
     {
-      "emails": [
+      "discoveredEmails": [
         {
-          "address": string,
-          "type": "personal" | "role" | "department",
+          "email": string,
+          "contactName": string | null,
           "confidence": number,
-          "associatedName": string | null,
           "source": string,
-          "verificationMethod": string[]
+          "validationMethods": string[],
+          "patternMatch": boolean
         }
-      ]
+      ],
+      "emailPatterns": {
+        "common": string[],
+        "validated": boolean
+      }
     }`,
   responseStructure: {
-    emails: [
+    discoveredEmails: [
       {
-        address: "string - email address",
-        type: "string - 'personal', 'role', or 'department'",
+        email: "string - discovered email address",
+        contactName: "string | null - associated contact name if known",
         confidence: "number - confidence score 0-100",
-        associatedName: "string | null - associated contact name if known",
-        source: "string - where the email was found",
-        verificationMethod: "string[] - list of verification methods used"
+        source: "string - discovery source (e.g., website, directory, pattern)",
+        validationMethods: "string[] - list of validation methods used",
+        patternMatch: "boolean - matches company email pattern"
       }
-    ]
+    ],
+    emailPatterns: {
+      common: "string[] - detected company email patterns",
+      validated: "boolean - pattern validation status"
+    }
+  },
+  validationRules: {
+    minimumConfidence: 50,
+    requireValidation: true,
+    validatePattern: true
   }
 };
 
