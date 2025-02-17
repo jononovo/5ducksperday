@@ -231,6 +231,39 @@ export default function Home() {
     feedbackMutation.mutate({ contactId, feedbackType });
   };
 
+  const handleEnrichProspects = async (prospects: (Contact & { companyName: string; companyId: number })[]) => {
+    if (prospects.length === 0) {
+      toast({
+        title: "No Prospects",
+        description: "There are no high-probability prospects to enrich.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Get all contact IDs regardless of company
+      const contactIds = prospects.map(contact => contact.id);
+
+      // Send all contacts for enrichment in a single request
+      const response = await apiRequest("POST", `/api/enrich-contacts`, {
+        contactIds
+      });
+      const data = await response.json();
+
+      toast({
+        title: "Enrichment Started",
+        description: `Started enriching ${contactIds.length} top prospects`,
+      });
+    } catch (error) {
+      toast({
+        title: "Enrichment Failed",
+        description: error instanceof Error ? error.message : "Failed to start enrichment",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto py-6">
       <div className="grid grid-cols-12 gap-6">
@@ -264,46 +297,7 @@ export default function Home() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      const prospects = getTopProspects();
-                      if (prospects.length === 0) {
-                        toast({
-                          title: "No Prospects",
-                          description: "There are no high-probability prospects to enrich.",
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-
-                      // Group contacts by company
-                      const companiesMap = prospects.reduce((acc, contact) => {
-                        if (!acc.has(contact.companyId)) {
-                          acc.set(contact.companyId, []);
-                        }
-                        acc.get(contact.companyId)!.push(contact.id);
-                        return acc;
-                      }, new Map<number, number[]>());
-
-                      // Start enrichment for each company's contacts
-                      [...companiesMap.entries()].forEach(async ([companyId, contactIds]) => {
-                        try {
-                          const response = await apiRequest("POST", `/api/companies/${companyId}/enrich-top-prospects`, {
-                            contactIds // Pass the specific contact IDs to enrich
-                          });
-                          const data = await response.json();
-                          toast({
-                            title: "Enrichment Started",
-                            description: `Started enriching ${contactIds.length} prospects for company ${companyId}`,
-                          });
-                        } catch (error) {
-                          toast({
-                            title: "Enrichment Failed",
-                            description: error instanceof Error ? error.message : "Failed to start enrichment",
-                            variant: "destructive",
-                          });
-                        }
-                      });
-                    }}
+                    onClick={() => handleEnrichProspects(getTopProspects())}
                   >
                     <Banknote className="mr-2 h-4 w-4" />
                     Enrich Prospects
