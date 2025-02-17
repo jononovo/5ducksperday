@@ -114,7 +114,7 @@ export class SearchStorage {
           prompt: "Perform an in-depth analysis of contact information using both local and digital sources to discover additional decision makers and their contact details.",
           order: 4,
           active: true,
-          moduleType: "email_discovery",
+          moduleType: "contact_deepdive",
           config: {
             subsearches: {},
             searchOptions: {

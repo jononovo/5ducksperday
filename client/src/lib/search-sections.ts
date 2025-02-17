@@ -113,6 +113,20 @@ export const SECTIONS_CONFIG = {
         "local-events-search"
       ]
     }
+  },
+  contact_deepdive: {
+    local_sources: {
+      id: "local_sources",
+      label: "Local Sources",
+      description: "Search local sources for company and contact information",
+      subsectionRef: "EMAIL_DEEPDIVE_SECTIONS.local_sources"
+    },
+    digital_sources: {
+      id: "digital_sources",
+      label: "Digital Sources",
+      description: "Search digital platforms for company presence",
+      subsectionRef: "EMAIL_DEEPDIVE_SECTIONS.digital_sources"
+    }
   }
 };
 
@@ -161,7 +175,7 @@ function getSearchesFromSubsectionRef(subsectionRef: string): Array<{
 
 // Get sections for a specific module type with strict type checking
 export function getSectionsByModuleType(moduleType: string): Record<string, SearchSection> {
-  if (!['company_overview', 'decision_maker', 'email_discovery'].includes(moduleType)) {
+  if (!['company_overview', 'decision_maker', 'email_discovery', 'contact_deepdive'].includes(moduleType)) {
     console.warn(`Invalid module type: ${moduleType}`);
     return {};
   }
