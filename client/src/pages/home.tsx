@@ -180,6 +180,7 @@ export default function Home() {
   };
 
   const isContactEnriched = (contact: Contact) => {
+    // Consider a contact "enriched" if it's been processed, even if no data was found
     return contact.completedSearches?.includes('contact_enrichment') || false;
   };
 
@@ -313,6 +314,17 @@ export default function Home() {
     }
   };
 
+  //New function added here
+  const getEnrichButtonText = (contact: Contact) => {
+    if (isContactPending(contact.id)) return "Processing...";
+    if (isContactEnriched(contact)) {
+      const hasEnrichedData = contact.email || contact.linkedinUrl || contact.phoneNumber || contact.department;
+      return hasEnrichedData ? "Enriched" : "No Data Found";
+    }
+    return "Enrich";
+  };
+
+
   return (
     <div className="container mx-auto py-6">
       <div className="grid grid-cols-12 gap-6">
@@ -422,6 +434,7 @@ export default function Home() {
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
+                              {/* Updated Button Here */}
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -430,7 +443,7 @@ export default function Home() {
                                 className={isContactEnriched(contact) ? "text-muted-foreground" : ""}
                               >
                                 <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
-                                {isContactEnriched(contact) ? "Enriched" : "Enrich"}
+                                {getEnrichButtonText(contact)}
                               </Button>
                             </div>
                           </TableCell>
