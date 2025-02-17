@@ -161,6 +161,7 @@ const searchModuleConfigSchema = z.object({
     id: z.string(),
     label: z.string(),
     description: z.string().optional(),
+    subsectionRef: z.string().optional(), // New field to reference external subsection definitions
     searches: z.array(z.object({
       id: z.string(),
       label: z.string(),

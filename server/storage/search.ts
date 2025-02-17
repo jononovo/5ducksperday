@@ -109,6 +109,43 @@ export class SearchStorage {
           technicalPrompt: "Identify key decision-makers at [COMPANY], including roles and contact information.",
           responseStructure: "JSON with fields: decisionMakers",
         },
+        {
+          name: "Email Deepdive",
+          prompt: "Perform an in-depth analysis of contact information using both local and digital sources to discover additional decision makers and their contact details.",
+          order: 4,
+          active: true,
+          moduleType: "email_discovery",
+          config: {
+            subsearches: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false,
+            },
+            searchSections: {
+              local_sources: {
+                id: "local_sources",
+                label: "Local Sources",
+                description: "Search local sources for company and contact information",
+                subsectionRef: "EMAIL_DEEPDIVE_SECTIONS.local_sources",
+                searches: []
+              },
+              digital_sources: {
+                id: "digital_sources",
+                label: "Digital Sources",
+                description: "Search digital platforms for company presence",
+                subsectionRef: "EMAIL_DEEPDIVE_SECTIONS.digital_sources",
+                searches: []
+              }
+            },
+            validationRules: {
+              requiredFields: [],
+              scoreThresholds: {},
+              minimumConfidence: 0,
+            },
+          },
+          technicalPrompt: "Execute deep search strategies across local and digital sources to identify and verify contact information.",
+          responseStructure: "JSON with fields: contacts[]{name, role, email, source}",
+        }
       ];
 
       for (const approach of defaultApproaches) {

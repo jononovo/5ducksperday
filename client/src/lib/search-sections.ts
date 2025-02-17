@@ -140,6 +140,25 @@ export function getSubsectionsForSection(sectionConfig: {
     .filter((s): s is NonNullable<typeof s> => s !== null);
 }
 
+// Helper function to get searches based on subsection reference
+function getSearchesFromSubsectionRef(subsectionRef: string): Array<{
+  id: string;
+  label: string;
+  description: string;
+  implementation?: string;
+}> {
+  const [configName, sectionId] = subsectionRef.split('.');
+
+  // For now, we'll only handle EMAIL_DEEPDIVE_SECTIONS -  This needs a definition elsewhere
+  if (configName === 'EMAIL_DEEPDIVE_SECTIONS') {
+    // Placeholder -  EMAIL_DEEPDIVE_SECTIONS needs to be defined elsewhere
+    const section = {searches: []}; // Placeholder - replace with actual data fetching
+    return section?.searches || [];
+  }
+
+  return [];
+}
+
 // Get sections for a specific module type with strict type checking
 export function getSectionsByModuleType(moduleType: string): Record<string, SearchSection> {
   if (!['company_overview', 'decision_maker', 'email_discovery'].includes(moduleType)) {
@@ -156,7 +175,10 @@ export function getSectionsByModuleType(moduleType: string): Record<string, Sear
   const result: Record<string, SearchSection> = {};
 
   Object.entries(moduleConfig).forEach(([sectionId, sectionConfig]) => {
-    const searches = getSubsectionsForSection(sectionConfig);
+    const searches = sectionConfig.subsectionRef
+      ? getSearchesFromSubsectionRef(sectionConfig.subsectionRef)
+      : getSubsectionsForSection(sectionConfig);
+
     if (searches.length > 0) {
       result[sectionId] = {
         id: sectionConfig.id,
