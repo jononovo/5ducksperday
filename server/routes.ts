@@ -658,7 +658,7 @@ app.post("/api/companies/:companyId/enrich-top-prospects", async (req, res) => {
   // Add this route within the registerRoutes function, before the return statement
   app.get("/api/enrichment/:queueId/status", async (req, res) => {
     try {
-      const status = enrichmentQueue.getStatus(req.params.queueId);
+      const status = postSearchEnrichmentService.getEnrichmentStatus(req.params.queueId);
 
       if (!status) {
         res.status(404).json({ message: "Enrichment queue not found" });
