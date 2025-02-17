@@ -20,13 +20,14 @@ export const moduleConfigurations = {
   local_sources: {
     id: "local_sources",
     label: "Local Sources",
-    description: "Search local sources for company and contact information",
+    description: "Search local sources for contact email discovery",
     searches: [
       {
         id: "local-business-associations-search",
         label: "Local Business Associations",
-        description: "Search local chambers of commerce and business association memberships",
-        implementation: "Search business associations for [COMPANY] contacts"
+        description: "Search business associations for contact email addresses",
+        implementation: "Search business associations for [COMPANY] top prospect contacts",
+        defaultEnabledFor: ['email_discovery'] 
       },
       {
         id: "local-classifieds-search",
