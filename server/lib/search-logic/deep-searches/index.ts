@@ -3,7 +3,7 @@ import { startupSourcesModule } from './startup-sources';
 import { sectorListingsModule } from './sector-listings';
 import { digitalSourcesModule } from './digital-sources';
 import { socialSourcesModule } from './social-sources';
-import { emailDiscoveryModule } from './email-discovery';
+import { emailDiscoveryModule } from '../email-discovery';  // Updated import path
 
 // Align with the searchSections configuration from storage.ts
 export const deepSearchModules = {
@@ -136,43 +136,7 @@ export const moduleConfigurations = {
       }
     ]
   },
-  email_discovery: {
-    id: "email_discovery",
-    label: "Email Discovery",
-    description: "Multi-source email discovery and verification",
-    searches: [
-      {
-        id: "website-email-search",
-        label: "Website Email Search",
-        description: "Extract email addresses from company website and related pages",
-        implementation: "Crawl website and extract email addresses"
-      },
-      {
-        id: "public-directory-search",
-        label: "Public Directory Search",
-        description: "Search public business directories and listing sites",
-        implementation: "Search business directories for contact information"
-      },
-      {
-        id: "social-profile-search",
-        label: "Social Profile Search",
-        description: "Extract email addresses from public social media profiles",
-        implementation: "Search social media profiles for contact details"
-      },
-      {
-        id: "pattern-prediction-search",
-        label: "Pattern Prediction",
-        description: "Predict email addresses based on common corporate patterns",
-        implementation: "Generate and verify potential email patterns"
-      },
-      {
-        id: "domain-analysis-search",
-        label: "Domain Analysis",
-        description: "Analyze domain MX records and email configurations",
-        implementation: "Analyze domain email setup and verification"
-      }
-    ]
-  }
+  email_discovery: emailDiscoveryModule // Use the module directly instead of redefining
 };
 
 export * from './local-sources';
@@ -180,4 +144,4 @@ export * from './startup-sources';
 export * from './sector-listings';
 export * from './digital-sources';
 export * from './social-sources';
-export * from './email-discovery';
+// Remove duplicate email-discovery export
