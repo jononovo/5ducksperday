@@ -14,6 +14,20 @@ export const SEARCH_SUBSECTIONS = {
     description: "Only include companies with local headquarters"
   },
 
+  // Decision Maker specific subsections
+  leadershipSearch: {
+    id: "leadership-search",
+    label: "Leadership Team",
+    description: "Search for company leadership and decision makers",
+    implementation: "Search leadership profiles and roles"
+  },
+  roleVerification: {
+    id: "role-verification",
+    label: "Role Verification",
+    description: "Verify roles and responsibilities",
+    implementation: "Validate decision maker roles"
+  },
+
   // Email Discovery Subsections - based on email discovery module strategies
   websiteEmailSearch: {
     id: "website-email-search",
@@ -69,6 +83,14 @@ export const SECTIONS_CONFIG = {
       subsectionIds: ["ignore-franchises", "local-hq"]
     }
   },
+  decision_maker: {
+    leadership_search: {
+      id: "leadership_search",
+      label: "Leadership Search",
+      description: "Search and verify company leadership",
+      subsectionIds: ["leadership-search", "role-verification"]
+    }
+  },
   email_discovery: {
     basic_discovery: {
       id: "basic_discovery",
@@ -120,7 +142,7 @@ export function getSubsectionsForSection(sectionConfig: {
 
 // Get sections for a specific module type with strict type checking
 export function getSectionsByModuleType(moduleType: string): Record<string, SearchSection> {
-  if (!['company_overview', 'email_discovery'].includes(moduleType)) {
+  if (!['company_overview', 'decision_maker', 'email_discovery'].includes(moduleType)) {
     console.warn(`Invalid module type: ${moduleType}`);
     return {};
   }
