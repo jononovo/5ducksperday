@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,16 +29,26 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  const config = approach.config as SearchModuleConfig || {
+    subsearches: {},
+    searchOptions: {},
+    searchSections: {},
+    validationRules: {
+      requiredFields: [],
+      scoreThresholds: {},
+      minimumConfidence: 0
+    }
+  };
+
   // Get sections based on module type with error handling
   const sections = approach.moduleType ? 
     getSectionsByModuleType(approach.moduleType) : 
     {};
 
-  const config = approach.config as SearchModuleConfig;
-
   // Initialize subsearches with all possible search IDs for the module type
   const [subsearches, setSubsearches] = useState<Record<string, boolean>>(() => {
-    const allIds = approach.moduleType ? getAllSearchIds(approach.moduleType) : [];
+    if (!approach.moduleType) return {};
+    const allIds = getAllSearchIds(approach.moduleType);
     const initialState: Record<string, boolean> = {};
     allIds.forEach(id => {
       initialState[id] = config?.subsearches?.[id] ?? false;
@@ -51,6 +61,27 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     ignoreFranchises: config?.searchOptions?.ignoreFranchises ?? false,
     locallyHeadquartered: config?.searchOptions?.locallyHeadquartered ?? false,
   });
+
+  // Reset state when approach changes
+  useEffect(() => {
+    setEditedPrompt(approach.prompt);
+    setEditedTechnicalPrompt(approach.technicalPrompt || "");
+    setEditedResponseStructure(approach.responseStructure || "");
+
+    if (approach.moduleType) {
+      const allIds = getAllSearchIds(approach.moduleType);
+      const newSubsearches: Record<string, boolean> = {};
+      allIds.forEach(id => {
+        newSubsearches[id] = config?.subsearches?.[id] ?? false;
+      });
+      setSubsearches(newSubsearches);
+    }
+
+    setSearchOptions({
+      ignoreFranchises: config?.searchOptions?.ignoreFranchises ?? false,
+      locallyHeadquartered: config?.searchOptions?.locallyHeadquartered ?? false,
+    });
+  }, [approach, config]);
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Partial<SearchApproach>) => {
@@ -118,6 +149,28 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
       technicalPrompt: editedTechnicalPrompt || null,
       responseStructure: editedResponseStructure || null,
       config: newConfig,
+    });
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditedPrompt(approach.prompt);
+    setEditedTechnicalPrompt(approach.technicalPrompt || "");
+    setEditedResponseStructure(approach.responseStructure || "");
+
+    // Reset subsearches and options to their initial state
+    if (approach.moduleType) {
+      const allIds = getAllSearchIds(approach.moduleType);
+      const newSubsearches: Record<string, boolean> = {};
+      allIds.forEach(id => {
+        newSubsearches[id] = config?.subsearches?.[id] ?? false;
+      });
+      setSubsearches(newSubsearches);
+    }
+
+    setSearchOptions({
+      ignoreFranchises: config?.searchOptions?.ignoreFranchises ?? false,
+      locallyHeadquartered: config?.searchOptions?.locallyHeadquartered ?? false,
     });
   };
 
@@ -272,12 +325,7 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => {
-                  setIsEditing(false);
-                  setEditedPrompt(approach.prompt);
-                  setEditedTechnicalPrompt(approach.technicalPrompt || "");
-                  setEditedResponseStructure(approach.responseStructure || "");
-                }}
+                onClick={handleCancel}
               >
                 Cancel
               </Button>
