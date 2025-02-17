@@ -1,18 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { SearchApproach, SearchModuleConfig, SearchSection } from "@shared/schema";
-import { getSectionsByModuleType, getAllSearchIds } from "@/lib/search-sections";
+import type { SearchApproach, SearchModuleConfig } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -29,6 +27,7 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // Initialize search config
   const config = approach.config as SearchModuleConfig || {
     subsearches: {},
     searchOptions: {},
@@ -39,49 +38,6 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
       minimumConfidence: 0
     }
   };
-
-  // Get sections based on module type with error handling
-  const sections = approach.moduleType ? 
-    getSectionsByModuleType(approach.moduleType) : 
-    {};
-
-  // Initialize subsearches with all possible search IDs for the module type
-  const [subsearches, setSubsearches] = useState<Record<string, boolean>>(() => {
-    if (!approach.moduleType) return {};
-    const allIds = getAllSearchIds(approach.moduleType);
-    const initialState: Record<string, boolean> = {};
-    allIds.forEach(id => {
-      initialState[id] = config?.subsearches?.[id] ?? false;
-    });
-    return initialState;
-  });
-
-  // Initialize search options
-  const [searchOptions, setSearchOptions] = useState({
-    ignoreFranchises: config?.searchOptions?.ignoreFranchises ?? false,
-    locallyHeadquartered: config?.searchOptions?.locallyHeadquartered ?? false,
-  });
-
-  // Reset state when approach changes
-  useEffect(() => {
-    setEditedPrompt(approach.prompt);
-    setEditedTechnicalPrompt(approach.technicalPrompt || "");
-    setEditedResponseStructure(approach.responseStructure || "");
-
-    if (approach.moduleType) {
-      const allIds = getAllSearchIds(approach.moduleType);
-      const newSubsearches: Record<string, boolean> = {};
-      allIds.forEach(id => {
-        newSubsearches[id] = config?.subsearches?.[id] ?? false;
-      });
-      setSubsearches(newSubsearches);
-    }
-
-    setSearchOptions({
-      ignoreFranchises: config?.searchOptions?.ignoreFranchises ?? false,
-      locallyHeadquartered: config?.searchOptions?.locallyHeadquartered ?? false,
-    });
-  }, [approach, config]);
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Partial<SearchApproach>) => {
@@ -114,15 +70,11 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
 
   const toggleMutation = useMutation({
     mutationFn: async (active: boolean) => {
-      // When toggling off, ensure we also update the config to disable all subsearches
       const updates: Partial<SearchApproach> = {
         active,
-        config: active ? config : {
+        config: {
           ...config,
-          subsearches: Object.keys(config.subsearches || {}).reduce((acc, key) => ({
-            ...acc,
-            [key]: false
-          }), {}),
+          subsearches: {},
           searchOptions: {
             ignoreFranchises: false,
             locallyHeadquartered: false
@@ -138,14 +90,6 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/search-approaches"] });
-      // Reset local state when toggled off
-      if (!approach.active) {
-        setSubsearches({});
-        setSearchOptions({
-          ignoreFranchises: false,
-          locallyHeadquartered: false
-        });
-      }
     },
     onError: (error) => {
       toast({
@@ -157,25 +101,10 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
   });
 
   const handleSave = () => {
-    const newConfig: SearchModuleConfig = {
-      subsearches: approach.active ? subsearches : {},
-      searchOptions: approach.active ? searchOptions : {
-        ignoreFranchises: false,
-        locallyHeadquartered: false
-      },
-      searchSections: {},
-      validationRules: {
-        requiredFields: [],
-        scoreThresholds: {},
-        minimumConfidence: 0
-      }
-    };
-
     updateMutation.mutate({
       prompt: editedPrompt,
       technicalPrompt: editedTechnicalPrompt || null,
       responseStructure: editedResponseStructure || null,
-      config: newConfig,
     });
   };
 
@@ -184,24 +113,9 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     setEditedPrompt(approach.prompt);
     setEditedTechnicalPrompt(approach.technicalPrompt || "");
     setEditedResponseStructure(approach.responseStructure || "");
-
-    // Reset subsearches and options to their initial state
-    if (approach.moduleType) {
-      const allIds = getAllSearchIds(approach.moduleType);
-      const newSubsearches: Record<string, boolean> = {};
-      allIds.forEach(id => {
-        newSubsearches[id] = config?.subsearches?.[id] ?? false;
-      });
-      setSubsearches(newSubsearches);
-    }
-
-    setSearchOptions({
-      ignoreFranchises: config?.searchOptions?.ignoreFranchises ?? false,
-      locallyHeadquartered: config?.searchOptions?.locallyHeadquartered ?? false,
-    });
   };
 
-  // Show error if module type is missing, but don't block the component
+  // Show error if module type is missing
   if (!approach.moduleType) {
     return (
       <AccordionItem value={approach.id.toString()}>
@@ -270,65 +184,6 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
                 className="min-h-[100px] font-mono"
               />
             </div>
-            {approach.active && (
-              <div className="space-y-4">
-                {Object.entries(sections).map(([sectionId, section]) => {
-                  const isSearchOptions = sectionId === "search_options";
-
-                  return (
-                    <div key={sectionId} className="space-y-2">
-                      <h3 className="text-sm font-medium">{section.label}</h3>
-                      {section.description && (
-                        <p className="text-sm text-muted-foreground">{section.description}</p>
-                      )}
-                      <div className="space-y-2 pl-4">
-                        {section.searches.map((search) => {
-                          const checked = isSearchOptions
-                            ? searchOptions[search.id.replace(/-/g, "") as keyof typeof searchOptions] ?? false
-                            : subsearches[search.id] ?? false;
-
-                          return (
-                            <div key={search.id} className="flex items-start space-x-2">
-                              <Checkbox
-                                id={search.id}
-                                checked={checked}
-                                onCheckedChange={(checked) => {
-                                  if (isSearchOptions) {
-                                    handleSearchOptionChange(
-                                      search.id.replace(/-/g, ""),
-                                      checked as boolean
-                                    );
-                                  } else {
-                                    handleSubsearchChange(search.id, checked as boolean);
-                                  }
-                                }}
-                                className="mt-1"
-                              />
-                              <div className="grid gap-1.5 leading-none">
-                                <label
-                                  htmlFor={search.id}
-                                  className="text-sm font-medium leading-none"
-                                >
-                                  {search.label}
-                                </label>
-                                <p className="text-sm text-muted-foreground">
-                                  {search.description}
-                                </p>
-                                {!isSearchOptions && search.implementation && (
-                                  <p className="text-sm text-muted-foreground italic">
-                                    {search.implementation}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
             <div className="flex gap-2">
               <Button
                 size="sm"
@@ -349,36 +204,12 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">{approach.prompt}</p>
-            {approach.active && (
-              <div className="space-y-4">
-                {Object.entries(sections).map(([sectionId, section]) => (
-                  <div key={sectionId} className="space-y-2">
-                    <h3 className="text-sm font-medium">{section.label}</h3>
-                    <div className="space-y-2 pl-4">
-                      {section.searches.map((search) => {
-                        const isSearchOptions = sectionId === "search_options";
-                        const checked = isSearchOptions
-                          ? searchOptions[search.id.replace(/-/g, "") as keyof typeof searchOptions]
-                          : subsearches[search.id] ?? false;
-
-                        return (
-                          <div key={search.id} className="flex items-center space-x-2">
-                            <Checkbox checked={checked} disabled className="pointer-events-none" />
-                            <span className="text-sm">{search.label}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
             <Button
               size="sm"
               variant="outline"
               onClick={() => setIsEditing(true)}
             >
-              Edit Approach
+              Edit Prompt
             </Button>
           </div>
         )}
@@ -388,9 +219,12 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
 }
 
 export default function SearchFlowNew({ approaches }: SearchFlowNewProps) {
+  // Sort approaches by order
+  const sortedApproaches = [...approaches].sort((a, b) => (a.order || 0) - (b.order || 0));
+
   return (
     <Accordion type="single" collapsible className="w-full">
-      {approaches.map((approach) => (
+      {sortedApproaches.map((approach) => (
         <ApproachEditor key={approach.id} approach={approach} />
       ))}
     </Accordion>

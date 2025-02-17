@@ -64,12 +64,13 @@ export class SearchStorage {
               minimumConfidence: 0,
             },
           },
+          validationRules: {},
           technicalPrompt: "Analyze company details focusing on age, size, and core business activities.",
           responseStructure: "JSON with fields: age, size, mainFocus",
         },
         {
           name: "Decision-maker Analysis",
-          prompt: "Identify and analyze the key decision-makers at [COMPANY]. Focus on C-level executives, owners, founders, and other top-level decision-makers. Include their roles and any available contact information.",
+          prompt: "Identify and analyze the key decision-makers at [COMPANY]. Focus on C-level executives, owners, founders, and other top-level decision-makers.",
           order: 2,
           active: true,
           moduleType: "decision_maker",
@@ -79,33 +80,14 @@ export class SearchStorage {
               ignoreFranchises: false,
               locallyHeadquartered: false,
             },
-            searchSections: {
-              local_sources: {
-                id: "local_sources",
-                label: "Local Sources",
-                description: "Search local sources for company and contact information",
-                searches: [
-                  {
-                    id: "local-news-search",
-                    label: "Local News Search",
-                    description: "Search local news sources for company leadership mentions and activities",
-                    implementation: "Search local news for [COMPANY] leadership mentions",
-                  },
-                  {
-                    id: "business-associations-search",
-                    label: "Business Associations Search",
-                    description: "Search local chambers of commerce and business association memberships",
-                    implementation: "Search business associations for [COMPANY] memberships",
-                  },
-                ],
-              },
-            },
+            searchSections: {},
             validationRules: {
               requiredFields: [],
               scoreThresholds: {},
               minimumConfidence: 0,
             },
           },
+          validationRules: {},
           technicalPrompt: "Identify key decision-makers at [COMPANY], including roles and contact information.",
           responseStructure: "JSON with fields: decisionMakers",
         },
@@ -117,19 +99,48 @@ export class SearchStorage {
           moduleType: "email_discovery",
           config: {
             subsearches: {},
-            searchOptions: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false,
+            },
             searchSections: {},
             validationRules: {
+              requiredFields: [],
+              scoreThresholds: {},
               minimumConfidence: 50,
             },
           },
+          validationRules: {},
           technicalPrompt: "Find and validate company email patterns and contact addresses",
           responseStructure: "JSON with fields: emailPattern, validatedAddresses[]",
         },
         {
-          name: "Email Deepdive",
-          prompt: "Perform an in-depth analysis of contact information using both local and digital sources to discover additional decision makers and their contact details.",
+          name: "Enrich Email",
+          prompt: "Enrich and validate discovered email addresses through multiple verification methods.",
           order: 4,
+          active: true,
+          moduleType: "contact_enrichment",
+          config: {
+            subsearches: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false,
+            },
+            searchSections: {},
+            validationRules: {
+              requiredFields: [],
+              scoreThresholds: {},
+              minimumConfidence: 70,
+            },
+          },
+          validationRules: {},
+          technicalPrompt: "Enrich and verify email addresses using multiple validation methods",
+          responseStructure: "JSON with fields: enrichedEmails[], verificationMethods[]",
+        },
+        {
+          name: "Email Deepdive",
+          prompt: "Perform an in-depth analysis of contact information using both local and digital sources.",
+          order: 5,
           active: true,
           moduleType: "contact_deepdive",
           config: {
@@ -143,128 +154,39 @@ export class SearchStorage {
                 id: "local_sources",
                 label: "Local Sources",
                 description: "Search local sources for company and contact information",
-                subsectionRef: "EMAIL_DEEPDIVE_SECTIONS.local_sources",
-                searches: []
+                searches: [
+                  {
+                    id: "local-business-associations",
+                    label: "Business Associations",
+                    description: "Search local business associations",
+                    implementation: "Search business associations for [COMPANY]",
+                  },
+                ],
               },
               digital_sources: {
                 id: "digital_sources",
                 label: "Digital Sources",
-                description: "Search digital platforms for company presence",
-                subsectionRef: "EMAIL_DEEPDIVE_SECTIONS.digital_sources",
-                searches: []
-              }
+                description: "Search digital platforms for contact information",
+                searches: [
+                  {
+                    id: "email-pattern-analysis",
+                    label: "Email Pattern Analysis",
+                    description: "Analyze email patterns across platforms",
+                    implementation: "Analyze email patterns for [COMPANY]",
+                  },
+                ],
+              },
             },
             validationRules: {
               requiredFields: [],
               scoreThresholds: {},
-              minimumConfidence: 0,
+              minimumConfidence: 60,
             },
           },
-          technicalPrompt: "Execute deep search strategies across local and digital sources to identify and verify contact information.",
+          validationRules: {},
+          technicalPrompt: "Execute deep search strategies across local and digital sources",
           responseStructure: "JSON with fields: contacts[]{name, role, email, source}",
         },
-        {
-          name: "Market Position",
-          prompt: "Analyze [COMPANY]'s market position, including market share, target audience, and competitive landscape.",
-          order: 5,
-          active: true,
-          moduleType: "company_overview",
-          config: {
-            subsearches: {},
-            searchOptions: {},
-            searchSections: {},
-            validationRules: {
-              minimumConfidence: 0,
-            },
-          },
-          technicalPrompt: "Analyze market position and competitive landscape",
-          responseStructure: "JSON with fields: marketShare, targetAudience, competitors[]",
-        },
-        {
-          name: "Customer Base",
-          prompt: "Identify and analyze [COMPANY]'s customer base, including demographics, sectors, and key accounts.",
-          order: 6,
-          active: true,
-          moduleType: "company_overview",
-          config: {
-            subsearches: {},
-            searchOptions: {},
-            searchSections: {},
-            validationRules: {
-              minimumConfidence: 0,
-            },
-          },
-          technicalPrompt: "Analyze customer base and key accounts",
-          responseStructure: "JSON with fields: demographics, sectors, keyAccounts[]",
-        },
-        {
-          name: "Online Presence",
-          prompt: "Evaluate [COMPANY]'s online presence across various platforms and digital channels.",
-          order: 7,
-          active: true,
-          moduleType: "company_overview",
-          config: {
-            subsearches: {},
-            searchOptions: {},
-            searchSections: {},
-            validationRules: {
-              minimumConfidence: 0,
-            },
-          },
-          technicalPrompt: "Analyze digital presence and online engagement",
-          responseStructure: "JSON with fields: platforms[], engagement, reach",
-        },
-        {
-          name: "Services Analysis",
-          prompt: "Detail analysis of [COMPANY]'s services, including core offerings, specializations, and service delivery model.",
-          order: 8,
-          active: true,
-          moduleType: "company_overview",
-          config: {
-            subsearches: {},
-            searchOptions: {},
-            searchSections: {},
-            validationRules: {
-              minimumConfidence: 0,
-            },
-          },
-          technicalPrompt: "Analyze service offerings and delivery model",
-          responseStructure: "JSON with fields: coreServices[], specializations[], deliveryModel",
-        },
-        {
-          name: "Competitive Analysis",
-          prompt: "Compare [COMPANY] with its competitors, focusing on strengths, weaknesses, and market differentiators.",
-          order: 9,
-          active: true,
-          moduleType: "company_overview",
-          config: {
-            subsearches: {},
-            searchOptions: {},
-            searchSections: {},
-            validationRules: {
-              minimumConfidence: 0,
-            },
-          },
-          technicalPrompt: "Analyze competitive position and market differences",
-          responseStructure: "JSON with fields: strengths[], weaknesses[], differentiators[]",
-        },
-        {
-          name: "Differentiation Analysis",
-          prompt: "Identify unique selling propositions and key differentiators that set [COMPANY] apart in their market.",
-          order: 10,
-          active: true,
-          moduleType: "company_overview",
-          config: {
-            subsearches: {},
-            searchOptions: {},
-            searchSections: {},
-            validationRules: {
-              minimumConfidence: 0,
-            },
-          },
-          technicalPrompt: "Analyze unique value propositions and market positioning",
-          responseStructure: "JSON with fields: uniqueFeatures[], valueProposition, marketAdvantages[]",
-        }
       ];
 
       for (const approach of defaultApproaches) {
