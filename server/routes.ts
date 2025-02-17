@@ -655,23 +655,24 @@ app.post("/api/companies/:companyId/enrich-top-prospects", async (req, res) => {
   }
 });
 
-app.get("/api/enrichment/:queueId/status", async (req, res) => {
-  try {
-    const status = postSearchEnrichmentService.getEnrichmentStatus(req.params.queueId);
+  // Add this route within the registerRoutes function, before the return statement
+  app.get("/api/enrichment/:queueId/status", async (req, res) => {
+    try {
+      const status = enrichmentQueue.getStatus(req.params.queueId);
 
-    if (!status) {
-      res.status(404).json({ message: "Enrichment queue not found" });
-      return;
+      if (!status) {
+        res.status(404).json({ message: "Enrichment queue not found" });
+        return;
+      }
+
+      res.json(status);
+    } catch (error) {
+      console.error('Status check error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to check enrichment status"
+      });
     }
-
-    res.json(status);
-  } catch (error) {
-    console.error('Status check error:', error);
-    res.status(500).json({
-      message: error instanceof Error ? error.message : "Failed to check enrichment status"
-    });
-  }
-});
+  });
 
   const httpServer = createServer(app);
   return httpServer;

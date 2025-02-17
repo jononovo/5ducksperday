@@ -255,6 +255,55 @@ export default function Home() {
         title: "Enrichment Started",
         description: `Started enriching ${contactIds.length} top prospects`,
       });
+
+      // Start polling for completion
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await apiRequest("GET", `/api/enrichment/${data.queueId}/status`);
+          const statusData = await statusResponse.json();
+
+          if (statusData.status === 'completed') {
+            clearInterval(pollInterval);
+            // Refresh all contacts that were enriched
+            const updatedContacts = await Promise.all(
+              contactIds.map(async (id) => {
+                const contactResponse = await apiRequest("GET", `/api/contacts/${id}`);
+                return contactResponse.json();
+              })
+            );
+
+            // Update the currentResults with the enriched contacts
+            setCurrentResults(prev => {
+              if (!prev) return null;
+              return prev.map(company => ({
+                ...company,
+                contacts: company.contacts?.map(contact =>
+                  updatedContacts.find(uc => uc.id === contact.id) || contact
+                )
+              }));
+            });
+
+            toast({
+              title: "Enrichment Complete",
+              description: `Successfully enriched ${statusData.completedItems} contacts`,
+            });
+          } else if (statusData.status === 'failed') {
+            clearInterval(pollInterval);
+            toast({
+              title: "Enrichment Failed",
+              description: "Failed to complete contact enrichment",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          clearInterval(pollInterval);
+          console.error('Status check error:', error);
+        }
+      }, 2000); // Check every 2 seconds
+
+      // Clear interval after 5 minutes to prevent infinite polling
+      setTimeout(() => clearInterval(pollInterval), 300000);
+
     } catch (error) {
       toast({
         title: "Enrichment Failed",
