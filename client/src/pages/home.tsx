@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import SearchFlowNew from "@/components/search-flow-new";
+import { filterTopProspects } from "@/lib/results-analysis/prospect-filtering";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -134,11 +135,11 @@ export default function Home() {
       }
     });
 
-    // Sort by probability (higher is better) and take top 10
-    return allContacts
-      .filter(contact => contact.probability && contact.probability >= 50) // Only show contacts with 50%+ probability
-      .sort((a, b) => (b.probability || 0) - (a.probability || 0))
-      .slice(0, 10);
+    // Use the new filtering logic
+    return filterTopProspects(allContacts, {
+      maxPerCompany: 3,
+      minProbability: 50
+    });
   };
 
   // Add mutation for enriching contacts
