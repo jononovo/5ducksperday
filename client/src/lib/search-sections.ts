@@ -152,6 +152,79 @@ Format response as:
     label: "News Mentions",
     description: "Search news articles for executive mentions",
     implementation: "Find recent news articles mentioning [COMPANY] executives or leadership"
+  },
+
+  // Add Local Sources subsections
+  localBusinessAssociations: {
+    id: "local-business-associations-search",
+    label: "Local Business Associations",
+    description: "Search local chambers of commerce and business association memberships",
+    implementation: "Search local business associations for company contacts and email patterns",
+    technicalPrompt: `Search local business associations by:
+1. Checking chamber of commerce directories
+2. Searching business association member lists
+3. Analyzing local business networks
+4. Cross-referencing with local events
+
+Format response as:
+{
+  "associations": [{
+    "name": string,
+    "contacts": [{
+      "name": string,
+      "role": string,
+      "email": string | null
+    }],
+    "confidence": number
+  }]
+}`,
+    responseStructure: {
+      associations: [{
+        name: "string - association name",
+        contacts: [{
+          name: "string - contact name",
+          role: "string - position in association",
+          email: "string | null - contact email if available"
+        }],
+        confidence: "number - confidence score (0-100)"
+      }]
+    }
+  },
+
+  localClassifieds: {
+    id: "local-classifieds-search",
+    label: "Local Classifieds",
+    description: "Search local business classifieds for contact information",
+    implementation: "Search local classifieds for business contact details and email patterns",
+    technicalPrompt: `Search local classifieds by:
+1. Scanning business listings
+2. Analyzing contact information
+3. Validating business details
+4. Cross-referencing with local directories
+
+Format response as:
+{
+  "listings": [{
+    "source": string,
+    "contacts": [{
+      "name": string,
+      "email": string | null,
+      "verified": boolean
+    }],
+    "confidence": number
+  }]
+}`,
+    responseStructure: {
+      listings: [{
+        source: "string - classifieds source",
+        contacts: [{
+          name: "string - contact name",
+          email: "string | null - contact email",
+          verified: "boolean - verification status"
+        }],
+        confidence: "number - confidence score (0-100)"
+      }]
+    }
   }
 };
 
@@ -198,6 +271,14 @@ export const SECTIONS_CONFIG = {
       description: "Analyze news and media mentions",
       subsectionIds: ["news-mentions"]
     }
+  },
+  local_sources: {
+    local_business: {
+      id: "local_business",
+      label: "Local Business Sources",
+      description: "Search local business sources for contact information",
+      subsectionIds: ["local-business-associations-search", "local-classifieds-search"]
+    }
   }
 };
 
@@ -227,7 +308,7 @@ export function getSubsectionsForSection(sectionConfig: {
 
 // Get sections for a specific module type with strict type checking
 export function getSectionsByModuleType(moduleType: string): Record<string, SearchSection> {
-  if (!['company_overview', 'email_discovery', 'decision_maker'].includes(moduleType)) {
+  if (!['company_overview', 'email_discovery', 'decision_maker', 'local_sources'].includes(moduleType)) {
     console.warn(`Invalid module type: ${moduleType}`);
     return {};
   }
