@@ -4,6 +4,7 @@ import { patternPredictionStrategy } from './strategies/pattern-prediction';
 import { domainAnalysisStrategy } from './strategies/domain-analysis';
 import { publicDirectoryStrategy } from './strategies/public-directory';
 import { socialProfileStrategy } from './strategies/social-profile';
+import { localBusinessAssociationsSearch } from '../deep-searches/local-sources/local-business-associations-search';
 
 // Export module configuration
 export const emailDiscoveryModule = {
@@ -40,6 +41,12 @@ export const emailDiscoveryModule = {
       label: "Domain Analysis",
       description: "Analyze domain MX records and email configurations",
       implementation: domainAnalysisStrategy
+    },
+    {
+      id: "local-business-search",
+      label: "Local Business Associations",
+      description: "Search local business associations for top prospect emails",
+      implementation: localBusinessAssociationsSearch
     }
   ]
 };
