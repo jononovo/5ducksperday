@@ -172,12 +172,6 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
                   onCheckedChange={(checked) => toggleMutation.mutate(checked)}
                   disabled={toggleMutation.isPending}
                 />
-                <label
-                  htmlFor={`approach-${approach.id}`}
-                  className="text-sm text-muted-foreground cursor-pointer"
-                >
-                  {approach.active ? "Active" : "Inactive"}
-                </label>
               </div>
             </TooltipTrigger>
             <TooltipContent>
