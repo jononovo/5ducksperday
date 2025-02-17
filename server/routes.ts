@@ -186,22 +186,39 @@ export function registerRoutes(app: Express) {
             )
           );
 
-          // If email enrichment is active, queue top prospects for enrichment
-          if (emailEnrichmentModule?.active) {
-            const topProspects = createdContacts.filter(contact => 
-              contact.probability && contact.probability >= 50
-            );
-
-            if (topProspects.length > 0) {
-              // Start enrichment process
-              const searchId = `search_${Date.now()}`;
-              await postSearchEnrichmentService.startEnrichment(createdCompany.id, searchId);
-            }
-          }
-
           return { ...createdCompany, contacts: createdContacts };
         })
       );
+
+      // Only start email enrichment after all initial searches are complete
+      if (emailEnrichmentModule?.active) {
+        console.log('Email enrichment module is active, checking for enrichment candidates...');
+
+        // Get all contacts from all companies in this search
+        const allContacts = companies.flatMap(company => company.contacts);
+
+        // Filter for top prospects across all companies
+        const topProspects = allContacts.filter(contact => 
+          contact.probability && contact.probability >= 50
+        );
+
+        console.log(`Found ${topProspects.length} top prospects for enrichment`);
+
+        if (topProspects.length > 0) {
+          // Start enrichment process after initial search is complete
+          const searchId = `search_${Date.now()}`;
+          for (const company of companies) {
+            const companyContacts = company.contacts.filter(contact => 
+              contact.probability && contact.probability >= 50
+            );
+
+            if (companyContacts.length > 0) {
+              console.log(`Starting enrichment for ${companyContacts.length} contacts in company ${company.name}`);
+              await postSearchEnrichmentService.startEnrichment(company.id, searchId);
+            }
+          }
+        }
+      }
 
       res.json({
         companies,

@@ -4,9 +4,11 @@ import { storage } from '../../../storage';
 
 class PostSearchEnrichmentService {
   async startEnrichment(companyId: number, searchId: string): Promise<string> {
+    console.log(`Starting post-search enrichment for company ${companyId}`);
+
     // Get contacts for the company
     const contacts = await storage.listContactsByCompany(companyId);
-    
+
     // Filter for top prospects (probability >= 50)
     const topProspects = contacts
       .filter(contact => contact.probability && contact.probability >= 50)
@@ -15,6 +17,8 @@ class PostSearchEnrichmentService {
     if (topProspects.length === 0) {
       throw new Error('No top prospects found to enrich');
     }
+
+    console.log(`Found ${topProspects.length} top prospects for enrichment`);
 
     // Create queue items
     const queueItems: EnrichmentQueueItem[] = topProspects.map(contact => ({
@@ -26,7 +30,8 @@ class PostSearchEnrichmentService {
 
     // Add to queue and start processing
     const queueId = await enrichmentQueue.addToQueue(searchId, queueItems);
-    
+    console.log(`Enrichment queue ${queueId} created for ${queueItems.length} contacts`);
+
     return queueId;
   }
 
