@@ -17,7 +17,7 @@ const defaultOptions: ValidationOptions = {
 export function combineValidationScores(
   aiScore: number,
   localResult: NameValidationResult,
-  companyName?: string,
+  companyName?: string | null,
   options: ValidationOptions = defaultOptions
 ): number {
   if (!options.useLocalValidation) {
@@ -29,8 +29,8 @@ export function combineValidationScores(
     (aiScore * (1 - weight)) + (localResult.score * weight)
   );
 
-  // Apply company name penalty if the name matches or is similar to company name
-  if (companyName && isNameSimilarToCompany(localResult.name, companyName)) {
+  // Only apply company name penalty if company name is provided
+  if (companyName && typeof companyName === 'string' && isNameSimilarToCompany(localResult.name, companyName)) {
     // Check for founder/owner context
     if (!hasFounderContext(localResult.context)) {
       combinedScore = Math.max(20, combinedScore - (options.companyNamePenalty || 20));
@@ -48,23 +48,23 @@ export function combineValidationScores(
 function isNameSimilarToCompany(name: string, companyName: string): boolean {
   const normalizedName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
   const normalizedCompany = companyName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  
+
   // Direct match check
   if (normalizedName === normalizedCompany) return true;
-  
+
   // Substring check with minimum length
   if (normalizedName.length > 4 && 
       (normalizedCompany.includes(normalizedName) || 
        normalizedName.includes(normalizedCompany))) {
     return true;
   }
-  
+
   return false;
 }
 
 function hasFounderContext(context?: string): boolean {
   if (!context) return false;
-  
+
   const founderPatterns = [
     /founder/i,
     /owner/i,
@@ -73,6 +73,6 @@ function hasFounderContext(context?: string): boolean {
     /chief\s+executive/i,
     /partner/i
   ];
-  
+
   return founderPatterns.some(pattern => pattern.test(context));
 }

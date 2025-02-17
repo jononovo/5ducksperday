@@ -180,23 +180,20 @@ app.post("/api/companies/search", async (req, res) => {
         });
 
         // Extract contacts with validation options
-        const contacts = await extractContacts(analysisResults, {
-          useLocalValidation: true,
-          localValidationWeight: 0.3,
-          minimumScore: 20
-        });
-
-        // Filter valid contacts - restore original validation logic
-        const validContacts = contacts.filter(contact => 
-          contact.name && 
-          contact.name !== "Unknown" && 
-          contact.nameConfidenceScore && 
-          contact.nameConfidenceScore >= 20  // Lower threshold for initial search
+        const contacts = await extractContacts(
+          analysisResults,
+          companyName,
+          {
+            useLocalValidation: true,
+            localValidationWeight: 0.3,
+            minimumScore: 20,
+            companyNamePenalty: 20
+          }
         );
 
         // Create contact records with basic information
         const createdContacts = await Promise.all(
-          validContacts.map(contact =>
+          contacts.map(contact =>
             storage.createContact({
               companyId: createdCompany.id,
               name: contact.name!,
