@@ -186,7 +186,13 @@ const searchApproachSchema = z.object({
   completedSearches: z.array(z.string()).optional(),
   technicalPrompt: z.string().optional(),
   responseStructure: z.string().optional(),
-  moduleType: z.enum(['company_overview', 'decision_maker', 'email_discovery', 'contact_deepdive']).default('company_overview'),
+  moduleType: z.enum([
+    'company_overview',
+    'decision_maker',
+    'email_discovery',
+    'contact_deepdive',
+    'contact_enrichment'
+  ]).default('company_overview'),
   validationRules: z.record(z.unknown()).default({})
 });
 
