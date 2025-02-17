@@ -135,16 +135,30 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     }));
   };
 
-  // Show error if module type is missing
+  // Show error if module type is missing, but don't block the component
   if (!approach.moduleType) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Configuration Error</AlertTitle>
-        <AlertDescription>
-          Module type is missing for this search approach. Please check the configuration.
-        </AlertDescription>
-      </Alert>
+      <AccordionItem value={approach.id.toString()}>
+        <div className="flex items-center gap-2 px-1">
+          <Switch
+            checked={approach.active ?? false}
+            onCheckedChange={(checked) => toggleMutation.mutate(checked)}
+            className="scale-75"
+          />
+          <AccordionTrigger className="flex-1 hover:no-underline">
+            <span className="mr-4">{approach.name}</span>
+          </AccordionTrigger>
+        </div>
+        <AccordionContent>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Configuration Warning</AlertTitle>
+            <AlertDescription>
+              Module type is missing for this search approach. Some features may be limited.
+            </AlertDescription>
+          </Alert>
+        </AccordionContent>
+      </AccordionItem>
     );
   }
 
@@ -258,7 +272,12 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setIsEditing(false)}
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditedPrompt(approach.prompt);
+                  setEditedTechnicalPrompt(approach.technicalPrompt || "");
+                  setEditedResponseStructure(approach.responseStructure || "");
+                }}
               >
                 Cancel
               </Button>
