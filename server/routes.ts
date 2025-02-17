@@ -86,6 +86,7 @@ export function registerRoutes(app: Express) {
     res.json(company);
   });
 
+  // Companies search endpoint
   app.post("/api/companies/search", async (req, res) => {
     const { query } = req.body;
 
@@ -109,10 +110,6 @@ export function registerRoutes(app: Express) {
 
       const decisionMakerAnalysis = approaches.find(a =>
         a.name === "Decision-maker Analysis" && a.active
-      );
-
-      const emailEnrichmentModule = approaches.find(a =>
-        a.moduleType === 'email_enrichment' && a.active
       );
 
       if (!companyOverview) {
@@ -162,7 +159,12 @@ export function registerRoutes(app: Express) {
           });
 
           // Filter valid contacts
-          const validContacts = contacts.filter((contact: Contact) => contact.name && contact.name !== "Unknown");
+          const validContacts = contacts.filter(contact => 
+            contact.name && 
+            contact.name !== "Unknown" && 
+            contact.nameConfidenceScore && 
+            contact.nameConfidenceScore >= 70
+          );
 
           // Create contact records with basic information
           const createdContacts = await Promise.all(
@@ -172,7 +174,7 @@ export function registerRoutes(app: Express) {
                 name: contact.name!,
                 role: contact.role ?? null,
                 email: contact.email ?? null,
-                probability: contact.probability ?? null,
+                probability: contact.nameConfidenceScore ?? null, // Use nameConfidenceScore as initial probability
                 linkedinUrl: null,
                 twitterHandle: null,
                 phoneNumber: null,
@@ -190,31 +192,38 @@ export function registerRoutes(app: Express) {
         })
       );
 
-      // Modified section for email enrichment
-      if (emailEnrichmentModule?.active) {
-        // Wait for all companies and contacts to be created first
-        const searchId = `search_${Date.now()}`;
+      // Start email enrichment process after all initial searches are complete
+      const emailEnrichmentModule = approaches.find(a =>
+        a.moduleType === 'email_enrichment' && a.active
+      );
 
-        // Process each company sequentially to avoid overwhelming the system
+      if (emailEnrichmentModule?.active) {
+        const searchId = `search_${Date.now()}`;
+        console.log('Starting email enrichment process with searchId:', searchId);
+
+        // Process each company sequentially
         for (const company of companies) {
           try {
-            // Get fresh contact data after initial creation and validation
+            console.log(`Processing email enrichment for company: ${company.name}`);
+
+            // Get fresh contact data to ensure we have the latest state
             const contacts = await storage.listContactsByCompany(company.id);
 
-            // Filter for validated top prospects
-            const topProspects = contacts.filter(contact => 
+            // Filter for contacts that meet enrichment criteria
+            const enrichmentCandidates = contacts.filter(contact => 
               contact.nameConfidenceScore && 
               contact.nameConfidenceScore >= 70 && 
               !contact.completedSearches?.includes('contact_enrichment')
             );
 
-            if (topProspects.length > 0) {
-              console.log(`Starting enrichment for ${topProspects.length} contacts in company ${company.name}`);
+            if (enrichmentCandidates.length > 0) {
+              console.log(`Queueing ${enrichmentCandidates.length} contacts for enrichment from ${company.name}`);
               await postSearchEnrichmentService.startEnrichment(company.id, searchId);
+            } else {
+              console.log(`No eligible contacts for enrichment in ${company.name}`);
             }
           } catch (error) {
-            console.error(`Error starting enrichment for company ${company.name}:`, error);
-            // Continue with other companies even if one fails
+            console.error(`Email enrichment error for ${company.name}:`, error);
           }
         }
       }
