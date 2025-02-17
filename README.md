@@ -1,74 +1,4 @@
-This command will create all necessary tables based on the schema defined in `shared/schema.ts`.
-
-### 3. Storage Architecture
-The application uses a modular storage architecture divided into specialized components:
-
-- `storage/index.ts`: Core storage interface definitions
-- `storage/database.ts`: Main database storage implementation
-- `storage/companies.ts`: Company-related operations
-- `storage/contacts.ts`: Contact management and enrichment
-- `storage/search.ts`: Search approach configurations
-- `storage/campaigns.ts`: Campaign management
-- `storage/templates.ts`: Email template handling
-
-Each storage module is responsible for its specific domain and implements the relevant interface methods defined in `storage/index.ts`.
-
-### 4. Default Data Initialization
-The application automatically initializes default data when it starts:
-- Default search approaches for company analysis
-- Sample email templates
-
-This initialization happens through dedicated storage modules:
-- `SearchStorage.initializeDefaultSearchApproaches()`
-- `TemplateStorage.initializeDefaultEmailTemplates()`
-
-To customize or disable these initializations:
-1. Modify the default data arrays in these functions
-2. Or comment out their initialization in `storage/database.ts`
-
-## Database Schema
-The database schema is defined in `shared/schema.ts` and includes the following tables:
-- `lists`: Stores company search lists
-- `companies`: Company information and analysis
-- `contacts`: Contact information for each company
-- `searchApproaches`: Analysis strategies for company research
-- `campaigns`: Marketing campaign management
-- `emailTemplates`: Reusable email templates
-
-Each table includes important fields for tracking and management:
-- Auto-incrementing IDs
-- Timestamps for creation and updates
-- Proper foreign key relationships
-
-### 4. Search System Architecture
-
-#### UI to Backend Connection
-The search system's UI is primarily managed through two main components:
-- `client/src/components/search-approaches.tsx`: Manages search approach configuration
-- `client/src/components/search-flow-new.tsx`: Handles the search flow interface
-
-These components connect to the backend through:
-1. API endpoints for CRUD operations on search approaches
-2. Real-time updates using React Query for state management
-
-#### Prompt Management
-Prompts are stored in the database and managed through:
-1. Frontend:
-   - Edit forms in `search-approaches.tsx`
-   - Uses React Query mutations for updates
-   - Automatic cache invalidation on changes
-
-2. Backend:
-   - `server/storage/search.ts` handles database operations
-   - Implements CRUD operations for search approaches
-   - Manages both user-facing and technical prompts
-
-#### Search Implementation Structure
-The search system is organized in layers:
-
-1. Frontend Layer:
-   ```
-   components/
+components/
    ├── search-approaches.tsx  # Configuration UI
    ├── search-flow-new.tsx   # Search flow interface
    └── ui/                   # Shared UI components
@@ -86,7 +16,7 @@ The search system is organized in layers:
            └── shared/           # Common utilities
    ```
 
-3. Module Types and Their Functions:
+4. Module Types and Their Functions:
 
    a. Company Overview Module:
       - Purpose: Comprehensive analysis of company details and metrics
@@ -97,6 +27,7 @@ The search system is organized in layers:
         * Market presence evaluation
       - Implementation: `server/lib/search-logic/deep-searches/company-overview/`
       - Configuration Options:
+        * Minimum confidence threshold: 70%
         * Ignore franchises
         * Local headquarters focus
         * Custom validation rules
@@ -109,6 +40,7 @@ The search system is organized in layers:
         * Contact information gathering
         * Priority scoring
       - Implementation: `server/lib/search-logic/deep-searches/decision-maker/`
+      - Minimum confidence threshold: 75%
       - Special Capabilities:
         * Local source integration
         * Business association cross-referencing
@@ -121,42 +53,54 @@ The search system is organized in layers:
         * Multi-source validation
         * Confidence scoring
       - Implementation: `server/lib/search-logic/email-discovery/`
+      - Minimum confidence threshold: 80%
 
-4. Subsections System:
+   d. Email Enrichment Module:
+      - Purpose: Validate and enrich discovered email addresses
+      - Key Features:
+        * Deep validation
+        * Pattern verification
+        * Domain analysis
+      - Implementation: `server/lib/search-logic/email-enrichment/`
+      - Minimum confidence threshold: 85%
 
-   The search system uses a modular subsections architecture for flexible search configurations:
+   e. Email Deepdive Module:
+      - Purpose: Advanced source analysis and verification
+      - Key Features:
+        * Local source search
+        * Digital platform analysis
+        * Cross-reference validation
+      - Implementation: `server/lib/search-logic/deep-searches/email-deepdive/`
+      - Minimum confidence threshold: 65%
 
-   a. Current Implementation:
-      - Subsections are defined per module type
-      - Configured through the UI in `search-approaches.tsx`
-      - Stored in the database with the search approach
-      - Executed based on selected options
+5. Confidence Threshold System:
 
-   b. Areas for Improvement:
-      - [ ] Dynamic subsection loading based on module type
-      - [ ] Better validation rules per subsection
-      - [ ] Improved confidence scoring for subsection results
-      - [ ] Enhanced error handling for failed subsections
-      - [ ] More granular control over subsection execution order
-      - [ ] Better documentation of subsection dependencies
-      - [ ] Performance metrics for individual subsections
-      - [ ] Caching strategy for subsection results
-      - [ ] Configuration versioning for subsections
-      - [ ] Testing framework for subsection validation
+   The application implements a sophisticated confidence threshold system:
 
-   c. Subsection Types:
-      - Local Sources:
-        * News searches
-        * Business association lookups
-        * Local directory scanning
-      - Digital Sources:
-        * Website analysis
-        * Social media presence
-        * Online directories
-      - Validation Sources:
-        * Cross-reference checking
-        * Data consistency verification
-        * Timestamp validation
+   a. Purpose:
+      - Ensures high-quality search results
+      - Filters out low-confidence matches
+      - Provides transparency in search reliability
+
+   b. Implementation:
+      - Visual confidence indicators
+      - Color-coded thresholds:
+        * High (≥85%): Emerald
+        * Medium (≥70%): Amber
+        * Low (<70%): Red
+      - Progress bars showing threshold levels
+      - Tooltips explaining confidence requirements
+
+   c. Module-Specific Thresholds:
+      - Each search module has its own minimum confidence requirement
+      - Thresholds are enforced during result validation
+      - Results below threshold are filtered out
+
+   d. User Interface:
+      - Interactive confidence displays
+      - Real-time threshold visualization
+      - Clear feedback on confidence levels
+      - Easy configuration through Search Flow UI
 
 
 ### 5. Default Data Initialization
