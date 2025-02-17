@@ -146,7 +146,7 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
                 checked={approach.active ?? false}
                 onCheckedChange={(checked) => toggleMutation.mutate(checked)}
                 disabled={toggleMutation.isPending}
-                className="scale-75"
+                className={`scale-75 data-[state=checked]:bg-black dark:data-[state=checked]:bg-white data-[state=unchecked]:bg-gray-200`}
               />
             </TooltipTrigger>
             <TooltipContent>
@@ -155,22 +155,24 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
           </Tooltip>
         </TooltipProvider>
 
-        <AccordionTrigger className="flex-1 hover:no-underline">
-          <div className="flex items-center gap-4">
-            <span className="font-semibold">{approach.name}</span>
-            {minimumConfidence > 0 && (
-              <div className="flex items-center gap-2">
-                <Progress
-                  value={minimumConfidence}
-                  className={`w-16 h-1.5 ${getConfidenceColor(minimumConfidence)}`}
-                />
-                <span className="text-xs text-muted-foreground">
-                  {minimumConfidence}%
-                </span>
-              </div>
-            )}
-          </div>
-        </AccordionTrigger>
+        <div className="flex-1">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex flex-col items-start">
+              <span className="font-semibold">{approach.name}</span>
+              {minimumConfidence > 0 && (
+                <div className="flex items-center gap-2 mt-1">
+                  <Progress
+                    value={minimumConfidence}
+                    className={`w-16 h-1.5 ${getConfidenceColor(minimumConfidence)}`}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {minimumConfidence}% confidence required
+                  </span>
+                </div>
+              )}
+            </div>
+          </AccordionTrigger>
+        </div>
       </div>
 
       <AccordionContent className="px-4 py-2">
