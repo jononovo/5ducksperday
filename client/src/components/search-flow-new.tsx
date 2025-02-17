@@ -146,7 +146,7 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
                 checked={approach.active ?? false}
                 onCheckedChange={(checked) => toggleMutation.mutate(checked)}
                 disabled={toggleMutation.isPending}
-                className="!bg-gray-200 data-[state=checked]:!bg-black dark:data-[state=checked]:!bg-white dark:!bg-gray-200 scale-75"
+                className="dark:data-[state=unchecked]:bg-gray-200 data-[state=checked]:bg-black dark:data-[state=checked]:bg-white data-[state=unchecked]:bg-gray-200"
               />
             </TooltipTrigger>
             <TooltipContent>
