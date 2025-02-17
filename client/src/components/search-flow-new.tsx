@@ -13,9 +13,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import type { SearchApproach, SearchModuleConfig } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { AlertCircle, CheckCircle2, Edit3, Save, X } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { Edit3, Save, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -86,9 +84,13 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
   const toggleMutation = useMutation({
     mutationFn: async (active: boolean) => {
       const response = await apiRequest(
-        "PATCH",
+        "PATCH", 
         `/api/search-approaches/${approach.id}`,
-        { active }
+        { 
+          active,
+          // Preserve existing config when toggling
+          config: approach.config
+        }
       );
       if (!response.ok) {
         throw new Error("Failed to toggle approach");
@@ -97,6 +99,10 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/search-approaches"] });
+      toast({
+        title: approach.active ? "Approach Disabled" : "Approach Enabled",
+        description: `Search approach has been ${approach.active ? "disabled" : "enabled"}.`,
+      });
     },
     onError: (error) => {
       toast({
@@ -139,6 +145,7 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
               <Switch
                 checked={approach.active ?? false}
                 onCheckedChange={(checked) => toggleMutation.mutate(checked)}
+                disabled={toggleMutation.isPending}
                 className="scale-75"
               />
             </TooltipTrigger>
@@ -151,17 +158,14 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
         <AccordionTrigger className="flex-1 hover:no-underline">
           <div className="flex items-center gap-4">
             <span className="font-semibold">{approach.name}</span>
-            <Badge variant="outline" className="ml-2">
-              Step {approach.order}
-            </Badge>
             {minimumConfidence > 0 && (
               <div className="flex items-center gap-2">
                 <Progress
                   value={minimumConfidence}
-                  className={`w-24 h-2 ${getConfidenceColor(minimumConfidence)}`}
+                  className={`w-16 h-1.5 ${getConfidenceColor(minimumConfidence)}`}
                 />
                 <span className="text-xs text-muted-foreground">
-                  {minimumConfidence}% threshold
+                  {minimumConfidence}%
                 </span>
               </div>
             )}
@@ -261,18 +265,13 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
 }
 
 export default function SearchFlowNew({ approaches }: SearchFlowNewProps) {
-  // Sort approaches by order
   const sortedApproaches = [...approaches].sort(
     (a, b) => (a.order || 0) - (b.order || 0)
   );
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <CheckCircle2 className="w-5 h-5 text-green-500" />
-        <h3 className="font-semibold">Search Flow Steps</h3>
-      </div>
-
+      <h3 className="font-semibold">Search Flow</h3>
       <Accordion type="single" collapsible className="w-full">
         {sortedApproaches.map((approach) => (
           <ApproachEditor key={approach.id} approach={approach} />
