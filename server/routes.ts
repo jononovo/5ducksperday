@@ -8,6 +8,7 @@ import { queryPerplexity } from "./lib/api/perplexity-client";
 import { searchContactDetails } from "./lib/api-interactions";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
 import { insertEmailTemplateSchema } from "@shared/schema";
+import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/email-enrichment-service";
 
 export function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -278,6 +279,31 @@ export function registerRoutes(app: Express) {
       console.error('Contact enrichment error:', error);
       res.status(500).json({
         message: error instanceof Error ? error.message : "An unexpected error occurred during contact enrichment"
+      });
+    }
+  });
+
+  // Add this route after the existing contacts routes
+  app.post("/api/companies/:companyId/enrich-top-prospects", async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.companyId);
+      const company = await storage.getCompany(companyId);
+
+      if (!company) {
+        res.status(404).json({ message: "Company not found" });
+        return;
+      }
+
+      await emailEnrichmentService.enrichTopProspects(companyId);
+
+      res.json({
+        message: "Top prospects enrichment process started",
+        companyId
+      });
+    } catch (error) {
+      console.error('Top prospects enrichment error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred during enrichment"
       });
     }
   });
