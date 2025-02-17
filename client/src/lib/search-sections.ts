@@ -143,8 +143,13 @@ export function getSubsectionsForSection(sectionConfig: {
     .filter((s): s is NonNullable<typeof s> => s !== null);
 }
 
-// Get sections for a specific module type
+// Get sections for a specific module type with strict type checking
 export function getSectionsByModuleType(moduleType: string): Record<string, SearchSection> {
+  if (!['company_overview', 'email_discovery', 'decision_maker'].includes(moduleType)) {
+    console.warn(`Invalid module type: ${moduleType}`);
+    return {};
+  }
+
   const moduleConfig = SECTIONS_CONFIG[moduleType as keyof typeof SECTIONS_CONFIG];
   if (!moduleConfig) {
     console.warn(`No config found for module type: ${moduleType}`);
@@ -153,6 +158,7 @@ export function getSectionsByModuleType(moduleType: string): Record<string, Sear
 
   const result: Record<string, SearchSection> = {};
 
+  // Only process sections defined for this specific module type
   Object.entries(moduleConfig).forEach(([sectionId, sectionConfig]) => {
     const searches = getSubsectionsForSection(sectionConfig);
 
