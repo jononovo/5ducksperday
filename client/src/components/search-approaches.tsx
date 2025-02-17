@@ -84,6 +84,12 @@ function SubSearches({
 
     const isSearchOption = section.id === 'search_options';
     const moduleType = approach.moduleType;
+    const moduleConfig = SECTIONS_CONFIG[moduleType as keyof typeof SECTIONS_CONFIG];
+
+    // Only show sections that belong to the current module type
+    if (!moduleConfig || !(section.id in moduleConfig)) {
+      return null;
+    }
 
     // Only show search options for company overview
     if (moduleType === 'company_overview' && !isSearchOption) return null;
