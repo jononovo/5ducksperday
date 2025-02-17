@@ -359,9 +359,10 @@ export function registerRoutes(app: Express) {
     try {
       const companyId = parseInt(req.params.companyId);
       const searchId = `search_${Date.now()}`;
+      const { contactIds } = req.body; // Get the specific contact IDs to enrich
 
       // Start the enrichment process
-      const queueId = await postSearchEnrichmentService.startEnrichment(companyId, searchId);
+      const queueId = await postSearchEnrichmentService.startEnrichment(companyId, searchId, contactIds);
 
       res.json({
         message: "Top prospects enrichment started",

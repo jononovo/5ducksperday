@@ -275,19 +275,26 @@ export default function Home() {
                         return;
                       }
 
-                      // Get unique company IDs from prospects
-                      const companyIds = [...new Set(prospects.map(p => p.companyId))];
+                      // Group contacts by company
+                      const companiesMap = prospects.reduce((acc, contact) => {
+                        if (!acc.has(contact.companyId)) {
+                          acc.set(contact.companyId, []);
+                        }
+                        acc.get(contact.companyId)!.push(contact.id);
+                        return acc;
+                      }, new Map<number, number[]>());
 
-                      // Start enrichment for each company
-                      Promise.all(companyIds.map(async (companyId) => {
+                      // Start enrichment for each company's contacts
+                      [...companiesMap.entries()].forEach(async ([companyId, contactIds]) => {
                         try {
-                          const response = await apiRequest("POST", `/api/companies/${companyId}/enrich-top-prospects`);
+                          const response = await apiRequest("POST", `/api/companies/${companyId}/enrich-top-prospects`, {
+                            contactIds // Pass the specific contact IDs to enrich
+                          });
                           const data = await response.json();
                           toast({
                             title: "Enrichment Started",
-                            description: `Started enriching prospects for company ${companyId}`,
+                            description: `Started enriching ${contactIds.length} prospects for company ${companyId}`,
                           });
-                          return data;
                         } catch (error) {
                           toast({
                             title: "Enrichment Failed",
@@ -295,7 +302,7 @@ export default function Home() {
                             variant: "destructive",
                           });
                         }
-                      }));
+                      });
                     }}
                   >
                     <Banknote className="mr-2 h-4 w-4" />
