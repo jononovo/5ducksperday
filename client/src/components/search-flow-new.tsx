@@ -13,7 +13,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import type { SearchApproach, SearchModuleConfig } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { Edit3, Save, X } from "lucide-react";
+import { Edit3, Save, X, InfoIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -128,9 +128,15 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 85) return "bg-green-500";
-    if (confidence >= 70) return "bg-yellow-500";
+    if (confidence >= 85) return "bg-emerald-500";
+    if (confidence >= 70) return "bg-amber-500";
     return "bg-red-500";
+  };
+
+  const getConfidenceLabel = (confidence: number) => {
+    if (confidence >= 85) return "High Confidence";
+    if (confidence >= 70) return "Medium Confidence";
+    return "Low Confidence";
   };
 
   const minimumConfidence = config.validationRules?.minimumConfidence || 0;
@@ -160,13 +166,30 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
               <span className="font-medium text-base">{approach.name}</span>
               {minimumConfidence > 0 && (
                 <div className="flex items-center gap-2 mt-1.5">
-                  <Progress
-                    value={minimumConfidence}
-                    className={`w-20 h-1.5 ${getConfidenceColor(minimumConfidence)}`}
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    {minimumConfidence}% confidence required
-                  </span>
+                  <div className="flex items-center gap-2 flex-1 max-w-[200px]">
+                    <Progress
+                      value={minimumConfidence}
+                      className={`h-2 ${getConfidenceColor(minimumConfidence)}`}
+                    />
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs font-medium">
+                              {minimumConfidence}%
+                            </span>
+                            <InfoIcon className="h-3 w-3 text-muted-foreground" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-sm">
+                            {getConfidenceLabel(minimumConfidence)}: Requires {minimumConfidence}%
+                            confidence in search results
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </div>
               )}
             </div>
