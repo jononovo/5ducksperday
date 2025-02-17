@@ -22,19 +22,6 @@ export const emailDiscoveryModule = {
       defaultEnabled: true
     },
     {
-      id: "public-directory-search",
-      label: "Public Directory Search", 
-      description: "Search public business directories and listing sites",
-      implementation: publicDirectoryStrategy,
-      defaultEnabled: true
-    },
-    {
-      id: "social-profile-search",
-      label: "Social Profile Search",
-      description: "Extract email addresses from public social media profiles",
-      implementation: socialProfileStrategy
-    },
-    {
       id: "pattern-prediction-search",
       label: "Pattern Prediction",
       description: "Predict email addresses based on common corporate patterns",
@@ -47,6 +34,20 @@ export const emailDiscoveryModule = {
       description: "Analyze domain MX records and email configurations",
       implementation: domainAnalysisStrategy,
       defaultEnabled: true
+    },
+    {
+      id: "public-directory-search",
+      label: "Public Directory Search", 
+      description: "Search public business directories and listing sites",
+      implementation: publicDirectoryStrategy,
+      defaultEnabled: true
+    },
+    {
+      id: "social-profile-search",
+      label: "Social Profile Search",
+      description: "Extract email addresses from public social media profiles",
+      implementation: socialProfileStrategy,
+      defaultEnabled: false
     },
     {
       id: "local-business-search",
@@ -67,15 +68,44 @@ export const emailDiscoveryModule = {
       label: "Email Enrichment",
       description: "Enrich discovered email addresses with additional data",
       implementation: async (context) => {
-        const { companyId } = context;
-        if (!companyId) return [];
+        const { companyId, companyName } = context;
+        if (!companyId) {
+          console.warn('Cannot enrich contacts: Missing companyId in context');
+          return [];
+        }
 
-        await emailEnrichmentService.enrichTopProspects(companyId);
-        return [{
-          content: "Email enrichment process started for top prospects",
-          confidence: 1,
-          source: "email_enrichment"
-        }];
+        try {
+          // Start the enrichment process
+          await emailEnrichmentService.enrichTopProspects(companyId);
+
+          return [{
+            content: `Started email enrichment for top prospects at ${companyName}`,
+            confidence: 1,
+            source: "email_enrichment",
+            metadata: {
+              searchDate: new Date().toISOString(),
+              searchType: "contact_enrichment",
+              status: "processing",
+              companyId,
+              companyName
+            }
+          }];
+        } catch (error) {
+          console.error('Email enrichment failed:', error);
+          return [{
+            content: `Email enrichment failed for ${companyName}`,
+            confidence: 0,
+            source: "email_enrichment",
+            metadata: {
+              searchDate: new Date().toISOString(),
+              searchType: "contact_enrichment",
+              status: "failed",
+              error: error instanceof Error ? error.message : "Unknown error",
+              companyId,
+              companyName
+            }
+          }];
+        }
       },
       defaultEnabled: false
     }
