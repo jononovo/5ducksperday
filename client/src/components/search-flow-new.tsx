@@ -21,6 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 // Fixed approach order mapping
 const APPROACH_ORDER = {
@@ -157,6 +158,9 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     return "Low Confidence";
   };
 
+  // Check if this search approach has been completed
+  const isCompleted = approach.completedSearches?.includes(approach.moduleType);
+
   const minimumConfidence = config.validationRules?.minimumConfidence || 0;
 
   return (
@@ -171,11 +175,15 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
                   checked={approach.active ?? false}
                   onCheckedChange={(checked) => toggleMutation.mutate(checked as boolean)}
                   disabled={toggleMutation.isPending}
+                  className={cn(
+                    "transition-colors duration-200",
+                    isCompleted && approach.active && "data-[state=checked]:bg-emerald-500 data-[state=checked]:text-emerald-50 dark:data-[state=checked]:bg-emerald-500"
+                  )}
                 />
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              {approach.active ? "Disable approach" : "Enable approach"}
+              {isCompleted ? "Search completed" : approach.active ? "Disable approach" : "Enable approach"}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
