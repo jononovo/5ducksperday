@@ -28,7 +28,13 @@ const GENERIC_TERMS = new Set([
   'business', 'company', 'enterprise', 'organization', 'corporation',
   'admin', 'professional', 'consultant',
   'service', 'support', 'office', 'personnel', 'resource',
-  'operation', 'development', 'sales', 'marketing', 'customer'
+  'operation', 'development', 'sales', 'marketing', 'customer',
+
+  // Common business name components
+  'company', 'consolidated', 'incorporated', 'inc', 'llc', 'ltd',
+  'group', 'holdings', 'solutions', 'services', 'international',
+  'global', 'industries', 'systems', 'technologies', 'associates',
+  'consulting', 'ventures', 'partners', 'limited', 'corp'
 ]);
 
 export function isPlaceholderName(name: string): boolean {
