@@ -84,15 +84,15 @@ export const SECTIONS_CONFIG = {
     }
   },
   email_discovery: {
-    email_analysis: {
-      id: "email_analysis",
-      label: "Email Analysis",
-      description: "Analyze and discover email patterns",
+    pattern_analysis: {
+      id: "pattern_analysis",
+      label: "Email Pattern Analysis",
+      description: "Analyze email patterns and formats",
       subsectionIds: ["email-pattern-analysis", "domain-validation"]
     },
-    discovery_methods: {
-      id: "discovery_methods",
-      label: "Discovery Methods",
+    discovery: {
+      id: "discovery",
+      label: "Email Discovery",
       description: "Methods for discovering email addresses",
       subsectionIds: ["public-email-search", "email-verification"]
     }
@@ -146,19 +146,25 @@ export function getSubsectionsForSection(sectionConfig: {
 // Get sections for a specific module type
 export function getSectionsByModuleType(moduleType: string): Record<string, SearchSection> {
   const moduleConfig = SECTIONS_CONFIG[moduleType as keyof typeof SECTIONS_CONFIG];
-  if (!moduleConfig) return {};
+  if (!moduleConfig) {
+    console.warn(`No config found for module type: ${moduleType}`);
+    return {};
+  }
 
   const result: Record<string, SearchSection> = {};
 
   Object.entries(moduleConfig).forEach(([sectionId, sectionConfig]) => {
     const searches = getSubsectionsForSection(sectionConfig);
 
-    result[sectionId] = {
-      id: sectionConfig.id,
-      label: sectionConfig.label,
-      description: sectionConfig.description,
-      searches
-    };
+    // Only add the section if it has valid searches
+    if (searches.length > 0) {
+      result[sectionId] = {
+        id: sectionConfig.id,
+        label: sectionConfig.label,
+        description: sectionConfig.description,
+        searches
+      };
+    }
   });
 
   return result;

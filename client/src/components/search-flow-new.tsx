@@ -30,7 +30,7 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
   // Get sections based on module type
   const sections = getSectionsByModuleType(approach.moduleType || "company_overview");
   const config = approach.config as SearchModuleConfig;
-  
+
   // Track subsearches state
   const [subsearches, setSubsearches] = useState<Record<string, boolean>>(
     config?.subsearches || {}
@@ -151,56 +151,59 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
               />
             </div>
             <div className="space-y-4">
-              {Object.entries(sections).map(([sectionId, section]) => (
-                <div key={sectionId} className="space-y-2">
-                  <h3 className="text-sm font-medium">{section.label}</h3>
-                  <p className="text-sm text-muted-foreground">{section.description}</p>
-                  <div className="space-y-2 pl-4">
-                    {section.searches.map((search) => {
-                      const isSearchOption = sectionId === "search_options";
-                      const checked = isSearchOption
-                        ? searchOptions[search.id.replace(/-/g, "") as keyof typeof searchOptions]
-                        : subsearches[search.id] ?? false;
+              {Object.entries(sections).map(([sectionId, section]) => {
+                const isSearchOptions = sectionId === "search_options";
 
-                      return (
-                        <div key={search.id} className="flex items-start space-x-2">
-                          <Checkbox
-                            id={search.id}
-                            checked={checked}
-                            onCheckedChange={(checked) => {
-                              if (isSearchOption) {
-                                handleSearchOptionChange(
-                                  search.id.replace(/-/g, ""),
-                                  checked as boolean
-                                );
-                              } else {
-                                handleSubsearchChange(search.id, checked as boolean);
-                              }
-                            }}
-                            className="mt-1"
-                          />
-                          <div className="grid gap-1.5 leading-none">
-                            <label
-                              htmlFor={search.id}
-                              className="text-sm font-medium leading-none"
-                            >
-                              {search.label}
-                            </label>
-                            <p className="text-sm text-muted-foreground">
-                              {search.description}
-                            </p>
-                            {!isSearchOption && search.implementation && (
-                              <p className="text-sm text-muted-foreground italic">
-                                {search.implementation}
+                return (
+                  <div key={sectionId} className="space-y-2">
+                    <h3 className="text-sm font-medium">{section.label}</h3>
+                    <p className="text-sm text-muted-foreground">{section.description}</p>
+                    <div className="space-y-2 pl-4">
+                      {section.searches.map((search) => {
+                        const checked = isSearchOptions
+                          ? searchOptions[search.id.replace(/-/g, "") as keyof typeof searchOptions]
+                          : subsearches[search.id] ?? false;
+
+                        return (
+                          <div key={search.id} className="flex items-start space-x-2">
+                            <Checkbox
+                              id={search.id}
+                              checked={checked}
+                              onCheckedChange={(checked) => {
+                                if (isSearchOptions) {
+                                  handleSearchOptionChange(
+                                    search.id.replace(/-/g, ""),
+                                    checked as boolean
+                                  );
+                                } else {
+                                  handleSubsearchChange(search.id, checked as boolean);
+                                }
+                              }}
+                              className="mt-1"
+                            />
+                            <div className="grid gap-1.5 leading-none">
+                              <label
+                                htmlFor={search.id}
+                                className="text-sm font-medium leading-none"
+                              >
+                                {search.label}
+                              </label>
+                              <p className="text-sm text-muted-foreground">
+                                {search.description}
                               </p>
-                            )}
+                              {!isSearchOptions && search.implementation && (
+                                <p className="text-sm text-muted-foreground italic">
+                                  {search.implementation}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div className="flex gap-2">
               <Button
@@ -228,8 +231,8 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
                   <h3 className="text-sm font-medium">{section.label}</h3>
                   <div className="space-y-2 pl-4">
                     {section.searches.map((search) => {
-                      const isSearchOption = sectionId === "search_options";
-                      const checked = isSearchOption
+                      const isSearchOptions = sectionId === "search_options";
+                      const checked = isSearchOptions
                         ? searchOptions[search.id.replace(/-/g, "") as keyof typeof searchOptions]
                         : subsearches[search.id] ?? false;
 
