@@ -206,22 +206,9 @@ export function registerRoutes(app: Express) {
           try {
             console.log(`Processing email enrichment for company: ${company.name}`);
 
-            // Get fresh contact data to ensure we have the latest state
-            const contacts = await storage.listContactsByCompany(company.id);
-
-            // Filter for contacts that meet enrichment criteria
-            const enrichmentCandidates = contacts.filter(contact => 
-              contact.nameConfidenceScore && 
-              contact.nameConfidenceScore >= 70 && 
-              !contact.completedSearches?.includes('contact_enrichment')
-            );
-
-            if (enrichmentCandidates.length > 0) {
-              console.log(`Queueing ${enrichmentCandidates.length} contacts for enrichment from ${company.name}`);
-              await postSearchEnrichmentService.startEnrichment(company.id, searchId);
-            } else {
-              console.log(`No eligible contacts for enrichment in ${company.name}`);
-            }
+            // Start enrichment process for this company
+            const enrichmentResults = await emailEnrichmentService.enrichTopProspects(company.id);
+            console.log(`Queued enrichment for ${enrichmentResults.length} contacts in ${company.name}`);
           } catch (error) {
             console.error(`Email enrichment error for ${company.name}:`, error);
           }
