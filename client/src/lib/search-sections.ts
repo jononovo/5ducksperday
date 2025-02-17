@@ -249,7 +249,7 @@ export const SECTIONS_CONFIG = {
       id: "discovery",
       label: "Email Discovery",
       description: "Methods for discovering email addresses",
-      subsectionIds: ["public-email-search", "email-verification"]
+      subsectionIds: ["public-email-search", "email-verification", "local-business-associations-search"]
     }
   },
   decision_maker: {
