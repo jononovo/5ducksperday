@@ -13,27 +13,32 @@ import {
 import { Progress } from "@/components/ui/progress";
 import type { SearchApproach, SearchModuleConfig } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { Edit3, Save, X, InfoIcon } from "lucide-react";
+import { Edit3, Save, X, InfoIcon, AlertCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SearchFlowNewProps {
   approaches: SearchApproach[];
 }
 
+// Fixed approach order mapping
+const APPROACH_ORDER = {
+  'company_overview': 1,
+  'decision_maker': 2,
+  'email_discovery': 3,
+  'email_enrichment': 4,
+  'email_deepdive': 5
+};
+
 function ApproachEditor({ approach }: { approach: SearchApproach }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState(approach.prompt);
-  const [editedTechnicalPrompt, setEditedTechnicalPrompt] = useState(
-    approach.technicalPrompt || ""
-  );
-  const [editedResponseStructure, setEditedResponseStructure] = useState(
-    approach.responseStructure || ""
-  );
+  const [validationError, setValidationError] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -54,6 +59,10 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
         throw new Error("Prompt cannot be empty");
       }
 
+      if (editedPrompt.length < 10) {
+        throw new Error("Prompt must be at least 10 characters long");
+      }
+
       const response = await apiRequest(
         "PATCH",
         `/api/search-approaches/${approach.id}`,
@@ -67,12 +76,14 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/search-approaches"] });
       setIsEditing(false);
+      setValidationError(null);
       toast({
         title: "Approach Updated",
         description: "Search approach updated successfully.",
       });
     },
     onError: (error) => {
+      setValidationError(error instanceof Error ? error.message : "Failed to update approach");
       toast({
         title: "Update Failed",
         description: error instanceof Error ? error.message : "Failed to update approach",
@@ -115,16 +126,13 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
   const handleSave = () => {
     updateMutation.mutate({
       prompt: editedPrompt,
-      technicalPrompt: editedTechnicalPrompt || null,
-      responseStructure: editedResponseStructure || null,
     });
   };
 
   const handleCancel = () => {
     setIsEditing(false);
     setEditedPrompt(approach.prompt);
-    setEditedTechnicalPrompt(approach.technicalPrompt || "");
-    setEditedResponseStructure(approach.responseStructure || "");
+    setValidationError(null);
   };
 
   const getConfidenceColor = (confidence: number) => {
@@ -198,40 +206,27 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
       </div>
 
       <AccordionContent className="px-4 py-2">
+        {validationError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{validationError}</AlertDescription>
+          </Alert>
+        )}
         {isEditing ? (
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-2 block">
-                User-Facing Prompt
+                Search Prompt
               </label>
               <Textarea
                 value={editedPrompt}
                 onChange={(e) => setEditedPrompt(e.target.value)}
-                placeholder="Enter the user-facing prompt..."
+                placeholder="Enter the search prompt..."
                 className="min-h-[100px]"
               />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Technical Implementation
-              </label>
-              <Textarea
-                value={editedTechnicalPrompt}
-                onChange={(e) => setEditedTechnicalPrompt(e.target.value)}
-                placeholder="Enter the technical implementation details..."
-                className="min-h-[100px] font-mono text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Response Structure
-              </label>
-              <Textarea
-                value={editedResponseStructure}
-                onChange={(e) => setEditedResponseStructure(e.target.value)}
-                placeholder="Enter the expected JSON response structure..."
-                className="min-h-[100px] font-mono text-sm"
-              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Use [COMPANY] as a placeholder for the target company name
+              </p>
             </div>
             <div className="flex gap-2">
               <Button
@@ -251,35 +246,16 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
         ) : (
           <div className="space-y-4">
             <div className="space-y-2">
-              <h4 className="font-medium">Description</h4>
+              <h4 className="font-medium">Search Prompt</h4>
               <p className="text-sm text-muted-foreground">{approach.prompt}</p>
             </div>
-
-            {approach.technicalPrompt && (
-              <div className="space-y-2">
-                <h4 className="font-medium">Technical Details</h4>
-                <p className="text-sm text-muted-foreground font-mono">
-                  {approach.technicalPrompt}
-                </p>
-              </div>
-            )}
-
-            {approach.responseStructure && (
-              <div className="space-y-2">
-                <h4 className="font-medium">Expected Response</h4>
-                <pre className="text-sm bg-muted p-2 rounded-md font-mono">
-                  {approach.responseStructure}
-                </pre>
-              </div>
-            )}
-
             <Button
               size="sm"
               variant="outline"
               onClick={() => setIsEditing(true)}
             >
               <Edit3 className="w-4 h-4 mr-2" />
-              Edit Approach
+              Edit Prompt
             </Button>
           </div>
         )}
@@ -289,13 +265,16 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
 }
 
 export default function SearchFlowNew({ approaches }: SearchFlowNewProps) {
-  const sortedApproaches = [...approaches].sort(
-    (a, b) => (a.order || 0) - (b.order || 0)
-  );
+  // Sort approaches by fixed order
+  const sortedApproaches = [...approaches].sort((a, b) => {
+    const orderA = APPROACH_ORDER[a.moduleType as keyof typeof APPROACH_ORDER] || 999;
+    const orderB = APPROACH_ORDER[b.moduleType as keyof typeof APPROACH_ORDER] || 999;
+    return orderA - orderB;
+  });
 
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold">Search Flow</h3>
+      <h3 className="font-semibold">Search Flow Configuration</h3>
       <Accordion type="single" collapsible className="w-full">
         {sortedApproaches.map((approach) => (
           <ApproachEditor key={approach.id} approach={approach} />
