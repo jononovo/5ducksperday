@@ -1,4 +1,4 @@
-import type { SearchModule } from '../../shared/types';
+import type { SearchModule } from '../shared/types';
 import { websiteCrawlerStrategy } from './strategies/website-crawler';
 import { patternPredictionStrategy } from './strategies/pattern-prediction';
 import { domainAnalysisStrategy } from './strategies/domain-analysis';
@@ -6,7 +6,6 @@ import { publicDirectoryStrategy } from './strategies/public-directory';
 import { socialProfileStrategy } from './strategies/social-profile';
 import { localBusinessAssociationsSearch } from '../deep-searches/local-sources/local-business-associations-search';
 import { localEventsSearch } from '../deep-searches/local-sources/local-events-search';
-import { emailEnrichmentService } from '../email-enrichment/email-enrichment-service';
 
 // Export module configuration
 export const emailDiscoveryModule = {
@@ -62,52 +61,6 @@ export const emailDiscoveryModule = {
       description: "Search local business events and conferences for contact discovery",
       implementation: localEventsSearch,
       defaultEnabled: true
-    },
-    {
-      id: "email-enrichment",
-      label: "Email Enrichment",
-      description: "Enrich discovered email addresses with additional data",
-      implementation: async (context) => {
-        const { companyId, companyName } = context;
-        if (!companyId) {
-          console.warn('Cannot enrich contacts: Missing companyId in context');
-          return [];
-        }
-
-        try {
-          // Start the enrichment process
-          await emailEnrichmentService.enrichTopProspects(companyId);
-
-          return [{
-            content: `Started email enrichment for top prospects at ${companyName}`,
-            confidence: 1,
-            source: "email_enrichment",
-            metadata: {
-              searchDate: new Date().toISOString(),
-              searchType: "contact_enrichment",
-              status: "processing",
-              companyId,
-              companyName
-            }
-          }];
-        } catch (error) {
-          console.error('Email enrichment failed:', error);
-          return [{
-            content: `Email enrichment failed for ${companyName}`,
-            confidence: 0,
-            source: "email_enrichment",
-            metadata: {
-              searchDate: new Date().toISOString(),
-              searchType: "contact_enrichment",
-              status: "failed",
-              error: error instanceof Error ? error.message : "Unknown error",
-              companyId,
-              companyName
-            }
-          }];
-        }
-      },
-      defaultEnabled: false
     }
   ]
 };
