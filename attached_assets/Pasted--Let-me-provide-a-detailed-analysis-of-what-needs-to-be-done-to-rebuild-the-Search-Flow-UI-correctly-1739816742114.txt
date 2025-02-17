@@ -1,0 +1,101 @@
+
+Let me provide a detailed analysis of what needs to be done to rebuild the Search Flow UI correctly:
+
+# Search Flow UI Technical Analysis & Implementation Plan
+## 1. Current Implementation Analysis
+Looking at the codebase, we have:
+1. client/src/components/search-flow-new.tsx (Current active implementation)
+2. client/src/components/search-approaches.tsx (Deprecated)
+3. client/src/pages/home.tsx (Uses SearchFlowNew component)
+## 2. Issue Identification
+The problem is that search-flow-new.tsx contains unnecessary complexity and approaches that aren't needed:
+- Has complex subsearch functionality that isn't required
+- Shows all approaches instead of the specific 5 we need
+- Contains unused configuration options
+## 3. Implementation Plan
+### Step 1: File Cleanup
+```bash
+1. Delete search-approaches.tsx (confirmed deprecated)
+2. Clear unnecessary imports from home.tsx
+Step 2: Rebuild SearchFlowNew Component
+Location: client/src/components/search-flow-new.tsx
+
+Core functionality needed:
+
+interface SearchFlowNewProps {
+  approaches: SearchApproach[];  // From shared/schema.ts
+}
+// Only show these specific approaches in this order:
+const REQUIRED_APPROACHES = [
+  'Company Overview',
+  'Decision-maker Analysis', 
+  'Email Discovery',
+  'Enrich Email',
+  'Email Deepdive'
+];
+// Main component structure
+export default function SearchFlowNew({ approaches }: SearchFlowNewProps) {
+  // Filter and sort approaches to match required list
+  const filteredApproaches = approaches
+    .filter(a => REQUIRED_APPROACHES.includes(a.name))
+    .sort((a, b) => 
+      REQUIRED_APPROACHES.indexOf(a.name) - REQUIRED_APPROACHES.indexOf(b.name)
+    );
+  return (
+    <Accordion>
+      {filteredApproaches.map(approach => (
+        <ApproachEditor key={approach.id} approach={approach} />
+      ))}
+    </Accordion>
+  );
+}
+Step 3: Simplify ApproachEditor Component
+function ApproachEditor({ approach }: { approach: SearchApproach }) {
+  // Core features only:
+  // 1. Toggle approach active state
+  // 2. Edit prompt
+  // 3. Basic display
+  // Remove: subsearches, complex configurations
+}
+Step 4: Update Type Definitions
+Location: shared/schema.ts
+
+interface SearchApproach {
+  id: number;
+  name: string;
+  prompt: string;
+  active: boolean;
+  moduleType: string;
+  order: number;
+  config: SearchModuleConfig;
+}
+4. Testing Plan
+Verify approach order matches requirement:
+
+Company Overview
+Decision-maker Analysis
+Email Discovery
+Enrich Email
+Email Deepdive
+Test core functionality:
+
+Toggle each approach on/off
+Edit prompts
+Verify changes persist
+5. Why Previous Attempts Failed
+Previous attempts focused on:
+
+Modifying backend storage (server/storage/search.ts)
+Editing deprecated component (search-approaches.tsx)
+Adding complexity instead of simplifying
+The correct approach is to:
+
+Focus on the active component (search-flow-new.tsx)
+Remove unnecessary features
+Implement a clean, focused UI for the 5 required approaches
+6. Implementation Steps
+Backup existing search-flow-new.tsx
+Create new implementation focusing on core features
+Test with the 5 required approaches
+Remove deprecated files
+Update any dependent components
