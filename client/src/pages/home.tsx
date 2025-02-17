@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
-import SearchApproaches from "@/components/search-approaches";
 import { ListPlus, Search, Code2, UserCircle, Banknote, Eye, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, Star, MessageSquare } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { SearchApproach } from "@shared/schema";
+import SearchFlowNew from "@/components/search-flow-new";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -420,7 +420,7 @@ export default function Home() {
             </CardHeader>
             {isSearchFlowExpanded && (
               <CardContent className="p-2">
-                <SearchApproaches approaches={searchApproaches} />
+                <SearchFlowNew approaches={searchApproaches} />
               </CardContent>
             )}
           </Card>
