@@ -5,6 +5,7 @@ import { domainAnalysisStrategy } from './strategies/domain-analysis';
 import { publicDirectoryStrategy } from './strategies/public-directory';
 import { socialProfileStrategy } from './strategies/social-profile';
 import { localBusinessAssociationsSearch } from '../deep-searches/local-sources/local-business-associations-search';
+import { localEventsSearch } from '../deep-searches/local-sources/local-events-search';
 
 // Export module configuration
 export const emailDiscoveryModule = {
@@ -16,13 +17,15 @@ export const emailDiscoveryModule = {
       id: "website-email-search",
       label: "Website Email Search",
       description: "Extract email addresses from company website and related pages",
-      implementation: websiteCrawlerStrategy
+      implementation: websiteCrawlerStrategy,
+      defaultEnabled: true
     },
     {
       id: "public-directory-search",
       label: "Public Directory Search", 
       description: "Search public business directories and listing sites",
-      implementation: publicDirectoryStrategy
+      implementation: publicDirectoryStrategy,
+      defaultEnabled: true
     },
     {
       id: "social-profile-search",
@@ -34,19 +37,29 @@ export const emailDiscoveryModule = {
       id: "pattern-prediction-search",
       label: "Pattern Prediction",
       description: "Predict email addresses based on common corporate patterns",
-      implementation: patternPredictionStrategy
+      implementation: patternPredictionStrategy,
+      defaultEnabled: true
     },
     {
       id: "domain-analysis-search",
       label: "Domain Analysis",
       description: "Analyze domain MX records and email configurations",
-      implementation: domainAnalysisStrategy
+      implementation: domainAnalysisStrategy,
+      defaultEnabled: true
     },
     {
       id: "local-business-search",
       label: "Local Business Associations",
       description: "Search local business associations for top prospect emails",
-      implementation: localBusinessAssociationsSearch
+      implementation: localBusinessAssociationsSearch,
+      defaultEnabled: true
+    },
+    {
+      id: "local-events-search",
+      label: "Local Events Search",
+      description: "Search local business events and conferences for contact discovery",
+      implementation: localEventsSearch,
+      defaultEnabled: true
     }
   ]
 };

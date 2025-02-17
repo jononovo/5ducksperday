@@ -122,38 +122,6 @@ Format response as:
     }
   },
 
-  // Decision Maker specific subsections
-  linkedinSearch: {
-    id: "linkedin-search",
-    label: "LinkedIn Analysis",
-    description: "Search for company decision makers on LinkedIn",
-    implementation: "Search LinkedIn for company executives and decision makers at [COMPANY]"
-  },
-  twitterSearch: {
-    id: "twitter-search",
-    label: "Twitter Analysis",
-    description: "Analyze Twitter for executive activity",
-    implementation: "Find Twitter accounts of executives at [COMPANY]"
-  },
-  industryDb: {
-    id: "industry-db",
-    label: "Industry Database Search",
-    description: "Search industry-specific databases",
-    implementation: "Search industry databases for key decision makers at [COMPANY]"
-  },
-  professionalOrgs: {
-    id: "professional-orgs",
-    label: "Professional Organizations",
-    description: "Search professional organization memberships",
-    implementation: "Find professional organization memberships for [COMPANY] executives"
-  },
-  newsMentions: {
-    id: "news-mentions",
-    label: "News Mentions",
-    description: "Search news articles for executive mentions",
-    implementation: "Find recent news articles mentioning [COMPANY] executives or leadership"
-  },
-
   // Add Local Sources subsections
   localBusinessAssociations: {
     id: "local-business-associations-search",
@@ -225,6 +193,12 @@ Format response as:
         confidence: "number - confidence score (0-100)"
       }]
     }
+  },
+  "local-events-search": {
+    id: "local-events-search",
+    label: "Local Events Search",
+    description: "Search local event listings for company mentions and contact information",
+    implementation: "Search local event listings for company mentions and contact details"
   }
 };
 
@@ -249,7 +223,12 @@ export const SECTIONS_CONFIG = {
       id: "discovery",
       label: "Email Discovery",
       description: "Methods for discovering email addresses",
-      subsectionIds: ["public-email-search", "email-verification", "local-business-associations-search"]
+      subsectionIds: [
+        "public-email-search",
+        "email-verification",
+        "local-business-associations-search",
+        "local-events-search" 
+      ]
     }
   },
   decision_maker: {
