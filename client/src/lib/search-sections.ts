@@ -227,7 +227,7 @@ export const SECTIONS_CONFIG = {
         "public-email-search",
         "email-verification",
         "local-business-associations-search",
-        "local-events-search" 
+        "local-events-search"
       ]
     }
   },
