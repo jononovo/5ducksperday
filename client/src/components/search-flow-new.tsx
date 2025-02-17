@@ -12,8 +12,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import type { SearchApproach, SearchModuleConfig } from "@shared/schema";
-import { getSectionsByModuleType } from "@/lib/search-sections";
+import { getSectionsByModuleType, getAllSearchIds } from "@/lib/search-sections";
 import { useToast } from "@/hooks/use-toast";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface SearchFlowNewProps {
   approaches: SearchApproach[];
@@ -27,24 +29,39 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Get sections based on module type
-  const sections = getSectionsByModuleType(approach.moduleType || "company_overview");
+  // Get sections based on module type with error handling
+  const sections = approach.moduleType ? 
+    getSectionsByModuleType(approach.moduleType) : 
+    {};
+
   const config = approach.config as SearchModuleConfig;
 
-  // Track subsearches state
-  const [subsearches, setSubsearches] = useState<Record<string, boolean>>(
-    config?.subsearches || {}
-  );
+  // Initialize subsearches with all possible search IDs for the module type
+  const [subsearches, setSubsearches] = useState<Record<string, boolean>>(() => {
+    const allIds = approach.moduleType ? getAllSearchIds(approach.moduleType) : [];
+    const initialState: Record<string, boolean> = {};
+    allIds.forEach(id => {
+      initialState[id] = config?.subsearches?.[id] ?? false;
+    });
+    return initialState;
+  });
 
-  // Track search options state specifically for company_overview
+  // Initialize search options with proper typing
   const [searchOptions, setSearchOptions] = useState({
-    ignoreFranchises: config?.searchOptions?.ignoreFranchises || false,
-    locallyHeadquartered: config?.searchOptions?.locallyHeadquartered || false,
+    ignoreFranchises: config?.searchOptions?.ignoreFranchises ?? false,
+    locallyHeadquartered: config?.searchOptions?.locallyHeadquartered ?? false,
   });
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Partial<SearchApproach>) => {
+      if (!editedPrompt.trim()) {
+        throw new Error("Prompt cannot be empty");
+      }
+
       const response = await apiRequest("PATCH", `/api/search-approaches/${approach.id}`, updates);
+      if (!response.ok) {
+        throw new Error("Failed to update approach");
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -67,10 +84,20 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
   const toggleMutation = useMutation({
     mutationFn: async (active: boolean) => {
       const response = await apiRequest("PATCH", `/api/search-approaches/${approach.id}`, { active });
+      if (!response.ok) {
+        throw new Error("Failed to toggle approach");
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/search-approaches"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Toggle Failed",
+        description: error instanceof Error ? error.message : "Failed to toggle approach",
+        variant: "destructive",
+      });
     },
   });
 
@@ -82,8 +109,8 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
       validationRules: {
         requiredFields: [],
         scoreThresholds: {},
-        minimumConfidence: 0,
-      },
+        minimumConfidence: 0
+      }
     };
 
     updateMutation.mutate({
@@ -107,6 +134,19 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
       [searchId]: checked,
     }));
   };
+
+  // Show error if module type is missing
+  if (!approach.moduleType) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Configuration Error</AlertTitle>
+        <AlertDescription>
+          Module type is missing for this search approach. Please check the configuration.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <AccordionItem value={approach.id.toString()}>
@@ -157,11 +197,13 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
                 return (
                   <div key={sectionId} className="space-y-2">
                     <h3 className="text-sm font-medium">{section.label}</h3>
-                    <p className="text-sm text-muted-foreground">{section.description}</p>
+                    {section.description && (
+                      <p className="text-sm text-muted-foreground">{section.description}</p>
+                    )}
                     <div className="space-y-2 pl-4">
                       {section.searches.map((search) => {
                         const checked = isSearchOptions
-                          ? searchOptions[search.id.replace(/-/g, "") as keyof typeof searchOptions]
+                          ? searchOptions[search.id.replace(/-/g, "") as keyof typeof searchOptions] ?? false
                           : subsearches[search.id] ?? false;
 
                         return (
@@ -209,7 +251,7 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
               <Button
                 size="sm"
                 onClick={handleSave}
-                disabled={updateMutation.isPending}
+                disabled={updateMutation.isPending || !editedPrompt.trim()}
               >
                 Save
               </Button>
