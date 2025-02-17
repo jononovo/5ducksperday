@@ -1,6 +1,3 @@
-npm run db:push
-```
-
 This command will create all necessary tables based on the schema defined in `shared/schema.ts`.
 
 ### 3. Storage Architecture
