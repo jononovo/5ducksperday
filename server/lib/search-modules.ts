@@ -12,6 +12,8 @@ import {
   isLocalHeadquarter 
 } from './results-analysis/company-analysis';
 
+import { localBusinessAssociationsSearch } from './search-logic/deep-searches/local-sources/local-business-associations-search';
+
 // Define the structure of search module results
 export interface SearchModuleResult {
   companies: Array<Partial<Company>>;
@@ -137,15 +139,59 @@ export const EMAIL_DISCOVERY_MODULE = {
   }
 };
 
+// Add Local Sources Module Configuration
+export const LOCAL_SOURCES_MODULE = {
+  type: 'local_sources',
+  defaultPrompt: "Search local business associations and directories for contact information at [COMPANY]",
+  technicalPrompt: `You are a local business researcher. Search local sources including:
+    1. Chamber of commerce directories
+    2. Local business associations
+    3. Business networking groups
+    4. Local trade organizations
+
+    Format your response as JSON with the following structure:
+    {
+      "sources": [
+        {
+          "name": string,
+          "type": string,
+          "contacts": [{
+            "name": string,
+            "role": string,
+            "email": string | null
+          }]
+        }
+      ]
+    }`,
+  responseStructure: {
+    sources: [
+      {
+        name: "string - source name (e.g., Chamber of Commerce)",
+        type: "string - source type (e.g., business_association)",
+        contacts: [
+          {
+            name: "string - contact name",
+            role: "string - position/role",
+            email: "string | null - contact email if available"
+          }
+        ]
+      }
+    ]
+  },
+  // Enable by default for email discovery
+  defaultEnabledFor: ['email_discovery']
+};
+
 // All available search modules
 export const SEARCH_MODULES = {
   company_overview: COMPANY_OVERVIEW_MODULE,
   decision_maker: DECISION_MAKER_MODULE,
-  email_discovery: EMAIL_DISCOVERY_MODULE
+  email_discovery: EMAIL_DISCOVERY_MODULE,
+  local_sources: LOCAL_SOURCES_MODULE
 };
 
 // Helper function to get module configuration
-export function getModuleConfig(moduleType: string): typeof COMPANY_OVERVIEW_MODULE | typeof DECISION_MAKER_MODULE | typeof EMAIL_DISCOVERY_MODULE {
+export function getModuleConfig(moduleType: string): typeof COMPANY_OVERVIEW_MODULE | typeof DECISION_MAKER_MODULE | typeof EMAIL_DISCOVERY_MODULE | typeof LOCAL_SOURCES_MODULE {
   const module = SEARCH_MODULES[moduleType as keyof typeof SEARCH_MODULES];
   if (!module) {
     throw new Error(`Unknown module type: ${moduleType}`);
@@ -501,7 +547,57 @@ export class EmailDiscoveryModule implements SearchModule {
   }
 }
 
-// Update factory function to use new EmailDiscoveryModule implementation
+// Local Sources Module Implementation
+export class LocalSourcesModule implements SearchModule {
+  async execute({ query, config }: SearchModuleContext): Promise<SearchModuleResult> {
+    const completedSearches: string[] = [];
+    const contacts: Array<Partial<Contact>> = [];
+    const validationScores: Record<string, number> = {};
+
+    try {
+      // Execute local business associations search
+      const result = await localBusinessAssociationsSearch.execute({
+        companyName: query,
+        config: config,
+        options: {
+          timeout: 30000,
+          maxDepth: 2
+        }
+      });
+
+      // Process results
+      if (result.length > 0) {
+        completedSearches.push('local-business-associations-search');
+
+        // Add any discovered contacts
+        const sourceData = result[0].metadata;
+        if (sourceData && sourceData.emailDiscoveryEnabled) {
+          // Track this search was completed
+          completedSearches.push('local-business-associations');
+        }
+      }
+
+      return {
+        companies: [], // Local sources module doesn't modify companies
+        contacts,
+        metadata: {
+          moduleType: 'local_sources',
+          completedSearches,
+          validationScores
+        }
+      };
+    } catch (error) {
+      console.error('Error in LocalSourcesModule:', error);
+      throw error;
+    }
+  }
+
+  async validate(result: SearchModuleResult): Promise<boolean> {
+    return result.metadata.completedSearches.length > 0;
+  }
+}
+
+// Update factory function to include the new module
 export function createSearchModule(moduleType: string): SearchModule {
   switch (moduleType) {
     case 'company_overview':
@@ -510,6 +606,8 @@ export function createSearchModule(moduleType: string): SearchModule {
       return new DecisionMakerModule();
     case 'email_discovery':
       return new EmailDiscoveryModule();
+    case 'local_sources':
+      return new LocalSourcesModule();
     default:
       throw new Error(`Unknown module type: ${moduleType}`);
   }
