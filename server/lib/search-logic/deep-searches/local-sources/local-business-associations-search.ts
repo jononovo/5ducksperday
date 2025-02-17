@@ -6,7 +6,7 @@ export const localBusinessAssociationsSearch: SearchImplementation = {
   description: "Discover top prospect email addresses through business association articles and listings",
 
   async execute(context: SearchContext): Promise<SearchResult[]> {
-    const { companyName, topProspects } = context;
+    const { companyName, topProspects = [] } = context;
 
     // Execute local business association search focused on email discovery for top prospects
     return [{
@@ -35,6 +35,11 @@ export const localBusinessAssociationsSearch: SearchImplementation = {
           },
           prospectFocus: {
             onlyTopProspects: true,
+            prospects: topProspects.map(p => ({
+              name: p.name,
+              role: p.role,
+              score: p.score
+            })),
             requireVerification: true,
             minAssociationStrength: "direct_mention"
           }
