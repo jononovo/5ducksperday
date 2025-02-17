@@ -56,7 +56,7 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     return initialState;
   });
 
-  // Initialize search options with proper typing
+  // Initialize search options
   const [searchOptions, setSearchOptions] = useState({
     ignoreFranchises: config?.searchOptions?.ignoreFranchises ?? false,
     locallyHeadquartered: config?.searchOptions?.locallyHeadquartered ?? false,
@@ -114,7 +114,23 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
 
   const toggleMutation = useMutation({
     mutationFn: async (active: boolean) => {
-      const response = await apiRequest("PATCH", `/api/search-approaches/${approach.id}`, { active });
+      // When toggling off, ensure we also update the config to disable all subsearches
+      const updates: Partial<SearchApproach> = {
+        active,
+        config: active ? config : {
+          ...config,
+          subsearches: Object.keys(config.subsearches || {}).reduce((acc, key) => ({
+            ...acc,
+            [key]: false
+          }), {}),
+          searchOptions: {
+            ignoreFranchises: false,
+            locallyHeadquartered: false
+          }
+        }
+      };
+
+      const response = await apiRequest("PATCH", `/api/search-approaches/${approach.id}`, updates);
       if (!response.ok) {
         throw new Error("Failed to toggle approach");
       }
@@ -122,6 +138,14 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/search-approaches"] });
+      // Reset local state when toggled off
+      if (!approach.active) {
+        setSubsearches({});
+        setSearchOptions({
+          ignoreFranchises: false,
+          locallyHeadquartered: false
+        });
+      }
     },
     onError: (error) => {
       toast({
@@ -134,8 +158,11 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
 
   const handleSave = () => {
     const newConfig: SearchModuleConfig = {
-      subsearches,
-      searchOptions,
+      subsearches: approach.active ? subsearches : {},
+      searchOptions: approach.active ? searchOptions : {
+        ignoreFranchises: false,
+        locallyHeadquartered: false
+      },
       searchSections: {},
       validationRules: {
         requiredFields: [],
@@ -172,20 +199,6 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
       ignoreFranchises: config?.searchOptions?.ignoreFranchises ?? false,
       locallyHeadquartered: config?.searchOptions?.locallyHeadquartered ?? false,
     });
-  };
-
-  const handleSearchOptionChange = (optionId: string, checked: boolean) => {
-    setSearchOptions(prev => ({
-      ...prev,
-      [optionId]: checked,
-    }));
-  };
-
-  const handleSubsearchChange = (searchId: string, checked: boolean) => {
-    setSubsearches(prev => ({
-      ...prev,
-      [searchId]: checked,
-    }));
   };
 
   // Show error if module type is missing, but don't block the component
@@ -257,63 +270,65 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
                 className="min-h-[100px] font-mono"
               />
             </div>
-            <div className="space-y-4">
-              {Object.entries(sections).map(([sectionId, section]) => {
-                const isSearchOptions = sectionId === "search_options";
+            {approach.active && (
+              <div className="space-y-4">
+                {Object.entries(sections).map(([sectionId, section]) => {
+                  const isSearchOptions = sectionId === "search_options";
 
-                return (
-                  <div key={sectionId} className="space-y-2">
-                    <h3 className="text-sm font-medium">{section.label}</h3>
-                    {section.description && (
-                      <p className="text-sm text-muted-foreground">{section.description}</p>
-                    )}
-                    <div className="space-y-2 pl-4">
-                      {section.searches.map((search) => {
-                        const checked = isSearchOptions
-                          ? searchOptions[search.id.replace(/-/g, "") as keyof typeof searchOptions] ?? false
-                          : subsearches[search.id] ?? false;
+                  return (
+                    <div key={sectionId} className="space-y-2">
+                      <h3 className="text-sm font-medium">{section.label}</h3>
+                      {section.description && (
+                        <p className="text-sm text-muted-foreground">{section.description}</p>
+                      )}
+                      <div className="space-y-2 pl-4">
+                        {section.searches.map((search) => {
+                          const checked = isSearchOptions
+                            ? searchOptions[search.id.replace(/-/g, "") as keyof typeof searchOptions] ?? false
+                            : subsearches[search.id] ?? false;
 
-                        return (
-                          <div key={search.id} className="flex items-start space-x-2">
-                            <Checkbox
-                              id={search.id}
-                              checked={checked}
-                              onCheckedChange={(checked) => {
-                                if (isSearchOptions) {
-                                  handleSearchOptionChange(
-                                    search.id.replace(/-/g, ""),
-                                    checked as boolean
-                                  );
-                                } else {
-                                  handleSubsearchChange(search.id, checked as boolean);
-                                }
-                              }}
-                              className="mt-1"
-                            />
-                            <div className="grid gap-1.5 leading-none">
-                              <label
-                                htmlFor={search.id}
-                                className="text-sm font-medium leading-none"
-                              >
-                                {search.label}
-                              </label>
-                              <p className="text-sm text-muted-foreground">
-                                {search.description}
-                              </p>
-                              {!isSearchOptions && search.implementation && (
-                                <p className="text-sm text-muted-foreground italic">
-                                  {search.implementation}
+                          return (
+                            <div key={search.id} className="flex items-start space-x-2">
+                              <Checkbox
+                                id={search.id}
+                                checked={checked}
+                                onCheckedChange={(checked) => {
+                                  if (isSearchOptions) {
+                                    handleSearchOptionChange(
+                                      search.id.replace(/-/g, ""),
+                                      checked as boolean
+                                    );
+                                  } else {
+                                    handleSubsearchChange(search.id, checked as boolean);
+                                  }
+                                }}
+                                className="mt-1"
+                              />
+                              <div className="grid gap-1.5 leading-none">
+                                <label
+                                  htmlFor={search.id}
+                                  className="text-sm font-medium leading-none"
+                                >
+                                  {search.label}
+                                </label>
+                                <p className="text-sm text-muted-foreground">
+                                  {search.description}
                                 </p>
-                              )}
+                                {!isSearchOptions && search.implementation && (
+                                  <p className="text-sm text-muted-foreground italic">
+                                    {search.implementation}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
             <div className="flex gap-2">
               <Button
                 size="sm"
@@ -334,28 +349,30 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">{approach.prompt}</p>
-            <div className="space-y-4">
-              {Object.entries(sections).map(([sectionId, section]) => (
-                <div key={sectionId} className="space-y-2">
-                  <h3 className="text-sm font-medium">{section.label}</h3>
-                  <div className="space-y-2 pl-4">
-                    {section.searches.map((search) => {
-                      const isSearchOptions = sectionId === "search_options";
-                      const checked = isSearchOptions
-                        ? searchOptions[search.id.replace(/-/g, "") as keyof typeof searchOptions]
-                        : subsearches[search.id] ?? false;
+            {approach.active && (
+              <div className="space-y-4">
+                {Object.entries(sections).map(([sectionId, section]) => (
+                  <div key={sectionId} className="space-y-2">
+                    <h3 className="text-sm font-medium">{section.label}</h3>
+                    <div className="space-y-2 pl-4">
+                      {section.searches.map((search) => {
+                        const isSearchOptions = sectionId === "search_options";
+                        const checked = isSearchOptions
+                          ? searchOptions[search.id.replace(/-/g, "") as keyof typeof searchOptions]
+                          : subsearches[search.id] ?? false;
 
-                      return (
-                        <div key={search.id} className="flex items-center space-x-2">
-                          <Checkbox checked={checked} disabled className="pointer-events-none" />
-                          <span className="text-sm">{search.label}</span>
-                        </div>
-                      );
-                    })}
+                        return (
+                          <div key={search.id} className="flex items-center space-x-2">
+                            <Checkbox checked={checked} disabled className="pointer-events-none" />
+                            <span className="text-sm">{search.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             <Button
               size="sm"
               variant="outline"
