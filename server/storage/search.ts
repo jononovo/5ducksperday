@@ -110,6 +110,23 @@ export class SearchStorage {
           responseStructure: "JSON with fields: decisionMakers",
         },
         {
+          name: "Email Discovery",
+          prompt: "Discover and validate email patterns and addresses for the company and its key contacts.",
+          order: 3,
+          active: true,
+          moduleType: "email_discovery",
+          config: {
+            subsearches: {},
+            searchOptions: {},
+            searchSections: {},
+            validationRules: {
+              minimumConfidence: 50,
+            },
+          },
+          technicalPrompt: "Find and validate company email patterns and contact addresses",
+          responseStructure: "JSON with fields: emailPattern, validatedAddresses[]",
+        },
+        {
           name: "Email Deepdive",
           prompt: "Perform an in-depth analysis of contact information using both local and digital sources to discover additional decision makers and their contact details.",
           order: 4,
@@ -145,6 +162,108 @@ export class SearchStorage {
           },
           technicalPrompt: "Execute deep search strategies across local and digital sources to identify and verify contact information.",
           responseStructure: "JSON with fields: contacts[]{name, role, email, source}",
+        },
+        {
+          name: "Market Position",
+          prompt: "Analyze [COMPANY]'s market position, including market share, target audience, and competitive landscape.",
+          order: 5,
+          active: true,
+          moduleType: "company_overview",
+          config: {
+            subsearches: {},
+            searchOptions: {},
+            searchSections: {},
+            validationRules: {
+              minimumConfidence: 0,
+            },
+          },
+          technicalPrompt: "Analyze market position and competitive landscape",
+          responseStructure: "JSON with fields: marketShare, targetAudience, competitors[]",
+        },
+        {
+          name: "Customer Base",
+          prompt: "Identify and analyze [COMPANY]'s customer base, including demographics, sectors, and key accounts.",
+          order: 6,
+          active: true,
+          moduleType: "company_overview",
+          config: {
+            subsearches: {},
+            searchOptions: {},
+            searchSections: {},
+            validationRules: {
+              minimumConfidence: 0,
+            },
+          },
+          technicalPrompt: "Analyze customer base and key accounts",
+          responseStructure: "JSON with fields: demographics, sectors, keyAccounts[]",
+        },
+        {
+          name: "Online Presence",
+          prompt: "Evaluate [COMPANY]'s online presence across various platforms and digital channels.",
+          order: 7,
+          active: true,
+          moduleType: "company_overview",
+          config: {
+            subsearches: {},
+            searchOptions: {},
+            searchSections: {},
+            validationRules: {
+              minimumConfidence: 0,
+            },
+          },
+          technicalPrompt: "Analyze digital presence and online engagement",
+          responseStructure: "JSON with fields: platforms[], engagement, reach",
+        },
+        {
+          name: "Services Analysis",
+          prompt: "Detail analysis of [COMPANY]'s services, including core offerings, specializations, and service delivery model.",
+          order: 8,
+          active: true,
+          moduleType: "company_overview",
+          config: {
+            subsearches: {},
+            searchOptions: {},
+            searchSections: {},
+            validationRules: {
+              minimumConfidence: 0,
+            },
+          },
+          technicalPrompt: "Analyze service offerings and delivery model",
+          responseStructure: "JSON with fields: coreServices[], specializations[], deliveryModel",
+        },
+        {
+          name: "Competitive Analysis",
+          prompt: "Compare [COMPANY] with its competitors, focusing on strengths, weaknesses, and market differentiators.",
+          order: 9,
+          active: true,
+          moduleType: "company_overview",
+          config: {
+            subsearches: {},
+            searchOptions: {},
+            searchSections: {},
+            validationRules: {
+              minimumConfidence: 0,
+            },
+          },
+          technicalPrompt: "Analyze competitive position and market differences",
+          responseStructure: "JSON with fields: strengths[], weaknesses[], differentiators[]",
+        },
+        {
+          name: "Differentiation Analysis",
+          prompt: "Identify unique selling propositions and key differentiators that set [COMPANY] apart in their market.",
+          order: 10,
+          active: true,
+          moduleType: "company_overview",
+          config: {
+            subsearches: {},
+            searchOptions: {},
+            searchSections: {},
+            validationRules: {
+              minimumConfidence: 0,
+            },
+          },
+          technicalPrompt: "Analyze unique value propositions and market positioning",
+          responseStructure: "JSON with fields: uniqueFeatures[], valueProposition, marketAdvantages[]",
         }
       ];
 
