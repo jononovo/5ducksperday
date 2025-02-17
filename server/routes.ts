@@ -158,12 +158,12 @@ export function registerRoutes(app: Express) {
             minimumScore: 20
           });
 
-          // Filter valid contacts
+          // Filter valid contacts - restore original validation logic
           const validContacts = contacts.filter(contact => 
             contact.name && 
             contact.name !== "Unknown" && 
             contact.nameConfidenceScore && 
-            contact.nameConfidenceScore >= 70
+            contact.nameConfidenceScore >= 20  // Lower threshold for initial search
           );
 
           // Create contact records with basic information
@@ -174,7 +174,7 @@ export function registerRoutes(app: Express) {
                 name: contact.name!,
                 role: contact.role ?? null,
                 email: contact.email ?? null,
-                probability: contact.nameConfidenceScore ?? null, // Use nameConfidenceScore as initial probability
+                probability: contact.probability ?? null,
                 linkedinUrl: null,
                 twitterHandle: null,
                 phoneNumber: null,
@@ -192,21 +192,24 @@ export function registerRoutes(app: Express) {
         })
       );
 
-      // Start email enrichment process after all initial searches are complete
+      // Return results immediately to complete the search
+      res.json({
+        companies,
+        query,
+      });
+
+      // After sending response, start email enrichment if enabled
       const emailEnrichmentModule = approaches.find(a =>
         a.moduleType === 'email_enrichment' && a.active
       );
 
       if (emailEnrichmentModule?.active) {
         const searchId = `search_${Date.now()}`;
-        console.log('Starting email enrichment process with searchId:', searchId);
+        console.log('Starting post-search email enrichment with searchId:', searchId);
 
-        // Process each company sequentially
+        // Process each company's contacts for enrichment asynchronously
         for (const company of companies) {
           try {
-            console.log(`Processing email enrichment for company: ${company.name}`);
-
-            // Start enrichment process for this company
             const enrichmentResults = await emailEnrichmentService.enrichTopProspects(company.id);
             console.log(`Queued enrichment for ${enrichmentResults.length} contacts in ${company.name}`);
           } catch (error) {
@@ -215,10 +218,6 @@ export function registerRoutes(app: Express) {
         }
       }
 
-      res.json({
-        companies,
-        query,
-      });
     } catch (error) {
       console.error('Company search error:', error);
       res.status(500).json({
