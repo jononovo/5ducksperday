@@ -1,5 +1,6 @@
 import type { Company, Contact } from "@shared/schema";
-import { validateNameLocally, combineValidationScores } from "./results-analysis/contact-name-validation";
+import { validateNameLocally } from "./results-analysis/contact-name-validation";
+import { combineValidationScores } from "./results-analysis/score-combination";
 import { isPlaceholderEmail, isValidBusinessEmail, parseEmailDetails } from "./results-analysis/email-analysis";
 import { queryPerplexity } from "./api/perplexity-client";
 import type { PerplexityMessage } from "./types/perplexity";
@@ -55,7 +56,10 @@ export async function analyzeCompany(
 }
 
 // Validate names using Perplexity AI
-export async function validateNames(names: string[]): Promise<Record<string, number>> {
+export async function validateNames(
+  names: string[], 
+  companyName?: string
+): Promise<Record<string, number>> {
   const messages: PerplexityMessage[] = [
     {
       role: "system",
@@ -92,12 +96,14 @@ export async function validateNames(names: string[]): Promise<Record<string, num
       try {
         const parsed = JSON.parse(jsonMatch[0]);
         const validated: Record<string, number> = {};
+
         for (const [name, score] of Object.entries(parsed)) {
           if (typeof score === 'number' && score >= 1 && score <= 100) {
-            validated[name] = score;
+            const localResult = validateNameLocally(name);
+            validated[name] = combineValidationScores(score, localResult, companyName);
           } else {
-            const localScore = validateNameLocally(name).score;
-            validated[name] = localScore;
+            const localResult = validateNameLocally(name);
+            validated[name] = combineValidationScores(50, localResult, companyName); // Default AI score of 50
           }
         }
         return validated;
@@ -106,16 +112,17 @@ export async function validateNames(names: string[]): Promise<Record<string, num
       }
     }
 
+    // Fallback to local validation
     return names.reduce((acc, name) => {
-      const localScore = validateNameLocally(name).score;
-      return { ...acc, [name]: localScore };
+      const localResult = validateNameLocally(name);
+      return { ...acc, [name]: combineValidationScores(50, localResult, companyName) };
     }, {});
 
   } catch (error) {
     console.error('Error in name validation:', error);
     return names.reduce((acc, name) => {
-      const localScore = validateNameLocally(name).score;
-      return { ...acc, [name]: localScore };
+      const localResult = validateNameLocally(name);
+      return { ...acc, [name]: combineValidationScores(50, localResult, companyName) };
     }, {});
   }
 }
@@ -132,7 +139,7 @@ export async function searchContactDetails(
         2. Professional email
         3. LinkedIn URL
         4. Location
-
+        
         Format your response in JSON.`
     },
     {

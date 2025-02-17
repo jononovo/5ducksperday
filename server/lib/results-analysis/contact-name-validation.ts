@@ -4,6 +4,8 @@ export interface NameValidationResult {
   score: number;
   isGeneric: boolean;
   confidence: number;
+  name: string;
+  context?: string;
 }
 
 // Centralized list of placeholder and generic terms
@@ -36,14 +38,22 @@ export function isPlaceholderName(name: string): boolean {
 export function validateNameLocally(name: string, context: string = ""): NameValidationResult {
   const isGeneric = isGenericName(name);
   if (isGeneric) {
-    return { score: 30, isGeneric: true, confidence: 90 };
+    return { 
+      score: 30, 
+      isGeneric: true, 
+      confidence: 90,
+      name,
+      context 
+    };
   }
 
   const score = calculateNameConfidenceScore(name, context);
   return {
     score,
     isGeneric: false,
-    confidence: score > 80 ? 90 : score > 50 ? 70 : 50
+    confidence: score > 80 ? 90 : score > 50 ? 70 : 50,
+    name,
+    context
   };
 }
 
@@ -127,25 +137,3 @@ const defaultOptions: ValidationOptions = {
   localValidationWeight: 0.3,
   minimumScore: 30
 };
-
-export function combineValidationScores(
-  aiScore: number,
-  localResult: NameValidationResult,
-  options: ValidationOptions = defaultOptions
-): number {
-  if (!options.useLocalValidation) {
-    return aiScore;
-  }
-
-  const weight = options.localValidationWeight || 0.3;
-  const combinedScore = Math.round(
-    (aiScore * (1 - weight)) + (localResult.score * weight)
-  );
-
-  // Higher penalty for generic names
-  if (localResult.isGeneric) {
-    return Math.max(20, combinedScore - 30);
-  }
-
-  return Math.max(options.minimumScore || 30, Math.min(100, combinedScore));
-}
