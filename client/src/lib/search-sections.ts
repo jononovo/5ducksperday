@@ -14,190 +14,47 @@ export const SEARCH_SUBSECTIONS = {
     description: "Only include companies with local headquarters"
   },
 
-  // Email Discovery specific subsections
-  emailPatternAnalysis: {
-    id: "email-pattern-analysis",
-    label: "Email Pattern Analysis",
-    description: "Analyze company email patterns and formats",
-    implementation: "Analyze common email patterns used by [COMPANY] including format validation and pattern detection",
-    technicalPrompt: `Analyze the company's email patterns by:
-1. Examining known email addresses
-2. Identifying common formats (firstname.lastname, firstinitial.lastname, etc.)
-3. Validating against domain MX records
-4. Checking email server configurations
-
-Format response as:
-{
-  "patterns": string[],
-  "confidence": number,
-  "validationStatus": boolean
-}`,
-    responseStructure: {
-      patterns: "string[] - list of detected email patterns",
-      confidence: "number - confidence score for pattern detection",
-      validationStatus: "boolean - whether patterns were validated"
-    }
+  // Email Discovery Subsections - based on email discovery module strategies
+  websiteEmailSearch: {
+    id: "website-email-search",
+    label: "Website Email Search",
+    description: "Extract email addresses from company website and related pages",
+    implementation: "Search company website and pages for email addresses"
   },
-  domainValidation: {
-    id: "domain-validation",
-    label: "Domain Validation",
-    description: "Validate company email domains",
-    implementation: "Verify email domain configuration and validate MX records for [COMPANY]",
-    technicalPrompt: `Analyze the company's email domain by:
-1. Checking MX records
-2. Verifying SPF and DKIM settings
-3. Testing email server responses
-4. Validating domain ownership
-
-Format response as:
-{
-  "domain": string,
-  "mxRecords": boolean,
-  "spfValid": boolean,
-  "serverResponding": boolean
-}`,
-    responseStructure: {
-      domain: "string - company email domain",
-      mxRecords: "boolean - MX records exist and are valid",
-      spfValid: "boolean - SPF records are properly configured",
-      serverResponding: "boolean - email server responds correctly"
-    }
+  publicDirectorySearch: {
+    id: "public-directory-search",
+    label: "Public Directory Search",
+    description: "Search public business directories and listing sites",
+    implementation: "Search public directories for company email addresses"
   },
-  publicEmailSearch: {
-    id: "public-email-search",
-    label: "Public Email Search",
-    description: "Search public sources for email addresses",
-    implementation: "Search public sources and verify email addresses for [COMPANY] contacts",
-    technicalPrompt: `Search for company email addresses by:
-1. Crawling company website
-2. Checking public directories
-3. Analyzing social profiles
-4. Verifying discovered emails
-
-Format response as:
-{
-  "emails": [{
-    "address": string,
-    "source": string,
-    "verified": boolean,
-    "confidence": number
-  }]
-}`,
-    responseStructure: {
-      emails: [{
-        address: "string - discovered email address",
-        source: "string - where the email was found",
-        verified: "boolean - verification status",
-        confidence: "number - confidence score (0-100)"
-      }]
-    }
+  patternPredictionSearch: {
+    id: "pattern-prediction-search",
+    label: "Pattern Prediction",
+    description: "Predict email addresses based on common corporate patterns",
+    implementation: "Analyze and predict company email patterns"
   },
-  emailVerification: {
-    id: "email-verification",
-    label: "Email Verification",
-    description: "Verify discovered email addresses",
-    implementation: "Validate discovered email addresses for [COMPANY] through multiple verification methods",
-    technicalPrompt: `Verify each email address by:
-1. Format validation
-2. Domain verification
-3. Mailbox existence check
-4. Spam trap detection
-
-Format response as:
-{
-  "verifications": [{
-    "email": string,
-    "isValid": boolean,
-    "methods": string[],
-    "score": number
-  }]
-}`,
-    responseStructure: {
-      verifications: [{
-        email: "string - email address being verified",
-        isValid: "boolean - overall validity status",
-        methods: "string[] - verification methods used",
-        score: "number - verification confidence score"
-      }]
-    }
+  domainAnalysisSearch: {
+    id: "domain-analysis-search",
+    label: "Domain Analysis",
+    description: "Analyze domain MX records and email configurations",
+    implementation: "Analyze company domain for email configuration"
   },
-
-  // Add Local Sources subsections
+  socialProfileSearch: {
+    id: "social-profile-search",
+    label: "Social Profile Search",
+    description: "Extract email addresses from public social media profiles",
+    implementation: "Search social media profiles for email addresses"
+  },
   localBusinessAssociations: {
-    id: "local-business-associations-search",
+    id: "local-business-search",
     label: "Local Business Associations",
-    description: "Search local chambers of commerce and business association memberships",
-    implementation: "Search local business associations for company contacts and email patterns",
-    technicalPrompt: `Search local business associations by:
-1. Checking chamber of commerce directories
-2. Searching business association member lists
-3. Analyzing local business networks
-4. Cross-referencing with local events
-
-Format response as:
-{
-  "associations": [{
-    "name": string,
-    "contacts": [{
-      "name": string,
-      "role": string,
-      "email": string | null
-    }],
-    "confidence": number
-  }]
-}`,
-    responseStructure: {
-      associations: [{
-        name: "string - association name",
-        contacts: [{
-          name: "string - contact name",
-          role: "string - position in association",
-          email: "string | null - contact email if available"
-        }],
-        confidence: "number - confidence score (0-100)"
-      }]
-    }
+    description: "Search local business associations for top prospect emails",
+    implementation: "Search local business associations for contact details"
   },
-
-  localClassifieds: {
-    id: "local-classifieds-search",
-    label: "Local Classifieds",
-    description: "Search local business classifieds for contact information",
-    implementation: "Search local classifieds for business contact details and email patterns",
-    technicalPrompt: `Search local classifieds by:
-1. Scanning business listings
-2. Analyzing contact information
-3. Validating business details
-4. Cross-referencing with local directories
-
-Format response as:
-{
-  "listings": [{
-    "source": string,
-    "contacts": [{
-      "name": string,
-      "email": string | null,
-      "verified": boolean
-    }],
-    "confidence": number
-  }]
-}`,
-    responseStructure: {
-      listings: [{
-        source: "string - classifieds source",
-        contacts: [{
-          name: "string - contact name",
-          email: "string | null - contact email",
-          verified: "boolean - verification status"
-        }],
-        confidence: "number - confidence score (0-100)"
-      }]
-    }
-  },
-  "local-events-search": {
+  localEventsSearch: {
     id: "local-events-search",
     label: "Local Events Search",
-    description: "Search local event listings for company mentions and contact information",
+    description: "Search local business events and conferences for contact discovery",
     implementation: "Search local event listings for company mentions and contact details"
   }
 };
@@ -213,50 +70,26 @@ export const SECTIONS_CONFIG = {
     }
   },
   email_discovery: {
-    pattern_analysis: {
-      id: "pattern_analysis",
-      label: "Email Pattern Analysis",
-      description: "Analyze email patterns and formats",
-      subsectionIds: ["email-pattern-analysis", "domain-validation"]
-    },
-    discovery: {
-      id: "discovery",
-      label: "Email Discovery",
-      description: "Methods for discovering email addresses",
+    basic_discovery: {
+      id: "basic_discovery",
+      label: "Basic Discovery",
+      description: "Basic email discovery methods",
       subsectionIds: [
-        "public-email-search",
-        "email-verification",
-        "local-business-associations-search",
+        "website-email-search",
+        "public-directory-search",
+        "pattern-prediction-search",
+        "domain-analysis-search"
+      ]
+    },
+    advanced_discovery: {
+      id: "advanced_discovery",
+      label: "Advanced Discovery",
+      description: "Advanced and social discovery methods",
+      subsectionIds: [
+        "social-profile-search",
+        "local-business-search",
         "local-events-search"
       ]
-    }
-  },
-  decision_maker: {
-    social_networks: {
-      id: "social_networks",
-      label: "Social Network Analysis",
-      description: "Search social networks for decision maker profiles",
-      subsectionIds: ["linkedin-search", "twitter-search"]
-    },
-    professional_databases: {
-      id: "professional_databases",
-      label: "Professional Database Search",
-      description: "Search professional and industry databases",
-      subsectionIds: ["industry-db", "professional-orgs"]
-    },
-    news_media: {
-      id: "news_media",
-      label: "News and Media Analysis",
-      description: "Analyze news and media mentions",
-      subsectionIds: ["news-mentions"]
-    }
-  },
-  local_sources: {
-    local_business: {
-      id: "local_business",
-      label: "Local Business Sources",
-      description: "Search local business sources for contact information",
-      subsectionIds: ["local-business-associations-search", "local-classifieds-search"]
     }
   }
 };
@@ -275,7 +108,7 @@ export function getSubsectionsForSection(sectionConfig: {
 }> {
   return sectionConfig.subsectionIds
     .map(id => {
-      const subsection = Object.values(SEARCH_SUBSECTIONS).find(s => s.id === id);
+      const subsection = SEARCH_SUBSECTIONS[id as keyof typeof SEARCH_SUBSECTIONS];
       if (!subsection) {
         console.warn(`Subsection ${id} not found`);
         return null;
@@ -287,7 +120,7 @@ export function getSubsectionsForSection(sectionConfig: {
 
 // Get sections for a specific module type with strict type checking
 export function getSectionsByModuleType(moduleType: string): Record<string, SearchSection> {
-  if (!['company_overview', 'email_discovery', 'decision_maker', 'local_sources'].includes(moduleType)) {
+  if (!['company_overview', 'email_discovery'].includes(moduleType)) {
     console.warn(`Invalid module type: ${moduleType}`);
     return {};
   }
@@ -300,11 +133,8 @@ export function getSectionsByModuleType(moduleType: string): Record<string, Sear
 
   const result: Record<string, SearchSection> = {};
 
-  // Only process sections defined for this specific module type
   Object.entries(moduleConfig).forEach(([sectionId, sectionConfig]) => {
     const searches = getSubsectionsForSection(sectionConfig);
-
-    // Only add the section if it has valid searches
     if (searches.length > 0) {
       result[sectionId] = {
         id: sectionConfig.id,
