@@ -1,4 +1,4 @@
-import type { SearchModule } from '../shared/types';
+import type { SearchModule } from '../../shared/types';
 import { websiteCrawlerStrategy } from './strategies/website-crawler';
 import { patternPredictionStrategy } from './strategies/pattern-prediction';
 import { domainAnalysisStrategy } from './strategies/domain-analysis';
@@ -21,6 +21,19 @@ export const emailDiscoveryModule = {
       defaultEnabled: true
     },
     {
+      id: "public-directory-search",
+      label: "Public Directory Search", 
+      description: "Search public business directories and listing sites",
+      implementation: publicDirectoryStrategy,
+      defaultEnabled: true
+    },
+    {
+      id: "social-profile-search",
+      label: "Social Profile Search",
+      description: "Extract email addresses from public social media profiles",
+      implementation: socialProfileStrategy
+    },
+    {
       id: "pattern-prediction-search",
       label: "Pattern Prediction",
       description: "Predict email addresses based on common corporate patterns",
@@ -33,20 +46,6 @@ export const emailDiscoveryModule = {
       description: "Analyze domain MX records and email configurations",
       implementation: domainAnalysisStrategy,
       defaultEnabled: true
-    },
-    {
-      id: "public-directory-search",
-      label: "Public Directory Search", 
-      description: "Search public business directories and listing sites",
-      implementation: publicDirectoryStrategy,
-      defaultEnabled: true
-    },
-    {
-      id: "social-profile-search",
-      label: "Social Profile Search",
-      description: "Extract email addresses from public social media profiles",
-      implementation: socialProfileStrategy,
-      defaultEnabled: false
     },
     {
       id: "local-business-search",

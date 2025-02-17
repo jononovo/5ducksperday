@@ -8,7 +8,6 @@ import { queryPerplexity } from "./lib/api/perplexity-client";
 import { searchContactDetails } from "./lib/api-interactions";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
 import { insertEmailTemplateSchema } from "@shared/schema";
-import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/email-enrichment-service";
 
 export function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -108,10 +107,6 @@ export function registerRoutes(app: Express) {
         a.name === "Decision-maker Analysis" && a.active
       );
 
-      const emailEnrichment = approaches.find(a =>
-        a.name === "Enrich Email" && a.active
-      );
-
       if (!companyOverview) {
         res.status(400).json({
           message: "Company Overview approach is not active. Please activate it to proceed."
@@ -182,11 +177,6 @@ export function registerRoutes(app: Express) {
               })
             )
           );
-
-          // If email enrichment is active, enrich the top prospects
-          if (emailEnrichment?.active) {
-            await emailEnrichmentService.enrichTopProspects(createdCompany.id);
-          }
 
           return { ...createdCompany, contacts: createdContacts };
         })
@@ -292,7 +282,6 @@ export function registerRoutes(app: Express) {
     }
   });
 
-
   // Add new route for getting a single contact
   app.get("/api/contacts/:id", async (req, res) => {
     const contact = await storage.getContact(parseInt(req.params.id));
@@ -332,6 +321,49 @@ export function registerRoutes(app: Express) {
     }
   });
 
+
+  // Add this route after the existing contacts routes
+  app.post("/api/contacts/:contactId/feedback", async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.contactId);
+      const { feedbackType } = req.body;
+
+      // Validate feedback type
+      if (!['excellent', 'ok', 'terrible'].includes(feedbackType)) {
+        res.status(400).json({
+          message: "Invalid feedback type. Must be 'excellent', 'ok', or 'terrible'"
+        });
+        return;
+      }
+
+      // Check if contact exists
+      const contact = await storage.getContact(contactId);
+      if (!contact) {
+        res.status(404).json({ message: "Contact not found" });
+        return;
+      }
+
+      // Add feedback
+      const feedback = await storage.addContactFeedback({
+        contactId,
+        feedbackType
+      });
+
+      // Get updated contact after feedback processing
+      const updatedContact = await storage.getContact(contactId);
+
+      res.json({
+        contactId,
+        userFeedbackScore: updatedContact?.userFeedbackScore,
+        feedbackCount: updatedContact?.feedbackCount
+      });
+    } catch (error) {
+      console.error('Contact feedback error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred while processing feedback"
+      });
+    }
+  });
 
   // Search Approaches
   app.get("/api/search-approaches", async (_req, res) => {
@@ -584,48 +616,6 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
-
-  app.post("/api/contacts/:contactId/feedback", async (req, res) => {
-    try {
-      const contactId = parseInt(req.params.contactId);
-      const { feedbackType } = req.body;
-
-      // Validate feedback type
-      if (!['excellent', 'ok', 'terrible'].includes(feedbackType)) {
-        res.status(400).json({
-          message: "Invalid feedback type. Must be 'excellent', 'ok', or 'terrible'"
-        });
-        return;
-      }
-
-      // Check if contact exists
-      const contact = await storage.getContact(contactId);
-      if (!contact) {
-        res.status(404).json({ message: "Contact not found" });
-        return;
-      }
-
-      // Add feedback
-      const feedback = await storage.addContactFeedback({
-        contactId,
-        feedbackType
-      });
-
-      // Get updated contact after feedback processing
-      const updatedContact = await storage.getContact(contactId);
-
-      res.json({
-        contactId,
-        userFeedbackScore: updatedContact?.userFeedbackScore,
-        feedbackCount: updatedContact?.feedbackCount
-      });
-    } catch (error) {
-      console.error('Contact feedback error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred while processing feedback"
-      });
-    }
-  });
 
   return httpServer;
 }
