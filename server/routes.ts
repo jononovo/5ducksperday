@@ -8,6 +8,9 @@ import { queryPerplexity } from "./lib/api/perplexity-client";
 import { searchContactDetails } from "./lib/api-interactions";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
 import { insertEmailTemplateSchema } from "@shared/schema";
+import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
+import type { PerplexityMessage } from "./lib/perplexity";
+import type { Contact } from "@shared/schema";
 
 export function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -236,18 +239,18 @@ export function registerRoutes(app: Express) {
         console.log('Decision-maker analysis result:', analysisResult);
 
         // Extract contacts focusing on core fields only
-        const newContacts = extractContacts([analysisResult]);
+        const newContacts = await extractContacts([analysisResult]);
         console.log('Extracted contacts:', newContacts);
 
         // Remove existing contacts
         await storage.deleteContactsByCompany(companyId);
 
         // Create new contacts with only the essential fields
-        const validContacts = newContacts.filter(contact => contact.name && contact.name !== "Unknown");
+        const validContacts = newContacts.filter((contact: Contact) => contact.name && contact.name !== "Unknown");
         console.log('Valid contacts for enrichment:', validContacts);
 
         const createdContacts = await Promise.all(
-          validContacts.map(async contact => {
+          validContacts.map(async (contact: Contact) => {
             console.log(`Processing contact enrichment for: ${contact.name}`);
 
             return storage.createContact({
@@ -322,45 +325,20 @@ export function registerRoutes(app: Express) {
   });
 
 
-  // Add this route after the existing contacts routes
-  app.post("/api/contacts/:contactId/feedback", async (req, res) => {
+  // Add this new route after the existing contact routes
+  app.post("/api/companies/:companyId/enrich-top-prospects", async (req, res) => {
     try {
-      const contactId = parseInt(req.params.contactId);
-      const { feedbackType } = req.body;
-
-      // Validate feedback type
-      if (!['excellent', 'ok', 'terrible'].includes(feedbackType)) {
-        res.status(400).json({
-          message: "Invalid feedback type. Must be 'excellent', 'ok', or 'terrible'"
-        });
-        return;
-      }
-
-      // Check if contact exists
-      const contact = await storage.getContact(contactId);
-      if (!contact) {
-        res.status(404).json({ message: "Contact not found" });
-        return;
-      }
-
-      // Add feedback
-      const feedback = await storage.addContactFeedback({
-        contactId,
-        feedbackType
-      });
-
-      // Get updated contact after feedback processing
-      const updatedContact = await storage.getContact(contactId);
+      const companyId = parseInt(req.params.companyId);
+      const results = await emailEnrichmentService.enrichTopProspects(companyId);
 
       res.json({
-        contactId,
-        userFeedbackScore: updatedContact?.userFeedbackScore,
-        feedbackCount: updatedContact?.feedbackCount
+        message: "Top prospects queued for enrichment",
+        results
       });
     } catch (error) {
-      console.error('Contact feedback error:', error);
+      console.error('Bulk enrichment error:', error);
       res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred while processing feedback"
+        message: error instanceof Error ? error.message : "An unexpected error occurred during bulk enrichment"
       });
     }
   });
@@ -499,7 +477,7 @@ export function registerRoutes(app: Express) {
 
     try {
       // Construct the prompt for Perplexity
-      const messages = [
+      const messages: PerplexityMessage[] = [
         {
           role: "system",
           content: "You are a professional business email writer. Write personalized, engaging emails that are concise and effective. Focus on building genuine connections while maintaining professionalism."

@@ -13,7 +13,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import type { SearchApproach, SearchModuleConfig } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { Edit3, Save, X, InfoIcon, AlertCircle } from "lucide-react";
+import { Edit3, Save, X, InfoIcon, AlertCircle, Mail } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -60,6 +60,39 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     },
   };
 
+  // Add enrichment mutation
+  const enrichMutation = useMutation({
+    mutationFn: async () => {
+      // Get the current company ID from the query client cache
+      const searchResults = queryClient.getQueryData<{ companies: Array<{ id: number }> }>(["/api/companies/search"]);
+      if (!searchResults?.companies?.[0]?.id) {
+        throw new Error("No company found in search results");
+      }
+
+      const response = await apiRequest(
+        "POST",
+        `/api/companies/${searchResults.companies[0].id}/enrich-top-prospects`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to start enrichment");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Enrichment Started",
+        description: "Top prospects have been queued for email enrichment.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Enrichment Failed",
+        description: error instanceof Error ? error.message : "Failed to start enrichment",
+        variant: "destructive",
+      });
+    },
+  });
+
   const toggleMutation = useMutation({
     mutationFn: async (active: boolean) => {
       const response = await apiRequest(
@@ -77,6 +110,13 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/search-approaches"] });
+
+      // If this is the email enrichment module and it was just activated,
+      // trigger the enrichment process
+      if (approach.moduleType === 'email_enrichment' && !approach.active) {
+        enrichMutation.mutate();
+      }
+
       toast({
         title: approach.active ? "Approach Disabled" : "Approach Enabled",
         description: `Search approach has been ${approach.active ? "disabled" : "enabled"}.`,
@@ -158,10 +198,12 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     return "Low Confidence";
   };
 
-  // Check if this search approach has been completed
-  const isCompleted = approach.completedSearches?.includes(approach.moduleType);
+  // Fix the isCompleted check by providing a default empty array if completedSearches is null
+  const isCompleted = (approach.completedSearches || []).includes(approach.moduleType);
 
   const minimumConfidence = config.validationRules?.minimumConfidence || 0;
+
+  const isEmailEnrichment = approach.moduleType === 'email_enrichment';
 
   return (
     <AccordionItem value={approach.id.toString()} className={`border-b transition-colors duration-200 ${approach.active ? 'bg-emerald-50/50 dark:bg-emerald-950/20' : ''}`}>
@@ -180,6 +222,12 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
                     isCompleted && approach.active && "data-[state=checked]:bg-emerald-500 data-[state=checked]:text-emerald-50 dark:data-[state=checked]:bg-emerald-500"
                   )}
                 />
+                {isEmailEnrichment && (
+                  <Mail className={cn(
+                    "h-4 w-4 ml-2",
+                    enrichMutation.isPending && "animate-spin"
+                  )} />
+                )}
               </div>
             </TooltipTrigger>
             <TooltipContent>
