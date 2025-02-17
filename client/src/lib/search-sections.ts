@@ -19,25 +19,107 @@ export const SEARCH_SUBSECTIONS = {
     id: "email-pattern-analysis",
     label: "Email Pattern Analysis",
     description: "Analyze company email patterns and formats",
-    implementation: "Analyze email patterns used at [COMPANY]"
+    implementation: "Analyze common email patterns used by [COMPANY] including format validation and pattern detection",
+    technicalPrompt: `Analyze the company's email patterns by:
+1. Examining known email addresses
+2. Identifying common formats (firstname.lastname, firstinitial.lastname, etc.)
+3. Validating against domain MX records
+4. Checking email server configurations
+
+Format response as:
+{
+  "patterns": string[],
+  "confidence": number,
+  "validationStatus": boolean
+}`,
+    responseStructure: {
+      patterns: "string[] - list of detected email patterns",
+      confidence: "number - confidence score for pattern detection",
+      validationStatus: "boolean - whether patterns were validated"
+    }
   },
   domainValidation: {
     id: "domain-validation",
     label: "Domain Validation",
     description: "Validate company email domains",
-    implementation: "Validate email domains for [COMPANY]"
+    implementation: "Verify email domain configuration and validate MX records for [COMPANY]",
+    technicalPrompt: `Analyze the company's email domain by:
+1. Checking MX records
+2. Verifying SPF and DKIM settings
+3. Testing email server responses
+4. Validating domain ownership
+
+Format response as:
+{
+  "domain": string,
+  "mxRecords": boolean,
+  "spfValid": boolean,
+  "serverResponding": boolean
+}`,
+    responseStructure: {
+      domain: "string - company email domain",
+      mxRecords: "boolean - MX records exist and are valid",
+      spfValid: "boolean - SPF records are properly configured",
+      serverResponding: "boolean - email server responds correctly"
+    }
   },
   publicEmailSearch: {
     id: "public-email-search",
     label: "Public Email Search",
     description: "Search public sources for email addresses",
-    implementation: "Search public sources for [COMPANY] email addresses"
+    implementation: "Search public sources and verify email addresses for [COMPANY] contacts",
+    technicalPrompt: `Search for company email addresses by:
+1. Crawling company website
+2. Checking public directories
+3. Analyzing social profiles
+4. Verifying discovered emails
+
+Format response as:
+{
+  "emails": [{
+    "address": string,
+    "source": string,
+    "verified": boolean,
+    "confidence": number
+  }]
+}`,
+    responseStructure: {
+      emails: [{
+        address: "string - discovered email address",
+        source: "string - where the email was found",
+        verified: "boolean - verification status",
+        confidence: "number - confidence score (0-100)"
+      }]
+    }
   },
   emailVerification: {
     id: "email-verification",
     label: "Email Verification",
     description: "Verify discovered email addresses",
-    implementation: "Verify email addresses for [COMPANY] contacts"
+    implementation: "Validate discovered email addresses for [COMPANY] through multiple verification methods",
+    technicalPrompt: `Verify each email address by:
+1. Format validation
+2. Domain verification
+3. Mailbox existence check
+4. Spam trap detection
+
+Format response as:
+{
+  "verifications": [{
+    "email": string,
+    "isValid": boolean,
+    "methods": string[],
+    "score": number
+  }]
+}`,
+    responseStructure: {
+      verifications: [{
+        email: "string - email address being verified",
+        isValid: "boolean - overall validity status",
+        methods: "string[] - verification methods used",
+        score: "number - verification confidence score"
+      }]
+    }
   },
 
   // Decision Maker specific subsections
