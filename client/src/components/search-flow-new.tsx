@@ -66,22 +66,26 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
       // Get the current company ID from the query client cache
       const searchResults = queryClient.getQueryData<{ companies: Array<{ id: number }> }>(["/api/companies/search"]);
       if (!searchResults?.companies?.[0]?.id) {
-        throw new Error("No company found in search results");
+        throw new Error("Please perform a company search first");
       }
 
+      const companyId = searchResults.companies[0].id;
       const response = await apiRequest(
         "POST",
-        `/api/companies/${searchResults.companies[0].id}/enrich-top-prospects`
+        `/api/companies/${companyId}/enrich-top-prospects`
       );
+
       if (!response.ok) {
-        throw new Error("Failed to start enrichment");
+        const error = await response.json();
+        throw new Error(error.message || "Failed to start enrichment");
       }
+
       return response.json();
     },
     onSuccess: (data) => {
       toast({
         title: "Enrichment Started",
-        description: "Top prospects have been queued for email enrichment.",
+        description: "Top prospects have been queued for email enrichment. This may take a few minutes.",
       });
     },
     onError: (error) => {

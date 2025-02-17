@@ -11,6 +11,7 @@ import { insertEmailTemplateSchema } from "@shared/schema";
 import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
 import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
+import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
 
 export function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -325,20 +326,42 @@ export function registerRoutes(app: Express) {
   });
 
 
-  // Add this new route after the existing contact routes
+  // Add these new routes after existing routes
   app.post("/api/companies/:companyId/enrich-top-prospects", async (req, res) => {
     try {
       const companyId = parseInt(req.params.companyId);
-      const results = await emailEnrichmentService.enrichTopProspects(companyId);
+      const searchId = `search_${Date.now()}`;
+
+      // Start the enrichment process
+      const queueId = await postSearchEnrichmentService.startEnrichment(companyId, searchId);
 
       res.json({
-        message: "Top prospects queued for enrichment",
-        results
+        message: "Top prospects enrichment started",
+        queueId,
+        status: 'processing'
       });
     } catch (error) {
-      console.error('Bulk enrichment error:', error);
+      console.error('Enrichment start error:', error);
       res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred during bulk enrichment"
+        message: error instanceof Error ? error.message : "Failed to start enrichment process"
+      });
+    }
+  });
+
+  app.get("/api/enrichment/:queueId/status", async (req, res) => {
+    try {
+      const status = postSearchEnrichmentService.getEnrichmentStatus(req.params.queueId);
+
+      if (!status) {
+        res.status(404).json({ message: "Enrichment queue not found" });
+        return;
+      }
+
+      res.json(status);
+    } catch (error) {
+      console.error('Status check error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to check enrichment status"
       });
     }
   });
