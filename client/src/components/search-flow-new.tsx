@@ -11,7 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { SearchApproach, SearchModuleConfig } from "@shared/schema";
+import type { SearchApproach, SearchModuleConfig, SearchSection } from "@shared/schema";
 import { getSectionsByModuleType, getAllSearchIds } from "@/lib/search-sections";
 import { useToast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
