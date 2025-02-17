@@ -190,8 +190,8 @@ const searchApproachSchema = z.object({
     'company_overview',
     'decision_maker',
     'email_discovery',
-    'contact_deepdive',
-    'contact_enrichment'
+    'email_enrichment',
+    'email_deepdive'
   ]).default('company_overview'),
   validationRules: z.record(z.unknown()).default({})
 });

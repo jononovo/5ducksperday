@@ -47,104 +47,119 @@ export class SearchStorage {
       const defaultApproaches: InsertSearchApproach[] = [
         {
           name: "Company Overview",
-          prompt: "Provide a detailed overview of [COMPANY], including its size, age, and main business activities.",
+          prompt: "Analyze and provide comprehensive details about [COMPANY], including size, industry focus, and business validation.",
           order: 1,
           active: true,
           moduleType: "company_overview",
           config: {
             subsearches: {},
-            searchOptions: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false
+            },
             searchSections: {},
             validationRules: {
               requiredFields: ["name", "industry"],
               scoreThresholds: {},
-              minimumConfidence: 70,
-            },
+              minimumConfidence: 70
+            }
           },
           validationRules: {},
-          technicalPrompt: "Analyze company details focusing on size, age, and core business activities.",
-          responseStructure: "JSON with fields: companyProfile{size, age, industry, focus}",
+          technicalPrompt: "Execute company profile analysis and business validation checks",
+          responseStructure: "JSON with fields: companyProfile{size, age, industry, focus, validationScore}"
         },
         {
           name: "Decision-maker Analysis",
-          prompt: "Identify and analyze key decision-makers at [COMPANY], focusing on leadership and their roles.",
+          prompt: "Identify and analyze key decision-makers at [COMPANY], focusing on leadership roles and verification.",
           order: 2,
           active: true,
           moduleType: "decision_maker",
           config: {
             subsearches: {},
-            searchOptions: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false
+            },
             searchSections: {},
             validationRules: {
               requiredFields: ["name", "role"],
               scoreThresholds: {},
-              minimumConfidence: 75,
-            },
+              minimumConfidence: 75
+            }
           },
           validationRules: {},
-          technicalPrompt: "Identify key decision-makers and verify their roles.",
-          responseStructure: "JSON with fields: leaders[]{name, role, level, verificationScore}",
+          technicalPrompt: "Execute leadership identification and role verification",
+          responseStructure: "JSON with fields: leaders[]{name, role, level, verificationScore}"
         },
         {
           name: "Email Discovery",
-          prompt: "Discover and validate email patterns for [COMPANY] and its key contacts.",
+          prompt: "Discover and validate email patterns for [COMPANY] and its key contacts through multiple sources.",
           order: 3,
           active: true,
           moduleType: "email_discovery",
           config: {
             subsearches: {},
-            searchOptions: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false
+            },
             searchSections: {},
             validationRules: {
               requiredFields: ["pattern"],
               scoreThresholds: {},
-              minimumConfidence: 80,
-            },
+              minimumConfidence: 80
+            }
           },
           validationRules: {},
-          technicalPrompt: "Discover email patterns and potential contact addresses.",
-          responseStructure: "JSON with fields: emailPattern, discoveredEmails[]",
+          technicalPrompt: "Execute email pattern discovery and initial validation",
+          responseStructure: "JSON with fields: emailPattern, discoveredEmails[]{address, confidence}"
         },
         {
           name: "Enrich Email",
-          prompt: "Enrich and validate discovered email addresses through multiple verification methods.",
+          prompt: "Enrich and validate discovered email addresses through comprehensive verification methods.",
           order: 4,
           active: true,
           moduleType: "email_enrichment",
           config: {
             subsearches: {},
-            searchOptions: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false
+            },
             searchSections: {},
             validationRules: {
               requiredFields: ["email"],
               scoreThresholds: {},
-              minimumConfidence: 85,
-            },
+              minimumConfidence: 85
+            }
           },
           validationRules: {},
-          technicalPrompt: "Validate and enrich email addresses with additional data.",
-          responseStructure: "JSON with fields: enrichedEmails[]{email, validationScore, metadata}",
+          technicalPrompt: "Execute deep email validation and enrichment",
+          responseStructure: "JSON with fields: enrichedEmails[]{email, validationScore, metadata}"
         },
         {
           name: "Email Deepdive",
-          prompt: "Perform deep analysis of contact information using both local and digital sources.",
+          prompt: "Perform advanced analysis of contact information using both local and digital sources.",
           order: 5,
           active: true,
           moduleType: "email_deepdive",
           config: {
             subsearches: {},
-            searchOptions: {},
+            searchOptions: {
+              ignoreFranchises: false,
+              locallyHeadquartered: false
+            },
             searchSections: {},
             validationRules: {
               requiredFields: ["source"],
               scoreThresholds: {},
-              minimumConfidence: 60,
-            },
+              minimumConfidence: 65
+            }
           },
           validationRules: {},
-          technicalPrompt: "Execute deep search strategies across various sources.",
-          responseStructure: "JSON with fields: deepFindings[]{source, contacts[], confidence}",
-        },
+          technicalPrompt: "Execute comprehensive source analysis and verification",
+          responseStructure: "JSON with fields: deepFindings[]{source, contacts[], confidence}"
+        }
       ];
 
       for (const approach of defaultApproaches) {
