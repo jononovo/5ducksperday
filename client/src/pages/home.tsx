@@ -28,7 +28,7 @@ import SearchFlowNew from "@/components/search-flow-new";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
-  contacts?: (Contact & { companyName?: string })[];
+  contacts?: (Contact & { companyName?: string; companyId?: number })[];
 }
 
 // Define interface for the saved state
@@ -123,12 +123,13 @@ export default function Home() {
   const getTopProspects = () => {
     if (!currentResults) return [];
 
-    const allContacts: (Contact & { companyName: string })[] = [];
+    const allContacts: (Contact & { companyName: string; companyId: number })[] = [];
     currentResults.forEach(company => {
       if (company.contacts) {
         allContacts.push(...company.contacts.map(contact => ({
           ...contact,
-          companyName: company.name
+          companyName: company.name,
+          companyId: company.id
         })));
       }
     });
@@ -255,10 +256,52 @@ export default function Home() {
           {currentResults && currentResults.length > 0 && (
             <Card className="w-full">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UserCircle className="w-5 h-5" />
-                  Top Prospects
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <UserCircle className="w-5 h-5" />
+                    Top Prospects
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const prospects = getTopProspects();
+                      if (prospects.length === 0) {
+                        toast({
+                          title: "No Prospects",
+                          description: "There are no high-probability prospects to enrich.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+
+                      // Get unique company IDs from prospects
+                      const companyIds = [...new Set(prospects.map(p => p.companyId))];
+
+                      // Start enrichment for each company
+                      Promise.all(companyIds.map(async (companyId) => {
+                        try {
+                          const response = await apiRequest("POST", `/api/companies/${companyId}/enrich-top-prospects`);
+                          const data = await response.json();
+                          toast({
+                            title: "Enrichment Started",
+                            description: `Started enriching prospects for company ${companyId}`,
+                          });
+                          return data;
+                        } catch (error) {
+                          toast({
+                            title: "Enrichment Failed",
+                            description: error instanceof Error ? error.message : "Failed to start enrichment",
+                            variant: "destructive",
+                          });
+                        }
+                      }));
+                    }}
+                  >
+                    <Banknote className="mr-2 h-4 w-4" />
+                    Enrich Prospects
+                  </Button>
+                </div>
                 <p className="text-sm text-muted-foreground">
                   Highest probability contacts across all companies
                 </p>
