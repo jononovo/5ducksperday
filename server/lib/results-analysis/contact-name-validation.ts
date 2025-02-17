@@ -47,7 +47,7 @@ export function validateNameLocally(name: string, context: string = ""): NameVal
   const isGeneric = isGenericName(name);
   if (isGeneric) {
     return { 
-      score: 30, 
+      score: 20, // Reduced from 30 to be more aggressive
       isGeneric: true, 
       confidence: 90,
       name,
@@ -66,9 +66,16 @@ export function validateNameLocally(name: string, context: string = ""): NameVal
 }
 
 function isGenericName(name: string): boolean {
-  const name_lower = name.toLowerCase();
+  const nameLower = name.toLowerCase();
+  const nameParts = nameLower.split(/[\s-]+/);
 
-  if (PLACEHOLDER_NAMES.has(name_lower) || GENERIC_TERMS.has(name_lower)) {
+  // Check if any word in the name is a generic term
+  if (nameParts.some(part => GENERIC_TERMS.has(part))) {
+    return true;
+  }
+
+  // Check if the full name is in placeholder names
+  if (PLACEHOLDER_NAMES.has(nameLower)) {
     return true;
   }
 
@@ -77,7 +84,8 @@ function isGenericName(name: string): boolean {
     /\b(officer|manager|director|head|lead)\b/i,
     /^(c[A-Za-z]o)$/i,  // Matches CEO, CTO, CFO, etc.
     /(president|founder|owner|partner)$/i,
-    /^(mr|mrs|ms|dr|prof)\.\s*$/i  // Just a title
+    /^(mr|mrs|ms|dr|prof)\.\s*$/i,  // Just a title
+    /\b(group|company|consolidated|inc|llc)\b/i  // Common business suffixes
   ];
 
   return jobTitlePatterns.some(pattern => pattern.test(name));
@@ -86,10 +94,16 @@ function isGenericName(name: string): boolean {
 function calculateNameConfidenceScore(name: string, context: string): number {
   let score = 50; // Start with a neutral score
   const namePattern = /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}$/;
+  const nameParts = name.split(/\s+/);
 
-  // Immediately return low score for placeholder names
+  // Immediately return low score for placeholder or generic names
   if (isPlaceholderName(name)) {
     return 20;
+  }
+
+  // Check for generic terms in each part of the name
+  if (nameParts.some(part => GENERIC_TERMS.has(part.toLowerCase()))) {
+    return 25; // Slightly higher than placeholder but still very low
   }
 
   // Base score for proper name format
@@ -98,13 +112,12 @@ function calculateNameConfidenceScore(name: string, context: string): number {
   }
 
   // Check name length and word count
-  const nameParts = name.split(/\s+/);
   if (nameParts.length === 2) {
     score += 15; // Common firstname lastname format
   } else if (nameParts.length === 3) {
     score += 10; // Possible middle name
   } else {
-    score -= 10; // Unusual number of name parts
+    score -= 15; // Unusual number of name parts
   }
 
   // Name part length checks
@@ -112,10 +125,10 @@ function calculateNameConfidenceScore(name: string, context: string): number {
   if (hasReasonableLengths) {
     score += 10;
   } else {
-    score -= 10;
+    score -= 15;
   }
 
-  // Red flags with reduced penalties
+  // Red flags with increased penalties
   const redFlags = [
     /\d+/,  // Numbers
     /[^a-zA-Z\s'-]/,  // Special characters
@@ -127,7 +140,7 @@ function calculateNameConfidenceScore(name: string, context: string): number {
 
   redFlags.forEach(flag => {
     if (flag.test(name)) {
-      score -= 15;
+      score -= 20; // Increased penalty from 15 to 20
     }
   });
 
