@@ -88,7 +88,6 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
         `/api/search-approaches/${approach.id}`,
         {
           active,
-          // Preserve existing config when toggling
           config: approach.config,
         }
       );
@@ -146,7 +145,7 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
                 checked={approach.active ?? false}
                 onCheckedChange={(checked) => toggleMutation.mutate(checked)}
                 disabled={toggleMutation.isPending}
-                className="dark:data-[state=unchecked]:bg-gray-200 data-[state=checked]:bg-black dark:data-[state=checked]:bg-white data-[state=unchecked]:bg-gray-200"
+                className="dark:data-[state=unchecked]:bg-gray-200 data-[state=checked]:bg-black dark:data-[state=checked]:bg-white data-[state=unchecked]:bg-gray-200 transition-colors duration-200"
               />
             </TooltipTrigger>
             <TooltipContent>
@@ -155,15 +154,15 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
           </Tooltip>
         </TooltipProvider>
 
-        <div className="flex-1">
+        <div className="flex-1 space-y-1.5">
           <AccordionTrigger className="hover:no-underline">
             <div className="flex flex-col items-start">
-              <span className="font-semibold">{approach.name}</span>
+              <span className="font-medium text-base">{approach.name}</span>
               {minimumConfidence > 0 && (
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mt-1.5">
                   <Progress
                     value={minimumConfidence}
-                    className={`w-16 h-1.5 ${getConfidenceColor(minimumConfidence)}`}
+                    className={`w-20 h-1.5 ${getConfidenceColor(minimumConfidence)}`}
                   />
                   <span className="text-xs text-muted-foreground">
                     {minimumConfidence}% confidence required
