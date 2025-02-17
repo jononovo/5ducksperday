@@ -10,10 +10,18 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Progress } from "@/components/ui/progress";
 import type { SearchApproach, SearchModuleConfig } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Edit3, Save, X } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SearchFlowNewProps {
   approaches: SearchApproach[];
@@ -22,12 +30,15 @@ interface SearchFlowNewProps {
 function ApproachEditor({ approach }: { approach: SearchApproach }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState(approach.prompt);
-  const [editedTechnicalPrompt, setEditedTechnicalPrompt] = useState(approach.technicalPrompt || "");
-  const [editedResponseStructure, setEditedResponseStructure] = useState(approach.responseStructure || "");
+  const [editedTechnicalPrompt, setEditedTechnicalPrompt] = useState(
+    approach.technicalPrompt || ""
+  );
+  const [editedResponseStructure, setEditedResponseStructure] = useState(
+    approach.responseStructure || ""
+  );
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Initialize search config
   const config = approach.config as SearchModuleConfig || {
     subsearches: {},
     searchOptions: {},
@@ -35,8 +46,8 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     validationRules: {
       requiredFields: [],
       scoreThresholds: {},
-      minimumConfidence: 0
-    }
+      minimumConfidence: 0,
+    },
   };
 
   const updateMutation = useMutation({
@@ -45,7 +56,11 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
         throw new Error("Prompt cannot be empty");
       }
 
-      const response = await apiRequest("PATCH", `/api/search-approaches/${approach.id}`, updates);
+      const response = await apiRequest(
+        "PATCH",
+        `/api/search-approaches/${approach.id}`,
+        updates
+      );
       if (!response.ok) {
         throw new Error("Failed to update approach");
       }
@@ -56,7 +71,7 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
       setIsEditing(false);
       toast({
         title: "Approach Updated",
-        description: "The search approach has been updated successfully.",
+        description: "Search approach updated successfully.",
       });
     },
     onError: (error) => {
@@ -70,19 +85,11 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
 
   const toggleMutation = useMutation({
     mutationFn: async (active: boolean) => {
-      const updates: Partial<SearchApproach> = {
-        active,
-        config: {
-          ...config,
-          subsearches: {},
-          searchOptions: {
-            ignoreFranchises: false,
-            locallyHeadquartered: false
-          }
-        }
-      };
-
-      const response = await apiRequest("PATCH", `/api/search-approaches/${approach.id}`, updates);
+      const response = await apiRequest(
+        "PATCH",
+        `/api/search-approaches/${approach.id}`,
+        { active }
+      );
       if (!response.ok) {
         throw new Error("Failed to toggle approach");
       }
@@ -115,50 +122,60 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     setEditedResponseStructure(approach.responseStructure || "");
   };
 
-  // Show error if module type is missing
-  if (!approach.moduleType) {
-    return (
-      <AccordionItem value={approach.id.toString()}>
-        <div className="flex items-center gap-2 px-1">
-          <Switch
-            checked={approach.active ?? false}
-            onCheckedChange={(checked) => toggleMutation.mutate(checked)}
-            className="scale-75"
-          />
-          <AccordionTrigger className="flex-1 hover:no-underline">
-            <span className="mr-4">{approach.name}</span>
-          </AccordionTrigger>
-        </div>
-        <AccordionContent>
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Configuration Warning</AlertTitle>
-            <AlertDescription>
-              Module type is missing for this search approach. Some features may be limited.
-            </AlertDescription>
-          </Alert>
-        </AccordionContent>
-      </AccordionItem>
-    );
-  }
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 85) return "bg-green-500";
+    if (confidence >= 70) return "bg-yellow-500";
+    return "bg-red-500";
+  };
+
+  const minimumConfidence = config.validationRules?.minimumConfidence || 0;
 
   return (
-    <AccordionItem value={approach.id.toString()}>
-      <div className="flex items-center gap-2 px-1">
-        <Switch
-          checked={approach.active ?? false}
-          onCheckedChange={(checked) => toggleMutation.mutate(checked)}
-          className="scale-75"
-        />
+    <AccordionItem value={approach.id.toString()} className="border-b">
+      <div className="flex items-center gap-4 px-4 py-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Switch
+                checked={approach.active ?? false}
+                onCheckedChange={(checked) => toggleMutation.mutate(checked)}
+                className="scale-75"
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              {approach.active ? "Disable approach" : "Enable approach"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
         <AccordionTrigger className="flex-1 hover:no-underline">
-          <span className="mr-4">{approach.name}</span>
+          <div className="flex items-center gap-4">
+            <span className="font-semibold">{approach.name}</span>
+            <Badge variant="outline" className="ml-2">
+              Step {approach.order}
+            </Badge>
+            {minimumConfidence > 0 && (
+              <div className="flex items-center gap-2">
+                <Progress
+                  value={minimumConfidence}
+                  className={`w-24 h-2 ${getConfidenceColor(minimumConfidence)}`}
+                />
+                <span className="text-xs text-muted-foreground">
+                  {minimumConfidence}% threshold
+                </span>
+              </div>
+            )}
+          </div>
         </AccordionTrigger>
       </div>
-      <AccordionContent>
+
+      <AccordionContent className="px-4 py-2">
         {isEditing ? (
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">User-Facing Prompt</label>
+              <label className="text-sm font-medium mb-2 block">
+                User-Facing Prompt
+              </label>
               <Textarea
                 value={editedPrompt}
                 onChange={(e) => setEditedPrompt(e.target.value)}
@@ -167,21 +184,25 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Technical Prompt</label>
+              <label className="text-sm font-medium mb-2 block">
+                Technical Implementation
+              </label>
               <Textarea
                 value={editedTechnicalPrompt}
                 onChange={(e) => setEditedTechnicalPrompt(e.target.value)}
-                placeholder="Enter the technical implementation prompt..."
-                className="min-h-[100px]"
+                placeholder="Enter the technical implementation details..."
+                className="min-h-[100px] font-mono text-sm"
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Response Structure</label>
+              <label className="text-sm font-medium mb-2 block">
+                Response Structure
+              </label>
               <Textarea
                 value={editedResponseStructure}
                 onChange={(e) => setEditedResponseStructure(e.target.value)}
                 placeholder="Enter the expected JSON response structure..."
-                className="min-h-[100px] font-mono"
+                className="min-h-[100px] font-mono text-sm"
               />
             </div>
             <div className="flex gap-2">
@@ -190,26 +211,47 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
                 onClick={handleSave}
                 disabled={updateMutation.isPending || !editedPrompt.trim()}
               >
-                Save
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleCancel}
-              >
+              <Button size="sm" variant="outline" onClick={handleCancel}>
+                <X className="w-4 h-4 mr-2" />
                 Cancel
               </Button>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">{approach.prompt}</p>
+            <div className="space-y-2">
+              <h4 className="font-medium">Description</h4>
+              <p className="text-sm text-muted-foreground">{approach.prompt}</p>
+            </div>
+
+            {approach.technicalPrompt && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Technical Details</h4>
+                <p className="text-sm text-muted-foreground font-mono">
+                  {approach.technicalPrompt}
+                </p>
+              </div>
+            )}
+
+            {approach.responseStructure && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Expected Response</h4>
+                <pre className="text-sm bg-muted p-2 rounded-md font-mono">
+                  {approach.responseStructure}
+                </pre>
+              </div>
+            )}
+
             <Button
               size="sm"
               variant="outline"
               onClick={() => setIsEditing(true)}
             >
-              Edit Prompt
+              <Edit3 className="w-4 h-4 mr-2" />
+              Edit Approach
             </Button>
           </div>
         )}
@@ -220,13 +262,22 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
 
 export default function SearchFlowNew({ approaches }: SearchFlowNewProps) {
   // Sort approaches by order
-  const sortedApproaches = [...approaches].sort((a, b) => (a.order || 0) - (b.order || 0));
+  const sortedApproaches = [...approaches].sort(
+    (a, b) => (a.order || 0) - (b.order || 0)
+  );
 
   return (
-    <Accordion type="single" collapsible className="w-full">
-      {sortedApproaches.map((approach) => (
-        <ApproachEditor key={approach.id} approach={approach} />
-      ))}
-    </Accordion>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-4">
+        <CheckCircle2 className="w-5 h-5 text-green-500" />
+        <h3 className="font-semibold">Search Flow Steps</h3>
+      </div>
+
+      <Accordion type="single" collapsible className="w-full">
+        {sortedApproaches.map((approach) => (
+          <ApproachEditor key={approach.id} approach={approach} />
+        ))}
+      </Accordion>
+    </div>
   );
 }

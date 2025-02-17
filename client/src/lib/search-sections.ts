@@ -1,17 +1,19 @@
 import type { SearchSection } from "@shared/schema";
 
-// All possible search subsections
+// Core search subsections
 export const SEARCH_SUBSECTIONS = {
   // Company Overview specific subsections
-  ignoreFranchises: {
-    id: "ignore-franchises",
-    label: "Ignore Franchises",
-    description: "Exclude franchise businesses from search results"
+  companyProfile: {
+    id: "company-profile",
+    label: "Company Profile",
+    description: "Basic company information and overview",
+    implementation: "Analyze company details including size, age, and focus"
   },
-  localHq: {
-    id: "local-hq",
-    label: "Locally Headquartered",
-    description: "Only include companies with local headquarters"
+  businessValidation: {
+    id: "business-validation",
+    label: "Business Validation",
+    description: "Verify business legitimacy and operations",
+    implementation: "Validate business operations and legitimacy"
   },
 
   // Decision Maker specific subsections
@@ -28,59 +30,57 @@ export const SEARCH_SUBSECTIONS = {
     implementation: "Validate decision maker roles"
   },
 
-  // Email Discovery Subsections - based on email discovery module strategies
+  // Email Discovery Subsections
   websiteEmailSearch: {
     id: "website-email-search",
     label: "Website Email Search",
-    description: "Extract email addresses from company website and related pages",
-    implementation: "Search company website and pages for email addresses"
+    description: "Extract email addresses from company website",
+    implementation: "Search company website for email addresses"
   },
-  publicDirectorySearch: {
-    id: "public-directory-search",
-    label: "Public Directory Search",
-    description: "Search public business directories and listing sites",
-    implementation: "Search public directories for company email addresses"
-  },
-  patternPredictionSearch: {
-    id: "pattern-prediction-search",
+  patternPrediction: {
+    id: "pattern-prediction",
     label: "Pattern Prediction",
-    description: "Predict email addresses based on common corporate patterns",
+    description: "Predict email patterns",
     implementation: "Analyze and predict company email patterns"
   },
-  domainAnalysisSearch: {
-    id: "domain-analysis-search",
-    label: "Domain Analysis",
-    description: "Analyze domain MX records and email configurations",
-    implementation: "Analyze company domain for email configuration"
+
+  // Email Enrichment Subsections
+  emailValidation: {
+    id: "email-validation",
+    label: "Email Validation",
+    description: "Validate discovered email addresses",
+    implementation: "Validate email addresses and patterns"
   },
-  socialProfileSearch: {
-    id: "social-profile-search",
-    label: "Social Profile Search",
-    description: "Extract email addresses from public social media profiles",
-    implementation: "Search social media profiles for email addresses"
+  contactEnrichment: {
+    id: "contact-enrichment",
+    label: "Contact Enrichment",
+    description: "Enrich contact information",
+    implementation: "Enrich contact details with additional data"
   },
-  localBusinessAssociations: {
-    id: "local-business-search",
-    label: "Local Business Associations",
-    description: "Search local business associations for top prospect emails",
-    implementation: "Search local business associations for contact details"
+
+  // Email Deepdive Subsections
+  localSourcesSearch: {
+    id: "local-sources-search",
+    label: "Local Sources",
+    description: "Search local business sources",
+    implementation: "Search local business directories and sources"
   },
-  localEventsSearch: {
-    id: "local-events-search",
-    label: "Local Events Search",
-    description: "Search local business events and conferences for contact discovery",
-    implementation: "Search local event listings for company mentions and contact details"
+  digitalSourcesSearch: {
+    id: "digital-sources-search",
+    label: "Digital Sources",
+    description: "Search digital platforms",
+    implementation: "Search digital platforms and social media"
   }
 };
 
-// Section definitions for each module type
+// Core section configurations
 export const SECTIONS_CONFIG = {
   company_overview: {
-    search_options: {
-      id: "search_options",
-      label: "Search Options",
-      description: "Configure additional search parameters",
-      subsectionIds: ["ignore-franchises", "local-hq"]
+    basic_info: {
+      id: "basic_info",
+      label: "Basic Information",
+      description: "Company profile and validation",
+      subsectionIds: ["company-profile", "business-validation"]
     }
   },
   decision_maker: {
@@ -96,41 +96,28 @@ export const SECTIONS_CONFIG = {
       id: "basic_discovery",
       label: "Basic Discovery",
       description: "Basic email discovery methods",
-      subsectionIds: [
-        "website-email-search",
-        "public-directory-search",
-        "pattern-prediction-search",
-        "domain-analysis-search"
-      ]
-    },
-    advanced_discovery: {
-      id: "advanced_discovery",
-      label: "Advanced Discovery",
-      description: "Advanced and social discovery methods",
-      subsectionIds: [
-        "social-profile-search",
-        "local-business-search",
-        "local-events-search"
-      ]
+      subsectionIds: ["website-email-search", "pattern-prediction"]
     }
   },
-  contact_deepdive: {
-    local_sources: {
-      id: "local_sources",
-      label: "Local Sources",
-      description: "Search local sources for company and contact information",
-      subsectionRef: "EMAIL_DEEPDIVE_SECTIONS.local_sources"
-    },
-    digital_sources: {
-      id: "digital_sources",
-      label: "Digital Sources",
-      description: "Search digital platforms for company presence",
-      subsectionRef: "EMAIL_DEEPDIVE_SECTIONS.digital_sources"
+  email_enrichment: {
+    validation: {
+      id: "validation",
+      label: "Validation & Enrichment",
+      description: "Email validation and contact enrichment",
+      subsectionIds: ["email-validation", "contact-enrichment"]
+    }
+  },
+  email_deepdive: {
+    sources: {
+      id: "sources",
+      label: "Source Analysis",
+      description: "Deep search in various sources",
+      subsectionIds: ["local-sources-search", "digital-sources-search"]
     }
   }
 };
 
-// Get relevant subsection details for a specific section
+// Helper function to get subsections for a section
 export function getSubsectionsForSection(sectionConfig: {
   id: string;
   label: string;
@@ -154,28 +141,17 @@ export function getSubsectionsForSection(sectionConfig: {
     .filter((s): s is NonNullable<typeof s> => s !== null);
 }
 
-// Helper function to get searches based on subsection reference
-function getSearchesFromSubsectionRef(subsectionRef: string): Array<{
-  id: string;
-  label: string;
-  description: string;
-  implementation?: string;
-}> {
-  const [configName, sectionId] = subsectionRef.split('.');
-
-  // For now, we'll only handle EMAIL_DEEPDIVE_SECTIONS -  This needs a definition elsewhere
-  if (configName === 'EMAIL_DEEPDIVE_SECTIONS') {
-    // Placeholder -  EMAIL_DEEPDIVE_SECTIONS needs to be defined elsewhere
-    const section = {searches: []}; // Placeholder - replace with actual data fetching
-    return section?.searches || [];
-  }
-
-  return [];
-}
-
-// Get sections for a specific module type with strict type checking
+// Get sections for a specific module type
 export function getSectionsByModuleType(moduleType: string): Record<string, SearchSection> {
-  if (!['company_overview', 'decision_maker', 'email_discovery', 'contact_deepdive'].includes(moduleType)) {
+  const validModuleTypes = [
+    'company_overview',
+    'decision_maker',
+    'email_discovery',
+    'email_enrichment',
+    'email_deepdive'
+  ];
+
+  if (!validModuleTypes.includes(moduleType)) {
     console.warn(`Invalid module type: ${moduleType}`);
     return {};
   }
@@ -189,9 +165,7 @@ export function getSectionsByModuleType(moduleType: string): Record<string, Sear
   const result: Record<string, SearchSection> = {};
 
   Object.entries(moduleConfig).forEach(([sectionId, sectionConfig]) => {
-    const searches = sectionConfig.subsectionRef
-      ? getSearchesFromSubsectionRef(sectionConfig.subsectionRef)
-      : getSubsectionsForSection(sectionConfig);
+    const searches = getSubsectionsForSection(sectionConfig);
 
     if (searches.length > 0) {
       result[sectionId] = {
@@ -206,7 +180,7 @@ export function getSectionsByModuleType(moduleType: string): Record<string, Sear
   return result;
 }
 
-// Get all possible search IDs for a module type
+// Get all search IDs for a module type
 export function getAllSearchIds(moduleType: string): string[] {
   const moduleConfig = SECTIONS_CONFIG[moduleType as keyof typeof SECTIONS_CONFIG];
   return moduleConfig ? Object.values(moduleConfig).flatMap(section => section.subsectionIds) : [];
