@@ -14,7 +14,7 @@ import {
 import type { SearchApproach, SearchModuleConfig, SearchSection } from "@shared/schema";
 import { Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { getSectionsByModuleType, SEARCH_SUBSECTIONS } from "@/lib/search-sections";
+import { getSectionsByModuleType, SECTIONS_CONFIG } from "@/lib/search-sections";
 
 interface SearchApproachesProps {
   approaches: SearchApproach[];
