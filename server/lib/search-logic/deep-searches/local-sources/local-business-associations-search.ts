@@ -3,42 +3,41 @@ import { normalizeConfidenceScore } from '../../shared/utils';
 
 export const localBusinessAssociationsSearch: SearchImplementation = {
   name: "Local Business Associations Search",
-  description: "Search local chambers of commerce and business associations for contact email addresses",
+  description: "Discover top prospect email addresses through business association articles and listings",
 
   async execute(context: SearchContext): Promise<SearchResult[]> {
-    const { companyName } = context;
+    const { companyName, topProspects } = context;
 
-    // Execute local business association search focused on email discovery
+    // Execute local business association search focused on email discovery for top prospects
     return [{
-      content: `Searching ${companyName} in local business associations for contact emails`,
+      content: `Searching business association content for ${companyName} top prospect contacts`,
       confidence: normalizeConfidenceScore(0.85),
       source: "local_business_associations",
       metadata: {
         searchDate: new Date().toISOString(),
-        searchType: "contact_email_discovery",
+        searchType: "prospect_email_discovery",
         sources: [
           "chamber_of_commerce",
           "trade_associations",
           "business_networks"
         ],
-        // Specifically configured for email discovery
+        // Configure specifically for top prospect email discovery
         emailDiscoveryConfig: {
           priority: "high",
-          focusAreas: [
-            "member_directories",
-            "leadership_listings",
-            "event_contact_lists"
-          ],
-          contactTypes: [
-            "business_owner",
-            "executive_team",
-            "department_heads"
-          ]
-        },
-        discoveredContacts: {
-          sourceType: "business_association",
-          reliability: "high",
-          verificationMethod: "direct_listing"
+          targetedDiscovery: {
+            requireCompanyMention: true, // Only look in content mentioning company
+            contentTypes: [
+              "company_feature_articles",
+              "project_announcements",
+              "industry_awards",
+              "leadership_spotlights"
+            ]
+          },
+          prospectFocus: {
+            onlyTopProspects: true,
+            requireVerification: true,
+            minAssociationStrength: "direct_mention"
+          }
         }
       }
     }];
