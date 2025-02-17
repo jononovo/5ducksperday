@@ -4,7 +4,7 @@ import { storage } from '../../../storage';
 
 class PostSearchEnrichmentService {
   async startEnrichment(companyId: number, searchId: string): Promise<string> {
-    console.log(`Starting post-search enrichment for company ${companyId}`);
+    console.log(`Starting post-search enrichment for company ${companyId}, search ${searchId}`);
 
     // Get contacts for the company
     const contacts = await storage.listContactsByCompany(companyId);
@@ -15,10 +15,11 @@ class PostSearchEnrichmentService {
       .sort((a, b) => (b.probability || 0) - (a.probability || 0));
 
     if (topProspects.length === 0) {
+      console.log(`No top prospects found for company ${companyId}`);
       throw new Error('No top prospects found to enrich');
     }
 
-    console.log(`Found ${topProspects.length} top prospects for enrichment`);
+    console.log(`Found ${topProspects.length} top prospects for enrichment in company ${companyId}`);
 
     // Create queue items
     const queueItems: EnrichmentQueueItem[] = topProspects.map(contact => ({
@@ -30,13 +31,17 @@ class PostSearchEnrichmentService {
 
     // Add to queue and start processing
     const queueId = await enrichmentQueue.addToQueue(searchId, queueItems);
-    console.log(`Enrichment queue ${queueId} created for ${queueItems.length} contacts`);
+    console.log(`Created enrichment queue ${queueId} for ${queueItems.length} contacts`);
 
     return queueId;
   }
 
   getEnrichmentStatus(queueId: string): QueueStatus | undefined {
-    return enrichmentQueue.getStatus(queueId);
+    const status = enrichmentQueue.getStatus(queueId);
+    if (status) {
+      console.log(`Queue ${queueId} status: ${status.status}, completed ${status.completedItems}/${status.totalItems}`);
+    }
+    return status;
   }
 }
 
