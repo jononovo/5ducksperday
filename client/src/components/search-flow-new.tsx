@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Accordion,
   AccordionContent,
@@ -22,10 +22,6 @@ import {
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface SearchFlowNewProps {
-  approaches: SearchApproach[];
-}
-
 // Fixed approach order mapping
 const APPROACH_ORDER = {
   'company_overview': 1,
@@ -34,6 +30,10 @@ const APPROACH_ORDER = {
   'email_enrichment': 4,
   'email_deepdive': 5
 };
+
+interface SearchFlowNewProps {
+  approaches: SearchApproach[];
+}
 
 function ApproachEditor({ approach }: { approach: SearchApproach }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -58,6 +58,37 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
       minimumConfidence: 0,
     },
   };
+
+  const toggleMutation = useMutation({
+    mutationFn: async (active: boolean) => {
+      const response = await apiRequest(
+        "PATCH",
+        `/api/search-approaches/${approach.id}`,
+        {
+          active,
+          config: approach.config,
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to toggle approach");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/search-approaches"] });
+      toast({
+        title: approach.active ? "Approach Disabled" : "Approach Enabled",
+        description: `Search approach has been ${approach.active ? "disabled" : "enabled"}.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Toggle Failed",
+        description: error instanceof Error ? error.message : "Failed to toggle approach",
+        variant: "destructive",
+      });
+    },
+  });
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Partial<SearchApproach>) => {
@@ -98,37 +129,6 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
     },
   });
 
-  const toggleMutation = useMutation({
-    mutationFn: async (active: boolean) => {
-      const response = await apiRequest(
-        "PATCH",
-        `/api/search-approaches/${approach.id}`,
-        {
-          active,
-          config: approach.config,
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to toggle approach");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/search-approaches"] });
-      toast({
-        title: approach.active ? "Approach Disabled" : "Approach Enabled",
-        description: `Search approach has been ${approach.active ? "disabled" : "enabled"}.`,
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Toggle Failed",
-        description: error instanceof Error ? error.message : "Failed to toggle approach",
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleSave = () => {
     updateMutation.mutate({
       prompt: editedPrompt,
@@ -160,17 +160,25 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
   const minimumConfidence = config.validationRules?.minimumConfidence || 0;
 
   return (
-    <AccordionItem value={approach.id.toString()} className="border-b">
+    <AccordionItem value={approach.id.toString()} className={`border-b transition-colors duration-200 ${approach.active ? 'bg-emerald-50/50 dark:bg-emerald-950/20' : ''}`}>
       <div className="flex items-center gap-4 px-4 py-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Switch
-                checked={approach.active ?? false}
-                onCheckedChange={(checked) => toggleMutation.mutate(checked)}
-                disabled={toggleMutation.isPending}
-                className="dark:data-[state=unchecked]:bg-gray-200 data-[state=checked]:bg-black dark:data-[state=checked]:bg-white data-[state=unchecked]:bg-gray-200 transition-colors duration-200"
-              />
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id={`approach-${approach.id}`}
+                  checked={approach.active ?? false}
+                  onCheckedChange={(checked) => toggleMutation.mutate(checked)}
+                  disabled={toggleMutation.isPending}
+                />
+                <label
+                  htmlFor={`approach-${approach.id}`}
+                  className="text-sm text-muted-foreground cursor-pointer"
+                >
+                  {approach.active ? "Active" : "Inactive"}
+                </label>
+              </div>
             </TooltipTrigger>
             <TooltipContent>
               {approach.active ? "Disable approach" : "Enable approach"}
