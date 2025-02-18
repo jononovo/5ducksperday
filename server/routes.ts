@@ -12,6 +12,7 @@ import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/serv
 import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
+import { google } from 'googleapis';
 
 // Authentication middleware
 function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -679,6 +680,65 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       });
     }
   });
+
+  app.post("/api/send-gmail", requireAuth, async (req, res) => {
+    try {
+      const { to, subject, content } = req.body;
+
+      if (!to || !subject || !content) {
+        res.status(400).json({ message: "Missing required email fields" });
+        return;
+      }
+
+      // Get Gmail token from session
+      const gmailToken = req.session.gmailToken;
+      if (!gmailToken) {
+        res.status(401).json({ message: "Gmail authorization required" });
+        return;
+      }
+
+      // Create Gmail API client
+      const oauth2Client = new google.auth.OAuth2();
+      oauth2Client.setCredentials({ access_token: gmailToken });
+
+      const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+      // Create email content
+      const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
+      const messageParts = [
+        'From: ' + req.user!.email,
+        'To: ' + to,
+        'Content-Type: text/html; charset=utf-8',
+        'MIME-Version: 1.0',
+        `Subject: ${utf8Subject}`,
+        '',
+        content,
+      ];
+      const message = messageParts.join('\n');
+
+      // The body needs to be base64url encoded
+      const encodedMessage = Buffer.from(message)
+        .toString('base64')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+
+      await gmail.users.messages.send({
+        userId: 'me',
+        requestBody: {
+          raw: encodedMessage,
+        },
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Gmail send error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to send email"
+      });
+    }
+  });
+
 
   const httpServer = createServer(app);
   return httpServer;

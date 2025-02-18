@@ -111,12 +111,17 @@ export default function Outreach() {
 
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
-      // Simulate API call success for testing
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({ success: true });
-        }, 1500); // Simulate network delay
-      });
+      const payload = {
+        to: toEmail,
+        subject: emailSubject,
+        content: emailContent
+      };
+      const response = await apiRequest("POST", "/api/send-gmail", payload);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to send email");
+      }
+      return response.json();
     },
     onSuccess: () => {
       toast({
