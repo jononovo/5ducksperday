@@ -1,5 +1,7 @@
 import type { EmailSearchStrategy, EmailSearchContext, EmailSearchResult } from '../types';
 import { validateEmailPattern, isValidBusinessEmail, isPlaceholderEmail } from '../../../results-analysis/email-analysis';
+import { validateNameLocally } from '../../../results-analysis/contact-name-validation';
+import { combineValidationScores } from '../../../results-analysis/score-combination';
 
 // Common business email formats
 const EMAIL_FORMATS = [
@@ -28,7 +30,7 @@ export const patternPredictionStrategy: EmailSearchStrategy = {
   description: "Predict email addresses based on common corporate patterns",
 
   async execute(context: EmailSearchContext): Promise<EmailSearchResult> {
-    const { companyName, companyDomain } = context;
+    const { companyName, companyDomain, existingContacts = [] } = context;
 
     if (!companyDomain) {
       return {
@@ -42,13 +44,12 @@ export const patternPredictionStrategy: EmailSearchStrategy = {
     }
 
     try {
-      // We'll keep track of which patterns were tried
+      // Track pattern attempts and results
       const attemptedPatterns: Record<string, string[]> = {};
       const predictedEmails: string[] = [];
+      const validationResults: Record<string, number> = {};
 
-      // Get contact names from other search results or company context
-      // Instead of using sample names, we'll return early if no valid names are found
-      if (!context.existingContacts || context.existingContacts.length === 0) {
+      if (existingContacts.length === 0) {
         return {
           source: "pattern_prediction",
           emails: [],
@@ -59,15 +60,32 @@ export const patternPredictionStrategy: EmailSearchStrategy = {
         };
       }
 
-      for (const contact of context.existingContacts) {
+      for (const contact of existingContacts) {
         if (!contact.name) continue;
 
-        const possibleEmails = generatePossibleEmails(contact.name, companyDomain);
-        attemptedPatterns[contact.name] = possibleEmails;
+        // Validate contact name
+        const localValidation = validateNameLocally(contact.name, contact.role || '');
+        const validationScore = combineValidationScores(
+          75, // Base confidence for existing contacts
+          localValidation,
+          companyName,
+          {
+            minimumScore: 30,
+            companyNamePenalty: 20
+          }
+        );
 
-        for (const email of possibleEmails) {
-          if (validateEmailPattern(email) >= 70 && !isPlaceholderEmail(email)) {
-            predictedEmails.push(email);
+        validationResults[contact.name] = validationScore;
+
+        // Only generate emails for names with good validation scores
+        if (validationScore >= 50) {
+          const possibleEmails = generatePossibleEmails(contact.name, companyDomain);
+          attemptedPatterns[contact.name] = possibleEmails;
+
+          for (const email of possibleEmails) {
+            if (validateEmailPattern(email) >= 70 && !isPlaceholderEmail(email)) {
+              predictedEmails.push(email);
+            }
           }
         }
       }
@@ -79,6 +97,7 @@ export const patternPredictionStrategy: EmailSearchStrategy = {
           searchDate: new Date().toISOString(),
           domain: companyDomain,
           patternsAttempted: attemptedPatterns,
+          nameValidationScores: validationResults,
           totalPredictions: Object.values(attemptedPatterns).flat().length,
           validPredictions: predictedEmails.length
         }
