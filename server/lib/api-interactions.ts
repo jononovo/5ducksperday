@@ -1,9 +1,10 @@
 import type { Company, Contact } from "@shared/schema";
-import { parseEmailDetails } from "./results-analysis/email-analysis";
-import { queryPerplexity } from "./api/perplexity-client";
-import type { PerplexityMessage } from "./types/perplexity";
 import { validateNameLocally } from "./results-analysis/contact-name-validation";
 import { combineValidationScores } from "./results-analysis/score-combination";
+import { isPlaceholderEmail, isValidBusinessEmail, parseEmailDetails } from "./results-analysis/email-analysis";
+import { queryPerplexity } from "./api/perplexity-client";
+import type { PerplexityMessage } from "./types/perplexity";
+import { analyzeWithPerplexity } from "./perplexity";
 
 export interface PerplexityResponse {
   choices: Array<{
@@ -54,9 +55,10 @@ export async function analyzeCompany(
   return queryPerplexity(messages);
 }
 
-// Raw name validation API call
-export async function getNameValidationScores(
-  names: string[],
+// Validate names using Perplexity AI
+export async function validateNames(
+  names: string[], 
+  companyName?: string,
   searchPrompt?: string
 ): Promise<Record<string, number>> {
   const messages: PerplexityMessage[] = [
@@ -89,18 +91,60 @@ export async function getNameValidationScores(
     }
   ];
 
-  const response = await queryPerplexity(messages);
-  const jsonMatch = response.match(/\{[\s\S]*\}/);
+  try {
+    const response = await queryPerplexity(messages);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const validated: Record<string, number> = {};
 
-  if (jsonMatch) {
-    try {
-      return JSON.parse(jsonMatch[0]);
-    } catch (e) {
-      console.error('Failed to parse AI response:', e);
-      return {};
+        for (const [name, score] of Object.entries(parsed)) {
+          if (typeof score === 'number' && score >= 1 && score <= 100) {
+            const localResult = validateNameLocally(name);
+            validated[name] = combineValidationScores(score, localResult, companyName, {
+              searchPrompt,
+              searchTermPenalty: 25
+            });
+          } else {
+            const localResult = validateNameLocally(name);
+            validated[name] = combineValidationScores(50, localResult, companyName, {
+              searchPrompt,
+              searchTermPenalty: 25
+            });
+          }
+        }
+        return validated;
+      } catch (e) {
+        console.error('Failed to parse AI response:', e);
+      }
     }
+
+    // Fallback to local validation
+    return names.reduce((acc, name) => {
+      const localResult = validateNameLocally(name);
+      return { 
+        ...acc, 
+        [name]: combineValidationScores(50, localResult, companyName, {
+          searchPrompt,
+          searchTermPenalty: 25
+        })
+      };
+    }, {});
+
+  } catch (error) {
+    console.error('Error in name validation:', error);
+    return names.reduce((acc, name) => {
+      const localResult = validateNameLocally(name);
+      return { 
+        ...acc, 
+        [name]: combineValidationScores(50, localResult, companyName, {
+          searchPrompt,
+          searchTermPenalty: 25
+        })
+      };
+    }, {});
   }
-  return {};
 }
 
 export async function searchContactDetails(

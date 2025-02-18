@@ -7,7 +7,8 @@ import {
   analyzeDifferentiators,
   calculateCompanyScore 
 } from "./results-analysis/company-analysis";
-import { validateNames } from "./results-analysis/name-validation";
+import { validateNameLocally } from "./results-analysis/contact-name-validation";
+import { combineValidationScores, type ValidationOptions } from "./results-analysis/score-combination";
 import { extractContacts } from "./results-analysis/contact-extraction";
 
 // Core search functions
@@ -51,4 +52,111 @@ export async function analyzeCompany(
   return queryPerplexity(messages);
 }
 
-export { validateNames, extractContacts };
+export async function validateNames(
+  names: string[],
+  companyName?: string,
+  searchPrompt?: string 
+): Promise<Record<string, number>> {
+  const messages: PerplexityMessage[] = [
+    {
+      role: "system",
+      content: `You are a contact name validation service. Analyze each name and return a JSON object with scores between 1-100. Consider:
+
+      1. Common name patterns
+      2. Professional context
+      3. Job title contamination
+      4. Realistic vs placeholder names
+      5. Names should not contain terms from the search prompt: "${searchPrompt || ''}"
+
+      Scoring rules:
+      - 90-100: Full name with clear first/last (e.g. "Michael Johnson")
+      - 70-89: Common but incomplete name (e.g. "Mike J.")
+      - 40-69: Ambiguous or unusual (e.g. "M. Johnson III")
+      - 20-39: Possibly not a name (e.g. "Sales Team")
+      - 1-19: Obviously not a person's name
+
+      Return ONLY a JSON object like:
+      {
+        "Michael Johnson": 95,
+        "Sales Department": 25
+      }`
+    },
+    {
+      role: "user",
+      content: `Score these names (output only JSON): ${JSON.stringify(names)}`
+    }
+  ];
+
+  try {
+    const response = await queryPerplexity(messages);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const validated: Record<string, number> = {};
+
+        const validationOptions: ValidationOptions = {
+          searchPrompt,
+          minimumScore: 30,
+          searchTermPenalty: 25
+        };
+
+        for (const [name, score] of Object.entries(parsed)) {
+          if (typeof score === 'number' && score >= 1 && score <= 100) {
+            const localResult = validateNameLocally(name);
+            validated[name] = combineValidationScores(
+              score,
+              localResult,
+              companyName,
+              validationOptions
+            );
+          } else {
+            const localResult = validateNameLocally(name);
+            validated[name] = combineValidationScores(
+              50,
+              localResult,
+              companyName,
+              validationOptions
+            );
+          }
+        }
+        return validated;
+      } catch (e) {
+        console.error('Failed to parse AI response:', e);
+      }
+    }
+
+    // Fallback to local validation
+    const validationOptions: ValidationOptions = {
+      searchPrompt,
+      minimumScore: 30,
+      searchTermPenalty: 25
+    };
+
+    return names.reduce((acc, name) => {
+      const localResult = validateNameLocally(name);
+      return {
+        ...acc,
+        [name]: combineValidationScores(50, localResult, companyName, validationOptions)
+      };
+    }, {});
+
+  } catch (error) {
+    console.error('Error in name validation:', error);
+    const validationOptions: ValidationOptions = {
+      searchPrompt,
+      minimumScore: 30,
+      searchTermPenalty: 25
+    };
+
+    return names.reduce((acc, name) => {
+      const localResult = validateNameLocally(name);
+      return {
+        ...acc,
+        [name]: combineValidationScores(50, localResult, companyName, validationOptions)
+      };
+    }, {});
+  }
+}
+
+export { extractContacts };
