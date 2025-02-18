@@ -120,7 +120,7 @@ export default function AuthPage() {
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
+                  <span className="bg-background px-2 text-muted-foreground italic">
                     Or continue with email
                   </span>
                 </div>
@@ -240,7 +240,7 @@ export default function AuthPage() {
             </CardHeader>
             <CardContent className="prose prose-sm">
               <p>
-                Access a powerful AI-driven sales routine that doesn't feel like work. Discover and reachout to cool people who want your product without spamming anyone.
+                Access a powerful AI-driven sales routine that doesn't feel like work. Discover and reach out to cool people who want your product without spamming anyone.
               </p>
               <ul>
                 <li>Advanced company and contact search</li>
