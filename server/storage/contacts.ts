@@ -1,5 +1,5 @@
 import { PgDatabase } from 'drizzle-orm/pg-core';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import {
   type Contact,
   type InsertContact,
@@ -152,10 +152,7 @@ export class ContactStorage {
       const [updated] = await this.db
         .update(contacts)
         .set({
-          completedSearches: this.db.raw(
-            'array_append(COALESCE("completedSearches", ARRAY[]::text[]), ?)',
-            ['aeroleads_search']
-          ),
+          completedSearches: sql`array_append(COALESCE(${contacts.completedSearches}, ARRAY[]::text[]), 'aeroleads_search')`
         })
         .where(eq(contacts.id, id))
         .returning();
@@ -166,11 +163,9 @@ export class ContactStorage {
       .update(contacts)
       .set({
         email: result.email,
-        emailConfidenceScore: result.confidence,
-        completedSearches: this.db.raw(
-          'array_append(COALESCE("completedSearches", ARRAY[]::text[]), ?)',
-          ['aeroleads_search']
-        ),
+        // Use nameConfidenceScore since we don't have a separate email confidence column
+        nameConfidenceScore: result.confidence,
+        completedSearches: sql`array_append(COALESCE(${contacts.completedSearches}, ARRAY[]::text[]), 'aeroleads_search')`,
         lastValidated: new Date(),
       })
       .where(eq(contacts.id, id))
