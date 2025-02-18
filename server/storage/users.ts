@@ -26,6 +26,14 @@ export class UserStorage {
     return user;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await this.db
+      .select()
+      .from(users)
+      .where(eq(users.email, email));
+    return user;
+  }
+
   async updateUser(
     id: number,
     updates: Partial<User>,
