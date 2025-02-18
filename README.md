@@ -1,9 +1,3 @@
-components/
-   ├── search-approaches.tsx  # Configuration UI
-   ├── search-flow-new.tsx   # Search flow interface
-   └── ui/                   # Shared UI components
-   ```
-
 2. Backend Layer:
    ```
    server/
@@ -55,14 +49,14 @@ components/
       - Implementation: `server/lib/search-logic/email-discovery/`
       - Minimum confidence threshold: 80%
 
-   d. Email Enrichment Module:
-      - Purpose: Validate and enrich discovered email addresses
-      - Key Features:
-        * Deep validation
-        * Pattern verification
-        * Domain analysis
-      - Implementation: `server/lib/search-logic/email-enrichment/`
-      - Minimum confidence threshold: 85%
+   d. Additional Email Module (formerly Email Enrichment):
+       - Purpose: Discover and validate professional email addresses
+       - Key Features:
+         * Pattern-based email discovery
+         * Multi-source validation
+         * Confidence scoring
+       - Implementation: `server/lib/search-logic/email-enrichment/`
+       - Minimum confidence threshold: 85%
 
    e. Email Deepdive Module:
       - Purpose: Advanced source analysis and verification

@@ -9,6 +9,7 @@ import { searchContactDetails } from "./lib/api-interactions";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
 import { insertEmailTemplateSchema } from "@shared/schema";
 import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
+import { additionalEmailService } from "./lib/search-logic/email-enrichment/service";
 import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
@@ -230,15 +231,15 @@ app.post("/api/companies/search", async (req, res) => {
 
     if (emailEnrichmentModule?.active) {
       const searchId = `search_${Date.now()}`;
-      console.log('Starting post-search email enrichment with searchId:', searchId);
+      console.log('Starting additional email discovery with searchId:', searchId);
 
-      // Process each company's contacts for enrichment asynchronously
+      // Process each company's contacts for email discovery asynchronously
       for (const company of companies) {
         try {
-          const enrichmentResults = await emailEnrichmentService.enrichTopProspects(company.id);
-          console.log(`Queued enrichment for ${enrichmentResults.length} contacts in ${company.name}`);
+          const enrichmentResults = await additionalEmailService.enrichTopProspects(company.id);
+          console.log(`Queued email discovery for ${enrichmentResults.length} contacts in ${company.name}`);
         } catch (error) {
-          console.error(`Email enrichment error for ${company.name}:`, error);
+          console.error(`Additional email discovery error for ${company.name}:`, error);
         }
       }
     }
