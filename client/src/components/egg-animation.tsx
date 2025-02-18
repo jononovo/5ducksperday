@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 export function EggAnimation() {
-  const [firstEggState, setFirstEggState] = useState<'egg' | 'hatching' | 'chick'>('egg');
+  const [firstEggState, setFirstEggState] = useState<'egg' | 'hatching' | 'chick' | 'settled'>('egg');
 
   useEffect(() => {
     // Start the animation sequence with longer delays
@@ -13,9 +13,15 @@ export function EggAnimation() {
       setFirstEggState('chick');
     }, 6000); // Increased from 4000 to 6000
 
+    // Add timeout for settling the chick after a few bounces
+    const settleTimeout = setTimeout(() => {
+      setFirstEggState('settled');
+    }, 12000); // Give it 6 seconds of bouncing before settling
+
     return () => {
       clearTimeout(hatchingTimeout);
       clearTimeout(chickTimeout);
+      clearTimeout(settleTimeout);
     };
   }, []);
 
@@ -25,7 +31,8 @@ export function EggAnimation() {
         className={`text-4xl transform transition-transform duration-300 ${
           firstEggState === 'egg' ? 'animate-egg-shake' : 
           firstEggState === 'chick' ? 'animate-chick-bounce' : 
-          'animate-hatching-wobble'
+          firstEggState === 'hatching' ? 'animate-hatching-wobble' :
+          '' // No animation class for 'settled' state
         }`}
       >
         {firstEggState === 'egg' ? '🥚' : firstEggState === 'hatching' ? '🐣' : '🐥'}
