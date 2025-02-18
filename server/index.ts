@@ -68,9 +68,8 @@ app.get('/api/health', (_req, res) => {
     }
 
     const PORT = parseInt(process.env.PORT || "5000", 10);
-    // Update to bind to 0.0.0.0 for external access
-    server.listen(PORT, "0.0.0.0", () => {
-      log(`Express server serving on port ${PORT} (0.0.0.0)`);
+    server.listen(PORT, () => {
+      log(`Express server serving on port ${PORT}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

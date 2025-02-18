@@ -32,7 +32,7 @@ export async function analyzeCompany(
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: technicalPrompt || "You are a business intelligence analyst providing detailed company information and website."
+      content: technicalPrompt || "You are a business intelligence analyst providing detailed company information."
     },
     {
       role: "user",
