@@ -87,6 +87,9 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
       timestamp: new Date().toISOString()
     });
 
+    // Get the OAuth access token with Gmail scope
+    const { token } = await admin.auth().getUser(decodedToken.uid);
+
     // Get or create user in our database
     let user = await storage.getUserByEmail(decodedToken.email!);
 
@@ -101,6 +104,11 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
         username: decodedToken.email!.split('@')[0],
         password: await hashPassword(randomBytes(32).toString('hex')),
       });
+    }
+
+    // Store the Gmail access token in the session
+    if (token) {
+      req.session.gmailToken = token;
     }
 
     return user;

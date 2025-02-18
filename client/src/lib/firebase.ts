@@ -85,7 +85,11 @@ try {
   auth = getAuth(app);
   googleProvider = new GoogleAuthProvider();
 
-  // Add additional scopes for Google provider
+  // Add required scopes for Gmail API
+  googleProvider.addScope('https://www.googleapis.com/auth/gmail.send');
+  googleProvider.addScope('https://www.googleapis.com/auth/gmail.compose');
+
+  // Add basic profile scopes
   googleProvider.addScope('email');
   googleProvider.addScope('profile');
 
