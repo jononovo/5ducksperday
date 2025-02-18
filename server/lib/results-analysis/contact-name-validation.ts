@@ -7,6 +7,14 @@ export interface NameValidationResult {
   name: string;
   context?: string;
   aiScore?: number;
+  validationSteps: ValidationStepResult[];
+}
+
+interface ValidationStepResult {
+  name: string;
+  score: number;
+  weight: number;
+  reason?: string;
 }
 
 export interface ValidationOptions {
@@ -18,6 +26,17 @@ export interface ValidationOptions {
   searchTermPenalty?: number;
   aiScore?: number;
 }
+
+// Centralized scoring weights
+const VALIDATION_WEIGHTS = {
+  formatAndStructure: 0.25,  // Basic name format and structure
+  genericTerms: 0.20,        // Check for generic/business terms
+  aiValidation: 0.30,        // AI-based validation
+  contextAnalysis: 0.15,     // Role and company context
+  domainKnowledge: 0.10      // Industry/domain specific rules
+};
+
+const MAX_SCORE = 95;  // Maximum possible score
 
 // Centralized list of placeholder and generic terms
 const PLACEHOLDER_NAMES = new Set([
@@ -68,183 +87,111 @@ const GENERIC_TERMS = new Set([
   'corporate', 'enterprise', 'business', 'commercial'
 ]);
 
-export function isPlaceholderName(name: string): boolean {
-  return PLACEHOLDER_NAMES.has(name.toLowerCase());
-}
-
-const defaultOptions: ValidationOptions = {
-  useLocalValidation: true,
-  localValidationWeight: 0.3,
-  minimumScore: 30,
-  companyNamePenalty: 20,
-  searchTermPenalty: 25
-};
-
+// Sequential validation steps
 export function validateName(
   name: string,
   context: string = "",
   companyName?: string | null,
-  options: ValidationOptions = defaultOptions
+  options: ValidationOptions = {}
 ): NameValidationResult {
-  // Initial local validation
-  const localResult = validateNameLocally(name, context);
+  const validationSteps: ValidationStepResult[] = [];
+  let totalScore = 0;
 
-  // Combine with AI score if provided
-  if (options.aiScore !== undefined) {
-    const combinedScore = combineValidationScores(
-      options.aiScore,
-      localResult.score,
-      name,
-      companyName,
-      options
-    );
-    localResult.score = combinedScore;
-    localResult.aiScore = options.aiScore;
+  // Step 1: Format and Structure Validation (25% weight)
+  const formatScore = validateNameFormat(name);
+  validationSteps.push({
+    name: "Format Validation",
+    score: formatScore,
+    weight: VALIDATION_WEIGHTS.formatAndStructure
+  });
+
+  // Step 2: Generic Terms Check (20% weight)
+  const genericScore = validateGenericTerms(name);
+  validationSteps.push({
+    name: "Generic Terms Check",
+    score: genericScore,
+    weight: VALIDATION_WEIGHTS.genericTerms
+  });
+
+  // Step 3: AI Validation Score (30% weight)
+  const aiScore = options.aiScore || 50;
+  validationSteps.push({
+    name: "AI Validation",
+    score: aiScore,
+    weight: VALIDATION_WEIGHTS.aiValidation
+  });
+
+  // Step 4: Context Analysis (15% weight)
+  const contextScore = validateContext(name, context, companyName);
+  validationSteps.push({
+    name: "Context Analysis",
+    score: contextScore,
+    weight: VALIDATION_WEIGHTS.contextAnalysis
+  });
+
+  // Step 5: Domain Knowledge Rules (10% weight)
+  const domainScore = validateDomainRules(name, context);
+  validationSteps.push({
+    name: "Domain Rules",
+    score: domainScore,
+    weight: VALIDATION_WEIGHTS.domainKnowledge
+  });
+
+  // Calculate weighted total
+  totalScore = validationSteps.reduce((acc, step) => {
+    return acc + (step.score * step.weight);
+  }, 0);
+
+  // Apply penalties
+  if (options.searchPrompt) {
+    const searchTermPenalty = calculateSearchTermPenalty(name, options.searchPrompt);
+    totalScore = Math.max(20, totalScore - searchTermPenalty);
+    validationSteps.push({
+      name: "Search Term Penalty",
+      score: -searchTermPenalty,
+      weight: 1,
+      reason: "Contains search terms"
+    });
   }
 
-  // Apply additional validations
   if (companyName && isNameSimilarToCompany(name, companyName)) {
     if (!isFounderOrOwner(context, companyName)) {
-      localResult.score = Math.max(20, localResult.score - (options.companyNamePenalty || 20));
-    } else {
-      localResult.score = Math.min(100, localResult.score + 10);
+      const penalty = options.companyNamePenalty || 20;
+      totalScore = Math.max(20, totalScore - penalty);
+      validationSteps.push({
+        name: "Company Name Penalty",
+        score: -penalty,
+        weight: 1,
+        reason: "Similar to company name"
+      });
     }
   }
 
-  // Search term penalty
-  if (options.searchPrompt) {
-    const searchTerms = options.searchPrompt.toLowerCase().split(/\s+/);
-    const normalizedName = name.toLowerCase();
-    const matchingTerms = searchTerms.filter(term =>
-      term.length >= 4 && normalizedName.includes(term)
-    );
-    if (matchingTerms.length > 0) {
-      localResult.score = Math.max(20, localResult.score - (options.searchTermPenalty || 25));
-    }
-  }
+  // Ensure score stays within bounds
+  totalScore = Math.max(options.minimumScore || 20, Math.min(MAX_SCORE, totalScore));
 
-  // Final adjustments
-  if (localResult.isGeneric) {
-    localResult.score = Math.max(20, localResult.score - 30);
-  }
-
-  localResult.score = Math.max(
-    options.minimumScore || 30,
-    Math.min(100, localResult.score)
-  );
-
-  return localResult;
-}
-
-function combineValidationScores(
-  aiScore: number,
-  localScore: number,
-  name: string,
-  companyName?: string | null,
-  options: ValidationOptions = defaultOptions
-): number {
-  const weight = options.localValidationWeight || 0.3;
-
-  // Weighted combination of AI and local scores
-  let combinedScore = Math.round(
-    (aiScore * (1 - weight)) + (localScore * weight)
-  );
-
-  // Boost high-confidence matches
-  if (aiScore >= 90 && localScore >= 80) {
-    combinedScore = Math.min(100, combinedScore + 5);
-  }
-
-  // Penalize low-confidence matches more heavily
-  if (aiScore < 40 && localScore < 50) {
-    combinedScore = Math.max(20, combinedScore - 15);
-  }
-
-  return Math.max(options.minimumScore || 30, Math.min(100, combinedScore));
-}
-
-function validateNameLocally(name: string, context: string = ""): NameValidationResult {
-  const isGeneric = isGenericName(name);
-  if (isGeneric) {
-    return {
-      score: 20,
-      isGeneric: true,
-      confidence: 90,
-      name,
-      context
-    };
-  }
-
-  const score = calculateNameConfidenceScore(name, context);
   return {
-    score,
-    isGeneric: false,
-    confidence: score > 80 ? 90 : score > 50 ? 70 : 50,
+    score: Math.round(totalScore),
+    isGeneric: genericScore < 40,
+    confidence: calculateConfidence(validationSteps),
     name,
-    context
+    context,
+    aiScore: options.aiScore,
+    validationSteps
   };
 }
 
-function isGenericName(name: string): boolean {
-  const nameLower = name.toLowerCase();
-  const nameParts = nameLower.split(/[\s-]+/);
-
-  // Check each word against generic terms
-  const genericWordCount = nameParts.filter(part =>
-    part.length > 2 && GENERIC_TERMS.has(part)
-  ).length;
-
-  // If more than 33% of words are generic, consider it generic
-  if (genericWordCount > 0 && (genericWordCount / nameParts.length) >= 0.33) {
-    return true;
-  }
-
-  // Check for placeholder names
-  if (PLACEHOLDER_NAMES.has(nameLower)) {
-    return true;
-  }
-
-  // Check for common patterns that indicate non-person names
-  const businessPatterns = [
-    /^(chief|vice|senior|junior|assistant)\s+/i,
-    /\b(officer|manager|director|head|lead)\b/i,
-    /^(c[A-Za-z]o)$/i,
-    /(president|founder|owner|partner)$/i,
-    /^(mr|mrs|ms|dr|prof)\.\s*$/i,
-    /\b(group|company|consolidated|inc|llc)\b/i,
-    /^(the|our|your)\s+/i,
-    /\b(team|department|division|office)\b/i,
-    /\b(support|service|sales|contact)\s*(team|group|staff)?\b/i
-  ];
-
-  return businessPatterns.some(pattern => pattern.test(name));
-}
-
-function calculateNameConfidenceScore(name: string, context: string): number {
+function validateNameFormat(name: string): number {
   let score = 50;
   const namePattern = /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}$/;
   const nameParts = name.split(/\s+/);
 
-  if (isPlaceholderName(name)) {
-    return 20;
-  }
-
-  // Check for generic terms with weighted impact
-  const genericTermCount = nameParts.filter(part =>
-    GENERIC_TERMS.has(part.toLowerCase())
-  ).length;
-
-  if (genericTermCount > 0) {
-    score -= genericTermCount * 15;
-    return Math.max(20, score);
-  }
-
-  // Proper name format
+  // Full name format check
   if (namePattern.test(name)) {
-    score += 20;
+    score += 30;
   }
 
-  // Name structure analysis
+  // Name parts analysis
   if (nameParts.length === 2) {
     score += 15;
   } else if (nameParts.length === 3) {
@@ -263,23 +210,89 @@ function calculateNameConfidenceScore(name: string, context: string): number {
     score -= 15;
   }
 
-  // Red flags with increased penalties
-  const redFlags = [
-    /\d+/,
-    /[^a-zA-Z\s'-]/,
-    /^[a-z]/,
-    /\s[a-z]/,
-    /(.)\1{2,}/,
-    /^[A-Z\s]+$/
-  ];
+  return Math.min(95, Math.max(20, score));
+}
 
-  redFlags.forEach(flag => {
-    if (flag.test(name)) {
-      score -= 20;
+function validateGenericTerms(name: string): number {
+  const nameLower = name.toLowerCase();
+  const words = nameLower.split(/[\s-]+/);
+  let score = 80;
+
+  // Check against generic terms
+  const genericCount = words.filter(word =>
+    GENERIC_TERMS.has(word) || PLACEHOLDER_NAMES.has(word)
+  ).length;
+
+  if (genericCount > 0) {
+    score -= (genericCount * 25);
+  }
+
+  // Additional checks for business terms
+  if (/\b(department|team|group|division)\b/i.test(name)) {
+    score -= 40;
+  }
+
+  return Math.min(95, Math.max(20, score));
+}
+
+function validateContext(name: string, context: string, companyName?: string | null): number {
+  let score = 60;
+
+  // Role context check
+  if (/\b(ceo|cto|cfo|founder|president|director)\b/i.test(context)) {
+    if (isFounderOrOwner(context, companyName || '')) {
+      score += 20;
     }
-  });
+  }
 
-  return Math.max(20, Math.min(100, score));
+  // Professional context indicators
+  if (/\b(manages|leads|heads|directs)\b/i.test(context)) {
+    score += 10;
+  }
+
+  // Negative context indicators
+  if (/\b(intern|temporary|contractor)\b/i.test(context)) {
+    score -= 10;
+  }
+
+  return Math.min(95, Math.max(20, score));
+}
+
+function validateDomainRules(name: string, context: string): number {
+  let score = 70;
+
+  // Check for industry-specific patterns
+  if (/Dr\.|Prof\.|PhD/i.test(name)) {
+    score += 10;
+  }
+
+  // Check for common name patterns in business context
+  if (/^[A-Z]\.\s[A-Z][a-z]+$/.test(name)) { // Initial + Last name
+    score -= 15;
+  }
+
+  return Math.min(95, Math.max(20, score));
+}
+
+function calculateConfidence(steps: ValidationStepResult[]): number {
+  const totalWeight = steps.reduce((acc, step) => acc + step.weight, 0);
+  const weightedConfidence = steps.reduce((acc, step) => {
+    const stepConfidence = step.score > 80 ? 90 : step.score > 60 ? 70 : 50;
+    return acc + (stepConfidence * step.weight);
+  }, 0);
+
+  return Math.round(weightedConfidence / totalWeight);
+}
+
+function calculateSearchTermPenalty(name: string, searchPrompt: string): number {
+  const searchTerms = searchPrompt.toLowerCase().split(/\s+/);
+  const normalizedName = name.toLowerCase();
+
+  const matchingTerms = searchTerms.filter(term =>
+    term.length >= 4 && normalizedName.includes(term)
+  );
+
+  return matchingTerms.length * 25;
 }
 
 function isNameSimilarToCompany(name: string, companyName: string): boolean {

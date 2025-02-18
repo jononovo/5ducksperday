@@ -16,26 +16,26 @@ export async function validateNames(
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: `You are a contact name validation service. Analyze each name and return a JSON object with scores between 1-90. Consider:
+      content: `You are a contact name validation service. Analyze each name and return a JSON object with scores between 1-95. Consider:
 
-      1. Common name patterns (max 90 points)
+      1. Common name patterns (max 95 points)
       2. Professional context (can reduce score by up to 30 points)
       3. Job title contamination (reduces score by 40 points)
       4. Realistic vs placeholder names (placeholder names max 10 points)
       5. Names should not contain terms from the search prompt: "${searchPrompt || ''}"
 
-      Scoring rules (maximum 90 points):
-      - 80-90: Full proper name with clear first/last, very likely real (e.g. "Michael Johnson")
-      - 60-79: Common but incomplete name, likely real (e.g. "Mike J.")
-      - 40-59: Ambiguous or unusual, possibly real (e.g. "M. Johnson III")
-      - 20-39: Possibly not a name (e.g. "Sales Team", "Tech Lead")
-      - 1-19: Obviously not a person's name
+      Scoring rules (maximum 95 points):
+      - 85-95: Full proper name with clear first/last, very likely real (e.g. "Michael Johnson")
+      - 70-84: Common but incomplete name, likely real (e.g. "Mike J.")
+      - 50-69: Ambiguous or unusual, possibly real (e.g. "M. Johnson III")
+      - 30-49: Possibly not a name (e.g. "Sales Team", "Tech Lead")
+      - 1-29: Obviously not a person's name
 
-      Additional Penalties:
+      Additional Penalties (applied after initial score):
       - Contains job titles: -40 points
       - Contains company terms: -30 points
       - Contains generic business terms: -20 points
-      - Contains search terms: -25 points
+      - Contains search terms: -25 points per term
 
       Return ONLY a JSON object like:
       {
@@ -60,53 +60,24 @@ export async function validateNames(
         const parsed = JSON.parse(jsonMatch[0]);
         const validated: Record<string, number> = {};
 
+        console.log('Processing AI validation scores');
         for (const [name, score] of Object.entries(parsed)) {
-          if (typeof score === 'number' && score >= 1 && score <= 90) {
-            const validationResult = validateName(name, "", companyName, {
-              searchPrompt,
-              searchTermPenalty: 25
-            });
-            // Combine AI score with local validation, never exceeding 90
-            validated[name] = Math.min(90, Math.floor((validationResult.score + (score as number)) / 2));
-          } else {
-            const validationResult = validateName(name, "", companyName, {
-              searchPrompt,
-              searchTermPenalty: 25
-            });
-            validated[name] = validationResult.score;
+          if (typeof score === 'number' && score >= 1 && score <= 95) {
+            console.log(`AI Score for "${name}": ${score}`);
+            validated[name] = score;
           }
         }
-        console.log('AI validation scores processed');
         return validated;
       } catch (e) {
         console.error('Failed to parse AI response:', e);
+        return {}; // Return empty object on parse error
       }
     }
-
-    // Fallback to local validation
-    return names.reduce((acc, name) => {
-      const validationResult = validateName(name, "", companyName, {
-        searchPrompt,
-        searchTermPenalty: 25
-      });
-      return {
-        ...acc,
-        [name]: validationResult.score
-      };
-    }, {});
-
+    console.error('No valid JSON found in AI response');
+    return {};
   } catch (error) {
-    console.error('Error in name validation:', error);
-    return names.reduce((acc, name) => {
-      const validationResult = validateName(name, "", companyName, {
-        searchPrompt,
-        searchTermPenalty: 25
-      });
-      return {
-        ...acc,
-        [name]: validationResult.score
-      };
-    }, {});
+    console.error('Error in AI name validation:', error);
+    return {};
   }
 }
 
