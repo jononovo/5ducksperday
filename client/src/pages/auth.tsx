@@ -95,7 +95,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Username</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} autoComplete="username" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -108,7 +108,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" {...field} />
+                            <Input type="password" {...field} autoComplete="current-password" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -138,7 +138,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Username</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} autoComplete="username" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -151,7 +151,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input type="email" {...field} />
+                            <Input type="email" {...field} autoComplete="email" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -164,7 +164,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" {...field} />
+                            <Input type="password" {...field} autoComplete="new-password" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
