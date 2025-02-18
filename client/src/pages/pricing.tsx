@@ -5,8 +5,8 @@ import { Check } from "lucide-react";
 
 const tiers = [
   {
-    name: "Starter",
-    price: "$49",
+    name: "STARTER",
+    price: "$29",
     description: "Perfect for small businesses and startups",
     features: [
       "100 company lookups per month",
@@ -17,8 +17,8 @@ const tiers = [
     ]
   },
   {
-    name: "Professional",
-    price: "$99",
+    name: "BUILDER",
+    price: "$69",
     description: "Ideal for growing teams and businesses",
     features: [
       "500 company lookups per month",
@@ -32,8 +32,8 @@ const tiers = [
     highlighted: true
   },
   {
-    name: "Enterprise",
-    price: "Custom",
+    name: "ACCELERATE",
+    price: "$189",
     description: "For large organizations with specific needs",
     features: [
       "Unlimited company lookups",
@@ -73,7 +73,7 @@ export default function Pricing() {
                 <CardTitle className="text-2xl">{tier.name}</CardTitle>
                 <div className="mt-2">
                   <span className="text-4xl font-bold">{tier.price}</span>
-                  {tier.price !== "Custom" && <span className="text-muted-foreground">/month</span>}
+                  <span className="text-muted-foreground">/month</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
                   {tier.description}
@@ -89,7 +89,7 @@ export default function Pricing() {
                   ))}
                 </ul>
                 <Button className="w-full mt-6" variant={tier.highlighted ? "default" : "outline"}>
-                  {tier.price === "Custom" ? "Contact Sales" : "Get Started"}
+                  Get Started
                 </Button>
               </CardContent>
             </Card>
