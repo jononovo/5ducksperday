@@ -36,7 +36,7 @@ const tiers = [
   {
     name: "ACCELERATE",
     price: "$189",
-    description: "For large organizations with specific needs",
+    description: "Automate all searches and PAID refinements.",
     features: [
       "Unlimited company lookups",
       "Advanced AI features",
