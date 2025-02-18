@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,6 @@ const tourSteps = [
     title: "Welcome to Simple B2B Sales",
     content: (
       <div className="text-center space-y-4">
-        <h2 className="text-4xl font-bold">Welcome to Simple B2B Sales</h2>
         <p className="text-xl text-muted-foreground italic">
           5 Simple Leads DONE in 1 Minute EVERY Day
         </p>
@@ -60,10 +59,20 @@ interface IntroTourModalProps {
 export function IntroTourModal({ open, onOpenChange }: IntroTourModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
+  // Check localStorage on component mount to see if user has completed the tour
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem('hasSeenTour');
+    if (hasSeenTour) {
+      onOpenChange(false);
+    }
+  }, [onOpenChange]);
+
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
+      // Mark tour as complete in localStorage
+      localStorage.setItem('hasSeenTour', 'true');
       onOpenChange(false);
       setCurrentStep(0);
     }
