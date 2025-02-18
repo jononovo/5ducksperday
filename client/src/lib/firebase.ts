@@ -13,7 +13,8 @@ function validateFirebaseConfig() {
     appId: appId ? '....' + appId.slice(-6) : 'undefined',
     mode: import.meta.env.MODE,
     dev: import.meta.env.DEV,
-    prod: import.meta.env.PROD
+    prod: import.meta.env.PROD,
+    domain: window.location.hostname
   });
 
   const errors = [];

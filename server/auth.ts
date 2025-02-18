@@ -80,7 +80,8 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
   if (!authHeader?.startsWith('Bearer ') || !admin.apps.length) {
     console.warn('Token verification failed:', {
       reason: !authHeader?.startsWith('Bearer ') ? 'invalid header' : 'firebase admin not initialized',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      headers: req.headers // Log headers for debugging
     });
     return null;
   }
@@ -98,8 +99,13 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
       timestamp: new Date().toISOString()
     });
 
+    if (!decodedToken.email) {
+      console.warn('Token missing email claim');
+      return null;
+    }
+
     // Get or create user in our database
-    let user = await storage.getUserByEmail(decodedToken.email!);
+    let user = await storage.getUserByEmail(decodedToken.email);
 
     if (!user) {
       console.log('Creating new user in backend:', {
@@ -108,8 +114,8 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
       });
 
       user = await storage.createUser({
-        email: decodedToken.email!,
-        username: decodedToken.email!.split('@')[0],
+        email: decodedToken.email,
+        username: decodedToken.email.split('@')[0],
         password: await hashPassword(randomBytes(32).toString('hex')),
       });
     }
@@ -118,7 +124,8 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
   } catch (error) {
     console.error('Firebase token verification error:', {
       error,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      headers: req.headers // Log headers for debugging
     });
     return null;
   }
