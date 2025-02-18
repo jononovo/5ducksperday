@@ -1,18 +1,10 @@
 import type { Company, Contact } from "@shared/schema";
 import { validateNameLocally } from "./results-analysis/contact-name-validation";
 import { combineValidationScores } from "./results-analysis/score-combination";
-import { isPlaceholderEmail, isValidBusinessEmail, parseEmailDetails } from "./results-analysis/email-analysis";
+import { isPlaceholderEmail, isValidBusinessEmail } from "./results-analysis/email-analysis";
 import { queryPerplexity } from "./api/perplexity-client";
 import type { PerplexityMessage } from "./types/perplexity";
 import { analyzeWithPerplexity } from "./perplexity";
-
-export interface PerplexityResponse {
-  choices: Array<{
-    message: {
-      content: string;
-    };
-  }>;
-}
 
 // Company search and analysis functions
 export async function searchCompanies(query: string): Promise<string[]> {
@@ -138,21 +130,84 @@ export async function searchContactDetails(
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: `You are a contact information researcher. Find professional information about the specified person. Include:
-        1. Role and department
-        2. Professional email
-        3. LinkedIn URL
-        4. Location
+      content: `You are a contact information researcher specializing in professional email discovery. Your task is to find detailed professional information about the specified person, with a strong focus on their email address.
 
-        Format your response in JSON.`
+      Key requirements:
+      1. Email address is the highest priority - use standard business email patterns
+      2. Professional role and department
+      3. LinkedIn URL if available
+      4. Location details
+      5. Any other professional contact methods
+
+      Format your response in JSON like this:
+      {
+        "email": "firstname.lastname@company.com",
+        "role": "Job Title",
+        "department": "Department Name",
+        "linkedinUrl": "https://linkedin.com/in/...",
+        "location": "City, State",
+        "phoneNumber": "+1-XXX-XXX-XXXX"
+      }
+
+      For email addresses:
+      - Prefer verified business emails
+      - Use common business email patterns (firstname.lastname@, firstinitial.lastname@, etc.)
+      - Include domain from company website
+      - Never include personal email domains (gmail.com, yahoo.com, etc.)
+      - If unsure, use null`
     },
     {
       role: "user",
       content: `Find professional contact information for ${name} at ${company}.
-        ${locationContext}`
+        ${locationContext}
+
+        Focus especially on finding their business email address using standard corporate email patterns.`
     }
   ];
 
-  const response = await queryPerplexity(messages);
-  return parseEmailDetails(response);
+  try {
+    const response = await queryPerplexity(messages);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const enrichedContact: Partial<Contact> = {};
+
+        // Email validation and processing
+        if (parsed.email && typeof parsed.email === 'string') {
+          const email = parsed.email.toLowerCase().trim();
+          if (isValidBusinessEmail(email) && !isPlaceholderEmail(email)) {
+            enrichedContact.email = email;
+          }
+        }
+
+        // Process other fields
+        if (parsed.role && typeof parsed.role === 'string') {
+          enrichedContact.role = parsed.role.trim();
+        }
+        if (parsed.department && typeof parsed.department === 'string') {
+          enrichedContact.department = parsed.department.trim();
+        }
+        if (parsed.linkedinUrl && typeof parsed.linkedinUrl === 'string') {
+          enrichedContact.linkedinUrl = parsed.linkedinUrl.trim();
+        }
+        if (parsed.location && typeof parsed.location === 'string') {
+          enrichedContact.location = parsed.location.trim();
+        }
+        if (parsed.phoneNumber && typeof parsed.phoneNumber === 'string') {
+          enrichedContact.phoneNumber = parsed.phoneNumber.trim();
+        }
+
+        return enrichedContact;
+      } catch (error) {
+        console.error('Failed to parse enrichment response:', error);
+        return {};
+      }
+    }
+    return {};
+  } catch (error) {
+    console.error('Error in contact enrichment:', error);
+    return {};
+  }
 }
