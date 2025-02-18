@@ -87,7 +87,19 @@ const GENERIC_TERMS = new Set([
   // Descriptive business terms
   'commerce', 'website', 'design', 'web', 'executive',
   'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial'
+  'corporate', 'enterprise', 'business', 'commercial',
+
+  // Marketing Sector
+  'marketing', 'digital', 'strategist', 'interactive', 'executive', 'managing', 'operating', 'board', 'advisory', 'steering',
+  'corporate', 'enterprise', 'business', 'commercial',
+
+  // Tech Sector
+  'tech', 'stack', 'implementation', 'verification', 'process', 'managing', 'operating', 'board', 'advisory', 'steering',
+  'corporate', 'enterprise', 'business', 'commercial',
+
+  // Building Sector
+  'building', 'construction', 'development', 'project', 'site', 'planning', 'design', 'engineering',
+  'architecture', 'infrastructure', 'facility', 'maintenance', 'operations'
 ]);
 
 // Common business email formats for contact extraction
