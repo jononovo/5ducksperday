@@ -28,25 +28,36 @@ export interface SearchModuleResult {
 // Company Overview Module Configuration
 export const COMPANY_OVERVIEW_MODULE = {
   type: 'company_overview',
-  defaultPrompt: "Provide a detailed overview of [COMPANY], including its age, size, and main business focus.",
+  defaultPrompt: "Provide a detailed overview of [COMPANY], including its age, size, main business focus, and location.",
   technicalPrompt: `You are a business intelligence analyst. Analyze the company and provide structured information about:
     1. Company size (employee count)
     2. Core services offered
     3. Market positioning
     4. Key differentiators
+    5. Location information (city, state, country)
 
     Format your response as JSON with the following structure:
     {
       "size": number,
       "services": string[],
       "marketPosition": string,
-      "differentiators": string[]
+      "differentiators": string[],
+      "location": {
+        "city": string,
+        "state": string,
+        "country": string
+      }
     }`,
   responseStructure: {
     size: "number - employee count",
     services: "string[] - list of main services",
     marketPosition: "string - brief market position description",
-    differentiators: "string[] - list of key differentiating factors"
+    differentiators: "string[] - list of key differentiating factors",
+    location: {
+      city: "string - company's city",
+      state: "string - company's state/province",
+      country: "string - company's country"
+    }
   }
 };
 
@@ -59,7 +70,7 @@ export const DECISION_MAKER_MODULE = {
     1. Full name 
     2. position, title or role
     3. Email address
-
+    
     Format your response as JSON with the following structure:
     {
       "contacts": [
@@ -99,7 +110,7 @@ export const EMAIL_DISCOVERY_MODULE = {
     2. Search public sources for email addresses
     3. Validate discovered emails through multiple methods
     4. Assign confidence scores based on validation results
-
+    
     Format your response as JSON with the following structure:
     {
       "discoveredEmails": [
@@ -149,7 +160,7 @@ export const LOCAL_SOURCES_MODULE = {
     2. Local business associations
     3. Business networking groups
     4. Local trade organizations
-
+    
     Format your response as JSON with the following structure:
     {
       "sources": [

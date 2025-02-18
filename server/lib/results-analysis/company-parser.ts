@@ -1,6 +1,26 @@
 import type { Company } from "@shared/schema";
 import { analyzeCompanySize, analyzeDifferentiators, calculateCompanyScore } from "./company-analysis";
 
+// Helper function to extract location information from text
+function extractLocationInfo(text: string): { city?: string; state?: string; country?: string } {
+  const location: { city?: string; state?: string; country?: string } = {};
+
+  // Common location patterns
+  const cityPattern = /(?:located|based|headquarters|office)\s+in\s+([A-Za-z\s.]+?)(?:,|\s+(?:and|in|near))/i;
+  const statePattern = /(?:,\s*|\sin\s+)([A-Za-z\s]+?)(?:,|\s+(?:and|in|near)|$)/i;
+  const countryPattern = /(?:,\s*|\sin\s+)(United States|USA|US|Canada|[A-Za-z\s]+?)(?:\.|$)/i;
+
+  const cityMatch = text.match(cityPattern);
+  const stateMatch = text.match(statePattern);
+  const countryMatch = text.match(countryPattern);
+
+  if (cityMatch) location.city = cityMatch[1].trim();
+  if (stateMatch) location.state = stateMatch[1].trim();
+  if (countryMatch) location.country = countryMatch[1].trim();
+
+  return location;
+}
+
 export function parseCompanyData(analysisResults: string[]): Partial<Company> {
   const companyData: Partial<Company> = {
     services: [],
@@ -23,6 +43,12 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
         differentiators.forEach(d => uniqueDifferentiators.add(d));
         companyData.differentiation = Array.from(uniqueDifferentiators);
       }
+
+      // Extract location information from text
+      const locationInfo = extractLocationInfo(result);
+      if (locationInfo.city && !companyData.city) companyData.city = locationInfo.city;
+      if (locationInfo.state && !companyData.state) companyData.state = locationInfo.state;
+      if (locationInfo.country && !companyData.country) companyData.country = locationInfo.country;
 
       // Extract services using common patterns
       const servicePatterns = [
@@ -48,9 +74,22 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
         }
       }
 
-      // Then try JSON parsing as fallback
+      // Try JSON parsing for structured data
       try {
         const jsonData = JSON.parse(result);
+
+        // Extract location information from JSON
+        if (jsonData.location) {
+          if (!companyData.city && jsonData.location.city) {
+            companyData.city = jsonData.location.city;
+          }
+          if (!companyData.state && jsonData.location.state) {
+            companyData.state = jsonData.location.state;
+          }
+          if (!companyData.country && jsonData.location.country) {
+            companyData.country = jsonData.location.country;
+          }
+        }
 
         if (typeof jsonData.size === 'number' || typeof jsonData.employeeCount === 'number') {
           companyData.size = jsonData.size || jsonData.employeeCount;
