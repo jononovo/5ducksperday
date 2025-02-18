@@ -666,21 +666,30 @@ Then, on a new line, write the body of the email. Keep both subject and content 
   app.post("/api/contacts/:contactId/aeroleads", requireAuth, async (req, res) => {
     try {
       const contactId = parseInt(req.params.contactId);
-      console.log('Starting AeroLeads search for contact:', contactId);
+      console.log('Starting AeroLeads search for contact ID:', contactId);
 
       const contact = await storage.getContact(contactId);
       if (!contact) {
+        console.error('Contact not found in database for ID:', contactId);
         res.status(404).json({ message: "Contact not found" });
         return;
       }
-      console.log('Found contact:', contact.name);
+      console.log('Contact data from database:', {
+        id: contact.id,
+        name: contact.name,
+        companyId: contact.companyId
+      });
 
       const company = await storage.getCompany(contact.companyId);
       if (!company) {
+        console.error('Company not found in database for ID:', contact.companyId);
         res.status(404).json({ message: "Company not found" });
         return;
       }
-      console.log('Found company:', company.name);
+      console.log('Company data from database:', {
+        id: company.id,
+        name: company.name
+      });
 
       // Get the AeroLeads API key from environment variables
       const aeroLeadsApiKey = process.env.AEROLEADS_API_KEY;
@@ -691,7 +700,10 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
       // Use the AeroLeads API to search for the email
       const { searchAeroLeads } = await import('./lib/search-logic/email-discovery/aeroleads-search');
-      console.log('Initiating AeroLeads search...');
+      console.log('Initiating AeroLeads search for:', {
+        contactName: contact.name,
+        companyName: company.name
+      });
 
       const result = await searchAeroLeads(
         contact.name,
@@ -710,7 +722,12 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         lastValidated: new Date()
       });
 
-      console.log('Contact updated with AeroLeads result:', updatedContact);
+      console.log('Contact updated with AeroLeads result:', {
+        id: updatedContact?.id,
+        email: updatedContact?.email,
+        confidence: updatedContact?.nameConfidenceScore
+      });
+
       res.json(updatedContact);
     } catch (error) {
       console.error('AeroLeads search error:', error);
@@ -797,7 +814,6 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       });
     }
   });
-
 
   const httpServer = createServer(app);
   return httpServer;

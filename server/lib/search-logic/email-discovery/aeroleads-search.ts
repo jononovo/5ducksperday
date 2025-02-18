@@ -5,8 +5,6 @@ interface AeroLeadsResponse {
   data: {
     email?: string;
     score?: number;
-    confidence?: number;
-    status?: string;
   };
   message?: string;
 }
@@ -17,6 +15,7 @@ interface NameParts {
 }
 
 function splitFullName(fullName: string): NameParts {
+  // Handle case where full name is provided
   const parts = fullName.trim().split(/\s+/);
   if (parts.length === 1) {
     return { firstName: parts[0], lastName: '' };
@@ -36,56 +35,27 @@ export async function searchAeroLeads(
   try {
     console.log(`Searching AeroLeads for: ${firstName} ${lastName} at ${company}`);
 
-    // First, make a search request to find the person
-    const searchResponse = await axios.post(
-      'https://api.aeroleads.com/v2/search',
+    // Using their recommended simple format
+    const response = await axios.get<AeroLeadsResponse>(
+      'https://aeroleads.com/api/get_email_details',
       {
-        first_name: firstName,
-        last_name: lastName,
-        company_name: company,
-        company_website: '',  // Optional
-        limit: 1
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+        params: {
+          api_key: apiKey,
+          first_name: firstName,
+          last_name: lastName,
+          company: company
         },
         timeout: 20000 // 20 second timeout
       }
     );
 
-    console.log('AeroLeads search response:', searchResponse.data);
+    console.log('AeroLeads API response:', response.data);
 
-    if (!searchResponse.data.success) {
-      console.log('AeroLeads search failed:', searchResponse.data.message);
+    if (response.data.success && response.data.data?.email) {
       return {
-        email: null,
-        confidence: 0
+        email: response.data.data.email,
+        confidence: response.data.data.score || 75 // Default confidence if not provided
       };
-    }
-
-    // If search found a match, get the email details
-    if (searchResponse.data.data && searchResponse.data.data.length > 0) {
-      const person = searchResponse.data.data[0];
-      const emailResponse = await axios.get(
-        `https://api.aeroleads.com/v2/person/${person.id}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${apiKey}`
-          },
-          timeout: 20000
-        }
-      );
-
-      console.log('AeroLeads email response:', emailResponse.data);
-
-      if (emailResponse.data.success && emailResponse.data.data.email) {
-        return {
-          email: emailResponse.data.data.email,
-          confidence: emailResponse.data.data.confidence || 75 // Default confidence if not provided
-        };
-      }
     }
 
     console.log('No email found in AeroLeads response');
