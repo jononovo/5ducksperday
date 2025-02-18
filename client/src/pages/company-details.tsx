@@ -339,7 +339,7 @@ export default function CompanyDetails() {
           </CardContent>
         </Card>
 
-        {/* Company Details Section */}
+        {/* Company Details Section - REPLACED */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -375,6 +375,22 @@ export default function CompanyDetails() {
               <div className="space-y-4">
                 <h3 className="font-medium text-lg">Contact Information</h3>
                 <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Globe className="h-4 w-4" />
+                    <span className="font-medium">Website:</span>
+                    {company.website ? (
+                      <a
+                        href={company.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {company.website}
+                      </a>
+                    ) : (
+                      <span>Not specified</span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Phone className="h-4 w-4" />
                     <span className="font-medium">Phone:</span>
