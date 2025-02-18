@@ -80,7 +80,7 @@ export default function AuthPage() {
         <div className="grid md:grid-cols-2 gap-6 items-start">
           <Card>
             <CardHeader>
-              <CardTitle>Welcome to AI Business Intelligence</CardTitle>
+              <CardTitle>Welcome to Simple B2B Sales</CardTitle>
             </CardHeader>
             <CardContent>
               <Button
@@ -229,7 +229,7 @@ export default function AuthPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Comprehensive Business Intelligence</CardTitle>
+              <CardTitle>5 Simple B2B Leads in 1 Minute Every Day</CardTitle>
             </CardHeader>
             <CardContent className="prose prose-sm">
               <p>
