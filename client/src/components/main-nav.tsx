@@ -19,10 +19,10 @@ export default function MainNav() {
   return (
     <nav className="flex items-center justify-between border-b mb-4 px-4 py-3">
       <div className="flex items-center space-x-4">
-        <div className="flex items-center gap-2 mr-8">
-          <Bird className="h-6 w-6 text-primary" />
-          <span className="font-semibold text-lg">5 Chicks</span>
-        </div>
+        <Link href="/" className="group flex items-center gap-2 mr-8">
+          <Bird className="h-6 w-6 text-primary transition-colors group-hover:text-primary" />
+          <span className="font-semibold text-lg transition-colors group-hover:text-primary">5 Ducks</span>
+        </Link>
         {navigation.map((item) => {
           const isActive = item.href === location || 
             (item.href === "/" && location === "/");
