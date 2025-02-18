@@ -663,6 +663,44 @@ Then, on a new line, write the body of the email. Keep both subject and content 
   });
 
   // Add this route within the registerRoutes function, before the return statement
+  app.post("/api/contacts/:contactId/aeroleads", requireAuth, async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.contactId);
+      const contact = await storage.getContact(contactId);
+      if (!contact) {
+        res.status(404).json({ message: "Contact not found" });
+        return;
+      }
+
+      const company = await storage.getCompany(contact.companyId);
+      if (!company) {
+        res.status(404).json({ message: "Company not found" });
+        return;
+      }
+
+      // Use the AeroLeads API to search for the email
+      const { searchAeroLeads } = await import('./lib/search-logic/email-discovery/aeroleads-search');
+      const result = await searchAeroLeads(
+        contact.name,
+        company.name,
+        '9aa11ffaad48543f84020a6ae70b62e2' // API key
+      );
+
+      // Update the contact with the results
+      const updatedContact = await storage.updateContactWithAeroLeadsResult(
+        contactId,
+        result
+      );
+
+      res.json(updatedContact);
+    } catch (error) {
+      console.error('AeroLeads search error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to search AeroLeads"
+      });
+    }
+  });
+
   app.get("/api/enrichment/:queueId/status", async (req, res) => {
     try {
       const status = postSearchEnrichmentService.getEnrichmentStatus(req.params.queueId);
