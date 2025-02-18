@@ -53,6 +53,11 @@ export default function AuthPage() {
   }
 
   const isFirebaseEnabled = !!(firebaseAuth && firebaseGoogleProvider);
+  const firebaseButtonText = isFirebaseEnabled
+    ? 'Sign in with Google'
+    : process.env.NODE_ENV === 'production'
+      ? 'Google Sign-in Unavailable (Environment Variables Missing)'
+      : 'Google Sign-in Unavailable (Development Only)';
 
   return (
     <div className="container max-w-screen-lg mx-auto py-8">
@@ -62,15 +67,21 @@ export default function AuthPage() {
             <CardTitle>Welcome to AI Business Intelligence</CardTitle>
           </CardHeader>
           <CardContent>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => signInWithGoogle().catch(console.error)}
               disabled={!isFirebaseEnabled}
               className="w-full mb-6"
             >
               <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 mr-2" />
-              {isFirebaseEnabled ? 'Sign in with Google' : 'Google Sign-in Unavailable'}
+              {firebaseButtonText}
             </Button>
+
+            {!isFirebaseEnabled && process.env.NODE_ENV === 'production' && (
+              <div className="text-sm text-muted-foreground mb-6">
+                Firebase configuration is incomplete. Please ensure all required environment variables are set.
+              </div>
+            )}
 
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">

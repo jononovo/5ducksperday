@@ -20,12 +20,24 @@ try {
   console.log('Firebase config:', {
     authDomain: firebaseConfig.authDomain,
     projectId: firebaseConfig.projectId,
+    hasApiKey: !!firebaseConfig.apiKey,
+    hasAppId: !!firebaseConfig.appId
   });
 
   // Log current domain for debugging
   console.log('Current domain:', window.location.hostname);
   console.log('Full URL:', window.location.href);
   console.log('Origin:', window.location.origin);
+
+  if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId) {
+    console.error('Firebase configuration is incomplete:', {
+      hasApiKey: !!firebaseConfig.apiKey,
+      hasProjectId: !!firebaseConfig.projectId,
+      hasAppId: !!firebaseConfig.appId,
+      isDevelopment: process.env.NODE_ENV === 'development'
+    });
+    throw new Error('Firebase configuration is incomplete');
+  }
 
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
