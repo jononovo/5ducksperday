@@ -13,6 +13,22 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useEffect } from "react";
 import { firebaseAuth, firebaseGoogleProvider } from "@/lib/firebase";
 
+// Add this helper function
+function getFirebaseErrorMessage(): string {
+  if (!firebaseAuth || !firebaseGoogleProvider) {
+    const missingVars = [];
+    if (!import.meta.env.VITE_FIREBASE_API_KEY) missingVars.push('VITE_FIREBASE_API_KEY');
+    if (!import.meta.env.VITE_FIREBASE_PROJECT_ID) missingVars.push('VITE_FIREBASE_PROJECT_ID');
+    if (!import.meta.env.VITE_FIREBASE_APP_ID) missingVars.push('VITE_FIREBASE_APP_ID');
+
+    if (missingVars.length > 0) {
+      return `Missing environment variables: ${missingVars.join(', ')}`;
+    }
+    return 'Firebase initialization failed. Check console for detailed error messages.';
+  }
+  return '';
+}
+
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { user, loginMutation, registerMutation, signInWithGoogle } = useAuth();
@@ -52,12 +68,11 @@ export default function AuthPage() {
     return null;
   }
 
+  const errorMessage = getFirebaseErrorMessage();
   const isFirebaseEnabled = !!(firebaseAuth && firebaseGoogleProvider);
   const firebaseButtonText = isFirebaseEnabled
     ? 'Sign in with Google'
-    : process.env.NODE_ENV === 'production'
-      ? 'Google Sign-in Unavailable (Environment Variables Missing)'
-      : 'Google Sign-in Unavailable (Development Only)';
+    : 'Google Sign-in Unavailable';
 
   return (
     <div className="container max-w-screen-lg mx-auto py-8">
@@ -77,11 +92,21 @@ export default function AuthPage() {
               {firebaseButtonText}
             </Button>
 
-            {!isFirebaseEnabled && process.env.NODE_ENV === 'production' && (
-              <div className="text-sm text-muted-foreground mb-6">
-                Firebase configuration is incomplete. Please ensure all required environment variables are set.
+            {!isFirebaseEnabled && (
+              <div className="text-sm text-destructive mb-6">
+                {errorMessage}
+                <div className="mt-2">
+                  To fix this:
+                  <ol className="list-decimal ml-6 mt-2">
+                    <li>Check that all Firebase configuration values are correctly set in Replit Secrets</li>
+                    <li>Verify the values match exactly with your Firebase Console</li>
+                    <li>Ensure {window.location.hostname} is added to Authorized Domains in Firebase Console</li>
+                    <li>Restart your Repl after making changes</li>
+                  </ol>
+                </div>
               </div>
             )}
+
 
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
