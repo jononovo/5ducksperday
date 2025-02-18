@@ -29,11 +29,10 @@ export interface ValidationOptions {
 
 // Centralized scoring weights
 const VALIDATION_WEIGHTS = {
-  formatAndStructure: 0.25,  // Basic name format and structure
-  genericTerms: 0.20,        // Check for generic/business terms
+  formatAndStructure: 0.30,  // Basic name format and structure
+  genericTerms: 0.25,        // Check for generic/business terms
   aiValidation: 0.30,        // AI-based validation
-  contextAnalysis: 0.15,     // Role and company context
-  domainKnowledge: 0.10      // Industry/domain specific rules
+  contextAnalysis: 0.15      // Role and company context
 };
 
 const MAX_SCORE = 95;  // Maximum possible score
@@ -51,7 +50,7 @@ const GENERIC_TERMS = new Set([
   'director', 'manager', 'managers', 'head', 'lead', 'senior', 'junior', 'principal',
   'vice', 'assistant', 'associate', 'coordinator', 'specialist', 'analyst',
   'administrator', 'supervisor', 'founder', 'co-founder', 'owner', 'partner',
-  'developer', 'engineer', 'architect', 'consultant', 'advisor',
+  'developer', 'engineer', 'architect', 'consultant', 'advisor', 'Strategist',
 
   // Departments and roles
   'sales', 'marketing', 'finance', 'accounting', 'hr', 'human resources',
@@ -82,8 +81,16 @@ const GENERIC_TERMS = new Set([
   'technical', 'leader', 'focus', 'primary', 'secondary',
 
   // Descriptive business terms
-  'main', 'primary', 'secondary', 'principal', 'executive',
+  'Commerce', 'Website', 'Design', 'Web', 'executive',
   'managing', 'operating', 'board', 'advisory', 'steering',
+  'corporate', 'enterprise', 'business', 'commercial',
+
+  // Marketing Sector
+  'Digital', 'Marketing', 'Strategist', 'Interactive', 'executive', 'managing', 'operating', 'board', 'advisory', 'steering',
+  'corporate', 'enterprise', 'business', 'commercial',
+
+  // Tech Sector
+  'Tech', 'Stack', 'Implementation', 'Verification', 'Process', 'managing', 'operating', 'board', 'advisory', 'steering',
   'corporate', 'enterprise', 'business', 'commercial'
 ]);
 
@@ -95,9 +102,9 @@ export function validateName(
   options: ValidationOptions = {}
 ): NameValidationResult {
   const validationSteps: ValidationStepResult[] = [];
-  let totalScore = 0;
+  let totalScore = 95; // Start with maximum score
 
-  // Step 1: Format and Structure Validation (25% weight)
+  // Step 1: Format and Structure Validation
   const formatScore = validateNameFormat(name);
   validationSteps.push({
     name: "Format Validation",
@@ -105,15 +112,20 @@ export function validateName(
     weight: VALIDATION_WEIGHTS.formatAndStructure
   });
 
-  // Step 2: Generic Terms Check (20% weight)
-  const genericScore = validateGenericTerms(name);
-  validationSteps.push({
-    name: "Generic Terms Check",
-    score: genericScore,
-    weight: VALIDATION_WEIGHTS.genericTerms
-  });
+  // Step 2: Generic Terms Check - Direct penalty application
+  const genericTermScore = validateGenericTerms(name);
+  const genericPenalty = 95 - genericTermScore; // Calculate the actual penalty
+  if (genericPenalty > 0) {
+    totalScore = Math.max(20, totalScore - genericPenalty);
+    validationSteps.push({
+      name: "Generic Terms Penalty",
+      score: -genericPenalty,
+      weight: 1,
+      reason: "Contains generic terms"
+    });
+  }
 
-  // Step 3: AI Validation Score (30% weight)
+  // Step 3: AI Validation Score
   const aiScore = options.aiScore || 50;
   validationSteps.push({
     name: "AI Validation",
@@ -121,7 +133,7 @@ export function validateName(
     weight: VALIDATION_WEIGHTS.aiValidation
   });
 
-  // Step 4: Context Analysis (15% weight)
+  // Step 4: Context Analysis
   const contextScore = validateContext(name, context, companyName);
   validationSteps.push({
     name: "Context Analysis",
@@ -129,20 +141,7 @@ export function validateName(
     weight: VALIDATION_WEIGHTS.contextAnalysis
   });
 
-  // Step 5: Domain Knowledge Rules (10% weight)
-  const domainScore = validateDomainRules(name, context);
-  validationSteps.push({
-    name: "Domain Rules",
-    score: domainScore,
-    weight: VALIDATION_WEIGHTS.domainKnowledge
-  });
-
-  // Calculate weighted total
-  totalScore = validationSteps.reduce((acc, step) => {
-    return acc + (step.score * step.weight);
-  }, 0);
-
-  // Apply penalties
+  // Apply additional penalties
   if (options.searchPrompt) {
     const searchTermPenalty = calculateSearchTermPenalty(name, options.searchPrompt);
     totalScore = Math.max(20, totalScore - searchTermPenalty);
@@ -168,11 +167,11 @@ export function validateName(
   }
 
   // Ensure score stays within bounds
-  totalScore = Math.max(options.minimumScore || 20, Math.min(MAX_SCORE, totalScore));
+  totalScore = Math.max(options.minimumScore || 20, Math.min(95, totalScore));
 
   return {
     score: Math.round(totalScore),
-    isGeneric: genericScore < 40,
+    isGeneric: genericTermScore < 40,
     confidence: calculateConfidence(validationSteps),
     name,
     context,
@@ -214,25 +213,20 @@ function validateNameFormat(name: string): number {
 }
 
 function validateGenericTerms(name: string): number {
+  const baseScore = 95;  // Start from maximum score
   const nameLower = name.toLowerCase();
   const words = nameLower.split(/[\s-]+/);
-  let score = 80;
 
-  // Check against generic terms
+  // Count generic terms and apply flat penalty
   const genericCount = words.filter(word =>
     GENERIC_TERMS.has(word) || PLACEHOLDER_NAMES.has(word)
   ).length;
 
-  if (genericCount > 0) {
-    score -= (genericCount * 25);
-  }
+  // Apply -45 points for each generic term found
+  const penaltyScore = baseScore - (genericCount * 45);
 
-  // Additional checks for business terms
-  if (/\b(department|team|group|division)\b/i.test(name)) {
-    score -= 40;
-  }
-
-  return Math.min(95, Math.max(20, score));
+  // Ensure score stays within bounds
+  return Math.max(20, Math.min(95, penaltyScore));
 }
 
 function validateContext(name: string, context: string, companyName?: string | null): number {
