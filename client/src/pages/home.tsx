@@ -17,7 +17,7 @@ import {
   ThumbsDown,
   Star,
   MessageSquare,
-  Coins,
+  Gem,
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -534,7 +534,7 @@ export default function Home() {
                                 disabled={isAeroLeadsPending(contact.id) || isAeroLeadsSearchComplete(contact)}
                                 className={getAeroLeadsButtonClass(contact)}
                               >
-                                <Coins
+                                <Gem
                                   className={`w-4 h-4 ${isAeroLeadsPending(contact.id) ? "animate-spin" : ""}`}
                                 />
                               </Button>
