@@ -152,8 +152,6 @@ export async function searchContactDetails(
       For email addresses:
       - Prefer verified business emails
       - Use common business email patterns (firstname.lastname@, firstinitial.lastname@, etc.)
-      - Include domain from company website
-      - Never include personal email domains (gmail.com, yahoo.com, etc.)
       - If unsure, use null`
     },
     {

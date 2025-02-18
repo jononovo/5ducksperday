@@ -174,9 +174,12 @@ app.post("/api/companies/search", async (req, res) => {
         // Parse results
         const companyData = parseCompanyData(analysisResults);
 
-        // Create the company record first
+        // Create the company record with location information
         const createdCompany = await storage.createCompany({
           name: companyName,
+          city: companyData.city || null,
+          state: companyData.state || null,
+          country: companyData.country || null,
           ...companyData
         });
 

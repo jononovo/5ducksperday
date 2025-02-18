@@ -29,7 +29,7 @@ const GENERIC_TERMS = new Set([
   'admin', 'professional', 'consultant', 'consolidated',
   'service', 'support', 'office', 'personnel', 'resource',
   'operation', 'development', 'sales', 'marketing', 'customer',
-  'printing', 'press', 'commercial', 'digital', 'production',
+  'printing', 'press', 'commercial', 'digital', 'production', 'Strategic', 'Visionary', 'Planner', 'Planner',
 
   // Common business name components
   'company', 'consolidated', 'incorporated', 'inc', 'llc', 'ltd',
@@ -39,7 +39,7 @@ const GENERIC_TERMS = new Set([
   'cooperative', 'co', 'corporation', 'incorporated', 'plc',
 
   // Common Industry terms used in page titles
-  'information', 'technology', 'software', 'services', 'consulting', 'Industry', 'Reputation', 'Quality', 'Control', 'Strategic', 'Direction', 'Overall', 'Vision', 'Technology', 'Strategy', 'Innovation', 'Infrastructure', 'Innovation', 'Technical', 'Leader', 'Industry', 'Focus', 'primary', 'secondary','revenue','Market','Presence','Score','Competitive','Landscape','Graphic','Validation','Guarantee',
+  'information', 'technology', 'software', 'services', 'consulting', 'Industry', 'Reputation', 'Quality', 'Control', 'Strategic', 'Direction', 'Overall', 'Vision', 'Technology', 'Strategy', 'Innovation', 'Infrastructure', 'Innovation', 'Technical', 'Leader', 'Industry', 'Focus', 'primary', 'secondary','revenue','Market','Presence','Score','Competitive','Landscape','Graphic','Validation','Guarantee', 'Market', 'Presence', 'Competitive', 'Landscape', 'Quality',
   
 ]);
 
