@@ -344,17 +344,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Landing Section */}
-      <div className="mb-12 text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to 5 Ducks</h1>
-        <p className="text-xl text-muted-foreground mb-6">
-          Advanced AI-powered business intelligence platform
-        </p>
-        <div className="flex justify-center">
-          <EggAnimation />
-        </div>
-      </div>
-
       <div className="grid grid-cols-12 gap-6">
         {/* Main Content Area - 9 columns */}
         <div className="col-span-9 space-y-6">
