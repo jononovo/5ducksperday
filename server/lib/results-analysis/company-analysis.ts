@@ -1,5 +1,32 @@
 import type { Company } from "@shared/schema";
 
+// New utility functions for company name processing
+export function stripCompanySummary(companyName: string): string {
+  // Remove text after dash/hyphen if it looks like a description
+  const dashSplit = companyName.split(/\s*[-–—]\s*/);
+  if (dashSplit.length > 1) {
+    // Check if what follows the dash is a description (more than 3 words)
+    const afterDash = dashSplit.slice(1).join(' ').trim();
+    if (afterDash.split(/\s+/).length > 3) {
+      return dashSplit[0].trim();
+    }
+  }
+  return companyName.trim();
+}
+
+export function cleanCompanyName(companyName: string): string {
+  // Remove numbered prefixes (e.g., "1.", "2.", etc)
+  let cleaned = companyName.replace(/^\d+\.\s*/, '');
+
+  // Strip any summary text
+  cleaned = stripCompanySummary(cleaned);
+
+  // Remove extra whitespace
+  cleaned = cleaned.trim();
+
+  return cleaned;
+}
+
 // Company-specific analysis functions
 export function analyzeCompanySize(result: string): number | null {
   const sizePatterns = [
