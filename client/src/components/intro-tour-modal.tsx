@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,6 +5,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
 const tourSteps = [
   {
@@ -59,20 +59,25 @@ interface IntroTourModalProps {
 export function IntroTourModal({ open, onOpenChange }: IntroTourModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Check localStorage on component mount to see if user has completed the tour
   useEffect(() => {
-    const hasSeenTour = localStorage.getItem('hasSeenTour');
-    if (hasSeenTour) {
-      onOpenChange(false);
+    try {
+      if (open && localStorage.getItem('hasSeenTour') === 'true') {
+        onOpenChange(false);
+      }
+    } catch (e) {
+      console.error('Error accessing localStorage:', e);
     }
-  }, [onOpenChange]);
+  }, [open, onOpenChange]);
 
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Mark tour as complete in localStorage
-      localStorage.setItem('hasSeenTour', 'true');
+      try {
+        localStorage.setItem('hasSeenTour', 'true');
+      } catch (e) {
+        console.error('Error setting localStorage:', e);
+      }
       onOpenChange(false);
       setCurrentStep(0);
     }

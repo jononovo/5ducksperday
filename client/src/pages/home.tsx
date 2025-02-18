@@ -67,11 +67,18 @@ export default function Home() {
   const [isSaved, setIsSaved] = useState(false);
   const [pendingContactId, setPendingContactId] = useState<number | null>(null);
   const [isSearchFlowExpanded, setIsSearchFlowExpanded] = useState(true);
+  // Initialize showTour based on localStorage
+  const [showTour, setShowTour] = useState(() => {
+    try {
+      return localStorage.getItem('hasSeenTour') !== 'true';
+    } catch (e) {
+      return true; // Default to showing tour if localStorage fails
+    }
+  });
+  const [pendingAeroLeadsId, setPendingAeroLeadsId] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  const [showTour, setShowTour] = useState(true);
-  const [pendingAeroLeadsId, setPendingAeroLeadsId] = useState<number | null>(null);
 
   // Load state from localStorage on component mount
   useEffect(() => {
