@@ -250,10 +250,10 @@ export default function Outreach() {
                   <h3 className="text-lg font-semibold mb-4">Key Members</h3>
                   <div className="space-y-2">
                     {topContacts.map((contact) => (
-                      <button
+                      <div
                         key={contact.id}
                         className={cn(
-                          "w-full text-left p-3 rounded-lg transition-colors relative",
+                          "w-full text-left p-3 rounded-lg transition-colors relative cursor-pointer",
                           "hover:bg-accent hover:text-accent-foreground",
                           selectedContactId === contact.id && "bg-primary text-primary-foreground",
                           selectedContactId !== contact.id && "bg-card hover:bg-accent"
@@ -278,18 +278,23 @@ export default function Outreach() {
                           )}
                         </div>
                         {/* Copy button */}
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className={cn(
-                            "absolute bottom-2 right-2 p-1.5 rounded-md",
+                            "absolute bottom-2 right-2 p-1.5",
                             "hover:bg-background/80 transition-colors",
                             "text-muted-foreground hover:text-foreground",
                             selectedContactId === contact.id && "hover:bg-primary-foreground/20 text-primary-foreground"
                           )}
-                          onClick={(e) => handleCopyContact(contact, e)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopyContact(contact, e);
+                          }}
                         >
                           <Copy className="w-4 h-4" />
-                        </button>
-                      </button>
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 </div>
