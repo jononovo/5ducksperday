@@ -48,6 +48,58 @@ const PLACEHOLDER_NAMES = new Set([
 ]);
 
 const GENERIC_TERMS = new Set([
+  // Job titles and positions
+  'chief', 'executive', 'officer', 'ceo', 'cto', 'cfo', 'coo', 'president',
+  'director', 'manager', 'managers', 'head', 'lead', 'senior', 'junior', 'principal',
+  'vice', 'assistant', 'associate', 'coordinator', 'specialist', 'analyst',
+  'administrator', 'supervisor', 'founder', 'co-founder', 'owner', 'partner',
+  'developer', 'engineer', 'architect', 'consultant', 'advisor', 'strategist',
+
+  // Departments and roles
+  'sales', 'marketing', 'finance', 'accounting', 'hr', 'human resources',
+  'operations', 'it', 'support', 'customer service', 'product', 'project',
+  'research', 'development', 'legal', 'compliance', 'quality', 'assurance',
+
+  // Business terms
+  'leadership', 'team', 'member', 'staff', 'employee', 'general',
+  'key', 'role', 'position', 'department', 'division', 'management',
+  'contact', 'person', 'representative', 'individual',
+  'business', 'company', 'enterprise', 'organization', 'corporation',
+  'admin', 'professional', 'consultant', 'consolidated',
+  'service', 'support', 'office', 'personnel', 'resource',
+  'operation', 'development', 'sales', 'marketing', 'customer',
+  'printing', 'press', 'commercial', 'digital', 'production',
+  'industry', 'focus', 'busy',
+
+  // Company identifiers
+  'company', 'consolidated', 'incorporated', 'inc', 'llc', 'ltd',
+  'group', 'holdings', 'solutions', 'services', 'international',
+  'global', 'industries', 'systems', 'technologies', 'associates',
+  'consulting', 'ventures', 'partners', 'limited', 'corp',
+  'cooperative', 'co', 'corporation', 'incorporated', 'plc',
+
+  // Industry terms
+  'information', 'technology', 'software', 'industry', 'reputation',
+  'quality', 'control', 'strategic', 'direction', 'overall',
+  'vision', 'strategy', 'innovation', 'infrastructure',
+  'technical', 'leader', 'focus', 'primary', 'secondary',
+
+  // Descriptive business terms
+  'commerce', 'website', 'design', 'web', 'executive',
+  'managing', 'operating', 'board', 'advisory', 'steering',
+  'corporate', 'enterprise', 'business', 'commercial',
+
+  // Planning 
+  'planning', 'schedule', 'project', 'plan', 'budget', 'budgeting', 'time', 
+
+  // Marketing Sector
+  'marketing', 'digital', 'strategist', 'interactive', 'executive', 'managing', 'operating', 'board', 'advisory', 'steering',
+  'corporate', 'enterprise', 'business', 'commercial',
+
+  // Tech Sector
+  'tech', 'stack', 'implementation', 'verification', 'process', 'managing', 'operating', 'board', 'advisory', 'steering',
+  'corporate', 'enterprise', 'business', 'commercial',
+
   // Construction Sector
   'building', 'construction', 'development', 'project', 'site', 'planning', 'design', 'engineering',
   'architecture', 'infrastructure', 'facility', 'maintenance', 'operations',
