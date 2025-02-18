@@ -65,19 +65,28 @@ class EnrichmentQueue {
           }
 
           console.log(`Processing contact ${contact.name} from ${company.name}`);
-          const enrichedDetails = await searchContactDetails(contact.name, company.name);
+          const enrichedDetails = await searchContactDetails(
+            contact.name,
+            company.name,
+            {
+              city: company.city || undefined,
+              state: company.state || undefined
+            }
+          );
 
-          if (Object.keys(enrichedDetails).length > 0) {
-            await storage.updateContact(item.contactId, {
-              ...enrichedDetails,
-              completedSearches: [...(contact.completedSearches || []), 'contact_enrichment'],
-              lastEnriched: new Date()
-            });
-            console.log(`Successfully enriched contact ${contact.name}`);
-          } else {
-            console.log(`No enriched details found for contact ${contact.name}`);
+          // Always mark as enriched even if no new details found
+          const completedSearches = [...(contact.completedSearches || [])];
+          if (!completedSearches.includes('contact_enrichment')) {
+            completedSearches.push('contact_enrichment');
           }
 
+          await storage.updateContact(item.contactId, {
+            ...enrichedDetails,
+            completedSearches,
+            lastEnriched: new Date()
+          });
+
+          console.log(`Successfully processed contact ${contact.name}`);
           this.incrementCompleted(queueId);
 
           // Add a small delay between processing items to avoid overwhelming the API
