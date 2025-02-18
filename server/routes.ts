@@ -682,6 +682,13 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       }
       console.log('Found company:', company.name);
 
+      // Get the AeroLeads API key from environment variables
+      const aeroLeadsApiKey = process.env.AEROLEADS_API_KEY;
+      if (!aeroLeadsApiKey) {
+        res.status(500).json({ message: "AeroLeads API key not configured" });
+        return;
+      }
+
       // Use the AeroLeads API to search for the email
       const { searchAeroLeads } = await import('./lib/search-logic/email-discovery/aeroleads-search');
       console.log('Initiating AeroLeads search...');
@@ -689,16 +696,19 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const result = await searchAeroLeads(
         contact.name,
         company.name,
-        '9aa11ffaad48543f84020a6ae70b62e2' // API key
+        aeroLeadsApiKey
       );
 
       console.log('AeroLeads search result:', result);
 
       // Update the contact with the results
-      const updatedContact = await storage.updateContactWithAeroLeadsResult(
-        contactId,
-        result
-      );
+      const updatedContact = await storage.updateContact(contactId, {
+        ...contact,
+        email: result.email,
+        nameConfidenceScore: result.confidence,
+        completedSearches: [...(contact.completedSearches || []), 'aeroleads_search'],
+        lastValidated: new Date()
+      });
 
       console.log('Contact updated with AeroLeads result:', updatedContact);
       res.json(updatedContact);
