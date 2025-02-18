@@ -34,14 +34,7 @@ export default function CompanyTable({ companies }: CompanyTableProps) {
           {companies.map((company) => (
             <TableRow key={company.id}>
               <TableCell className="font-medium">
-                <div>
-                  <div>{company.name}</div>
-                  {company.shortSummary && (
-                    <div className="text-sm text-muted-foreground mt-1">
-                      {company.shortSummary}
-                    </div>
-                  )}
-                </div>
+                <div>{company.name}</div>
               </TableCell>
               <TableCell>{company.size} employees</TableCell>
               <TableCell>

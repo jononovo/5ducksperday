@@ -40,6 +40,7 @@ const GENERIC_TERMS = new Set([
 
   // Common Industry terms used in page titles
   'information', 'technology', 'software', 'services', 'consulting', 'Industry', 'Reputation', 'Quality', 'Control', 'Strategic', 'Direction', 'Overall', 'Vision', 'Technology', 'Strategy', 'Innovation', 'Infrastructure', 'Innovation', 'Technical', 'Leader', 'Industry', 'Focus', 'primary', 'secondary','revenue','Market','Presence','Score','Competitive','Landscape','Graphic','Validation','Guarantee', 'Market', 'Presence', 'Competitive', 'Landscape', 'Quality', 'Verification', 'Score',
+
   
 ]);
 
