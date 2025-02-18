@@ -9,38 +9,35 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Add console logs for debugging
-console.log("Firebase config:", {
-  ...firebaseConfig,
-  apiKey: firebaseConfig.apiKey ? "[PRESENT]" : "[MISSING]",
+// Debug environment variables (values will be masked)
+console.log("Firebase environment variables status:", {
+  VITE_FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY ? "✓ present" : "✗ missing",
+  VITE_FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID ? "✓ present" : "✗ missing",
+  VITE_FIREBASE_APP_ID: import.meta.env.VITE_FIREBASE_APP_ID ? "✓ present" : "✗ missing"
 });
-
-// Validate required environment variables
-if (!firebaseConfig.apiKey) {
-  console.error("Missing VITE_FIREBASE_API_KEY environment variable");
-}
-if (!firebaseConfig.projectId) {
-  console.error("Missing VITE_FIREBASE_PROJECT_ID environment variable");
-}
-if (!firebaseConfig.appId) {
-  console.error("Missing VITE_FIREBASE_APP_ID environment variable");
-}
 
 let app = null;
 let auth = null;
 let googleProvider = null;
 
-// Only initialize Firebase if we have all required config
-if (firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId) {
-  try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    googleProvider = new GoogleAuthProvider();
-  } catch (error) {
-    console.error("Firebase initialization error:", error);
+try {
+  if (!firebaseConfig.apiKey) {
+    throw new Error("Missing VITE_FIREBASE_API_KEY environment variable");
   }
-} else {
-  console.error("Firebase initialization skipped due to missing configuration");
+  if (!firebaseConfig.projectId) {
+    throw new Error("Missing VITE_FIREBASE_PROJECT_ID environment variable");
+  }
+  if (!firebaseConfig.appId) {
+    throw new Error("Missing VITE_FIREBASE_APP_ID environment variable");
+  }
+
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  googleProvider = new GoogleAuthProvider();
+  console.log("Firebase initialized successfully");
+} catch (error) {
+  console.error("Firebase initialization error:", error);
+  // Continue with local auth even if Firebase fails
 }
 
 export { app, auth, googleProvider };
