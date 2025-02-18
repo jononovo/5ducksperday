@@ -516,7 +516,7 @@ export default function Home() {
                           <TableCell>{contact.email || "N/A"}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
-                              <TooltipProvider>
+                              <TooltipProvider delayDuration={500}>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
