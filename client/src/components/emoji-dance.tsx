@@ -14,7 +14,7 @@ export const DANCE_ANIMATIONS = {
 const DANCE_DURATION = 5000; // 5 seconds
 const DANCE_INTERVAL = 180000; // 3 minutes
 
-export function useEmojiDance(initialState: EmojiState = 'egg'): [EmojiState, string] {
+export function useEmojiDance(initialState: EmojiState = 'egg'): [EmojiState, (state: EmojiState) => void, string] {
   const [state, setState] = useState<EmojiState>(initialState);
   const [currentDance, setCurrentDance] = useState<number>(1);
 
@@ -24,7 +24,7 @@ export function useEmojiDance(initialState: EmojiState = 'egg'): [EmojiState, st
       const danceRotation = setInterval(() => {
         // Trigger dance
         setState(`dancing${currentDance}` as EmojiState);
-        
+
         // Schedule end of dance
         setTimeout(() => {
           setState('settled');
@@ -44,5 +44,5 @@ export function useEmojiDance(initialState: EmojiState = 'egg'): [EmojiState, st
     state.startsWith('dancing') ? DANCE_ANIMATIONS[state as keyof typeof DANCE_ANIMATIONS] :
     '';
 
-  return [state, animationClass];
+  return [state, setState, animationClass];
 }

@@ -1,22 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useEmojiDance, type EmojiState } from "./emoji-dance";
 
 export function EggAnimation() {
   // Use our custom hook for the first egg's animations
-  const [firstEggState, firstEggAnimation] = useEmojiDance('egg');
+  const [firstEggState, setFirstEggState, firstEggAnimation] = useEmojiDance('egg');
 
   useEffect(() => {
     // Starting act (warmup) sequence
     const hatchingTimeout = setTimeout(() => {
-      setFirstEggState('hatching' as EmojiState);
+      setFirstEggState('hatching');
     }, 3000);
 
     const chickTimeout = setTimeout(() => {
-      setFirstEggState('chick' as EmojiState);
+      setFirstEggState('chick');
     }, 6000);
 
     const settleTimeout = setTimeout(() => {
-      setFirstEggState('settled' as EmojiState);
+      setFirstEggState('settled');
     }, 12000);
 
     return () => {
