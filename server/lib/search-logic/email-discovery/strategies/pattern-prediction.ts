@@ -1,6 +1,7 @@
 import type { EmailSearchStrategy, EmailSearchContext, EmailSearchResult } from '../types';
 import { validateEmailPattern, isValidBusinessEmail, isPlaceholderEmail } from '../../../results-analysis/email-analysis';
 import { validateName } from '../../../results-analysis/contact-name-validation';
+import { generatePossibleEmails } from '../../../results-analysis/email-extraction-format';
 
 // Common business email formats
 const EMAIL_FORMATS = [
@@ -12,17 +13,6 @@ const EMAIL_FORMATS = [
   (first: string, last: string) => `${first[0]}.${last}`
 ];
 
-function generatePossibleEmails(name: string, domain: string): string[] {
-  const nameParts = name.toLowerCase().split(/\s+/);
-  if (nameParts.length < 2) return [];
-
-  const firstName = nameParts[0];
-  const lastName = nameParts[nameParts.length - 1];
-
-  return EMAIL_FORMATS.map(format =>
-    `${format(firstName, lastName)}@${domain}`
-  );
-}
 
 export const patternPredictionStrategy: EmailSearchStrategy = {
   name: "Pattern Prediction",

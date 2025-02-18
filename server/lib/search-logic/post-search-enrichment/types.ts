@@ -13,6 +13,7 @@ export interface QueueStatus {
   completedItems: number;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   lastUpdated: Date;
+  searchId: string; // Added searchId to track associated search
 }
 
 export interface EnrichmentResult {

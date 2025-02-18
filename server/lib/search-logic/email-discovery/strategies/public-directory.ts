@@ -1,5 +1,6 @@
 import type { EmailSearchStrategy, EmailSearchContext, EmailSearchResult } from '../types';
 import { validateEmailPattern, isValidBusinessEmail } from '../../../results-analysis/email-analysis';
+import { extractDomainFromContext } from '../../../results-analysis/email-extraction-format';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 

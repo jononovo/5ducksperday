@@ -13,7 +13,7 @@ const EMAIL_FORMATS = [
   (first: string, last: string) => `${first[0]}.${last}`
 ];
 
-function generatePossibleEmails(name: string, domain: string): string[] {
+export function generatePossibleEmails(name: string, domain: string): string[] {
   const nameParts = name.toLowerCase().split(/\s+/);
   if (nameParts.length < 2) return [];
 
@@ -25,7 +25,7 @@ function generatePossibleEmails(name: string, domain: string): string[] {
   );
 }
 
-function extractDomainFromContext(text: string): string | null {
+export function extractDomainFromContext(text: string): string | null {
   const domainPattern = /(?:@|http:\/\/|https:\/\/|www\.)([a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,})/;
   const match = text.match(domainPattern);
   return match ? match[1] : null;
@@ -36,7 +36,7 @@ const placeholderNames = new Set([
   'test user', 'demo user', 'example user'
 ]);
 
-const isPlaceholderName = (name: string): boolean => placeholderNames.has(name.toLowerCase());
+export const isPlaceholderName = (name: string): boolean => placeholderNames.has(name.toLowerCase());
 
 interface ValidationOptions {
   minimumScore?: number;

@@ -50,7 +50,7 @@ const PLACEHOLDER_NAMES = new Set([
 const GENERIC_TERMS = new Set([
 
   // Do NOT remove ANY of these terms. They are used to detect generic names.
-  
+
   // Job titles and positions
   'chief', 'executive', 'officer', 'ceo', 'cto', 'cfo', 'coo', 'president',
   'director', 'manager', 'managers', 'head', 'lead', 'senior', 'junior', 'principal',
@@ -149,15 +149,13 @@ const GENERIC_TERMS = new Set([
   'real-estate', 'property', 'home', 'rental', 'sale', 'buy', 'buying', 'sell', 'selling', 'housing', 'development',
 
   // Catering Sector 
-  'catering', 'restaurant', 'food', 'menu', 'dining', 'service', 'delivery'
+  'catering', 'restaurant', 'food', 'menu', 'dining', 'service', 'delivery',
 
   // Geographic Sector
-  'geography', 'location', 'region', 'country', 'city', 'state', 'province', 'county,', 'municipality', 'district', 'neighborhood', 'village', 'town', 'street', 'block', 'corner', 'road', 'avenue', 'highway', 'freeway', 
+  'geography', 'location', 'region', 'country', 'city', 'state', 'province', 'county', 'municipality', 'district', 'neighborhood', 'village', 'town', 'street', 'block', 'corner', 'road', 'avenue', 'highway', 'freeway',
 
   // Govt Sector
-  'government', 'governor', 'governor-general', 'governor-general', 'authoritative', 'executive', 'chief', 'chief-executive', 'authority', 
-  
-  
+  'government', 'governor', 'governor-general', 'governor-general', 'authoritative', 'executive', 'chief', 'chief-executive', 'authority'
 ]);
 
 // Common business email formats for contact extraction

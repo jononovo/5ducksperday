@@ -4,6 +4,10 @@ export interface EmailSearchContext {
   companyDomain?: string;
   maxDepth?: number;
   timeout?: number;
+  existingContacts?: Array<{
+    name: string;
+    email?: string;
+  }>;
 }
 
 export interface EmailSearchResult {
