@@ -111,6 +111,18 @@ export default function Outreach() {
 
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
+      // First check Gmail authorization
+      const authResponse = await apiRequest("GET", "/api/gmail/auth-status");
+      if (!authResponse.ok) {
+        throw new Error("Failed to check Gmail authorization");
+      }
+
+      const authStatus = await authResponse.json();
+      if (!authStatus.authorized) {
+        throw new Error("Gmail authorization required. Please sign in with Google to grant email permissions.");
+      }
+
+      // Proceed with sending email
       const payload = {
         to: toEmail,
         subject: emailSubject,

@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express, Request } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -124,6 +124,15 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
   }
 }
 
+// Add requireAuth middleware
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+  next();
+}
+
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'temporary-secret-key',
@@ -202,9 +211,20 @@ export function setupAuth(app: Express) {
     }
   });
 
+  // Add to the Google auth route
   app.post("/api/google-auth", async (req, res, next) => {
     try {
-      const { email, username } = req.body;
+      const { email, username, accessToken } = req.body;
+
+      // Store Gmail token in session if provided
+      if (accessToken) {
+        req.session.gmailToken = accessToken;
+        console.log('Stored Gmail token in session:', {
+          hasToken: !!accessToken,
+          sessionID: req.sessionID,
+          timestamp: new Date().toISOString()
+        });
+      }
 
       // Try to find user by email
       let user = await storage.getUserByEmail(email);
@@ -244,5 +264,16 @@ export function setupAuth(app: Express) {
       return res.status(401).json({ error: "Not authenticated" });
     }
     res.json(req.user);
+  });
+
+  // Add new route to check Gmail authorization status
+  app.get("/api/gmail/auth-status", requireAuth, (req, res) => {
+    const hasGmailToken = !!req.session.gmailToken;
+    console.log('Checking Gmail auth status:', {
+      hasToken: hasGmailToken,
+      sessionID: req.sessionID,
+      timestamp: new Date().toISOString()
+    });
+    res.json({ authorized: hasGmailToken });
   });
 }

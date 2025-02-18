@@ -116,7 +116,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Force re-authentication to request new scopes
       firebaseGoogleProvider.setCustomParameters({
         prompt: 'consent',
-        access_type: 'offline'
+        access_type: 'offline',
+        scope: [
+          'https://www.googleapis.com/auth/userinfo.email',
+          'https://www.googleapis.com/auth/userinfo.profile',
+          'https://www.googleapis.com/auth/gmail.send',
+          'https://www.googleapis.com/auth/gmail.compose'
+        ].join(' ')
       });
 
       console.log('Calling signInWithPopup...');
@@ -177,59 +183,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Function to get Firebase ID token and sync with backend
   const syncWithBackend = async (firebaseUser: FirebaseUser) => {
     try {
-      console.log('Getting ID token for backend sync');
-      const idToken = await firebaseUser.getIdToken();
-      console.log('ID token obtained successfully');
+      // Get the access token for Gmail API
+      const credential = firebaseUser.providerData[0];
+      const accessToken = (credential as any)?.accessToken;
 
       console.log('Making backend sync request', {
-        endpoint: '/api/user',
+        endpoint: '/api/google-auth',
+        hasAccessToken: !!accessToken,
         domain: window.location.hostname
       });
 
-      const res = await fetch("/api/user", {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
+      const createRes = await apiRequest("POST", "/api/google-auth", {
+        email: firebaseUser.email,
+        username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+        accessToken // Add the access token to the request
       });
 
-      console.log('Backend sync response:', {
-        status: res.status,
-        ok: res.ok,
-        domain: window.location.hostname
-      });
-
-      if (!res.ok) {
-        console.log('Backend sync response not OK:', {
-          status: res.status,
-          domain: window.location.hostname
-        });
-
-        // If user doesn't exist, create them
-        if (res.status === 401) {
-          console.log('Creating new user in backend', {
-            email: firebaseUser.email?.split('@')[0] + '@...',
-            displayName: firebaseUser.displayName
-          });
-
-          const createRes = await apiRequest("POST", "/api/google-auth", {
-            email: firebaseUser.email,
-            username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-          });
-
-          if (!createRes.ok) {
-            throw new Error(`Failed to create user: ${createRes.status}`);
-          }
-
-          const user = await createRes.json();
-          queryClient.setQueryData(["/api/user"], user);
-          return;
-        }
-
-        throw new Error(`Backend sync failed: ${res.status}`);
+      if (!createRes.ok) {
+        throw new Error(`Failed to sync with backend: ${createRes.status}`);
       }
 
       console.log('Successfully synced with backend');
-      const user = await res.json();
+      const user = await createRes.json();
       queryClient.setQueryData(["/api/user"], user);
 
     } catch (error) {
