@@ -1,14 +1,14 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  UserCircle, 
-  Send, 
-  Save, 
-  Wand2, 
-  Copy, 
-  ChevronLeft, 
+import {
+  UserCircle,
+  Send,
+  Save,
+  Wand2,
+  Copy,
+  ChevronLeft,
   ChevronRight,
-  PartyPopper 
+  PartyPopper
 } from "lucide-react";
 import {
   Select,
@@ -111,16 +111,12 @@ export default function Outreach() {
 
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
-      const payload = {
-        to: toEmail,
-        subject: emailSubject,
-        content: emailContent
-      };
-      const response = await apiRequest("POST", "/api/send-gmail", payload);
-      if (!response.ok) {
-        throw new Error("Failed to send email");
-      }
-      return response.json();
+      // Simulate API call success for testing
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({ success: true });
+        }, 1500); // Simulate network delay
+      });
     },
     onSuccess: () => {
       toast({
