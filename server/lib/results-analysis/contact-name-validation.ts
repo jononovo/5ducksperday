@@ -56,7 +56,7 @@ const GENERIC_TERMS = new Set([
   'director', 'manager', 'managers', 'head', 'lead', 'senior', 'junior', 'principal',
   'vice', 'assistant', 'associate', 'coordinator', 'specialist', 'analyst',
   'administrator', 'supervisor', 'founder', 'co-founder', 'owner', 'partner',
-  'developer', 'engineer', 'architect', 'consultant', 'advisor', 'strategist',
+  'developer', 'engineer', 'architect', 'consultant', 'advisor', 'strategist', 'role', 'roles',
 
   // Departments and roles
   'sales', 'marketing', 'finance', 'accounting', 'hr', 'human resources',
@@ -85,7 +85,7 @@ const GENERIC_TERMS = new Set([
   'information', 'technology', 'software', 'industry', 'reputation',
   'quality', 'control', 'strategic', 'direction', 'overall',
   'vision', 'strategy', 'innovation', 'infrastructure',
-  'technical', 'leader', 'focus', 'primary', 'secondary', 'expert', 'experts', 'clients',  'base',
+  'technical', 'leader', 'focus', 'primary', 'secondary', 'expert', 'experts', 'clients',  'base', 'score',  'validation',  
 
   // Descriptive business terms
   'commerce', 'website', 'design', 'web', 'executive',
@@ -152,7 +152,7 @@ const GENERIC_TERMS = new Set([
   'catering', 'restaurant', 'food', 'menu', 'dining', 'service', 'delivery',
 
   // Geographic Sector
-  'geography', 'location', 'region', 'country', 'city', 'state', 'province', 'county', 'municipality', 'district', 'neighborhood', 'village', 'town', 'street', 'block', 'corner', 'road', 'avenue', 'highway', 'freeway', 'northern', 'southern', 'eastern', 'western', 'north', 'south', 'east', 'west', 
+  'geography', 'location', 'region', 'country', 'city', 'state', 'province', 'county', 'municipality', 'district', 'neighborhood', 'village', 'town', 'street', 'block', 'corner', 'road', 'avenue', 'highway', 'freeway', 'northern', 'southern', 'eastern', 'western', 'north', 'south', 'east', 'west', 'asia', 'pacific',  
 
   // Govt Sector
   'government', 'governor', 'governor-general', 'governor-general', 'authoritative', 'executive', 'chief', 'chief-executive', 'authority'
