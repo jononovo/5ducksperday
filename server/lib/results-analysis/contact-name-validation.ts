@@ -8,13 +8,6 @@ export interface NameValidationResult {
   context?: string;
 }
 
-export interface ValidationOptions {
-  useLocalValidation?: boolean;
-  localValidationWeight?: number;
-  minimumScore?: number;
-  searchPrompt?: string;  // Added for search term validation
-}
-
 // Centralized list of placeholder and generic terms
 const PLACEHOLDER_NAMES = new Set([
   'john doe', 'jane doe', 'john smith', 'jane smith',
@@ -24,9 +17,9 @@ const PLACEHOLDER_NAMES = new Set([
 const GENERIC_TERMS = new Set([
   // Job titles and positions
   'chief', 'executive', 'officer', 'ceo', 'cto', 'cfo', 'coo', 'president',
-  'director', 'manager', 'head', 'lead', 'senior', 'junior', 'principal',
+  'director', 'manager', 'managers', 'head', 'lead', 'senior', 'junior', 'principal',
   'vice', 'assistant', 'associate', 'coordinator', 'specialist', 'analyst',
-  'administrator', 'supervisor', 'founder', 'co-founder', 'owner', 'partner',
+  'administrator', 'supervisor', 'founder', 'co-founder', 'owner', 'partner', 
 
   // Generic business terms
   'leadership', 'team', 'member', 'staff', 'employee', 'general',
@@ -46,45 +39,19 @@ const GENERIC_TERMS = new Set([
   'cooperative', 'co', 'corporation', 'incorporated', 'plc',
 
   // Common Industry terms used in page titles
-  'information', 'technology', 'software', 'services', 'consulting', 'Industry', 
-  'Reputation', 'Quality', 'Control', 'Strategic', 'Direction', 'Overall', 
-  'Vision', 'Technology', 'Strategy', 'Innovation', 'Infrastructure', 'Innovation', 
-  'Technical', 'Leader', 'Industry', 'Focus', 'primary', 'secondary',
+  'information', 'technology', 'software', 'services', 'consulting', 'Industry', 'Reputation', 'Quality', 'Control', 'Strategic', 'Direction', 'Overall', 'Vision', 'Technology', 'Strategy', 'Innovation', 'Infrastructure', 'Innovation', 'Technical', 'Leader', 'Industry', 'Focus', 'primary', 'secondary',
+  
 ]);
 
 export function isPlaceholderName(name: string): boolean {
   return PLACEHOLDER_NAMES.has(name.toLowerCase());
 }
 
-// New function to check for search prompt terms in name
-function containsSearchTerms(name: string, searchPrompt?: string): number {
-  if (!searchPrompt) return 0;
-
-  const nameParts = name.toLowerCase().split(/[\s-]+/);
-  const searchTerms = searchPrompt.toLowerCase()
-    .split(/[\s,.-]+/)
-    .filter(term => term.length > 3); // Only consider meaningful terms
-
-  let matchCount = 0;
-  for (const term of searchTerms) {
-    if (nameParts.some(part => part.includes(term) || term.includes(part))) {
-      matchCount++;
-    }
-  }
-
-  // Return penalty score based on number of matches
-  return matchCount * 25; // Each match reduces score by 25 points
-}
-
-export function validateNameLocally(
-  name: string, 
-  context: string = "", 
-  options: ValidationOptions = {}
-): NameValidationResult {
+export function validateNameLocally(name: string, context: string = ""): NameValidationResult {
   const isGeneric = isGenericName(name);
   if (isGeneric) {
     return { 
-      score: 20,
+      score: 20, // Reduced from 30 to be more aggressive
       isGeneric: true, 
       confidence: 90,
       name,
@@ -92,15 +59,11 @@ export function validateNameLocally(
     };
   }
 
-  const baseScore = calculateNameConfidenceScore(name, context);
-  const searchTermPenalty = containsSearchTerms(name, options.searchPrompt);
-
-  const finalScore = Math.max(20, Math.min(100, baseScore - searchTermPenalty));
-
+  const score = calculateNameConfidenceScore(name, context);
   return {
-    score: finalScore,
+    score,
     isGeneric: false,
-    confidence: finalScore > 80 ? 90 : finalScore > 50 ? 70 : 50,
+    confidence: score > 80 ? 90 : score > 50 ? 70 : 50,
     name,
     context
   };
@@ -144,7 +107,7 @@ function calculateNameConfidenceScore(name: string, context: string): number {
 
   // Check for generic terms in each part of the name
   if (nameParts.some(part => GENERIC_TERMS.has(part.toLowerCase()))) {
-    return 25;
+    return 25; // Slightly higher than placeholder but still very low
   }
 
   // Base score for proper name format
@@ -181,11 +144,17 @@ function calculateNameConfidenceScore(name: string, context: string): number {
 
   redFlags.forEach(flag => {
     if (flag.test(name)) {
-      score -= 20;
+      score -= 20; // Increased penalty from 15 to 20
     }
   });
 
   return Math.max(20, Math.min(100, score));
+}
+
+export interface ValidationOptions {
+  useLocalValidation?: boolean;
+  localValidationWeight?: number;
+  minimumScore?: number;
 }
 
 const defaultOptions: ValidationOptions = {
