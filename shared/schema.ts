@@ -11,7 +11,7 @@ export const users = pgTable("users", {
 
 export const lists = pgTable("lists", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),  
+  userId: integer("user_id").notNull().references(() => users.id),  
   listId: integer("list_id").notNull(),
   prompt: text("prompt").notNull(),
   resultCount: integer("result_count").notNull(),
@@ -20,6 +20,7 @@ export const lists = pgTable("lists", {
 
 export const companies = pgTable("companies", {
   id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   listId: integer("list_id"),  
   age: integer("age"),
@@ -41,6 +42,7 @@ export const companies = pgTable("companies", {
 
 export const contacts = pgTable("contacts", {
   id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
   companyId: integer("company_id").notNull(),
   name: text("name").notNull(),
   role: text("role"),
@@ -84,7 +86,7 @@ export const searchApproaches = pgTable("search_approaches", {
 
 export const campaigns = pgTable("campaigns", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),  
+  userId: integer("user_id").notNull().references(() => users.id),
   campaignId: integer("campaign_id").notNull(),
   name: text("name").notNull(),
   description: text("description"),
@@ -103,7 +105,7 @@ export const campaignLists = pgTable("campaign_lists", {
 
 export const emailTemplates = pgTable("email_templates", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),  
+  userId: integer("user_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   subject: text("subject").notNull(),
   content: text("content").notNull(),

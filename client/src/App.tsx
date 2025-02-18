@@ -14,10 +14,10 @@ import CampaignDetails from "@/pages/campaign-details";
 import Outreach from "@/pages/outreach";
 import DatabasePage from "@/pages/database";
 import CompanyDetails from "@/pages/company-details";
+import ContactDetails from "@/pages/contact-details";
 import ApiTemplates from "@/pages/api-templates";
 import NotFound from "@/pages/not-found";
 import MainNav from "@/components/main-nav";
-import ContactDetails from "@/pages/contact-details";
 
 function Router() {
   return (
@@ -28,13 +28,21 @@ function Router() {
         <ProtectedRoute path="/planning" component={Planning} />
         <ProtectedRoute path="/" component={Home} />
         <ProtectedRoute path="/lists" component={Lists} />
-        <ProtectedRoute path="/lists/:listId" component={ListDetails} />
+        <ProtectedRoute path="/lists/:listId" component={() => {
+          return <ListDetails />;
+        }} />
         <ProtectedRoute path="/campaigns" component={Campaigns} />
-        <ProtectedRoute path="/campaigns/:id" component={CampaignDetails} />
+        <ProtectedRoute path="/campaigns/:id" component={() => {
+          return <CampaignDetails />;
+        }} />
         <ProtectedRoute path="/outreach" component={Outreach} />
         <ProtectedRoute path="/database" component={DatabasePage} />
-        <ProtectedRoute path="/companies/:id" component={CompanyDetails} />
-        <ProtectedRoute path="/contacts/:id" component={ContactDetails} />
+        <ProtectedRoute path="/companies/:id" component={() => {
+          return <CompanyDetails />;
+        }} />
+        <ProtectedRoute path="/contacts/:id" component={() => {
+          return <ContactDetails />;
+        }} />
         <ProtectedRoute path="/api-templates" component={ApiTemplates} />
         <Route component={NotFound} />
       </Switch>
