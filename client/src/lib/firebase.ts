@@ -1,5 +1,5 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, type Auth, GoogleAuthProvider, onAuthStateChanged, type User } from "firebase/auth";
 
 // Validate Firebase configuration
 function validateFirebaseConfig() {
@@ -64,6 +64,7 @@ function validateFirebaseConfig() {
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
 let googleProvider: GoogleAuthProvider | undefined;
+let currentAuthToken: string | null = null;
 
 try {
   console.log('Starting Firebase initialization...', {
@@ -93,6 +94,37 @@ try {
   // Add basic profile scopes
   googleProvider.addScope('email');
   googleProvider.addScope('profile');
+
+  // Set up auth state change listener
+  if (auth) {
+    onAuthStateChanged(auth, async (user: User | null) => {
+      if (user) {
+        try {
+          // Get the ID token
+          const token = await user.getIdToken(true);
+          currentAuthToken = token;
+
+          // Set up axios defaults for the auth header
+          const axios = (await import('axios')).default;
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+          console.log('Auth token set successfully:', {
+            uid: user.uid,
+            email: user.email?.split('@')[0] + '@...',
+            timestamp: new Date().toISOString()
+          });
+        } catch (error) {
+          console.error('Error getting auth token:', error);
+          currentAuthToken = null;
+        }
+      } else {
+        currentAuthToken = null;
+        const axios = (await import('axios')).default;
+        delete axios.defaults.headers.common['Authorization'];
+        console.log('User signed out, removed auth token');
+      }
+    });
+  }
 
   // Log successful initialization with domain info
   console.log('Firebase initialized successfully:', {
@@ -125,3 +157,4 @@ try {
 export const firebaseApp = app;
 export const firebaseAuth = auth;
 export const firebaseGoogleProvider = googleProvider;
+export const getAuthToken = () => currentAuthToken;

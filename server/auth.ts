@@ -81,7 +81,6 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
     console.warn('Token verification failed:', {
       reason: !authHeader?.startsWith('Bearer ') ? 'invalid header' : 'firebase admin not initialized',
       timestamp: new Date().toISOString(),
-      headers: req.headers // Log headers for debugging
     });
     return null;
   }
@@ -94,8 +93,6 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
     // Log the token scopes and claims
     console.log('Token verified successfully:', {
       email: decodedToken.email?.split('@')[0] + '@...',
-      scopes: decodedToken.firebase?.sign_in_attributes?.scopes,
-      claims: Object.keys(decodedToken),
       timestamp: new Date().toISOString()
     });
 
@@ -113,11 +110,7 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
         timestamp: new Date().toISOString()
       });
 
-      user = await storage.createUser({
-        email: decodedToken.email,
-        username: decodedToken.email.split('@')[0],
-        password: await hashPassword(randomBytes(32).toString('hex')),
-      });
+      user = await storage.createUser(decodedToken.email);
     }
 
     return user;
@@ -125,7 +118,6 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
     console.error('Firebase token verification error:', {
       error,
       timestamp: new Date().toISOString(),
-      headers: req.headers // Log headers for debugging
     });
     return null;
   }
@@ -175,7 +167,7 @@ export function setupAuth(app: Express) {
 
   passport.deserializeUser(async (id: number, done) => {
     try {
-      const user = await storage.getUser(id);
+      const user = await storage.getUserById(id);
       done(null, user);
     } catch (err) {
       done(err);
@@ -238,12 +230,7 @@ export function setupAuth(app: Express) {
 
       if (!user) {
         // Create new user if doesn't exist
-        user = await storage.createUser({
-          email,
-          username,
-          // Generate a random password for Google Auth users
-          password: await hashPassword(randomBytes(32).toString('hex')),
-        });
+        user = await storage.createUser(email);
       }
 
       req.login(user, (err) => {

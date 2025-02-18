@@ -6,25 +6,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 const tourSteps = [
-  {
-    title: "Welcome to Simple B2B Sales",
-    content: (
-      <div className="text-center space-y-4">
-        <p className="text-xl text-muted-foreground italic">
-          5 Simple Leads DONE in 1 Minute EVERY Day
-        </p>
-        <div className="flex justify-center gap-4 text-4xl">
-          <span>🐥</span>
-          <span>🥚</span>
-          <span>🥚</span>
-          <span>🥚</span>
-          <span>🥚</span>
-        </div>
-      </div>
-    ),
-  },
   {
     title: "Search for Leads",
     content: (
@@ -59,25 +44,32 @@ interface IntroTourModalProps {
 export function IntroTourModal({ open, onOpenChange }: IntroTourModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
-  useEffect(() => {
-    try {
-      if (open && localStorage.getItem('hasSeenTour') === 'true') {
-        onOpenChange(false);
-      }
-    } catch (e) {
-      console.error('Error accessing localStorage:', e);
-    }
-  }, [open, onOpenChange]);
+  // Query to get user preferences
+  const { data: preferences } = useQuery({
+    queryKey: ["/api/user/preferences"],
+  });
 
-  const handleNext = () => {
+  // Mutation to update preferences
+  const updatePreferencesMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/user/preferences", {
+        hasSeenTour: true,
+      });
+      return response.json();
+    },
+  });
+
+  useEffect(() => {
+    if (open && preferences?.hasSeenTour) {
+      onOpenChange(false);
+    }
+  }, [open, preferences, onOpenChange]);
+
+  const handleNext = async () => {
     if (currentStep < tourSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      try {
-        localStorage.setItem('hasSeenTour', 'true');
-      } catch (e) {
-        console.error('Error setting localStorage:', e);
-      }
+      await updatePreferencesMutation.mutateAsync();
       onOpenChange(false);
       setCurrentStep(0);
     }

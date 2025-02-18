@@ -662,7 +662,35 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
-  // Add this route within the registerRoutes function, before the return statement
+  // Add these routes before the return statement in registerRoutes
+  // User Preferences
+  app.get("/api/user/preferences", requireAuth, async (req, res) => {
+    try {
+      const preferences = await storage.getUserPreferences(req.user!.id);
+      res.json(preferences || { hasSeenTour: false });
+    } catch (error) {
+      console.error('Error getting user preferences:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to get user preferences"
+      });
+    }
+  });
+
+  app.post("/api/user/preferences", requireAuth, async (req, res) => {
+    try {
+      const { hasSeenTour } = req.body;
+      const preferences = await storage.updateUserPreferences(req.user!.id, {
+        hasSeenTour: hasSeenTour
+      });
+      res.json(preferences);
+    } catch (error) {
+      console.error('Error updating user preferences:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to update user preferences"
+      });
+    }
+  });
+
   app.post("/api/contacts/:contactId/aeroleads", requireAuth, async (req, res) => {
     try {
       const contactId = parseInt(req.params.contactId);

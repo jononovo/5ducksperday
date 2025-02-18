@@ -115,6 +115,14 @@ export const emailTemplates = pgTable("email_templates", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+export const userPreferences = pgTable("user_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  hasSeenTour: boolean("has_seen_tour").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 const listSchema = z.object({
   listId: z.number().min(1001),
   prompt: z.string().min(1, "Search prompt is required"),
@@ -230,6 +238,11 @@ const emailTemplateSchema = z.object({
   category: z.string().default('general')
 });
 
+const userPreferencesSchema = z.object({
+  userId: z.number(),
+  hasSeenTour: z.boolean().default(false)
+});
+
 export const insertListSchema = listSchema.extend({
   userId: z.number()
 });
@@ -244,6 +257,7 @@ export const insertEmailTemplateSchema = emailTemplateSchema.extend({
   userId: z.number()
 });
 export const insertContactFeedbackSchema = contactFeedbackSchema;
+export const insertUserPreferencesSchema = userPreferencesSchema;
 
 export type List = typeof lists.$inferSelect;
 export type InsertList = z.infer<typeof insertListSchema>;
@@ -261,10 +275,8 @@ export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
 export type ContactFeedback = typeof contactFeedback.$inferSelect;
 export type InsertContactFeedback = z.infer<typeof insertContactFeedbackSchema>;
-
-export type SearchModuleConfig = z.infer<typeof searchModuleConfigSchema>;
-export type SearchSection = SearchModuleConfig['searchSections'][string];
-export type SearchImplementation = SearchSection['searches'][number];
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 
 // Add user schema and type
 export const userSchema = z.object({
