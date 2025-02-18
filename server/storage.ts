@@ -16,12 +16,11 @@ export interface IStorage {
   // User Preferences
   getUserPreferences(userId: number): Promise<UserPreferences | undefined>;
   updateUserPreferences(userId: number, data: Partial<InsertUserPreferences>): Promise<UserPreferences>;
-
+  initializeUserPreferences(userId: number): Promise<UserPreferences>;
   // User Auth
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserById(id: number): Promise<User | undefined>;
   createUser(email: string): Promise<User>;
-
   // Lists
   listLists(userId: number): Promise<List[]>;
   getList(listId: number, userId: number): Promise<List | undefined>;
@@ -29,31 +28,26 @@ export interface IStorage {
   getNextListId(): Promise<number>;
   createList(data: InsertList): Promise<List>;
   updateCompanyList(companyId: number, listId: number): Promise<void>;
-
   // Companies
   listCompanies(userId: number): Promise<Company[]>;
   getCompany(id: number, userId: number): Promise<Company | undefined>;
   createCompany(data: InsertCompany): Promise<Company>;
-
   // Contacts
   listContactsByCompany(companyId: number, userId: number): Promise<Contact[]>;
   getContact(id: number, userId: number): Promise<Contact | undefined>;
   createContact(data: InsertContact): Promise<Contact>;
   updateContact(id: number, data: Partial<Contact>): Promise<Contact>;
   deleteContactsByCompany(companyId: number, userId: number): Promise<void>;
-
   // Campaigns
   listCampaigns(userId: number): Promise<Campaign[]>;
   getCampaign(id: number, userId: number): Promise<Campaign | undefined>;
   getNextCampaignId(): Promise<number>;
   createCampaign(data: InsertCampaign): Promise<Campaign>;
   updateCampaign(id: number, data: Partial<Campaign>, userId: number): Promise<Campaign>;
-
   // Email Templates
   listEmailTemplates(userId: number): Promise<EmailTemplate[]>;
   getEmailTemplate(id: number, userId: number): Promise<EmailTemplate | undefined>;
   createEmailTemplate(data: InsertEmailTemplate): Promise<EmailTemplate>;
-
   // Search Approaches
   listSearchApproaches(): Promise<SearchApproach[]>;
   updateSearchApproach(id: number, data: Partial<SearchApproach>): Promise<SearchApproach>;
@@ -72,20 +66,39 @@ class DatabaseStorage implements IStorage {
   }
 
   async createUser(email: string): Promise<User> {
-    const [user] = await db.insert(users)
-      .values({ email })
+    const [user] = await db
+      .insert(users)
+      .values({ 
+        email,
+        username: email.split('@')[0],
+        password: 'google-auth' 
+      })
       .returning();
+
+    await this.initializeUserPreferences(user.id);
+
     return user;
   }
 
   // User Preferences
   async getUserPreferences(userId: number): Promise<UserPreferences | undefined> {
-    const [prefs] = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId));
+    const [prefs] = await db
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, userId));
+
+    if (!prefs) {
+      return this.initializeUserPreferences(userId);
+    }
+
     return prefs;
   }
 
   async updateUserPreferences(userId: number, data: Partial<InsertUserPreferences>): Promise<UserPreferences> {
-    const [existing] = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId));
+    const [existing] = await db
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, userId));
 
     if (existing) {
       const [updated] = await db
@@ -96,9 +109,13 @@ class DatabaseStorage implements IStorage {
       return updated;
     }
 
+    return this.initializeUserPreferences(userId);
+  }
+
+  async initializeUserPreferences(userId: number): Promise<UserPreferences> {
     const [prefs] = await db
       .insert(userPreferences)
-      .values({ userId, ...data })
+      .values({ userId, hasSeenTour: false })
       .returning();
     return prefs;
   }
