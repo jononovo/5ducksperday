@@ -80,9 +80,16 @@ export default function AuthPage() {
         <div className="grid md:grid-cols-2 gap-6 items-start">
           <Card>
             <CardHeader>
-              <CardTitle>Welcome to Simple B2B Sales</CardTitle>
+              <CardTitle className="text-center">Welcome to Simple B2B Sales</CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="flex justify-center gap-4 text-4xl mb-6">
+                <span>🐥</span>
+                <span>🥚</span>
+                <span>🥚</span>
+                <span>🥚</span>
+                <span>🥚</span>
+              </div>
               <Button
                 variant="outline"
                 onClick={() => signInWithGoogle().catch(console.error)}
