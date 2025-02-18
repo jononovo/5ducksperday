@@ -331,9 +331,9 @@ export default function Home() {
     <div className="container mx-auto py-6">
       {/* Welcome Section */}
       <div className="mb-12 text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to 5 Ducks</h1>
+        <h1 className="text-4xl font-bold mb-4">Welcome to Simple B2B Sales</h1>
         <p className="text-xl text-muted-foreground mb-6">
-          Advanced AI-powered business intelligence platform
+          5 Simple B2B Leads in 1 Minute Every Day
         </p>
         <div className="flex justify-center gap-4 text-4xl">
           <span>🐥</span>
