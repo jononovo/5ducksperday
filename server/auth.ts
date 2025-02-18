@@ -94,20 +94,11 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
       timestamp: new Date().toISOString()
     });
 
-    // Fetch user data including OAuth tokens
-    const firebaseUser = await admin.auth().getUser(decodedToken.uid);
-    const providerData = firebaseUser.providerData[0];
-
-    // Extract Gmail token from provider data if available
-    const gmailToken = providerData?.providerId === 'google.com' 
-      ? (providerData as any).accessToken 
-      : null;
-
     // Get or create user in our database
     let user = await storage.getUserByEmail(decodedToken.email!);
 
     if (!user) {
-      console.log('Creating new user in database:', {
+      console.log('Creating new user in backend:', {
         email: decodedToken.email?.split('@')[0] + '@...',
         timestamp: new Date().toISOString()
       });
@@ -117,12 +108,6 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
         username: decodedToken.email!.split('@')[0],
         password: await hashPassword(randomBytes(32).toString('hex')),
       });
-    }
-
-    // Store the Gmail access token in the session if available
-    if (gmailToken) {
-      req.session.gmailToken = gmailToken;
-      console.log('Gmail token stored in session');
     }
 
     return user;
