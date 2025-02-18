@@ -151,11 +151,9 @@ export default function CompanyDetails() {
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle className="text-2xl font-bold">{company.name}</CardTitle>
-                {company.shortSummary && (
-                  <CardDescription className="mt-1">
-                    {company.shortSummary}
-                  </CardDescription>
-                )}
+                <CardDescription className="mt-1">
+                  {company.shortSummary}
+                </CardDescription>
               </div>
               <Badge
                 className="text-lg py-2"
@@ -371,7 +369,6 @@ export default function CompanyDetails() {
                     <span className="font-medium">Country:</span>
                     <span>{company.country || 'Not specified'}</span>
                   </div>
-                  {/*Removed Company Age*/}
                 </div>
               </div>
 
