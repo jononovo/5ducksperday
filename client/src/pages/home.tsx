@@ -42,6 +42,12 @@ import {
 import SearchFlowNew from "@/components/search-flow-new";
 import { filterTopProspects } from "@/lib/results-analysis/prospect-filtering";
 import { IntroTourModal } from "@/components/intro-tour-modal";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -510,34 +516,59 @@ export default function Home() {
                           <TableCell>{contact.email || "N/A"}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setLocation(`/contacts/${contact.id}`)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEnrichContact(contact.id)}
-                                disabled={isContactPending(contact.id) || isContactEnriched(contact)}
-                                className={getEnrichButtonClass(contact)}
-                              >
-                                <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
-                                {getEnrichButtonText(contact)}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleAeroLeadsSearch(contact.id)}
-                                disabled={isAeroLeadsPending(contact.id) || isAeroLeadsSearchComplete(contact)}
-                                className={getAeroLeadsButtonClass(contact)}
-                              >
-                                <Gem
-                                  className={`w-4 h-4 ${isAeroLeadsPending(contact.id) ? "animate-spin" : ""}`}
-                                />
-                              </Button>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setLocation(`/contacts/${contact.id}`)}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Open this contact page</p>
+                                  </TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleEnrichContact(contact.id)}
+                                      disabled={isContactPending(contact.id) || isContactEnriched(contact)}
+                                      className={getEnrichButtonClass(contact)}
+                                    >
+                                      <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
+                                      {getEnrichButtonText(contact)}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Do a dedicated search for this email</p>
+                                  </TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleAeroLeadsSearch(contact.id)}
+                                      disabled={isAeroLeadsPending(contact.id) || isAeroLeadsSearchComplete(contact)}
+                                      className={getAeroLeadsButtonClass(contact)}
+                                    >
+                                      <Gem
+                                        className={`w-4 h-4 ${isAeroLeadsPending(contact.id) ? "animate-spin" : ""}`}
+                                      />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Do a paid API call to find this contact's email</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                           </TableCell>
                         </TableRow>
