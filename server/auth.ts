@@ -23,36 +23,6 @@ declare global {
 
 const scryptAsync = promisify(scrypt);
 
-// Initialize Firebase Admin
-if (process.env.VITE_FIREBASE_PROJECT_ID) {
-  try {
-    if (!admin.apps.length) {
-      console.log('Initializing Firebase Admin with config:', {
-        projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-        environment: process.env.NODE_ENV,
-        timestamp: new Date().toISOString()
-      });
-
-      admin.initializeApp({
-        projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-      });
-      console.log('Firebase Admin initialized successfully');
-    }
-  } catch (error) {
-    console.error('Firebase Admin initialization error:', {
-      error,
-      projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-      environment: process.env.NODE_ENV,
-      timestamp: new Date().toISOString()
-    });
-  }
-} else {
-  console.warn('Firebase Admin not initialized: missing project ID', {
-    environment: process.env.NODE_ENV,
-    timestamp: new Date().toISOString()
-  });
-}
-
 async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
@@ -152,7 +122,7 @@ export function setupAuth(app: Express) {
       try {
         const user = await storage.getUserByUsername(username);
         if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false);
+          return done(null, false, { message: "Invalid username or password" });
         }
         return done(null, user);
       } catch (err) {
@@ -168,11 +138,45 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUserById(id);
+      if (!user) {
+        return done(null, false);
+      }
       done(null, user);
     } catch (err) {
       done(err);
     }
   });
+
+  // Initialize Firebase Admin
+  if (process.env.VITE_FIREBASE_PROJECT_ID) {
+    try {
+      if (!admin.apps.length) {
+        console.log('Initializing Firebase Admin with config:', {
+          projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+          environment: process.env.NODE_ENV,
+          timestamp: new Date().toISOString()
+        });
+
+        admin.initializeApp({
+          projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+        });
+        console.log('Firebase Admin initialized successfully');
+      }
+    } catch (error) {
+      console.error('Firebase Admin initialization error:', {
+        error,
+        projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+        environment: process.env.NODE_ENV,
+        timestamp: new Date().toISOString()
+      });
+    }
+  } else {
+    console.warn('Firebase Admin not initialized: missing project ID', {
+      environment: process.env.NODE_ENV,
+      timestamp: new Date().toISOString()
+    });
+  }
+
 
   // Add Firebase token verification to all authenticated routes
   app.use(async (req, res, next) => {
@@ -191,14 +195,24 @@ export function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res, next) => {
     try {
-      const existingUser = await storage.getUserByUsername(req.body.username);
-      if (existingUser) {
+      const { username, email, password } = req.body;
+
+      // Check for existing username
+      const existingUsername = await storage.getUserByUsername(username);
+      if (existingUsername) {
         return res.status(400).json({ error: "Username already exists" });
       }
 
+      // Check for existing email
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(400).json({ error: "Email already exists" });
+      }
+
       const user = await storage.createUser({
-        ...req.body,
-        password: await hashPassword(req.body.password),
+        username,
+        email,
+        password: await hashPassword(password),
       });
 
       req.login(user, (err) => {
@@ -208,6 +222,33 @@ export function setupAuth(app: Express) {
     } catch (err) {
       next(err);
     }
+  });
+
+  app.post("/api/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+      if (err) return next(err);
+      if (!user) {
+        return res.status(401).json({ error: info?.message || "Invalid credentials" });
+      }
+      req.login(user, (err) => {
+        if (err) return next(err);
+        res.json(user);
+      });
+    })(req, res, next);
+  });
+
+  app.post("/api/logout", (req, res, next) => {
+    req.logout((err) => {
+      if (err) return next(err);
+      res.sendStatus(200);
+    });
+  });
+
+  app.get("/api/user", (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    res.json(req.user);
   });
 
   // Add to the Google auth route
@@ -240,24 +281,6 @@ export function setupAuth(app: Express) {
     } catch (err) {
       next(err);
     }
-  });
-
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.json(req.user);
-  });
-
-  app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
-      if (err) return next(err);
-      res.sendStatus(200);
-    });
-  });
-
-  app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Not authenticated" });
-    }
-    res.json(req.user);
   });
 
   // Add new route to check Gmail authorization status
