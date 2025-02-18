@@ -52,7 +52,18 @@ const GENERIC_TERMS = new Set([
   'group', 'holdings', 'solutions', 'services', 'international',
   'global', 'industries', 'systems', 'technologies', 'associates',
   'consulting', 'ventures', 'partners', 'limited', 'corp',
-  'cooperative', 'co', 'corporation', 'incorporated', 'plc'
+  'cooperative', 'co', 'corporation', 'incorporated', 'plc',
+
+  // Industry terms
+  'information', 'technology', 'software', 'industry', 'reputation',
+  'quality', 'control', 'strategic', 'direction', 'overall',
+  'vision', 'strategy', 'innovation', 'infrastructure',
+  'technical', 'leader', 'focus', 'primary', 'secondary',
+
+  // Descriptive business terms
+  'main', 'primary', 'secondary', 'principal', 'executive',
+  'managing', 'operating', 'board', 'advisory', 'steering',
+  'corporate', 'enterprise', 'business', 'commercial'
 ]);
 
 export function isPlaceholderName(name: string): boolean {
@@ -95,7 +106,7 @@ export function validateName(
     const searchTerms = options.searchPrompt.toLowerCase().split(/\s+/);
     const normalizedName = name.toLowerCase();
 
-    const matchingTerms = searchTerms.filter(term => 
+    const matchingTerms = searchTerms.filter(term =>
       term.length >= 4 && normalizedName.includes(term)
     );
 
@@ -144,7 +155,7 @@ function isGenericName(name: string): boolean {
   const nameParts = nameLower.split(/[\s-]+/);
 
   // Check each word against generic terms
-  const genericWordCount = nameParts.filter(part => 
+  const genericWordCount = nameParts.filter(part =>
     part.length > 2 && GENERIC_TERMS.has(part)
   ).length;
 
@@ -184,7 +195,7 @@ function calculateNameConfidenceScore(name: string, context: string): number {
   }
 
   // Check for generic terms with weighted impact
-  const genericTermCount = nameParts.filter(part => 
+  const genericTermCount = nameParts.filter(part =>
     GENERIC_TERMS.has(part.toLowerCase())
   ).length;
 
@@ -208,7 +219,7 @@ function calculateNameConfidenceScore(name: string, context: string): number {
   }
 
   // Length checks
-  const hasReasonableLengths = nameParts.every(part => 
+  const hasReasonableLengths = nameParts.every(part =>
     part.length >= 2 && part.length <= 20
   );
   if (hasReasonableLengths) {
@@ -253,7 +264,7 @@ function isNameSimilarToCompany(name: string, companyName: string): boolean {
   const companyWords = cleanCompany.split(/\s+/);
 
   // Check if significant portions match
-  const matchingWords = nameWords.filter(word => 
+  const matchingWords = nameWords.filter(word =>
     companyWords.includes(word) && word.length > 3
   );
 
