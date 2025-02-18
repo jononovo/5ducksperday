@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
-import { ListPlus, Search, Code2, UserCircle, Banknote, Eye, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, Star, MessageSquare } from "lucide-react";
+import { ListPlus, Search, Code2, UserCircle, Banknote, Eye, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, Star, MessageSquare, Coins } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -51,6 +51,7 @@ export default function Home() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [showTour, setShowTour] = useState(true);
+  const [pendingAeroLeadsId, setPendingAeroLeadsId] = useState<number | null>(null);
 
   // Load state from localStorage on component mount
   useEffect(() => {
@@ -328,6 +329,58 @@ export default function Home() {
     return "Enrich";
   };
 
+  // Add AeroLeads mutation
+  const aeroLeadsMutation = useMutation({
+    mutationFn: async (contactId: number) => {
+      setPendingAeroLeadsId(contactId);
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/aeroleads`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setCurrentResults(prev => {
+        if (!prev) return null;
+        return prev.map(company => ({
+          ...company,
+          contacts: company.contacts?.map(contact =>
+            contact.id === data.id ? data : contact
+          )
+        }));
+      });
+      toast({
+        title: "Email Found",
+        description: data.email ? "Successfully found contact email." : "No email found for this contact.",
+      });
+      setPendingAeroLeadsId(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Search Failed",
+        description: error instanceof Error ? error.message : "Failed to find contact email",
+        variant: "destructive",
+      });
+      setPendingAeroLeadsId(null);
+    },
+  });
+
+  const handleAeroLeadsSearch = (contactId: number) => {
+    aeroLeadsMutation.mutate(contactId);
+  };
+
+  const isAeroLeadsSearchComplete = (contact: Contact) => {
+    return contact.completedSearches?.includes('aeroleads_search') || false;
+  };
+
+  const isAeroLeadsPending = (contactId: number) => {
+    return pendingAeroLeadsId === contactId;
+  };
+
+  const getAeroLeadsButtonClass = (contact: Contact) => {
+    if (isAeroLeadsSearchComplete(contact)) {
+      return contact.email ? "text-yellow-500" : "text-muted-foreground";
+    }
+    return "";
+  };
+
 
   return (
     <div className="container mx-auto py-6">
@@ -452,6 +505,17 @@ export default function Home() {
                               >
                                 <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
                                 {getEnrichButtonText(contact)}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleAeroLeadsSearch(contact.id)}
+                                disabled={isAeroLeadsPending(contact.id) || isAeroLeadsSearchComplete(contact)}
+                                className={getAeroLeadsButtonClass(contact)}
+                              >
+                                <Coins
+                                  className={`w-4 h-4 ${isAeroLeadsPending(contact.id) ? "animate-spin" : ""}`}
+                                />
                               </Button>
                             </div>
                           </TableCell>
