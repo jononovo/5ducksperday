@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Footer } from "@/components/ui/footer";
+import { Layout } from "@/components/layout";
 
 export default function Terms() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <Layout>
       <div className="container mx-auto py-8 flex-1">
         <Card>
           <CardHeader>
@@ -11,7 +11,7 @@ export default function Terms() {
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none">
             <p className="lead">Last updated: {new Date().toLocaleDateString()}</p>
-            
+
             <h2>1. Acceptance of Terms</h2>
             <p>
               By accessing and using 5 Ducks ("we," "our," or "us"), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our services.
@@ -92,7 +92,6 @@ export default function Terms() {
           </CardContent>
         </Card>
       </div>
-      <Footer />
-    </div>
+    </Layout>
   );
 }

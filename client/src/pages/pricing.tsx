@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Footer } from "@/components/ui/footer";
 import { Check } from "lucide-react";
+import { Layout } from "@/components/layout";
 
 const tiers = [
   {
@@ -50,7 +50,7 @@ const tiers = [
 
 export default function Pricing() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <Layout>
       <div className="container mx-auto py-12 flex-1">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Transparent Pricing</h1>
@@ -107,7 +107,6 @@ export default function Pricing() {
           </Button>
         </div>
       </div>
-      <Footer />
-    </div>
+    </Layout>
   );
 }

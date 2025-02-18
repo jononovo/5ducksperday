@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Footer } from "@/components/ui/footer";
+import { Layout } from "@/components/layout";
 
 export default function Privacy() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <Layout>
       <div className="container mx-auto py-8 flex-1">
         <Card>
           <CardHeader>
@@ -11,7 +11,7 @@ export default function Privacy() {
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none">
             <p className="lead">Last updated: {new Date().toLocaleDateString()}</p>
-            
+
             <h2>1. Introduction</h2>
             <p>
               5 Ducks ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our AI-powered business intelligence platform.
@@ -78,7 +78,6 @@ export default function Privacy() {
           </CardContent>
         </Card>
       </div>
-      <Footer />
-    </div>
+    </Layout>
   );
 }

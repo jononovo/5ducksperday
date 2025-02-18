@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClipboardList } from "lucide-react";
-import { Footer } from "@/components/ui/footer";
+import { Layout } from "@/components/layout";
 
 export default function Planning() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <Layout>
       <div className="container mx-auto py-8 flex-1">
         <Card>
           <CardHeader>
@@ -18,7 +18,6 @@ export default function Planning() {
           </CardContent>
         </Card>
       </div>
-      <Footer />
-    </div>
+    </Layout>
   );
 }
