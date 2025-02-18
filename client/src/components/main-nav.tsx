@@ -20,8 +20,9 @@ export default function MainNav() {
     <nav className="flex items-center justify-between border-b mb-4 px-4 py-3">
       <div className="flex items-center space-x-4">
         <Link href="/" className="group flex items-center gap-2 mr-8">
-          <Bird className="h-6 w-6 text-primary transition-colors group-hover:text-primary" />
-          <span className="font-semibold text-lg transition-colors group-hover:text-primary">5 Ducks</span>
+          <Bird className="h-7 w-7 text-primary transition-colors group-hover:text-primary/90" 
+                style={{ transform: 'scaleX(-1)' }} /> {/* Flip the bird to face right */}
+          <span className="font-semibold text-lg transition-colors group-hover:text-primary/90">5 Ducks</span>
         </Link>
         {navigation.map((item) => {
           const isActive = item.href === location || 
