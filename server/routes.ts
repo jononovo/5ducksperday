@@ -8,7 +8,6 @@ import { queryPerplexity } from "./lib/api/perplexity-client";
 import { searchContactDetails } from "./lib/api-interactions";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
 import { insertEmailTemplateSchema } from "@shared/schema";
-import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
 import { additionalEmailService } from "./lib/search-logic/email-enrichment/service";
 import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
@@ -194,19 +193,19 @@ app.post("/api/companies/search", async (req, res) => {
           analysisResults,
           companyName,
           {
-            useLocalValidation: true,
-            localValidationWeight: 0.3,
             minimumScore: 20,
             companyNamePenalty: 20
           }
         );
 
         // Create contact records with basic information
+        const validContacts = contacts.filter(contact => contact.name && typeof contact.name === 'string');
+
         const createdContacts = await Promise.all(
-          contacts.map(contact =>
+          validContacts.map(contact =>
             storage.createContact({
               companyId: createdCompany.id,
-              name: contact.name!,
+              name: contact.name,
               role: contact.role ?? null,
               email: contact.email ?? null,
               probability: contact.probability ?? null,
@@ -648,26 +647,26 @@ app.post("/api/contacts/search", async (req, res) => {
 });
 
 app.post("/api/companies/:companyId/enrich-top-prospects", async (req, res) => {
-  try {
-    const companyId = parseInt(req.params.companyId);
-    const searchId = `search_${Date.now()}`;
-    const { contactIds } = req.body; // Get the specific contact IDs to enrich
+    try {
+      const companyId = parseInt(req.params.companyId);
+      const searchId = `search_${Date.now()}`;
+      const { contactIds } = req.body;
 
-    // Start the enrichment process
-    const queueId = await postSearchEnrichmentService.startEnrichment(companyId, searchId, contactIds);
+      // Start the enrichment process with just the searchId and contactIds
+      const queueId = await postSearchEnrichmentService.startEnrichment(searchId, contactIds);
 
-    res.json({
-      message: "Top prospects enrichment started",
-      queueId,
-      status: 'processing'
-    });
-  } catch (error) {
-    console.error('Enrichment start error:', error);
-    res.status(500).json({
-      message: error instanceof Error ? error.message : "Failed to start enrichment process"
-    });
-  }
-});
+      res.json({
+        message: "Top prospects enrichment started",
+        queueId,
+        status: 'processing'
+      });
+    } catch (error) {
+      console.error('Enrichment start error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to start enrichment process"
+      });
+    }
+  });
 
   // Add this route within the registerRoutes function, before the return statement
   app.get("/api/enrichment/:queueId/status", async (req, res) => {
