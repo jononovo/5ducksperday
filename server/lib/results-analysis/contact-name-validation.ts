@@ -40,11 +40,18 @@ const GENERIC_TERMS = new Set([
 
   // Common Industry terms used in page titles
   'information', 'technology', 'software', 'services', 'consulting', 'Industry', 'Reputation', 'Quality', 'Control', 'Strategic', 'Direction', 'Overall', 'Vision', 'Technology', 'Strategy', 'Innovation', 'Infrastructure', 'Innovation', 'Technical', 'Leader', 'Industry', 'Focus', 'primary', 'secondary',
-  
+
 ]);
 
 export function isPlaceholderName(name: string): boolean {
   return PLACEHOLDER_NAMES.has(name.toLowerCase());
+}
+
+export interface ValidationOptions {
+  useLocalValidation?: boolean;
+  localValidationWeight?: number;
+  minimumScore?: number;
+  searchPrompt?: string;  // Add searchPrompt to options
 }
 
 export function validateNameLocally(name: string, context: string = ""): NameValidationResult {
@@ -149,12 +156,6 @@ function calculateNameConfidenceScore(name: string, context: string): number {
   });
 
   return Math.max(20, Math.min(100, score));
-}
-
-export interface ValidationOptions {
-  useLocalValidation?: boolean;
-  localValidationWeight?: number;
-  minimumScore?: number;
 }
 
 const defaultOptions: ValidationOptions = {

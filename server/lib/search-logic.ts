@@ -95,22 +95,28 @@ export async function validateNames(
         const parsed = JSON.parse(jsonMatch[0]);
         const validated: Record<string, number> = {};
 
+        const validationOptions: ValidationOptions = {
+          searchPrompt,
+          minimumScore: 30,
+          searchTermPenalty: 25
+        };
+
         for (const [name, score] of Object.entries(parsed)) {
           if (typeof score === 'number' && score >= 1 && score <= 100) {
-            const localResult = validateNameLocally(name, "", { searchPrompt });
+            const localResult = validateNameLocally(name);
             validated[name] = combineValidationScores(
               score,
               localResult,
               companyName,
-              { searchPrompt }
+              validationOptions
             );
           } else {
-            const localResult = validateNameLocally(name, "", { searchPrompt });
+            const localResult = validateNameLocally(name);
             validated[name] = combineValidationScores(
               50,
               localResult,
               companyName,
-              { searchPrompt }
+              validationOptions
             );
           }
         }
@@ -121,21 +127,33 @@ export async function validateNames(
     }
 
     // Fallback to local validation
+    const validationOptions: ValidationOptions = {
+      searchPrompt,
+      minimumScore: 30,
+      searchTermPenalty: 25
+    };
+
     return names.reduce((acc, name) => {
-      const localResult = validateNameLocally(name, "", { searchPrompt });
+      const localResult = validateNameLocally(name);
       return {
         ...acc,
-        [name]: combineValidationScores(50, localResult, companyName, { searchPrompt })
+        [name]: combineValidationScores(50, localResult, companyName, validationOptions)
       };
     }, {});
 
   } catch (error) {
     console.error('Error in name validation:', error);
+    const validationOptions: ValidationOptions = {
+      searchPrompt,
+      minimumScore: 30,
+      searchTermPenalty: 25
+    };
+
     return names.reduce((acc, name) => {
-      const localResult = validateNameLocally(name, "", { searchPrompt });
+      const localResult = validateNameLocally(name);
       return {
         ...acc,
-        [name]: combineValidationScores(50, localResult, companyName, { searchPrompt })
+        [name]: combineValidationScores(50, localResult, companyName, validationOptions)
       };
     }, {});
   }

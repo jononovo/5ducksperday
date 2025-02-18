@@ -5,13 +5,16 @@ export interface ValidationOptions {
   localValidationWeight?: number;
   minimumScore?: number;
   companyNamePenalty?: number;
+  searchPrompt?: string;  // Add searchPrompt to options
+  searchTermPenalty?: number;  // Add configurable penalty for search terms
 }
 
 const defaultOptions: ValidationOptions = {
   useLocalValidation: true,
   localValidationWeight: 0.3,
   minimumScore: 30,
-  companyNamePenalty: 20
+  companyNamePenalty: 20,
+  searchTermPenalty: 25  // Default penalty for search term matches
 };
 
 export function combineValidationScores(
@@ -29,11 +32,26 @@ export function combineValidationScores(
     (aiScore * (1 - weight)) + (localResult.score * weight)
   );
 
-  // Only apply company name penalty if company name is provided
+  // Apply company name penalty
   if (companyName && typeof companyName === 'string' && isNameSimilarToCompany(localResult.name, companyName)) {
     // Check for founder/owner context
     if (!hasFounderContext(localResult.context)) {
       combinedScore = Math.max(20, combinedScore - (options.companyNamePenalty || 20));
+    }
+  }
+
+  // Apply search term penalty
+  if (options.searchPrompt) {
+    const searchTerms = options.searchPrompt.toLowerCase().split(/\s+/);
+    const normalizedName = localResult.name.toLowerCase();
+
+    // Skip common words shorter than 4 characters
+    const matchingTerms = searchTerms.filter(term => 
+      term.length >= 4 && normalizedName.includes(term)
+    );
+
+    if (matchingTerms.length > 0) {
+      combinedScore = Math.max(20, combinedScore - (options.searchTermPenalty || 25));
     }
   }
 

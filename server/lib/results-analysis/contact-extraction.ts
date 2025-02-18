@@ -42,13 +42,13 @@ const isPlaceholderName = (name: string): boolean => placeholderNames.has(name.t
 interface ValidationOptions {
   minimumScore?: number;
   searchPrompt?: string;
+  searchTermPenalty?: number;
 }
 
 export async function extractContacts(
   analysisResults: string[],
   companyName?: string,
-  validationOptions: ValidationOptions = {},
-  searchPrompt?: string
+  validationOptions: ValidationOptions = {}
 ): Promise<Partial<Contact>[]> {
   if (!Array.isArray(analysisResults)) {
     console.warn('analysisResults is not an array, returning empty array');
@@ -77,8 +77,8 @@ export async function extractContacts(
 
       if (names.length === 0) continue;
 
-      // Pass company name to validateNames for better context
-      const aiScores = await validateNames(names, companyName);
+      // Pass searchPrompt to validateNames for better context
+      const aiScores = await validateNames(names, companyName, validationOptions.searchPrompt);
 
       for (const name of names) {
         const aiScore = aiScores[name] || 0;
@@ -88,23 +88,20 @@ export async function extractContacts(
           nameIndex + 200
         );
 
-        // Pass search prompt to local validation
-        const localResult = validateNameLocally(name, contextWindow, {
-          ...validationOptions,
-          searchPrompt
-        });
+        const localResult = validateNameLocally(name);
 
         const finalScore = combineValidationScores(
           aiScore,
           localResult,
           companyName,
           {
-            ...validationOptions,
-            searchPrompt
+            minimumScore: validationOptions.minimumScore,
+            searchPrompt: validationOptions.searchPrompt,
+            searchTermPenalty: validationOptions.searchTermPenalty
           }
         );
 
-        if (finalScore >= (validationOptions?.minimumScore || 30)) {
+        if (finalScore >= (validationOptions.minimumScore || 30)) {
           let role = null;
           roleRegex.lastIndex = 0;
           const roleMatch = roleRegex.exec(contextWindow);
