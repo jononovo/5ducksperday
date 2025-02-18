@@ -14,12 +14,13 @@ const tiers = [
       "Contact verification",
       "Standard support",
       "1 user included"
-    ]
+    ],
+    buttonText: "Get 15 Leads Free"
   },
   {
     name: "BUILDER",
     price: "$69",
-    description: "Ideal for growing teams and businesses",
+    description: "Automate all searches and PAID refinements.",
     features: [
       "500 company lookups per month",
       "Advanced email finder",
@@ -29,7 +30,8 @@ const tiers = [
       "Campaign management",
       "Custom templates"
     ],
-    highlighted: true
+    highlighted: true,
+    buttonText: "Get 10 GOLD Leads Free"
   },
   {
     name: "ACCELERATE",
@@ -44,7 +46,8 @@ const tiers = [
       "API access",
       "SLA agreement",
       "Custom training"
-    ]
+    ],
+    buttonText: "Get Busy Now"
   }
 ];
 
@@ -89,7 +92,7 @@ export default function Pricing() {
                   ))}
                 </ul>
                 <Button className="w-full mt-6" variant={tier.highlighted ? "default" : "outline"}>
-                  Get Started
+                  {tier.buttonText}
                 </Button>
               </CardContent>
             </Card>
