@@ -25,7 +25,7 @@ const GENERIC_TERMS = new Set([
   'leadership', 'team', 'member', 'staff', 'employee', 'general',
   'key', 'role', 'position', 'department', 'division', 'management',
   'contact', 'person', 'representative', 'individual',
-  'business', 'company', 'enterprise', 'organization', 'corporation',
+  'business', 'company', 'enterprise','enterprises', 'organization', 'corporation',
   'admin', 'professional', 'consultant', 'consolidated',
   'service', 'support', 'office', 'personnel', 'resource',
   'operation', 'development', 'sales', 'marketing', 'customer',
@@ -39,7 +39,7 @@ const GENERIC_TERMS = new Set([
   'cooperative', 'co', 'corporation', 'incorporated', 'plc',
 
   // Common Industry terms used in page titles
-  'information', 'technology', 'software', 'services', 'consulting', 'Industry', 'Reputation', 'Quality', 'Control', 'Strategic', 'Direction', 'Overall', 'Vision', 'Technology', 'Strategy', 'Innovation', 'Infrastructure', 'Innovation', 'Technical', 'Leader', 'Industry', 'Focus', 'primary', 'secondary',
+  'information', 'technology', 'software', 'services', 'consulting', 'Industry', 'Reputation', 'Quality', 'Control', 'Strategic', 'Direction', 'Overall', 'Vision', 'Technology', 'Strategy', 'Innovation', 'Infrastructure', 'Innovation', 'Technical', 'Leader', 'Industry', 'Focus', 'primary', 'secondary','revenue',
   
 ]);
 
