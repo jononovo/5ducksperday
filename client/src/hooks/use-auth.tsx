@@ -71,7 +71,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", "/api/logout");
-      await signOut(auth); // Sign out from Firebase as well
+      if (auth) {
+        try {
+          await signOut(auth);
+        } catch (error) {
+          console.error("Firebase sign out error:", error);
+          // Continue with local logout even if Firebase fails
+        }
+      }
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
@@ -86,23 +93,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const signInWithGoogle = async () => {
+    if (!auth || !googleProvider) {
+      toast({
+        title: "Google Sign-in unavailable",
+        description: "Firebase is not properly configured. Please try using email/password login instead.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const { user: firebaseUser } = result;
 
+      if (!firebaseUser.email) {
+        throw new Error("No email provided from Google account");
+      }
+
       // Create or get user in our backend
       const res = await apiRequest("POST", "/api/google-auth", {
         email: firebaseUser.email,
-        username: firebaseUser.displayName,
-        // You might want to add additional user data here
+        username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
       });
 
       const user = await res.json();
       queryClient.setQueryData(["/api/user"], user);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Google sign-in error:", error);
       toast({
         title: "Google Sign-in failed",
-        description: error.message,
+        description: error.message || "Please try using email/password login instead",
         variant: "destructive",
       });
     }
@@ -110,15 +130,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Monitor Firebase auth state
   useEffect(() => {
+    if (!auth) return;
+
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in, sync with backend
-        const res = await apiRequest("POST", "/api/google-auth", {
-          email: firebaseUser.email,
-          username: firebaseUser.displayName,
-        });
-        const user = await res.json();
-        queryClient.setQueryData(["/api/user"], user);
+      if (firebaseUser && firebaseUser.email) {
+        try {
+          // User is signed in, sync with backend
+          const res = await apiRequest("POST", "/api/google-auth", {
+            email: firebaseUser.email,
+            username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+          });
+          const user = await res.json();
+          queryClient.setQueryData(["/api/user"], user);
+        } catch (error) {
+          console.error("Error syncing with backend:", error);
+        }
       }
     });
 
