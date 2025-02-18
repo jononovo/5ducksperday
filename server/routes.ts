@@ -575,9 +575,16 @@ app.post("/api/contacts/:contactId/enrich", async (req, res) => {
     }
     console.log('Found company:', company.name);
 
-    // Search for additional contact details
+    // Search for additional contact details with location context
     console.log('Searching for contact details...');
-    const enrichedDetails = await searchContactDetails(contact.name, company.name);
+    const enrichedDetails = await searchContactDetails(
+      contact.name, 
+      company.name,
+      { 
+        city: company.city || undefined,
+        state: company.state || undefined
+      }
+    );
     console.log('Enriched details found:', enrichedDetails);
 
     // Update contact with enriched information

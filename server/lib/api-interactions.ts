@@ -129,8 +129,12 @@ export async function validateNames(
 
 export async function searchContactDetails(
   name: string,
-  company: string
+  company: string,
+  location?: { city?: string; state?: string }
 ): Promise<Partial<Contact>> {
+  const locationContext = location ? 
+    `Location: ${[location.city, location.state].filter(Boolean).join(', ')}` : '';
+
   const messages: PerplexityMessage[] = [
     {
       role: "system",
@@ -139,12 +143,13 @@ export async function searchContactDetails(
         2. Professional email
         3. LinkedIn URL
         4. Location
-        
+
         Format your response in JSON.`
     },
     {
       role: "user",
-      content: `Find professional contact information for ${name} at ${company}.`
+      content: `Find professional contact information for ${name} at ${company}.
+        ${locationContext}`
     }
   ];
 
