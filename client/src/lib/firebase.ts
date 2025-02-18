@@ -5,7 +5,7 @@ import { getAuth, type Auth, GoogleAuthProvider } from "firebase/auth";
 // These values should be moved to environment variables before deployment
 const firebaseConfig = {
   apiKey: "AIzaSyBkkFF0XhNZeWuDmOfEhsgdfX1VBG7WTas",
-  authDomain: "replit-auth-test.firebaseapp.com",
+  authDomain: "white-labeler-1-jononovo.replit.app", // Updated to match Replit domain
   projectId: "replit-auth-test",
   storageBucket: "replit-auth-test.appspot.com",
   appId: "1:1234567890:web:1234567890abcdef"
@@ -22,6 +22,10 @@ try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   googleProvider = new GoogleAuthProvider();
+
+  // Add additional scopes for Google provider
+  googleProvider.addScope('email');
+  googleProvider.addScope('profile');
 
   console.log('Firebase initialized successfully');
 } catch (error) {
