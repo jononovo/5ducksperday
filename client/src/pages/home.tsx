@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import SearchFlowNew from "@/components/search-flow-new";
 import { filterTopProspects } from "@/lib/results-analysis/prospect-filtering";
+import { IntroTourModal } from "@/components/intro-tour-modal";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -49,6 +50,7 @@ export default function Home() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const [showTour, setShowTour] = useState(true);
 
   // Load state from localStorage on component mount
   useEffect(() => {
@@ -329,20 +331,7 @@ export default function Home() {
 
   return (
     <div className="container mx-auto py-6">
-      {/* Welcome Section */}
-      <div className="mb-12 text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Simple B2B Sales</h1>
-        <p className="text-xl text-muted-foreground italic mb-6">
-          5 Simple Leads DONE in 1 Minute EVERY Day
-        </p>
-        <div className="flex justify-center gap-4 text-4xl">
-          <span>🐥</span>
-          <span>🥚</span>
-          <span>🥚</span>
-          <span>🥚</span>
-          <span>🥚</span>
-        </div>
-      </div>
+      <IntroTourModal open={showTour} onOpenChange={setShowTour} />
 
       <div className="grid grid-cols-12 gap-6">
         {/* Main Content Area - 9 columns */}
