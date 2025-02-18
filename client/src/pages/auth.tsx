@@ -11,6 +11,7 @@ import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useEffect } from "react";
+import { auth } from "@/lib/firebase";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
@@ -59,14 +60,25 @@ export default function AuthPage() {
             <CardTitle>Welcome to AI Business Intelligence</CardTitle>
           </CardHeader>
           <CardContent>
-            <Button 
-              variant="outline" 
-              onClick={signInWithGoogle}
-              className="w-full mb-6"
-            >
-              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 mr-2" />
-              Sign in with Google
-            </Button>
+            {auth ? (
+              <Button 
+                variant="outline" 
+                onClick={signInWithGoogle}
+                className="w-full mb-6"
+              >
+                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 mr-2" />
+                Sign in with Google
+              </Button>
+            ) : (
+              <Button 
+                variant="outline" 
+                disabled
+                className="w-full mb-6"
+              >
+                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 mr-2" />
+                Google Sign-in Unavailable
+              </Button>
+            )}
 
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
@@ -74,7 +86,7 @@ export default function AuthPage() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
+                  Or continue with email
                 </span>
               </div>
             </div>
