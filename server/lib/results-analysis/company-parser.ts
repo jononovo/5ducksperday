@@ -21,6 +21,21 @@ function extractLocationInfo(text: string): { city?: string; state?: string; cou
   return location;
 }
 
+// Helper function to clean and validate URLs
+function cleanUrl(url: string): string | null {
+  try {
+    // Add protocol if missing
+    if (!url.startsWith('http')) {
+      url = 'https://' + url;
+    }
+    const urlObj = new URL(url);
+    // Remove trailing slashes and unnecessary www
+    return urlObj.toString().replace(/\/$/, '').replace(/^https?:\/\/www\./, 'https://');
+  } catch {
+    return null;
+  }
+}
+
 export function parseCompanyData(analysisResults: string[]): Partial<Company> {
   const companyData: Partial<Company> = {
     services: [],
@@ -43,13 +58,31 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
         // Try parsing JSON first for structured data
         const jsonData = JSON.parse(result);
 
-        if (jsonData.companyProfile) {
-          const profile = jsonData.companyProfile;
+        if (jsonData.companyProfile || jsonData.company || jsonData.profile) {
+          const profile = jsonData.companyProfile || jsonData.company || jsonData.profile;
 
-          // Extract all relevant fields from the JSON structure
-          if (profile.website) companyData.website = profile.website;
-          if (profile.websiteUrl) companyData.website = profile.websiteUrl;
-          if (profile.url) companyData.website = profile.url;
+          // Extract website URL with multiple possible field names
+          const possibleWebsiteFields = [
+            profile.website,
+            profile.websiteUrl,
+            profile.url,
+            profile.domain,
+            profile.companyWebsite,
+            profile.corporateWebsite
+          ];
+
+          for (const websiteField of possibleWebsiteFields) {
+            if (typeof websiteField === 'string' && !companyData.website) {
+              const cleanedUrl = cleanUrl(websiteField);
+              if (cleanedUrl) {
+                companyData.website = cleanedUrl;
+                break;
+              }
+            }
+          }
+
+          // Extract other data
+          if (profile.alternativeUrl) companyData.alternativeProfileUrl = cleanUrl(profile.alternativeUrl);
           if (profile.phone) companyData.phone = profile.phone;
           if (profile.email) companyData.defaultContactEmail = profile.email;
           if (profile.contactEmail) companyData.defaultContactEmail = profile.contactEmail;
@@ -90,21 +123,36 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
         }
       } catch (e) {
         // Fallback to regex parsing for unstructured data
-        const websitePattern = /(?:website|domain|url):\s*(https?:\/\/[^\s,}"']+)/i;
+        const websitePatterns = [
+          /(?:website|domain|url):\s*(https?:\/\/[^\s,}"']+)/i,
+          /(?:website|domain|url):\s*([a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+\.[a-zA-Z]{2,})/i,
+          /visit\s+(?:us|them)\s+(?:at|on)\s+((?:https?:\/\/)?[^\s,}"']+)/i,
+          /available\s+at\s+((?:https?:\/\/)?[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+\.[a-zA-Z]{2,})/i
+        ];
+
+        for (const pattern of websitePatterns) {
+          const websiteMatch = result.match(pattern);
+          if (websiteMatch && !companyData.website) {
+            const cleanedUrl = cleanUrl(websiteMatch[1]);
+            if (cleanedUrl) {
+              companyData.website = cleanedUrl;
+              break;
+            }
+          }
+        }
+
         const phonePattern = /(?:phone|tel|telephone):\s*(\+?\d[\d\s-()]{8,})/i;
         const emailPattern = /(?:email|contact):\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
         const cityPattern = /(?:city|location):\s*([^,\n]+)/i;
         const statePattern = /(?:state|province):\s*([^,\n]+)/i;
         const countryPattern = /(?:country|nation):\s*([^,\n]+)/i;
 
-        const websiteMatch = result.match(websitePattern);
         const phoneMatch = result.match(phonePattern);
         const emailMatch = result.match(emailPattern);
         const cityMatch = result.match(cityPattern);
         const stateMatch = result.match(statePattern);
         const countryMatch = result.match(countryPattern);
 
-        if (websiteMatch && !companyData.website) companyData.website = websiteMatch[1];
         if (phoneMatch && !companyData.phone) companyData.phone = phoneMatch[1];
         if (emailMatch && !companyData.defaultContactEmail) companyData.defaultContactEmail = emailMatch[1];
         if (cityMatch && !companyData.city) companyData.city = cityMatch[1];

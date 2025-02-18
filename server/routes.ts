@@ -170,21 +170,26 @@ app.post("/api/companies/search", async (req, res) => {
           analysisResults.push(decisionMakerResult);
         }
 
-        // Parse results
+        // Parse results with enhanced website extraction
         const companyData = parseCompanyData(analysisResults);
 
         // Extract company name and summary from the first result
         const nameWithSummary = companyName.split(' - ');
         const shortSummary = nameWithSummary.length > 1 ? nameWithSummary[1].trim() : null;
 
-        // Create the company record with location information and summary
+        // Enhanced company creation with website data
         const createdCompany = await storage.createCompany({
           name: nameWithSummary[0].trim(),
           shortSummary,
           website: companyData.website || null,
+          alternativeProfileUrl: companyData.alternativeProfileUrl || null,
           city: companyData.city || null,
           state: companyData.state || null,
           country: companyData.country || null,
+          size: companyData.size || null,
+          services: companyData.services || [],
+          differentiation: companyData.differentiation || [],
+          totalScore: companyData.totalScore || null,
           ...companyData
         });
 
