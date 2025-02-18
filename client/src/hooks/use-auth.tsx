@@ -135,6 +135,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         timestamp: new Date().toISOString()
       });
 
+      //Added logging for Gmail scopes verification on frontend
+      console.log("Gmail API scopes granted (Frontend):", tokenResult.claims.scope.includes("https://mail.google.com/") ? "Granted" : "Not Granted");
+
+
       if (!result.user?.email) {
         throw new Error("No email provided from Google sign-in");
       }
