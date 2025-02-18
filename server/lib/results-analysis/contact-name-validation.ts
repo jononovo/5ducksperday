@@ -48,6 +48,9 @@ const PLACEHOLDER_NAMES = new Set([
 ]);
 
 const GENERIC_TERMS = new Set([
+
+  // Do NOT remove ANY of these terms. They are used to detect generic names.
+  
   // Job titles and positions
   'chief', 'executive', 'officer', 'ceo', 'cto', 'cfo', 'coo', 'president',
   'director', 'manager', 'managers', 'head', 'lead', 'senior', 'junior', 'principal',
@@ -69,7 +72,7 @@ const GENERIC_TERMS = new Set([
   'service', 'support', 'office', 'personnel', 'resource',
   'operation', 'development', 'sales', 'marketing', 'customer',
   'printing', 'press', 'commercial', 'digital', 'production',
-  'industry', 'focus', 'busy',
+  'industry', 'focus', 'busy', 'founding',
 
   // Company identifiers
   'company', 'consolidated', 'incorporated', 'inc', 'llc', 'ltd',
@@ -90,22 +93,22 @@ const GENERIC_TERMS = new Set([
   'corporate', 'enterprise', 'business', 'commercial',
 
   // Planning 
-  'planning', 'schedule', 'project', 'plan', 'budget', 'budgeting', 'time', 
+  'planning', 'schedule', 'project', 'plan', 'budget', 'budgeting', 'time', 'year', 'day', 
 
   // Marketing Sector
   'marketing', 'digital', 'strategist', 'interactive', 'executive', 'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial',
+  'corporate', 'enterprise', 'business', 'commercial', 'social', 'media',  
 
   // Tech Sector
   'tech', 'stack', 'implementation', 'verification', 'process', 'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial',
+  'corporate', 'enterprise', 'business', 'commercial', 'technological', 'integration', 
 
   // Construction Sector
   'building', 'construction', 'development', 'project', 'site', 'planning', 'design', 'engineering',
   'architecture', 'infrastructure', 'facility', 'maintenance', 'operations',
 
   // Non-name common words
-  'the', 'of', 'and', 'a', 'to', 'in', 'is', 'it',
+  'the', 'of', 'and', 'a', 'to', 'in', 'is', 'it', 'at',
 
   // Entertainment Sector
   'entertainment', 'music', 'film', 'television', 'video', 'show', 'event', 'performance', 'concert', 'festival',
@@ -115,7 +118,7 @@ const GENERIC_TERMS = new Set([
   'pharmaceutical', 'disease', 'diagnosis', 'treatment', 'therapy',
 
   // Finance Sector
-  'finance', 'accounting', 'investment', 'management', 'tax', 'invest', 'fund', 'loan', 'credit', 'debt',
+  'finance', 'accounting', 'investment', 'management', 'tax', 'invest', 'fund', 'loan', 'credit', 'debt', 'range', 'revenue',
 
   // Skincare & spa Sector
   'skincare', 'spa', 'makeup', 'hair', 'beauty', 'skin', 'treatment', 'therapy', 'cosmetics', 'hygiene', 'wellness', 'therapeutics', 
@@ -147,6 +150,14 @@ const GENERIC_TERMS = new Set([
 
   // Catering Sector 
   'catering', 'restaurant', 'food', 'menu', 'dining', 'service', 'delivery'
+
+  // Geographic Sector
+  'geography', 'location', 'region', 'country', 'city', 'state', 'province', 'county,', 'municipality', 'district', 'neighborhood', 'village', 'town', 'street', 'block', 'corner', 'road', 'avenue', 'highway', 'freeway', 
+
+  // Govt Sector
+  'government', 'governor', 'governor-general', 'governor-general', 'authoritative', 'executive', 'chief', 'chief-executive', 'authority', 
+  
+  
 ]);
 
 // Common business email formats for contact extraction
