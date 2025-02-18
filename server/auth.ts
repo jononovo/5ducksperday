@@ -8,6 +8,13 @@ import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import admin from "firebase-admin";
 
+// Extend the session type to include gmailToken
+declare module 'express-session' {
+  interface SessionData {
+    gmailToken?: string;
+  }
+}
+
 declare global {
   namespace Express {
     interface User extends SelectUser {}
@@ -87,8 +94,14 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
       timestamp: new Date().toISOString()
     });
 
-    // Get the OAuth access token with Gmail scope
-    const { token } = await admin.auth().getUser(decodedToken.uid);
+    // Fetch user data including OAuth tokens
+    const firebaseUser = await admin.auth().getUser(decodedToken.uid);
+    const providerData = firebaseUser.providerData[0];
+
+    // Extract Gmail token from provider data if available
+    const gmailToken = providerData?.providerId === 'google.com' 
+      ? (providerData as any).accessToken 
+      : null;
 
     // Get or create user in our database
     let user = await storage.getUserByEmail(decodedToken.email!);
@@ -106,9 +119,10 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
       });
     }
 
-    // Store the Gmail access token in the session
-    if (token) {
-      req.session.gmailToken = token;
+    // Store the Gmail access token in the session if available
+    if (gmailToken) {
+      req.session.gmailToken = gmailToken;
+      console.log('Gmail token stored in session');
     }
 
     return user;
