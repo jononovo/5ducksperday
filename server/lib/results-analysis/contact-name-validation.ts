@@ -204,29 +204,14 @@ function validateNameFormat(name: string): number {
 }
 
 function validateGenericTerms(name: string): number {
-  const baseScore = 95;  // Start from maximum score
-  const nameLower = name.toLowerCase();
+  const baseScore = 95;
 
-  // Check for compound generic terms first
-  const compoundMatches = Array.from(GENERIC_TERMS).filter(term => {
-    // Case insensitive match for the whole term
-    return nameLower.includes(term.toLowerCase());
-  });
+  // Simple check - if ANY generic term appears in the name (case insensitive), apply -45 penalty
+  const hasGenericTerm = Array.from(GENERIC_TERMS).some(term =>
+    name.toLowerCase().includes(term.toLowerCase())
+  );
 
-  // Count how many generic terms were found
-  const genericCount = compoundMatches.length;
-
-  // Apply -45 points for each generic term found
-  const penaltyScore = baseScore - (genericCount * 45);
-
-  // Log for debugging
-  if (genericCount > 0) {
-    console.log(`Generic terms found in "${name}":`, compoundMatches);
-    console.log(`Applied penalty: -${genericCount * 45} points`);
-  }
-
-  // Ensure score stays within bounds
-  return Math.max(20, Math.min(95, penaltyScore));
+  return hasGenericTerm ? 50 : 95;  // Return 50 (95-45) if generic term found, otherwise 95
 }
 
 function validateContext(name: string, context: string, companyName?: string | null): number {
