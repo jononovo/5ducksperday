@@ -18,35 +18,50 @@ import ContactDetails from "@/pages/contact-details";
 import ApiTemplates from "@/pages/api-templates";
 import NotFound from "@/pages/not-found";
 import MainNav from "@/components/main-nav";
+import Privacy from "@/pages/privacy";
+import Terms from "@/pages/terms";
+import Pricing from "@/pages/pricing";
+import Blog from "@/pages/blog";
+import Contact from "@/pages/contact";
+import Support from "@/pages/support";
 
 function Router() {
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <MainNav />
-      <Switch>
-        <Route path="/auth" component={Auth} />
-        <ProtectedRoute path="/planning" component={Planning} />
-        <ProtectedRoute path="/" component={Home} />
-        <ProtectedRoute path="/lists" component={Lists} />
-        <ProtectedRoute path="/lists/:listId" component={() => {
-          return <ListDetails />;
-        }} />
-        <ProtectedRoute path="/campaigns" component={Campaigns} />
-        <ProtectedRoute path="/campaigns/:id" component={() => {
-          return <CampaignDetails />;
-        }} />
-        <ProtectedRoute path="/outreach" component={Outreach} />
-        <ProtectedRoute path="/database" component={DatabasePage} />
-        <ProtectedRoute path="/companies/:id" component={() => {
-          return <CompanyDetails />;
-        }} />
-        <ProtectedRoute path="/contacts/:id" component={() => {
-          return <ContactDetails />;
-        }} />
-        <ProtectedRoute path="/api-templates" component={ApiTemplates} />
-        <Route component={NotFound} />
-      </Switch>
-    </>
+      <div className="flex-1">
+        <Switch>
+          <Route path="/auth" component={Auth} />
+          <ProtectedRoute path="/planning" component={Planning} />
+          <ProtectedRoute path="/" component={Home} />
+          <ProtectedRoute path="/lists" component={Lists} />
+          <ProtectedRoute path="/lists/:listId" component={() => {
+            return <ListDetails />;
+          }} />
+          <ProtectedRoute path="/campaigns" component={Campaigns} />
+          <ProtectedRoute path="/campaigns/:id" component={() => {
+            return <CampaignDetails />;
+          }} />
+          <ProtectedRoute path="/outreach" component={Outreach} />
+          <ProtectedRoute path="/database" component={DatabasePage} />
+          <ProtectedRoute path="/companies/:id" component={() => {
+            return <CompanyDetails />;
+          }} />
+          <ProtectedRoute path="/contacts/:id" component={() => {
+            return <ContactDetails />;
+          }} />
+          <ProtectedRoute path="/api-templates" component={ApiTemplates} />
+          {/* Public Routes */}
+          <Route path="/privacy" component={Privacy} />
+          <Route path="/terms" component={Terms} />
+          <Route path="/pricing" component={Pricing} />
+          <Route path="/blog" component={Blog} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/support" component={Support} />
+          <Route component={NotFound} />
+        </Switch>
+      </div>
+    </div>
   );
 }
 
