@@ -1,6 +1,4 @@
-2. Backend Layer:
-   ```
-   server/
+server/
    ├── storage/
    │   └── search.ts       # Database operations
    └── lib/
@@ -97,34 +95,126 @@
       - Easy configuration through Search Flow UI
 
 
-### 5. Default Data Initialization
-The application automatically initializes default data when it starts:
-- Default search approaches for company analysis
-- Sample email templates
+# Database Architecture & Migration Guide
 
-This initialization happens through dedicated storage modules:
-- `SearchStorage.initializeDefaultSearchApproaches()`
-- `TemplateStorage.initializeDefaultEmailTemplates()`
+## Database Architecture
 
-To customize or disable these initializations:
-1. Modify the default data arrays in these functions
-2. Or comment out their initialization in `storage/database.ts`
+1. Schema Definition:
+   ```typescript
+   shared/
+   └── schema.ts   # Central schema definitions using Drizzle ORM
+   ```
 
-## Development
+2. Storage Layer:
+   ```
+   server/
+   ├── storage/
+   │   ├── search.ts       # Search-related database operations
+   │   ├── companies.ts    # Company-related database operations
+   │   ├── contacts.ts     # Contact-related database operations
+   │   └── database.ts     # Database connection and initialization
+   ```
 
-1. Start the development server:
-```bash
-npm run dev
-```
+3. Database Models:
+   - Companies: Business entity information
+   - Contacts: Professional contact details
+   - Search Approaches: Search configuration and logic
+   - Campaigns: Marketing campaign management
+   - Lists: Company and contact groupings
+   - Email Templates: Communication templates
 
-2. The application will be available at `http://localhost:3000`
+## Database Operations Guide
 
-## Adding New Database Features
+### Adding New Tables
 
-1. Update the schema in `shared/schema.ts`
-2. Add corresponding interface methods in `storage/index.ts`
-3. Implement the new methods in the appropriate storage module
-4. Update the database storage class to delegate to the new implementation
-5. Run migration:
-```bash
-npm run db:push
+1. Update Schema:
+   - Add new models in `shared/schema.ts`
+   - Use Drizzle's type-safe schema definitions
+   - Example:
+     ```typescript
+     export const newTable = pgTable("table_name", {
+       id: serial("id").primaryKey(),
+       field: text("field").notNull()
+     });
+     ```
+
+2. Create Types:
+   - Define insert schema using `createInsertSchema`
+   - Create select type using `$inferSelect`
+   - Example:
+     ```typescript
+     export const insertSchema = createInsertSchema(newTable);
+     export type SelectType = typeof newTable.$inferSelect;
+     ```
+
+3. Update Storage:
+   - Add corresponding methods in appropriate storage file
+   - Implement CRUD operations using Drizzle ORM
+   - Follow existing patterns in `server/storage/`
+
+### Updating Existing Tables
+
+1. Modify Schema:
+   - Update the table definition in `shared/schema.ts`
+   - Add new columns or modify existing ones
+   - Example:
+     ```typescript
+     // Adding a new column
+     newColumn: text("new_column").notNull()
+     ```
+
+2. Push Changes:
+   ```bash
+   npm run db:push
+   ```
+   Note: If you receive a data loss warning, either:
+   - Modify the schema to prevent data loss
+   - Or use the SQL tool to manually handle the data
+
+### Database Migrations
+
+- NEVER write manual SQL migrations
+- Always use Drizzle's schema-push functionality
+- Command: `npm run db:push`
+
+### Best Practices
+
+1. Schema Organization:
+   - Keep all schemas in `shared/schema.ts`
+   - Group related tables together
+   - Add clear comments for complex relations
+
+2. Type Safety:
+   - Always use Zod schemas for validation
+   - Leverage Drizzle's type inference
+   - Define explicit types for all database operations
+
+3. Error Handling:
+   - Implement proper error catching
+   - Use typed error responses
+   - Log database errors appropriately
+
+4. Performance:
+   - Use appropriate indexes
+   - Optimize queries using Drizzle's query builder
+   - Consider batch operations for bulk updates
+
+## Default Data Initialization
+
+The application automatically initializes default data:
+- Search approaches through `SearchStorage.initializeDefaultSearchApproaches()`
+- Email templates via `TemplateStorage.initializeDefaultEmailTemplates()`
+
+To customize initialization:
+1. Modify default data arrays in storage classes
+2. Update initialization logic in `storage/database.ts`
+
+## Development Setup
+
+1. Database Setup:
+   - PostgreSQL database is automatically provisioned
+   - Connection URL available in DATABASE_URL environment variable
+
+2. Development Workflow:
+   ```bash
+   npm run dev    # Starts the development server
