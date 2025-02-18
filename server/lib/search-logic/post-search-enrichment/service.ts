@@ -3,7 +3,7 @@ import type { EnrichmentQueueItem, QueueStatus } from './types';
 import { storage } from '../../../storage';
 
 class PostSearchEnrichmentService {
-  async startEnrichment(searchId: string, contactIds?: number[]): Promise<string> {
+  async startEnrichment(searchId: string, contactIds: number[]): Promise<string> {
     console.log(`Starting post-search enrichment for contacts: ${contactIds?.join(',')}`);
 
     // Get contacts for enrichment
