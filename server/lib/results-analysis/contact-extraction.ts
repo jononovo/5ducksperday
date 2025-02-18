@@ -60,15 +60,30 @@ export async function extractContacts(
   const roleRegex = /(?:is|as|serves\s+as)\s+(?:the|a|an)\s+([^,.]+?(?:Manager|Director|Officer|Executive|Lead|Head|Chief|Founder|Owner|President|CEO|CTO|CFO))/gi;
 
   try {
-    // Process each analysis result
+    // First pass: Extract all names for bulk validation
+    const allNames: string[] = [];
+    for (const result of analysisResults) {
+      if (typeof result !== 'string') continue;
+      nameRegex.lastIndex = 0;
+      let nameMatch;
+      while ((nameMatch = nameRegex.exec(result)) !== null) {
+        const name = nameMatch[0];
+        if (!isPlaceholderName(name)) {
+          allNames.push(name);
+        }
+      }
+    }
+
+    // Bulk validate all names with Perplexity AI
+    const aiScores = await validateNames(allNames, companyName, validationOptions.searchPrompt);
+
+    // Second pass: Process each result with AI scores
     for (const result of analysisResults) {
       if (typeof result !== 'string') continue;
 
       const domain = extractDomainFromContext(result);
-      let nameMatch;
-
-      // Reset nameRegex for each iteration
       nameRegex.lastIndex = 0;
+      let nameMatch;
 
       while ((nameMatch = nameRegex.exec(result)) !== null) {
         const name = nameMatch[0];
@@ -80,30 +95,20 @@ export async function extractContacts(
           nameIndex + 200
         );
 
-        // Get AI validation score
-        const aiScores = await validateNames([name], companyName, validationOptions.searchPrompt);
-        const aiScore = aiScores[name] || 50; // Default to 50 if no AI score
-
-        // Combine AI and local validation
+        // Use AI score in validation
         const validationResult = validateName(name, contextWindow, companyName, {
           ...validationOptions,
-          aiScore
+          aiScore: aiScores[name] || 50 // Default to 50 if no AI score
         });
 
         if (validationResult.score >= (validationOptions.minimumScore || 30)) {
-          let roleMatch;
           roleRegex.lastIndex = 0;
-
-          let role = null;
-          if ((roleMatch = roleRegex.exec(contextWindow)) !== null) {
-            role = roleMatch[1].trim();
-          }
+          const roleMatch = roleRegex.exec(contextWindow);
+          const role = roleMatch ? roleMatch[1].trim() : null;
 
           const emailMatches = new Set<string>();
-          let emailMatch;
-
-          // Reset emailRegex
           emailRegex.lastIndex = 0;
+          let emailMatch;
 
           while ((emailMatch = emailRegex.exec(result)) !== null) {
             const email = emailMatch[0].toLowerCase();
@@ -140,6 +145,7 @@ export async function extractContacts(
             role,
             probability: validationResult.score,
             nameConfidenceScore: validationResult.score,
+            aiValidationScore: aiScores[name],
             lastValidated: new Date(),
             completedSearches: ['name_validation', 'ai_validation']
           });
