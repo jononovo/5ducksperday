@@ -10,16 +10,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useEffect } from "react";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { user, loginMutation, registerMutation } = useAuth();
-
-  // Redirect if already logged in
-  if (user) {
-    setLocation("/");
-    return null;
-  }
 
   const loginForm = useForm<Omit<InsertUser, "email">>({
     resolver: zodResolver(userSchema.omit({ email: true })),
@@ -38,6 +33,12 @@ export default function AuthPage() {
     },
   });
 
+  useEffect(() => {
+    if (user) {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
+
   const onLogin = loginForm.handleSubmit((data) => {
     loginMutation.mutate(data);
   });
@@ -45,6 +46,10 @@ export default function AuthPage() {
   const onRegister = registerForm.handleSubmit((data) => {
     registerMutation.mutate(data);
   });
+
+  if (user) {
+    return null;
+  }
 
   return (
     <div className="container max-w-screen-lg mx-auto py-8">
