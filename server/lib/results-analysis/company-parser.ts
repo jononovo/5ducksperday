@@ -36,6 +36,7 @@ function cleanUrl(url: string): string | null {
   }
 }
 
+// Add debug logging for website extraction
 export function parseCompanyData(analysisResults: string[]): Partial<Company> {
   const companyData: Partial<Company> = {
     services: [],
@@ -55,11 +56,16 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
   try {
     for (const result of analysisResults) {
       try {
+        // Log the raw result for debugging
+        console.log('Parsing result:', result);
+
         // Try parsing JSON first for structured data
         const jsonData = JSON.parse(result);
+        console.log('Parsed JSON data:', JSON.stringify(jsonData, null, 2));
 
         if (jsonData.companyProfile || jsonData.company || jsonData.profile) {
           const profile = jsonData.companyProfile || jsonData.company || jsonData.profile;
+          console.log('Found company profile:', JSON.stringify(profile, null, 2));
 
           // Extract website URL with multiple possible field names
           const possibleWebsiteFields = [
@@ -71,10 +77,13 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
             profile.corporateWebsite
           ];
 
+          console.log('Checking possible website fields:', possibleWebsiteFields);
+
           for (const websiteField of possibleWebsiteFields) {
             if (typeof websiteField === 'string' && !companyData.website) {
               const cleanedUrl = cleanUrl(websiteField);
               if (cleanedUrl) {
+                console.log('Found valid website URL:', cleanedUrl);
                 companyData.website = cleanedUrl;
                 break;
               }
@@ -112,11 +121,11 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
 
           // Extract short summary
           if (profile.marketPosition) {
-            companyData.shortSummary = profile.marketPosition.length > 150 
+            companyData.shortSummary = profile.marketPosition.length > 150
               ? profile.marketPosition.substring(0, 147) + '...'
               : profile.marketPosition;
           } else if (profile.focus) {
-            companyData.shortSummary = profile.focus.length > 150 
+            companyData.shortSummary = profile.focus.length > 150
               ? profile.focus.substring(0, 147) + '...'
               : profile.focus;
           }
