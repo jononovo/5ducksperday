@@ -94,7 +94,7 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
     console.log('Token verified successfully:', {
       email: decodedToken.email?.split('@')[0] + '@...',
       scopes: decodedToken.firebase?.sign_in_attributes?.scopes,
-      claims: decodedToken,
+      claims: Object.keys(decodedToken),
       timestamp: new Date().toISOString()
     });
 

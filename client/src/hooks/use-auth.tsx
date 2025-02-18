@@ -113,15 +113,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Authentication service is not properly configured");
       }
 
+      // Force re-authentication to request new scopes
+      firebaseGoogleProvider.setCustomParameters({
+        prompt: 'consent',
+        access_type: 'offline'
+      });
+
       console.log('Calling signInWithPopup...');
       const result = await signInWithPopup(firebaseAuth, firebaseGoogleProvider);
+
+      // Get the token result with detailed scope information
+      const tokenResult = await result.user.getIdTokenResult();
+
       console.log('SignInWithPopup completed', {
         success: !!result,
         hasUser: !!result.user,
         hasEmail: !!result.user?.email,
-        // Log the OAuth credential information
-        credential: result.credential,
-        scopes: (result.credential as any)?.accessToken ? 'Token present' : 'No token'
+        scopes: tokenResult.claims.scope,
+        // Log OAuth credential details
+        credential: result.user.providerData[0],
+        timestamp: new Date().toISOString()
       });
 
       if (!result.user?.email) {
@@ -146,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Show a more user-friendly error message
       toast({
         title: "Google Sign-in failed",
-        description: error.code === 'auth/popup-blocked' 
+        description: error.code === 'auth/popup-blocked'
           ? "Please allow popups for this site and try again"
           : "Please try again or use email/password login",
         variant: "destructive",
