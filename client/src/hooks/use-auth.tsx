@@ -8,7 +8,7 @@ import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { auth, googleProvider } from "@/lib/firebase";
-import { signInWithPopup, signOut } from "firebase/auth";
+import { signInWithPopup, signOut, type User as FirebaseUser } from "firebase/auth";
 
 type AuthContextType = {
   user: SelectUser | null;
@@ -93,6 +93,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Function to get Firebase ID token and sync with backend
+  const syncWithBackend = async (firebaseUser: FirebaseUser) => {
+    try {
+      const idToken = await firebaseUser.getIdToken();
+      const res = await fetch("/api/user", {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (!res.ok) {
+        // If user doesn't exist in our system, create one
+        if (res.status === 401) {
+          const createRes = await apiRequest("POST", "/api/google-auth", {
+            email: firebaseUser.email,
+            username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+          });
+          const user = await createRes.json();
+          queryClient.setQueryData(["/api/user"], user);
+        }
+      } else {
+          const user = await res.json();
+          queryClient.setQueryData(["/api/user"], user);
+      }
+    } catch (error) {
+      console.error("Error syncing with backend:", error);
+    }
+  };
+
   const signInWithGoogle = async () => {
     if (!auth || !googleProvider) {
       toast({
@@ -105,20 +134,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      const { user: firebaseUser } = result;
-
-      if (!firebaseUser.email) {
-        throw new Error("No email provided from Google account");
+      if (result.user && result.user.email) {
+        await syncWithBackend(result.user);
       }
-
-      // Create or get user in our backend
-      const res = await apiRequest("POST", "/api/google-auth", {
-        email: firebaseUser.email,
-        username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-      });
-
-      const user = await res.json();
-      queryClient.setQueryData(["/api/user"], user);
     } catch (error: any) {
       console.error("Google sign-in error:", error);
       toast({
@@ -135,17 +153,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser && firebaseUser.email) {
-        try {
-          // User is signed in, sync with backend
-          const res = await apiRequest("POST", "/api/google-auth", {
-            email: firebaseUser.email,
-            username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-          });
-          const user = await res.json();
-          queryClient.setQueryData(["/api/user"], user);
-        } catch (error) {
-          console.error("Error syncing with backend:", error);
-        }
+        await syncWithBackend(firebaseUser);
+      } else {
+        queryClient.setQueryData(["/api/user"], null);
       }
     });
 

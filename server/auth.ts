@@ -1,11 +1,12 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, Request } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
+import admin from "firebase-admin";
 
 declare global {
   namespace Express {
@@ -14,6 +15,22 @@ declare global {
 }
 
 const scryptAsync = promisify(scrypt);
+
+// Initialize Firebase Admin
+if (process.env.VITE_FIREBASE_PROJECT_ID) {
+  try {
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+      });
+      console.log('Firebase Admin initialized');
+    }
+  } catch (error) {
+    console.error('Firebase Admin initialization error:', error);
+  }
+} else {
+  console.warn('Firebase Admin not initialized: missing project ID');
+}
 
 async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -26,6 +43,36 @@ async function comparePasswords(supplied: string, stored: string) {
   const hashedBuf = Buffer.from(hashed, "hex");
   const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
   return timingSafeEqual(hashedBuf, suppliedBuf);
+}
+
+// Firebase token verification middleware
+async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ') || !admin.apps.length) {
+    return null;
+  }
+
+  try {
+    const idToken = authHeader.split('Bearer ')[1];
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    // Get or create user in our database
+    let user = await storage.getUserByEmail(decodedToken.email!);
+
+    if (!user) {
+      // Create new user
+      user = await storage.createUser({
+        email: decodedToken.email!,
+        username: decodedToken.email!.split('@')[0],
+        // Generate a random password for Firebase users
+        password: await hashPassword(randomBytes(32).toString('hex')),
+      });
+    }
+
+    return user;
+  } catch (error) {
+    console.error('Firebase token verification error:', error);
+    return null;
+  }
 }
 
 export function setupAuth(app: Express) {
@@ -68,6 +115,21 @@ export function setupAuth(app: Express) {
     } catch (err) {
       done(err);
     }
+  });
+
+  // Add Firebase token verification to all authenticated routes
+  app.use(async (req, res, next) => {
+    if (!req.isAuthenticated()) {
+      const firebaseUser = await verifyFirebaseToken(req);
+      if (firebaseUser) {
+        req.login(firebaseUser, (err) => {
+          if (err) return next(err);
+          next();
+        });
+        return;
+      }
+    }
+    next();
   });
 
   app.post("/api/register", async (req, res, next) => {

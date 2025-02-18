@@ -1,10 +1,10 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { initializeApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth, GoogleAuthProvider } from "firebase/auth";
 
 // Initialize variables
-let app = null;
-let auth = null;
-let googleProvider = null;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let googleProvider: GoogleAuthProvider | null = null;
 
 // Check if all required Firebase config values are present
 const hasRequiredConfig = 
@@ -30,7 +30,7 @@ if (hasRequiredConfig) {
     console.error("Firebase initialization error:", error);
   }
 } else {
-  console.log("Firebase not initialized: missing configuration");
+  console.warn("Firebase not initialized: missing configuration");
 }
 
 export { app, auth, googleProvider };
