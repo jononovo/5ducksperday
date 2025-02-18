@@ -44,13 +44,14 @@ const PLACEHOLDER_NAMES = new Set([
   'admin user', 'guest user', 'unknown user'
 ]);
 
+// Update GENERIC_TERMS to properly include compound terms
 const GENERIC_TERMS = new Set([
   // Job titles and positions
   'chief', 'executive', 'officer', 'ceo', 'cto', 'cfo', 'coo', 'president',
   'director', 'manager', 'managers', 'head', 'lead', 'senior', 'junior', 'principal',
   'vice', 'assistant', 'associate', 'coordinator', 'specialist', 'analyst',
   'administrator', 'supervisor', 'founder', 'co-founder', 'owner', 'partner',
-  'developer', 'engineer', 'architect', 'consultant', 'advisor', 'Strategist',
+  'developer', 'engineer', 'architect', 'consultant', 'advisor', 'strategist',
 
   // Departments and roles
   'sales', 'marketing', 'finance', 'accounting', 'hr', 'human resources',
@@ -65,33 +66,23 @@ const GENERIC_TERMS = new Set([
   'admin', 'professional', 'consultant', 'consolidated',
   'service', 'support', 'office', 'personnel', 'resource',
   'operation', 'development', 'sales', 'marketing', 'customer',
-  'printing', 'press', 'commercial', 'digital', 'production',
 
-  // Company identifiers
-  'company', 'consolidated', 'incorporated', 'inc', 'llc', 'ltd',
-  'group', 'holdings', 'solutions', 'services', 'international',
-  'global', 'industries', 'systems', 'technologies', 'associates',
-  'consulting', 'ventures', 'partners', 'limited', 'corp',
-  'cooperative', 'co', 'corporation', 'incorporated', 'plc',
+  // Technical terms
+  'web', 'design', 'web design', 'web development',
+  'stack', 'implementation', 'verification', 'process',
+  'digital', 'tech', 'technical', 'technology',
 
-  // Industry terms
-  'information', 'technology', 'software', 'industry', 'reputation',
-  'quality', 'control', 'strategic', 'direction', 'overall',
-  'vision', 'strategy', 'innovation', 'infrastructure',
-  'technical', 'leader', 'focus', 'primary', 'secondary',
+  // Compound business terms
+  'project manager', 'team lead', 'business analyst',
+  'sales representative', 'customer service',
+  'human resources', 'account manager',
+  'marketing director', 'product owner',
+  'technical lead', 'system administrator',
 
-  // Descriptive business terms
-  'Commerce', 'Website', 'Design', 'Web', 'executive',
-  'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial',
-
-  // Marketing Sector
-  'Digital', 'Marketing', 'Strategist', 'Interactive', 'executive', 'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial',
-
-  // Tech Sector
-  'Tech', 'Stack', 'Implementation', 'Verification', 'Process', 'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial'
+  // Generic descriptors
+  'the', 'our', 'your', 'this', 'that',
+  'team', 'group', 'division', 'department',
+  'staff', 'personnel', 'members', 'employees'
 ]);
 
 // Sequential validation steps
@@ -215,15 +206,24 @@ function validateNameFormat(name: string): number {
 function validateGenericTerms(name: string): number {
   const baseScore = 95;  // Start from maximum score
   const nameLower = name.toLowerCase();
-  const words = nameLower.split(/[\s-]+/);
 
-  // Count generic terms and apply flat penalty
-  const genericCount = words.filter(word =>
-    GENERIC_TERMS.has(word) || PLACEHOLDER_NAMES.has(word)
-  ).length;
+  // Check for compound generic terms first
+  const compoundMatches = Array.from(GENERIC_TERMS).filter(term => {
+    // Case insensitive match for the whole term
+    return nameLower.includes(term.toLowerCase());
+  });
+
+  // Count how many generic terms were found
+  const genericCount = compoundMatches.length;
 
   // Apply -45 points for each generic term found
   const penaltyScore = baseScore - (genericCount * 45);
+
+  // Log for debugging
+  if (genericCount > 0) {
+    console.log(`Generic terms found in "${name}":`, compoundMatches);
+    console.log(`Applied penalty: -${genericCount * 45} points`);
+  }
 
   // Ensure score stays within bounds
   return Math.max(20, Math.min(95, penaltyScore));
