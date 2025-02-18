@@ -91,6 +91,32 @@ export function setupAuth(app: Express) {
     }
   });
 
+  app.post("/api/google-auth", async (req, res, next) => {
+    try {
+      const { email, username } = req.body;
+
+      // Try to find user by email
+      let user = await storage.getUserByEmail(email);
+
+      if (!user) {
+        // Create new user if doesn't exist
+        user = await storage.createUser({
+          email,
+          username,
+          // Generate a random password for Google Auth users
+          password: await hashPassword(randomBytes(32).toString('hex')),
+        });
+      }
+
+      req.login(user, (err) => {
+        if (err) return next(err);
+        res.json(user);
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
     res.json(req.user);
   });

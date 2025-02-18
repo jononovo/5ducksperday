@@ -14,7 +14,7 @@ import { useEffect } from "react";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, loginMutation, registerMutation, signInWithGoogle } = useAuth();
 
   const loginForm = useForm<Omit<InsertUser, "email">>({
     resolver: zodResolver(userSchema.omit({ email: true })),
@@ -59,6 +59,26 @@ export default function AuthPage() {
             <CardTitle>Welcome to AI Business Intelligence</CardTitle>
           </CardHeader>
           <CardContent>
+            <Button 
+              variant="outline" 
+              onClick={signInWithGoogle}
+              className="w-full mb-6"
+            >
+              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 mr-2" />
+              Sign in with Google
+            </Button>
+
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Login</TabsTrigger>

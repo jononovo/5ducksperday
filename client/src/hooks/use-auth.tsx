@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useEffect } from "react";
 import {
   useQuery,
   useMutation,
@@ -7,6 +7,8 @@ import {
 import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { auth, googleProvider } from "@/lib/firebase";
+import { signInWithPopup, signOut } from "firebase/auth";
 
 type AuthContextType = {
   user: SelectUser | null;
@@ -15,6 +17,7 @@ type AuthContextType = {
   loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
+  signInWithGoogle: () => Promise<void>;
 };
 
 type LoginData = Pick<InsertUser, "username" | "password">;
@@ -68,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", "/api/logout");
+      await signOut(auth); // Sign out from Firebase as well
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
@@ -81,6 +85,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const signInWithGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const { user: firebaseUser } = result;
+
+      // Create or get user in our backend
+      const res = await apiRequest("POST", "/api/google-auth", {
+        email: firebaseUser.email,
+        username: firebaseUser.displayName,
+        // You might want to add additional user data here
+      });
+
+      const user = await res.json();
+      queryClient.setQueryData(["/api/user"], user);
+    } catch (error) {
+      toast({
+        title: "Google Sign-in failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Monitor Firebase auth state
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      if (firebaseUser) {
+        // User is signed in, sync with backend
+        const res = await apiRequest("POST", "/api/google-auth", {
+          email: firebaseUser.email,
+          username: firebaseUser.displayName,
+        });
+        const user = await res.json();
+        queryClient.setQueryData(["/api/user"], user);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -90,6 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginMutation,
         logoutMutation,
         registerMutation,
+        signInWithGoogle,
       }}
     >
       {children}
