@@ -263,6 +263,7 @@ export class CompanyOverviewModule implements SearchModule {
   }
 
   async validate(result: SearchModuleResult): Promise<boolean> {
+    // Remove shortSummary from validation
     const hasValidCompanies = result.companies.length > 0;
     const hasRequiredFields = result.companies.every(company =>
       company.name && company.services && company.services.length > 0
