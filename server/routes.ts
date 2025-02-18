@@ -157,6 +157,7 @@ app.post("/api/companies/search", async (req, res) => {
           companyOverview.technicalPrompt,
           companyOverview.responseStructure
         );
+        console.log('Company analysis response:', overviewResult); // Add logging
         const analysisResults = [overviewResult];
 
         // If Decision-maker Analysis is active, run it with technical prompt
@@ -167,11 +168,13 @@ app.post("/api/companies/search", async (req, res) => {
             decisionMakerAnalysis.technicalPrompt,
             decisionMakerAnalysis.responseStructure
           );
+          console.log('Decision maker analysis response:', decisionMakerResult); // Add logging
           analysisResults.push(decisionMakerResult);
         }
 
         // Parse results with enhanced website extraction
         const companyData = parseCompanyData(analysisResults);
+        console.log('Parsed company data:', companyData); // Add logging for parsed data
 
         // Extract company name and summary from the first result
         const nameWithSummary = companyName.split(' - ');
