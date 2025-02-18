@@ -37,6 +37,8 @@ import {
   Search,
   RefreshCw,
   Link2,
+  Phone,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -333,6 +335,58 @@ export default function CompanyDetails() {
                   <Bar dataKey="value" fill="hsl(var(--primary))" />
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Company Details Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Company Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-6">
+              {/* Location Details */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-lg">Location Information</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span className="font-medium">City:</span>
+                    <span>{company.city || 'Not specified'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span className="font-medium">State:</span>
+                    <span>{company.state || 'Not specified'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Globe className="h-4 w-4" />
+                    <span className="font-medium">Country:</span>
+                    <span>{company.country || 'Not specified'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Details */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-lg">Contact Information</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Phone className="h-4 w-4" />
+                    <span className="font-medium">Phone:</span>
+                    <span>{company.phone || 'Not specified'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Mail className="h-4 w-4" />
+                    <span className="font-medium">Email:</span>
+                    <span>{company.defaultContactEmail || 'Not specified'}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
