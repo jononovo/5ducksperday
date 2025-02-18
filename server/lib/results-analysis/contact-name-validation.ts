@@ -48,58 +48,53 @@ const PLACEHOLDER_NAMES = new Set([
 ]);
 
 const GENERIC_TERMS = new Set([
-  // Job titles and positions
-  'chief', 'executive', 'officer', 'ceo', 'cto', 'cfo', 'coo', 'president',
-  'director', 'manager', 'managers', 'head', 'lead', 'senior', 'junior', 'principal',
-  'vice', 'assistant', 'associate', 'coordinator', 'specialist', 'analyst',
-  'administrator', 'supervisor', 'founder', 'co-founder', 'owner', 'partner',
-  'developer', 'engineer', 'architect', 'consultant', 'advisor', 'strategist',
-
-  // Departments and roles
-  'sales', 'marketing', 'finance', 'accounting', 'hr', 'human resources',
-  'operations', 'it', 'support', 'customer service', 'product', 'project',
-  'research', 'development', 'legal', 'compliance', 'quality', 'assurance',
-
-  // Business terms
-  'leadership', 'team', 'member', 'staff', 'employee', 'general',
-  'key', 'role', 'position', 'department', 'division', 'management',
-  'contact', 'person', 'representative', 'individual',
-  'business', 'company', 'enterprise', 'organization', 'corporation',
-  'admin', 'professional', 'consultant', 'consolidated',
-  'service', 'support', 'office', 'personnel', 'resource',
-  'operation', 'development', 'sales', 'marketing', 'customer',
-  'printing', 'press', 'commercial', 'digital', 'production',
-  'industry', 'focus', 'busy',
-
-  // Company identifiers
-  'company', 'consolidated', 'incorporated', 'inc', 'llc', 'ltd',
-  'group', 'holdings', 'solutions', 'services', 'international',
-  'global', 'industries', 'systems', 'technologies', 'associates',
-  'consulting', 'ventures', 'partners', 'limited', 'corp',
-  'cooperative', 'co', 'corporation', 'incorporated', 'plc',
-
-  // Industry terms
-  'information', 'technology', 'software', 'industry', 'reputation',
-  'quality', 'control', 'strategic', 'direction', 'overall',
-  'vision', 'strategy', 'innovation', 'infrastructure',
-  'technical', 'leader', 'focus', 'primary', 'secondary',
-
-  // Descriptive business terms
-  'commerce', 'website', 'design', 'web', 'executive',
-  'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial',
-
-  // Marketing Sector
-  'marketing', 'digital', 'strategist', 'interactive', 'executive', 'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial',
-
-  // Tech Sector
-  'tech', 'stack', 'implementation', 'verification', 'process', 'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial',
-
-  // Building Sector
+  // Construction Sector
   'building', 'construction', 'development', 'project', 'site', 'planning', 'design', 'engineering',
-  'architecture', 'infrastructure', 'facility', 'maintenance', 'operations'
+  'architecture', 'infrastructure', 'facility', 'maintenance', 'operations',
+
+  // Non-name common words
+  'the', 'of', 'and', 'a', 'to', 'in', 'is', 'it',
+
+  // Entertainment Sector
+  'entertainment', 'music', 'film', 'television', 'video', 'show', 'event', 'performance', 'concert', 'festival',
+
+  // Healthcare Sector
+  'healthcare', 'medical', 'hospital', 'clinic', 'facility', 'care', 'insurance', 'health', 'dental', 'pharmacy', 
+  'pharmaceutical', 'disease', 'diagnosis', 'treatment', 'therapy',
+
+  // Finance Sector
+  'finance', 'accounting', 'investment', 'management', 'tax', 'invest', 'fund', 'loan', 'credit', 'debt',
+
+  // Skincare & spa Sector
+  'skincare', 'spa', 'makeup', 'hair', 'beauty', 'skin', 'treatment', 'therapy', 'cosmetics', 'hygiene', 'wellness', 'therapeutics', 
+  'relaxation', 'rejuvenation', 'recovery', 'hydration', 'nutrition',
+
+  // Fitness Sector
+  'fitness', 'exercise', 'gym', 'training', 'nutrition', 'diet', 'health', 'wellness', 'fit', 'routine', 'program',
+
+  // Fashion Sector
+  'fashion', 'style', 'trend', 'design', 'brand', 'show',
+
+  // Education Sector
+  'education', 'school', 'university', 'college', 'degree', 'training', 'program', 'course', 'certification', 'diploma', 'masters', 'bachelors', 'ma',
+
+  // Tourism Sector
+  'tourism', 'travel', 'vacation', 'holiday', 'trip', 'destination', 'experience', 'adventure', 'sightseeing', 'excursion', 'exploration',
+
+  // Religion Sector
+  'religion', 'spirituality', 'religious', 'church', 'temple', 'christianity', 'judaism', 'islam', 'buddhism',
+
+  // Sports Sector
+  'sports', 'athletics', 'sport', 'team', 'league', 'competition', 'event', 'match', 'game', 'season', 'tournament', 'championship', 'world', 'cup', 'final',
+
+  // Art Sector
+  'art', 'design', 'painting', 'sculpture', 'architecture', 'museum', 'gallery', 'exhibition', 'collection',
+
+  // Real-estate Sector
+  'real-estate', 'property', 'home', 'rental', 'sale', 'buy', 'buying', 'sell', 'selling', 'housing', 'development',
+
+  // Catering Sector 
+  'catering', 'restaurant', 'food', 'menu', 'dining', 'service', 'delivery'
 ]);
 
 // Common business email formats for contact extraction
