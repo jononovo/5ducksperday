@@ -4,6 +4,7 @@ import { ContactStorage } from './contacts';
 import { SearchStorage } from './search';
 import { CampaignStorage } from './campaigns';
 import { TemplateStorage } from './templates';
+import { UserStorage } from './users';
 import { db } from '../db';
 
 export class DatabaseStorage implements IStorage {
@@ -12,6 +13,7 @@ export class DatabaseStorage implements IStorage {
   private readonly searchStorage: SearchStorage;
   private readonly campaignStorage: CampaignStorage;
   private readonly templateStorage: TemplateStorage;
+  private readonly userStorage: UserStorage;
 
   constructor() {
     this.companyStorage = new CompanyStorage(db);
@@ -19,15 +21,22 @@ export class DatabaseStorage implements IStorage {
     this.searchStorage = new SearchStorage(db);
     this.campaignStorage = new CampaignStorage(db);
     this.templateStorage = new TemplateStorage(db);
+    this.userStorage = new UserStorage(db);
   }
 
-  // Lists (delegated to CompanyStorage)
-  getList = (listId: number) => this.companyStorage.getList(listId);
-  listLists = () => this.companyStorage.listLists();
+  // User operations
+  createUser = (user: any) => this.userStorage.createUser(user);
+  getUser = (id: number) => this.userStorage.getUser(id);
+  getUserByUsername = (username: string) => this.userStorage.getUserByUsername(username);
+  updateUser = (id: number, updates: any) => this.userStorage.updateUser(id, updates);
+
+  // Lists (filtered by userId)
+  getList = (listId: number, userId: number) => this.companyStorage.getList(listId, userId);
+  listLists = (userId: number) => this.companyStorage.listLists(userId);
   createList = (list: any) => this.companyStorage.createList(list);
   getNextListId = () => this.companyStorage.getNextListId();
 
-  // Companies
+  // Companies (no userId needed)
   getCompany = (id: number) => this.companyStorage.getCompany(id);
   listCompanies = () => this.companyStorage.listCompanies();
   listCompaniesByList = (listId: number) => this.companyStorage.listCompaniesByList(listId);
@@ -48,17 +57,12 @@ export class DatabaseStorage implements IStorage {
   updateContactConfidenceScore = (id: number, score: number) => this.contactStorage.updateContactConfidenceScore(id, score);
   updateContactValidationStatus = (id: number) => this.contactStorage.updateContactValidationStatus(id);
 
-  // Search Approaches
-  getSearchApproach = (id: number) => this.searchStorage.getSearchApproach(id);
-  listSearchApproaches = () => this.searchStorage.listSearchApproaches();
-  createSearchApproach = (approach: any) => this.searchStorage.createSearchApproach(approach);
-  updateSearchApproach = (id: number, updates: any) => this.searchStorage.updateSearchApproach(id, updates);
 
-  // Campaigns
-  getCampaign = (campaignId: number) => this.campaignStorage.getCampaign(campaignId);
-  listCampaigns = () => this.campaignStorage.listCampaigns();
+  // Campaigns (filtered by userId)
+  getCampaign = (campaignId: number, userId: number) => this.campaignStorage.getCampaign(campaignId, userId);
+  listCampaigns = (userId: number) => this.campaignStorage.listCampaigns(userId);
   createCampaign = (campaign: any) => this.campaignStorage.createCampaign(campaign);
-  updateCampaign = (id: number, campaign: any) => this.campaignStorage.updateCampaign(id, campaign);
+  updateCampaign = (id: number, campaign: any, userId: number) => this.campaignStorage.updateCampaign(id, campaign, userId);
   getNextCampaignId = () => this.campaignStorage.getNextCampaignId();
 
   // Campaign Lists
@@ -67,12 +71,18 @@ export class DatabaseStorage implements IStorage {
   getListsByCampaign = (campaignId: number) => this.campaignStorage.getListsByCampaign(campaignId);
   updateCampaignTotalCompanies = (campaignId: number) => this.campaignStorage.updateCampaignTotalCompanies(campaignId);
 
-  // Email Templates
-  getEmailTemplate = (id: number) => this.templateStorage.getEmailTemplate(id);
-  listEmailTemplates = () => this.templateStorage.listEmailTemplates();
+  // Email Templates (filtered by userId)
+  getEmailTemplate = (id: number, userId: number) => this.templateStorage.getEmailTemplate(id, userId);
+  listEmailTemplates = (userId: number) => this.templateStorage.listEmailTemplates(userId);
   createEmailTemplate = (template: any) => this.templateStorage.createEmailTemplate(template);
-  updateEmailTemplate = (id: number, template: any) => this.templateStorage.updateEmailTemplate(id, template);
-  deleteEmailTemplate = (id: number) => this.templateStorage.deleteEmailTemplate(id);
+  updateEmailTemplate = (id: number, template: any, userId: number) => this.templateStorage.updateEmailTemplate(id, template, userId);
+  deleteEmailTemplate = (id: number, userId: number) => this.templateStorage.deleteEmailTemplate(id, userId);
+
+  // Search Approaches
+  getSearchApproach = (id: number) => this.searchStorage.getSearchApproach(id);
+  listSearchApproaches = () => this.searchStorage.listSearchApproaches();
+  createSearchApproach = (approach: any) => this.searchStorage.createSearchApproach(approach);
+  updateSearchApproach = (id: number, updates: any) => this.searchStorage.updateSearchApproach(id, updates);
 }
 
 // Create and export a single instance

@@ -1,9 +1,18 @@
 import { pgTable, text, serial, integer, jsonb, timestamp, boolean } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email").notNull(),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 export const lists = pgTable("lists", {
   id: serial("id").primaryKey(),
-  listId: integer("list_id").notNull(),  // This will start from 1001
+  userId: integer("user_id").notNull(),  
+  listId: integer("list_id").notNull(),
   prompt: text("prompt").notNull(),
   resultCount: integer("result_count").notNull(),
   createdAt: timestamp("created_at").defaultNow()
@@ -12,12 +21,12 @@ export const lists = pgTable("lists", {
 export const companies = pgTable("companies", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  listId: integer("list_id"),  // Reference to the list this company belongs to
+  listId: integer("list_id"),  
   age: integer("age"),
   size: integer("size"),
   website: text("website"),
-  alternativeProfileUrl: text("alternative_profile_url"), // New field for GMB, Yelp etc
-  defaultContactEmail: text("default_contact_email"), // New field for company-wide contact
+  alternativeProfileUrl: text("alternative_profile_url"), 
+  defaultContactEmail: text("default_contact_email"), 
   ranking: integer("website_ranking"),
   linkedinProminence: integer("linkedin_prominence"),
   customerCount: integer("customer_count"),
@@ -44,11 +53,10 @@ export const contacts = pgTable("contacts", {
   location: text("location"),
   verificationSource: text("verification_source"),
   lastEnriched: timestamp("last_enriched"),
-  // New fields for name validation
-  nameConfidenceScore: integer("name_confidence_score"), // AI-generated score
-  userFeedbackScore: integer("user_feedback_score"), // Aggregate user feedback
-  feedbackCount: integer("feedback_count").default(0), // Number of feedback entries
-  lastValidated: timestamp("last_validated"), // Last AI validation timestamp
+  nameConfidenceScore: integer("name_confidence_score"), 
+  userFeedbackScore: integer("user_feedback_score"), 
+  feedbackCount: integer("feedback_count").default(0), 
+  lastValidated: timestamp("last_validated"), 
   createdAt: timestamp("created_at").defaultNow(),
   completedSearches: text("completed_searches").array()
 });
@@ -56,7 +64,7 @@ export const contacts = pgTable("contacts", {
 export const contactFeedback = pgTable("contact_feedback", {
   id: serial("id").primaryKey(),
   contactId: integer("contact_id").notNull(),
-  feedbackType: text("feedback_type").notNull(), // 'excellent', 'ok', 'terrible'
+  feedbackType: text("feedback_type").notNull(), 
   createdAt: timestamp("created_at").defaultNow()
 });
 
@@ -70,16 +78,17 @@ export const searchApproaches = pgTable("search_approaches", {
   completedSearches: text("completed_searches").array(),
   technicalPrompt: text("technical_prompt"),
   responseStructure: text("response_structure"),
-  moduleType: text("module_type").default('company_overview'),  // New field
-  validationRules: jsonb("validation_rules").default({})  // New field
+  moduleType: text("module_type").default('company_overview'),  
+  validationRules: jsonb("validation_rules").default({})  
 });
 
 export const campaigns = pgTable("campaigns", {
   id: serial("id").primaryKey(),
-  campaignId: integer("campaign_id").notNull(),  // This will start from 2001
+  userId: integer("user_id").notNull(),  
+  campaignId: integer("campaign_id").notNull(),
   name: text("name").notNull(),
   description: text("description"),
-  status: text("status").default('draft'),  // draft, active, completed, paused
+  status: text("status").default('draft'),  
   startDate: timestamp("start_date"),
   createdAt: timestamp("created_at").defaultNow(),
   totalCompanies: integer("total_companies").default(0)
@@ -94,6 +103,7 @@ export const campaignLists = pgTable("campaign_lists", {
 
 export const emailTemplates = pgTable("email_templates", {
   id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),  
   name: text("name").notNull(),
   subject: text("subject").notNull(),
   content: text("content").notNull(),
@@ -161,7 +171,7 @@ const searchModuleConfigSchema = z.object({
     id: z.string(),
     label: z.string(),
     description: z.string().optional(),
-    subsectionRef: z.string().optional(), // New field to reference external subsection definitions
+    subsectionRef: z.string().optional(), 
     searches: z.array(z.object({
       id: z.string(),
       label: z.string(),
@@ -218,13 +228,19 @@ const emailTemplateSchema = z.object({
   category: z.string().default('general')
 });
 
-export const insertListSchema = listSchema;
+export const insertListSchema = listSchema.extend({
+  userId: z.number()
+});
 export const insertCompanySchema = companySchema;
 export const insertContactSchema = contactSchema;
 export const insertSearchApproachSchema = searchApproachSchema;
-export const insertCampaignSchema = campaignSchema;
+export const insertCampaignSchema = campaignSchema.extend({
+  userId: z.number()
+});
 export const insertCampaignListSchema = campaignListSchema;
-export const insertEmailTemplateSchema = emailTemplateSchema;
+export const insertEmailTemplateSchema = emailTemplateSchema.extend({
+  userId: z.number()
+});
 export const insertContactFeedbackSchema = contactFeedbackSchema;
 
 export type List = typeof lists.$inferSelect;
@@ -247,3 +263,16 @@ export type InsertContactFeedback = z.infer<typeof insertContactFeedbackSchema>;
 export type SearchModuleConfig = z.infer<typeof searchModuleConfigSchema>;
 export type SearchSection = SearchModuleConfig['searchSections'][string];
 export type SearchImplementation = SearchSection['searches'][number];
+
+// Add user schema and type
+export const userSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters")
+});
+
+export const insertUserSchema = userSchema;
+
+// Add User type
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;

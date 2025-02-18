@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupAuth } from "./auth";
 
 const app = express();
 app.use(express.json());
@@ -51,6 +52,9 @@ app.get('/api/health', (_req, res) => {
 
 (async () => {
   try {
+    // Setup authentication before registering routes
+    setupAuth(app);
+
     const server = registerRoutes(app);
 
     // Global error handler

@@ -6,13 +6,20 @@ import { type Campaign, type InsertCampaign } from "@shared/schema";
 import { type CampaignList, type InsertCampaignList } from "@shared/schema";
 import { type EmailTemplate, type InsertEmailTemplate } from "@shared/schema";
 import { type ContactFeedback, type InsertContactFeedback } from "@shared/schema";
+import { type User, type InsertUser } from "@shared/schema";
 
 // Base storage interface that defines all storage operations
 export interface IStorage {
+  // New User methods
+  createUser(user: InsertUser): Promise<User>;
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+
   // Lists
-  getList(listId: number): Promise<List | undefined>;
-  listLists(): Promise<List[]>;
-  createList(list: InsertList): Promise<List>;
+  getList(listId: number, userId: number): Promise<List | undefined>;
+  listLists(userId: number): Promise<List[]>;
+  createList(list: InsertList & { userId: number }): Promise<List>;
   getNextListId(): Promise<number>;
 
   // Companies
@@ -37,10 +44,10 @@ export interface IStorage {
   updateSearchApproach(id: number, approach: Partial<SearchApproach>): Promise<SearchApproach | undefined>;
 
   // Campaigns
-  getCampaign(campaignId: number): Promise<Campaign | undefined>;
-  listCampaigns(): Promise<Campaign[]>;
-  createCampaign(campaign: InsertCampaign): Promise<Campaign>;
-  updateCampaign(id: number, campaign: Partial<Campaign>): Promise<Campaign | undefined>;
+  getCampaign(campaignId: number, userId: number): Promise<Campaign | undefined>;
+  listCampaigns(userId: number): Promise<Campaign[]>;
+  createCampaign(campaign: InsertCampaign & { userId: number }): Promise<Campaign>;
+  updateCampaign(id: number, campaign: Partial<Campaign>, userId: number): Promise<Campaign | undefined>;
   getNextCampaignId(): Promise<number>;
 
   // Campaign Lists
@@ -50,11 +57,11 @@ export interface IStorage {
   updateCampaignTotalCompanies(campaignId: number): Promise<void>;
 
   // Email Templates
-  getEmailTemplate(id: number): Promise<EmailTemplate | undefined>;
-  listEmailTemplates(): Promise<EmailTemplate[]>;
-  createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate>;
-  updateEmailTemplate(id: number, template: Partial<EmailTemplate>): Promise<EmailTemplate | undefined>;
-  deleteEmailTemplate(id: number): Promise<void>;
+  getEmailTemplate(id: number, userId: number): Promise<EmailTemplate | undefined>;
+  listEmailTemplates(userId: number): Promise<EmailTemplate[]>;
+  createEmailTemplate(template: InsertEmailTemplate & { userId: number }): Promise<EmailTemplate>;
+  updateEmailTemplate(id: number, template: Partial<EmailTemplate>, userId: number): Promise<EmailTemplate | undefined>;
+  deleteEmailTemplate(id: number, userId: number): Promise<void>;
 
   // Contact Search and Enrichment
   enrichContact(id: number, contactData: Partial<Contact>): Promise<Contact | undefined>;
