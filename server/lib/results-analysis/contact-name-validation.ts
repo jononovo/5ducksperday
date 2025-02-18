@@ -6,6 +6,7 @@ export interface NameValidationResult {
   confidence: number;
   name: string;
   context?: string;
+  aiScore?: number;
 }
 
 export interface ValidationOptions {
@@ -15,6 +16,7 @@ export interface ValidationOptions {
   companyNamePenalty?: number;
   searchPrompt?: string;
   searchTermPenalty?: number;
+  aiScore?: number;
 }
 
 // Centralized list of placeholder and generic terms
@@ -87,12 +89,20 @@ export function validateName(
   // Initial local validation
   const localResult = validateNameLocally(name, context);
 
-  // If it's a generic name and not being validated in company context
-  if (localResult.isGeneric && !companyName) {
-    return localResult;
+  // Combine with AI score if provided
+  if (options.aiScore !== undefined) {
+    const combinedScore = combineValidationScores(
+      options.aiScore,
+      localResult.score,
+      name,
+      companyName,
+      options
+    );
+    localResult.score = combinedScore;
+    localResult.aiScore = options.aiScore;
   }
 
-  // Company name check
+  // Apply additional validations
   if (companyName && isNameSimilarToCompany(name, companyName)) {
     if (!isFounderOrOwner(context, companyName)) {
       localResult.score = Math.max(20, localResult.score - (options.companyNamePenalty || 20));
@@ -105,17 +115,15 @@ export function validateName(
   if (options.searchPrompt) {
     const searchTerms = options.searchPrompt.toLowerCase().split(/\s+/);
     const normalizedName = name.toLowerCase();
-
     const matchingTerms = searchTerms.filter(term =>
       term.length >= 4 && normalizedName.includes(term)
     );
-
     if (matchingTerms.length > 0) {
       localResult.score = Math.max(20, localResult.score - (options.searchTermPenalty || 25));
     }
   }
 
-  // Final score adjustments
+  // Final adjustments
   if (localResult.isGeneric) {
     localResult.score = Math.max(20, localResult.score - 30);
   }
@@ -126,6 +134,33 @@ export function validateName(
   );
 
   return localResult;
+}
+
+function combineValidationScores(
+  aiScore: number,
+  localScore: number,
+  name: string,
+  companyName?: string | null,
+  options: ValidationOptions = defaultOptions
+): number {
+  const weight = options.localValidationWeight || 0.3;
+
+  // Weighted combination of AI and local scores
+  let combinedScore = Math.round(
+    (aiScore * (1 - weight)) + (localScore * weight)
+  );
+
+  // Boost high-confidence matches
+  if (aiScore >= 90 && localScore >= 80) {
+    combinedScore = Math.min(100, combinedScore + 5);
+  }
+
+  // Penalize low-confidence matches more heavily
+  if (aiScore < 40 && localScore < 50) {
+    combinedScore = Math.max(20, combinedScore - 15);
+  }
+
+  return Math.max(options.minimumScore || 30, Math.min(100, combinedScore));
 }
 
 function validateNameLocally(name: string, context: string = ""): NameValidationResult {

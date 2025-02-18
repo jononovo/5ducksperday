@@ -60,41 +60,47 @@ export async function extractContacts(
   const roleRegex = /(?:is|as|serves\s+as)\s+(?:the|a|an)\s+([^,.]+?(?:Manager|Director|Officer|Executive|Lead|Head|Chief|Founder|Owner|President|CEO|CTO|CFO))/gi;
 
   try {
+    // Extract all names first for bulk AI validation
+    const names: string[] = [];
     for (const result of analysisResults) {
       if (typeof result !== 'string') continue;
-
-      const domain = extractDomainFromContext(result);
-
       let match;
-      const names = [];
       while ((match = nameRegex.exec(result)) !== null) {
         const name = match[0];
         if (!isPlaceholderName(name)) {
           names.push(name);
         }
       }
+    }
 
-      if (names.length === 0) continue;
+    // Bulk validate names with Perplexity AI
+    const aiScores = await validateNames(names, companyName, validationOptions.searchPrompt);
 
-      // Pass searchPrompt to validateNames for better context
-      const aiScores = await validateNames(names, companyName, validationOptions.searchPrompt);
+    // Process each analysis result with both AI and local validation
+    for (const result of analysisResults) {
+      if (typeof result !== 'string') continue;
 
-      for (const name of names) {
-        const aiScore = aiScores[name] || 0;
+      const domain = extractDomainFromContext(result);
+      nameRegex.lastIndex = 0;
+
+      while ((match = nameRegex.exec(result)) !== null) {
+        const name = match[0];
+        if (isPlaceholderName(name)) continue;
+
         const nameIndex = result.indexOf(name);
         const contextWindow = result.slice(
           Math.max(0, nameIndex - 100),
           nameIndex + 200
         );
 
+        // Combine AI and local validation
+        const aiScore = aiScores[name] || 50; // Default to 50 if no AI score
         const validationResult = validateName(name, contextWindow, companyName, {
-          minimumScore: validationOptions.minimumScore,
-          searchPrompt: validationOptions.searchPrompt,
-          searchTermPenalty: validationOptions.searchTermPenalty
+          ...validationOptions,
+          aiScore
         });
-        const finalScore = validationResult.score;
 
-        if (finalScore >= (validationOptions.minimumScore || 30)) {
+        if (validationResult.score >= (validationOptions.minimumScore || 30)) {
           let role = null;
           roleRegex.lastIndex = 0;
           const roleMatch = roleRegex.exec(contextWindow);
@@ -103,7 +109,6 @@ export async function extractContacts(
           }
 
           const emailMatches = new Set<string>();
-
           emailRegex.lastIndex = 0;
           while ((match = emailRegex.exec(result)) !== null) {
             const email = match[0].toLowerCase();
@@ -137,10 +142,11 @@ export async function extractContacts(
             name,
             email: emailsArray.length > 0 ? emailsArray[0] : null,
             role,
-            probability: finalScore,
-            nameConfidenceScore: finalScore,
+            probability: validationResult.score,
+            nameConfidenceScore: validationResult.score,
+            aiValidationScore: aiScore,
             lastValidated: new Date(),
-            completedSearches: ['name_validation']
+            completedSearches: ['name_validation', 'ai_validation']
           });
         }
       }
