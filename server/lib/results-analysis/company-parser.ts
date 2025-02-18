@@ -31,101 +31,74 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
 
   try {
     for (const result of analysisResults) {
-      // Text analysis first to ensure we don't miss anything
-      const size = analyzeCompanySize(result);
-      if (size !== null && !companyData.size) {
-        companyData.size = size;
-      }
-
-      const differentiators = analyzeDifferentiators(result);
-      if (differentiators.length > 0 && companyData.differentiation) {
-        const uniqueDifferentiators = new Set([...companyData.differentiation]);
-        differentiators.forEach(d => uniqueDifferentiators.add(d));
-        companyData.differentiation = Array.from(uniqueDifferentiators);
-      }
-
-      // Extract location information from text
-      const locationInfo = extractLocationInfo(result);
-      if (locationInfo.city && !companyData.city) companyData.city = locationInfo.city;
-      if (locationInfo.state && !companyData.state) companyData.state = locationInfo.state;
-      if (locationInfo.country && !companyData.country) companyData.country = locationInfo.country;
-
-      // Extract services using common patterns
-      const servicePatterns = [
-        /(?:provides?|offers?|delivers?|specializes? in)\s+([^.!?]+(?:services|solutions|consulting|development|support))/gi,
-        /(?:key|main|core)\s+services?:\s*([^.!?]+)/gi,
-        /services?(?:\s+include)?:\s*([^.!?]+)/gi
-      ];
-
-      for (const pattern of servicePatterns) {
-        let match;
-        while ((match = pattern.exec(result)) !== null) {
-          const serviceText = match[1].trim();
-          const services = serviceText
-            .split(/,|\band\b/)
-            .map(s => s.trim())
-            .filter(s => s.length > 0 && s.length < 100); // Reasonable length check
-
-          if (services.length > 0 && companyData.services) {
-            const uniqueServices = new Set([...companyData.services]);
-            services.forEach(s => uniqueServices.add(s));
-            companyData.services = Array.from(uniqueServices);
-          }
-        }
-      }
-
-      // Try JSON parsing for structured data
       try {
+        // Try parsing JSON first for structured data
         const jsonData = JSON.parse(result);
 
-        // Extract location information from JSON
-        if (jsonData.location) {
-          if (!companyData.city && jsonData.location.city) {
-            companyData.city = jsonData.location.city;
-          }
-          if (!companyData.state && jsonData.location.state) {
-            companyData.state = jsonData.location.state;
-          }
-          if (!companyData.country && jsonData.location.country) {
-            companyData.country = jsonData.location.country;
-          }
-        }
+        if (jsonData.companyProfile) {
+          // Extract from new structure
+          const profile = jsonData.companyProfile;
 
-        if (typeof jsonData.size === 'number' || typeof jsonData.employeeCount === 'number') {
-          companyData.size = jsonData.size || jsonData.employeeCount;
-        } else if (typeof jsonData.size === 'string' || typeof jsonData.employeeCount === 'string') {
-          const size = analyzeCompanySize(jsonData.size || jsonData.employeeCount);
-          if (size !== null) {
-            companyData.size = size;
+          if (typeof profile.size === 'number') {
+            companyData.size = profile.size;
           }
-        }
 
-        if (Array.isArray(jsonData.services) && companyData.services) {
-          const uniqueServices = new Set([...companyData.services]);
-          jsonData.services
-            .filter((s: unknown): s is string => typeof s === 'string')
-            .forEach(s => uniqueServices.add(s));
-          companyData.services = Array.from(uniqueServices);
-        }
+          if (profile.industry) {
+            companyData.industry = profile.industry;
+          }
 
-        if ((Array.isArray(jsonData.differentiators) || Array.isArray(jsonData.uniquePoints)) && companyData.differentiation) {
-          const points = jsonData.differentiators || jsonData.uniquePoints;
-          if (points.length > 0) {
+          if (profile.focus) {
+            companyData.focus = profile.focus;
+          }
+
+          if (profile.services && Array.isArray(profile.services)) {
+            const uniqueServices = new Set([...(companyData.services || [])]);
+            profile.services.forEach(s => uniqueServices.add(s));
+            companyData.services = Array.from(uniqueServices);
+          }
+
+          if (profile.differentiators && Array.isArray(profile.differentiators) && companyData.differentiation) {
             const uniqueDifferentiators = new Set([...companyData.differentiation]);
-            points
-              .filter((p: unknown): p is string => typeof p === 'string')
-              .forEach(p => uniqueDifferentiators.add(p));
+            profile.differentiators.forEach(d => uniqueDifferentiators.add(d));
             companyData.differentiation = Array.from(uniqueDifferentiators);
+          }
+
+          if (profile.location) {
+            if (profile.location.city) companyData.city = profile.location.city;
+            if (profile.location.state) companyData.state = profile.location.state;
+            if (profile.location.country) companyData.country = profile.location.country;
+          }
+
+          if (typeof profile.validationScore === 'number') {
+            companyData.totalScore = profile.validationScore;
           }
         }
       } catch (e) {
-        // JSON parsing failed, continue with next result
-        continue;
+        // JSON parsing failed, use text analysis as fallback
+        const size = analyzeCompanySize(result);
+        if (size !== null && !companyData.size) {
+          companyData.size = size;
+        }
+
+        const differentiators = analyzeDifferentiators(result);
+        if (differentiators.length > 0 && companyData.differentiation) {
+          const uniqueDifferentiators = new Set([...companyData.differentiation]);
+          differentiators.forEach(d => uniqueDifferentiators.add(d));
+          companyData.differentiation = Array.from(uniqueDifferentiators);
+        }
+
+        // Extract location information from text as fallback
+        const locationInfo = extractLocationInfo(result);
+        if (locationInfo.city && !companyData.city) companyData.city = locationInfo.city;
+        if (locationInfo.state && !companyData.state) companyData.state = locationInfo.state;
+        if (locationInfo.country && !companyData.country) companyData.country = locationInfo.country;
       }
     }
 
-    // Calculate final score using all gathered data
-    companyData.totalScore = calculateCompanyScore(companyData);
+    // Calculate final score if not already set
+    if (!companyData.totalScore) {
+      companyData.totalScore = calculateCompanyScore(companyData);
+    }
 
     // Ensure arrays are reasonably sized
     if (companyData.services) {

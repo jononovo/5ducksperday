@@ -28,35 +28,50 @@ export interface SearchModuleResult {
 // Company Overview Module Configuration
 export const COMPANY_OVERVIEW_MODULE = {
   type: 'company_overview',
-  defaultPrompt: "Provide a detailed overview of [COMPANY], including its age, size, main business focus, and location.",
+  defaultPrompt: "Provide a detailed overview of [COMPANY], including its age, size, main business focus, industry, and location.",
   technicalPrompt: `You are a business intelligence analyst. Analyze the company and provide structured information about:
     1. Company size (employee count)
-    2. Core services offered
-    3. Market positioning
-    4. Key differentiators
-    5. Location information (city, state, country)
+    2. Company age
+    3. Industry sector
+    4. Core business focus
+    5. Services offered
+    6. Market positioning
+    7. Key differentiators
+    8. Location information
 
     Format your response as JSON with the following structure:
     {
-      "size": number,
-      "services": string[],
-      "marketPosition": string,
-      "differentiators": string[],
-      "location": {
-        "city": string,
-        "state": string,
-        "country": string
+      "companyProfile": {
+        "size": number,
+        "age": string,
+        "industry": string,
+        "focus": string,
+        "validationScore": number,
+        "services": string[],
+        "marketPosition": string,
+        "differentiators": string[],
+        "location": {
+          "city": string,
+          "state": string,
+          "country": string
+        }
       }
     }`,
   responseStructure: {
-    size: "number - employee count",
-    services: "string[] - list of main services",
-    marketPosition: "string - brief market position description",
-    differentiators: "string[] - list of key differentiating factors",
-    location: {
-      city: "string - company's city",
-      state: "string - company's state/province",
-      country: "string - company's country"
+    companyProfile: {
+      size: "number - employee count",
+      age: "string - company age (e.g., '5 years')",
+      industry: "string - primary industry sector",
+      focus: "string - main business focus",
+      validationScore: "number - confidence score (0-100)",
+      services: "string[] - list of main services",
+      marketPosition: "string - brief market position description",
+      differentiators: "string[] - list of key differentiating factors",
+      location: {
+        city: "string - company's city",
+        state: "string - company's state/province",
+        country: "string - company's country"
+      }
     }
   }
 };
