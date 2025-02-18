@@ -157,11 +157,6 @@ app.post("/api/companies/search", async (req, res) => {
           companyOverview.technicalPrompt,
           companyOverview.responseStructure
         );
-        console.log(`\nAPI Response for ${companyName}:`, JSON.stringify({
-          companyName,
-          rawResponse: overviewResult,
-        }, null, 2));
-
         const analysisResults = [overviewResult];
 
         // If Decision-maker Analysis is active, run it with technical prompt
@@ -172,38 +167,24 @@ app.post("/api/companies/search", async (req, res) => {
             decisionMakerAnalysis.technicalPrompt,
             decisionMakerAnalysis.responseStructure
           );
-          console.log(`\nDecision Maker Analysis for ${companyName}:`, JSON.stringify({
-            companyName,
-            rawResponse: decisionMakerResult,
-          }, null, 2));
           analysisResults.push(decisionMakerResult);
         }
 
-        // Parse results with enhanced website extraction
+        // Parse results
         const companyData = parseCompanyData(analysisResults);
-        console.log(`\nParsed company data for ${companyName}:`, JSON.stringify({
-          name: companyName,
-          website: companyData.website,
-          parsedData: companyData
-        }, null, 2));
 
         // Extract company name and summary from the first result
         const nameWithSummary = companyName.split(' - ');
         const shortSummary = nameWithSummary.length > 1 ? nameWithSummary[1].trim() : null;
 
-        // Enhanced company creation with website data
+        // Create the company record with location information and summary
         const createdCompany = await storage.createCompany({
           name: nameWithSummary[0].trim(),
           shortSummary,
           website: companyData.website || null,
-          alternativeProfileUrl: companyData.alternativeProfileUrl || null,
           city: companyData.city || null,
           state: companyData.state || null,
           country: companyData.country || null,
-          size: companyData.size || null,
-          services: companyData.services || [],
-          differentiation: companyData.differentiation || [],
-          totalScore: companyData.totalScore || null,
           ...companyData
         });
 
