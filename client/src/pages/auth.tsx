@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useEffect } from "react";
 import { firebaseAuth, firebaseGoogleProvider } from "@/lib/firebase";
 
-// Add this helper function
+// Helper function remains unchanged
 function getFirebaseErrorMessage(): string {
   if (!firebaseAuth || !firebaseGoogleProvider) {
     const missingVars = [];
@@ -33,18 +33,17 @@ export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { user, loginMutation, registerMutation, signInWithGoogle } = useAuth();
 
-  const loginForm = useForm<Omit<InsertUser, "email">>({
-    resolver: zodResolver(userSchema.omit({ email: true })),
+  const loginForm = useForm<Omit<InsertUser, "username">>({
+    resolver: zodResolver(userSchema.omit({ username: true })),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
 
-  const registerForm = useForm<InsertUser>({
-    resolver: zodResolver(userSchema),
+  const registerForm = useForm<Omit<InsertUser, "username">>({
+    resolver: zodResolver(userSchema.omit({ username: true })),
     defaultValues: {
-      username: "",
       email: "",
       password: "",
     },
@@ -137,12 +136,12 @@ export default function AuthPage() {
                     <form onSubmit={onLogin} className="space-y-4">
                       <FormField
                         control={loginForm.control}
-                        name="username"
+                        name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Username</FormLabel>
+                            <FormLabel>Email</FormLabel>
                             <FormControl>
-                              <Input {...field} autoComplete="username" />
+                              <Input type="email" {...field} autoComplete="email" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -178,19 +177,6 @@ export default function AuthPage() {
                 <TabsContent value="register">
                   <Form {...registerForm}>
                     <form onSubmit={onRegister} className="space-y-4">
-                      <FormField
-                        control={registerForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <Input {...field} autoComplete="username" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                       <FormField
                         control={registerForm.control}
                         name="email"
