@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; // Import Input component
 import { cn } from "@/lib/utils";
-import type { List, Company, Contact } from "@shared/schema";
+import type { List, Company, Contact, Metric } from "@shared/schema"; // Assuming Metric type is defined
 import { useState, useEffect } from "react";
 import QuickTemplates from "@/components/quick-templates";
 import type { EmailTemplate } from "@shared/schema";
@@ -188,6 +188,14 @@ export default function Outreach() {
     }
   };
 
+  // Sample metrics data (replace with actual data fetching)
+  const metrics: Metric[] = [
+    { name: "Total Score", value: currentCompany?.totalScore ?? "N/A", icon: Badge },
+    { name: "Employee Count", value: currentCompany?.size ?? "N/A", icon: UserCircle },
+    // Add more metrics as needed
+  ];
+
+
   return (
     <div className="container mx-auto py-8">
       <div className="grid grid-cols-2 gap-6">
@@ -297,41 +305,35 @@ export default function Outreach() {
 
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-4">Company Summary</h3>
+                {/* Header Section */}
                 <Card>
-                  <CardContent className="pt-6">
-                    {currentCompany ? (
-                      <div className="space-y-6">
-                        {/* Company Name - More prominent */}
-                        <div>
-                          <h2 className="text-xl font-semibold mb-1">{currentCompany.name}</h2>
-                          {currentCompany.size && (
-                            <p className="text-muted-foreground">
-                              {currentCompany.size} employees
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Services Section */}
-                        <div>
-                          <h4 className="font-medium mb-2">Services & Description</h4>
-                          {currentCompany.services && currentCompany.services.length > 0 ? (
-                            <ul className="list-disc pl-4 space-y-1">
-                              {currentCompany.services.map((service, index) => (
-                                <li key={index} className="text-muted-foreground">{service}</li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p className="text-muted-foreground italic">No services information available</p>
-                          )}
-                        </div>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-2xl font-bold">{currentCompany?.name}</CardTitle>
                       </div>
-                    ) : (
-                      <p className="text-muted-foreground">
-                        {selectedListId
-                          ? "No companies found in this list"
-                          : "Select a list to view company details"}
-                      </p>
-                    )}
+                      <Badge
+                        className="text-lg py-2"
+                        variant={currentCompany?.totalScore && currentCompany?.totalScore > 70 ? "default" : "secondary"}
+                      >
+                        Score: {currentCompany?.totalScore ?? 'N/A'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {metrics.map((metric) => (
+                        <Card key={metric.name}>
+                          <CardContent className="pt-6">
+                            <div className="flex items-center gap-2">
+                              <metric.icon className="h-5 w-5 text-muted-foreground" />
+                              <p className="text-sm font-medium">{metric.name}</p>
+                            </div>
+                            <p className="text-2xl font-bold mt-2">{metric.value}</p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
               </div>
