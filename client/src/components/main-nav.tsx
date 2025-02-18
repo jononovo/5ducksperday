@@ -2,7 +2,6 @@ import { Link, useLocation } from "wouter";
 import { Bird, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { EggAnimation } from "./egg-animation";
 
 const navigation = [
   { name: "Planning", href: "/planning" },
@@ -24,7 +23,6 @@ export default function MainNav() {
           <Bird className="h-7 w-7 text-primary transition-colors group-hover:text-primary/90" 
                 style={{ transform: 'scaleX(-1)' }} /> {/* Flip the bird to face right */}
           <span className="font-semibold text-lg transition-colors group-hover:text-primary/90">5 Ducks</span>
-          <EggAnimation />
         </Link>
         {navigation.map((item) => {
           const isActive = item.href === location || 

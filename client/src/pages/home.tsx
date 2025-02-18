@@ -8,6 +8,7 @@ import { ListPlus, Search, Code2, UserCircle, Banknote, Eye, ChevronDown, Chevro
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { EggAnimation } from "@/components/egg-animation";
 import {
   Table,
   TableBody,
@@ -334,7 +335,10 @@ export default function Home() {
           {/* Search Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Search for target businesses</CardTitle>
+              <div className="flex items-center gap-4">
+                <CardTitle>Search for target businesses</CardTitle>
+                <EggAnimation />
+              </div>
             </CardHeader>
             <CardContent>
               <PromptEditor
