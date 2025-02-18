@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search } from "lucide-react";
 import type { SearchModuleConfig } from "@shared/schema";
+import { useConfetti } from "@/hooks/use-confetti";
 
 interface PromptEditorProps {
   onAnalyze: () => void;
@@ -26,6 +27,7 @@ export default function PromptEditor({
   const [query, setQuery] = useState(initialPrompt);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { triggerConfetti } = useConfetti();
 
   // Fetch active search flows with proper typing
   const { data: searchFlows = [] } = useQuery<Array<{
@@ -66,6 +68,8 @@ export default function PromptEditor({
         title: "Search Complete",
         description: "Company analysis has been completed successfully.",
       });
+      // Trigger confetti animation on successful search
+      triggerConfetti();
       onComplete();
     },
     onError: (error: Error) => {
