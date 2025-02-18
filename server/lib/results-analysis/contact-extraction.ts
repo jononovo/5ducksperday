@@ -54,6 +54,7 @@ export async function extractContacts(
     return [];
   }
 
+  console.log('Starting contact extraction process');
   const contacts: Partial<Contact>[] = [];
   const nameRegex = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g;
   const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
@@ -74,8 +75,12 @@ export async function extractContacts(
       }
     }
 
+    console.log(`Found ${allNames.length} potential contact names for validation`);
+
     // Bulk validate all names with Perplexity AI
+    console.log('Starting bulk AI validation');
     const aiScores = await validateNames(allNames, companyName, validationOptions.searchPrompt);
+    console.log('Completed bulk AI validation');
 
     // Second pass: Process each result with AI scores
     for (const result of analysisResults) {
@@ -96,9 +101,12 @@ export async function extractContacts(
         );
 
         // Use AI score in validation
+        const aiScore = aiScores[name] || 50;
+        console.log(`Processing contact "${name}" with AI score: ${aiScore}`);
+
         const validationResult = validateName(name, contextWindow, companyName, {
           ...validationOptions,
-          aiScore: aiScores[name] || 50 // Default to 50 if no AI score
+          aiScore
         });
 
         if (validationResult.score >= (validationOptions.minimumScore || 30)) {
@@ -139,13 +147,13 @@ export async function extractContacts(
 
           const emailsArray = Array.from(emailMatches);
 
+          console.log(`Adding contact "${name}" with final score: ${validationResult.score}`);
           contacts.push({
             name,
             email: emailsArray.length > 0 ? emailsArray[0] : null,
             role,
             probability: validationResult.score,
             nameConfidenceScore: validationResult.score,
-            aiValidationScore: aiScores[name],
             lastValidated: new Date(),
             completedSearches: ['name_validation', 'ai_validation']
           });
@@ -153,11 +161,14 @@ export async function extractContacts(
       }
     }
 
-    return contacts
+    const finalContacts = contacts
       .sort((a, b) => (b.probability || 0) - (a.probability || 0))
       .filter((contact, index, self) =>
         index === self.findIndex(c => c.name === contact.name)
       );
+
+    console.log(`Extracted ${finalContacts.length} validated contacts`);
+    return finalContacts;
 
   } catch (error) {
     console.error('Error in contact extraction:', error);

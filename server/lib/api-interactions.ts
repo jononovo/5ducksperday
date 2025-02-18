@@ -5,6 +5,111 @@ import { queryPerplexity } from "./api/perplexity-client";
 import type { PerplexityMessage } from "./types/perplexity";
 import { analyzeWithPerplexity } from "./perplexity";
 
+// Validate names using Perplexity AI
+export async function validateNames(
+  names: string[],
+  companyName?: string,
+  searchPrompt?: string
+): Promise<Record<string, number>> {
+  console.log(`Running AI validation for ${names.length} contacts`);
+
+  const messages: PerplexityMessage[] = [
+    {
+      role: "system",
+      content: `You are a contact name validation service. Analyze each name and return a JSON object with scores between 1-90. Consider:
+
+      1. Common name patterns (max 90 points)
+      2. Professional context (can reduce score by up to 30 points)
+      3. Job title contamination (reduces score by 40 points)
+      4. Realistic vs placeholder names (placeholder names max 10 points)
+      5. Names should not contain terms from the search prompt: "${searchPrompt || ''}"
+
+      Scoring rules (maximum 90 points):
+      - 80-90: Full proper name with clear first/last, very likely real (e.g. "Michael Johnson")
+      - 60-79: Common but incomplete name, likely real (e.g. "Mike J.")
+      - 40-59: Ambiguous or unusual, possibly real (e.g. "M. Johnson III")
+      - 20-39: Possibly not a name (e.g. "Sales Team", "Tech Lead")
+      - 1-19: Obviously not a person's name
+
+      Additional Penalties:
+      - Contains job titles: -40 points
+      - Contains company terms: -30 points
+      - Contains generic business terms: -20 points
+      - Contains search terms: -25 points
+
+      Return ONLY a JSON object like:
+      {
+        "Michael Johnson": 85,
+        "Sales Department": 15,
+        "Tech Lead Smith": 45
+      }`
+    },
+    {
+      role: "user",
+      content: `Score these names (output only JSON): ${JSON.stringify(names)}`
+    }
+  ];
+
+  try {
+    const response = await queryPerplexity(messages);
+    console.log('AI validation response received');
+
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const validated: Record<string, number> = {};
+
+        for (const [name, score] of Object.entries(parsed)) {
+          if (typeof score === 'number' && score >= 1 && score <= 90) {
+            const validationResult = validateName(name, "", companyName, {
+              searchPrompt,
+              searchTermPenalty: 25
+            });
+            // Combine AI score with local validation, never exceeding 90
+            validated[name] = Math.min(90, Math.floor((validationResult.score + (score as number)) / 2));
+          } else {
+            const validationResult = validateName(name, "", companyName, {
+              searchPrompt,
+              searchTermPenalty: 25
+            });
+            validated[name] = validationResult.score;
+          }
+        }
+        console.log('AI validation scores processed');
+        return validated;
+      } catch (e) {
+        console.error('Failed to parse AI response:', e);
+      }
+    }
+
+    // Fallback to local validation
+    return names.reduce((acc, name) => {
+      const validationResult = validateName(name, "", companyName, {
+        searchPrompt,
+        searchTermPenalty: 25
+      });
+      return {
+        ...acc,
+        [name]: validationResult.score
+      };
+    }, {});
+
+  } catch (error) {
+    console.error('Error in name validation:', error);
+    return names.reduce((acc, name) => {
+      const validationResult = validateName(name, "", companyName, {
+        searchPrompt,
+        searchTermPenalty: 25
+      });
+      return {
+        ...acc,
+        [name]: validationResult.score
+      };
+    }, {});
+  }
+}
+
 export interface PerplexityResponse {
   choices: Array<{
     message: {
@@ -54,97 +159,6 @@ export async function analyzeCompany(
   return queryPerplexity(messages);
 }
 
-// Validate names using Perplexity AI
-export async function validateNames(
-  names: string[],
-  companyName?: string,
-  searchPrompt?: string
-): Promise<Record<string, number>> {
-  const messages: PerplexityMessage[] = [
-    {
-      role: "system",
-      content: `You are a contact name validation service. Analyze each name and return a JSON object with scores between 1-100. Consider:
-
-      1. Common name patterns
-      2. Professional context
-      3. Job title contamination
-      4. Realistic vs placeholder names
-      5. Names should not contain terms from the search prompt: "${searchPrompt || ''}"
-
-      Scoring rules:
-      - 90-100: Full name with clear first/last (e.g. "Michael Johnson")
-      - 70-89: Common but incomplete name (e.g. "Mike J.")
-      - 40-69: Ambiguous or unusual (e.g. "M. Johnson III")
-      - 20-39: Possibly not a name (e.g. "Sales Team")
-      - 1-19: Obviously not a person's name
-
-      Return ONLY a JSON object like:
-      {
-        "Michael Johnson": 95,
-        "Sales Department": 25
-      }`
-    },
-    {
-      role: "user",
-      content: `Score these names (output only JSON): ${JSON.stringify(names)}`
-    }
-  ];
-
-  try {
-    const response = await queryPerplexity(messages);
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        const parsed = JSON.parse(jsonMatch[0]);
-        const validated: Record<string, number> = {};
-
-        for (const [name, score] of Object.entries(parsed)) {
-          if (typeof score === 'number' && score >= 1 && score <= 100) {
-            const validationResult = validateName(name, "", companyName, {
-              searchPrompt,
-              searchTermPenalty: 25
-            });
-            validated[name] = validationResult.score;
-          } else {
-            const validationResult = validateName(name, "", companyName, {
-              searchPrompt,
-              searchTermPenalty: 25
-            });
-            validated[name] = validationResult.score;
-          }
-        }
-        return validated;
-      } catch (e) {
-        console.error('Failed to parse AI response:', e);
-      }
-    }
-
-    // Fallback to local validation
-    return names.reduce((acc, name) => {
-      const validationResult = validateName(name, "", companyName, {
-        searchPrompt,
-        searchTermPenalty: 25
-      });
-      return {
-        ...acc,
-        [name]: validationResult.score
-      };
-    }, {});
-
-  } catch (error) {
-    console.error('Error in name validation:', error);
-    return names.reduce((acc, name) => {
-      const validationResult = validateName(name, "", companyName, {
-        searchPrompt,
-        searchTermPenalty: 25
-      });
-      return {
-        ...acc,
-        [name]: validationResult.score
-      };
-    }, {});
-  }
-}
 
 export async function searchContactDetails(
   name: string,
@@ -158,7 +172,7 @@ export async function searchContactDetails(
         2. Professional email
         3. LinkedIn URL
         4. Location
-
+        
         Format your response in JSON.`
     },
     {
