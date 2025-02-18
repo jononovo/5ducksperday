@@ -1,6 +1,5 @@
 import type { Contact } from "@shared/schema";
-import { validateNameLocally } from "./contact-name-validation";
-import { combineValidationScores } from "./score-combination";
+import { validateName } from "./contact-name-validation";
 import { isPlaceholderEmail, isValidBusinessEmail } from "./email-analysis";
 import { validateNames } from "../api-interactions";
 
@@ -88,18 +87,12 @@ export async function extractContacts(
           nameIndex + 200
         );
 
-        const localResult = validateNameLocally(name);
-
-        const finalScore = combineValidationScores(
-          aiScore,
-          localResult,
-          companyName,
-          {
-            minimumScore: validationOptions.minimumScore,
-            searchPrompt: validationOptions.searchPrompt,
-            searchTermPenalty: validationOptions.searchTermPenalty
-          }
-        );
+        const validationResult = validateName(name, contextWindow, companyName, {
+          minimumScore: validationOptions.minimumScore,
+          searchPrompt: validationOptions.searchPrompt,
+          searchTermPenalty: validationOptions.searchTermPenalty
+        });
+        const finalScore = validationResult.score;
 
         if (finalScore >= (validationOptions.minimumScore || 30)) {
           let role = null;

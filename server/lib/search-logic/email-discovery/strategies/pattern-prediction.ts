@@ -1,7 +1,6 @@
 import type { EmailSearchStrategy, EmailSearchContext, EmailSearchResult } from '../types';
 import { validateEmailPattern, isValidBusinessEmail, isPlaceholderEmail } from '../../../results-analysis/email-analysis';
-import { validateNameLocally } from '../../../results-analysis/contact-name-validation';
-import { combineValidationScores } from '../../../results-analysis/score-combination';
+import { validateName } from '../../../results-analysis/contact-name-validation';
 
 // Common business email formats
 const EMAIL_FORMATS = [
@@ -20,7 +19,7 @@ function generatePossibleEmails(name: string, domain: string): string[] {
   const firstName = nameParts[0];
   const lastName = nameParts[nameParts.length - 1];
 
-  return EMAIL_FORMATS.map(format => 
+  return EMAIL_FORMATS.map(format =>
     `${format(firstName, lastName)}@${domain}`
   );
 }
@@ -64,16 +63,11 @@ export const patternPredictionStrategy: EmailSearchStrategy = {
         if (!contact.name) continue;
 
         // Validate contact name
-        const localValidation = validateNameLocally(contact.name, contact.role || '');
-        const validationScore = combineValidationScores(
-          75, // Base confidence for existing contacts
-          localValidation,
-          companyName,
-          {
-            minimumScore: 30,
-            companyNamePenalty: 20
-          }
-        );
+        const validationResult = validateName(contact.name, contact.role || '', companyName, {
+          minimumScore: 30,
+          companyNamePenalty: 20
+        });
+        const validationScore = validationResult.score;
 
         validationResults[contact.name] = validationScore;
 

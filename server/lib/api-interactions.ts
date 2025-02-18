@@ -1,6 +1,5 @@
 import type { Company, Contact } from "@shared/schema";
-import { validateNameLocally } from "./results-analysis/contact-name-validation";
-import { combineValidationScores } from "./results-analysis/score-combination";
+import { validateName } from "./results-analysis/contact-name-validation";
 import { isPlaceholderEmail, isValidBusinessEmail, parseEmailDetails } from "./results-analysis/email-analysis";
 import { queryPerplexity } from "./api/perplexity-client";
 import type { PerplexityMessage } from "./types/perplexity";
@@ -57,7 +56,7 @@ export async function analyzeCompany(
 
 // Validate names using Perplexity AI
 export async function validateNames(
-  names: string[], 
+  names: string[],
   companyName?: string,
   searchPrompt?: string
 ): Promise<Record<string, number>> {
@@ -101,17 +100,17 @@ export async function validateNames(
 
         for (const [name, score] of Object.entries(parsed)) {
           if (typeof score === 'number' && score >= 1 && score <= 100) {
-            const localResult = validateNameLocally(name);
-            validated[name] = combineValidationScores(score, localResult, companyName, {
+            const validationResult = validateName(name, "", companyName, {
               searchPrompt,
               searchTermPenalty: 25
             });
+            validated[name] = validationResult.score;
           } else {
-            const localResult = validateNameLocally(name);
-            validated[name] = combineValidationScores(50, localResult, companyName, {
+            const validationResult = validateName(name, "", companyName, {
               searchPrompt,
               searchTermPenalty: 25
             });
+            validated[name] = validationResult.score;
           }
         }
         return validated;
@@ -122,26 +121,26 @@ export async function validateNames(
 
     // Fallback to local validation
     return names.reduce((acc, name) => {
-      const localResult = validateNameLocally(name);
-      return { 
-        ...acc, 
-        [name]: combineValidationScores(50, localResult, companyName, {
-          searchPrompt,
-          searchTermPenalty: 25
-        })
+      const validationResult = validateName(name, "", companyName, {
+        searchPrompt,
+        searchTermPenalty: 25
+      });
+      return {
+        ...acc,
+        [name]: validationResult.score
       };
     }, {});
 
   } catch (error) {
     console.error('Error in name validation:', error);
     return names.reduce((acc, name) => {
-      const localResult = validateNameLocally(name);
-      return { 
-        ...acc, 
-        [name]: combineValidationScores(50, localResult, companyName, {
-          searchPrompt,
-          searchTermPenalty: 25
-        })
+      const validationResult = validateName(name, "", companyName, {
+        searchPrompt,
+        searchTermPenalty: 25
+      });
+      return {
+        ...acc,
+        [name]: validationResult.score
       };
     }, {});
   }

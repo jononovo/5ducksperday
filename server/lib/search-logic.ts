@@ -7,8 +7,7 @@ import {
   analyzeDifferentiators,
   calculateCompanyScore 
 } from "./results-analysis/company-analysis";
-import { validateNameLocally } from "./results-analysis/contact-name-validation";
-import { combineValidationScores, type ValidationOptions } from "./results-analysis/score-combination";
+import { validateName } from "./results-analysis/contact-name-validation";
 import { extractContacts } from "./results-analysis/contact-extraction";
 
 // Core search functions
@@ -95,29 +94,20 @@ export async function validateNames(
         const parsed = JSON.parse(jsonMatch[0]);
         const validated: Record<string, number> = {};
 
-        const validationOptions: ValidationOptions = {
+        const validationOptions = {
           searchPrompt,
           minimumScore: 30,
+          companyNamePenalty: 20,
           searchTermPenalty: 25
         };
 
         for (const [name, score] of Object.entries(parsed)) {
           if (typeof score === 'number' && score >= 1 && score <= 100) {
-            const localResult = validateNameLocally(name);
-            validated[name] = combineValidationScores(
-              score,
-              localResult,
-              companyName,
-              validationOptions
-            );
+            const validationResult = validateName(name, "", companyName, validationOptions);
+            validated[name] = validationResult.score;
           } else {
-            const localResult = validateNameLocally(name);
-            validated[name] = combineValidationScores(
-              50,
-              localResult,
-              companyName,
-              validationOptions
-            );
+            const validationResult = validateName(name, "", companyName, validationOptions);
+            validated[name] = validationResult.score;
           }
         }
         return validated;
@@ -127,33 +117,35 @@ export async function validateNames(
     }
 
     // Fallback to local validation
-    const validationOptions: ValidationOptions = {
+    const validationOptions = {
       searchPrompt,
       minimumScore: 30,
+      companyNamePenalty: 20,
       searchTermPenalty: 25
     };
 
     return names.reduce((acc, name) => {
-      const localResult = validateNameLocally(name);
+      const validationResult = validateName(name, "", companyName, validationOptions);
       return {
         ...acc,
-        [name]: combineValidationScores(50, localResult, companyName, validationOptions)
+        [name]: validationResult.score
       };
     }, {});
 
   } catch (error) {
     console.error('Error in name validation:', error);
-    const validationOptions: ValidationOptions = {
+    const validationOptions = {
       searchPrompt,
       minimumScore: 30,
+      companyNamePenalty: 20,
       searchTermPenalty: 25
     };
 
     return names.reduce((acc, name) => {
-      const localResult = validateNameLocally(name);
+      const validationResult = validateName(name, "", companyName, validationOptions);
       return {
         ...acc,
-        [name]: combineValidationScores(50, localResult, companyName, validationOptions)
+        [name]: validationResult.score
       };
     }, {});
   }
