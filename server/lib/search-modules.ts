@@ -263,27 +263,6 @@ export class CompanyOverviewModule implements SearchModule {
         const companyData = parseCompanyData(analysisResults);
 
         if (companyData) {
-          // Ensure website is included in company data
-          const websiteData = analysisResults.find(result => {
-            try {
-              const parsed = JSON.parse(result);
-              return parsed.companyProfile?.website;
-            } catch {
-              return false;
-            }
-          });
-
-          if (websiteData) {
-            try {
-              const { companyProfile } = JSON.parse(websiteData);
-              if (companyProfile.website) {
-                companyData.website = companyProfile.website;
-              }
-            } catch (e) {
-              console.error('Error parsing website data:', e);
-            }
-          }
-
           companies.push({
             name,
             ...companyData,

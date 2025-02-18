@@ -27,8 +27,7 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
     validationPoints: [],
     differentiation: [],
     totalScore: 0,
-    website: null,
-    shortSummary: null
+    website: null  // Initialize website field
   };
 
   try {
@@ -41,24 +40,9 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
           // Extract from new structure
           const profile = jsonData.companyProfile;
 
-          // Extract website directly from JSON structure
+          // Prioritize website extraction
           if (profile.website) {
             companyData.website = profile.website;
-          } else if (profile.websiteUrl) {
-            companyData.website = profile.websiteUrl;
-          } else if (profile.url) {
-            companyData.website = profile.url;
-          }
-
-          // Extract short summary from marketPosition or focus
-          if (profile.marketPosition) {
-            companyData.shortSummary = profile.marketPosition.length > 150 
-              ? profile.marketPosition.substring(0, 147) + '...'
-              : profile.marketPosition;
-          } else if (profile.focus) {
-            companyData.shortSummary = profile.focus.length > 150 
-              ? profile.focus.substring(0, 147) + '...'
-              : profile.focus;
           }
 
           if (typeof profile.size === 'number') {
@@ -75,13 +59,13 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
 
           if (profile.services && Array.isArray(profile.services)) {
             const uniqueServices = new Set([...(companyData.services || [])]);
-            profile.services.forEach((s: string) => uniqueServices.add(s));
+            profile.services.forEach(s => uniqueServices.add(s));
             companyData.services = Array.from(uniqueServices);
           }
 
           if (profile.differentiators && Array.isArray(profile.differentiators) && companyData.differentiation) {
             const uniqueDifferentiators = new Set([...companyData.differentiation]);
-            profile.differentiators.forEach((d: string) => uniqueDifferentiators.add(d));
+            profile.differentiators.forEach(d => uniqueDifferentiators.add(d));
             companyData.differentiation = Array.from(uniqueDifferentiators);
           }
 
@@ -96,22 +80,11 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
           }
         }
       } catch (e) {
-        const websitePatterns = [
-          /(?:website|domain|url):\s*(https?:\/\/[^\s,}"']+)/i,
-          /(?:website|domain|url):\s*([^\s,}"']+\.(?:com|net|org|io|co)[^\s,}"']*)/i,
-          /visit(?:ing)?\s+(?:us\s+)?(?:at\s+)?((?:https?:\/\/)?[^\s,}"']+\.(?:com|net|org|io|co)[^\s,}"']*)/i
-        ];
-
-        for (const pattern of websitePatterns) {
-          const websiteMatch = result.match(pattern);
-          if (websiteMatch && !companyData.website) {
-            let website = websiteMatch[1];
-            if (!website.startsWith('http')) {
-              website = 'https://' + website;
-            }
-            companyData.website = website;
-            break;
-          }
+        // JSON parsing failed, try to extract website using regex as fallback
+        const websiteRegex = /(?:website|domain|url):\s*(https?:\/\/[^\s,}"']+)/i;
+        const websiteMatch = result.match(websiteRegex);
+        if (websiteMatch && !companyData.website) {
+          companyData.website = websiteMatch[1];
         }
 
         const size = analyzeCompanySize(result);
@@ -131,23 +104,15 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
         if (locationInfo.city && !companyData.city) companyData.city = locationInfo.city;
         if (locationInfo.state && !companyData.state) companyData.state = locationInfo.state;
         if (locationInfo.country && !companyData.country) companyData.country = locationInfo.country;
-
-        // Try to extract a short summary from the text if not already set
-        if (!companyData.shortSummary) {
-          const summaryMatch = result.match(/(?:focuses on|specializes in|provides)\s+([^.!?]+)/i);
-          if (summaryMatch) {
-            companyData.shortSummary = summaryMatch[1].trim().length > 150 
-              ? summaryMatch[1].trim().substring(0, 147) + '...'
-              : summaryMatch[1].trim();
-          }
-        }
       }
     }
 
+    // Calculate final score if not already set
     if (!companyData.totalScore) {
       companyData.totalScore = calculateCompanyScore(companyData);
     }
 
+    // Ensure arrays are reasonably sized
     if (companyData.services) {
       companyData.services = companyData.services.slice(0, 5);
     }

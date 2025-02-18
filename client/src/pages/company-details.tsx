@@ -39,7 +39,6 @@ import {
   Link2,
   Phone,
   MapPin,
-  UserCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -151,8 +150,8 @@ export default function CompanyDetails() {
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle className="text-2xl font-bold">{company.name}</CardTitle>
-                <CardDescription className="mt-1">
-                  {company.shortSummary}
+                <CardDescription>
+                  Company Age: {company.age} years
                 </CardDescription>
               </div>
               <Badge
@@ -340,7 +339,7 @@ export default function CompanyDetails() {
           </CardContent>
         </Card>
 
-        {/* Company Details Section */}
+        {/* Company Details Section - REPLACED */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input"; // Import Input component
 import { cn } from "@/lib/utils";
 import type { List, Company, Contact } from "@shared/schema";
 import { useState, useEffect } from "react";
@@ -89,8 +89,8 @@ export default function Outreach() {
 
   // Get top 3 leadership contacts
   const topContacts = contacts
-    ?.filter(contact => contact.probability && contact.probability >= 70)
-    .sort((a, b) => (b.probability || 0) - (a.probability || 0))
+    ?.filter(contact => contact.probability && contact.probability >= 70) // Filter high probability contacts
+    .sort((a, b) => (b.probability || 0) - (a.probability || 0)) // Sort by probability
     .slice(0, 3);
 
   const handleSaveEmail = () => {
@@ -164,7 +164,7 @@ export default function Outreach() {
   };
 
   const handleCopyContact = (contact: Contact, e: React.MouseEvent) => {
-    e.stopPropagation(); 
+    e.stopPropagation(); // Prevent triggering the parent button click
     const textToCopy = `${contact.name}${contact.email ? ` <${contact.email}>` : ''}`;
     navigator.clipboard.writeText(textToCopy).then(() => {
       toast({
@@ -177,14 +177,14 @@ export default function Outreach() {
   const handlePrevCompany = () => {
     if (currentCompanyIndex > 0) {
       setCurrentCompanyIndex(prev => prev - 1);
-      setSelectedContactId(null); 
+      setSelectedContactId(null); // Reset selected contact when changing company
     }
   };
 
   const handleNextCompany = () => {
     if (currentCompanyIndex < companies.length - 1) {
       setCurrentCompanyIndex(prev => prev + 1);
-      setSelectedContactId(null); 
+      setSelectedContactId(null); // Reset selected contact when changing company
     }
   };
 
@@ -229,7 +229,7 @@ export default function Outreach() {
                 value={selectedListId}
                 onValueChange={(value) => {
                   setSelectedListId(value);
-                  setCurrentCompanyIndex(0);
+                  setCurrentCompanyIndex(0); // Reset company index when changing list
                 }}
               >
                 <SelectTrigger>
@@ -345,7 +345,7 @@ export default function Outreach() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="flex items-center gap-2">
-                  <Send className="w-5 h-5" />
+                  <Send className="w-5 h-5" /> {/*Corrected Icon Here*/}
                 </CardTitle>
                 <Button onClick={handleGenerateEmail}>
                   <Wand2 className="w-4 h-4 mr-2" />

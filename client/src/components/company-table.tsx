@@ -33,9 +33,7 @@ export default function CompanyTable({ companies }: CompanyTableProps) {
         <TableBody>
           {companies.map((company) => (
             <TableRow key={company.id}>
-              <TableCell className="font-medium">
-                <div>{company.name}</div>
-              </TableCell>
+              <TableCell className="font-medium">{company.name}</TableCell>
               <TableCell>{company.size} employees</TableCell>
               <TableCell>
                 <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}>
