@@ -7,6 +7,15 @@ function validateFirebaseConfig() {
   const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
   const appId = import.meta.env.VITE_FIREBASE_APP_ID;
 
+  console.log('Raw environment variables:', {
+    apiKey: apiKey ? '....' + apiKey.slice(-6) : 'undefined',
+    projectId: projectId || 'undefined',
+    appId: appId ? '....' + appId.slice(-6) : 'undefined',
+    mode: import.meta.env.MODE,
+    dev: import.meta.env.DEV,
+    prod: import.meta.env.PROD
+  });
+
   const errors = [];
 
   if (!apiKey) {
@@ -25,30 +34,28 @@ function validateFirebaseConfig() {
     errors.push('VITE_FIREBASE_APP_ID appears to be malformed (should contain ":")');
   }
 
-  // Log the actual configuration being used (without exposing full API key)
-  console.log('Firebase Configuration Check:', {
+  const config = {
+    apiKey,
+    authDomain: `${projectId}.firebaseapp.com`,
+    projectId,
+    storageBucket: `${projectId}.appspot.com`,
+    messagingSenderId: projectId?.split('-')[1] || '',
+    appId
+  };
+
+  console.log('Firebase Configuration:', {
+    hasApiKey: !!config.apiKey,
+    hasProjectId: !!config.projectId,
+    hasAppId: !!config.appId,
+    authDomain: config.authDomain,
     environment: import.meta.env.MODE,
-    isProduction: import.meta.env.PROD,
-    configPresent: {
-      apiKey: apiKey ? `...${apiKey.slice(-6)}` : 'missing',
-      projectId: projectId || 'missing',
-      appId: appId ? `...${appId.slice(-6)}` : 'missing',
-    },
     domain: window.location.hostname,
-    origin: window.location.origin
   });
 
   return {
     isValid: errors.length === 0,
     errors,
-    config: {
-      apiKey,
-      authDomain: `${projectId}.firebaseapp.com`,
-      projectId,
-      storageBucket: `${projectId}.appspot.com`,
-      messagingSenderId: projectId?.split('-')[1] || '',
-      appId
-    }
+    config
   };
 }
 
@@ -58,7 +65,10 @@ let auth: Auth | undefined;
 let googleProvider: GoogleAuthProvider | undefined;
 
 try {
-  console.log('Starting Firebase initialization...');
+  console.log('Starting Firebase initialization...', {
+    timestamp: new Date().toISOString(),
+    domain: window.location.hostname
+  });
 
   const { isValid, errors, config } = validateFirebaseConfig();
 
@@ -84,7 +94,8 @@ try {
     domain: window.location.hostname,
     isAuth: !!auth,
     isProvider: !!googleProvider,
-    authDomain: config.authDomain
+    authDomain: config.authDomain,
+    timestamp: new Date().toISOString()
   });
 
 } catch (error) {
