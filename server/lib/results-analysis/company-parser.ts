@@ -27,7 +27,7 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
     validationPoints: [],
     differentiation: [],
     totalScore: 0,
-    website: null  // Initialize website field
+    website: null
   };
 
   try {
