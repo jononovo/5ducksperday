@@ -68,7 +68,7 @@
   }
 
   .animate-chick-bounce {
-    animation: chick-bounce 2s ease-in-out infinite;
+    animation: chick-bounce 2s ease-in-out;
   }
 
   .animate-disco-bounce {
