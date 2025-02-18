@@ -5,9 +5,10 @@ import { getAuth, type Auth, GoogleAuthProvider } from "firebase/auth";
 // These values should be moved to environment variables before deployment
 const firebaseConfig = {
   apiKey: "AIzaSyBkkFF0XhNZeWuDmOfEhsgdfX1VBG7WTas",
-  authDomain: "white-labeler-1-jononovo.replit.app", // Updated to match Replit domain
+  authDomain: "replit-auth-test.firebaseapp.com", // Firebase project domain
   projectId: "replit-auth-test",
   storageBucket: "replit-auth-test.appspot.com",
+  messagingSenderId: "1234567890",
   appId: "1:1234567890:web:1234567890abcdef"
 };
 
@@ -18,6 +19,15 @@ let googleProvider: GoogleAuthProvider | undefined;
 
 try {
   console.log('Starting Firebase initialization');
+  console.log('Firebase config:', {
+    authDomain: firebaseConfig.authDomain,
+    projectId: firebaseConfig.projectId,
+  });
+
+  // Log current domain for debugging
+  console.log('Current domain:', window.location.hostname);
+  console.log('Full URL:', window.location.href);
+  console.log('Origin:', window.location.origin);
 
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
