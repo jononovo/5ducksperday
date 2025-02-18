@@ -1,22 +1,78 @@
-components/
-   ├── search-approaches.tsx  # Configuration UI
-   ├── search-flow-new.tsx   # Search flow interface
-   └── ui/                   # Shared UI components
-   ```
+.
+├── client/                  # Frontend React application
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   ├── lib/           # Frontend utilities
+│   │   └── pages/         # Page components
+├── server/
+│   ├── lib/               # Core business logic
+│   │   ├── search-logic/  # Search implementation
+│   │   ├── perplexity/    # AI integration
+│   │   └── api/          # API clients
+│   ├── storage/          # Database operations
+│   └── routes/           # Express routes
+└── shared/               # Shared types and schemas
+```
 
-2. Backend Layer:
-   ```
-   server/
-   ├── storage/
-   │   └── search.ts       # Database operations
-   └── lib/
-       └── search-logic/   # Search implementation
-           ├── deep-searches/     # Specialized searches
-           ├── email-discovery/   # Email-specific logic
-           └── shared/           # Common utilities
-   ```
+### 2. Core Components
 
-4. Module Types and Their Functions:
+#### Database Layer
+- PostgreSQL with Drizzle ORM
+- Strong type safety through Zod schemas
+- Efficient querying with prepared statements
+
+#### Search Modules
+Each search module is a standalone unit with:
+- Dedicated configuration
+- Validation rules
+- Implementation strategies
+- Result processing
+
+#### Email Discovery System
+- Pattern-based discovery
+- Multi-source validation
+- Confidence scoring
+- Domain analysis
+
+## Database Setup
+
+### Prerequisites
+1. PostgreSQL database (automatically provisioned on Replit)
+2. Database URL in environment variables
+
+### Initial Setup
+1. The database is automatically provisioned when the project is created
+2. Schema is defined in `shared/schema.ts`
+3. Drizzle ORM handles the database operations
+
+### Schema Management
+- All schema changes are defined in `shared/schema.ts`
+- Tables are created using Drizzle's pgTable
+- Relations are explicitly defined using references
+
+### Migrations
+1. Schema changes are automatically synchronized
+2. To apply changes:
+   ```bash
+   npm run db:push
+   ```
+3. No manual migration files needed - Drizzle handles schema updates
+
+### Database Architecture
+1. Core Tables:
+   - companies: Company profiles and metrics
+   - contacts: Contact information and validation
+   - lists: Search result groupings
+   - campaigns: Marketing campaign management
+   - searchApproaches: Search configuration storage
+
+2. Relations:
+   - contacts → companies (Many-to-One)
+   - companies → lists (Many-to-One)
+   - campaignLists → campaigns (Many-to-One)
+
+
+## 4. Module Types and Their Functions:
 
    a. Company Overview Module:
       - Purpose: Comprehensive analysis of company details and metrics
@@ -73,7 +129,8 @@ components/
       - Implementation: `server/lib/search-logic/deep-searches/email-deepdive/`
       - Minimum confidence threshold: 65%
 
-5. Confidence Threshold System:
+
+## 5. Confidence Threshold System:
 
    The application implements a sophisticated confidence threshold system:
 
@@ -118,19 +175,14 @@ To customize or disable these initializations:
 
 ## Development
 
-1. Start the development server:
-```bash
-npm run dev
-```
+### Environment Setup
+1. Ensure Node.js is installed (handled by Replit)
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-2. The application will be available at `http://localhost:3000`
-
-## Adding New Database Features
-
-1. Update the schema in `shared/schema.ts`
-2. Add corresponding interface methods in `storage/index.ts`
-3. Implement the new methods in the appropriate storage module
-4. Update the database storage class to delegate to the new implementation
-5. Run migration:
-```bash
-npm run db:push
+### Starting the Application
+1. Development server:
+   ```bash
+   npm run dev
