@@ -1,22 +1,35 @@
-import { useEffect } from "react";
-import { useEmojiDance, type EmojiState } from "./emoji-dance";
+import { useEffect, useState } from "react";
+
+// Animation states
+type EmojiState = 'egg' | 'hatching' | 'chick' | 'settled' | 'dancing1' | 'dancing2' | 'dancing3';
+
+// Dance definitions
+const DANCE_ANIMATIONS = {
+  dancing1: "animate-disco-bounce",
+  dancing2: "animate-salsa-spin",
+  dancing3: "animate-breakdance"
+};
+
+// Duration settings
+const DANCE_DURATION = 5000; // 5 seconds
+const DANCE_INTERVAL = 180000; // 3 minutes
 
 export function EggAnimation() {
-  // Use our custom hook for the first egg's animations
-  const [firstEggState, setFirstEggState, firstEggAnimation] = useEmojiDance('egg');
+  const [state, setState] = useState<EmojiState>('egg');
+  const [currentDance, setCurrentDance] = useState<number>(1);
 
   useEffect(() => {
     // Starting act (warmup) sequence
     const hatchingTimeout = setTimeout(() => {
-      setFirstEggState('hatching');
+      setState('hatching');
     }, 3000);
 
     const chickTimeout = setTimeout(() => {
-      setFirstEggState('chick');
+      setState('chick');
     }, 6000);
 
     const settleTimeout = setTimeout(() => {
-      setFirstEggState('settled');
+      setState('settled');
     }, 12000);
 
     return () => {
@@ -26,13 +39,39 @@ export function EggAnimation() {
     };
   }, []);
 
+  useEffect(() => {
+    if (state === 'settled') {
+      // Start the dance rotation
+      const danceRotation = setInterval(() => {
+        // Trigger dance
+        setState(`dancing${currentDance}` as EmojiState);
+
+        // Schedule end of dance
+        setTimeout(() => {
+          setState('settled');
+          // Move to next dance routine
+          setCurrentDance(current => (current % 3) + 1);
+        }, DANCE_DURATION);
+      }, DANCE_INTERVAL);
+
+      return () => clearInterval(danceRotation);
+    }
+  }, [state, currentDance]);
+
+  // Get the appropriate animation class based on state
+  const animationClass = state === 'egg' ? 'animate-egg-shake' :
+    state === 'hatching' ? 'animate-hatching-wobble' :
+    state === 'chick' ? 'animate-chick-bounce' :
+    state.startsWith('dancing') ? DANCE_ANIMATIONS[state as keyof typeof DANCE_ANIMATIONS] :
+    '';
+
   return (
     <div className="flex items-center gap-2 ml-4">
       <span 
-        className={`text-4xl transform transition-transform duration-300 ${firstEggAnimation}`}
+        className={`text-4xl transform transition-transform duration-300 ${animationClass}`}
       >
-        {firstEggState === 'egg' ? '🥚' : 
-         firstEggState === 'hatching' ? '🐣' : 
+        {state === 'egg' ? '🥚' : 
+         state === 'hatching' ? '🐣' : 
          '🐥'}
       </span>
       <span className="text-4xl">🥚</span>
