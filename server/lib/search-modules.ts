@@ -28,53 +28,25 @@ export interface SearchModuleResult {
 // Company Overview Module Configuration
 export const COMPANY_OVERVIEW_MODULE = {
   type: 'company_overview',
-  defaultPrompt: "Provide a detailed overview of [COMPANY], prioritizing their website and core information.",
-  technicalPrompt: `You are a business intelligence analyst. Analyze the company and provide structured information, prioritizing:
-
-    1. Company name (exact match)
-    2. Website (primary domain)
-    3. Company size (employee count)
-    4. Industry sector
-    5. Core business focus
-    6. Services offered
-    7. Location information
+  defaultPrompt: "Provide a detailed overview of [COMPANY], including its age, size, and main business focus.",
+  technicalPrompt: `You are a business intelligence analyst. Analyze the company and provide structured information about:
+    1. Company size (employee count)
+    2. Core services offered
+    3. Market positioning
+    4. Key differentiators
 
     Format your response as JSON with the following structure:
     {
-      "companyProfile": {
-        "name": string,
-        "website": string | null,
-        "size": number | null,
-        "industry": string,
-        "focus": string,
-        "validationScore": number,
-        "services": string[],
-        "marketPosition": string,
-        "differentiators": string[],
-        "location": {
-          "city": string | null,
-          "state": string | null,
-          "country": string | null
-        }
-      }
+      "size": number,
+      "services": string[],
+      "marketPosition": string,
+      "differentiators": string[]
     }`,
   responseStructure: {
-    companyProfile: {
-      name: "string - exact company name",
-      website: "string | null - primary company website domain",
-      size: "number | null - employee count",
-      industry: "string - primary industry sector",
-      focus: "string - main business focus",
-      validationScore: "number - confidence score (0-100)",
-      services: "string[] - list of main services",
-      marketPosition: "string - brief market position description",
-      differentiators: "string[] - list of key differentiating factors",
-      location: {
-        city: "string | null - company's city if clearly stated",
-        state: "string | null - company's state/province if clearly stated",
-        country: "string | null - company's country if clearly stated"
-      }
-    }
+    size: "number - employee count",
+    services: "string[] - list of main services",
+    marketPosition: "string - brief market position description",
+    differentiators: "string[] - list of key differentiating factors"
   }
 };
 
@@ -87,7 +59,7 @@ export const DECISION_MAKER_MODULE = {
     1. Full name 
     2. position, title or role
     3. Email address
-    
+
     Format your response as JSON with the following structure:
     {
       "contacts": [
@@ -127,7 +99,7 @@ export const EMAIL_DISCOVERY_MODULE = {
     2. Search public sources for email addresses
     3. Validate discovered emails through multiple methods
     4. Assign confidence scores based on validation results
-    
+
     Format your response as JSON with the following structure:
     {
       "discoveredEmails": [
@@ -177,7 +149,7 @@ export const LOCAL_SOURCES_MODULE = {
     2. Local business associations
     3. Business networking groups
     4. Local trade organizations
-    
+
     Format your response as JSON with the following structure:
     {
       "sources": [

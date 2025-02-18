@@ -9,7 +9,6 @@ import { searchContactDetails } from "./lib/api-interactions";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
 import { insertEmailTemplateSchema } from "@shared/schema";
 import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
-import { additionalEmailService } from "./lib/search-logic/email-enrichment/service";
 import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
@@ -174,13 +173,9 @@ app.post("/api/companies/search", async (req, res) => {
         // Parse results
         const companyData = parseCompanyData(analysisResults);
 
-        // Create the company record with location information
+        // Create the company record first
         const createdCompany = await storage.createCompany({
           name: companyName,
-          website: companyData.website || null,
-          city: companyData.city || null,
-          state: companyData.state || null,
-          country: companyData.country || null,
           ...companyData
         });
 
@@ -235,15 +230,15 @@ app.post("/api/companies/search", async (req, res) => {
 
     if (emailEnrichmentModule?.active) {
       const searchId = `search_${Date.now()}`;
-      console.log('Starting additional email discovery with searchId:', searchId);
+      console.log('Starting post-search email enrichment with searchId:', searchId);
 
-      // Process each company's contacts for email discovery asynchronously
+      // Process each company's contacts for enrichment asynchronously
       for (const company of companies) {
         try {
-          const enrichmentResults = await additionalEmailService.enrichTopProspects(company.id);
-          console.log(`Queued email discovery for ${enrichmentResults.length} contacts in ${company.name}`);
+          const enrichmentResults = await emailEnrichmentService.enrichTopProspects(company.id);
+          console.log(`Queued enrichment for ${enrichmentResults.length} contacts in ${company.name}`);
         } catch (error) {
-          console.error(`Additional email discovery error for ${company.name}:`, error);
+          console.error(`Email enrichment error for ${company.name}:`, error);
         }
       }
     }
@@ -579,16 +574,9 @@ app.post("/api/contacts/:contactId/enrich", async (req, res) => {
     }
     console.log('Found company:', company.name);
 
-    // Search for additional contact details with location context
+    // Search for additional contact details
     console.log('Searching for contact details...');
-    const enrichedDetails = await searchContactDetails(
-      contact.name, 
-      company.name,
-      { 
-        city: company.city || undefined,
-        state: company.state || undefined
-      }
-    );
+    const enrichedDetails = await searchContactDetails(contact.name, company.name);
     console.log('Enriched details found:', enrichedDetails);
 
     // Update contact with enriched information

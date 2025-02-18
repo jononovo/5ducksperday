@@ -12,20 +12,16 @@ export const lists = pgTable("lists", {
 export const companies = pgTable("companies", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  listId: integer("list_id"),
+  listId: integer("list_id"),  // Reference to the list this company belongs to
   age: integer("age"),
   size: integer("size"),
   website: text("website"),
-  alternativeProfileUrl: text("alternative_profile_url"),
-  defaultContactEmail: text("default_contact_email"),
+  alternativeProfileUrl: text("alternative_profile_url"), // New field for GMB, Yelp etc
+  defaultContactEmail: text("default_contact_email"), // New field for company-wide contact
   ranking: integer("website_ranking"),
   linkedinProminence: integer("linkedin_prominence"),
   customerCount: integer("customer_count"),
   rating: integer("rating"),
-  city: text("city"),
-  state: text("state"),
-  country: text("country"),
-  phone: text("phone"),  // New field
   services: text("services").array(),
   validationPoints: text("validation_points").array(),
   differentiation: text("differentiation").array(),
@@ -125,10 +121,6 @@ const companySchema = z.object({
   linkedinProminence: z.number().nullable(),
   customerCount: z.number().nullable(),
   rating: z.number().nullable(),
-  city: z.string().nullable(),
-  state: z.string().nullable(),
-  country: z.string().nullable(),
-  phone: z.string().nullable(),  // New field
   services: z.array(z.string()).nullable(),
   validationPoints: z.array(z.string()).nullable(),
   differentiation: z.array(z.string()).nullable(),

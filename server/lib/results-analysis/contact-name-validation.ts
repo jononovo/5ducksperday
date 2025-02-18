@@ -25,11 +25,11 @@ const GENERIC_TERMS = new Set([
   'leadership', 'team', 'member', 'staff', 'employee', 'general',
   'key', 'role', 'position', 'department', 'division', 'management',
   'contact', 'person', 'representative', 'individual',
-  'business', 'company', 'enterprise','enterprises', 'organization', 'corporation',
+  'business', 'company', 'enterprise', 'organization', 'corporation',
   'admin', 'professional', 'consultant', 'consolidated',
   'service', 'support', 'office', 'personnel', 'resource',
   'operation', 'development', 'sales', 'marketing', 'customer',
-  'printing', 'press', 'commercial', 'digital', 'production', 'Strategic', 'Visionary', 'Planner', 'Planner',
+  'printing', 'press', 'commercial', 'digital', 'production',
 
   // Common business name components
   'company', 'consolidated', 'incorporated', 'inc', 'llc', 'ltd',
@@ -39,7 +39,7 @@ const GENERIC_TERMS = new Set([
   'cooperative', 'co', 'corporation', 'incorporated', 'plc',
 
   // Common Industry terms used in page titles
-  'information', 'technology', 'software', 'services', 'consulting', 'Industry', 'Reputation', 'Quality', 'Control', 'Strategic', 'Direction', 'Overall', 'Vision', 'Technology', 'Strategy', 'Innovation', 'Infrastructure', 'Innovation', 'Technical', 'Leader', 'Industry', 'Focus', 'primary', 'secondary','revenue','Market','Presence','Score','Competitive','Landscape','Graphic','Validation','Guarantee', 'Market', 'Presence', 'Competitive', 'Landscape', 'Quality', 'Verification', 'Score',
+  'information', 'technology', 'software', 'services', 'consulting', 'Industry', 'Reputation', 'Quality', 'Control', 'Strategic', 'Direction', 'Overall', 'Vision', 'Technology', 'Strategy', 'Innovation', 'Infrastructure', 'Innovation', 'Technical', 'Leader', 'Industry', 'Focus', 'primary', 'secondary',
   
 ]);
 
