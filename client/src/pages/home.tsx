@@ -4,7 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
-import { ListPlus, Search, Code2, UserCircle, Banknote, Eye, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, Star, MessageSquare, Coins } from "lucide-react";
+import {
+  ListPlus,
+  Search,
+  Code2,
+  UserCircle,
+  Banknote,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+  ThumbsUp,
+  ThumbsDown,
+  Star,
+  MessageSquare,
+  Coins,
+} from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -329,6 +343,14 @@ export default function Home() {
     return "Enrich";
   };
 
+  const getEnrichButtonClass = (contact: Contact) => {
+    if (isContactEnriched(contact)) {
+      const hasEnrichedData = contact.email || contact.linkedinUrl || contact.phoneNumber || contact.department;
+      return hasEnrichedData ? "text-green-500" : "text-muted-foreground opacity-50";
+    }
+    return "";
+  };
+
   // Add AeroLeads mutation
   const aeroLeadsMutation = useMutation({
     mutationFn: async (contactId: number) => {
@@ -376,11 +398,10 @@ export default function Home() {
 
   const getAeroLeadsButtonClass = (contact: Contact) => {
     if (isAeroLeadsSearchComplete(contact)) {
-      return contact.email ? "text-yellow-500" : "text-muted-foreground";
+      return contact.email ? "text-yellow-500" : "text-muted-foreground opacity-50";
     }
     return "";
   };
-
 
   return (
     <div className="container mx-auto py-6">
@@ -501,7 +522,7 @@ export default function Home() {
                                 size="sm"
                                 onClick={() => handleEnrichContact(contact.id)}
                                 disabled={isContactPending(contact.id) || isContactEnriched(contact)}
-                                className={isContactEnriched(contact) ? "text-muted-foreground" : ""}
+                                className={getEnrichButtonClass(contact)}
                               >
                                 <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
                                 {getEnrichButtonText(contact)}
