@@ -12,6 +12,7 @@ export const lists = pgTable("lists", {
 export const companies = pgTable("companies", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  shortSummary: text("short_summary"),  // New field
   listId: integer("list_id"),
   age: integer("age"),
   size: integer("size"),
@@ -25,7 +26,7 @@ export const companies = pgTable("companies", {
   city: text("city"),
   state: text("state"),
   country: text("country"),
-  phone: text("phone"),  // New field
+  phone: text("phone"),
   services: text("services").array(),
   validationPoints: text("validation_points").array(),
   differentiation: text("differentiation").array(),
@@ -115,6 +116,7 @@ const listSchema = z.object({
 
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required"),
+  shortSummary: z.string().max(150, "Summary must not exceed 20 words").nullable(), // New field
   listId: z.number().nullable(),
   age: z.number().nullable(),
   size: z.number().nullable(),
@@ -128,7 +130,7 @@ const companySchema = z.object({
   city: z.string().nullable(),
   state: z.string().nullable(),
   country: z.string().nullable(),
-  phone: z.string().nullable(),  // New field
+  phone: z.string().nullable(),
   services: z.array(z.string()).nullable(),
   validationPoints: z.array(z.string()).nullable(),
   differentiation: z.array(z.string()).nullable(),

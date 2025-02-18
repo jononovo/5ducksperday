@@ -174,9 +174,14 @@ app.post("/api/companies/search", async (req, res) => {
         // Parse results
         const companyData = parseCompanyData(analysisResults);
 
-        // Create the company record with location information
+        // Extract company name and summary from the first result
+        const nameWithSummary = companyName.split(' - ');
+        const shortSummary = nameWithSummary.length > 1 ? nameWithSummary[1].trim() : null;
+
+        // Create the company record with location information and summary
         const createdCompany = await storage.createCompany({
-          name: companyName,
+          name: nameWithSummary[0].trim(),
+          shortSummary,
           website: companyData.website || null,
           city: companyData.city || null,
           state: companyData.state || null,
