@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { Layout } from "@/components/layout";
 import Auth from "@/pages/auth";
 import Home from "@/pages/home";
 import Planning from "@/pages/planning";
@@ -27,7 +28,7 @@ import Support from "@/pages/support";
 
 function Router() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <Layout>
       <MainNav />
       <div className="flex-1">
         <Switch>
@@ -35,21 +36,13 @@ function Router() {
           <ProtectedRoute path="/planning" component={Planning} />
           <ProtectedRoute path="/" component={Home} />
           <ProtectedRoute path="/lists" component={Lists} />
-          <ProtectedRoute path="/lists/:listId" component={() => {
-            return <ListDetails />;
-          }} />
+          <ProtectedRoute path="/lists/:listId" component={ListDetails} />
           <ProtectedRoute path="/campaigns" component={Campaigns} />
-          <ProtectedRoute path="/campaigns/:id" component={() => {
-            return <CampaignDetails />;
-          }} />
+          <ProtectedRoute path="/campaigns/:id" component={CampaignDetails} />
           <ProtectedRoute path="/outreach" component={Outreach} />
           <ProtectedRoute path="/database" component={DatabasePage} />
-          <ProtectedRoute path="/companies/:id" component={() => {
-            return <CompanyDetails />;
-          }} />
-          <ProtectedRoute path="/contacts/:id" component={() => {
-            return <ContactDetails />;
-          }} />
+          <ProtectedRoute path="/companies/:id" component={CompanyDetails} />
+          <ProtectedRoute path="/contacts/:id" component={ContactDetails} />
           <ProtectedRoute path="/api-templates" component={ApiTemplates} />
           {/* Public Routes */}
           <Route path="/privacy" component={Privacy} />
@@ -61,7 +54,7 @@ function Router() {
           <Route component={NotFound} />
         </Switch>
       </div>
-    </div>
+    </Layout>
   );
 }
 
