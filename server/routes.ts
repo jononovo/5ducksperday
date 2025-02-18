@@ -666,25 +666,33 @@ Then, on a new line, write the body of the email. Keep both subject and content 
   app.post("/api/contacts/:contactId/aeroleads", requireAuth, async (req, res) => {
     try {
       const contactId = parseInt(req.params.contactId);
+      console.log('Starting AeroLeads search for contact:', contactId);
+
       const contact = await storage.getContact(contactId);
       if (!contact) {
         res.status(404).json({ message: "Contact not found" });
         return;
       }
+      console.log('Found contact:', contact.name);
 
       const company = await storage.getCompany(contact.companyId);
       if (!company) {
         res.status(404).json({ message: "Company not found" });
         return;
       }
+      console.log('Found company:', company.name);
 
       // Use the AeroLeads API to search for the email
       const { searchAeroLeads } = await import('./lib/search-logic/email-discovery/aeroleads-search');
+      console.log('Initiating AeroLeads search...');
+
       const result = await searchAeroLeads(
         contact.name,
         company.name,
         '9aa11ffaad48543f84020a6ae70b62e2' // API key
       );
+
+      console.log('AeroLeads search result:', result);
 
       // Update the contact with the results
       const updatedContact = await storage.updateContactWithAeroLeadsResult(
@@ -692,11 +700,14 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         result
       );
 
+      console.log('Contact updated with AeroLeads result:', updatedContact);
       res.json(updatedContact);
     } catch (error) {
       console.error('AeroLeads search error:', error);
+      // Send a more detailed error response
       res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to search AeroLeads"
+        message: error instanceof Error ? error.message : "Failed to search AeroLeads",
+        details: error instanceof Error ? error.stack : undefined
       });
     }
   });

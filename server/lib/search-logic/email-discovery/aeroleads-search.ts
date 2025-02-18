@@ -30,8 +30,10 @@ export async function searchAeroLeads(
   apiKey: string
 ): Promise<{ email: string | null; confidence: number }> {
   const { firstName, lastName } = splitFullName(name);
-  
+
   try {
+    console.log(`Searching AeroLeads for: ${firstName} ${lastName} at ${company}`);
+
     const response = await axios.get<AeroLeadsResponse>(
       'https://aeroleads.com/api/get_email_details',
       {
@@ -40,9 +42,12 @@ export async function searchAeroLeads(
           first_name: firstName,
           last_name: lastName,
           company
-        }
+        },
+        timeout: 20000 // 20 second timeout
       }
     );
+
+    console.log('AeroLeads API response:', response.data);
 
     if (response.data.success && response.data.data.email) {
       return {
@@ -51,12 +56,17 @@ export async function searchAeroLeads(
       };
     }
 
+    console.log('No email found in AeroLeads response');
     return {
       email: null,
       confidence: 0
     };
   } catch (error) {
     console.error('AeroLeads API error:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Response:', error.response?.data);
+      console.error('Status:', error.response?.status);
+    }
     return {
       email: null,
       confidence: 0
