@@ -8,7 +8,7 @@ import {
   calculateCompanyScore 
 } from "./results-analysis/company-analysis";
 import { validateName } from "./results-analysis/contact-name-validation";
-import { extractContacts } from "./results-analysis/contact-extraction";
+import { extractContacts } from "./results-analysis/email-extraction-format";
 
 // Core search functions
 export async function searchCompanies(query: string): Promise<string[]> {

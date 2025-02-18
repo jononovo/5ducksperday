@@ -1,4 +1,5 @@
 import type { Contact } from "@shared/schema";
+import { validateNames, combineValidationScores } from "../../results-analysis/contact-ai-name-scorer";
 
 export function isPlaceholderEmail(email: string): boolean {
   const placeholderPatterns = [

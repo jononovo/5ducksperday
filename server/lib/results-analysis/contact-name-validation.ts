@@ -1,6 +1,6 @@
 import { Contact } from "@shared/schema";
 import { isPlaceholderEmail, isValidBusinessEmail } from "./email-analysis";
-import { validateNames } from "../api-interactions";
+import { validateNames, combineValidationScores } from "./contact-ai-name-scorer";
 
 export interface NameValidationResult {
   score: number;
