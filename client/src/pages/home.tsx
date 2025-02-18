@@ -477,29 +477,29 @@ export default function Home() {
                           <TableCell>
                             <TooltipProvider delayDuration={500}>
                               <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <DropdownMenu>
+                                <DropdownMenu>
+                                  <TooltipTrigger asChild>
                                     <DropdownMenuTrigger asChild>
                                       <Button variant="ghost" size="sm">
                                         <MessageSquare className="h-4 w-4 text-muted-foreground" />
                                       </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                      <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "excellent")}>
-                                        <Star className="h-4 w-4 mr-2 text-yellow-500" />
-                                        Excellent Match
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "ok")}>
-                                        <ThumbsUp className="h-4 w-4 mr-2 text-blue-500" />
-                                        OK Match
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "terrible")}>
-                                        <ThumbsDown className="h-4 w-4 mr-2 text-red-500" />
-                                        Not a Match
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </TooltipTrigger>
+                                  </TooltipTrigger>
+                                  <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "excellent")}>
+                                      <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                                      Excellent Match
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "ok")}>
+                                      <ThumbsUp className="h-4 w-4 mr-2 text-blue-500" />
+                                      OK Match
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "terrible")}>
+                                      <ThumbsDown className="h-4 w-4 mr-2 text-red-500" />
+                                      Not a Match
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                                 <TooltipContent>
                                   <p>This allows you to rate if the contact is quality or not</p>
                                 </TooltipContent>
