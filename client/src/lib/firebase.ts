@@ -25,6 +25,19 @@ function validateFirebaseConfig() {
     errors.push('VITE_FIREBASE_APP_ID appears to be malformed (should contain ":")');
   }
 
+  // Log the actual configuration being used (without exposing full API key)
+  console.log('Firebase Configuration Check:', {
+    environment: import.meta.env.MODE,
+    isProduction: import.meta.env.PROD,
+    configPresent: {
+      apiKey: apiKey ? `...${apiKey.slice(-6)}` : 'missing',
+      projectId: projectId || 'missing',
+      appId: appId ? `...${appId.slice(-6)}` : 'missing',
+    },
+    domain: window.location.hostname,
+    origin: window.location.origin
+  });
+
   return {
     isValid: errors.length === 0,
     errors,
@@ -45,25 +58,16 @@ let auth: Auth | undefined;
 let googleProvider: GoogleAuthProvider | undefined;
 
 try {
-  console.log('Starting Firebase initialization');
+  console.log('Starting Firebase initialization...');
 
   const { isValid, errors, config } = validateFirebaseConfig();
 
-  console.log('Environment validation:', {
-    isValid,
-    errors,
-    domain: window.location.hostname,
-    fullUrl: window.location.href,
-    origin: window.location.origin,
-    configPresent: {
-      hasApiKey: !!config.apiKey,
-      hasProjectId: !!config.projectId,
-      hasAppId: !!config.appId,
-      apiKeyLastChars: config.apiKey ? `...${config.apiKey.slice(-4)}` : 'undefined'
-    }
-  });
-
   if (!isValid) {
+    console.error('Firebase configuration validation failed:', {
+      errors,
+      environment: import.meta.env.MODE,
+      domain: window.location.hostname
+    });
     throw new Error(`Firebase configuration validation failed:\n${errors.join('\n')}`);
   }
 
@@ -75,15 +79,28 @@ try {
   googleProvider.addScope('email');
   googleProvider.addScope('profile');
 
-  console.log('Firebase initialized successfully');
+  // Log successful initialization with domain info
+  console.log('Firebase initialized successfully:', {
+    domain: window.location.hostname,
+    isAuth: !!auth,
+    isProvider: !!googleProvider,
+    authDomain: config.authDomain
+  });
+
 } catch (error) {
-  console.error('Firebase initialization error:', error);
-  // Log more details about the error
+  console.error('Firebase initialization error:', {
+    error,
+    domain: window.location.hostname,
+    environment: import.meta.env.MODE,
+    timestamp: new Date().toISOString()
+  });
+
   if (error instanceof Error) {
-    console.error('Error details:', {
+    console.error('Detailed error information:', {
       message: error.message,
       name: error.name,
-      stack: error.stack
+      stack: error.stack,
+      domain: window.location.hostname
     });
   }
 }

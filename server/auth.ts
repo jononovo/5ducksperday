@@ -20,16 +20,30 @@ const scryptAsync = promisify(scrypt);
 if (process.env.VITE_FIREBASE_PROJECT_ID) {
   try {
     if (!admin.apps.length) {
+      console.log('Initializing Firebase Admin with config:', {
+        projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+        environment: process.env.NODE_ENV,
+        timestamp: new Date().toISOString()
+      });
+
       admin.initializeApp({
         projectId: process.env.VITE_FIREBASE_PROJECT_ID,
       });
-      console.log('Firebase Admin initialized');
+      console.log('Firebase Admin initialized successfully');
     }
   } catch (error) {
-    console.error('Firebase Admin initialization error:', error);
+    console.error('Firebase Admin initialization error:', {
+      error,
+      projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+      environment: process.env.NODE_ENV,
+      timestamp: new Date().toISOString()
+    });
   }
 } else {
-  console.warn('Firebase Admin not initialized: missing project ID');
+  console.warn('Firebase Admin not initialized: missing project ID', {
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString()
+  });
 }
 
 async function hashPassword(password: string) {
@@ -48,29 +62,53 @@ async function comparePasswords(supplied: string, stored: string) {
 // Firebase token verification middleware
 async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
   const authHeader = req.headers.authorization;
+
+  console.log('Verifying Firebase token:', {
+    hasAuthHeader: !!authHeader,
+    headerFormat: authHeader?.startsWith('Bearer ') ? 'valid' : 'invalid',
+    hasFirebaseAdmin: !!admin.apps.length,
+    timestamp: new Date().toISOString()
+  });
+
   if (!authHeader?.startsWith('Bearer ') || !admin.apps.length) {
+    console.warn('Token verification failed:', {
+      reason: !authHeader?.startsWith('Bearer ') ? 'invalid header' : 'firebase admin not initialized',
+      timestamp: new Date().toISOString()
+    });
     return null;
   }
 
   try {
     const idToken = authHeader.split('Bearer ')[1];
+    console.log('Verifying ID token with Firebase Admin');
     const decodedToken = await admin.auth().verifyIdToken(idToken);
+    console.log('Token verified successfully:', {
+      email: decodedToken.email?.split('@')[0] + '@...',
+      timestamp: new Date().toISOString()
+    });
+
     // Get or create user in our database
     let user = await storage.getUserByEmail(decodedToken.email!);
 
     if (!user) {
-      // Create new user
+      console.log('Creating new user in database:', {
+        email: decodedToken.email?.split('@')[0] + '@...',
+        timestamp: new Date().toISOString()
+      });
+
       user = await storage.createUser({
         email: decodedToken.email!,
         username: decodedToken.email!.split('@')[0],
-        // Generate a random password for Firebase users
         password: await hashPassword(randomBytes(32).toString('hex')),
       });
     }
 
     return user;
   } catch (error) {
-    console.error('Firebase token verification error:', error);
+    console.error('Firebase token verification error:', {
+      error,
+      timestamp: new Date().toISOString()
+    });
     return null;
   }
 }
