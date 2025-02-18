@@ -72,7 +72,7 @@ const GENERIC_TERMS = new Set([
   'service', 'support', 'office', 'personnel', 'resource',
   'operation', 'development', 'sales', 'marketing', 'customer',
   'printing', 'press', 'commercial', 'digital', 'production',
-  'industry', 'focus', 'busy', 'founding',
+  'industry', 'focus', 'busy', 'founding',  'competitive', 'landscape',  
 
   // Company identifiers
   'company', 'consolidated', 'incorporated', 'inc', 'llc', 'ltd',
@@ -85,7 +85,7 @@ const GENERIC_TERMS = new Set([
   'information', 'technology', 'software', 'industry', 'reputation',
   'quality', 'control', 'strategic', 'direction', 'overall',
   'vision', 'strategy', 'innovation', 'infrastructure',
-  'technical', 'leader', 'focus', 'primary', 'secondary',
+  'technical', 'leader', 'focus', 'primary', 'secondary', 'expert', 'experts', 'clients',  'base',
 
   // Descriptive business terms
   'commerce', 'website', 'design', 'web', 'executive',
@@ -97,7 +97,7 @@ const GENERIC_TERMS = new Set([
 
   // Marketing Sector
   'marketing', 'digital', 'strategist', 'interactive', 'executive', 'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial', 'social', 'media',  
+  'corporate', 'enterprise', 'business', 'commercial', 'social', 'media', 'creative', 'content', 'writing', 'subject',  
 
   // Tech Sector
   'tech', 'stack', 'implementation', 'verification', 'process', 'managing', 'operating', 'board', 'advisory', 'steering',
@@ -152,7 +152,7 @@ const GENERIC_TERMS = new Set([
   'catering', 'restaurant', 'food', 'menu', 'dining', 'service', 'delivery',
 
   // Geographic Sector
-  'geography', 'location', 'region', 'country', 'city', 'state', 'province', 'county', 'municipality', 'district', 'neighborhood', 'village', 'town', 'street', 'block', 'corner', 'road', 'avenue', 'highway', 'freeway',
+  'geography', 'location', 'region', 'country', 'city', 'state', 'province', 'county', 'municipality', 'district', 'neighborhood', 'village', 'town', 'street', 'block', 'corner', 'road', 'avenue', 'highway', 'freeway', 'northern', 'southern', 'eastern', 'western', 'north', 'south', 'east', 'west', 
 
   // Govt Sector
   'government', 'governor', 'governor-general', 'governor-general', 'authoritative', 'executive', 'chief', 'chief-executive', 'authority'
