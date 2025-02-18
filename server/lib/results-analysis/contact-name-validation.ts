@@ -1,6 +1,6 @@
 import { Contact } from "@shared/schema";
 import { isPlaceholderEmail, isValidBusinessEmail } from "./email-analysis";
-import { validateNames } from "./contact-ai-name-scorer";
+import { validateNames } from "../api-interactions";
 
 export interface NameValidationResult {
   score: number;
@@ -69,7 +69,7 @@ const GENERIC_TERMS = new Set([
   'service', 'support', 'office', 'personnel', 'resource',
   'operation', 'development', 'sales', 'marketing', 'customer',
   'printing', 'press', 'commercial', 'digital', 'production',
-  'industry', 'focus', 'busy', // Added based on the example issue
+  'industry', 'focus', 'busy',
 
   // Company identifiers
   'company', 'consolidated', 'incorporated', 'inc', 'llc', 'ltd',
