@@ -9,6 +9,12 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+// Add console logs for debugging
+console.log("Firebase config:", {
+  ...firebaseConfig,
+  apiKey: firebaseConfig.apiKey ? "[PRESENT]" : "[MISSING]",
+});
+
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
