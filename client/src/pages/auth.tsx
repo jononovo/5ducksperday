@@ -11,7 +11,7 @@ import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useEffect } from "react";
-import { firebaseAuth } from "@/lib/firebase";
+import { firebaseAuth, firebaseGoogleProvider } from "@/lib/firebase";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
@@ -52,6 +52,8 @@ export default function AuthPage() {
     return null;
   }
 
+  const isFirebaseEnabled = !!(firebaseAuth && firebaseGoogleProvider);
+
   return (
     <div className="container max-w-screen-lg mx-auto py-8">
       <div className="grid md:grid-cols-2 gap-6 items-start">
@@ -63,10 +65,11 @@ export default function AuthPage() {
             <Button 
               variant="outline" 
               onClick={() => signInWithGoogle().catch(console.error)}
+              disabled={!isFirebaseEnabled}
               className="w-full mb-6"
             >
               <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 mr-2" />
-              Sign in with Google
+              {isFirebaseEnabled ? 'Sign in with Google' : 'Google Sign-in Unavailable'}
             </Button>
 
             <div className="relative mb-6">
