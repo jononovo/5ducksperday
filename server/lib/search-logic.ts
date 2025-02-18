@@ -7,7 +7,8 @@ import {
   analyzeDifferentiators,
   calculateCompanyScore 
 } from "./results-analysis/company-analysis";
-import { validateNameLocally, type ValidationOptions, combineValidationScores } from "./results-analysis/contact-name-validation";
+import { validateNameLocally } from "./results-analysis/contact-name-validation";
+import { combineValidationScores, type ValidationOptions } from "./results-analysis/score-combination";
 import { extractContacts } from "./results-analysis/contact-extraction";
 
 // Core search functions
@@ -51,7 +52,11 @@ export async function analyzeCompany(
   return queryPerplexity(messages);
 }
 
-export async function validateNames(names: string[]): Promise<Record<string, number>> {
+export async function validateNames(
+  names: string[],
+  companyName?: string,
+  searchPrompt?: string 
+): Promise<Record<string, number>> {
   const messages: PerplexityMessage[] = [
     {
       role: "system",
@@ -61,6 +66,7 @@ export async function validateNames(names: string[]): Promise<Record<string, num
       2. Professional context
       3. Job title contamination
       4. Realistic vs placeholder names
+      5. Names should not contain terms from the search prompt: "${searchPrompt || ''}"
 
       Scoring rules:
       - 90-100: Full name with clear first/last (e.g. "Michael Johnson")
@@ -85,27 +91,53 @@ export async function validateNames(names: string[]): Promise<Record<string, num
     const response = await queryPerplexity(messages);
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      const validated: Record<string, number> = {};
-      for (const [name, score] of Object.entries(parsed)) {
-        if (typeof score === 'number' && score >= 1 && score <= 100) {
-          validated[name] = score;
-        } else {
-          validated[name] = validateNameLocally(name).score;
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const validated: Record<string, number> = {};
+
+        for (const [name, score] of Object.entries(parsed)) {
+          if (typeof score === 'number' && score >= 1 && score <= 100) {
+            const localResult = validateNameLocally(name, "", { searchPrompt });
+            validated[name] = combineValidationScores(
+              score,
+              localResult,
+              companyName,
+              { searchPrompt }
+            );
+          } else {
+            const localResult = validateNameLocally(name, "", { searchPrompt });
+            validated[name] = combineValidationScores(
+              50,
+              localResult,
+              companyName,
+              { searchPrompt }
+            );
+          }
         }
+        return validated;
+      } catch (e) {
+        console.error('Failed to parse AI response:', e);
       }
-      return validated;
     }
-    return names.reduce((acc, name) => ({
-      ...acc,
-      [name]: validateNameLocally(name).score
-    }), {});
+
+    // Fallback to local validation
+    return names.reduce((acc, name) => {
+      const localResult = validateNameLocally(name, "", { searchPrompt });
+      return {
+        ...acc,
+        [name]: combineValidationScores(50, localResult, companyName, { searchPrompt })
+      };
+    }, {});
+
   } catch (error) {
     console.error('Error in name validation:', error);
-    return names.reduce((acc, name) => ({
-      ...acc,
-      [name]: validateNameLocally(name).score
-    }), {});
+    return names.reduce((acc, name) => {
+      const localResult = validateNameLocally(name, "", { searchPrompt });
+      return {
+        ...acc,
+        [name]: combineValidationScores(50, localResult, companyName, { searchPrompt })
+      };
+    }, {});
   }
 }
 

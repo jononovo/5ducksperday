@@ -39,11 +39,16 @@ const placeholderNames = new Set([
 
 const isPlaceholderName = (name: string): boolean => placeholderNames.has(name.toLowerCase());
 
+interface ValidationOptions {
+  minimumScore?: number;
+  searchPrompt?: string;
+}
 
 export async function extractContacts(
   analysisResults: string[],
   companyName?: string,
-  validationOptions?: any 
+  validationOptions: ValidationOptions = {},
+  searchPrompt?: string
 ): Promise<Partial<Contact>[]> {
   if (!Array.isArray(analysisResults)) {
     console.warn('analysisResults is not an array, returning empty array');
@@ -83,8 +88,21 @@ export async function extractContacts(
           nameIndex + 200
         );
 
-        const localResult = validateNameLocally(name, contextWindow);
-        const finalScore = combineValidationScores(aiScore, localResult, companyName, validationOptions);
+        // Pass search prompt to local validation
+        const localResult = validateNameLocally(name, contextWindow, {
+          ...validationOptions,
+          searchPrompt
+        });
+
+        const finalScore = combineValidationScores(
+          aiScore,
+          localResult,
+          companyName,
+          {
+            ...validationOptions,
+            searchPrompt
+          }
+        );
 
         if (finalScore >= (validationOptions?.minimumScore || 30)) {
           let role = null;
@@ -94,10 +112,8 @@ export async function extractContacts(
             role = roleMatch[1].trim();
           }
 
-          // Enhanced email discovery logic remains unchanged
           const emailMatches = new Set<string>();
 
-          // 1. Direct email matches from text
           emailRegex.lastIndex = 0;
           while ((match = emailRegex.exec(result)) !== null) {
             const email = match[0].toLowerCase();
@@ -106,7 +122,6 @@ export async function extractContacts(
             }
           }
 
-          // 2. Generate potential business emails if domain found
           if (domain) {
             const predictedEmails = generatePossibleEmails(name, domain);
             for (const email of predictedEmails) {
@@ -116,7 +131,6 @@ export async function extractContacts(
             }
           }
 
-          // 3. Match name parts with found emails
           const nameParts = name.toLowerCase().split(/\s+/);
           emailRegex.lastIndex = 0;
           while ((match = emailRegex.exec(result)) !== null) {

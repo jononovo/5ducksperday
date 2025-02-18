@@ -1,5 +1,6 @@
 import type { Contact } from "@shared/schema";
-import { validateNameLocally, type ValidationOptions, combineValidationScores } from "../nameValidation";
+import { validateNameLocally } from "./contact-name-validation";
+import { type ValidationOptions, combineValidationScores } from "./score-combination";
 
 export function isPlaceholderEmail(email: string): boolean {
   const placeholderPatterns = [
