@@ -36,7 +36,7 @@ const GENERIC_TERMS = new Set([
   'group', 'holdings', 'solutions', 'services', 'international',
   'global', 'industries', 'systems', 'technologies', 'associates',
   'consulting', 'ventures', 'partners', 'limited', 'corp',
-  'cooperative', 'co', 'corporation', 'incorporated', 'plc',
+  'cooperative', 'co', 'corporation', 'incorporated', 'plc', 'Worldwide',
 
   // Common Industry terms used in page titles
   'information', 'technology', 'software', 'services', 'consulting', 'Industry', 'Reputation', 'Quality', 'Control', 'Strategic', 'Direction', 'Overall', 'Vision', 'Technology', 'Strategy', 'Innovation', 'Infrastructure', 'Innovation', 'Technical', 'Leader', 'Industry', 'Focus', 'primary', 'secondary','revenue','Market','Presence','Score','Competitive','Landscape','Graphic','Validation','Guarantee', 'Market', 'Presence', 'Competitive', 'Landscape', 'Quality', 'Verification', 'Score',
