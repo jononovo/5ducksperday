@@ -60,31 +60,18 @@ export async function extractContacts(
   const roleRegex = /(?:is|as|serves\s+as)\s+(?:the|a|an)\s+([^,.]+?(?:Manager|Director|Officer|Executive|Lead|Head|Chief|Founder|Owner|President|CEO|CTO|CFO))/gi;
 
   try {
-    // Extract all names first for bulk AI validation
-    const names: string[] = [];
-    for (const result of analysisResults) {
-      if (typeof result !== 'string') continue;
-      let match;
-      while ((match = nameRegex.exec(result)) !== null) {
-        const name = match[0];
-        if (!isPlaceholderName(name)) {
-          names.push(name);
-        }
-      }
-    }
-
-    // Bulk validate names with Perplexity AI
-    const aiScores = await validateNames(names, companyName, validationOptions.searchPrompt);
-
-    // Process each analysis result with both AI and local validation
+    // Process each analysis result
     for (const result of analysisResults) {
       if (typeof result !== 'string') continue;
 
       const domain = extractDomainFromContext(result);
+      let nameMatch;
+
+      // Reset nameRegex for each iteration
       nameRegex.lastIndex = 0;
 
-      while ((match = nameRegex.exec(result)) !== null) {
-        const name = match[0];
+      while ((nameMatch = nameRegex.exec(result)) !== null) {
+        const name = nameMatch[0];
         if (isPlaceholderName(name)) continue;
 
         const nameIndex = result.indexOf(name);
@@ -93,25 +80,33 @@ export async function extractContacts(
           nameIndex + 200
         );
 
-        // Combine AI and local validation
+        // Get AI validation score
+        const aiScores = await validateNames([name], companyName, validationOptions.searchPrompt);
         const aiScore = aiScores[name] || 50; // Default to 50 if no AI score
+
+        // Combine AI and local validation
         const validationResult = validateName(name, contextWindow, companyName, {
           ...validationOptions,
           aiScore
         });
 
         if (validationResult.score >= (validationOptions.minimumScore || 30)) {
-          let role = null;
+          let roleMatch;
           roleRegex.lastIndex = 0;
-          const roleMatch = roleRegex.exec(contextWindow);
-          if (roleMatch) {
+
+          let role = null;
+          if ((roleMatch = roleRegex.exec(contextWindow)) !== null) {
             role = roleMatch[1].trim();
           }
 
           const emailMatches = new Set<string>();
+          let emailMatch;
+
+          // Reset emailRegex
           emailRegex.lastIndex = 0;
-          while ((match = emailRegex.exec(result)) !== null) {
-            const email = match[0].toLowerCase();
+
+          while ((emailMatch = emailRegex.exec(result)) !== null) {
+            const email = emailMatch[0].toLowerCase();
             if (!isPlaceholderEmail(email) && isValidBusinessEmail(email)) {
               emailMatches.add(email);
             }
@@ -128,8 +123,9 @@ export async function extractContacts(
 
           const nameParts = name.toLowerCase().split(/\s+/);
           emailRegex.lastIndex = 0;
-          while ((match = emailRegex.exec(result)) !== null) {
-            const email = match[0].toLowerCase();
+
+          while ((emailMatch = emailRegex.exec(result)) !== null) {
+            const email = emailMatch[0].toLowerCase();
             if (!isPlaceholderEmail(email) &&
               nameParts.some(part => part.length >= 2 && email.includes(part))) {
               emailMatches.add(email);
@@ -144,7 +140,6 @@ export async function extractContacts(
             role,
             probability: validationResult.score,
             nameConfidenceScore: validationResult.score,
-            aiValidationScore: aiScore,
             lastValidated: new Date(),
             completedSearches: ['name_validation', 'ai_validation']
           });
@@ -152,13 +147,11 @@ export async function extractContacts(
       }
     }
 
-    return Array.isArray(contacts) ?
-      contacts
-        .sort((a, b) => (b.probability || 0) - (a.probability || 0))
-        .filter((contact, index, self) =>
-          index === self.findIndex(c => c.name === contact.name)
-        ) :
-      [];
+    return contacts
+      .sort((a, b) => (b.probability || 0) - (a.probability || 0))
+      .filter((contact, index, self) =>
+        index === self.findIndex(c => c.name === contact.name)
+      );
 
   } catch (error) {
     console.error('Error in contact extraction:', error);
