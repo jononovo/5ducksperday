@@ -89,8 +89,12 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
     const idToken = authHeader.split('Bearer ')[1];
     console.log('Verifying ID token with Firebase Admin');
     const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+    // Log the token scopes and claims
     console.log('Token verified successfully:', {
       email: decodedToken.email?.split('@')[0] + '@...',
+      scopes: decodedToken.firebase?.sign_in_attributes?.scopes,
+      claims: decodedToken,
       timestamp: new Date().toISOString()
     });
 

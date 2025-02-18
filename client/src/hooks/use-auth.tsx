@@ -118,7 +118,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('SignInWithPopup completed', {
         success: !!result,
         hasUser: !!result.user,
-        hasEmail: !!result.user?.email
+        hasEmail: !!result.user?.email,
+        // Log the OAuth credential information
+        credential: result.credential,
+        scopes: (result.credential as any)?.accessToken ? 'Token present' : 'No token'
       });
 
       if (!result.user?.email) {
