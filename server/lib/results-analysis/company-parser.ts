@@ -28,7 +28,7 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
     differentiation: [],
     totalScore: 0,
     website: null,
-    shortSummary: null // Initialize shortSummary
+    shortSummary: null
   };
 
   try {
@@ -41,6 +41,15 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
           // Extract from new structure
           const profile = jsonData.companyProfile;
 
+          // Extract website directly from JSON structure
+          if (profile.website) {
+            companyData.website = profile.website;
+          } else if (profile.websiteUrl) {
+            companyData.website = profile.websiteUrl;
+          } else if (profile.url) {
+            companyData.website = profile.url;
+          }
+
           // Extract short summary from marketPosition or focus
           if (profile.marketPosition) {
             companyData.shortSummary = profile.marketPosition.length > 150 
@@ -50,10 +59,6 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
             companyData.shortSummary = profile.focus.length > 150 
               ? profile.focus.substring(0, 147) + '...'
               : profile.focus;
-          }
-
-          if (profile.website) {
-            companyData.website = profile.website;
           }
 
           if (typeof profile.size === 'number') {
@@ -91,10 +96,22 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
           }
         }
       } catch (e) {
-        const websiteRegex = /(?:website|domain|url):\s*(https?:\/\/[^\s,}"']+)/i;
-        const websiteMatch = result.match(websiteRegex);
-        if (websiteMatch && !companyData.website) {
-          companyData.website = websiteMatch[1];
+        const websitePatterns = [
+          /(?:website|domain|url):\s*(https?:\/\/[^\s,}"']+)/i,
+          /(?:website|domain|url):\s*([^\s,}"']+\.(?:com|net|org|io|co)[^\s,}"']*)/i,
+          /visit(?:ing)?\s+(?:us\s+)?(?:at\s+)?((?:https?:\/\/)?[^\s,}"']+\.(?:com|net|org|io|co)[^\s,}"']*)/i
+        ];
+
+        for (const pattern of websitePatterns) {
+          const websiteMatch = result.match(pattern);
+          if (websiteMatch && !companyData.website) {
+            let website = websiteMatch[1];
+            if (!website.startsWith('http')) {
+              website = 'https://' + website;
+            }
+            companyData.website = website;
+            break;
+          }
         }
 
         const size = analyzeCompanySize(result);
