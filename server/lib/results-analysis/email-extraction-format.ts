@@ -1,7 +1,7 @@
 import type { Contact } from "@shared/schema";
 import { validateName } from "./contact-name-validation";
 import { isPlaceholderEmail, isValidBusinessEmail } from "./email-analysis";
-import { validateNames } from "../api-interactions";
+import { validateNames, combineValidationScores } from "./contact-ai-name-scorer";
 
 // Common business email formats
 const EMAIL_FORMATS = [

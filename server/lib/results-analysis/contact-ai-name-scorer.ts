@@ -3,6 +3,42 @@ import { validateName } from "./contact-name-validation";
 import { queryPerplexity } from "../api/perplexity-client";
 import type { PerplexityMessage } from "../types/perplexity";
 
+// Validation options interface
+export interface ValidationOptions {
+  minimumScore?: number;
+  companyNamePenalty?: number;
+  requireRole?: boolean;
+  roleMinimumScore?: number;
+}
+
+// Combined score calculation
+export function combineValidationScores(
+  aiScore: number,
+  patternScore: number,
+  options: ValidationOptions = {}
+): number {
+  const weights = {
+    ai: 0.6,
+    pattern: 0.4
+  };
+
+  let combinedScore = (aiScore * weights.ai) + (patternScore * weights.pattern);
+
+  // Apply minimum score threshold if specified
+  if (options.minimumScore && combinedScore < options.minimumScore) {
+    combinedScore = Math.max(combinedScore - 20, 0);
+  }
+
+  // Apply role-based adjustments if required
+  if (options.requireRole && options.roleMinimumScore) {
+    if (patternScore < options.roleMinimumScore) {
+      combinedScore = Math.max(combinedScore - 15, 0);
+    }
+  }
+
+  return Math.min(Math.max(Math.round(combinedScore), 0), 100);
+}
+
 // Validate names using Perplexity AI
 export async function validateNames(
   names: string[],
@@ -61,8 +97,20 @@ export async function validateNames(
         console.log('Processing AI validation scores');
         for (const [name, score] of Object.entries(parsed)) {
           if (typeof score === 'number' && score >= 1 && score <= 95) {
-            console.log(`AI Score for "${name}": ${score}`);
-            validated[name] = score;
+            // Get pattern-based score from validateName function
+            const { score: patternScore } = validateName(name, '', companyName || '', {
+              minimumScore: 30,
+              companyNamePenalty: 20
+            });
+
+            // Combine AI and pattern-based scores
+            const finalScore = combineValidationScores(score, patternScore, {
+              minimumScore: 30,
+              companyNamePenalty: 20
+            });
+
+            console.log(`Combined score for "${name}": ${finalScore} (AI: ${score}, Pattern: ${patternScore})`);
+            validated[name] = finalScore;
           }
         }
         return validated;
