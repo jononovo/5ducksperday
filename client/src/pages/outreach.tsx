@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; // Import Input component
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { List, Company, Contact, Metric } from "@shared/schema"; // Assuming Metric type is defined
+import type { List, Company, Contact } from "@shared/schema";
 import { useState, useEffect } from "react";
 import QuickTemplates from "@/components/quick-templates";
 import type { EmailTemplate } from "@shared/schema";
@@ -89,8 +89,8 @@ export default function Outreach() {
 
   // Get top 3 leadership contacts
   const topContacts = contacts
-    ?.filter(contact => contact.probability && contact.probability >= 70) // Filter high probability contacts
-    .sort((a, b) => (b.probability || 0) - (a.probability || 0)) // Sort by probability
+    ?.filter(contact => contact.probability && contact.probability >= 70)
+    .sort((a, b) => (b.probability || 0) - (a.probability || 0))
     .slice(0, 3);
 
   const handleSaveEmail = () => {
@@ -164,7 +164,7 @@ export default function Outreach() {
   };
 
   const handleCopyContact = (contact: Contact, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the parent button click
+    e.stopPropagation(); 
     const textToCopy = `${contact.name}${contact.email ? ` <${contact.email}>` : ''}`;
     navigator.clipboard.writeText(textToCopy).then(() => {
       toast({
@@ -177,24 +177,16 @@ export default function Outreach() {
   const handlePrevCompany = () => {
     if (currentCompanyIndex > 0) {
       setCurrentCompanyIndex(prev => prev - 1);
-      setSelectedContactId(null); // Reset selected contact when changing company
+      setSelectedContactId(null); 
     }
   };
 
   const handleNextCompany = () => {
     if (currentCompanyIndex < companies.length - 1) {
       setCurrentCompanyIndex(prev => prev + 1);
-      setSelectedContactId(null); // Reset selected contact when changing company
+      setSelectedContactId(null); 
     }
   };
-
-  // Sample metrics data (replace with actual data fetching)
-  const metrics: Metric[] = [
-    { name: "Total Score", value: currentCompany?.totalScore ?? "N/A", icon: Badge },
-    { name: "Employee Count", value: currentCompany?.size ?? "N/A", icon: UserCircle },
-    // Add more metrics as needed
-  ];
-
 
   return (
     <div className="container mx-auto py-8">
@@ -237,7 +229,7 @@ export default function Outreach() {
                 value={selectedListId}
                 onValueChange={(value) => {
                   setSelectedListId(value);
-                  setCurrentCompanyIndex(0); // Reset company index when changing list
+                  setCurrentCompanyIndex(0);
                 }}
               >
                 <SelectTrigger>
@@ -305,35 +297,41 @@ export default function Outreach() {
 
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-4">Company Summary</h3>
-                {/* Header Section */}
                 <Card>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-2xl font-bold">{currentCompany?.name}</CardTitle>
+                  <CardContent className="pt-6">
+                    {currentCompany ? (
+                      <div className="space-y-6">
+                        {/* Company Name - More prominent */}
+                        <div>
+                          <h2 className="text-xl font-semibold mb-1">{currentCompany.name}</h2>
+                          {currentCompany.size && (
+                            <p className="text-muted-foreground">
+                              {currentCompany.size} employees
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Services Section */}
+                        <div>
+                          <h4 className="font-medium mb-2">Services & Description</h4>
+                          {currentCompany.services && currentCompany.services.length > 0 ? (
+                            <ul className="list-disc pl-4 space-y-1">
+                              {currentCompany.services.map((service, index) => (
+                                <li key={index} className="text-muted-foreground">{service}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-muted-foreground italic">No services information available</p>
+                          )}
+                        </div>
                       </div>
-                      <Badge
-                        className="text-lg py-2"
-                        variant={currentCompany?.totalScore && currentCompany?.totalScore > 70 ? "default" : "secondary"}
-                      >
-                        Score: {currentCompany?.totalScore ?? 'N/A'}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {metrics.map((metric) => (
-                        <Card key={metric.name}>
-                          <CardContent className="pt-6">
-                            <div className="flex items-center gap-2">
-                              <metric.icon className="h-5 w-5 text-muted-foreground" />
-                              <p className="text-sm font-medium">{metric.name}</p>
-                            </div>
-                            <p className="text-2xl font-bold mt-2">{metric.value}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                    ) : (
+                      <p className="text-muted-foreground">
+                        {selectedListId
+                          ? "No companies found in this list"
+                          : "Select a list to view company details"}
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -347,7 +345,7 @@ export default function Outreach() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="flex items-center gap-2">
-                  <Send className="w-5 h-5" /> {/*Corrected Icon Here*/}
+                  <Send className="w-5 h-5" />
                 </CardTitle>
                 <Button onClick={handleGenerateEmail}>
                   <Wand2 className="w-4 h-4 mr-2" />
