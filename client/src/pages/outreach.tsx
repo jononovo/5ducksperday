@@ -1,6 +1,15 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserCircle, Send, Save, Wand2, Copy, ChevronLeft, ChevronRight } from "lucide-react";
+import { 
+  UserCircle, 
+  Send, 
+  Save, 
+  Wand2, 
+  Copy, 
+  ChevronLeft, 
+  ChevronRight,
+  PartyPopper 
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -19,6 +28,8 @@ import type { EmailTemplate } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
+import {Loader2} from "lucide-react";
+
 
 // Define interface for the saved state
 interface SavedOutreachState {
@@ -98,9 +109,44 @@ export default function Outreach() {
     console.log('Saving email template:', { emailPrompt, emailContent, toEmail, emailSubject });
   };
 
+  const sendEmailMutation = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        to: toEmail,
+        subject: emailSubject,
+        content: emailContent
+      };
+      const response = await apiRequest("POST", "/api/send-gmail", payload);
+      if (!response.ok) {
+        throw new Error("Failed to send email");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email Sent",
+        description: "Your email has been sent successfully via Gmail!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to Send Email",
+        description: error instanceof Error ? error.message : "Failed to send email via Gmail",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSendEmail = () => {
-    // TODO: Implement send functionality
-    console.log('Sending email:', { emailPrompt, emailContent, toEmail, emailSubject });
+    if (!toEmail || !emailSubject || !emailContent) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all email fields before sending",
+        variant: "destructive",
+      });
+      return;
+    }
+    sendEmailMutation.mutate();
   };
 
   const generateEmailMutation = useMutation({
@@ -423,9 +469,24 @@ export default function Outreach() {
                 </Button>
                 <Button
                   onClick={handleSendEmail}
+                  disabled={sendEmailMutation.isPending}
+                  className={cn(
+                    sendEmailMutation.isSuccess && "bg-pink-500 hover:bg-pink-600"
+                  )}
                 >
-                  <Send className="w-4 h-4 mr-2" />
-                  Send Email
+                  {sendEmailMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : sendEmailMutation.isSuccess ? (
+                    <>
+                      <PartyPopper className="w-4 h-4 mr-2" />
+                      Sent Email
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Send Email
+                    </>
+                  )}
                 </Button>
               </div>
 
