@@ -7,10 +7,8 @@ import {
   analyzeDifferentiators,
   calculateCompanyScore 
 } from "./results-analysis/company-analysis";
-import { validateNameLocally } from "./results-analysis/contact-name-validation";
-import { combineValidationScores, type ValidationOptions } from "./results-analysis/score-combination";
+import { validateNames } from "./results-analysis/name-validation";
 import { extractContacts } from "./results-analysis/contact-extraction";
-import { getNameValidationScores } from "./api-interactions";
 
 // Core search functions
 export async function searchCompanies(query: string): Promise<string[]> {
@@ -53,55 +51,4 @@ export async function analyzeCompany(
   return queryPerplexity(messages);
 }
 
-export async function validateNames(
-  names: string[],
-  companyName?: string,
-  searchPrompt?: string 
-): Promise<Record<string, number>> {
-  try {
-    // Get raw validation scores from API
-    const aiScores = await getNameValidationScores(names, searchPrompt);
-    const validated: Record<string, number> = {};
-
-    const validationOptions: ValidationOptions = {
-      searchPrompt,
-      minimumScore: 30,
-      searchTermPenalty: 25
-    };
-
-    // Process each name with local validation and combine scores
-    for (const name of names) {
-      const aiScore = aiScores[name] || 50; // Default to 50 if API didn't return a score
-      const localResult = validateNameLocally(name);
-
-      validated[name] = combineValidationScores(
-        aiScore,
-        localResult,
-        companyName,
-        validationOptions
-      );
-    }
-
-    return validated;
-
-  } catch (error) {
-    console.error('Error in name validation:', error);
-
-    // Fallback to local validation only
-    const validationOptions: ValidationOptions = {
-      searchPrompt,
-      minimumScore: 30,
-      searchTermPenalty: 25
-    };
-
-    return names.reduce((acc, name) => {
-      const localResult = validateNameLocally(name);
-      return {
-        ...acc,
-        [name]: combineValidationScores(50, localResult, companyName, validationOptions)
-      };
-    }, {});
-  }
-}
-
-export { extractContacts };
+export { validateNames, extractContacts };
