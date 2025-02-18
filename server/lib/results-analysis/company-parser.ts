@@ -26,7 +26,8 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
     services: [],
     validationPoints: [],
     differentiation: [],
-    totalScore: 0
+    totalScore: 0,
+    website: null  // Initialize website field
   };
 
   try {
@@ -38,6 +39,11 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
         if (jsonData.companyProfile) {
           // Extract from new structure
           const profile = jsonData.companyProfile;
+
+          // Prioritize website extraction
+          if (profile.website) {
+            companyData.website = profile.website;
+          }
 
           if (typeof profile.size === 'number') {
             companyData.size = profile.size;
@@ -74,7 +80,13 @@ export function parseCompanyData(analysisResults: string[]): Partial<Company> {
           }
         }
       } catch (e) {
-        // JSON parsing failed, use text analysis as fallback
+        // JSON parsing failed, try to extract website using regex as fallback
+        const websiteRegex = /(?:website|domain|url):\s*(https?:\/\/[^\s,}"']+)/i;
+        const websiteMatch = result.match(websiteRegex);
+        if (websiteMatch && !companyData.website) {
+          companyData.website = websiteMatch[1];
+        }
+
         const size = analyzeCompanySize(result);
         if (size !== null && !companyData.size) {
           companyData.size = size;
