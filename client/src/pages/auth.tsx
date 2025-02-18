@@ -240,8 +240,7 @@ export default function AuthPage() {
             </CardHeader>
             <CardContent className="prose prose-sm">
               <p>
-                Access powerful AI-driven business intelligence tools to discover and
-                analyze companies, contacts, and market opportunities.
+                Access a powerful AI-driven sales routine that doesn't feel like work. Discover and reachout to cool people who want your product without spamming anyone.
               </p>
               <ul>
                 <li>Advanced company and contact search</li>
