@@ -12,7 +12,6 @@ import { Loader2 } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useEffect } from "react";
 import { firebaseAuth, firebaseGoogleProvider } from "@/lib/firebase";
-import { Footer } from "@/components/ui/footer";
 
 // Add this helper function
 function getFirebaseErrorMessage(): string {
@@ -108,7 +107,6 @@ export default function AuthPage() {
                   </div>
                 </div>
               )}
-
 
               <div className="relative mb-6">
                 <div className="absolute inset-0 flex items-center">
@@ -249,7 +247,6 @@ export default function AuthPage() {
           </Card>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
