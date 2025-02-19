@@ -3,7 +3,6 @@ import { validateName } from "./contact-name-validation";
 import { queryPerplexity } from "../api/perplexity-client";
 import type { PerplexityMessage } from "../types/perplexity";
 
-// Validation options interface
 export interface ValidationOptions {
   minimumScore?: number;
   companyNamePenalty?: number;
@@ -11,41 +10,39 @@ export interface ValidationOptions {
   roleMinimumScore?: number;
 }
 
-// Combined score calculation with adjusted weights
 export function combineValidationScores(
   aiScore: number,
   patternScore: number,
   options: ValidationOptions = {}
 ): number {
   const weights = {
-    ai: 0.6,        // Balanced AI weight
-    pattern: 0.4    // Increased pattern weight for better company distribution
+    ai: 0.7,        // Increased AI weight for stricter validation
+    pattern: 0.3    // Decreased pattern weight
   };
 
   let combinedScore = (aiScore * weights.ai) + (patternScore * weights.pattern);
 
-  // More lenient minimum score threshold
+  // Stricter minimum score threshold
   if (options.minimumScore && combinedScore < options.minimumScore) {
-    combinedScore = Math.max(combinedScore - 20, 0); // Reduced penalty
+    combinedScore = Math.max(combinedScore - 25, 0);
   }
 
-  // More lenient role-based adjustments
+  // More aggressive penalties for non-person names
   if (options.requireRole && options.roleMinimumScore) {
     if (patternScore < options.roleMinimumScore) {
-      combinedScore = Math.max(combinedScore - 15, 0); // Reduced penalty
+      combinedScore = Math.max(combinedScore - 30, 0);
     }
   }
 
-  // Reduced company name penalty
+  // Increased company name penalty
   if (options.companyNamePenalty && combinedScore < 70) {
-    const adjustedPenalty = Math.min(options.companyNamePenalty, 15); // Cap the penalty
+    const adjustedPenalty = Math.min(options.companyNamePenalty, 25);
     combinedScore = Math.max(combinedScore - adjustedPenalty, 0);
   }
 
   return Math.min(Math.max(Math.round(combinedScore), 0), 100);
 }
 
-// Validate names using Perplexity AI with improved prompting
 export async function validateNames(
   names: string[],
   companyName?: string,
@@ -56,26 +53,27 @@ export async function validateNames(
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: `You are a contact name validation service. Analyze each name and return a JSON object with scores between 1-95. Consider:
+      content: `You are a strict contact name validation service. Analyze each name and return a JSON object with scores between 1-95. 
 
-      1. Common name patterns (max 95 points)
-      2. Professional context (can reduce score by up to 20 points)
-      3. Job title contamination (reduces score by 30 points)
-      4. Realistic vs placeholder names (placeholder names max 10 points)
-      5. Names should not contain terms from the search prompt: "${searchPrompt || ''}"
+      Validation Rules:
+      1. Must be a real person's name (first and last name)
+      2. Cannot be a job title, department, or role
+      3. Cannot be a company name or generic business term
+      4. Cannot contain terms from the search prompt
 
-      Scoring rules (maximum 95 points):
-      - 85-95: Full proper name with clear first/last, very likely real (e.g. "Michael Johnson")
-      - 70-84: Common but incomplete name, likely real (e.g. "Mike J.")
-      - 50-69: Ambiguous or unusual, possibly real (e.g. "M. Johnson III")
-      - 30-49: Possibly not a name (e.g. "Sales Team", "Tech Lead")
-      - 1-29: Obviously not a person's name
+      Scoring Guidelines (maximum 95 points):
+      - 85-95: Full proper name with clear first/last (e.g. "Michael Johnson")
+      - 70-84: Common name pattern but needs verification (e.g. "Mike J.")
+      - 50-69: Unusual name pattern, needs investigation (e.g. "M. Johnson III")
+      - 30-49: Likely not a person's name (e.g. "Sales Team")
+      - 1-29: Definitely not a person's name (e.g. "Marketing Department")
 
-      Additional Penalties (applied after initial score):
-      - Contains job titles: -30 points
-      - Contains company terms: -20 points
-      - Contains generic business terms: -15 points
-      - Contains search terms: -20 points per term
+      Automatic Score Reductions:
+      - Contains job titles or roles: -40 points (e.g. "CEO John Smith" -> 55)
+      - Contains company terms: -35 points (e.g. "Microsoft Sales" -> 15)
+      - Contains generic business terms: -30 points (e.g. "Team Lead" -> 20)
+      - Contains search terms: -25 points per term
+      - Single word names: -30 points (e.g. "Marketing" -> 20)
 
       Return ONLY a JSON object like:
       {
@@ -103,16 +101,18 @@ export async function validateNames(
         console.log('Processing AI validation scores');
         for (const [name, score] of Object.entries(parsed)) {
           if (typeof score === 'number' && score >= 1 && score <= 95) {
-            // Get pattern-based score from validateName function
+            // Get pattern-based score with stricter validation
             const { score: patternScore } = validateName(name, '', companyName || '', {
-              minimumScore: 30,
-              companyNamePenalty: 15 // Reduced penalty
+              minimumScore: 40, // Increased minimum score
+              companyNamePenalty: 25 // Increased penalty
             });
 
-            // Combine AI and pattern-based scores with adjusted weights
+            // Combine scores with stricter weights
             const finalScore = combineValidationScores(score, patternScore, {
-              minimumScore: 30,
-              companyNamePenalty: 15
+              minimumScore: 40,
+              companyNamePenalty: 25,
+              requireRole: true,
+              roleMinimumScore: 50 // Increased role minimum score
             });
 
             console.log(`Combined score for "${name}": ${finalScore} (AI: ${score}, Pattern: ${patternScore})`);
@@ -122,7 +122,7 @@ export async function validateNames(
         return validated;
       } catch (e) {
         console.error('Failed to parse AI response:', e);
-        return {}; // Return empty object on parse error
+        return {};
       }
     }
     console.error('No valid JSON found in AI response');
