@@ -11,40 +11,41 @@ export interface ValidationOptions {
   roleMinimumScore?: number;
 }
 
-// Combined score calculation
+// Combined score calculation with adjusted weights
 export function combineValidationScores(
   aiScore: number,
   patternScore: number,
   options: ValidationOptions = {}
 ): number {
   const weights = {
-    ai: 0.7,        // Increased AI weight
-    pattern: 0.3    // Decreased pattern weight
+    ai: 0.6,        // Balanced AI weight
+    pattern: 0.4    // Increased pattern weight for better company distribution
   };
 
   let combinedScore = (aiScore * weights.ai) + (patternScore * weights.pattern);
 
-  // More aggressive minimum score threshold
+  // More lenient minimum score threshold
   if (options.minimumScore && combinedScore < options.minimumScore) {
-    combinedScore = Math.max(combinedScore - 30, 0); // Increased penalty
+    combinedScore = Math.max(combinedScore - 20, 0); // Reduced penalty
   }
 
-  // Stricter role-based adjustments
+  // More lenient role-based adjustments
   if (options.requireRole && options.roleMinimumScore) {
     if (patternScore < options.roleMinimumScore) {
-      combinedScore = Math.max(combinedScore - 25, 0); // Increased penalty
+      combinedScore = Math.max(combinedScore - 15, 0); // Reduced penalty
     }
   }
 
-  // Apply company name penalty if specified
+  // Reduced company name penalty
   if (options.companyNamePenalty && combinedScore < 70) {
-    combinedScore = Math.max(combinedScore - options.companyNamePenalty, 0);
+    const adjustedPenalty = Math.min(options.companyNamePenalty, 15); // Cap the penalty
+    combinedScore = Math.max(combinedScore - adjustedPenalty, 0);
   }
 
   return Math.min(Math.max(Math.round(combinedScore), 0), 100);
 }
 
-// Validate names using Perplexity AI
+// Validate names using Perplexity AI with improved prompting
 export async function validateNames(
   names: string[],
   companyName?: string,
@@ -58,8 +59,8 @@ export async function validateNames(
       content: `You are a contact name validation service. Analyze each name and return a JSON object with scores between 1-95. Consider:
 
       1. Common name patterns (max 95 points)
-      2. Professional context (can reduce score by up to 30 points)
-      3. Job title contamination (reduces score by 40 points)
+      2. Professional context (can reduce score by up to 20 points)
+      3. Job title contamination (reduces score by 30 points)
       4. Realistic vs placeholder names (placeholder names max 10 points)
       5. Names should not contain terms from the search prompt: "${searchPrompt || ''}"
 
@@ -71,10 +72,10 @@ export async function validateNames(
       - 1-29: Obviously not a person's name
 
       Additional Penalties (applied after initial score):
-      - Contains job titles: -40 points
-      - Contains company terms: -30 points
-      - Contains generic business terms: -20 points
-      - Contains search terms: -25 points per term
+      - Contains job titles: -30 points
+      - Contains company terms: -20 points
+      - Contains generic business terms: -15 points
+      - Contains search terms: -20 points per term
 
       Return ONLY a JSON object like:
       {
@@ -105,13 +106,13 @@ export async function validateNames(
             // Get pattern-based score from validateName function
             const { score: patternScore } = validateName(name, '', companyName || '', {
               minimumScore: 30,
-              companyNamePenalty: 20
+              companyNamePenalty: 15 // Reduced penalty
             });
 
-            // Combine AI and pattern-based scores
+            // Combine AI and pattern-based scores with adjusted weights
             const finalScore = combineValidationScores(score, patternScore, {
               minimumScore: 30,
-              companyNamePenalty: 20
+              companyNamePenalty: 15
             });
 
             console.log(`Combined score for "${name}": ${finalScore} (AI: ${score}, Pattern: ${patternScore})`);
