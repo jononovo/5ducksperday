@@ -18,22 +18,27 @@ export function combineValidationScores(
   options: ValidationOptions = {}
 ): number {
   const weights = {
-    ai: 0.6,
-    pattern: 0.4
+    ai: 0.7,        // Increased AI weight
+    pattern: 0.3    // Decreased pattern weight
   };
 
   let combinedScore = (aiScore * weights.ai) + (patternScore * weights.pattern);
 
-  // Apply minimum score threshold if specified
+  // More aggressive minimum score threshold
   if (options.minimumScore && combinedScore < options.minimumScore) {
-    combinedScore = Math.max(combinedScore - 20, 0);
+    combinedScore = Math.max(combinedScore - 30, 0); // Increased penalty
   }
 
-  // Apply role-based adjustments if required
+  // Stricter role-based adjustments
   if (options.requireRole && options.roleMinimumScore) {
     if (patternScore < options.roleMinimumScore) {
-      combinedScore = Math.max(combinedScore - 15, 0);
+      combinedScore = Math.max(combinedScore - 25, 0); // Increased penalty
     }
+  }
+
+  // Apply company name penalty if specified
+  if (options.companyNamePenalty && combinedScore < 70) {
+    combinedScore = Math.max(combinedScore - options.companyNamePenalty, 0);
   }
 
   return Math.min(Math.max(Math.round(combinedScore), 0), 100);
