@@ -166,16 +166,19 @@ class DatabaseStorage implements IStorage {
   }
 
   async getCompany(id: number, userId: number): Promise<Company | undefined> {
-    const result = await db
-      .select()
-      .from(companies)
-      .where(eq(companies.id, id))
-      .where(eq(companies.userId, userId));
+    try {
+      const result = await db
+        .select()
+        .from(companies)
+        .where(eq(companies.id, id))
+        .where(eq(companies.userId, userId))
+        .limit(1);
 
-    if (!result || result.length === 0) {
+      return result[0];
+    } catch (error) {
+      console.error('Error fetching company:', error);
       return undefined;
     }
-    return result[0];
   }
 
   async createCompany(data: InsertCompany): Promise<Company> {
@@ -185,23 +188,32 @@ class DatabaseStorage implements IStorage {
 
   // Contacts
   async listContactsByCompany(companyId: number, userId: number): Promise<Contact[]> {
-    return db.select()
-      .from(contacts)
-      .where(eq(contacts.companyId, companyId))
-      .where(eq(contacts.userId, userId));
+    try {
+      return await db
+        .select()
+        .from(contacts)
+        .where(eq(contacts.companyId, companyId))
+        .where(eq(contacts.userId, userId));
+    } catch (error) {
+      console.error('Error fetching contacts by company:', error);
+      return [];
+    }
   }
 
   async getContact(id: number, userId: number): Promise<Contact | undefined> {
-    const result = await db
-      .select()
-      .from(contacts)
-      .where(eq(contacts.id, id))
-      .where(eq(contacts.userId, userId));
+    try {
+      const result = await db
+        .select()
+        .from(contacts)
+        .where(eq(contacts.id, id))
+        .where(eq(contacts.userId, userId))
+        .limit(1);
 
-    if (!result || result.length === 0) {
+      return result[0];
+    } catch (error) {
+      console.error('Error fetching contact:', error);
       return undefined;
     }
-    return result[0];
   }
 
   async createContact(data: InsertContact): Promise<Contact> {
