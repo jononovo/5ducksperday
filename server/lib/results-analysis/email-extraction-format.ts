@@ -100,16 +100,30 @@ export async function extractContacts(
           nameIndex + 200
         );
 
-        // Use AI score in validation
+        // Use AI score in validation with improved weighting
         const aiScore = aiScores[name] || 50;
         console.log(`Processing contact "${name}" with AI score: ${aiScore}`);
 
+        // Get pattern-based score
         const validationResult = validateName(name, contextWindow, companyName, {
-          ...validationOptions,
-          aiScore
+          ...validationOptions
         });
 
-        if (validationResult.score >= (validationOptions.minimumScore || 30)) {
+        // Combine AI and pattern-based scores with proper weighting
+        const finalScore = combineValidationScores(
+          aiScore,
+          validationResult.score,
+          {
+            minimumScore: validationOptions.minimumScore || 30,
+            companyNamePenalty: 20,
+            requireRole: true,
+            roleMinimumScore: 40
+          }
+        );
+
+        console.log(`Final combined score for "${name}": ${finalScore} (AI: ${aiScore}, Pattern: ${validationResult.score})`);
+
+        if (finalScore >= (validationOptions.minimumScore || 30)) {
           roleRegex.lastIndex = 0;
           const roleMatch = roleRegex.exec(contextWindow);
           const role = roleMatch ? roleMatch[1].trim() : null;
@@ -147,13 +161,13 @@ export async function extractContacts(
 
           const emailsArray = Array.from(emailMatches);
 
-          console.log(`Adding contact "${name}" with final score: ${validationResult.score}`);
+          console.log(`Adding contact "${name}" with final score: ${finalScore}`);
           contacts.push({
             name,
             email: emailsArray.length > 0 ? emailsArray[0] : null,
             role,
-            probability: validationResult.score,
-            nameConfidenceScore: validationResult.score,
+            probability: finalScore,
+            nameConfidenceScore: finalScore,
             lastValidated: new Date(),
             completedSearches: ['name_validation', 'ai_validation']
           });
