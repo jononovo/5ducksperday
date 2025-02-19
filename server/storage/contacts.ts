@@ -1,12 +1,9 @@
 import { PgDatabase } from 'drizzle-orm/pg-core';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import {
   type Contact,
   type InsertContact,
-  type ContactFeedback,
-  type InsertContactFeedback,
-  contacts,
-  contactFeedback
+  contacts
 } from '@shared/schema';
 
 export class ContactStorage {
@@ -21,7 +18,10 @@ export class ContactStorage {
   }
 
   async listContactsByCompany(companyId: number): Promise<Contact[]> {
-    return this.db.select().from(contacts).where(eq(contacts.companyId, companyId));
+    return this.db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.companyId, companyId));
   }
 
   async createContact(contact: InsertContact): Promise<Contact> {
@@ -45,7 +45,9 @@ export class ContactStorage {
   }
 
   async deleteContactsByCompany(companyId: number): Promise<void> {
-    await this.db.delete(contacts).where(eq(contacts.companyId, companyId));
+    await this.db
+      .delete(contacts)
+      .where(eq(contacts.companyId, companyId));
   }
 
   async enrichContact(
@@ -61,50 +63,6 @@ export class ContactStorage {
       .where(eq(contacts.id, id))
       .returning();
     return updated;
-  }
-
-  async searchContactDetails(contactInfo: {
-    name: string;
-    company: string;
-  }): Promise<Partial<Contact>> {
-    // Placeholder for Perplexity API implementation
-    return {};
-  }
-
-  async addContactFeedback(feedback: InsertContactFeedback): Promise<ContactFeedback> {
-    const [created] = await this.db
-      .insert(contactFeedback)
-      .values(feedback)
-      .returning();
-
-    const allFeedback = await this.getContactFeedback(feedback.contactId);
-    const feedbackScores = {
-      excellent: 100,
-      ok: 50,
-      terrible: 0,
-    };
-
-    const totalScore = allFeedback.reduce(
-      (sum, item) =>
-        sum + feedbackScores[item.feedbackType as keyof typeof feedbackScores],
-      0,
-    );
-    const averageScore = Math.round(totalScore / allFeedback.length);
-
-    await this.updateContact(feedback.contactId, {
-      userFeedbackScore: averageScore,
-      feedbackCount: allFeedback.length,
-    });
-
-    return created;
-  }
-
-  async getContactFeedback(contactId: number): Promise<ContactFeedback[]> {
-    return this.db
-      .select()
-      .from(contactFeedback)
-      .where(eq(contactFeedback.contactId, contactId))
-      .orderBy(contactFeedback.createdAt);
   }
 
   async updateContactConfidenceScore(

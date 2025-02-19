@@ -33,25 +33,25 @@ export class DatabaseStorage implements IStorage {
   updateUser = (id: number, updates: Partial<User>): Promise<User | undefined> => this.userStorage.updateUser(id, updates);
 
   // Lists (filtered by userId)
-  getList = (listId: number): Promise<any> => this.companyStorage.getList(listId);
-  listLists = (): Promise<any[]> => this.companyStorage.listLists();
+  getList = (listId: number, userId: number): Promise<any> => this.companyStorage.getList(listId, userId);
+  listLists = (userId: number): Promise<any[]> => this.companyStorage.listLists(userId);
   createList = (list: any): Promise<any> => this.companyStorage.createList(list);
   getNextListId = () => this.companyStorage.getNextListId();
 
-  // Companies (no userId needed)
-  getCompany = (id: number): Promise<any> => this.companyStorage.getCompany(id);
-  listCompanies = (): Promise<any[]> => this.companyStorage.listCompanies();
-  listCompaniesByList = (listId: number): Promise<any[]> => this.companyStorage.listCompaniesByList(listId);
+  // Companies (filtered by userId)
+  getCompany = (id: number, userId: number): Promise<any> => this.companyStorage.getCompany(id, userId);
+  listCompanies = (userId: number): Promise<any[]> => this.companyStorage.listCompanies(userId);
+  listCompaniesByList = (listId: number, userId: number): Promise<any[]> => this.companyStorage.listCompaniesByList(listId, userId);
   createCompany = (company: any): Promise<any> => this.companyStorage.createCompany(company);
   updateCompany = (id: number, updates: any): Promise<any> => this.companyStorage.updateCompany(id, updates);
   updateCompanyList = (companyId: number, listId: number): Promise<any> => this.companyStorage.updateCompanyList(companyId, listId);
 
-  // Contacts
-  getContact = (id: number): Promise<any> => this.contactStorage.getContact(id);
-  listContactsByCompany = (companyId: number): Promise<any[]> => this.contactStorage.listContactsByCompany(companyId);
+  // Contacts (filtered by userId)
+  getContact = (id: number, userId: number): Promise<any> => this.contactStorage.getContact(id, userId);
+  listContactsByCompany = (companyId: number, userId: number): Promise<any[]> => this.contactStorage.listContactsByCompany(companyId, userId);
   createContact = (contact: any): Promise<any> => this.contactStorage.createContact(contact);
   updateContact = (id: number, contact: any): Promise<any> => this.contactStorage.updateContact(id, contact);
-  deleteContactsByCompany = (companyId: number): Promise<void> => this.contactStorage.deleteContactsByCompany(companyId);
+  deleteContactsByCompany = (companyId: number, userId: number): Promise<void> => this.contactStorage.deleteContactsByCompany(companyId, userId);
   enrichContact = (id: number, contactData: any): Promise<any> => this.contactStorage.enrichContact(id, contactData);
   searchContactDetails = (contactInfo: any): Promise<any> => this.contactStorage.searchContactDetails(contactInfo);
   addContactFeedback = (feedback: any): Promise<any> => this.contactStorage.addContactFeedback(feedback);
@@ -60,10 +60,10 @@ export class DatabaseStorage implements IStorage {
   updateContactValidationStatus = (id: number): Promise<any> => this.contactStorage.updateContactValidationStatus(id);
 
   // Campaigns (filtered by userId)
-  getCampaign = (campaignId: number): Promise<any> => this.campaignStorage.getCampaign(campaignId);
-  listCampaigns = (): Promise<any[]> => this.campaignStorage.listCampaigns();
+  getCampaign = (campaignId: number, userId: number): Promise<any> => this.campaignStorage.getCampaign(campaignId, userId);
+  listCampaigns = (userId: number): Promise<any[]> => this.campaignStorage.listCampaigns(userId);
   createCampaign = (campaign: any): Promise<any> => this.campaignStorage.createCampaign(campaign);
-  updateCampaign = (id: number, campaign: any): Promise<any> => this.campaignStorage.updateCampaign(id, campaign);
+  updateCampaign = (id: number, campaign: any, userId: number): Promise<any> => this.campaignStorage.updateCampaign(id, campaign, userId);
   getNextCampaignId = () => this.campaignStorage.getNextCampaignId();
 
   // Campaign Lists
@@ -73,8 +73,8 @@ export class DatabaseStorage implements IStorage {
   updateCampaignTotalCompanies = (campaignId: number): Promise<any> => this.campaignStorage.updateCampaignTotalCompanies(campaignId);
 
   // Email Templates (filtered by userId)
-  getEmailTemplate = (id: number): Promise<any> => this.templateStorage.getEmailTemplate(id);
-  listEmailTemplates = (): Promise<any[]> => this.templateStorage.listEmailTemplates();
+  getEmailTemplate = (id: number, userId: number): Promise<any> => this.templateStorage.getEmailTemplate(id, userId);
+  listEmailTemplates = (userId: number): Promise<any[]> => this.templateStorage.listEmailTemplates(userId);
   createEmailTemplate = (template: any): Promise<any> => this.templateStorage.createEmailTemplate(template);
   updateEmailTemplate = (id: number, template: any): Promise<any> => this.templateStorage.updateEmailTemplate(id, template);
   deleteEmailTemplate = (id: number): Promise<any> => this.templateStorage.deleteEmailTemplate(id);
@@ -88,16 +88,3 @@ export class DatabaseStorage implements IStorage {
 
 // Create and export a single instance
 export const storage = new DatabaseStorage();
-
-// Initialize default data
-storage.listSearchApproaches().then(async (approaches) => {
-  if (approaches.length === 0) {
-    await storage.searchStorage.initializeDefaultSearchApproaches();
-  }
-}).catch(console.error);
-
-storage.listEmailTemplates().then(async (templates) => {
-  if (templates.length === 0) {
-    await storage.templateStorage.initializeDefaultEmailTemplates();
-  }
-}).catch(console.error);

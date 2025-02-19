@@ -1,5 +1,5 @@
 import { PgDatabase } from 'drizzle-orm/pg-core';
-import { eq, max } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import {
   type Company,
   type InsertCompany,
@@ -22,7 +22,7 @@ export class CompanyStorage {
   }
 
   async listLists(): Promise<List[]> {
-    return this.db.select().from(lists).orderBy(lists.listId);
+    return this.db.select().from(lists);
   }
 
   async createList(list: InsertList): Promise<List> {
@@ -32,9 +32,10 @@ export class CompanyStorage {
 
   async getNextListId(): Promise<number> {
     const [result] = await this.db
-      .select({ maxListId: max(lists.listId) })
-      .from(lists);
-    return (result?.maxListId || 1000) + 1;
+      .select()
+      .from(lists)
+      .orderBy(lists.listId);
+    return (result?.listId || 1000) + 1;
   }
 
   // Companies
@@ -51,7 +52,10 @@ export class CompanyStorage {
   }
 
   async listCompaniesByList(listId: number): Promise<Company[]> {
-    return this.db.select().from(companies).where(eq(companies.listId, listId));
+    return this.db
+      .select()
+      .from(companies)
+      .where(eq(companies.listId, listId));
   }
 
   async createCompany(company: InsertCompany): Promise<Company> {

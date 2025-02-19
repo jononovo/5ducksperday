@@ -34,26 +34,16 @@ export default function ContactDetails() {
   const [, navigate] = useLocation();
   const contactId = params?.id ? parseInt(params.id) : null;
 
+  console.log('ContactDetails - Loading contact ID:', contactId);
+
   const { data: contact, isLoading: contactLoading } = useQuery<Contact>({
     queryKey: [`/api/contacts/${contactId}`],
-    enabled: !!contactId,
-    onSuccess: (data) => {
-      console.log('Fetched contact data:', data);
-    },
-    onError: (error) => {
-      console.error('Error fetching contact:', error);
-    }
+    enabled: !!contactId
   });
 
   const { data: company, isLoading: companyLoading } = useQuery<Company>({
     queryKey: [`/api/companies/${contact?.companyId}`],
-    enabled: !!contact?.companyId,
-    onSuccess: (data) => {
-      console.log('Fetched company data:', data);
-    },
-    onError: (error) => {
-      console.error('Error fetching company:', error);
-    }
+    enabled: !!contact?.companyId
   });
 
   // Show loading state
@@ -80,6 +70,10 @@ export default function ContactDetails() {
         </Button>
       </div>
     );
+  }
+
+  if (!contact) {
+    return null;
   }
 
   return (

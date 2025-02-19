@@ -49,6 +49,8 @@ export default function CompanyDetails() {
   const queryClient = useQueryClient();
   const companyId = params?.id ? parseInt(params.id) : null;
 
+  console.log('CompanyDetails - Loading company ID:', companyId);
+
   const { data: company, isLoading: companyLoading } = useQuery<Company>({
     queryKey: [`/api/companies/${companyId}`],
     enabled: !!companyId,
@@ -59,10 +61,14 @@ export default function CompanyDetails() {
     enabled: !!companyId,
   });
 
+  // Hook declarations before any conditional returns
   const contactSearchMutation = useMutation({
     mutationFn: async () => {
       if (!companyId) throw new Error("No company selected");
       const response = await apiRequest("POST", `/api/companies/${companyId}/enrich-contacts`);
+      if (!response.ok) {
+        throw new Error('Failed to enrich contacts');
+      }
       return response.json();
     },
     onSuccess: async () => {
@@ -107,6 +113,10 @@ export default function CompanyDetails() {
     );
   }
 
+  if (!company) {
+    return null;
+  }
+
   const handleEnrichContacts = () => {
     if (!companyId) {
       toast({
@@ -122,31 +132,31 @@ export default function CompanyDetails() {
   const metrics = [
     {
       name: "Website Ranking",
-      value: company?.ranking || 0,
+      value: company.ranking || 0,
       icon: Globe,
     },
     {
       name: "Company Size",
-      value: company?.size || 0,
+      value: company.size || 0,
       icon: Users,
     },
     {
       name: "LinkedIn Score",
-      value: company?.linkedinProminence || 0,
+      value: company.linkedinProminence || 0,
       icon: TrendingUp,
     },
     {
       name: "Customer Count",
-      value: company?.customerCount || 0,
+      value: company.customerCount || 0,
       icon: Building2,
     },
   ];
 
   const chartData = [
-    { name: "Website Ranking", value: company?.ranking || 0 },
-    { name: "LinkedIn Score", value: company?.linkedinProminence || 0 },
-    { name: "Customer Base", value: company?.customerCount || 0 },
-    { name: "Rating", value: company?.rating || 0 },
+    { name: "Website Ranking", value: company.ranking || 0 },
+    { name: "LinkedIn Score", value: company.linkedinProminence || 0 },
+    { name: "Customer Base", value: company.customerCount || 0 },
+    { name: "Rating", value: company.rating || 0 },
   ];
 
   return (
