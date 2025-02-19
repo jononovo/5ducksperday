@@ -1,5 +1,5 @@
 import { useRoute, useLocation } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -34,7 +34,6 @@ import {
   ArrowLeft,
   Star,
   TrendingUp,
-  Search,
   RefreshCw,
   Link2,
 } from "lucide-react";
@@ -47,6 +46,7 @@ export default function CompanyDetails() {
   const [, params] = useRoute("/companies/:id");
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const companyId = params?.id ? parseInt(params.id) : null;
 
   const { data: company, isLoading: companyLoading } = useQuery<Company>({
@@ -57,6 +57,28 @@ export default function CompanyDetails() {
   const { data: contacts = [], refetch: refetchContacts } = useQuery<Contact[]>({
     queryKey: [`/api/companies/${companyId}/contacts`],
     enabled: !!companyId,
+  });
+
+  const contactSearchMutation = useMutation({
+    mutationFn: async () => {
+      if (!companyId) throw new Error("No company selected");
+      const response = await apiRequest("POST", `/api/companies/${companyId}/enrich-contacts`);
+      return response.json();
+    },
+    onSuccess: async () => {
+      await refetchContacts();
+      toast({
+        title: "Contacts Updated",
+        description: "Successfully refreshed company contact information.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: error instanceof Error ? error.message : "Failed to update contact information",
+        variant: "destructive",
+      });
+    },
   });
 
   // Show loading state
@@ -85,27 +107,6 @@ export default function CompanyDetails() {
     );
   }
 
-  const contactSearchMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", `/api/companies/${companyId}/enrich-contacts`);
-      return response.json();
-    },
-    onSuccess: async () => {
-      await refetchContacts();
-      toast({
-        title: "Contacts Updated",
-        description: "Successfully refreshed company contact information.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Update Failed",
-        description: error instanceof Error ? error.message : "Failed to update contact information",
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleEnrichContacts = () => {
     if (!companyId) {
       toast({
@@ -121,31 +122,31 @@ export default function CompanyDetails() {
   const metrics = [
     {
       name: "Website Ranking",
-      value: company.ranking || 0,
+      value: company?.ranking || 0,
       icon: Globe,
     },
     {
       name: "Company Size",
-      value: company.size || 0,
+      value: company?.size || 0,
       icon: Users,
     },
     {
       name: "LinkedIn Score",
-      value: company.linkedinProminence || 0,
+      value: company?.linkedinProminence || 0,
       icon: TrendingUp,
     },
     {
       name: "Customer Count",
-      value: company.customerCount || 0,
+      value: company?.customerCount || 0,
       icon: Building2,
     },
   ];
 
   const chartData = [
-    { name: "Website Ranking", value: company.ranking || 0 },
-    { name: "LinkedIn Score", value: company.linkedinProminence || 0 },
-    { name: "Customer Base", value: company.customerCount || 0 },
-    { name: "Rating", value: company.rating || 0 },
+    { name: "Website Ranking", value: company?.ranking || 0 },
+    { name: "LinkedIn Score", value: company?.linkedinProminence || 0 },
+    { name: "Customer Base", value: company?.customerCount || 0 },
+    { name: "Rating", value: company?.rating || 0 },
   ];
 
   return (
@@ -326,7 +327,6 @@ export default function CompanyDetails() {
             </div>
           </CardContent>
         </Card>
-
 
         {/* Performance Chart */}
         <Card>
