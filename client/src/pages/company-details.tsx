@@ -54,11 +54,15 @@ export default function CompanyDetails() {
   const { data: company, isLoading: companyLoading } = useQuery<Company>({
     queryKey: [`/api/companies/${companyId}`],
     enabled: !!companyId,
+    staleTime: 0, // Ensure we always fetch fresh data
+    cacheTime: 0, // Don't cache the data
   });
 
   const { data: contacts = [], refetch: refetchContacts } = useQuery<Contact[]>({
     queryKey: [`/api/companies/${companyId}/contacts`],
     enabled: !!companyId,
+    staleTime: 0,
+    cacheTime: 0,
   });
 
   // Hook declarations before any conditional returns
