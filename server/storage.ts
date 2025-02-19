@@ -166,8 +166,16 @@ class DatabaseStorage implements IStorage {
   }
 
   async getCompany(id: number, userId: number): Promise<Company | undefined> {
-    const [company] = await db.select().from(companies).where(eq(companies.id, id)).where(eq(companies.userId, userId));
-    return company;
+    const result = await db
+      .select()
+      .from(companies)
+      .where(eq(companies.id, id))
+      .where(eq(companies.userId, userId));
+
+    if (!result || result.length === 0) {
+      return undefined;
+    }
+    return result[0];
   }
 
   async createCompany(data: InsertCompany): Promise<Company> {
@@ -184,8 +192,16 @@ class DatabaseStorage implements IStorage {
   }
 
   async getContact(id: number, userId: number): Promise<Contact | undefined> {
-    const [contact] = await db.select().from(contacts).where(eq(contacts.id, id)).where(eq(contacts.userId, userId));
-    return contact;
+    const result = await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.id, id))
+      .where(eq(contacts.userId, userId));
+
+    if (!result || result.length === 0) {
+      return undefined;
+    }
+    return result[0];
   }
 
   async createContact(data: InsertContact): Promise<Contact> {

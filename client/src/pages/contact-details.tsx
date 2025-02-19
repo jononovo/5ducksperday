@@ -37,11 +37,23 @@ export default function ContactDetails() {
   const { data: contact, isLoading: contactLoading } = useQuery<Contact>({
     queryKey: [`/api/contacts/${contactId}`],
     enabled: !!contactId,
+    onSuccess: (data) => {
+      console.log('Fetched contact data:', data);
+    },
+    onError: (error) => {
+      console.error('Error fetching contact:', error);
+    }
   });
 
   const { data: company, isLoading: companyLoading } = useQuery<Company>({
     queryKey: [`/api/companies/${contact?.companyId}`],
     enabled: !!contact?.companyId,
+    onSuccess: (data) => {
+      console.log('Fetched company data:', data);
+    },
+    onError: (error) => {
+      console.error('Error fetching company:', error);
+    }
   });
 
   // Show loading state
