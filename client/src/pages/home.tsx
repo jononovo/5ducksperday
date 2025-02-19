@@ -173,14 +173,22 @@ export default function Home() {
     });
   };
 
-  // Add debug logging
+  // Updated navigation handlers
   const handleContactView = (contactId: number) => {
-    console.log('Viewing contact with ID:', contactId);
+    if (typeof contactId !== 'number') {
+      console.error('Invalid contact ID:', contactId);
+      return;
+    }
+    console.log('Navigating to contact:', contactId);
     setLocation(`/contacts/${contactId}`);
   };
 
   const handleCompanyView = (companyId: number) => {
-    console.log('Viewing company with ID:', companyId);
+    if (typeof companyId !== 'number') {
+      console.error('Invalid company ID:', companyId);
+      return;
+    }
+    console.log('Navigating to company:', companyId);
     setLocation(`/companies/${companyId}`);
   };
 

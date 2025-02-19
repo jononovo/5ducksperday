@@ -42,7 +42,10 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleCompanyView(company.id)}
+                  onClick={() => {
+                    console.log('Company view clicked:', company.id);
+                    handleCompanyView(company.id);
+                  }}
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
