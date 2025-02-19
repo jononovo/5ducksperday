@@ -32,10 +32,11 @@ import type { Contact, Company } from "@shared/schema";
 export default function ContactDetails() {
   const [, params] = useRoute("/contacts/:id");
   const [, navigate] = useLocation();
+  const contactId = params?.id ? parseInt(params.id) : null;
 
   const { data: contact, isLoading: contactLoading } = useQuery<Contact>({
-    queryKey: [`/api/contacts/${params?.id}`],
-    enabled: !!params?.id,
+    queryKey: [`/api/contacts/${contactId}`],
+    enabled: !!contactId,
   });
 
   const { data: company, isLoading: companyLoading } = useQuery<Company>({
@@ -47,16 +48,24 @@ export default function ContactDetails() {
   if (contactLoading || companyLoading) {
     return (
       <div className="container mx-auto py-8">
-        <p>Loading...</p>
+        <p>Loading contact details...</p>
       </div>
     );
   }
 
   // Show not found state
-  if (!contact) {
+  if (!contact && !contactLoading) {
     return (
       <div className="container mx-auto py-8">
-        <p>Contact not found</p>
+        <p>Contact not found. ID: {contactId}</p>
+        <Button
+          variant="ghost"
+          className="mt-4"
+          onClick={() => navigate("/")}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Search
+        </Button>
       </div>
     );
   }

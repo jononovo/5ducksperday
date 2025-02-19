@@ -47,21 +47,50 @@ export default function CompanyDetails() {
   const [, params] = useRoute("/companies/:id");
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const companyId = params?.id ? parseInt(params.id) : null;
 
-  const { data: company } = useQuery<Company>({
-    queryKey: [`/api/companies/${params?.id}`],
+  const { data: company, isLoading: companyLoading } = useQuery<Company>({
+    queryKey: [`/api/companies/${companyId}`],
+    enabled: !!companyId,
   });
 
   const { data: contacts = [], refetch: refetchContacts } = useQuery<Contact[]>({
-    queryKey: [`/api/companies/${params?.id}/contacts`],
+    queryKey: [`/api/companies/${companyId}/contacts`],
+    enabled: !!companyId,
   });
+
+  // Show loading state
+  if (companyLoading) {
+    return (
+      <div className="container mx-auto py-8">
+        <p>Loading company details...</p>
+      </div>
+    );
+  }
+
+  // Show not found state
+  if (!company && !companyLoading) {
+    return (
+      <div className="container mx-auto py-8">
+        <p>Company not found. ID: {companyId}</p>
+        <Button
+          variant="ghost"
+          className="mt-4"
+          onClick={() => navigate("/")}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Search
+        </Button>
+      </div>
+    );
+  }
 
   const contactSearchMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", `/api/companies/${company?.id}/enrich-contacts`);
+      const response = await apiRequest("POST", `/api/companies/${companyId}/enrich-contacts`);
       return response.json();
     },
-    onSuccess: async (data) => {
+    onSuccess: async () => {
       await refetchContacts();
       toast({
         title: "Contacts Updated",
@@ -78,7 +107,7 @@ export default function CompanyDetails() {
   });
 
   const handleEnrichContacts = () => {
-    if (!company) {
+    if (!companyId) {
       toast({
         title: "Error",
         description: "No company selected",
@@ -88,17 +117,6 @@ export default function CompanyDetails() {
     }
     contactSearchMutation.mutate();
   };
-
-  const handleDeepSearch = () => {
-    toast({
-      title: "Deep Search",
-      description: "Deep search functionality coming soon!",
-    });
-  };
-
-  if (!company) {
-    return null;
-  }
 
   const metrics = [
     {
@@ -138,11 +156,11 @@ export default function CompanyDetails() {
         onClick={() => navigate("/")}
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Companies
+        Back to Search
       </Button>
 
       <div className="grid gap-8">
-        {/* Header Section */}
+        {/* Company Header */}
         <Card>
           <CardHeader>
             <div className="flex items-start justify-between">
@@ -185,25 +203,14 @@ export default function CompanyDetails() {
                 <Mail className="h-5 w-5" />
                 Key Contacts
               </CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleEnrichContacts}
-                  disabled={contactSearchMutation.isPending}
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${contactSearchMutation.isPending ? 'animate-spin' : ''}`} />
-                  Enrich
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDeepSearch}
-                >
-                  <Search className="h-4 w-4 mr-2" />
-                  Deep Search
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                onClick={handleEnrichContacts}
+                disabled={contactSearchMutation.isPending}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${contactSearchMutation.isPending ? 'animate-spin' : ''}`} />
+                Enrich Contacts
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -233,6 +240,46 @@ export default function CompanyDetails() {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Company Services & Validation */}
+        {(company.services?.length > 0 || company.validationPoints?.length > 0) && (
+          <div className="grid md:grid-cols-2 gap-8">
+            {company.services && company.services.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Services Offered</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {company.services.map((service, index) => (
+                      <Badge key={index} variant="secondary">
+                        {service}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {company.validationPoints && company.validationPoints.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Validation Points</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {company.validationPoints.map((point, index) => (
+                      <li key={index} className="flex items-center gap-2">
+                        <Star className="h-4 w-4 text-yellow-500" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
 
         {/* External Links Section */}
         <Card>
@@ -280,39 +327,6 @@ export default function CompanyDetails() {
           </CardContent>
         </Card>
 
-        {/* Services & Validation */}
-        <div className="grid md:grid-cols-2 gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Services Offered</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {company.services?.map((service, index) => (
-                  <Badge key={index} variant="secondary">
-                    {service}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Validation Points</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {company.validationPoints?.map((point, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-yellow-500" />
-                    <span>{point}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Performance Chart */}
         <Card>
