@@ -638,7 +638,7 @@ export default function Home() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <CompanyTable companies={currentResults || []} handleCompanyView={handleCompanyView}/>
+                <CompanyTable companies={currentResults || []} handleCompanyView={handleCompanyView} />
               </div>
             </CardContent>
           </Card>

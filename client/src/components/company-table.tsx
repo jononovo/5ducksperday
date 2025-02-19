@@ -1,4 +1,3 @@
-import { useLocation } from "wouter";
 import {
   Table,
   TableBody,
@@ -14,17 +13,10 @@ import type { Company } from "@shared/schema";
 
 interface CompanyTableProps {
   companies: Company[];
+  handleCompanyView: (companyId: number) => void;
 }
 
-export default function CompanyTable({ companies }: CompanyTableProps) {
-  const [, navigate] = useLocation();
-
-  // Add debug logging
-  const handleCompanyView = (companyId: number) => {
-    console.log('Viewing company with ID:', companyId);
-    navigate(`/companies/${companyId}`);
-  };
-
+export default function CompanyTable({ companies, handleCompanyView }: CompanyTableProps) {
   return (
     <div className="w-full">
       <Table>
