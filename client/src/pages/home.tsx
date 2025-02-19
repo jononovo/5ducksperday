@@ -166,14 +166,25 @@ export default function Home() {
       }
     });
 
-    // Use the new filtering logic
+    // Use the filtering logic
     return filterTopProspects(allContacts, {
       maxPerCompany: 3,
       minProbability: 50
     });
   };
 
-  // Add mutation for enriching contacts
+  // Add debug logging
+  const handleContactView = (contactId: number) => {
+    console.log('Viewing contact with ID:', contactId);
+    setLocation(`/contacts/${contactId}`);
+  };
+
+  const handleCompanyView = (companyId: number) => {
+    console.log('Viewing company with ID:', companyId);
+    setLocation(`/companies/${companyId}`);
+  };
+
+
   const enrichContactMutation = useMutation({
     mutationFn: async (contactId: number) => {
       setPendingContactId(contactId);
@@ -538,7 +549,7 @@ export default function Home() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => setLocation(`/contacts/${contact.id}`)}
+                                      onClick={() => handleContactView(contact.id)}
                                     >
                                       <Eye className="h-4 w-4" />
                                     </Button>
@@ -627,7 +638,7 @@ export default function Home() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <CompanyTable companies={currentResults || []} />
+                <CompanyTable companies={currentResults || []} handleCompanyView={handleCompanyView}/>
               </div>
             </CardContent>
           </Card>

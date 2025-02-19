@@ -19,6 +19,12 @@ interface CompanyTableProps {
 export default function CompanyTable({ companies }: CompanyTableProps) {
   const [, navigate] = useLocation();
 
+  // Add debug logging
+  const handleCompanyView = (companyId: number) => {
+    console.log('Viewing company with ID:', companyId);
+    navigate(`/companies/${companyId}`);
+  };
+
   return (
     <div className="w-full">
       <Table>
@@ -44,7 +50,7 @@ export default function CompanyTable({ companies }: CompanyTableProps) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => navigate(`/companies/${company.id}`)}
+                  onClick={() => handleCompanyView(company.id)}
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
