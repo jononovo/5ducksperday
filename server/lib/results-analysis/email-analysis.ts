@@ -1,5 +1,33 @@
 import type { Contact } from "@shared/schema";
 
+// Moved from contact-name-validation.ts
+const EMAIL_FORMATS = [
+  (first: string, last: string) => `${first}.${last}`,
+  (first: string, last: string) => `${first[0]}${last}`,
+  (first: string, last: string) => `${first}${last[0]}`,
+  (first: string, last: string) => `${first}`,
+  (first: string, last: string) => `${last}`,
+  (first: string, last: string) => `${first[0]}.${last}`
+];
+
+export function generatePossibleEmails(name: string, domain: string): string[] {
+  const nameParts = name.toLowerCase().split(/\s+/);
+  if (nameParts.length < 2) return [];
+
+  const firstName = nameParts[0];
+  const lastName = nameParts[nameParts.length - 1];
+
+  return EMAIL_FORMATS.map(format =>
+    `${format(firstName, lastName)}@${domain}`
+  );
+}
+
+export function extractDomainFromContext(text: string): string | null {
+  const domainPattern = /(?:@|http:\/\/|https:\/\/|www\.)([a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,})/;
+  const match = text.match(domainPattern);
+  return match ? match[1] : null;
+}
+
 export function isPlaceholderEmail(email: string): boolean {
   const placeholderPatterns = [
     /first[._]?name/i,
@@ -29,10 +57,8 @@ export function isValidBusinessEmail(email: string): boolean {
     /^[a-z]+_[a-z]+@/i,  // underscore separated
   ];
 
-  // Check if matches any valid business email pattern
   const isValidPattern = businessPatterns.some(pattern => pattern.test(email));
 
-  // Additional checks for common personal email domains
   const personalDomains = [
     '@gmail.com',
     '@yahoo.com',
@@ -54,16 +80,13 @@ export function validateEmailPattern(email: string): number {
 
   let score = 0;
 
-  // Basic email format check
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     score += 40;
 
-    // Business domain patterns
     if (!/(@gmail\.com|@yahoo\.com|@hotmail\.com|@outlook\.com)$/i.test(email)) {
       score += 20;
     }
 
-    // Name pattern checks
     if (/^[a-z]+\.[a-z]+@/i.test(email)) { // firstname.lastname
       score += 20;
     } else if (/^[a-z]{1,3}\.[a-z]+@/i.test(email)) { // f.lastname or fml.lastname
@@ -72,20 +95,16 @@ export function validateEmailPattern(email: string): number {
       score += 10;
     }
 
-    // No generic prefixes
     if (!/^(info|contact|support|sales|admin|office|help|team|general)@/i.test(email)) {
       score += 20;
     }
 
-    // Domain reputation check
     const domain = email.split('@')[1];
     if (domain) {
-      // Penalize free email providers
       if (/^(gmail|yahoo|hotmail|outlook|aol|protonmail)\./i.test(domain)) {
         score -= 30;
       }
 
-      // Bonus for .com/.net/.org domains
       if (/\.(com|net|org)$/i.test(domain)) {
         score += 10;
       }
@@ -98,10 +117,8 @@ export function validateEmailPattern(email: string): number {
 export function parseEmailDetails(response: string): Partial<Contact> {
   const contact: Partial<Contact> = {};
 
-  // Extract email with context
   const emailMatch = response.match(/[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g);
   if (emailMatch) {
-    // Filter and sort emails by business relevance
     const validEmails = emailMatch
       .filter(email => !isPlaceholderEmail(email))
       .sort((a, b) => {

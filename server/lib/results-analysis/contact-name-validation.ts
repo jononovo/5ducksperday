@@ -1,6 +1,18 @@
 import { Contact } from "@shared/schema";
-import { isPlaceholderEmail, isValidBusinessEmail } from "./email-analysis";
+import { isPlaceholderEmail, isValidBusinessEmail, generatePossibleEmails, extractDomainFromContext } from "./email-analysis";
 import { validateNames, combineValidationScores } from "./contact-ai-name-scorer";
+
+// Restore the isPlaceholderName function
+const isPlaceholderName = (name: string): boolean => {
+  const normalizedName = name.toLowerCase();
+  return PLACEHOLDER_NAMES.has(normalizedName) || 
+         normalizedName.includes('test') || 
+         normalizedName.includes('demo') ||
+         normalizedName.includes('example') ||
+         normalizedName.includes('admin') ||
+         normalizedName.includes('guest') ||
+         normalizedName.includes('user');
+};
 
 export interface NameValidationResult {
   score: number;
@@ -40,7 +52,6 @@ const VALIDATION_WEIGHTS = {
 
 const MAX_SCORE = 95;  // Maximum possible score
 
-// Centralized list of placeholder and generic terms
 const PLACEHOLDER_NAMES = new Set([
   'john doe', 'jane doe', 'john smith', 'jane smith',
   'test user', 'demo user', 'example user',
@@ -48,7 +59,6 @@ const PLACEHOLDER_NAMES = new Set([
 ]);
 
 const GENERIC_TERMS = new Set([
-
   // Do NOT remove ANY of these terms. They are used to detect generic names.
 
   // Job titles and positions
@@ -158,36 +168,6 @@ const GENERIC_TERMS = new Set([
   'government', 'governor', 'governor-general', 'governor-general', 'authoritative', 'executive', 'chief', 'chief-executive', 'authority'
 ]);
 
-// Common business email formats for contact extraction
-const EMAIL_FORMATS = [
-  (first: string, last: string) => `${first}.${last}`,
-  (first: string, last: string) => `${first[0]}${last}`,
-  (first: string, last: string) => `${first}${last[0]}`,
-  (first: string, last: string) => `${first}`,
-  (first: string, last: string) => `${last}`,
-  (first: string, last: string) => `${first[0]}.${last}`
-];
-
-function generatePossibleEmails(name: string, domain: string): string[] {
-  const nameParts = name.toLowerCase().split(/\s+/);
-  if (nameParts.length < 2) return [];
-
-  const firstName = nameParts[0];
-  const lastName = nameParts[nameParts.length - 1];
-
-  return EMAIL_FORMATS.map(format =>
-    `${format(firstName, lastName)}@${domain}`
-  );
-}
-
-function extractDomainFromContext(text: string): string | null {
-  const domainPattern = /(?:@|http:\/\/|https:\/\/|www\.)([a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,})/;
-  const match = text.match(domainPattern);
-  return match ? match[1] : null;
-}
-
-const isPlaceholderName = (name: string): boolean => PLACEHOLDER_NAMES.has(name.toLowerCase());
-
 export async function extractContacts(
   analysisResults: string[],
   companyName?: string,
@@ -205,38 +185,25 @@ export async function extractContacts(
   const roleRegex = /(?:is|as|serves\s+as)\s+(?:the|a|an)\s+([^,.]+?(?:Manager|Director|Officer|Executive|Lead|Head|Chief|Founder|Owner|President|CEO|CTO|CFO))/gi;
 
   try {
-    // First pass: Extract all names for bulk validation
-    const allNames: string[] = [];
+    // First pass: Extract and manually validate all names
+    const potentialNames: {name: string; score: number; context: string}[] = [];
+    let totalNamesFound = 0;
+
     for (const result of analysisResults) {
       if (typeof result !== 'string') continue;
       nameRegex.lastIndex = 0;
       let nameMatch;
+
       while ((nameMatch = nameRegex.exec(result)) !== null) {
         const name = nameMatch[0];
-        if (!isPlaceholderName(name)) {
-          allNames.push(name);
+        totalNamesFound++;
+
+        console.log(`\nAnalyzing name: "${name}"`);
+
+        if (isPlaceholderName(name)) {
+          console.log(`Skipping placeholder name: ${name}`);
+          continue;
         }
-      }
-    }
-
-    console.log(`Found ${allNames.length} potential contact names for validation`);
-
-    // Bulk validate all names with Perplexity AI
-    console.log('Starting bulk AI validation');
-    const aiScores = await validateNames(allNames, companyName, validationOptions.searchPrompt);
-    console.log('Completed bulk AI validation');
-
-    // Second pass: Process each result with AI scores
-    for (const result of analysisResults) {
-      if (typeof result !== 'string') continue;
-
-      const domain = extractDomainFromContext(result);
-      nameRegex.lastIndex = 0;
-      let nameMatch;
-
-      while ((nameMatch = nameRegex.exec(result)) !== null) {
-        const name = nameMatch[0];
-        if (isPlaceholderName(name)) continue;
 
         const nameIndex = result.indexOf(name);
         const contextWindow = result.slice(
@@ -244,64 +211,95 @@ export async function extractContacts(
           nameIndex + 200
         );
 
-        // Use AI score in validation
-        const aiScore = aiScores[name] || 50;
-        console.log(`Processing contact "${name}" with AI score: ${aiScore}`);
+        // Manual validation first
+        const validationResult = validateName(name, contextWindow, companyName);
+        console.log(`Manual validation score for "${name}": ${validationResult.score}`);
 
-        const validationResult = validateName(name, contextWindow, companyName, {
-          ...validationOptions,
-          aiScore
-        });
-
-        if (validationResult.score >= (validationOptions.minimumScore || 30)) {
-          roleRegex.lastIndex = 0;
-          const roleMatch = roleRegex.exec(contextWindow);
-          const role = roleMatch ? roleMatch[1].trim() : null;
-
-          const emailMatches = new Set<string>();
-          emailRegex.lastIndex = 0;
-          let emailMatch;
-
-          while ((emailMatch = emailRegex.exec(result)) !== null) {
-            const email = emailMatch[0].toLowerCase();
-            if (!isPlaceholderEmail(email) && isValidBusinessEmail(email)) {
-              emailMatches.add(email);
-            }
-          }
-
-          if (domain) {
-            const predictedEmails = generatePossibleEmails(name, domain);
-            for (const email of predictedEmails) {
-              if (isValidBusinessEmail(email) && !isPlaceholderEmail(email)) {
-                emailMatches.add(email);
-              }
-            }
-          }
-
-          const nameParts = name.toLowerCase().split(/\s+/);
-          emailRegex.lastIndex = 0;
-
-          while ((emailMatch = emailRegex.exec(result)) !== null) {
-            const email = emailMatch[0].toLowerCase();
-            if (!isPlaceholderEmail(email) &&
-              nameParts.some(part => part.length >= 2 && email.includes(part))) {
-              emailMatches.add(email);
-            }
-          }
-
-          const emailsArray = Array.from(emailMatches);
-
-          console.log(`Adding contact "${name}" with final score: ${validationResult.score}`);
-          contacts.push({
+        // Only keep names that pass initial validation
+        if (validationResult.score >= 40) {
+          console.log(`Name "${name}" passed manual validation with score ${validationResult.score}`);
+          potentialNames.push({
             name,
-            email: emailsArray.length > 0 ? emailsArray[0] : null,
-            role,
-            probability: validationResult.score,
-            nameConfidenceScore: validationResult.score,
-            lastValidated: new Date(),
-            completedSearches: ['name_validation', 'ai_validation']
+            score: validationResult.score,
+            context: contextWindow
           });
+        } else {
+          console.log(`Name "${name}" failed manual validation with score ${validationResult.score}`);
         }
+      }
+    }
+
+    console.log(`\nTotal names found: ${totalNamesFound}`);
+    console.log(`Names passing manual validation: ${potentialNames.length}`);
+
+    if (potentialNames.length === 0) {
+      console.log('No names passed manual validation, returning empty array');
+      return [];
+    }
+
+    // Second pass: AI validation for qualified names
+    const qualifiedNames = potentialNames.map(p => p.name);
+    console.log('\nStarting AI validation for qualified names:', qualifiedNames);
+    const aiScores = await validateNames(qualifiedNames, companyName, validationOptions.searchPrompt);
+    console.log('AI validation scores:', aiScores);
+
+    // Process results with both manual and AI scores
+    for (const { name, context, score: manualScore } of potentialNames) {
+      const aiScore = aiScores[name] || 50;
+      console.log(`\nProcessing "${name}":
+        - Manual score: ${manualScore}
+        - AI score: ${aiScore}`);
+
+      const finalScore = combineValidationScores(aiScore, manualScore, {
+        minimumScore: validationOptions.minimumScore || 30,
+        companyNamePenalty: 20,
+        requireRole: true,
+        roleMinimumScore: 40
+      });
+
+      console.log(`Final combined score for "${name}": ${finalScore}`);
+
+      if (finalScore >= (validationOptions.minimumScore || 30)) {
+        roleRegex.lastIndex = 0;
+        const roleMatch = roleRegex.exec(context);
+        const role = roleMatch ? roleMatch[1].trim() : null;
+
+        const domain = extractDomainFromContext(context);
+        const emailMatches = new Set<string>();
+
+        // Email extraction logic remains the same
+        emailRegex.lastIndex = 0;
+        let emailMatch;
+        while ((emailMatch = emailRegex.exec(context)) !== null) {
+          const email = emailMatch[0].toLowerCase();
+          if (!isPlaceholderEmail(email) && isValidBusinessEmail(email)) {
+            emailMatches.add(email);
+          }
+        }
+
+        if (domain) {
+          const predictedEmails = generatePossibleEmails(name, domain);
+          for (const email of predictedEmails) {
+            if (isValidBusinessEmail(email) && !isPlaceholderEmail(email)) {
+              emailMatches.add(email);
+            }
+          }
+        }
+
+        const emailsArray = Array.from(emailMatches);
+
+        console.log(`Adding contact "${name}" with final score: ${finalScore}`);
+        contacts.push({
+          name,
+          email: emailsArray.length > 0 ? emailsArray[0] : null,
+          role,
+          probability: finalScore,
+          nameConfidenceScore: finalScore,
+          lastValidated: new Date(),
+          completedSearches: ['name_validation', 'ai_validation']
+        });
+      } else {
+        console.log(`Name "${name}" failed final validation with score ${finalScore}`);
       }
     }
 
@@ -311,7 +309,7 @@ export async function extractContacts(
         index === self.findIndex(c => c.name === contact.name)
       );
 
-    console.log(`Extracted ${finalContacts.length} validated contacts`);
+    console.log(`\nExtracted ${finalContacts.length} validated contacts`);
     return finalContacts;
 
   } catch (error) {
