@@ -49,8 +49,8 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
   const createMutation = useMutation({
     mutationFn: async (data: InsertEmailTemplate) => {
       console.log('CreateTemplateModal - Submitting form with data:', {
-        ...data, //Corrected this line.  The original edited code had 'req.body' which is not available in this context.
-        userId: 1 // Added a placeholder userId.  This needs a proper implementation to get the user ID from the application state.
+        ...data,
+        category: data.category || 'general'
       });
 
       const res = await apiRequest("POST", "/api/email-templates", data);
@@ -218,7 +218,7 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
               <Button
                 type="submit"
                 disabled={createMutation.isPending}
-                onClick={() => console.log('Submit button clicked')}
+                onClick={() => form.handleSubmit(onSubmit)()}
               >
                 {createMutation.isPending ? (
                   <>
