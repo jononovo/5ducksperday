@@ -2,7 +2,8 @@ import type { SearchModuleConfig, SearchSequence, SearchImplementation } from '@
 import { validateNames, extractContacts, searchCompanies, analyzeCompany, parseCompanyData, validateEmails } from './perplexity';
 import type { Company, Contact } from '@shared/schema';
 import { emailDiscoveryModule } from './search-logic/email-discovery';
-import { validateEmailPattern, isValidBusinessEmail } from './results-analysis/email-analysis';
+import { validateEmailPattern, isValidBusinessEmail, isPlaceholderEmail } from './results-analysis/email-analysis';
+import { searchContactDetails } from './api-interactions';
 
 import {
   analyzeCompanySize,
