@@ -1,6 +1,7 @@
 import type { SearchModule } from '../../shared/types';
 import { websiteCrawlerStrategy } from './strategies/website-crawler';
 import { patternPredictionStrategy } from './strategies/pattern-prediction';
+import { enhancedPatternPredictionStrategy } from './strategies/enhanced-pattern-prediction';
 import { domainAnalysisStrategy } from './strategies/domain-analysis';
 import { publicDirectoryStrategy } from './strategies/public-directory';
 import { socialProfileStrategy } from './strategies/social-profile';
@@ -39,6 +40,13 @@ export const emailDiscoveryModule = {
       description: "Predict email addresses based on common corporate patterns",
       implementation: patternPredictionStrategy,
       defaultEnabled: true
+    },
+    {
+      id: "enhanced-pattern-prediction-search",
+      label: "Enhanced Pattern Prediction",
+      description: "Improved email prediction using advanced validation and cross-referencing",
+      implementation: enhancedPatternPredictionStrategy,
+      defaultEnabled: false
     },
     {
       id: "domain-analysis-search",

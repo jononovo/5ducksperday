@@ -9,12 +9,12 @@ interface AeroLeadsResponse {
   message?: string;
 }
 
-interface NameParts {
+export interface NameParts {
   firstName: string;
   lastName: string;
 }
 
-function splitFullName(fullName: string): NameParts {
+export function splitFullName(fullName: string): NameParts {
   // Handle case where full name is provided
   const parts = fullName.trim().split(/\s+/);
   if (parts.length === 1) {
