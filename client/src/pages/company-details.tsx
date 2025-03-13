@@ -47,7 +47,9 @@ export default function CompanyDetails() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const companyId = params?.id ? parseInt(params.id) : null;
+
+  // Ensure companyId is properly parsed from params
+  const companyId = params?.id ? parseInt(params.id, 10) : null;
 
   console.log('CompanyDetails - Loading company ID:', companyId);
 
@@ -56,6 +58,7 @@ export default function CompanyDetails() {
     enabled: !!companyId,
     staleTime: 0, // Ensure we always fetch fresh data
     cacheTime: 0, // Don't cache the data
+    retry: false, // Don't retry failed requests
   });
 
   const { data: contacts = [], refetch: refetchContacts } = useQuery<Contact[]>({
@@ -63,9 +66,9 @@ export default function CompanyDetails() {
     enabled: !!companyId,
     staleTime: 0,
     cacheTime: 0,
+    retry: false,
   });
 
-  // Hook declarations before any conditional returns
   const contactSearchMutation = useMutation({
     mutationFn: async () => {
       if (!companyId) throw new Error("No company selected");
@@ -91,7 +94,6 @@ export default function CompanyDetails() {
     },
   });
 
-  // Show loading state
   if (companyLoading) {
     return (
       <div className="container mx-auto py-8">
@@ -100,7 +102,6 @@ export default function CompanyDetails() {
     );
   }
 
-  // Show not found state
   if (!company && !companyLoading) {
     return (
       <div className="container mx-auto py-8">
@@ -175,7 +176,6 @@ export default function CompanyDetails() {
       </Button>
 
       <div className="grid gap-8">
-        {/* Company Header */}
         <Card>
           <CardHeader>
             <div className="flex items-start justify-between">
@@ -210,7 +210,6 @@ export default function CompanyDetails() {
           </CardContent>
         </Card>
 
-        {/* Contacts Table */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -256,7 +255,6 @@ export default function CompanyDetails() {
           </CardContent>
         </Card>
 
-        {/* Company Services & Validation */}
         {(company.services?.length > 0 || company.validationPoints?.length > 0) && (
           <div className="grid md:grid-cols-2 gap-8">
             {company.services && company.services.length > 0 && (
@@ -296,7 +294,6 @@ export default function CompanyDetails() {
           </div>
         )}
 
-        {/* External Links Section */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -342,7 +339,6 @@ export default function CompanyDetails() {
           </CardContent>
         </Card>
 
-        {/* Performance Chart */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
