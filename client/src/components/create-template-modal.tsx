@@ -119,7 +119,11 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
           <DialogTitle>Create Email Template</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            console.log('Form submit event triggered');
+            form.handleSubmit(onSubmit)(e);
+          }} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -214,6 +218,7 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
               <Button
                 type="submit"
                 disabled={createMutation.isPending}
+                onClick={() => console.log('Submit button clicked')}
               >
                 {createMutation.isPending ? (
                   <>
