@@ -1,15 +1,15 @@
-import type { SearchModuleConfig, SearchSection, SearchImplementation } from '@shared/schema';
+import type { SearchModuleConfig, SearchSequence, SearchImplementation } from '@shared/schema';
 import { validateNames, extractContacts, searchCompanies, analyzeCompany, parseCompanyData, validateEmails } from './perplexity';
 import type { Company, Contact } from '@shared/schema';
 import { emailDiscoveryModule } from './search-logic/email-discovery';
 import { validateEmailPattern, isValidBusinessEmail } from './results-analysis/email-analysis';
 
-import { 
-  analyzeCompanySize, 
+import {
+  analyzeCompanySize,
   analyzeDifferentiators,
   calculateCompanyScore,
   isFranchise,
-  isLocalHeadquarter 
+  isLocalHeadquarter
 } from './results-analysis/company-analysis';
 
 import { localBusinessAssociationsSearch } from './search-logic/deep-searches/local-sources/local-business-associations-search';
@@ -55,7 +55,7 @@ export const DECISION_MAKER_MODULE = {
   type: 'decision_maker',
   defaultPrompt: "Find key decision makers at [COMPANY], including their roles and contact information.",
   technicalPrompt: `You are a business contact researcher. Find only real, verifiable decision makers at the company. For each identified decision maker, provide:
-  
+
     1. Full name 
     2. position, title or role
     3. Email address
@@ -599,18 +599,176 @@ export class LocalSourcesModule implements SearchModule {
   }
 }
 
-// Update factory function to include the new module
-export function createSearchModule(moduleType: string): SearchModule {
-  switch (moduleType) {
-    case 'company_overview':
-      return new CompanyOverviewModule();
-    case 'decision_maker':
-      return new DecisionMakerModule();
-    case 'email_discovery':
-      return new EmailDiscoveryModule();
-    case 'local_sources':
-      return new LocalSourcesModule();
-    default:
-      throw new Error(`Unknown module type: ${moduleType}`);
+// Define validation strategies
+export const VALIDATION_STRATEGIES = {
+  strict: {
+    company_overview: {
+      minimumConfidence: 85,
+      companyNamePenalty: 40,
+      requireVerification: true
+    },
+    decision_maker: {
+      minimumConfidence: 90,
+      nameValidation: {
+        minimumScore: 85,
+        businessTermPenalty: 40,
+        requireRole: true
+      }
+    },
+    email_discovery: {
+      minimumConfidence: 95,
+      requireVerification: true,
+      patternMatchThreshold: 0.9
+    }
+  },
+  moderate: {
+    company_overview: {
+      minimumConfidence: 75,
+      companyNamePenalty: 30,
+      requireVerification: true
+    },
+    decision_maker: {
+      minimumConfidence: 80,
+      nameValidation: {
+        minimumScore: 75,
+        businessTermPenalty: 30,
+        requireRole: true
+      }
+    },
+    email_discovery: {
+      minimumConfidence: 85,
+      requireVerification: true,
+      patternMatchThreshold: 0.8
+    }
+  },
+  lenient: {
+    company_overview: {
+      minimumConfidence: 65,
+      companyNamePenalty: 20,
+      requireVerification: false
+    },
+    decision_maker: {
+      minimumConfidence: 70,
+      nameValidation: {
+        minimumScore: 65,
+        businessTermPenalty: 20,
+        requireRole: false
+      }
+    },
+    email_discovery: {
+      minimumConfidence: 75,
+      requireVerification: false,
+      patternMatchThreshold: 0.7
+    }
   }
+};
+
+// Sequential Search Context
+export interface SequentialSearchContext {
+  query: string;
+  sequence: SearchSequence;
+  previousResults?: any;
+  validationStrategy: keyof typeof VALIDATION_STRATEGIES;
+}
+
+// Sequential Search Result
+export interface SequentialSearchResult {
+  companies: any[];
+  contacts: any[];
+  emails: any[];
+  metadata: {
+    completedModules: string[];
+    validationScores: Record<string, number>;
+    moduleResults: Record<string, any>;
+  };
+}
+
+// Module Registry
+const MODULE_REGISTRY = {
+  company_overview: () => new CompanyOverviewModule(),
+  decision_maker: () => new DecisionMakerModule(),
+  email_discovery: () => new EmailDiscoveryModule(),
+  local_sources: () => new LocalSourcesModule()
+};
+
+export class SequentialSearchExecutor {
+  async execute(context: SequentialSearchContext): Promise<SequentialSearchResult> {
+    const { query, sequence, validationStrategy } = context;
+    let currentResults: SequentialSearchResult = {
+      companies: [],
+      contacts: [],
+      emails: [],
+      metadata: {
+        completedModules: [],
+        validationScores: {},
+        moduleResults: {}
+      }
+    };
+
+    // Execute each module in sequence
+    for (const moduleType of sequence.modules) {
+      const module = MODULE_REGISTRY[moduleType]();
+      const moduleConfig = sequence.moduleConfigs[moduleType] || {};
+      const validationRules = VALIDATION_STRATEGIES[validationStrategy][moduleType];
+
+      const moduleResult = await module.execute({
+        query,
+        config: {
+          ...moduleConfig,
+          validationRules: {
+            ...moduleConfig.validationRules,
+            ...validationRules
+          }
+        },
+        previousResults: currentResults
+      });
+
+      // Merge results
+      currentResults = this.mergeResults(currentResults, moduleResult, moduleType);
+
+      // Track completion
+      currentResults.metadata.completedModules.push(moduleType);
+      currentResults.metadata.moduleResults[moduleType] = moduleResult;
+    }
+
+    return currentResults;
+  }
+
+  private mergeResults(current: SequentialSearchResult, moduleResult: any, moduleType: string): SequentialSearchResult {
+    return {
+      companies: moduleType === 'company_overview'
+        ? [...moduleResult.companies]
+        : current.companies,
+      contacts: moduleType === 'decision_maker'
+        ? [...current.contacts, ...moduleResult.contacts]
+        : current.contacts,
+      emails: moduleType === 'email_discovery'
+        ? [...current.emails, ...moduleResult.contacts.map((c: any) => c.email).filter(Boolean)]
+        : current.emails,
+      metadata: {
+        ...current.metadata,
+        validationScores: {
+          ...current.metadata.validationScores,
+          ...moduleResult.metadata.validationScores
+        }
+      }
+    };
+  }
+}
+
+export const sequentialSearchExecutor = new SequentialSearchExecutor();
+
+export function createSearchModule(moduleType: string): SearchModule {
+    switch (moduleType) {
+        case 'company_overview':
+            return new CompanyOverviewModule();
+        case 'decision_maker':
+            return new DecisionMakerModule();
+        case 'email_discovery':
+            return new EmailDiscoveryModule();
+        case 'local_sources':
+            return new LocalSourcesModule();
+        default:
+            throw new Error(`Unknown module type: ${moduleType}`);
+    }
 }

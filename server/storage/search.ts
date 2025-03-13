@@ -3,7 +3,8 @@ import { eq } from 'drizzle-orm';
 import {
   type SearchApproach,
   type InsertSearchApproach,
-  searchApproaches
+  searchApproaches,
+  type SearchSequence
 } from '@shared/schema';
 
 export class SearchStorage {
@@ -47,82 +48,104 @@ export class SearchStorage {
       const defaultApproaches: InsertSearchApproach[] = [
         {
           name: "Standard Search",
-          prompt: "Analyze and provide comprehensive details about [COMPANY], including size, industry focus, and business validation.",
+          prompt: "Execute comprehensive company and contact search with balanced validation",
           order: 1,
           active: true,
           moduleType: "company_overview",
-          config: {
-            subsearches: {},
-            searchOptions: {
-              ignoreFranchises: false,
-              locallyHeadquartered: false
-            },
-            searchSections: {},
-            validationRules: {
-              requiredFields: ["name", "industry"],
-              scoreThresholds: {},
-              minimumConfidence: 70
-            }
-          },
-          validationRules: {},
-          technicalPrompt: "Execute company profile analysis and business validation checks",
-          responseStructure: "JSON with fields: companyProfile{size, age, industry, focus, validationScore}"
-        },
-        {
-          name: "Strict Validation",
-          prompt: "Identify and analyze key decision-makers with strict name validation.",
-          order: 2,
-          active: true,
-          moduleType: "decision_maker",
-          config: {
-            subsearches: {},
-            searchOptions: {
-              ignoreFranchises: true,
-              locallyHeadquartered: true
-            },
-            searchSections: {},
-            validationRules: {
-              requiredFields: ["name", "role"],
-              scoreThresholds: {
-                nameConfidence: 80,
-                roleConfidence: 75
+          sequence: {
+            modules: ['company_overview', 'decision_maker', 'email_discovery'],
+            moduleConfigs: {
+              company_overview: {
+                subsearches: { 'company-validation': true },
+                searchOptions: { ignoreFranchises: false }
               },
-              minimumConfidence: 85
-            }
+              decision_maker: {
+                subsearches: { 'leadership-identification': true },
+                searchOptions: { requireRole: true }
+              },
+              email_discovery: {
+                subsearches: { 'pattern-discovery': true },
+                searchOptions: { validatePatterns: true }
+              }
+            },
+            validationStrategy: 'moderate'
           },
-          validationRules: {
-            minimumScore: 85,
-            requireRole: true,
-            roleMinimumScore: 75
-          },
-          technicalPrompt: "Execute strict leadership identification with enhanced validation",
-          responseStructure: "JSON with fields: leaders[]{name, role, level, verificationScore}"
-        },
-        {
-          name: "Local Business Focus",
-          prompt: "Focus on local business sources and directories for contact discovery.",
-          order: 3,
-          active: true,
-          moduleType: "local_sources",
           config: {
             subsearches: {},
-            searchOptions: {
-              ignoreFranchises: true,
-              locallyHeadquartered: true
-            },
+            searchOptions: {},
             searchSections: {},
             validationRules: {
-              requiredFields: ["name", "source"],
-              scoreThresholds: {
-                nameConfidence: 75,
-                sourceConfidence: 70
-              },
+              requiredFields: ["name"],
               minimumConfidence: 75
             }
           },
-          validationRules: {},
-          technicalPrompt: "Execute local business search with verification",
-          responseStructure: "JSON with fields: localSources[]{source, contacts[], confidence}"
+          validationRules: {}
+        },
+        {
+          name: "High Precision Search",
+          prompt: "Execute search with strict validation rules for highest accuracy",
+          order: 2,
+          active: true,
+          moduleType: "company_overview",
+          sequence: {
+            modules: ['company_overview', 'decision_maker', 'email_discovery'],
+            moduleConfigs: {
+              company_overview: {
+                subsearches: { 'deep-validation': true },
+                searchOptions: { ignoreFranchises: true }
+              },
+              decision_maker: {
+                subsearches: { 'strict-verification': true },
+                searchOptions: { requireRole: true }
+              },
+              email_discovery: {
+                subsearches: { 'pattern-verification': true },
+                searchOptions: { validatePatterns: true }
+              }
+            },
+            validationStrategy: 'strict'
+          },
+          config: {
+            subsearches: {},
+            searchOptions: {},
+            searchSections: {},
+            validationRules: {
+              requiredFields: ["name", "role"],
+              minimumConfidence: 90
+            }
+          },
+          validationRules: {}
+        },
+        {
+          name: "Quick Discovery",
+          prompt: "Rapid search focusing on initial discovery with lenient validation",
+          order: 3,
+          active: true,
+          moduleType: "company_overview",
+          sequence: {
+            modules: ['company_overview', 'decision_maker'],
+            moduleConfigs: {
+              company_overview: {
+                subsearches: { 'basic-validation': true },
+                searchOptions: { quickScan: true }
+              },
+              decision_maker: {
+                subsearches: { 'quick-identification': true },
+                searchOptions: { requireRole: false }
+              }
+            },
+            validationStrategy: 'lenient'
+          },
+          config: {
+            subsearches: {},
+            searchOptions: {},
+            searchSections: {},
+            validationRules: {
+              requiredFields: ["name"],
+              minimumConfidence: 60
+            }
+          },
+          validationRules: {}
         }
       ];
 

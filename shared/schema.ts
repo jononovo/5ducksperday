@@ -171,7 +171,7 @@ const contactFeedbackSchema = z.object({
   feedbackType: z.enum(['excellent', 'ok', 'terrible'])
 });
 
-const searchModuleConfigSchema = z.object({
+export const searchModuleConfigSchema = z.object({
   subsearches: z.record(z.boolean()).default({}),
   searchOptions: z.object({
     ignoreFranchises: z.boolean().default(false),
@@ -181,7 +181,7 @@ const searchModuleConfigSchema = z.object({
     id: z.string(),
     label: z.string(),
     description: z.string().optional(),
-    subsectionRef: z.string().optional(), 
+    subsectionRef: z.string().optional(),
     searches: z.array(z.object({
       id: z.string(),
       label: z.string(),
@@ -197,7 +197,19 @@ const searchModuleConfigSchema = z.object({
   }).default({})
 });
 
-const searchApproachSchema = z.object({
+export const searchSequenceSchema = z.object({
+  modules: z.array(z.enum([
+    'company_overview',
+    'decision_maker',
+    'email_discovery',
+    'email_enrichment',
+    'email_deepdive'
+  ])),
+  moduleConfigs: z.record(z.any()),
+  validationStrategy: z.enum(['strict', 'moderate', 'lenient']).default('moderate')
+});
+
+export const searchApproachSchema = z.object({
   name: z.string().min(1, "Name is required"),
   prompt: z.string().min(1, "Prompt is required"),
   order: z.number().min(1),
@@ -213,6 +225,7 @@ const searchApproachSchema = z.object({
     'email_enrichment',
     'email_deepdive'
   ]).default('company_overview'),
+  sequence: searchSequenceSchema.optional(),
   validationRules: z.record(z.unknown()).default({})
 });
 
@@ -290,3 +303,12 @@ export const insertUserSchema = userSchema;
 // Add User type
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type SearchModuleConfig = z.infer<typeof searchModuleConfigSchema>;
+export type SearchSequence = z.infer<typeof searchSequenceSchema>;
+export type SearchImplementation = {
+  execute: (context: any) => Promise<any>;
+  validate?: (result: any) => Promise<boolean>;
+  name: string;
+  description: string;
+};
