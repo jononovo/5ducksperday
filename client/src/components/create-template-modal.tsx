@@ -49,9 +49,8 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
   const createMutation = useMutation({
     mutationFn: async (data: InsertEmailTemplate) => {
       console.log('CreateTemplateModal - Submitting form with data:', {
-        name: data.name,
-        subject: data.subject,
-        category: data.category
+        ...data, //Corrected this line.  The original edited code had 'req.body' which is not available in this context.
+        userId: 1 // Added a placeholder userId.  This needs a proper implementation to get the user ID from the application state.
       });
 
       const res = await apiRequest("POST", "/api/email-templates", data);
@@ -66,7 +65,8 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
       const result = await res.json();
       console.log('CreateTemplateModal - Success:', {
         id: result.id,
-        name: result.name
+        name: result.name,
+        userId: result.userId
       });
       return result;
     },
