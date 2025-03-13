@@ -10,7 +10,7 @@ import {
   type User
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   // User Auth
@@ -133,15 +133,17 @@ class DatabaseStorage implements IStorage {
   }
 
   async getList(listId: number, userId: number): Promise<List | undefined> {
-    const [list] = await db.select().from(lists).where(eq(lists.listId, listId)).where(eq(lists.userId, userId));
+    const [list] = await db
+      .select()
+      .from(lists)
+      .where(and(eq(lists.listId, listId), eq(lists.userId, userId)));
     return list;
   }
 
   async listCompaniesByList(listId: number, userId: number): Promise<Company[]> {
     return db.select()
       .from(companies)
-      .where(eq(companies.listId, listId))
-      .where(eq(companies.userId, userId));
+      .where(and(eq(companies.listId, listId), eq(companies.userId, userId)));
   }
 
   async getNextListId(): Promise<number> {
@@ -162,17 +164,23 @@ class DatabaseStorage implements IStorage {
 
   // Companies
   async listCompanies(userId: number): Promise<Company[]> {
+    console.log('DatabaseStorage.listCompanies - Fetching companies for userId:', userId);
     return db.select().from(companies).where(eq(companies.userId, userId));
   }
 
   async getCompany(id: number, userId: number): Promise<Company | undefined> {
+    console.log('DatabaseStorage.getCompany - Fetching company:', { id, userId });
     try {
       const result = await db
         .select()
         .from(companies)
-        .where(eq(companies.id, id))
-        .where(eq(companies.userId, userId))
+        .where(and(eq(companies.id, id), eq(companies.userId, userId)))
         .limit(1);
+
+      console.log('DatabaseStorage.getCompany - Result:', {
+        requested: { id, userId },
+        found: result[0] ? { id: result[0].id, name: result[0].name } : null
+      });
 
       return result[0];
     } catch (error) {
@@ -192,8 +200,7 @@ class DatabaseStorage implements IStorage {
       return await db
         .select()
         .from(contacts)
-        .where(eq(contacts.companyId, companyId))
-        .where(eq(contacts.userId, userId));
+        .where(and(eq(contacts.companyId, companyId), eq(contacts.userId, userId)));
     } catch (error) {
       console.error('Error fetching contacts by company:', error);
       return [];
@@ -201,13 +208,18 @@ class DatabaseStorage implements IStorage {
   }
 
   async getContact(id: number, userId: number): Promise<Contact | undefined> {
+    console.log('DatabaseStorage.getContact - Fetching contact:', { id, userId });
     try {
       const result = await db
         .select()
         .from(contacts)
-        .where(eq(contacts.id, id))
-        .where(eq(contacts.userId, userId))
+        .where(and(eq(contacts.id, id), eq(contacts.userId, userId)))
         .limit(1);
+
+      console.log('DatabaseStorage.getContact - Result:', {
+        requested: { id, userId },
+        found: result[0] ? { id: result[0].id, name: result[0].name } : null
+      });
 
       return result[0];
     } catch (error) {
@@ -231,8 +243,7 @@ class DatabaseStorage implements IStorage {
 
   async deleteContactsByCompany(companyId: number, userId: number): Promise<void> {
     await db.delete(contacts)
-      .where(eq(contacts.companyId, companyId))
-      .where(eq(contacts.userId, userId));
+      .where(and(eq(contacts.companyId, companyId), eq(contacts.userId, userId)));
   }
 
   // Campaigns
@@ -241,7 +252,10 @@ class DatabaseStorage implements IStorage {
   }
 
   async getCampaign(id: number, userId: number): Promise<Campaign | undefined> {
-    const [campaign] = await db.select().from(campaigns).where(eq(campaigns.campaignId, id)).where(eq(campaigns.userId, userId));
+    const [campaign] = await db
+      .select()
+      .from(campaigns)
+      .where(and(eq(campaigns.campaignId, id), eq(campaigns.userId, userId)));
     return campaign;
   }
 
@@ -258,8 +272,7 @@ class DatabaseStorage implements IStorage {
   async updateCampaign(id: number, data: Partial<Campaign>, userId: number): Promise<Campaign> {
     const [updated] = await db.update(campaigns)
       .set(data)
-      .where(eq(campaigns.campaignId, id))
-      .where(eq(campaigns.userId, userId))
+      .where(and(eq(campaigns.campaignId, id), eq(campaigns.userId, userId)))
       .returning();
     return updated;
   }
@@ -270,7 +283,10 @@ class DatabaseStorage implements IStorage {
   }
 
   async getEmailTemplate(id: number, userId: number): Promise<EmailTemplate | undefined> {
-    const [template] = await db.select().from(emailTemplates).where(eq(emailTemplates.id, id)).where(eq(emailTemplates.userId, userId));
+    const [template] = await db
+      .select()
+      .from(emailTemplates)
+      .where(and(eq(emailTemplates.id, id), eq(emailTemplates.userId, userId)));
     return template;
   }
 
