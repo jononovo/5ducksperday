@@ -63,8 +63,8 @@ export default function Build() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
+              <TableHead>Strategy Name</TableHead>
+              <TableHead>Target Business Type</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Validation Level</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -74,7 +74,7 @@ export default function Build() {
             {strategies?.map((strategy) => (
               <TableRow key={strategy.id}>
                 <TableCell className="font-medium">{strategy.name}</TableCell>
-                <TableCell>{strategy.moduleType}</TableCell>
+                <TableCell>{strategy.prompt}</TableCell>
                 <TableCell>
                   {strategy.active ? (
                     <span className="text-green-600">Active</span>

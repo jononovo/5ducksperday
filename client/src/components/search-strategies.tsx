@@ -27,7 +27,7 @@ interface SearchStrategyProps {
 export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchStrategyProps) {
   const [selectedStrategy, setSelectedStrategy] = useState(defaultStrategy);
 
-  const { data: strategies } = useQuery({
+  const { data: strategies } = useQuery<SearchApproach[]>({
     queryKey: ["/api/search-approaches"],
     select: (data: SearchApproach[]) => data.filter(s => s.active),
   });
@@ -38,6 +38,15 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
   };
 
   if (!strategies?.length) return null;
+
+  // List of search strategy names for display
+  const strategyNames = {
+    "small-business": "Small Business Decision-Makers",
+    "contractor": "Contractor Search",
+    "medium-business": "Medium Business Leadership",
+    "corporate": "Corporate Employees",
+    "rural": "Rural Business Search"
+  };
 
   return (
     <Card className="p-4 mb-4">
@@ -58,8 +67,8 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
                 <SelectItem key={strategy.id} value={strategy.id.toString()}>
                   <div className="flex items-center gap-2">
                     {strategy.name}
-                    {strategy.moduleType === "company_overview" && (
-                      <Badge variant="secondary" className="ml-2">Default</Badge>
+                    {strategy.sequence?.validationStrategy === 'strict' && (
+                      <Badge variant="secondary" className="ml-2">Strict</Badge>
                     )}
                   </div>
                 </SelectItem>
@@ -77,8 +86,8 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
             </TooltipTrigger>
             <TooltipContent>
               <p className="max-w-xs">
-                Choose different search strategies to compare their effectiveness.
-                Each strategy may use different algorithms and validation rules.
+                Choose different search strategies that are optimized for specific business types and roles.
+                Each strategy uses different validation rules and search patterns.
               </p>
             </TooltipContent>
           </Tooltip>
@@ -88,14 +97,14 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
       {selectedStrategy && strategies.find(s => s.id.toString() === selectedStrategy) && (
         <div className="mt-4">
           <p className="text-sm text-muted-foreground">
-            {strategies.find(s => s.id.toString() === selectedStrategy)?.description}
+            {strategies.find(s => s.id.toString() === selectedStrategy)?.prompt}
           </p>
           <div className="flex gap-2 mt-2">
             {strategies
               .find(s => s.id.toString() === selectedStrategy)
-              ?.completedSearches?.map((search) => (
-                <Badge key={search} variant="outline">
-                  {search}
+              ?.sequence?.modules.map((module) => (
+                <Badge key={module} variant="outline">
+                  {module.replace(/_/g, ' ')}
                 </Badge>
               ))}
           </div>
