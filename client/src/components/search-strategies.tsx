@@ -63,8 +63,11 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
                     {(strategy.config as any)?.validationStrategy === 'strict' && (
                       <Badge variant="secondary" className="ml-2">Strict</Badge>
                     )}
-                    {strategy.moduleType === 'email_discovery' && (
-                      <Badge variant="outline" className="ml-2">Enhanced</Badge>
+                    {strategy.name === "Enhanced Contact Discovery" && (
+                      <Badge variant="default" className="bg-green-600 hover:bg-green-700 ml-2">Enhanced</Badge>
+                    )}
+                    {strategy.name === "Small Business Contacts" && (
+                      <Badge variant="outline" className="ml-2">Standard</Badge>
                     )}
                   </div>
                 </SelectItem>
@@ -83,7 +86,8 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
             <TooltipContent>
               <p className="max-w-xs">
                 Choose different search strategies optimized for specific business types and roles.
-                Each strategy uses different validation rules and search patterns.
+                Enhanced strategies use advanced validation and improved email discovery techniques.
+                Standard strategies use basic validation rules and patterns.
               </p>
             </TooltipContent>
           </Tooltip>
@@ -95,7 +99,21 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
           <p className="text-sm text-muted-foreground">
             {strategies.find(s => s.id.toString() === selectedStrategy)?.prompt}
           </p>
-          <div className="flex gap-2 mt-2">
+          
+          {/* Additional details for specific approaches */}
+          {strategies.find(s => s.id.toString() === selectedStrategy)?.name === "Enhanced Contact Discovery" && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Uses advanced name parsing, enhanced pattern prediction, and cross-reference validation to improve contact discovery accuracy.
+            </p>
+          )}
+          
+          {strategies.find(s => s.id.toString() === selectedStrategy)?.name === "Small Business Contacts" && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Uses standard validation techniques to find contacts at small businesses with conventional email patterns.
+            </p>
+          )}
+          
+          <div className="flex flex-wrap gap-2 mt-2">
             {strategies
               .find(s => s.id.toString() === selectedStrategy)
               ?.moduleType && (
@@ -107,9 +125,20 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
               .find(s => s.id.toString() === selectedStrategy)
               ?.completedSearches?.map((search: string) => (
                 <Badge key={search} variant="outline" className="text-xs">
-                  {search.replace(/_/g, ' ')}
+                  {search.replace(/-/g, ' ')}
                 </Badge>
               ))}
+              
+            {/* Show validation indicators */}
+            {strategies.find(s => s.id.toString() === selectedStrategy)?.name === "Enhanced Contact Discovery" && (
+              <Badge variant="secondary" className="text-xs">Enhanced Validation</Badge>
+            )}
+            
+            {strategies.find(s => s.id.toString() === selectedStrategy)?.sequence?.validationStrategy && (
+              <Badge variant="outline" className="text-xs">
+                {strategies.find(s => s.id.toString() === selectedStrategy)?.sequence?.validationStrategy} validation
+              </Badge>
+            )}
           </div>
         </div>
       )}

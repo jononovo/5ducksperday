@@ -3,6 +3,7 @@ import { validateNames, extractContacts, searchCompanies, analyzeCompany, parseC
 import type { Company, Contact } from '@shared/schema';
 import { emailDiscoveryModule } from './search-logic/email-discovery';
 import { validateEmailPattern, isValidBusinessEmail, isPlaceholderEmail } from './results-analysis/email-analysis';
+import { validateEmailEnhanced, validateEmailsEnhanced } from './search-logic/email-discovery/enhanced-validation';
 import { searchContactDetails } from './api-interactions';
 
 import {
@@ -438,6 +439,9 @@ export class EmailDiscoveryModule implements SearchModule {
     const validationScores: Record<string, number> = {};
 
     try {
+      // Determine if we're using enhanced validation (based on search approach)
+      const useEnhancedValidation = config.searchOptions?.useEnhancedValidation || false;
+      
       for (const company of companies) {
         if (!company.name || !company.website) continue;
 
@@ -452,10 +456,18 @@ export class EmailDiscoveryModule implements SearchModule {
           if (!search?.implementation) continue;
 
           try {
+            // Include existing contacts for pattern prediction
+            const existingContacts = previousResults?.contacts?.map(c => ({
+              name: c.name || undefined,
+              role: c.role || undefined,
+              email: c.email || undefined
+            })) || [];
+
             const context = {
               companyName: company.name,
               companyWebsite: company.website,
               companyDomain: new URL(company.website).hostname,
+              existingContacts,
               config,
               options: {
                 timeout: 30000,
@@ -466,24 +478,52 @@ export class EmailDiscoveryModule implements SearchModule {
             // Execute the search implementation
             const result = await search.implementation.execute(context);
             if (result.emails?.length > 0) {
-              // First pass: local validation
-              const preValidatedEmails = result.emails.filter(email => {
-                const patternScore = validateEmailPattern(email);
-                return patternScore >= 50 && isValidBusinessEmail(email);
-              });
+              // Validate emails based on the configured approach
+              if (useEnhancedValidation) {
+                // Using enhanced validation
+                for (const email of result.emails) {
+                  if (isPlaceholderEmail(email)) continue;
+                  
+                  // Apply enhanced validation
+                  const validationScore = validateEmailEnhanced(email);
+                  
+                  // Only include emails that pass validation threshold
+                  if (validationScore >= 65) {
+                    contacts.push({
+                      companyId: company.id,
+                      email,
+                      name: null, // Could be enriched later
+                      probability: validationScore,
+                      verificationSource: search.label + ' (Enhanced)',
+                      validationMethod: 'enhanced'
+                    });
 
-              if (preValidatedEmails.length > 0) {
-                // Add validated emails to contacts
-                for (const email of preValidatedEmails) {
-                  contacts.push({
-                    companyId: company.id,
-                    email,
-                    name: null, // Could be enriched later
-                    probability: result.metadata?.validationScore || 50,
-                    verificationSource: search.label
-                  });
+                    validationScores[email] = validationScore;
+                  }
+                }
+              } else {
+                // Using standard validation
+                const preValidatedEmails = result.emails.filter(email => {
+                  const patternScore = validateEmailPattern(email);
+                  return patternScore >= 50 && isValidBusinessEmail(email);
+                });
 
-                  validationScores[email] = result.metadata?.validationScore || 50;
+                if (preValidatedEmails.length > 0) {
+                  // Add validated emails to contacts
+                  for (const email of preValidatedEmails) {
+                    const validationScore = result.metadata?.validationScore || 50;
+                    
+                    contacts.push({
+                      companyId: company.id,
+                      email,
+                      name: null, // Could be enriched later
+                      probability: validationScore,
+                      verificationSource: search.label,
+                      validationMethod: 'standard'
+                    });
+
+                    validationScores[email] = validationScore;
+                  }
                 }
               }
             }

@@ -66,8 +66,14 @@ export class SearchStorage {
                 searchOptions: { requireRole: true }
               },
               email_discovery: {
-                subsearches: { 'direct-contact-discovery': true },
-                searchOptions: { validatePatterns: true }
+                subsearches: { 
+                  'direct-contact-discovery': true,
+                  'pattern-prediction-search': true
+                },
+                searchOptions: { 
+                  validatePatterns: true,
+                  useEnhancedValidation: false
+                }
               }
             },
             validationStrategy: 'moderate'
@@ -116,6 +122,7 @@ export class SearchStorage {
                 },
                 searchOptions: { 
                   validatePatterns: true,
+                  useEnhancedValidation: true,
                   enhancedValidation: true,
                   crossReferenceValidation: true
                 }
@@ -129,6 +136,7 @@ export class SearchStorage {
               'enhanced-name-validation': true
             },
             searchOptions: {
+              useEnhancedValidation: true,
               enhancedValidation: true,
               crossReferenceValidation: true
             },
