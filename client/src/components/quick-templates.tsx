@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Select,
   SelectContent,
@@ -18,6 +18,7 @@ interface QuickTemplatesProps {
 
 export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
+  const queryClient = useQueryClient();
 
   const { data: templates = [], isLoading } = useQuery<EmailTemplate[]>({
     queryKey: ["/api/email-templates"],
@@ -38,11 +39,17 @@ export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps
     }
   };
 
+  // Function to refresh templates after creation
+  const handleTemplateCreated = () => {
+    console.log('Template created, refreshing templates list');
+    queryClient.invalidateQueries({ queryKey: ["/api/email-templates"] });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Quick Templates</h3>
-        <CreateTemplateModal />
+        <CreateTemplateModal onTemplateCreated={handleTemplateCreated} />
       </div>
 
       <div className="space-y-2">
