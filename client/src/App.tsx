@@ -8,6 +8,7 @@ import { Layout } from "@/components/layout";
 import Auth from "@/pages/auth";
 import Home from "@/pages/home";
 import Planning from "@/pages/planning";
+import Build from "@/pages/build";
 import Lists from "@/pages/lists";
 import ListDetails from "@/pages/list-details";
 import Campaigns from "@/pages/campaigns";
@@ -34,6 +35,7 @@ function Router() {
         <Switch>
           <Route path="/auth" component={Auth} />
           <ProtectedRoute path="/planning" component={Planning} />
+          <ProtectedRoute path="/build" component={Build} />
           <ProtectedRoute path="/" component={Home} />
           <ProtectedRoute path="/lists" component={Lists} />
           <ProtectedRoute path="/lists/:listId" component={ListDetails} />
