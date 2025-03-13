@@ -224,7 +224,17 @@ export class CompanyOverviewModule implements SearchModule {
     try {
       // Base company search
       const companyNames = await searchCompanies(query);
+      
+      // If no companies found, try a more generic search
+      if (!companyNames || companyNames.length === 0) {
+        console.log(`No companies found for "${query}", trying fallback search...`);
+        const fallbackNames = await searchCompanies(`business ${query}`);
+        if (fallbackNames && fallbackNames.length > 0) {
+          companyNames.push(...fallbackNames);
+        }
+      }
 
+      // Add additional company analyses to get more complete data
       for (const name of companyNames) {
         const searchOptions = config.searchOptions || {};
 
@@ -232,22 +242,48 @@ export class CompanyOverviewModule implements SearchModule {
         if (searchOptions.ignoreFranchises && isFranchise(name)) continue;
         if (searchOptions.locallyHeadquartered && !isLocalHeadquarter(name)) continue;
 
-        // Analyze based on enabled subsearches
-        const analysisResults = await this.executeSubsearches(name, config);
-        const companyData = parseCompanyData(analysisResults);
+        // First, get basic company details
+        try {
+          const basicPrompt = `Provide detailed information about ${name} including:
+            1. Company size (employee count)
+            2. Services offered
+            3. Website URL
+            4. Location/headquarters
+            5. Year founded (if available)`;
+          
+          const basicResult = await analyzeCompany(name, basicPrompt, null, null);
+          completedSearches.push('basic-company-details');
+          
+          // Get additional analysis based on enabled subsearches
+          const analysisResults = await this.executeSubsearches(name, config);
+          analysisResults.push(basicResult);
+          
+          // Parse combined results
+          const companyData = parseCompanyData(analysisResults);
 
-        if (companyData) {
-          companies.push({
-            name,
-            ...companyData,
-          });
-          validationScores[name] = companyData.totalScore || 0;
+          if (companyData) {
+            // Calculate a score for this company based on completeness of information
+            const totalScore = calculateCompanyScore(companyData);
+            
+            companies.push({
+              name,
+              ...companyData,
+              totalScore
+            });
+            
+            validationScores[name] = totalScore;
 
-          // Track completed searches
-          completedSearches.push(...Object.keys(config.subsearches || {})
-            .filter(key => config.subsearches?.[key]));
+            // Track completed searches
+            completedSearches.push(...Object.keys(config.subsearches || {})
+              .filter(key => config.subsearches?.[key]));
+          }
+        } catch (error) {
+          console.error(`Error analyzing company ${name}:`, error);
         }
       }
+
+      // Sort companies by score (highest first)
+      companies.sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
 
       return {
         companies,
@@ -265,13 +301,13 @@ export class CompanyOverviewModule implements SearchModule {
   }
 
   async validate(result: SearchModuleResult): Promise<boolean> {
-    // Remove shortSummary from validation
+    // Validate we have at least one company with sufficient information
     const hasValidCompanies = result.companies.length > 0;
-    const hasRequiredFields = result.companies.every(company =>
-      company.name && company.services && company.services.length > 0
+    const hasMinimumRequiredData = result.companies.some(company =>
+      company.name && ((company.services && company.services.length > 0) || company.description)
     );
 
-    return hasValidCompanies && hasRequiredFields;
+    return hasValidCompanies && hasMinimumRequiredData;
   }
 
   private async executeSubsearches(
@@ -280,24 +316,43 @@ export class CompanyOverviewModule implements SearchModule {
   ): Promise<string[]> {
     const results: string[] = [];
     const subsearches = config.subsearches || {};
+    
+    // If no subsearches are specified, add a default one
+    if (!subsearches || Object.keys(subsearches).length === 0 || 
+        !Object.values(subsearches).some(enabled => enabled)) {
+      // Default prompt for company details
+      const detailsPrompt = `Analyze ${companyName} and provide information about:
+        1. Their main business focus and industry
+        2. Key services or products they offer
+        3. Their target customers or market
+        4. What makes them unique or different from competitors`;
+        
+      const result = await analyzeCompany(companyName, detailsPrompt, null, null);
+      results.push(result);
+      return results;
+    }
 
+    // Otherwise, execute each enabled subsearch
     for (const [searchId, enabled] of Object.entries(subsearches)) {
       if (!enabled) continue;
 
-      // Execute each enabled subsearch
-      const section = Object.values(config.searchSections)
+      const section = Object.values(config.searchSections || {})
         .find(section => section.searches.some(search => search.id === searchId));
 
       if (section) {
         const search = section.searches.find(s => s.id === searchId);
         if (search?.implementation) {
-          const result = await analyzeCompany(
-            companyName,
-            search.implementation,
-            null,
-            null
-          );
-          results.push(result);
+          try {
+            const result = await analyzeCompany(
+              companyName,
+              search.implementation,
+              null,
+              null
+            );
+            results.push(result);
+          } catch (error) {
+            console.error(`Failed to execute search ${searchId}:`, error);
+          }
         }
       }
     }
@@ -326,6 +381,32 @@ export class DecisionMakerModule implements SearchModule {
         // Track which sections we've processed
         const processedSections = new Set<string>();
 
+        // Check if we should use enhanced name validation
+        const useEnhancedValidation = config.searchOptions?.enhancedNameValidation || false;
+        
+        // Determine minimum validation thresholds
+        const validationRules = config.validationRules || {};
+        const minimumConfidence = validationRules.minimumConfidence || 0;
+        
+        // Execute explicit search for decision makers
+        try {
+          const defaultPrompt = "Find key decision makers at " + company.name + 
+              ", including their roles. Focus on owners, founders, directors, and C-level executives.";
+              
+          // Result will be a list of potential contacts with roles
+          const result = await analyzeCompany(
+            company.name,
+            defaultPrompt,
+            null,
+            null
+          );
+          searchResults.push(result);
+          completedSearches.push('decision-maker-search');
+        } catch (error) {
+          console.error(`Failed to execute default decision maker search:`, error);
+        }
+
+        // Execute additional configured searches
         for (const [searchId, enabled] of Object.entries(subsearches)) {
           if (!enabled) continue;
 
@@ -358,20 +439,79 @@ export class DecisionMakerModule implements SearchModule {
         }
 
         // Extract and validate contacts
-        const extractedContacts = await extractContacts(searchResults);
-
-        // Apply validation rules if specified
-        const validatedContacts = extractedContacts.filter(contact => {
-          const validationRules = config.validationRules || {};
-          const minimumConfidence = validationRules.minimumConfidence || 0;
-
-          return contact.probability && contact.probability >= minimumConfidence;
+        let extractedContacts = await extractContacts(searchResults);
+        
+        // Filter out non-person entities before validation
+        extractedContacts = extractedContacts.filter(contact => {
+          if (!contact.name) return false;
+          
+          const name = contact.name.toLowerCase();
+          
+          // Filter out obvious business terms
+          const businessTerms = [
+            'llc', 'inc', 'corp', 'corporation', 'company', 'co.', 'ltd', 
+            'limited', 'service', 'plumbing', 'hvac', 'repair', 'department',
+            'sales', 'marketing', 'support', 'customer', 'services',
+            'contact us', 'contact', 'call', 'info', 'information'
+          ];
+          
+          if (businessTerms.some(term => name.includes(term))) {
+            return false;
+          }
+          
+          // Filter out single-word names (likely not real people)
+          if (!name.includes(' ') && name.length < 8) {
+            return false;
+          }
+          
+          return true;
         });
+        
+        // Apply enhanced validation if configured
+        let validatedContacts = [];
+        if (useEnhancedValidation) {
+          // Import needed for enhanced contact discovery
+          const { filterContacts } = await import('./search-logic/contact-discovery/enhanced-contact-discovery');
+          
+          // Use more advanced filtering with enhanced discovery
+          const enhancedFiltered = filterContacts(
+            extractedContacts, 
+            company.name,
+            {
+              minimumNameScore: config.searchOptions?.minimumNameScore || 65,
+              companyNamePenalty: 30,
+              filterGenericNames: true
+            }
+          );
+          
+          validatedContacts = enhancedFiltered.map(contact => ({
+            ...contact,
+            // Ensure we have a probability for sorting
+            probability: contact.probability || 75
+          }));
+        } else {
+          // Use basic validation
+          validatedContacts = extractedContacts.filter(contact => {
+            return contact.probability && contact.probability >= minimumConfidence;
+          });
+        }
 
-        contacts.push(...validatedContacts);
+        // We definitely want to make sure contacts have the company ID
+        validatedContacts = validatedContacts.map(contact => ({
+          ...contact,
+          companyId: company.id
+        }));
+        
+        // Sort by probability
+        validatedContacts.sort((a, b) => (b.probability || 0) - (a.probability || 0));
+        
+        // Limit to top 10 contacts per company to keep quality high
+        const topContacts = validatedContacts.slice(0, 10);
+
+        contacts.push(...topContacts);
 
         // Calculate validation scores
-        for (const contact of validatedContacts) {
+        for (const contact of topContacts) {
           if (contact.name) {
             validationScores[contact.name] = contact.probability || 0;
           }
@@ -442,9 +582,14 @@ export class EmailDiscoveryModule implements SearchModule {
       // Determine if we're using enhanced validation (based on search approach)
       const useEnhancedValidation = config.searchOptions?.useEnhancedValidation || false;
       
+      // Pass through existing contacts from previous modules to maintain them
+      if (previousResults?.contacts && previousResults.contacts.length > 0) {
+        contacts.push(...previousResults.contacts);
+      }
+      
       for (const company of companies) {
-        if (!company.name || !company.website) continue;
-
+        if (!company.name) continue; // Allow companies without websites to continue
+        
         // Execute each enabled search strategy
         const subsearches = config.subsearches || {};
         const searchResults = [];
@@ -463,10 +608,16 @@ export class EmailDiscoveryModule implements SearchModule {
               email: c.email || undefined
             })) || [];
 
+            // Skip domain-specific searches if no website available
+            if (!company.website && 
+                (searchId.includes('domain') || searchId.includes('website') || searchId.includes('pattern'))) {
+              continue;
+            }
+            
             const context = {
               companyName: company.name,
               companyWebsite: company.website,
-              companyDomain: new URL(company.website).hostname,
+              companyDomain: company.website ? new URL(company.website).hostname : undefined,
               existingContacts,
               config,
               options: {
@@ -488,7 +639,7 @@ export class EmailDiscoveryModule implements SearchModule {
                   const validationScore = validateEmailEnhanced(email);
                   
                   // Only include emails that pass validation threshold
-                  if (validationScore >= 65) {
+                  if (validationScore >= 50) { // Lowered threshold from 65 to 50
                     contacts.push({
                       companyId: company.id,
                       email,
@@ -505,7 +656,7 @@ export class EmailDiscoveryModule implements SearchModule {
                 // Using standard validation
                 const preValidatedEmails = result.emails.filter(email => {
                   const patternScore = validateEmailPattern(email);
-                  return patternScore >= 50 && isValidBusinessEmail(email);
+                  return patternScore >= 40 && isValidBusinessEmail(email); // Lowered threshold from 50 to 40
                 });
 
                 if (preValidatedEmails.length > 0) {
@@ -708,7 +859,7 @@ export const VALIDATION_STRATEGIES = {
 export interface SequentialSearchContext {
   query: string;
   sequence: SearchSequence;
-  previousResults?: any;
+  previousResults?: SequentialSearchResult;
   validationStrategy: keyof typeof VALIDATION_STRATEGIES;
 }
 
@@ -780,8 +931,13 @@ export class SequentialSearchExecutor {
       companies: moduleType === 'company_overview'
         ? [...moduleResult.companies]
         : current.companies,
-      contacts: moduleType === 'decision_maker'
-        ? [...current.contacts, ...moduleResult.contacts]
+      contacts: moduleResult.contacts && moduleResult.contacts.length > 0
+        ? [...current.contacts, ...moduleResult.contacts.filter((newContact: any) => 
+            !current.contacts.some((existingContact: any) => 
+              (existingContact.name && newContact.name && existingContact.name === newContact.name) ||
+              (existingContact.email && newContact.email && existingContact.email === newContact.email)
+            )
+          )]
         : current.contacts,
       emails: moduleType === 'email_discovery'
         ? [...current.emails, ...moduleResult.contacts.map((c: any) => c.email).filter(Boolean)]
