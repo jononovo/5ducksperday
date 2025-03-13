@@ -3,8 +3,7 @@ import { eq } from 'drizzle-orm';
 import {
   type SearchApproach,
   type InsertSearchApproach,
-  searchApproaches,
-  type SearchSequence
+  searchApproaches
 } from '@shared/schema';
 
 export class SearchStorage {
@@ -47,48 +46,9 @@ export class SearchStorage {
     if (existing.length === 0) {
       const defaultApproaches: InsertSearchApproach[] = [
         {
-          name: "Contractor Search",
-          prompt: "Find independent contractors and freelance professionals",
-          order: 0,
-          active: true,
-          moduleType: "company_overview",
-          sequence: {
-            modules: ['company_overview', 'decision_maker', 'email_discovery'],
-            moduleConfigs: {
-              company_overview: {
-                subsearches: { 'independent-verification': true },
-                searchOptions: { 
-                  ignoreFranchises: true,
-                  locallyHeadquartered: true
-                }
-              },
-              decision_maker: {
-                subsearches: { 'individual-verification': true },
-                searchOptions: { requireRole: true }
-              },
-              email_discovery: {
-                subsearches: { 'personal-email-discovery': true },
-                searchOptions: { validatePatterns: true }
-              }
-            },
-            validationStrategy: 'strict'
-          },
-          config: {
-            subsearches: {},
-            searchOptions: {},
-            searchSections: {},
-            validationRules: {
-              requiredFields: ["name"],
-              scoreThresholds: { nameConfidence: 85 },
-              minimumConfidence: 80
-            }
-          },
-          validationRules: {}
-        },
-        {
           name: "Small Business Decision-Makers",
           prompt: "Target key decision makers in small businesses",
-          order: 1,
+          order: 0,
           active: true,
           moduleType: "company_overview",
           sequence: {
@@ -125,39 +85,34 @@ export class SearchStorage {
           validationRules: {}
         },
         {
+          name: "Contractor Search",
+          prompt: "Find independent contractors and freelance professionals",
+          order: 1,
+          active: true,
+          moduleType: "company_overview",
+          sequence: { 
+            modules: ['company_overview', 'decision_maker'],
+            validationStrategy: 'moderate'
+          },
+          config: {
+            validationRules: {
+              minimumConfidence: 70
+            }
+          },
+          validationRules: {}
+        },
+        {
           name: "Medium Business Leadership",
           prompt: "Focus on leadership teams in medium-sized companies",
           order: 2,
           active: true,
           moduleType: "company_overview",
-          sequence: {
+          sequence: { 
             modules: ['company_overview', 'decision_maker', 'email_discovery'],
-            moduleConfigs: {
-              company_overview: {
-                subsearches: { 'medium-business-validation': true },
-                searchOptions: { 
-                  ignoreFranchises: true,
-                  locallyHeadquartered: false
-                }
-              },
-              decision_maker: {
-                subsearches: { 'leadership-identification': true },
-                searchOptions: { requireRole: true }
-              },
-              email_discovery: {
-                subsearches: { 'corporate-pattern-discovery': true },
-                searchOptions: { validatePatterns: true }
-              }
-            },
-            validationStrategy: 'moderate'
+            validationStrategy: 'strict'
           },
           config: {
-            subsearches: {},
-            searchOptions: {},
-            searchSections: {},
             validationRules: {
-              requiredFields: ["name", "role"],
-              scoreThresholds: { leadershipScore: 80 },
               minimumConfidence: 80
             }
           },
@@ -169,35 +124,13 @@ export class SearchStorage {
           order: 3,
           active: true,
           moduleType: "company_overview",
-          sequence: {
+          sequence: { 
             modules: ['company_overview', 'decision_maker', 'email_discovery'],
-            moduleConfigs: {
-              company_overview: {
-                subsearches: { 'corporate-validation': true },
-                searchOptions: { 
-                  ignoreFranchises: true,
-                  locallyHeadquartered: false
-                }
-              },
-              decision_maker: {
-                subsearches: { 'department-mapping': true },
-                searchOptions: { requireRole: true }
-              },
-              email_discovery: {
-                subsearches: { 'corporate-email-pattern': true },
-                searchOptions: { validatePatterns: true }
-              }
-            },
             validationStrategy: 'lenient'
           },
           config: {
-            subsearches: {},
-            searchOptions: {},
-            searchSections: {},
             validationRules: {
-              requiredFields: ["name", "department"],
-              scoreThresholds: { departmentConfidence: 70 },
-              minimumConfidence: 70
+              minimumConfidence: 60
             }
           },
           validationRules: {}
@@ -208,35 +141,13 @@ export class SearchStorage {
           order: 4,
           active: true,
           moduleType: "company_overview",
-          sequence: {
-            modules: ['company_overview', 'decision_maker', 'email_discovery'],
-            moduleConfigs: {
-              company_overview: {
-                subsearches: { 'local-business-validation': true },
-                searchOptions: { 
-                  ignoreFranchises: true,
-                  locallyHeadquartered: true
-                }
-              },
-              decision_maker: {
-                subsearches: { 'local-leadership': true },
-                searchOptions: { requireRole: true }
-              },
-              email_discovery: {
-                subsearches: { 'local-contact-discovery': true },
-                searchOptions: { validatePatterns: true }
-              }
-            },
+          sequence: { 
+            modules: ['company_overview', 'decision_maker'],
             validationStrategy: 'moderate'
           },
           config: {
-            subsearches: {},
-            searchOptions: {},
-            searchSections: {},
             validationRules: {
-              requiredFields: ["name", "location"],
-              scoreThresholds: { localPresence: 80 },
-              minimumConfidence: 75
+              minimumConfidence: 70
             }
           },
           validationRules: {}

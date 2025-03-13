@@ -39,15 +39,6 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
 
   if (!strategies?.length) return null;
 
-  // List of search strategy names for display
-  const strategyNames = {
-    "small-business": "Small Business Decision-Makers",
-    "contractor": "Contractor Search",
-    "medium-business": "Medium Business Leadership",
-    "corporate": "Corporate Employees",
-    "rural": "Rural Business Search"
-  };
-
   return (
     <Card className="p-4 mb-4">
       <div className="flex items-center gap-4">
