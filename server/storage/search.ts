@@ -47,59 +47,27 @@ export class SearchStorage {
     if (existing.length === 0) {
       const defaultApproaches: InsertSearchApproach[] = [
         {
-          name: "Standard Search",
-          prompt: "Execute comprehensive company and contact search with balanced validation",
-          order: 1,
+          name: "Contractor Search",
+          prompt: "Find independent contractors and freelance professionals",
+          order: 0,
           active: true,
           moduleType: "company_overview",
           sequence: {
             modules: ['company_overview', 'decision_maker', 'email_discovery'],
             moduleConfigs: {
               company_overview: {
-                subsearches: { 'company-validation': true },
-                searchOptions: { ignoreFranchises: false }
+                subsearches: { 'independent-verification': true },
+                searchOptions: { 
+                  ignoreFranchises: true,
+                  locallyHeadquartered: true
+                }
               },
               decision_maker: {
-                subsearches: { 'leadership-identification': true },
+                subsearches: { 'individual-verification': true },
                 searchOptions: { requireRole: true }
               },
               email_discovery: {
-                subsearches: { 'pattern-discovery': true },
-                searchOptions: { validatePatterns: true }
-              }
-            },
-            validationStrategy: 'moderate'
-          },
-          config: {
-            subsearches: {},
-            searchOptions: {},
-            searchSections: {},
-            validationRules: {
-              requiredFields: ["name"],
-              minimumConfidence: 75
-            }
-          },
-          validationRules: {}
-        },
-        {
-          name: "High Precision Search",
-          prompt: "Execute search with strict validation rules for highest accuracy",
-          order: 2,
-          active: true,
-          moduleType: "company_overview",
-          sequence: {
-            modules: ['company_overview', 'decision_maker', 'email_discovery'],
-            moduleConfigs: {
-              company_overview: {
-                subsearches: { 'deep-validation': true },
-                searchOptions: { ignoreFranchises: true }
-              },
-              decision_maker: {
-                subsearches: { 'strict-verification': true },
-                searchOptions: { requireRole: true }
-              },
-              email_discovery: {
-                subsearches: { 'pattern-verification': true },
+                subsearches: { 'personal-email-discovery': true },
                 searchOptions: { validatePatterns: true }
               }
             },
@@ -110,28 +78,114 @@ export class SearchStorage {
             searchOptions: {},
             searchSections: {},
             validationRules: {
-              requiredFields: ["name", "role"],
-              minimumConfidence: 90
+              requiredFields: ["name"],
+              scoreThresholds: { nameConfidence: 85 },
+              minimumConfidence: 80
             }
           },
           validationRules: {}
         },
         {
-          name: "Quick Discovery",
-          prompt: "Rapid search focusing on initial discovery with lenient validation",
+          name: "Small Business Decision-Makers",
+          prompt: "Target key decision makers in small businesses",
+          order: 1,
+          active: true,
+          moduleType: "company_overview",
+          sequence: {
+            modules: ['company_overview', 'decision_maker', 'email_discovery'],
+            moduleConfigs: {
+              company_overview: {
+                subsearches: { 'small-business-validation': true },
+                searchOptions: { 
+                  ignoreFranchises: true,
+                  locallyHeadquartered: true
+                }
+              },
+              decision_maker: {
+                subsearches: { 'owner-identification': true },
+                searchOptions: { requireRole: true }
+              },
+              email_discovery: {
+                subsearches: { 'direct-contact-discovery': true },
+                searchOptions: { validatePatterns: true }
+              }
+            },
+            validationStrategy: 'moderate'
+          },
+          config: {
+            subsearches: {},
+            searchOptions: {},
+            searchSections: {},
+            validationRules: {
+              requiredFields: ["name", "role"],
+              scoreThresholds: { roleConfidence: 75 },
+              minimumConfidence: 75
+            }
+          },
+          validationRules: {}
+        },
+        {
+          name: "Medium Business Leadership",
+          prompt: "Focus on leadership teams in medium-sized companies",
+          order: 2,
+          active: true,
+          moduleType: "company_overview",
+          sequence: {
+            modules: ['company_overview', 'decision_maker', 'email_discovery'],
+            moduleConfigs: {
+              company_overview: {
+                subsearches: { 'medium-business-validation': true },
+                searchOptions: { 
+                  ignoreFranchises: true,
+                  locallyHeadquartered: false
+                }
+              },
+              decision_maker: {
+                subsearches: { 'leadership-identification': true },
+                searchOptions: { requireRole: true }
+              },
+              email_discovery: {
+                subsearches: { 'corporate-pattern-discovery': true },
+                searchOptions: { validatePatterns: true }
+              }
+            },
+            validationStrategy: 'moderate'
+          },
+          config: {
+            subsearches: {},
+            searchOptions: {},
+            searchSections: {},
+            validationRules: {
+              requiredFields: ["name", "role"],
+              scoreThresholds: { leadershipScore: 80 },
+              minimumConfidence: 80
+            }
+          },
+          validationRules: {}
+        },
+        {
+          name: "Corporate Employees",
+          prompt: "Search for corporate employees across departments",
           order: 3,
           active: true,
           moduleType: "company_overview",
           sequence: {
-            modules: ['company_overview', 'decision_maker'],
+            modules: ['company_overview', 'decision_maker', 'email_discovery'],
             moduleConfigs: {
               company_overview: {
-                subsearches: { 'basic-validation': true },
-                searchOptions: { quickScan: true }
+                subsearches: { 'corporate-validation': true },
+                searchOptions: { 
+                  ignoreFranchises: true,
+                  locallyHeadquartered: false
+                }
               },
               decision_maker: {
-                subsearches: { 'quick-identification': true },
-                searchOptions: { requireRole: false }
+                subsearches: { 'department-mapping': true },
+                searchOptions: { requireRole: true }
+              },
+              email_discovery: {
+                subsearches: { 'corporate-email-pattern': true },
+                searchOptions: { validatePatterns: true }
               }
             },
             validationStrategy: 'lenient'
@@ -141,8 +195,48 @@ export class SearchStorage {
             searchOptions: {},
             searchSections: {},
             validationRules: {
-              requiredFields: ["name"],
-              minimumConfidence: 60
+              requiredFields: ["name", "department"],
+              scoreThresholds: { departmentConfidence: 70 },
+              minimumConfidence: 70
+            }
+          },
+          validationRules: {}
+        },
+        {
+          name: "Rural Business Search",
+          prompt: "Target businesses in rural and small-town locations",
+          order: 4,
+          active: true,
+          moduleType: "company_overview",
+          sequence: {
+            modules: ['company_overview', 'decision_maker', 'email_discovery'],
+            moduleConfigs: {
+              company_overview: {
+                subsearches: { 'local-business-validation': true },
+                searchOptions: { 
+                  ignoreFranchises: true,
+                  locallyHeadquartered: true
+                }
+              },
+              decision_maker: {
+                subsearches: { 'local-leadership': true },
+                searchOptions: { requireRole: true }
+              },
+              email_discovery: {
+                subsearches: { 'local-contact-discovery': true },
+                searchOptions: { validatePatterns: true }
+              }
+            },
+            validationStrategy: 'moderate'
+          },
+          config: {
+            subsearches: {},
+            searchOptions: {},
+            searchSections: {},
+            validationRules: {
+              requiredFields: ["name", "location"],
+              scoreThresholds: { localPresence: 80 },
+              minimumConfidence: 75
             }
           },
           validationRules: {}
