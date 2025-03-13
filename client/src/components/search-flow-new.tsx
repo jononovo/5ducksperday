@@ -374,11 +374,9 @@ export default function SearchFlowNew({ approaches }: SearchFlowNewProps) {
         defaultStrategy={defaultStrategy}
       />
       <Accordion type="single" collapsible className="w-full">
-        {sortedApproaches
-          .filter(approach => !selectedStrategy || approach.id.toString() === selectedStrategy)
-          .map((approach) => (
+        {sortedApproaches.map((approach) => (
             <ApproachEditor key={approach.id} approach={approach} />
-          ))}
+        ))}
       </Accordion>
     </div>
   );
