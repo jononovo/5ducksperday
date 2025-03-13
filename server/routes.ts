@@ -113,12 +113,30 @@ export function registerRoutes(app: Express) {
   });
 
   app.get("/api/companies/:id", requireAuth, async (req, res) => {
-    const company = await storage.getCompany(parseInt(req.params.id), req.user!.id);
-    if (!company) {
-      res.status(404).json({ message: "Company not found" });
-      return;
+    try {
+      console.log('GET /api/companies/:id - Request params:', {
+        id: req.params.id,
+        userId: req.user!.id
+      });
+
+      const company = await storage.getCompany(parseInt(req.params.id), req.user!.id);
+
+      console.log('GET /api/companies/:id - Retrieved company:', {
+        requested: req.params.id,
+        found: company ? { id: company.id, name: company.name } : null
+      });
+
+      if (!company) {
+        res.status(404).json({ message: "Company not found" });
+        return;
+      }
+      res.json(company);
+    } catch (error) {
+      console.error('Error fetching company:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
     }
-    res.json(company);
   });
 
   // Companies search endpoint
@@ -351,12 +369,30 @@ export function registerRoutes(app: Express) {
 
   // Add new route for getting a single contact
   app.get("/api/contacts/:id", requireAuth, async (req, res) => {
-    const contact = await storage.getContact(parseInt(req.params.id), req.user!.id);
-    if (!contact) {
-      res.status(404).json({ message: "Contact not found" });
-      return;
+    try {
+      console.log('GET /api/contacts/:id - Request params:', {
+        id: req.params.id,
+        userId: req.user!.id
+      });
+
+      const contact = await storage.getContact(parseInt(req.params.id), req.user!.id);
+
+      console.log('GET /api/contacts/:id - Retrieved contact:', {
+        requested: req.params.id,
+        found: contact ? { id: contact.id, name: contact.name } : null
+      });
+
+      if (!contact) {
+        res.status(404).json({ message: "Contact not found" });
+        return;
+      }
+      res.json(contact);
+    } catch (error) {
+      console.error('Error fetching contact:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
     }
-    res.json(contact);
   });
 
   app.post("/api/contacts/search", requireAuth, async (req, res) => {

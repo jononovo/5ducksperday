@@ -9,12 +9,25 @@ import {
 export class ContactStorage {
   constructor(private db: PgDatabase<any>) {}
 
-  async getContact(id: number): Promise<Contact | undefined> {
-    const [contact] = await this.db
-      .select()
-      .from(contacts)
-      .where(eq(contacts.id, id));
-    return contact;
+  async getContact(id: number, userId: number): Promise<Contact | undefined> {
+    console.log('ContactStorage.getContact called with:', { id, userId });
+    try {
+      const [contact] = await this.db
+        .select()
+        .from(contacts)
+        .where(eq(contacts.id, id))
+        .where(eq(contacts.userId, userId));
+
+      console.log('ContactStorage.getContact result:', {
+        requested: { id, userId },
+        found: contact ? { id: contact.id, name: contact.name } : null
+      });
+
+      return contact;
+    } catch (error) {
+      console.error('Error in ContactStorage.getContact:', error);
+      throw error;
+    }
   }
 
   async listContactsByCompany(companyId: number): Promise<Contact[]> {
@@ -83,7 +96,7 @@ export class ContactStorage {
   async updateContactValidationStatus(
     id: number,
   ): Promise<Contact | undefined> {
-    const contact = await this.getContact(id);
+    const contact = await this.getContact(id, 0); // Added userId 0 as a placeholder. Adjust as needed.
     if (!contact) return undefined;
 
     const aiScore = contact.nameConfidenceScore || 0;

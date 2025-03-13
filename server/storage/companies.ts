@@ -12,6 +12,28 @@ import {
 export class CompanyStorage {
   constructor(private db: PgDatabase<any>) {}
 
+  async getCompany(id: number, userId: number): Promise<Company | undefined> {
+    console.log('CompanyStorage.getCompany called with:', { id, userId });
+    try {
+      const result = await this.db
+        .select()
+        .from(companies)
+        .where(eq(companies.id, id))
+        .where(eq(companies.userId, userId))
+        .limit(1);
+
+      console.log('CompanyStorage.getCompany result:', {
+        requested: { id, userId },
+        found: result[0] ? { id: result[0].id, name: result[0].name } : null
+      });
+
+      return result[0];
+    } catch (error) {
+      console.error('Error in CompanyStorage.getCompany:', error);
+      throw error;
+    }
+  }
+
   // Lists
   async getList(listId: number): Promise<List | undefined> {
     const [list] = await this.db
@@ -39,13 +61,6 @@ export class CompanyStorage {
   }
 
   // Companies
-  async getCompany(id: number): Promise<Company | undefined> {
-    const [company] = await this.db
-      .select()
-      .from(companies)
-      .where(eq(companies.id, id));
-    return company;
-  }
 
   async listCompanies(): Promise<Company[]> {
     return this.db.select().from(companies);
