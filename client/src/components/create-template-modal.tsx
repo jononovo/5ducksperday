@@ -127,7 +127,14 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Template name" {...field} />
+                    <Input 
+                      placeholder="Template name" 
+                      {...field} 
+                      onChange={(e) => {
+                        console.log('Name field changed:', e.target.value);
+                        field.onChange(e);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -140,7 +147,14 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
                 <FormItem>
                   <FormLabel>Subject</FormLabel>
                   <FormControl>
-                    <Input placeholder="Email subject" {...field} />
+                    <Input 
+                      placeholder="Email subject" 
+                      {...field}
+                      onChange={(e) => {
+                        console.log('Subject field changed:', e.target.value);
+                        field.onChange(e);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -157,6 +171,10 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
                       placeholder="Template description or generation prompt"
                       className="min-h-[100px]"
                       {...field} 
+                      onChange={(e) => {
+                        console.log('Description field changed:', e.target.value);
+                        field.onChange(e);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -174,6 +192,10 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
                       placeholder="Email content"
                       className="min-h-[200px]"
                       {...field}
+                      onChange={(e) => {
+                        console.log('Content field changed:', e.target.value);
+                        field.onChange(e);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
