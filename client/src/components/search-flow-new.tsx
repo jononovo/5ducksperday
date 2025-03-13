@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
+import SearchStrategies from "./search-strategies";
 
 // Fixed approach order mapping
 const APPROACH_ORDER = {
@@ -79,7 +80,7 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
       queryClient.invalidateQueries({ queryKey: ["/api/search-approaches"] });
       toast({
         title: approach.active ? "Approach Disabled" : "Approach Enabled",
-        description: approach.moduleType === 'email_enrichment' 
+        description: approach.moduleType === 'email_enrichment'
           ? `Email enrichment ${approach.active ? 'disabled' : 'enabled'}. ${!approach.active ? 'Top prospects will be automatically enriched after search.' : ''}`
           : `Search approach has been ${approach.active ? "disabled" : "enabled"}.`,
       });
@@ -190,14 +191,14 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              {isCompleted 
-                ? "Search completed" 
+              {isCompleted
+                ? "Search completed"
                 : isEmailEnrichment
-                  ? approach.active 
-                    ? "Email enrichment enabled - will process top prospects after search" 
+                  ? approach.active
+                    ? "Email enrichment enabled - will process top prospects after search"
                     : "Enable email enrichment for top prospects"
-                  : approach.active 
-                    ? "Disable approach" 
+                  : approach.active
+                    ? "Disable approach"
                     : "Enable approach"
               }
             </TooltipContent>
@@ -349,6 +350,8 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
 }
 
 export default function SearchFlowNew({ approaches }: SearchFlowNewProps) {
+  const [selectedStrategy, setSelectedStrategy] = useState<string>();
+
   // Sort approaches by fixed order
   const sortedApproaches = [...approaches].sort((a, b) => {
     const orderA = APPROACH_ORDER[a.moduleType as keyof typeof APPROACH_ORDER] || 999;
@@ -356,12 +359,26 @@ export default function SearchFlowNew({ approaches }: SearchFlowNewProps) {
     return orderA - orderB;
   });
 
+  // Find default strategy (company_overview type)
+  const defaultStrategy = approaches.find(a => a.moduleType === 'company_overview')?.id.toString();
+
+  const handleStrategyChange = (strategyId: string) => {
+    setSelectedStrategy(strategyId);
+    // This will trigger a re-render with the selected strategy's approaches
+  };
+
   return (
     <div className="space-y-4">
+      <SearchStrategies
+        onStrategyChange={handleStrategyChange}
+        defaultStrategy={defaultStrategy}
+      />
       <Accordion type="single" collapsible className="w-full">
-        {sortedApproaches.map((approach) => (
-          <ApproachEditor key={approach.id} approach={approach} />
-        ))}
+        {sortedApproaches
+          .filter(approach => !selectedStrategy || approach.id.toString() === selectedStrategy)
+          .map((approach) => (
+            <ApproachEditor key={approach.id} approach={approach} />
+          ))}
       </Accordion>
     </div>
   );
