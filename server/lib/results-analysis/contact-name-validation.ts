@@ -259,7 +259,8 @@ export async function extractContacts(
 
       console.log(`Final combined score for "${name}": ${finalScore}`);
 
-      if (finalScore >= (validationOptions.minimumScore || 30)) {
+      // Lowered threshold to include more contacts
+      if (finalScore >= (validationOptions.minimumScore || 25)) {
         roleRegex.lastIndex = 0;
         const roleMatch = roleRegex.exec(context);
         const role = roleMatch ? roleMatch[1].trim() : null;

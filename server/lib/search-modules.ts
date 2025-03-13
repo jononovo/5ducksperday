@@ -438,61 +438,115 @@ export class DecisionMakerModule implements SearchModule {
           }
         }
 
+        // Execute additional search specifically for decision makers/contact names
+        try {
+          // Force the system to search for specific real people at the company
+          const explicitContactPrompt = `Find the names, roles, and contact information of real people at ${company.name}.
+            Focus on identifying C-level executives, owners, managers, and key staff members.
+            Please be very specific about real individuals with their full names and positions.
+            Do not list departments, generic roles, or business descriptions.
+            Examples of good results: "John Smith, Owner", "Sarah Johnson, General Manager"
+            Examples of bad results: "Customer Service", "Sales Department", "Company Overview"`;
+          
+          const contactResult = await analyzeCompany(
+            company.name,
+            explicitContactPrompt,
+            null,
+            null
+          );
+          
+          searchResults.push(contactResult);
+          completedSearches.push('explicit-contact-search');
+        } catch (error) {
+          console.error('Failed to execute explicit contact search:', error);
+        }
+          
         // Extract and validate contacts
         let extractedContacts = await extractContacts(searchResults);
         
-        // Filter out non-person entities before validation
+        // First pass filtering - remove obvious non-person entities
         extractedContacts = extractedContacts.filter(contact => {
           if (!contact.name) return false;
           
           const name = contact.name.toLowerCase();
           
-          // Filter out obvious business terms
+          // Comprehensive list of business/generic terms to filter out
           const businessTerms = [
             'llc', 'inc', 'corp', 'corporation', 'company', 'co.', 'ltd', 
             'limited', 'service', 'plumbing', 'hvac', 'repair', 'department',
             'sales', 'marketing', 'support', 'customer', 'services',
-            'contact us', 'contact', 'call', 'info', 'information'
+            'contact us', 'contact', 'call', 'info', 'information',
+            'overview', 'details', 'profile', 'business', 'industry',
+            'specializes', 'specializing', 'serving', 'service', 'provides',
+            'description', 'about', 'analysis', 'review', 'presence', 'position',
+            'reputation', 'features', 'offering', 'benefits', 'focus', 'area',
+            'specialties', 'specialty', 'characteristics', 'qualifications'
           ];
           
+          // If name contains business terms or is too short, filter it out
           if (businessTerms.some(term => name.includes(term))) {
             return false;
           }
           
-          // Filter out single-word names (likely not real people)
-          if (!name.includes(' ') && name.length < 8) {
+          // Names should typically have at least first and last name
+          // Filter out single-word names (likely not real people) unless very long
+          if (!name.includes(' ') && name.length < 10) {
+            return false;
+          }
+          
+          // Reject contacts with very short names (likely abbreviations or generic terms)
+          if (name.length <= 3) {
             return false;
           }
           
           return true;
         });
         
+        // Second pass - more sophisticated person name validation
         // Apply enhanced validation if configured
         let validatedContacts = [];
+        
+        // Always use at least basic validation
+        // First, check if we can use enhanced validation
         if (useEnhancedValidation) {
-          // Import needed for enhanced contact discovery
-          const { filterContacts } = await import('./search-logic/contact-discovery/enhanced-contact-discovery');
-          
-          // Use more advanced filtering with enhanced discovery
-          const enhancedFiltered = filterContacts(
-            extractedContacts, 
-            company.name,
-            {
-              minimumNameScore: config.searchOptions?.minimumNameScore || 65,
-              companyNamePenalty: 30,
-              filterGenericNames: true
-            }
-          );
-          
-          validatedContacts = enhancedFiltered.map(contact => ({
-            ...contact,
-            // Ensure we have a probability for sorting
-            probability: contact.probability || 75
-          }));
+          try {
+            // Import needed for enhanced contact discovery
+            const { filterContacts } = await import('./search-logic/contact-discovery/enhanced-contact-discovery');
+            
+            // Use more advanced filtering with enhanced discovery
+            const enhancedFiltered = filterContacts(
+              extractedContacts, 
+              company.name,
+              {
+                minimumNameScore: config.searchOptions?.minimumNameScore || 60, // Lower threshold to allow more potential matches
+                companyNamePenalty: 30,
+                filterGenericNames: true
+              }
+            );
+            
+            validatedContacts = enhancedFiltered.map(contact => ({
+              ...contact,
+              // Ensure we have a probability for sorting
+              probability: contact.probability || 75
+            }));
+          } catch (error) {
+            console.error('Enhanced validation failed:', error);
+            // Fall back to basic validation if enhanced fails
+            validatedContacts = extractedContacts.filter(contact => {
+              return contact.probability && contact.probability >= (minimumConfidence || 50);
+            });
+          }
         } else {
-          // Use basic validation
+          // Use basic validation with name heuristics
           validatedContacts = extractedContacts.filter(contact => {
-            return contact.probability && contact.probability >= minimumConfidence;
+            const name = contact.name?.toLowerCase() || '';
+            // Basic check for a reasonable name format (first and last name)
+            const hasSpaces = name.includes(' ');
+            const hasReasonableLength = name.length > 5;
+            // Probability check
+            const hasSufficientProbability = contact.probability && contact.probability >= (minimumConfidence || 50);
+            
+            return hasSpaces && hasReasonableLength && hasSufficientProbability;
           });
         }
 
