@@ -29,7 +29,9 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
 
   const { data: strategies } = useQuery<SearchApproach[]>({
     queryKey: ["/api/search-approaches"],
-    select: (data: SearchApproach[]) => data.filter(s => s.active),
+    select: (data: SearchApproach[]) => data
+      .filter(s => s.active)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
   });
 
   const handleStrategyChange = (value: string) => {
@@ -77,7 +79,7 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
             </TooltipTrigger>
             <TooltipContent>
               <p className="max-w-xs">
-                Choose different search strategies that are optimized for specific business types and roles.
+                Choose different search strategies optimized for specific business types and roles.
                 Each strategy uses different validation rules and search patterns.
               </p>
             </TooltipContent>
