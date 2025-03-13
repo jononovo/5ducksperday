@@ -17,20 +17,20 @@ const FOUNDER_CONFIDENCE = {
   NONE: 0         // No founder indicators
 };
 
-// Similarity thresholds for graduated penalties
+// Updated thresholds for more strict validation
 const SIMILARITY_THRESHOLDS = {
   EXACT: 0.9,     // Nearly identical match
-  HIGH: 0.7,      // Very similar
-  MEDIUM: 0.5,    // Moderately similar
-  LOW: 0.3        // Slightly similar
+  HIGH: 0.75,     // Very similar (increased from 0.7)
+  MEDIUM: 0.6,    // Moderately similar (increased from 0.5)
+  LOW: 0.4        // Slightly similar (increased from 0.3)
 };
 
-// Base penalties for different similarity levels
+// Increased penalties for different similarity levels
 const BASE_PENALTIES = {
-  EXACT: 75,     // Highest similarity - highest penalty
-  HIGH: 60,      // Very similar
-  MEDIUM: 45,    // Moderately similar
-  LOW: 35        // Slightly similar - matches new default penalty
+  EXACT: 85,      // Highest similarity - highest penalty (increased from 75)
+  HIGH: 70,       // Very similar (increased from 60)
+  MEDIUM: 55,     // Moderately similar (increased from 45)
+  LOW: 45         // Slightly similar (increased from 35)
 };
 
 /**
@@ -190,6 +190,27 @@ export function validateNameCompanySimilarity(
 ): { penalty: number; similarity: number; founderConfidence: number } {
   // Calculate similarity score
   const similarity = calculateNameSimilarity(name, companyName);
+
+  // Additional check for business terms
+  const businessTerms = [
+    'sales', 'marketing', 'support', 'team', 'department', 'division',
+    'group', 'office', 'staff', 'desk', 'service', 'admin', 'manager',
+    'lead', 'head', 'chief', 'director', 'executive', 'coordinator'
+  ];
+
+  const normalizedName = name.toLowerCase();
+  const hasBusinessTerm = businessTerms.some(term => 
+    normalizedName.includes(term.toLowerCase())
+  );
+
+  // Apply additional penalty for business terms
+  if (hasBusinessTerm) {
+    return {
+      penalty: 75, // High penalty for business terms
+      similarity: 1, // Treat as high similarity match
+      founderConfidence: 0
+    };
+  }
 
   // Only proceed with founder analysis if similarity is significant
   if (similarity >= SIMILARITY_THRESHOLDS.LOW) {

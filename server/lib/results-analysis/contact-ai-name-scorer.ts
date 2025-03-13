@@ -16,27 +16,27 @@ export function combineValidationScores(
   options: ValidationOptions = {}
 ): number {
   const weights = {
-    ai: 0.7,        // Increased AI weight for stricter validation
-    pattern: 0.3    // Decreased pattern weight
+    ai: 0.8,        // Increased AI weight for stricter validation
+    pattern: 0.2    // Decreased pattern weight
   };
 
   let combinedScore = (aiScore * weights.ai) + (patternScore * weights.pattern);
 
   // Stricter minimum score threshold
   if (options.minimumScore && combinedScore < options.minimumScore) {
-    combinedScore = Math.max(combinedScore - 25, 0);
+    combinedScore = Math.max(combinedScore - 30, 0); // Increased penalty
   }
 
   // More aggressive penalties for non-person names
   if (options.requireRole && options.roleMinimumScore) {
     if (patternScore < options.roleMinimumScore) {
-      combinedScore = Math.max(combinedScore - 30, 0);
+      combinedScore = Math.max(combinedScore - 35, 0); // Increased penalty
     }
   }
 
   // Increased company name penalty
-  if (options.companyNamePenalty && combinedScore < 70) {
-    const adjustedPenalty = Math.min(options.companyNamePenalty, 25);
+  if (options.companyNamePenalty && combinedScore < 75) { // Increased threshold
+    const adjustedPenalty = Math.min(options.companyNamePenalty, 40); // Increased max penalty
     combinedScore = Math.max(combinedScore - adjustedPenalty, 0);
   }
 
@@ -60,6 +60,8 @@ export async function validateNames(
       2. Cannot be a job title, department, or role
       3. Cannot be a company name or generic business term
       4. Cannot contain terms from the search prompt
+      5. Must follow common name patterns (e.g., "John Smith", not "Marketing Team")
+      6. Cannot be common business terms or departments
 
       Scoring Guidelines (maximum 95 points):
       - 85-95: Full proper name with clear first/last (e.g. "Michael Johnson")
@@ -69,11 +71,12 @@ export async function validateNames(
       - 1-29: Definitely not a person's name (e.g. "Marketing Department")
 
       Automatic Score Reductions:
-      - Contains job titles or roles: -40 points (e.g. "CEO John Smith" -> 55)
-      - Contains company terms: -35 points (e.g. "Microsoft Sales" -> 15)
-      - Contains generic business terms: -30 points (e.g. "Team Lead" -> 20)
-      - Contains search terms: -25 points per term
-      - Single word names: -30 points (e.g. "Marketing" -> 20)
+      - Contains job titles or roles: -45 points (e.g. "CEO John Smith" -> 50)
+      - Contains company terms: -40 points (e.g. "Microsoft Sales" -> 10)
+      - Contains generic business terms: -35 points (e.g. "Team Lead" -> 15)
+      - Contains search terms: -30 points per term
+      - Single word names: -35 points (e.g. "Marketing" -> 15)
+      - Common business words: -40 points (e.g. "Support", "Sales", "Team")
 
       Return ONLY a JSON object like:
       {
@@ -103,16 +106,16 @@ export async function validateNames(
           if (typeof score === 'number' && score >= 1 && score <= 95) {
             // Get pattern-based score with stricter validation
             const { score: patternScore } = validateName(name, '', companyName || '', {
-              minimumScore: 40, // Increased minimum score
-              companyNamePenalty: 25 // Increased penalty
+              minimumScore: 50, // Increased minimum score
+              companyNamePenalty: 40 // Increased penalty
             });
 
             // Combine scores with stricter weights
             const finalScore = combineValidationScores(score, patternScore, {
-              minimumScore: 40,
-              companyNamePenalty: 25,
+              minimumScore: 50, // Increased from 40
+              companyNamePenalty: 40, // Increased from 25
               requireRole: true,
-              roleMinimumScore: 50 // Increased role minimum score
+              roleMinimumScore: 60 // Increased from 50
             });
 
             console.log(`Combined score for "${name}": ${finalScore} (AI: ${score}, Pattern: ${patternScore})`);

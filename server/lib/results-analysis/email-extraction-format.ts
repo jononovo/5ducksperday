@@ -109,13 +109,25 @@ export async function extractContacts(
           ...validationOptions
         });
 
+        // Apply stricter validation rules
+        const validationRules = {
+          minimumScore: 60, // Increased from default 30
+          searchTermPenalty: 35, // Increased from 25
+          companyNamePenalty: 40 // Increased penalty
+        };
+
+        // Merge with provided options
+        const finalOptions = {
+          ...validationRules,
+          ...validationOptions
+        };
+
         // Combine AI and pattern-based scores with proper weighting
         const finalScore = combineValidationScores(
           aiScore,
           validationResult.score,
           {
-            minimumScore: validationOptions.minimumScore || 30,
-            companyNamePenalty: 20,
+            ...finalOptions,
             requireRole: true,
             roleMinimumScore: 40
           }
@@ -123,7 +135,7 @@ export async function extractContacts(
 
         console.log(`Final combined score for "${name}": ${finalScore} (AI: ${aiScore}, Pattern: ${validationResult.score})`);
 
-        if (finalScore >= (validationOptions.minimumScore || 30)) {
+        if (finalScore >= (finalOptions.minimumScore || 30)) {
           roleRegex.lastIndex = 0;
           const roleMatch = roleRegex.exec(contextWindow);
           const role = roleMatch ? roleMatch[1].trim() : null;
