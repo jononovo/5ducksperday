@@ -26,7 +26,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
 
-export default function CreateTemplateModal() {
+interface CreateTemplateModalProps {
+  onTemplateCreated?: () => void;
+}
+
+export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplateModalProps) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -44,7 +48,15 @@ export default function CreateTemplateModal() {
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertEmailTemplate) => {
+      console.log('Attempting to create template:', {
+        name: data.name,
+        subject: data.subject
+      });
       const res = await apiRequest("POST", "/api/email-templates", data);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to create template");
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -55,17 +67,23 @@ export default function CreateTemplateModal() {
       });
       setOpen(false);
       form.reset();
+      onTemplateCreated?.();
     },
     onError: (error) => {
+      console.error('Template creation error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to create template",
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: InsertEmailTemplate) => {
+    console.log('Form submitted with data:', {
+      name: data.name,
+      subject: data.subject
+    });
     createMutation.mutate(data);
   };
 

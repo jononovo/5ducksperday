@@ -29,6 +29,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import {Loader2} from "lucide-react";
+import { queryClient } from "@/lib/queryClient"; // Import queryClient
+import type { InsertEmailTemplate } from "@shared/schema"; // Import the type
 
 
 // Define interface for the saved state
@@ -105,9 +107,55 @@ export default function Outreach() {
     .slice(0, 3);
 
   const handleSaveEmail = () => {
-    // TODO: Implement save functionality
-    console.log('Saving email template:', { emailPrompt, emailContent, toEmail, emailSubject });
+    if (!emailPrompt || !emailContent) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide both a prompt and email content to save the template",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const templateData: InsertEmailTemplate = {
+      name: `Template from ${new Date().toLocaleDateString()}`,
+      subject: emailSubject || "New Email Template",
+      content: emailContent,
+      description: emailPrompt,
+      category: "saved"
+    };
+
+    createMutation.mutate(templateData);
   };
+
+  const createMutation = useMutation({
+    mutationFn: async (data: InsertEmailTemplate) => {
+      console.log('Saving email template:', {
+        name: data.name,
+        subject: data.subject
+      });
+      const res = await apiRequest("POST", "/api/email-templates", data);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to save template");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/email-templates"] });
+      toast({
+        title: "Success",
+        description: "Email template saved successfully",
+      });
+    },
+    onError: (error) => {
+      console.error('Template save error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save email template",
+        variant: "destructive",
+      });
+    },
+  });
 
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
