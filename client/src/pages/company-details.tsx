@@ -56,9 +56,11 @@ export default function CompanyDetails() {
   const { data: company, isLoading: companyLoading } = useQuery<Company>({
     queryKey: [`/api/companies/${companyId}`],
     enabled: !!companyId,
-    staleTime: 0, // Ensure we always fetch fresh data
-    cacheTime: 0, // Don't cache the data
+    staleTime: 0, // Don't use cached data
+    cacheTime: 0, // Don't cache the response
     retry: false, // Don't retry failed requests
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchOnWindowFocus: false // Don't refetch on window focus
   });
 
   const { data: contacts = [], refetch: refetchContacts } = useQuery<Contact[]>({
@@ -67,6 +69,8 @@ export default function CompanyDetails() {
     staleTime: 0,
     cacheTime: 0,
     retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
   });
 
   const contactSearchMutation = useMutation({

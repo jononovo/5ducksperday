@@ -32,18 +32,28 @@ import type { Contact, Company } from "@shared/schema";
 export default function ContactDetails() {
   const [, params] = useRoute("/contacts/:id");
   const [, navigate] = useLocation();
-  const contactId = params?.id ? parseInt(params.id) : null;
+  const contactId = params?.id ? parseInt(params.id, 10) : null;
 
   console.log('ContactDetails - Loading contact ID:', contactId);
 
   const { data: contact, isLoading: contactLoading } = useQuery<Contact>({
     queryKey: [`/api/contacts/${contactId}`],
-    enabled: !!contactId
+    enabled: !!contactId,
+    staleTime: 0, // Don't use cached data
+    cacheTime: 0, // Don't cache the response
+    retry: false, // Don't retry failed requests
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchOnWindowFocus: false // Don't refetch on window focus
   });
 
   const { data: company, isLoading: companyLoading } = useQuery<Company>({
     queryKey: [`/api/companies/${contact?.companyId}`],
-    enabled: !!contact?.companyId
+    enabled: !!contact?.companyId,
+    staleTime: 0,
+    cacheTime: 0,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
   });
 
   // Show loading state
