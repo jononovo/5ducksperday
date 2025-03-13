@@ -85,6 +85,11 @@ export default function Home() {
     const savedState = localStorage.getItem('searchState');
     if (savedState) {
       const parsed = JSON.parse(savedState) as SavedSearchState;
+      console.log('Loading saved search state:', {
+        query: parsed.currentQuery,
+        resultsCount: parsed.currentResults?.length,
+        companies: parsed.currentResults?.map(c => ({ id: c.id, name: c.name }))
+      });
       setCurrentQuery(parsed.currentQuery);
       setCurrentResults(parsed.currentResults);
     }
@@ -96,6 +101,11 @@ export default function Home() {
       currentQuery,
       currentResults
     };
+    console.log('Saving search state:', {
+      query: currentQuery,
+      resultsCount: currentResults?.length,
+      companies: currentResults?.map(c => ({ id: c.id, name: c.name }))
+    });
     localStorage.setItem('searchState', JSON.stringify(stateToSave));
   }, [currentQuery, currentResults]);
 
@@ -188,7 +198,7 @@ export default function Home() {
       console.error('Invalid company ID:', companyId);
       return;
     }
-    console.log('Navigating to company:', companyId);
+    console.log('Navigating to company:', { companyId });
     setLocation(`/companies/${companyId}`);
   };
 
@@ -646,7 +656,13 @@ export default function Home() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <CompanyTable companies={currentResults || []} handleCompanyView={handleCompanyView} />
+                {console.log('Rendering CompanyTable with companies:',
+                  currentResults?.map(c => ({ id: c.id, name: c.name }))
+                )}
+                <CompanyTable
+                  companies={currentResults || []}
+                  handleCompanyView={handleCompanyView}
+                />
               </div>
             </CardContent>
           </Card>

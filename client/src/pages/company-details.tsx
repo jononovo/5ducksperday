@@ -73,6 +73,14 @@ export default function CompanyDetails() {
     refetchOnWindowFocus: false
   });
 
+  // Log the fetched data
+  console.log('CompanyDetails - Fetched data:', {
+    requestedId: companyId,
+    fetchedCompany: company ? { id: company.id, name: company.name } : null,
+    contactsCount: contacts.length,
+    contacts: contacts.map(c => ({ id: c.id, name: c.name }))
+  });
+
   const contactSearchMutation = useMutation({
     mutationFn: async () => {
       if (!companyId) throw new Error("No company selected");

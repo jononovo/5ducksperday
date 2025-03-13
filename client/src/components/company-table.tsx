@@ -17,6 +17,10 @@ interface CompanyTableProps {
 }
 
 export default function CompanyTable({ companies, handleCompanyView }: CompanyTableProps) {
+  console.log('CompanyTable received companies:', 
+    companies.map(c => ({ id: c.id, name: c.name }))
+  );
+
   return (
     <div className="w-full">
       <Table>
@@ -29,29 +33,32 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
           </TableRow>
         </TableHeader>
         <TableBody>
-          {companies.map((company) => (
-            <TableRow key={company.id}>
-              <TableCell className="font-medium">{company.name}</TableCell>
-              <TableCell>{company.size} employees</TableCell>
-              <TableCell>
-                <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}>
-                  {company.totalScore ?? 'N/A'}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    console.log('Company view clicked:', company.id);
-                    handleCompanyView(company.id);
-                  }}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
+          {companies.map((company) => {
+            console.log('Rendering company row:', { id: company.id, name: company.name });
+            return (
+              <TableRow key={company.id}>
+                <TableCell className="font-medium">{company.name}</TableCell>
+                <TableCell>{company.size} employees</TableCell>
+                <TableCell>
+                  <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}>
+                    {company.totalScore ?? 'N/A'}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      console.log('Company view button clicked:', { id: company.id, name: company.name });
+                      handleCompanyView(company.id);
+                    }}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
