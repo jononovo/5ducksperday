@@ -438,103 +438,191 @@ export class DecisionMakerModule implements SearchModule {
           }
         }
 
-        // Execute specialized people search to find real contact names
-        const peopleSearchPrompt = `Identify key decision makers, executives, managers, and contact persons at ${company.name}.
-Focus only on real people with specific full names and job titles.
-Do NOT include:
-- Department names
-- Generic roles without person names
-- Company descriptors
-- Business metrics
-- Products or services
+        // Create a series of highly targeted prompts specifically for real people
+        const prompts = [
+          // Primary contact prompt - very explicit about needing real people
+          `LIST ONLY REAL PEOPLE who work at ${company.name}.
+         
+REQUIRED FORMAT:
+- First Last, Title
+- First Last, Title
 
-EXAMPLES OF GOOD RESULTS:
+EXAMPLES OF GOOD ANSWERS:
 - John Smith, CEO
 - Sarah Johnson, Operations Manager
-- Michael Brown, Chief Financial Officer
+- Michael Williams, Owner
+- Robert Davis, General Manager
+- Jennifer Wilson, Director
+  
+DO NOT INCLUDE:
+- Department names
+- Generic positions without names
+- Services or products
+- Financial metrics
+- Company descriptions`,
 
-EXAMPLES OF BAD RESULTS (DO NOT INCLUDE):
-- Customer Service Department
-- Marketing Team
-- Company Overview
-- Financial Status
-- Quality Assurance`;
+          // Secondary prompt focused on management/leadership
+          `Who are the key individuals in leadership positions at ${company.name}?
+          
+List real people with full names and their roles. Only include actual people, not departments or generic positions.`,
 
-        try {
-          const peopleResult = await analyzeCompany(
-            company.name,
-            peopleSearchPrompt,
-            null,
-            null
-          );
-          searchResults.push(peopleResult);
-          completedSearches.push('people-search');
-        } catch (error) {
-          console.error('Failed to execute people search:', error);
+          // Tertiary prompt for owners/founders specifically
+          `Who owns or founded ${company.name}? 
+          
+Provide their full name and current position. If this information is not available, who are the current leaders?`
+        ];
+        
+        // Execute multiple targeted searches to find real people
+        for (const prompt of prompts) {
+          try {
+            const result = await analyzeCompany(
+              company.name,
+              prompt,
+              null,
+              null
+            );
+            if (result && typeof result === 'string') {
+              searchResults.push(result);
+              completedSearches.push('people-search');
+            }
+          } catch (error) {
+            console.error('Failed to execute people search:', error);
+          }
         }
         
-        // Attempt to extract real people names with standard person name patterns
-        const nameRegex = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g;
-        const additionalPeople: Partial<Contact>[] = [];
+        // Build a collection of manually extracted person names
+        const manuallyExtractedPeople: Partial<Contact>[] = [];
+        
+        // Extract names from results using regex patterns for common name formats
+        const namePatterns = [
+          // Name followed by role/title after comma
+          /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)(?:,\s+|\s+-\s+)([^,.]+)/g,
+          
+          // Name with Mr./Mrs./Ms. prefix
+          /(?:Mr\.|Mrs\.|Ms\.|Dr\.)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g,
+          
+          // Standard capitalized first and last name
+          /\b([A-Z][a-z]+\s+[A-Z][a-z]+)\b/g
+        ];
         
         for (const result of searchResults) {
           if (typeof result !== 'string' || !result) continue;
           
-          let match;
-          const regex = new RegExp(nameRegex);
-          
-          while ((match = regex.exec(result)) !== null) {
-            const name = match[0];
+          // Try each pattern to extract names
+          for (const pattern of namePatterns) {
+            let match;
+            const regex = new RegExp(pattern);
             
-            // Skip obvious non-person names
-            if (name.toLowerCase().includes('company') || 
-                name.toLowerCase().includes('service') ||
-                name.toLowerCase().includes('department') ||
-                name.toLowerCase().includes('llc') ||
-                name.toLowerCase().includes('inc')) {
-              continue;
-            }
-            
-            // Look for role near the name (within 100 chars)
-            const nameIndex = result.indexOf(name);
-            const contextStart = Math.max(0, nameIndex - 50);
-            const contextEnd = Math.min(result.length, nameIndex + name.length + 100);
-            const context = result.substring(contextStart, contextEnd);
-            
-            // Try to extract role with common patterns
-            let role = null;
-            const rolePatterns = [
-              new RegExp(`${name}\\s+is\\s+(?:the|a|an)\\s+([^.,]+?)(?:\\.|,|$)`, 'i'),
-              new RegExp(`${name}\\s+(?:serves|works|acts)\\s+as\\s+(?:the|a|an)\\s+([^.,]+?)(?:\\.|,|$)`, 'i'),
-              new RegExp(`${name},\\s+(?:the|a|an)\\s+([^.,]+?)(?:\\.|,|$)`, 'i')
-            ];
-            
-            for (const pattern of rolePatterns) {
-              const roleMatch = context.match(pattern);
-              if (roleMatch && roleMatch[1]) {
-                role = roleMatch[1].trim();
-                break;
+            while ((match = regex.exec(result)) !== null) {
+              // Get the name portion - different index depending on pattern
+              const name = pattern.toString().includes('Mr.') ? match[1] : match[1];
+              
+              // Try to extract a role if available (from patterns that capture roles)
+              let role = null;
+              if (match.length > 2 && pattern.toString().includes('([^,.]+)')) {
+                role = match[2];
+              } else {
+                // Extract role from surrounding context
+                const namePosition = result.indexOf(name);
+                if (namePosition !== -1) {
+                  const contextStart = Math.max(0, namePosition - 30);
+                  const contextEnd = Math.min(result.length, namePosition + name.length + 100);
+                  const context = result.substring(contextStart, contextEnd);
+                  
+                  // Common role patterns
+                  const rolePatterns = [
+                    new RegExp(`${name}(?:,|\\s+is|\\s+as)\\s+(?:the|a|an)?\\s+([^,.]+)`, 'i'),
+                    new RegExp(`${name}\\s+\\(([^)]+)\\)`, 'i'),
+                    new RegExp(`${name}\\s+-\\s+([^,.]+)`, 'i')
+                  ];
+                  
+                  for (const rolePattern of rolePatterns) {
+                    const roleMatch = context.match(rolePattern);
+                    if (roleMatch && roleMatch[1]) {
+                      role = roleMatch[1].trim();
+                      break;
+                    }
+                  }
+                }
+              }
+              
+              // Skip obviously non-person names
+              const nameLower = name.toLowerCase();
+              if (nameLower.includes('company') || 
+                  nameLower.includes('service') || 
+                  nameLower.includes('department') || 
+                  nameLower.includes('llc') || 
+                  nameLower.includes('inc') ||
+                  nameLower.includes('professional') ||
+                  nameLower.includes('emergency') ||
+                  nameLower.includes('quality')) {
+                continue;
+              }
+              
+              // Add as a contact with high confidence if it passes basic tests
+              if (name.split(/\s+/).length >= 2 && name.length > 5) {
+                // Slight variation in score based on context quality
+                const contextScore = role ? 95 : 85;
+                
+                manuallyExtractedPeople.push({
+                  name,
+                  role,
+                  companyId: company.id,
+                  probability: contextScore,
+                  verificationSource: 'direct-extraction',
+                  // Flag as manually extracted to prioritize these results
+                  manuallyExtracted: true
+                });
               }
             }
+          }
+          
+          // Also try to find common person name patterns with roles on the same line
+          const personWithRoleLines = result.split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0 && 
+                  /^[A-Z]/.test(line) && // Starts with capital letter
+                  /[A-Z][a-z]+\s+[A-Z][a-z]+/.test(line) && // Has proper name format
+                  (line.includes(',') || line.includes('-') || line.includes(':'))); // Has role separator
+          
+          for (const line of personWithRoleLines) {
+            const parts = line.split(/,|-|:/);
             
-            // Add to potential contacts with high probability if it looks like a person
-            if (name.split(/\s+/).length >= 2 && name.length > 5) {
-              additionalPeople.push({
-                name,
-                role,
-                companyId: company.id,
-                probability: 85, // Higher probability for detected person names with proper capitalization pattern
-                verificationSource: 'regex-extraction'
-              });
+            if (parts.length >= 2) {
+              const name = parts[0].trim();
+              const role = parts[1].trim();
+              
+              // Skip obvious non-person names
+              const nameLower = name.toLowerCase();
+              if (nameLower.includes('company') || 
+                  nameLower.includes('service') || 
+                  nameLower.includes('department')) {
+                continue;
+              }
+              
+              // Add high-confidence entry from structured line
+              if (name.split(/\s+/).length >= 2 && name.length > 5) {
+                manuallyExtractedPeople.push({
+                  name,
+                  role,
+                  companyId: company.id,
+                  probability: 98, // Highest probability for well-structured entries
+                  verificationSource: 'structured-line',
+                  manuallyExtracted: true
+                });
+              }
             }
           }
         }
         
-        // Extract contacts using standard methods too
+        // Always include manually extracted people, even if other methods fail
+        console.log(`Manually extracted ${manuallyExtractedPeople.length} people from results`);
+        
+        // Extract contacts using standard methods too as a fallback
         let extractedContacts = await extractContacts(searchResults);
         
-        // Combine explicit person regex matches with extracted contacts
-        extractedContacts = [...extractedContacts, ...additionalPeople];
+        // First prioritize manually extracted people
+        extractedContacts = [...manuallyExtractedPeople, ...extractedContacts];
         
         // Filter out non-person entities
         extractedContacts = extractedContacts.filter(contact => {
