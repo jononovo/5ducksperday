@@ -522,7 +522,8 @@ export function registerRoutes(app: Express) {
 
       const result = insertEmailTemplateSchema.safeParse({
         ...req.body,
-        userId: req.user!.id
+        userId: req.user!.id,
+        category: req.body.category || 'general'
       });
 
       if (!result.success) {

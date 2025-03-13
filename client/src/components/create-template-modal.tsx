@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 
 interface CreateTemplateModalProps {
   onTemplateCreated?: () => void;
@@ -48,18 +48,30 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertEmailTemplate) => {
-      console.log('Attempting to create template:', {
+      console.log('CreateTemplateModal - Submitting form with data:', {
         name: data.name,
-        subject: data.subject
+        subject: data.subject,
+        category: data.category
       });
+
       const res = await apiRequest("POST", "/api/email-templates", data);
+      console.log('CreateTemplateModal - API Response status:', res.status);
+
       if (!res.ok) {
         const error = await res.json();
+        console.error('CreateTemplateModal - API Error:', error);
         throw new Error(error.message || "Failed to create template");
       }
-      return res.json();
+
+      const result = await res.json();
+      console.log('CreateTemplateModal - Success:', {
+        id: result.id,
+        name: result.name
+      });
+      return result;
     },
     onSuccess: () => {
+      console.log('CreateTemplateModal - Mutation succeeded');
       queryClient.invalidateQueries({ queryKey: ["/api/email-templates"] });
       toast({
         title: "Success",
@@ -70,7 +82,7 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
       onTemplateCreated?.();
     },
     onError: (error) => {
-      console.error('Template creation error:', error);
+      console.error('CreateTemplateModal - Mutation error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to create template",
@@ -79,12 +91,19 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
     },
   });
 
-  const onSubmit = (data: InsertEmailTemplate) => {
-    console.log('Form submitted with data:', {
+  const onSubmit = async (data: InsertEmailTemplate) => {
+    console.log('CreateTemplateModal - Form submitted:', {
       name: data.name,
-      subject: data.subject
+      subject: data.subject,
+      formErrors: form.formState.errors
     });
-    createMutation.mutate(data);
+
+    try {
+      await createMutation.mutateAsync(data);
+    } catch (error) {
+      console.error('CreateTemplateModal - Submit error:', error);
+      // Keep modal open on error
+    }
   };
 
   return (
@@ -166,6 +185,7 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
+                disabled={createMutation.isPending}
               >
                 Cancel
               </Button>
@@ -173,7 +193,14 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
                 type="submit"
                 disabled={createMutation.isPending}
               >
-                Create Template
+                {createMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Template'
+                )}
               </Button>
             </div>
           </form>
