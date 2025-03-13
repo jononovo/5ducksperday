@@ -438,115 +438,157 @@ export class DecisionMakerModule implements SearchModule {
           }
         }
 
-        // Execute additional search specifically for decision makers/contact names
+        // Execute specialized people search to find real contact names
+        const peopleSearchPrompt = `Identify key decision makers, executives, managers, and contact persons at ${company.name}.
+Focus only on real people with specific full names and job titles.
+Do NOT include:
+- Department names
+- Generic roles without person names
+- Company descriptors
+- Business metrics
+- Products or services
+
+EXAMPLES OF GOOD RESULTS:
+- John Smith, CEO
+- Sarah Johnson, Operations Manager
+- Michael Brown, Chief Financial Officer
+
+EXAMPLES OF BAD RESULTS (DO NOT INCLUDE):
+- Customer Service Department
+- Marketing Team
+- Company Overview
+- Financial Status
+- Quality Assurance`;
+
         try {
-          // Force the system to search for specific real people at the company
-          const explicitContactPrompt = `Find the names, roles, and contact information of real people at ${company.name}.
-            Focus on identifying C-level executives, owners, managers, and key staff members.
-            Please be very specific about real individuals with their full names and positions.
-            Do not list departments, generic roles, or business descriptions.
-            Examples of good results: "John Smith, Owner", "Sarah Johnson, General Manager"
-            Examples of bad results: "Customer Service", "Sales Department", "Company Overview"`;
-          
-          const contactResult = await analyzeCompany(
+          const peopleResult = await analyzeCompany(
             company.name,
-            explicitContactPrompt,
+            peopleSearchPrompt,
             null,
             null
           );
-          
-          searchResults.push(contactResult);
-          completedSearches.push('explicit-contact-search');
+          searchResults.push(peopleResult);
+          completedSearches.push('people-search');
         } catch (error) {
-          console.error('Failed to execute explicit contact search:', error);
+          console.error('Failed to execute people search:', error);
         }
+        
+        // Attempt to extract real people names with standard person name patterns
+        const nameRegex = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g;
+        const additionalPeople: Partial<Contact>[] = [];
+        
+        for (const result of searchResults) {
+          if (typeof result !== 'string' || !result) continue;
           
-        // Extract and validate contacts
+          let match;
+          const regex = new RegExp(nameRegex);
+          
+          while ((match = regex.exec(result)) !== null) {
+            const name = match[0];
+            
+            // Skip obvious non-person names
+            if (name.toLowerCase().includes('company') || 
+                name.toLowerCase().includes('service') ||
+                name.toLowerCase().includes('department') ||
+                name.toLowerCase().includes('llc') ||
+                name.toLowerCase().includes('inc')) {
+              continue;
+            }
+            
+            // Look for role near the name (within 100 chars)
+            const nameIndex = result.indexOf(name);
+            const contextStart = Math.max(0, nameIndex - 50);
+            const contextEnd = Math.min(result.length, nameIndex + name.length + 100);
+            const context = result.substring(contextStart, contextEnd);
+            
+            // Try to extract role with common patterns
+            let role = null;
+            const rolePatterns = [
+              new RegExp(`${name}\\s+is\\s+(?:the|a|an)\\s+([^.,]+?)(?:\\.|,|$)`, 'i'),
+              new RegExp(`${name}\\s+(?:serves|works|acts)\\s+as\\s+(?:the|a|an)\\s+([^.,]+?)(?:\\.|,|$)`, 'i'),
+              new RegExp(`${name},\\s+(?:the|a|an)\\s+([^.,]+?)(?:\\.|,|$)`, 'i')
+            ];
+            
+            for (const pattern of rolePatterns) {
+              const roleMatch = context.match(pattern);
+              if (roleMatch && roleMatch[1]) {
+                role = roleMatch[1].trim();
+                break;
+              }
+            }
+            
+            // Add to potential contacts with high probability if it looks like a person
+            if (name.split(/\s+/).length >= 2 && name.length > 5) {
+              additionalPeople.push({
+                name,
+                role,
+                companyId: company.id,
+                probability: 85, // Higher probability for detected person names with proper capitalization pattern
+                verificationSource: 'regex-extraction'
+              });
+            }
+          }
+        }
+        
+        // Extract contacts using standard methods too
         let extractedContacts = await extractContacts(searchResults);
         
-        // First pass filtering - remove obvious non-person entities
+        // Combine explicit person regex matches with extracted contacts
+        extractedContacts = [...extractedContacts, ...additionalPeople];
+        
+        // Filter out non-person entities
         extractedContacts = extractedContacts.filter(contact => {
           if (!contact.name) return false;
           
           const name = contact.name.toLowerCase();
           
-          // Comprehensive list of business/generic terms to filter out
+          // Filter out obvious business terms
           const businessTerms = [
             'llc', 'inc', 'corp', 'corporation', 'company', 'co.', 'ltd', 
             'limited', 'service', 'plumbing', 'hvac', 'repair', 'department',
             'sales', 'marketing', 'support', 'customer', 'services',
             'contact us', 'contact', 'call', 'info', 'information',
-            'overview', 'details', 'profile', 'business', 'industry',
-            'specializes', 'specializing', 'serving', 'service', 'provides',
-            'description', 'about', 'analysis', 'review', 'presence', 'position',
-            'reputation', 'features', 'offering', 'benefits', 'focus', 'area',
-            'specialties', 'specialty', 'characteristics', 'qualifications'
+            'overview', 'details', 'profile', 'business', 'industry'
           ];
           
-          // If name contains business terms or is too short, filter it out
           if (businessTerms.some(term => name.includes(term))) {
             return false;
           }
           
-          // Names should typically have at least first and last name
-          // Filter out single-word names (likely not real people) unless very long
-          if (!name.includes(' ') && name.length < 10) {
-            return false;
-          }
-          
-          // Reject contacts with very short names (likely abbreviations or generic terms)
-          if (name.length <= 3) {
+          // Filter out single-word names (likely not real people)
+          if (!name.includes(' ') && name.length < 8) {
             return false;
           }
           
           return true;
         });
         
-        // Second pass - more sophisticated person name validation
         // Apply enhanced validation if configured
         let validatedContacts = [];
-        
-        // Always use at least basic validation
-        // First, check if we can use enhanced validation
         if (useEnhancedValidation) {
-          try {
-            // Import needed for enhanced contact discovery
-            const { filterContacts } = await import('./search-logic/contact-discovery/enhanced-contact-discovery');
-            
-            // Use more advanced filtering with enhanced discovery
-            const enhancedFiltered = filterContacts(
-              extractedContacts, 
-              company.name,
-              {
-                minimumNameScore: config.searchOptions?.minimumNameScore || 60, // Lower threshold to allow more potential matches
-                companyNamePenalty: 30,
-                filterGenericNames: true
-              }
-            );
-            
-            validatedContacts = enhancedFiltered.map(contact => ({
-              ...contact,
-              // Ensure we have a probability for sorting
-              probability: contact.probability || 75
-            }));
-          } catch (error) {
-            console.error('Enhanced validation failed:', error);
-            // Fall back to basic validation if enhanced fails
-            validatedContacts = extractedContacts.filter(contact => {
-              return contact.probability && contact.probability >= (minimumConfidence || 50);
-            });
-          }
+          // Import needed for enhanced contact discovery
+          const { filterContacts } = await import('./search-logic/contact-discovery/enhanced-contact-discovery');
+          
+          // Use more advanced filtering with enhanced discovery
+          const enhancedFiltered = filterContacts(
+            extractedContacts, 
+            company.name,
+            {
+              minimumNameScore: config.searchOptions?.minimumNameScore || 65,
+              companyNamePenalty: 30,
+              filterGenericNames: true
+            }
+          );
+          
+          validatedContacts = enhancedFiltered.map(contact => ({
+            ...contact,
+            // Ensure we have a probability for sorting
+            probability: contact.probability || 75
+          }));
         } else {
-          // Use basic validation with name heuristics
+          // Use basic validation
           validatedContacts = extractedContacts.filter(contact => {
-            const name = contact.name?.toLowerCase() || '';
-            // Basic check for a reasonable name format (first and last name)
-            const hasSpaces = name.includes(' ');
-            const hasReasonableLength = name.length > 5;
-            // Probability check
-            const hasSufficientProbability = contact.probability && contact.probability >= (minimumConfidence || 50);
-            
-            return hasSpaces && hasReasonableLength && hasSufficientProbability;
+            return contact.probability && contact.probability >= minimumConfidence;
           });
         }
 
