@@ -46,7 +46,7 @@ export class SearchStorage {
     if (existing.length === 0) {
       const defaultApproaches: InsertSearchApproach[] = [
         {
-          name: "Small Business Decision-Makers",
+          name: "Small Business Contacts",
           prompt: "Target key decision makers in small businesses",
           order: 0,
           active: true,
@@ -85,9 +85,86 @@ export class SearchStorage {
           validationRules: {}
         },
         {
+          name: "Enhanced Contact Discovery",
+          prompt: "Improved contact discovery with advanced validation and enhanced email detection",
+          order: 1,
+          active: true,
+          moduleType: "email_discovery",
+          sequence: {
+            modules: ['company_overview', 'decision_maker', 'email_discovery'],
+            moduleConfigs: {
+              company_overview: {
+                subsearches: { 'small-business-validation': true },
+                searchOptions: { 
+                  ignoreFranchises: true,
+                  locallyHeadquartered: true
+                }
+              },
+              decision_maker: {
+                subsearches: { 'owner-identification': true, 'enhanced-name-validation': true },
+                searchOptions: { 
+                  requireRole: true,
+                  enhancedNameValidation: true,
+                  minimumNameScore: 70
+                }
+              },
+              email_discovery: {
+                subsearches: { 
+                  'direct-contact-discovery': true, 
+                  'enhanced-pattern-prediction-search': true,
+                  'domain-analysis-search': true
+                },
+                searchOptions: { 
+                  validatePatterns: true,
+                  enhancedValidation: true,
+                  crossReferenceValidation: true
+                }
+              }
+            },
+            validationStrategy: 'strict'
+          },
+          config: {
+            subsearches: {
+              'enhanced-pattern-prediction-search': true,
+              'enhanced-name-validation': true
+            },
+            searchOptions: {
+              enhancedValidation: true,
+              crossReferenceValidation: true
+            },
+            searchSections: {},
+            validationRules: {
+              requiredFields: ["name", "role"],
+              scoreThresholds: { 
+                roleConfidence: 80,
+                nameConfidence: 75,
+                emailConfidence: 70
+              },
+              minimumConfidence: 80
+            }
+          },
+          validationRules: {
+            nameValidation: {
+              minimumScore: 75,
+              preferFullNames: true,
+              filterGenericNames: true
+            },
+            emailValidation: {
+              minimumPatternScore: 70,
+              domainCheck: true,
+              crossReferenceValidation: true
+            }
+          },
+          completedSearches: [
+            'enhanced-pattern-prediction-search',
+            'domain-analysis-search',
+            'website-email-search'
+          ]
+        },
+        {
           name: "Contractor Search",
           prompt: "Find independent contractors and freelance professionals",
-          order: 1,
+          order: 2,
           active: true,
           moduleType: "company_overview",
           sequence: { 
@@ -104,7 +181,7 @@ export class SearchStorage {
         {
           name: "Medium Business Leadership",
           prompt: "Focus on leadership teams in medium-sized companies",
-          order: 2,
+          order: 3,
           active: true,
           moduleType: "company_overview",
           sequence: { 
@@ -121,7 +198,7 @@ export class SearchStorage {
         {
           name: "Corporate Employees",
           prompt: "Search for corporate employees across departments",
-          order: 3,
+          order: 4,
           active: true,
           moduleType: "company_overview",
           sequence: { 
@@ -138,7 +215,7 @@ export class SearchStorage {
         {
           name: "Rural Business Search",
           prompt: "Target businesses in rural and small-town locations",
-          order: 4,
+          order: 5,
           active: true,
           moduleType: "company_overview",
           sequence: { 

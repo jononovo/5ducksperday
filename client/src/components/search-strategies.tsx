@@ -60,8 +60,11 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
                 <SelectItem key={strategy.id} value={strategy.id.toString()}>
                   <div className="flex items-center gap-2">
                     {strategy.name}
-                    {strategy.sequence?.validationStrategy === 'strict' && (
+                    {(strategy.config as any)?.validationStrategy === 'strict' && (
                       <Badge variant="secondary" className="ml-2">Strict</Badge>
+                    )}
+                    {strategy.moduleType === 'email_discovery' && (
+                      <Badge variant="outline" className="ml-2">Enhanced</Badge>
                     )}
                   </div>
                 </SelectItem>
@@ -95,9 +98,16 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
           <div className="flex gap-2 mt-2">
             {strategies
               .find(s => s.id.toString() === selectedStrategy)
-              ?.sequence?.modules.map((module) => (
-                <Badge key={module} variant="outline">
-                  {module.replace(/_/g, ' ')}
+              ?.moduleType && (
+                <Badge variant="outline">
+                  {(strategies.find(s => s.id.toString() === selectedStrategy)?.moduleType || "").replace(/_/g, ' ')}
+                </Badge>
+              )}
+            {strategies
+              .find(s => s.id.toString() === selectedStrategy)
+              ?.completedSearches?.map((search: string) => (
+                <Badge key={search} variant="outline" className="text-xs">
+                  {search.replace(/_/g, ' ')}
                 </Badge>
               ))}
           </div>
