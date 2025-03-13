@@ -19,14 +19,21 @@ interface QuickTemplatesProps {
 export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
 
-  const { data: templates = [] } = useQuery<EmailTemplate[]>({
+  const { data: templates = [], isLoading } = useQuery<EmailTemplate[]>({
     queryKey: ["/api/email-templates"],
+    staleTime: 0, // Don't use cached data
+    cacheTime: 0, // Don't cache the response
+    retry: false, // Don't retry failed requests
+    refetchOnMount: true, // Always refetch when component mounts
   });
+
+  console.log('QuickTemplates - Loaded templates:', templates.map(t => ({ id: t.id, name: t.name })));
 
   const handleInsertTemplate = () => {
     if (!selectedTemplateId) return;
     const template = templates.find(t => t.id.toString() === selectedTemplateId);
     if (template) {
+      console.log('QuickTemplates - Selected template:', { id: template.id, name: template.name });
       onSelectTemplate(template);
     }
   };
@@ -40,8 +47,8 @@ export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps
 
       <div className="space-y-2">
         <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a template" />
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={isLoading ? "Loading templates..." : "Select a template"} />
           </SelectTrigger>
           <SelectContent>
             {templates.map((template) => (
