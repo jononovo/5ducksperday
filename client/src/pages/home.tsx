@@ -457,6 +457,21 @@ export default function Home() {
       <div className="grid grid-cols-12 gap-6">
         {/* Main Content Area - 9 columns */}
         <div className="col-span-9 space-y-6">
+          {/* Display selected company details if a company is selected */}
+          {selectedCompanyId && (
+            <CompanyDetailCard
+              companyId={selectedCompanyId}
+              onClose={() => setSelectedCompanyId(null)}
+              onContactView={handleContactView}
+              onContactFeedback={handleContactFeedback}
+              onContactEnrich={handleEnrichContact}
+              isContactPending={isContactPending}
+              isContactEnriched={isContactEnriched}
+              getEnrichButtonClass={getEnrichButtonClass}
+              getEnrichButtonText={getEnrichButtonText}
+            />
+          )}
+          
           {/* Search Section */}
           <Card>
             <CardHeader>
