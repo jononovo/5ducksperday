@@ -64,30 +64,36 @@ export function SearchTestResults({ strategyId, limit = 5 }: SearchTestResultsPr
       : ["/api/search-test-results"],
     enabled: true,
     retry: false,
-    onSuccess: (newData) => {
-      if (newData && newData.length > 0) {
-        // Save to local storage when we get new data
-        const storageKey = strategyId 
-          ? STRATEGY_RESULTS_KEY(strategyId)
-          : LOCAL_STORAGE_KEY;
-        
-        try {
-          console.log(`Saving ${newData.length} test results to localStorage (${storageKey})`);
-          localStorage.setItem(storageKey, JSON.stringify(newData));
-          setLocalResults(newData);
-        } catch (err) {
-          console.error("Error saving test results to localStorage:", err);
-        }
+  });
+  
+  // Save data to localStorage when it changes
+  useEffect(() => {
+    if (data && data.length > 0) {
+      // Save to local storage when we get new data
+      const storageKey = strategyId 
+        ? STRATEGY_RESULTS_KEY(strategyId)
+        : LOCAL_STORAGE_KEY;
+      
+      try {
+        console.log(`Saving ${data.length} test results to localStorage (${storageKey})`);
+        localStorage.setItem(storageKey, JSON.stringify(data));
+        setLocalResults(data);
+      } catch (err) {
+        console.error("Error saving test results to localStorage:", err);
       }
-    },
-    onError: () => {
+    }
+  }, [data, strategyId]);
+  
+  // Handle query errors
+  useEffect(() => {
+    if (error) {
       toast({
         title: "Error",
         description: "Could not load test results",
         variant: "destructive",
       });
-    },
-  });
+    }
+  }, [error, toast]);
 
   // Get quality score color
   const getScoreColor = (score: number) => {

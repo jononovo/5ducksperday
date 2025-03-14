@@ -97,6 +97,14 @@ export default function Build() {
           timestamp: result.createdAt || new Date().toISOString()
         }));
         
+        // Save to localStorage and update state
+        try {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formattedResults));
+          console.log("Saved database results to localStorage:", formattedResults.length);
+        } catch (err) {
+          console.error("Error saving test results to localStorage:", err);
+        }
+        
         setTestResults(formattedResults);
       }
     },
@@ -218,8 +226,18 @@ export default function Build() {
         timestamp: new Date().toISOString()
       };
       
-      // Add to local state (newest first)
-      setTestResults(prev => [newTestResult, ...prev]);
+      // Add to local state (newest first) and save to localStorage
+      setTestResults(prev => {
+        const updatedResults = [newTestResult, ...prev];
+        // Save to localStorage
+        try {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedResults));
+          console.log("Saved test results to localStorage:", updatedResults.length);
+        } catch (err) {
+          console.error("Error saving test results to localStorage:", err);
+        }
+        return updatedResults;
+      });
       
       // Also save the result to the database for persistence
       try {
