@@ -1,4 +1,24 @@
-import { Contact } from '../../../shared/schema';
+// Using type directly since the shared schema import is causing issues
+// This matches the Contact type in shared/schema.ts
+type Contact = {
+  id?: number;
+  email?: string | null;
+  createdAt?: Date | null;
+  name?: string;
+  userId?: number;
+  companyId?: number;
+  role?: string | null;
+  probability?: number | null;
+  linkedinUrl?: string | null;
+  phone?: string | null;
+  verificationSource?: string | null;
+  validationMethod?: string | null;
+  verifiedAt?: Date | null;
+  enrichmentSource?: string | null;
+  enrichedAt?: Date | null;
+  score?: number | null;
+  completedSearches?: string[] | null;
+};
 import { parseFullName, validatePersonName, isLikelyCompanyName, isLikelyDepartmentOrRole } from './enhanced-name-parsing';
 import { validateName } from '../../results-analysis/contact-name-validation';
 
@@ -179,7 +199,11 @@ export function deduplicateContacts(contacts: Partial<Contact>[]): Partial<Conta
     
     // Check for duplicates with fuzzy matching
     let isDuplicate = false;
-    for (const [existingName] of nameMap.entries()) {
+    
+    // Convert Map entries to array to avoid iterator type issues
+    const existingNames = Array.from(nameMap.keys());
+    
+    for (const existingName of existingNames) {
       const similarityScore = calculateSimilarity(normalizedName, existingName);
       if (similarityScore > 0.8) {
         isDuplicate = true;

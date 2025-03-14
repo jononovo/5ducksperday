@@ -143,9 +143,9 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
               <Badge variant="secondary" className="text-xs">Enhanced Validation</Badge>
             )}
             
-            {strategies.find(s => s.id.toString() === selectedStrategy)?.sequence?.validationStrategy && (
+            {((strategies.find(s => s.id.toString() === selectedStrategy)?.config as any)?.sequence?.validationStrategy) && (
               <Badge variant="outline" className="text-xs">
-                {strategies.find(s => s.id.toString() === selectedStrategy)?.sequence?.validationStrategy} validation
+                {((strategies.find(s => s.id.toString() === selectedStrategy)?.config as any)?.sequence?.validationStrategy)} validation
               </Badge>
             )}
           </div>
