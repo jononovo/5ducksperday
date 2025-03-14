@@ -259,16 +259,16 @@ export async function extractContacts(
         - AI score: ${aiScore}`);
 
       const finalScore = combineValidationScores(aiScore, manualScore, {
-        minimumScore: validationOptions.minimumScore || 30,
-        companyNamePenalty: 20,
-        requireRole: true,
-        roleMinimumScore: 40
+        minimumScore: validationOptions.minimumScore || 20, // Lowered threshold (was 30)
+        companyNamePenalty: 15, // Reduced penalty (was 20)
+        requireRole: false, // Don't require role (was true)
+        roleMinimumScore: 30 // Lower role score requirement (was 40)
       });
 
       console.log(`Final combined score for "${name}": ${finalScore}`);
 
-      // Use original threshold
-      if (finalScore >= (validationOptions.minimumScore || 30)) {
+      // Use much lower final threshold to include more names
+      if (finalScore >= (validationOptions.minimumScore || 20)) { // Lowered threshold (was 30)
         roleRegex.lastIndex = 0;
         const roleMatch = roleRegex.exec(context);
         const role = roleMatch ? roleMatch[1].trim() : null;
