@@ -258,100 +258,129 @@ export default function WorkflowsPage() {
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Workflow Management</h1>
-          <Dialog open={isNewWorkflowDialogOpen} onOpenChange={setIsNewWorkflowDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Workflow
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Workflow</DialogTitle>
-                <DialogDescription>
-                  Create a new workflow for your data processing and automation tasks.
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter workflow name" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          A descriptive name for your workflow
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Enter workflow description"
-                            {...field}
-                            value={field.value || ""}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Optional details about what this workflow does
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="strategyId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Search Strategy</FormLabel>
-                        <Select
-                          onValueChange={(value) => field.onChange(parseInt(value))}
-                          defaultValue={field.value?.toString()}
-                        >
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                apiRequest("/api/workflows/create-demo", {
+                  method: "POST",
+                  data: { name: "Demo HTTP Request Workflow" }
+                })
+                .then(() => {
+                  queryClient.invalidateQueries({ queryKey: ["/api/workflows"] });
+                  toast({
+                    title: "Demo workflow created",
+                    description: "A demo workflow has been created successfully.",
+                  });
+                })
+                .catch(error => {
+                  console.error("Create demo workflow error:", error);
+                  toast({
+                    title: "Error",
+                    description: "Failed to create demo workflow. Please try again.",
+                    variant: "destructive",
+                  });
+                });
+              }}
+            >
+              <Play className="mr-2 h-4 w-4" />
+              Create Demo Workflow
+            </Button>
+            <Dialog open={isNewWorkflowDialogOpen} onOpenChange={setIsNewWorkflowDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Workflow
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Workflow</DialogTitle>
+                  <DialogDescription>
+                    Create a new workflow for your data processing and automation tasks.
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a search strategy" />
-                            </SelectTrigger>
+                            <Input placeholder="Enter workflow name" {...field} />
                           </FormControl>
-                          <SelectContent>
-                            {searchStrategies?.map((strategy: any) => (
-                              <SelectItem key={strategy.id} value={strategy.id.toString()}>
-                                {strategy.name} {strategy.id === 17 && "(Advanced Key Contact Discovery)"}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Associate this workflow with a search strategy to automate contact discovery
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <DialogFooter>
-                    <Button
-                      type="submit"
-                      disabled={createWorkflowMutation.isPending}
-                    >
-                      {createWorkflowMutation.isPending ? "Creating..." : "Create Workflow"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+                          <FormDescription>
+                            A descriptive name for your workflow
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Enter workflow description"
+                              {...field}
+                              value={field.value || ""}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Optional details about what this workflow does
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="strategyId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Search Strategy</FormLabel>
+                          <Select
+                            onValueChange={(value) => field.onChange(parseInt(value))}
+                            defaultValue={field.value?.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a search strategy" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {searchStrategies?.map((strategy: any) => (
+                                <SelectItem key={strategy.id} value={strategy.id.toString()}>
+                                  {strategy.name} {strategy.id === 17 && "(Advanced Key Contact Discovery)"}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Associate this workflow with a search strategy to automate contact discovery
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <DialogFooter>
+                      <Button
+                        type="submit"
+                        disabled={createWorkflowMutation.isPending}
+                      >
+                        {createWorkflowMutation.isPending ? "Creating..." : "Create Workflow"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         <div className="bg-card rounded-lg shadow">

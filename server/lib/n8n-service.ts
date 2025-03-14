@@ -372,3 +372,119 @@ class N8nService {
 
 // Create and export an instance of the service
 export const n8nService = new N8nService();
+
+// Generate a sample demo workflow template that we can use for testing
+export async function createDemoWorkflow(userId: number, name = "Demo HTTP Request Workflow"): Promise<any> {
+  try {
+    // Create a simple workflow in N8N
+    const n8nWorkflowData = {
+      name: name,
+      nodes: [
+        {
+          parameters: {
+            path: 'test',
+            responseMode: 'onReceived',
+            options: {},
+          },
+          name: 'Webhook',
+          type: 'n8n-nodes-base.webhook',
+          typeVersion: 1,
+          position: [250, 300],
+          webhookId: '1a862fea-4a1c-4aaa-a499-1a1fe8533d7f',
+        },
+        {
+          parameters: {
+            message: '={{$json}}',
+            options: {},
+          },
+          name: 'Process Incoming Data',
+          type: 'n8n-nodes-base.set',
+          typeVersion: 1,
+          position: [500, 300],
+        },
+        {
+          parameters: {
+            url: 'https://jsonplaceholder.typicode.com/posts',
+            options: {},
+            authentication: 'none',
+          },
+          name: 'HTTP Request',
+          type: 'n8n-nodes-base.httpRequest',
+          typeVersion: 1,
+          position: [750, 300],
+        },
+        {
+          parameters: {
+            functionCode: 'return {\n  result: {\n    message: "Demo workflow completed successfully",\n    data: $input.item.json,\n    timestamp: new Date().toISOString()\n  }\n};',
+          },
+          name: 'Format Result',
+          type: 'n8n-nodes-base.function',
+          typeVersion: 1,
+          position: [1000, 300],
+        },
+      ],
+      connections: {
+        Webhook: {
+          main: [
+            [
+              {
+                node: 'Process Incoming Data',
+                type: 'main',
+                index: 0,
+              },
+            ],
+          ],
+        },
+        'Process Incoming Data': {
+          main: [
+            [
+              {
+                node: 'HTTP Request',
+                type: 'main',
+                index: 0,
+              },
+            ],
+          ],
+        },
+        'HTTP Request': {
+          main: [
+            [
+              {
+                node: 'Format Result',
+                type: 'main',
+                index: 0,
+              },
+            ],
+          ],
+        },
+      },
+      active: false,
+      settings: {
+        executionOrder: 'v1',
+      },
+    };
+
+    // Create the workflow in N8N
+    const n8nResponse = await n8nService.createWorkflow(n8nWorkflowData);
+    console.log('Created demo workflow in N8N:', n8nResponse.id);
+
+    // Save it in our database
+    const workflow = await n8nService.saveWorkflow({
+      name: name,
+      description: "A demo workflow that makes HTTP requests and processes data",
+      userId: userId,
+      active: true,
+      workflowData: {
+        n8nWorkflowId: n8nResponse.id,
+        n8nWorkflow: n8nResponse,
+        templateType: 'demo',
+        version: '1.0'
+      }
+    });
+
+    return workflow;
+  } catch (error) {
+    console.error('Error creating demo workflow:', error);
+    throw error;
+  }
+}

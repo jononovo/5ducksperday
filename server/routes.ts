@@ -13,7 +13,7 @@ import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
 import { google } from 'googleapis';
-import { n8nService } from './lib/n8n-service';
+import { n8nService, createDemoWorkflow } from './lib/n8n-service';
 
 // Helper functions for improved search test scoring and AI agent support
 function normalizeScore(score: number): number {
@@ -1753,6 +1753,26 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       console.error(`Error fetching executions for workflow ${req.params.id}:`, error);
       res.status(500).json({
         message: error instanceof Error ? error.message : "Failed to fetch workflow executions"
+      });
+    }
+  });
+
+  // Route to create a demo workflow
+  app.post("/api/workflows/create-demo", requireAuth, async (req, res) => {
+    try {
+      const { name } = req.body;
+      
+      // Use the createDemoWorkflow function from n8n-service.ts
+      const demoWorkflow = await createDemoWorkflow(
+        req.user!.id, 
+        name || "Demo HTTP Request Workflow"
+      );
+      
+      res.json(demoWorkflow);
+    } catch (error) {
+      console.error("Error creating demo workflow:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to create demo workflow"
       });
     }
   });
