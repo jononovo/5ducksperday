@@ -102,13 +102,8 @@ export default function Build() {
         timestamp: result.createdAt || new Date().toISOString()
       }));
       
-      // Sort results by timestamp in descending order (newest first)
-      const sortedResults = [...formattedResults].sort((a, b) => {
-        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-      });
-      
       // Only take the most recent 20 results to avoid performance issues
-      const recentResults = sortedResults.slice(0, 20);
+      const recentResults = formattedResults.slice(-20);
       
       // Save to localStorage and update state
       try {

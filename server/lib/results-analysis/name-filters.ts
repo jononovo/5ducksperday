@@ -218,43 +218,9 @@ export const INDUSTRY_PROFESSIONAL_TITLES: Record<string, string[]> = {
     "backend", "qa engineer", "information security", "cloud architect", "engineer"
   ],
   "healthcare": [
-    // Standard titles (retained)
     "physician", "surgeon", "medical director", "nurse practitioner", "chief medical", 
     "healthcare administrator", "medical officer", "clinical director", "doctor", 
-    "specialist", "head of radiology", "chief of staff", "pharmacist",
-    
-    // Medical specialties with titles
-    "dr", "md", "do", "np", "pa", "rn", "lpn", "dds", "phd",
-    "chief of medicine", "attending physician", "resident physician", "fellow", 
-    "chief resident", "senior resident", "medical officer", 
-    
-    // Specialist titles
-    "cardiologist", "dermatologist", "endocrinologist", "gastroenterologist",
-    "hematologist", "neurologist", "nephrologist", "oncologist", "ophthalmologist",
-    "orthopedist", "pediatrician", "psychiatrist", "radiologist", "rheumatologist",
-    "urologist", "anesthesiologist", "pathologist", "physiatrist", 
-    
-    // Nursing and clinical titles
-    "head nurse", "charge nurse", "nurse manager", "director of nursing",
-    "clinical nurse specialist", "advanced practice nurse", "registered nurse",
-    "licensed practical nurse", "nurse anesthetist", "nurse midwife",
-    
-    // Healthcare administration
-    "hospital administrator", "practice manager", "chief of staff",
-    "medical director", "clinical coordinator", "quality director",
-    "chief nursing officer", "chief medical officer", "chief operating officer",
-    "health services director", "healthcare executive", "chief executive officer",
-    
-    // Additional titles
-    "physical therapist", "occupational therapist", "respiratory therapist",
-    "speech therapist", "dietitian", "clinical psychologist", "social worker",
-    "patient advocate", "case manager", "genetic counselor", "medical technologist",
-    "radiation therapist", "dental hygienist", "paramedic", 
-    
-    // Research positions
-    "research scientist", "clinical researcher", "principal investigator",
-    "research director", "clinical trial coordinator", "medical researcher",
-    "epidemiologist", "biostatistician", "public health specialist"
+    "specialist", "head of radiology", "chief of staff", "pharmacist"
   ],
   "financial": [
     "investment banker", "financial advisor", "financial analyst", "portfolio manager", 
@@ -386,38 +352,9 @@ export const INDUSTRY_SPECIFIC_TERMS: Record<string, string[]> = {
   
   // Healthcare and Medical
   "healthcare": [
-    // Standard terms (retained)
     "physician", "doctor", "nurse", "practitioner", "surgeon", "specialist", "technician",
     "therapist", "pharmacist", "clinician", "pathologist", "radiologist", "administrator",
-    "provider", "patient", "care", "medical", "clinical", "diagnostic", "therapeutic",
-    
-    // Expanded healthcare roles
-    "anesthesiologist", "cardiologist", "dermatologist", "endocrinologist", "neurologist", 
-    "oncologist", "ophthalmologist", "orthopedist", "pediatrician", "psychiatrist", 
-    "rheumatologist", "urologist", "hematologist", "gastroenterologist", "pulmonologist",
-    
-    // Nursing and support roles
-    "rn", "lpn", "cna", "np", "pa", "nursing", "registered", "midwife", "assistant",
-    "aide", "phlebotomist", "technologist", "paramedic", "emt", "sonographer", 
-    
-    // Healthcare management
-    "chief medical officer", "cmo", "director of nursing", "don", "health services", 
-    "medical director", "clinical coordinator", "healthcare executive", "hospital administrator",
-    
-    // Healthcare departments
-    "cardiology", "oncology", "neurology", "pediatrics", "emergency", "er", "icu", 
-    "radiology", "geriatrics", "obstetrics", "gynecology", "urology", "orthopedics",
-    
-    // Treatment and procedures
-    "diagnosis", "treatment", "procedure", "examination", "consultation", "prescription",
-    "rehabilitation", "therapy", "imaging", "screening", "vaccination", "immunization",
-    
-    // Healthcare facilities
-    "hospital", "clinic", "laboratory", "pharmacy", "hospice", "ward", "operating", "surgical",
-    "outpatient", "inpatient", "ambulatory", "emergency", "intensive care", "primary care",
-    
-    // Healthcare terminology 
-    "vitals", "chart", "ehr", "emr", "health record", "triage", "prescription", "referral"
+    "provider", "patient", "care", "medical", "clinical", "diagnostic", "therapeutic"
   ],
   
   // Financial Services

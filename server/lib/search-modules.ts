@@ -672,46 +672,8 @@ Provide their full name and current position. If this information is not availab
         // Always include manually extracted people, even if other methods fail
         console.log(`Manually extracted ${manuallyExtractedPeople.length} people from results`);
         
-        // Determine industry from company analysis if available
-        let industry = null;
-        try {
-          // Look for industry information in the search results
-          for (const result of searchResults) {
-            if (typeof result === 'string') {
-              // Check for industry indicators in the text
-              const industryMatches = [
-                { pattern: /healthcare|medical|hospital|clinic|physician|patient/i, value: "healthcare" },
-                { pattern: /software|technology|tech|developer|programming|IT|computer|cloud/i, value: "technology" },
-                { pattern: /finance|financial|banking|investment|accounting|wealth/i, value: "financial" },
-                { pattern: /legal|law firm|attorney|lawyer|counsel|litigation/i, value: "legal" },
-                { pattern: /construction|building|contractor|architecture|engineering/i, value: "construction" },
-                { pattern: /retail|store|shop|merchant|commerce|shopping/i, value: "retail" },
-                { pattern: /education|school|university|college|academic|teaching/i, value: "education" },
-                { pattern: /manufacturing|factory|production|industrial|assembly/i, value: "manufacturing" },
-                { pattern: /consulting|consultant|advisor|professional service/i, value: "consulting" }
-              ];
-              
-              for (const match of industryMatches) {
-                if (match.pattern.test(result)) {
-                  industry = match.value;
-                  console.log(`Detected industry context: ${industry}`);
-                  break;
-                }
-              }
-              
-              if (industry) break;
-            }
-          }
-        } catch (error) {
-          console.warn('Error determining industry context:', error);
-        }
-        
         // Extract contacts using standard methods too as a fallback
-        let extractedContacts = await extractContacts(
-          searchResults, 
-          companyName,
-          { industry: industry }  // Pass industry context for better validation
-        );
+        let extractedContacts = await extractContacts(searchResults);
         
         // First prioritize manually extracted people
         extractedContacts = [...manuallyExtractedPeople, ...extractedContacts];
