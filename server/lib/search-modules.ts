@@ -1,5 +1,8 @@
 import type { SearchModuleConfig, SearchSequence, SearchImplementation } from '@shared/schema';
-import { validateNames, extractContacts, searchCompanies, analyzeCompany, parseCompanyData, validateEmails } from './perplexity';
+import { validateNames, extractContacts } from './results-analysis/contact-name-validation';
+import { searchCompanies, analyzeCompany } from './search-logic';
+import { parseCompanyData } from './results-analysis/company-parser';
+import { validateEmails } from './perplexity';
 import type { Company, Contact } from '@shared/schema';
 import { emailDiscoveryModule } from './search-logic/email-discovery';
 import { validateEmailPattern, isValidBusinessEmail, isPlaceholderEmail } from './results-analysis/email-analysis';
@@ -1259,6 +1262,316 @@ export class SequentialSearchExecutor {
 }
 
 export const sequentialSearchExecutor = new SequentialSearchExecutor();
+
+// Import our module implementations
+import { emailEnrichmentModule } from './search-logic/email-enrichment';
+import { emailDeepDiveModule } from './search-logic/email-deepdive';
+import { getRoleMultiplier, isLeadershipRole } from './search-logic/email-deepdive';
+
+// Email Enrichment Module class
+export class EmailEnrichmentModule implements SearchModule {
+  async execute({ query, config, previousResults }: SearchModuleContext): Promise<SearchModuleResult> {
+    const completedSearches: string[] = [];
+    const contacts = previousResults?.companies ? [...previousResults.contacts] : [];
+    const validationScores: Record<string, number> = {};
+
+    try {
+      // Skip if no contacts to enrich
+      if (contacts.length === 0) {
+        console.log('No contacts to enrich in EmailEnrichmentModule');
+        return {
+          companies: previousResults?.companies || [],
+          contacts: [],
+          metadata: {
+            moduleType: 'email_enrichment',
+            completedSearches: ['empty-contacts'],
+            validationScores: {}
+          }
+        };
+      }
+
+      const validatedContacts: Array<Partial<Contact>> = [];
+
+      // Process each contact to validate and enrich their email
+      for (const contact of contacts) {
+        // Skip contacts without email
+        if (!contact.email) continue;
+
+        // Validate the email pattern
+        const patternScore = validateEmailPattern(contact.email);
+        validationScores[`${contact.name}_pattern`] = patternScore;
+
+        // Check if email is a business domain 
+        const businessDomainScore = isValidBusinessEmail(contact.email) ? 100 : 50;
+        validationScores[`${contact.name}_domain`] = businessDomainScore;
+
+        // Check if email is a placeholder
+        const placeholderCheck = !isPlaceholderEmail(contact.email);
+        validationScores[`${contact.name}_placeholder`] = placeholderCheck ? 100 : 0;
+
+        // Calculate final score (weighted average)
+        const finalScore = Math.round(
+          (patternScore * 0.4) + 
+          (businessDomainScore * 0.4) + 
+          (placeholderCheck ? 20 : 0)
+        );
+        
+        // Add to validated contacts if meets minimum threshold
+        if (finalScore >= (config.validationRules?.minimumConfidence || 70)) {
+          validatedContacts.push({
+            ...contact,
+            probability: finalScore,
+            verificationSource: 'email_enrichment',
+            verifiedAt: new Date()
+          });
+          
+          // Record the final score
+          validationScores[contact.name || 'unknown'] = finalScore;
+          completedSearches.push(`validate-${contact.email}`);
+        }
+      }
+
+      return {
+        companies: previousResults?.companies || [],
+        contacts: validatedContacts,
+        metadata: {
+          moduleType: 'email_enrichment',
+          completedSearches,
+          validationScores
+        }
+      };
+    } catch (error) {
+      console.error('Error in EmailEnrichmentModule:', error);
+      throw error;
+    }
+  }
+
+  async validate(result: SearchModuleResult): Promise<boolean> {
+    return result.contacts.some(contact => 
+      contact.email && 
+      contact.probability && 
+      contact.probability >= 50 &&
+      contact.verifiedAt
+    );
+  }
+
+  merge(current: SearchModuleResult, previous?: SearchModuleResult): SearchModuleResult {
+    if (!previous) return current;
+
+    const previousContacts = previous.contacts || [];
+    const currentContacts = current.contacts || [];
+    
+    // Merge contacts, keeping the validated ones
+    const mergedContacts = previousContacts.map(prevContact => {
+      // Find matching contact in current results
+      const matchingContact = currentContacts.find(
+        currContact => currContact.email === prevContact.email
+      );
+      
+      // If found a validated contact, merge them favoring the validated data
+      if (matchingContact) {
+        return {
+          ...prevContact,
+          ...matchingContact,
+          probability: matchingContact.probability || prevContact.probability,
+          verificationSource: matchingContact.verificationSource || prevContact.verificationSource,
+          verifiedAt: matchingContact.verifiedAt || prevContact.verifiedAt
+        };
+      }
+      
+      // Otherwise keep the original contact
+      return prevContact;
+    });
+
+    return {
+      companies: previous.companies,
+      contacts: mergedContacts,
+      metadata: {
+        ...current.metadata,
+        completedSearches: [
+          ...(previous.metadata.completedSearches || []),
+          ...(current.metadata.completedSearches || [])
+        ],
+        validationScores: {
+          ...previous.metadata.validationScores,
+          ...current.metadata.validationScores
+        }
+      }
+    };
+  }
+}
+
+// Email Deepdive Module class
+export class EmailDeepDiveModule implements SearchModule {
+  async execute({ query, config, previousResults }: SearchModuleContext): Promise<SearchModuleResult> {
+    const completedSearches: string[] = [];
+    const contacts = previousResults?.contacts || [];
+    const validationScores: Record<string, number> = {};
+    
+    try {
+      // Skip if no contacts to analyze further
+      if (contacts.length === 0) {
+        console.log('No contacts to deepdive in EmailDeepDiveModule');
+        return {
+          companies: previousResults?.companies || [],
+          contacts: [],
+          metadata: {
+            moduleType: 'email_deepdive',
+            completedSearches: ['empty-contacts'],
+            validationScores: {}
+          }
+        };
+      }
+
+      // Extract company name from query or previous results
+      let companyName = query;
+      if (previousResults?.companies && previousResults.companies.length > 0) {
+        companyName = previousResults.companies[0].name || query;
+      }
+      
+      // Extract company domain from previous contacts
+      let companyDomain: string | undefined;
+      for (const contact of contacts) {
+        if (contact.email) {
+          const parts = contact.email.split('@');
+          if (parts.length === 2) {
+            companyDomain = parts[1];
+            break;
+          }
+        }
+      }
+      
+      // Focus on leadership contacts
+      const leadershipContacts = contacts.filter(contact => {
+        const role = contact.role?.toLowerCase() || '';
+        return isLeadershipRole(role);
+      });
+      
+      // If we have leadership contacts, focus on them, otherwise use all contacts
+      const targetContacts = leadershipContacts.length > 0 ? leadershipContacts : contacts;
+      const enhancedContacts: Array<Partial<Contact>> = [];
+      
+      // Deep analysis for each high-value contact
+      for (const contact of targetContacts) {
+        if (!contact.name) continue;
+        
+        try {
+          // Improve validation for leadership roles with higher confidence
+          const roleMultiplier = getRoleMultiplier(contact.role);
+          
+          // Adjust confidence based on role importance
+          const baseScore = contact.probability || 75;
+          const adjustedScore = Math.min(Math.round(baseScore * roleMultiplier), 100);
+          
+          // If email exists, perform domain analysis
+          if (contact.email && companyDomain) {
+            const emailDomain = contact.email.split('@')[1];
+            const domainMatch = emailDomain === companyDomain ? 10 : 0;
+            
+            // Add to final contact with enhanced confidence
+            enhancedContacts.push({
+              ...contact,
+              probability: Math.min(adjustedScore + domainMatch, 100),
+              verificationSource: 'email_deepdive',
+              verifiedAt: new Date(),
+              enrichedAt: new Date(),
+              score: Math.min(adjustedScore + domainMatch, 100),
+            });
+            
+            // Record validation scores
+            validationScores[contact.name] = Math.min(adjustedScore + domainMatch, 100);
+            completedSearches.push(`deepdive-${contact.email}`);
+          } else {
+            // Just apply role adjustments if no email
+            enhancedContacts.push({
+              ...contact,
+              probability: adjustedScore,
+              score: adjustedScore,
+              verificationSource: 'email_deepdive',
+              verifiedAt: new Date(),
+              enrichedAt: new Date()
+            });
+            
+            validationScores[contact.name] = adjustedScore;
+            completedSearches.push(`deepdive-role-analysis`);
+          }
+        } catch (error) {
+          console.error(`Error analyzing contact ${contact.name}:`, error);
+        }
+      }
+      
+      return {
+        companies: previousResults?.companies || [],
+        contacts: enhancedContacts,
+        metadata: {
+          moduleType: 'email_deepdive',
+          completedSearches,
+          validationScores
+        }
+      };
+    } catch (error) {
+      console.error('Error in EmailDeepDiveModule:', error);
+      throw error;
+    }
+  }
+
+  async validate(result: SearchModuleResult): Promise<boolean> {
+    return result.contacts.length > 0;
+  }
+
+  merge(current: SearchModuleResult, previous?: SearchModuleResult): SearchModuleResult {
+    if (!previous) return current;
+
+    const previousContacts = previous.contacts || [];
+    const currentContacts = current.contacts || [];
+    
+    // For deepdive, we need to merge enhancing the previous contacts with new scores
+    const mergedContacts = previousContacts.map(prevContact => {
+      // Find matching contact in current deepdive results
+      const matchingContact = currentContacts.find(
+        currContact => currContact.name === prevContact.name || currContact.email === prevContact.email
+      );
+      
+      if (matchingContact) {
+        // Keep the highest confidence/probability score
+        const probability = Math.max(
+          matchingContact.probability || 0, 
+          prevContact.probability || 0
+        );
+        
+        return {
+          ...prevContact,
+          ...matchingContact,
+          // Always keep the higher confidence score
+          probability,
+          score: probability,
+          // Preserve the deepdive verification markers
+          verificationSource: matchingContact.verificationSource || prevContact.verificationSource,
+          verifiedAt: matchingContact.verifiedAt || prevContact.verifiedAt,
+          enrichedAt: matchingContact.enrichedAt || prevContact.enrichedAt
+        };
+      }
+      
+      return prevContact;
+    });
+
+    return {
+      companies: previous.companies,
+      contacts: mergedContacts,
+      metadata: {
+        ...current.metadata,
+        completedSearches: [
+          ...(previous.metadata.completedSearches || []),
+          ...(current.metadata.completedSearches || [])
+        ],
+        validationScores: {
+          ...previous.metadata.validationScores,
+          ...current.metadata.validationScores
+        }
+      }
+    };
+  }
+}
 
 export function createSearchModule(moduleType: string): SearchModule {
     switch (moduleType) {
