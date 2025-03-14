@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, BarChart3, Search, Mail, Users, ArrowRight } from "lucide-react";
 import { StrategyPerformanceChart } from "@/components/strategy-performance-chart";
+import { SearchTestResults } from "@/components/search-test-results";
 
 interface TestResult {
   id: string;
@@ -444,6 +445,12 @@ export default function Build() {
           </CardContent>
         </Card>
 
+        {/* Search Test Results */}
+        <SearchTestResults
+          strategyId={selectedStrategy || null}
+          limit={5}
+        />
+        
         {/* Strategy Performance History Chart */}
         <StrategyPerformanceChart 
           strategyId={selectedStrategy || null}
