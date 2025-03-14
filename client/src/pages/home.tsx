@@ -32,7 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import type { Company, Contact, SearchApproach } from "@shared/schema";
+import type { Company, Contact } from "@shared/schema";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,7 +42,6 @@ import {
 import SearchFlowNew from "@/components/search-flow-new";
 import { filterTopProspects } from "@/lib/results-analysis/prospect-filtering";
 import { IntroTourModal } from "@/components/intro-tour-modal";
-import CompanyDetailCard from "@/components/company-detail-card";
 import {
   Tooltip,
   TooltipContent,
@@ -194,17 +193,13 @@ export default function Home() {
     setLocation(`/contacts/${contactId}`);
   };
 
-  // State to track selected company for in-page viewing
-  const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
-  
   const handleCompanyView = (companyId: number) => {
     if (typeof companyId !== 'number') {
       console.error('Invalid company ID:', companyId);
       return;
     }
-    console.log('Viewing company in-page:', { companyId });
-    // Instead of navigating away, set the selected company ID for in-page display
-    setSelectedCompanyId(companyId);
+    console.log('Navigating to company:', { companyId });
+    setLocation(`/companies/${companyId}`);
   };
 
 
@@ -457,21 +452,6 @@ export default function Home() {
       <div className="grid grid-cols-12 gap-6">
         {/* Main Content Area - 9 columns */}
         <div className="col-span-9 space-y-6">
-          {/* Display selected company details if a company is selected */}
-          {selectedCompanyId && (
-            <CompanyDetailCard
-              companyId={selectedCompanyId}
-              onClose={() => setSelectedCompanyId(null)}
-              onContactView={handleContactView}
-              onContactFeedback={handleContactFeedback}
-              onContactEnrich={handleEnrichContact}
-              isContactPending={isContactPending}
-              isContactEnriched={isContactEnriched}
-              getEnrichButtonClass={getEnrichButtonClass}
-              getEnrichButtonText={getEnrichButtonText}
-            />
-          )}
-          
           {/* Search Section */}
           <Card>
             <CardHeader>
