@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, BarChart3, Search, Mail, Users, ArrowRight } from "lucide-react";
+import { Loader2, BarChart3, Search, Mail, Users, ArrowRight, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { StrategyPerformanceChart } from "@/components/strategy-performance-chart";
 
 interface TestResult {
@@ -315,11 +316,28 @@ export default function Build() {
 
         {/* Test Results Table */}
         <Card>
-          <CardHeader>
-            <CardTitle>Search Quality Benchmark Results</CardTitle>
-            <CardDescription>
-              Performance metrics for search strategies
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Search Quality Benchmark Results</CardTitle>
+              <CardDescription>
+                Performance metrics for search strategies
+              </CardDescription>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ["/api/search-test-results"] });
+                toast({
+                  title: "Refreshed",
+                  description: "Test results have been refreshed from database.",
+                });
+              }}
+              disabled={isLoadingResults}
+            >
+              <RefreshCw className={cn("mr-2 h-4 w-4", { "animate-spin": isLoadingResults })} />
+              Refresh
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="rounded-md border">
@@ -347,6 +365,7 @@ export default function Build() {
                       </div>
                     </TableHead>
                     <TableHead>Overall Score</TableHead>
+                    <TableHead>Timestamp</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -359,6 +378,7 @@ export default function Build() {
                       <TableCell><Progress value={undefined} className="h-2 w-16" /></TableCell>
                       <TableCell><Progress value={undefined} className="h-2 w-16" /></TableCell>
                       <TableCell><Loader2 className="h-4 w-4 animate-spin" /></TableCell>
+                      <TableCell>Just now</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="bg-blue-50 text-blue-600">Running</Badge>
                       </TableCell>
@@ -415,6 +435,9 @@ export default function Build() {
                         <Badge variant={getScoreBadgeVariant(result.overallScore)}>
                           {result.overallScore}/100
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {result.timestamp ? new Date(result.timestamp).toLocaleString() : 'N/A'}
                       </TableCell>
                       <TableCell>
                         <Badge variant="default">
