@@ -115,6 +115,7 @@ export function parseEmailDetails(response: string): Partial<Contact> {
 
     if (validEmails.length > 0) {
       contact.email = validEmails[0];
+      // Now we can use the alternativeEmails column since it exists
       if (validEmails.length > 1) {
         contact.alternativeEmails = validEmails.slice(1);
       }
