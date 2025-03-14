@@ -575,6 +575,24 @@ export function registerRoutes(app: Express) {
     res.json(updated);
   });
 
+  // Initialize search approaches
+  app.post("/api/search-approaches/initialize", async (_req, res) => {
+    try {
+      await storage.initializeDefaultSearchApproaches();
+      const approaches = await storage.listSearchApproaches();
+      res.json({ 
+        success: true, 
+        message: "Search approaches initialized successfully",
+        count: approaches.length
+      });
+    } catch (error) {
+      console.error('Error initializing search approaches:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
+    }
+  });
+
   // Keep other existing routes with requireAuth
   app.post("/api/generate-email", requireAuth, async (req, res) => {
     const { emailPrompt, contact, company } = req.body;
