@@ -1612,6 +1612,18 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
+  app.get("/api/workflows", requireAuth, async (req, res) => {
+    try {
+      const workflows = await n8nService.getUserWorkflows(req.user!.id);
+      res.json(workflows);
+    } catch (error) {
+      console.error("Error fetching workflows:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to fetch workflows"
+      });
+    }
+  });
+
   app.post("/api/workflows", requireAuth, async (req, res) => {
     try {
       const workflowData = insertN8nWorkflowSchema.parse({
