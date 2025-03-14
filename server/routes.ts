@@ -1731,6 +1731,59 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       });
     }
   });
+  
+  // Sync workflow from N8N to our database
+  app.post("/api/workflows/:id/sync", requireAuth, async (req, res) => {
+    try {
+      const workflowId = parseInt(req.params.id);
+      const workflow = await n8nService.getWorkflowFromDb(workflowId);
+      
+      if (!workflow) {
+        res.status(404).json({ message: "Workflow not found" });
+        return;
+      }
+      
+      if (workflow.userId !== req.user!.id) {
+        res.status(403).json({ message: "You don't have permission to sync this workflow" });
+        return;
+      }
+      
+      // Get the n8nWorkflowId from our database record
+      const n8nWorkflowId = workflow.workflowData && workflow.workflowData.n8nWorkflowId;
+      
+      if (!n8nWorkflowId) {
+        res.status(400).json({ message: "This workflow does not have an associated N8N workflow ID" });
+        return;
+      }
+      
+      // Fetch the latest workflow data from N8N
+      const n8nWorkflow = await n8nService.getWorkflow(n8nWorkflowId.toString());
+      
+      if (!n8nWorkflow) {
+        res.status(404).json({ message: "Workflow not found in N8N" });
+        return;
+      }
+      
+      // Update our database with the latest workflow data
+      const updatedWorkflow = await n8nService.updateWorkflowInDb(workflowId, {
+        workflowData: {
+          ...n8nWorkflow,
+          n8nWorkflowId // Keep the n8nWorkflowId reference
+        },
+        lastUpdated: new Date(),
+      });
+      
+      res.json({ 
+        message: "Workflow successfully synchronized", 
+        workflow: updatedWorkflow 
+      });
+    } catch (error) {
+      console.error(`Error syncing workflow ${req.params.id}:`, error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to sync workflow"
+      });
+    }
+  });
 
   app.get("/api/workflows/:id/executions", requireAuth, async (req, res) => {
     try {
