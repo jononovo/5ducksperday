@@ -991,7 +991,8 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         (metrics.companyQuality * 0.25) + (metrics.contactQuality * 0.5) + (metrics.emailQuality * 0.25)
       );
       
-      res.json({
+      // Generate a response object
+      const testResponse = {
         id: `test-${Date.now()}`,
         strategyId,
         strategyName: approach.name,
@@ -1000,7 +1001,55 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         status: 'completed',
         metrics,
         overallScore
-      });
+      };
+      
+      try {
+        // Persist the test result to the database
+        const testData = {
+          testId: testResponse.id,
+          userId: req.user!.id,
+          strategyId: strategyId,
+          query: query,
+          companyQuality: metrics.companyQuality,
+          contactQuality: metrics.contactQuality,
+          emailQuality: metrics.emailQuality,
+          overallScore: overallScore,
+          status: 'completed',
+          metadata: {
+            strategyName: approach.name,
+            scoringFactors: {
+              companyFactors: {
+                hasCompanyFilters,
+                hasCompanyVerification
+              },
+              contactFactors: {
+                hasContactValidation,
+                hasNameValidation,
+                requiresRole,
+                hasFocusOnLeadership,
+                hasLeadershipValidation,
+                hasEnhancedNameValidation
+              },
+              emailFactors: {
+                hasEmailValidation,
+                hasPatternAnalysis,
+                hasBusinessDomainCheck,
+                hasCrossReferenceValidation,
+                hasEnhancedEmailSearch,
+                hasDomainAnalysis
+              }
+            }
+          }
+        };
+        
+        console.log('Attempting to save test result to database with payload:', testData);
+        await storage.createSearchTestResult(testData);
+      } catch (error) {
+        console.error('Error saving test result to database:', error);
+        // We still return the response even if saving to DB fails
+      }
+      
+      res.json(testResponse);
     } catch (error) {
       console.error('Search quality test error:', error);
       res.status(500).json({
