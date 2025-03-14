@@ -797,11 +797,18 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const hasContactValidation = config?.validation?.minimumConfidence > 0.5;
       const hasNameValidation = config?.validation?.nameValidation?.minimumScore > 50;
       const requiresRole = config?.validation?.nameValidation?.requireRole;
+      const hasFocusOnLeadership = config?.searchOptions?.focusOnLeadership || false;
+      const hasRoleMinimumScore = config?.decision_maker?.searchOptions?.roleMinimumScore > 75;
+      const hasLeadershipValidation = config?.subsearches?.['leadership-role-validation'] || false;
+      const hasEnhancedNameValidation = config?.subsearches?.['enhanced-name-validation'] || false;
       
       // Email quality factors  
       const hasEmailValidation = config?.emailValidation?.minimumScore > 0.6;
       const hasPatternAnalysis = config?.emailValidation?.patternScore > 0.5;
       const hasBusinessDomainCheck = config?.emailValidation?.businessDomainScore > 0.5;
+      const hasCrossReferenceValidation = config?.searchOptions?.crossReferenceValidation || false;
+      const hasEnhancedEmailSearch = config?.email_discovery?.subsearches?.['enhanced-pattern-prediction-search'] || false;
+      const hasDomainAnalysis = config?.email_discovery?.subsearches?.['domain-analysis-search'] || false;
       
       // Calculate individual scores with some randomness for variety
       const randomFactor = () => Math.floor(Math.random() * 15) - 5; // -5 to +10 random adjustment
@@ -815,12 +822,19 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         (hasContactValidation ? 10 : 0) + 
         (hasNameValidation ? 10 : 0) + 
         (requiresRole ? 5 : 0) + 
+        (hasFocusOnLeadership ? 8 : 0) +
+        (hasLeadershipValidation ? 7 : 0) +
+        (hasRoleMinimumScore ? 5 : 0) +
+        (hasEnhancedNameValidation ? 6 : 0) +
         randomFactor();
         
       const emailQuality = baseScoreRange.min + 
         (hasEmailValidation ? 10 : 0) + 
         (hasPatternAnalysis ? 10 : 0) + 
         (hasBusinessDomainCheck ? 5 : 0) + 
+        (hasCrossReferenceValidation ? 8 : 0) +
+        (hasEnhancedEmailSearch ? 7 : 0) +
+        (hasDomainAnalysis ? 6 : 0) +
         randomFactor();
       
       // Ensure scores are in the valid range (30-100)
@@ -832,9 +846,9 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         emailQuality: normalizeScore(emailQuality)
       };
       
-      // Calculate overall score (weighted average)
+      // Calculate overall score with weighted emphasis on contact quality
       const overallScore = normalizeScore(
-        (metrics.companyQuality + metrics.contactQuality + metrics.emailQuality) / 3
+        (metrics.companyQuality * 0.25) + (metrics.contactQuality * 0.5) + (metrics.emailQuality * 0.25)
       );
       
       res.json({
