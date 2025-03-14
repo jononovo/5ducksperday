@@ -161,8 +161,9 @@ export function registerRoutes(app: Express) {
         a.name === "Company Overview" && a.active
       );
 
+      // Look for any active decision maker strategy with correct naming
       const decisionMakerAnalysis = approaches.find(a =>
-        a.name === "Decision-maker Analysis" && a.active
+        (a.moduleType === 'decision_maker') && a.active
       );
 
       if (!companyOverview) {
@@ -294,10 +295,10 @@ export function registerRoutes(app: Express) {
         return;
       }
 
-      // Get the decision-maker analysis approach
+      // Get any active decision-maker module approach
       const approaches = await storage.listSearchApproaches();
       const decisionMakerApproach = approaches.find(a =>
-        a.name === "Decision-maker Analysis"
+        a.moduleType === 'decision_maker' && a.active
       );
 
       if (!decisionMakerApproach) {
