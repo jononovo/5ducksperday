@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Table,
@@ -25,13 +25,12 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, BarChart3, Search, Mail, Users, ArrowRight } from "lucide-react";
 import { StrategyPerformanceChart } from "@/components/strategy-performance-chart";
-import { SearchTestResults } from "@/components/search-test-results";
 
 interface TestResult {
   id: string;
   strategyName: string;
   strategyId: number;
-  testQuery: string;
+  query: string;
   timestamp: string;
   companyQuality: number;
   contactQuality: number;
@@ -40,18 +39,34 @@ interface TestResult {
   status: "completed" | "running" | "failed";
 }
 
+// Local test results state 
+interface TestResultsState {
+  results: TestResult[];
+}
+
 export default function Build() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [testQuery, setTestQuery] = useState<string>("");
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
-  // Using database for test results instead of local storage
-  const [runningTest, setRunningTest] = useState<string | null>(null);
   const [isRunningTest, setIsRunningTest] = useState<boolean>(false);
+  // Local state for test results
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
 
   // Fetch search strategies
   const { data: strategies } = useQuery<SearchApproach[]>({
     queryKey: ["/api/search-approaches"],
+  });
+  
+  // Fetch existing test results to populate local state
+  const { data: dbTestResults, isLoading: isLoadingResults } = useQuery<TestResult[]>({
+    queryKey: ["/api/search-test-results"],
+    onSuccess: (data: TestResult[]) => {
+      if (data && Array.isArray(data)) {
+        // Initialize local state with database results
+        setTestResults(data);
+      }
+    }
   });
 
   // Initialize default strategies
@@ -145,20 +160,29 @@ export default function Build() {
       // Generate a valid UUID for the test
       const testUuid = crypto.randomUUID ? crypto.randomUUID() : `test-${Date.now()}`;
       
-      // Save the result to the database
+      // Get the strategy name
+      const strategyName = strategies?.find(s => s.id.toString() === selectedStrategy)?.name || 'Unknown Strategy';
+      
+      // Create the test result object
+      const newTestResult: TestResult = {
+        id: testUuid,
+        strategyId: parseInt(selectedStrategy),
+        strategyName: strategyName,
+        query: testQuery,
+        companyQuality: scores.companyQuality,
+        contactQuality: scores.contactQuality,
+        emailQuality: scores.emailQuality,
+        overallScore,
+        status: "completed",
+        timestamp: new Date().toISOString()
+      };
+      
+      // Add to local state (newest first)
+      setTestResults(prev => [newTestResult, ...prev]);
+      
+      // Also save the result to the database for persistence
       try {
-        const strategyName = strategies?.find(s => s.id.toString() === selectedStrategy)?.name || 'Unknown Strategy';
-        
-        console.log('Saving test result to database:', {
-          strategyId: parseInt(selectedStrategy),
-          testId: testUuid,
-          query: testQuery,
-          companyQuality: scores.companyQuality,
-          contactQuality: scores.contactQuality, 
-          emailQuality: scores.emailQuality,
-          overallScore,
-          status: "completed"
-        });
+        console.log('Saving test result to database:', newTestResult);
         
         const dbResponse = await apiRequest("POST", "/api/search-test-results", {
           strategyId: parseInt(selectedStrategy),
@@ -327,7 +351,7 @@ export default function Build() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isRunningTest ? (
+                  {isRunningTest && (
                     <TableRow>
                       <TableCell className="font-medium">{strategies?.find(s => s.id.toString() === selectedStrategy)?.name}</TableCell>
                       <TableCell>{testQuery}</TableCell>
@@ -339,7 +363,66 @@ export default function Build() {
                         <Badge variant="outline" className="bg-blue-50 text-blue-600">Running</Badge>
                       </TableCell>
                     </TableRow>
-                  ) : null}
+                  )}
+                  
+                  {/* Loading state when fetching initial results */}
+                  {isLoadingResults && testResults.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-4">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                          <p className="text-sm text-muted-foreground">Loading test results...</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  
+                  {/* Empty state when no results are available */}
+                  {!isLoadingResults && testResults.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-4">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <p className="text-sm text-muted-foreground">No test results yet. Run a test to see results here.</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  
+                  {/* Display test results from local state */}
+                  {testResults.map((result) => (
+                    <TableRow key={result.id}>
+                      <TableCell className="font-medium">{result.strategyName}</TableCell>
+                      <TableCell>{result.query}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Progress value={result.companyQuality} className="h-2 w-16" />
+                          <span className={getScoreColor(result.companyQuality)}>{result.companyQuality}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Progress value={result.contactQuality} className="h-2 w-16" />
+                          <span className={getScoreColor(result.contactQuality)}>{result.contactQuality}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Progress value={result.emailQuality} className="h-2 w-16" />
+                          <span className={getScoreColor(result.emailQuality)}>{result.emailQuality}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getScoreBadgeVariant(result.overallScore)}>
+                          {result.overallScore}/100
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="default">
+                          {result.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>
