@@ -23,6 +23,15 @@ const DEFAULT_OPTIONS: DiscoveryOptions = {
   preferFullNames: true
 };
 
+// Legacy mode options for more lenient discovery
+export const LEGACY_OPTIONS: DiscoveryOptions = {
+  minimumNameScore: 30,
+  companyNamePenalty: 15,
+  roleTitleBoost: 25,
+  filterGenericNames: false,
+  preferFullNames: true
+};
+
 /**
  * Validates and scores a contact based on multiple factors
  * @returns Score from 0-100
@@ -74,20 +83,43 @@ export function validateContact(
     
     // Additional bonus for senior roles
     const lowerRole = contact.role.toLowerCase();
+    // Leadership roles - check if using legacy options for higher boost
+    const isLegacyMode = options.minimumNameScore === LEGACY_OPTIONS.minimumNameScore;
+    
+    // C-level executives
     if (
       lowerRole.includes('ceo') ||
       lowerRole.includes('cto') ||
       lowerRole.includes('cfo') ||
       lowerRole.includes('chief') ||
-      lowerRole.includes('president') ||
+      lowerRole.includes('president')
+    ) {
+      score += isLegacyMode ? 30 : 15; // Higher boost in legacy mode
+    }
+    // Founders and owners
+    else if (
       lowerRole.includes('founder') ||
       lowerRole.includes('owner') ||
+      lowerRole.includes('partner')
+    ) {
+      score += isLegacyMode ? 35 : 15; // Even higher boost for founders in legacy mode
+    }
+    // Directors and VPs
+    else if (
       lowerRole.includes('director') ||
       lowerRole.includes('vp') ||
       lowerRole.includes('vice president') ||
       lowerRole.includes('head of')
     ) {
-      score += 15;
+      score += isLegacyMode ? 25 : 15; // Higher boost in legacy mode
+    }
+    // Managers and leads
+    else if (
+      lowerRole.includes('manager') ||
+      lowerRole.includes('lead') ||
+      lowerRole.includes('principal')
+    ) {
+      score += isLegacyMode ? 15 : 10; // Some boost in legacy mode
     }
   }
   

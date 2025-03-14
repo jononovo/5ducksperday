@@ -651,13 +651,69 @@ Provide their full name and current position. If this information is not availab
           return true;
         });
         
-        // Apply enhanced validation if configured
+        // Apply appropriate validation based on configuration
         let validatedContacts = [];
-        if (useEnhancedValidation) {
-          // Import needed for enhanced contact discovery
-          const { filterContacts } = await import('./search-logic/contact-discovery/enhanced-contact-discovery');
+        
+        // Import needed for enhanced contact discovery
+        const { filterContacts, LEGACY_OPTIONS } = await import('./search-logic/contact-discovery/enhanced-contact-discovery');
+        
+        // Check if legacy mode is enabled
+        const isLegacyMode = config.searchOptions?.legacyMode === true;
+        const focusOnLeadership = config.searchOptions?.focusOnLeadership === true;
+        
+        if (isLegacyMode) {
+          console.log("Using legacy contact discovery mode");
           
-          // Use more advanced filtering with enhanced discovery
+          // Use more lenient legacy options designed for decision-maker focus
+          const enhancedFiltered = filterContacts(
+            extractedContacts, 
+            company.name,
+            LEGACY_OPTIONS
+          );
+          
+          validatedContacts = enhancedFiltered.map(contact => ({
+            ...contact,
+            // Ensure we have a probability for sorting
+            probability: contact.probability || 60
+          }));
+          
+          // If focusing on leadership, prioritize leadership roles
+          if (focusOnLeadership) {
+            validatedContacts = validatedContacts.map(contact => {
+              const role = contact.role?.toLowerCase() || '';
+              
+              // Apply role-specific multipliers for leadership roles
+              const leadershipTerms = {
+                'founder': config.validationRules?.founder_multiplier || 1.5,
+                'ceo': config.validationRules?.c_level_multiplier || 1.3,
+                'chief': config.validationRules?.c_level_multiplier || 1.3,
+                'president': config.validationRules?.c_level_multiplier || 1.3,
+                'owner': config.validationRules?.founder_multiplier || 1.5,
+                'director': config.validationRules?.director_multiplier || 1.2,
+                'vp': config.validationRules?.director_multiplier || 1.2,
+                'vice president': config.validationRules?.director_multiplier || 1.2,
+                'head of': config.validationRules?.director_multiplier || 1.2,
+                'partner': config.validationRules?.founder_multiplier || 1.4
+              };
+              
+              // Find the highest applicable multiplier
+              let highestMultiplier = 1.0;
+              
+              for (const [term, multiplier] of Object.entries(leadershipTerms)) {
+                if (role.includes(term) && multiplier > highestMultiplier) {
+                  highestMultiplier = multiplier;
+                }
+              }
+              
+              // Apply the multiplier to the probability
+              return {
+                ...contact,
+                probability: Math.min(100, (contact.probability || 60) * highestMultiplier)
+              };
+            });
+          }
+        } else if (useEnhancedValidation) {
+          // Use more advanced filtering with enhanced discovery (standard mode)
           const enhancedFiltered = filterContacts(
             extractedContacts, 
             company.name,
@@ -1035,6 +1091,32 @@ export const VALIDATION_STRATEGIES = {
       minimumConfidence: 75,
       requireVerification: false,
       patternMatchThreshold: 0.7
+    }
+  },
+  // Special strategy for legacy mode with focus on decision makers
+  basic: {
+    company_overview: {
+      minimumConfidence: 50,
+      companyNamePenalty: 10,
+      requireVerification: false
+    },
+    decision_maker: {
+      minimumConfidence: 30,
+      nameValidation: {
+        minimumScore: 30,
+        businessTermPenalty: 15,
+        requireRole: false,
+        leadershipRoleBoost: 20,
+        c_level_multiplier: 1.3,
+        founder_multiplier: 1.5,
+        director_multiplier: 1.2
+      }
+    },
+    email_discovery: {
+      minimumConfidence: 40,
+      requireVerification: false,
+      patternMatchThreshold: 0.5,
+      allowPartialData: true
     }
   }
 };
