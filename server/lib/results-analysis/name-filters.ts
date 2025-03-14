@@ -396,6 +396,12 @@ export const INDUSTRY_SPECIFIC_TERMS: Record<string, string[]> = {
  * @param industry The industry sector to check against
  * @returns The count of industry-specific terms found
  */
+/**
+ * Count industry-specific terms in a name, with smart matching
+ * @param name The name to check
+ * @param industry The industry context to check against
+ * @returns The count of industry terms in the name
+ */
 export function countIndustryTerms(name: string, industry: string): number {
   if (!INDUSTRY_SPECIFIC_TERMS[industry]) {
     return 0;
@@ -404,9 +410,35 @@ export function countIndustryTerms(name: string, industry: string): number {
   const nameLower = name.toLowerCase();
   const words = nameLower.split(/[\s-]+/);
   
-  return words.filter(word => 
+  // Regular exact match (most accurate)
+  const exactMatches = words.filter(word => 
     INDUSTRY_SPECIFIC_TERMS[industry].includes(word)
   ).length;
+  
+  // If we found exact matches, return that count
+  if (exactMatches > 0) {
+    return exactMatches;
+  }
+  
+  // No exact matches, look for partial matches (be more conservative)
+  let partialMatches = 0;
+  for (const word of words) {
+    // Only count words of 4+ characters to avoid false positives
+    if (word.length < 4) continue;
+    
+    // Look for significant partial matches
+    for (const industryTerm of INDUSTRY_SPECIFIC_TERMS[industry]) {
+      if (industryTerm.length < 4) continue;
+      
+      // Word contains industry term or industry term contains word
+      if (word.includes(industryTerm) || industryTerm.includes(word)) {
+        partialMatches++;
+        break; // Only count once per word
+      }
+    }
+  }
+  
+  return partialMatches;
 }
 
 /**
@@ -427,6 +459,20 @@ export function containsDisallowedTerm(name: string): boolean {
 }
 
 /**
+ * Maps industry codes to a set of legitimate professional titles that may be part of a name
+ * These should NOT be penalized as they are professional designations
+ */
+export const INDUSTRY_PROFESSIONAL_TITLES: Record<string, string[]> = {
+  "technology": ["engineer", "developer", "architect"],
+  "healthcare": ["dr", "doctor", "physician", "nurse", "surgeon"],
+  "financial": ["cpa", "advisor", "analyst"],
+  "legal": ["attorney", "lawyer", "counsel", "esq"],
+  "education": ["professor", "dr", "phd", "dean"],
+  "construction": ["builder", "contractor", "architect"],
+  "consulting": ["consultant", "advisor", "strategist"]
+};
+
+/**
  * Calculates an industry-specific confidence score adjustment
  * @param name Name to check
  * @param industry Industry context for the check
@@ -435,6 +481,28 @@ export function containsDisallowedTerm(name: string): boolean {
 export function calculateIndustryContextScore(name: string, industry: string): number {
   if (!industry || !INDUSTRY_SPECIFIC_TERMS[industry]) {
     return 0; // No adjustment if industry not specified or not recognized
+  }
+  
+  const nameLower = name.toLowerCase();
+  const nameWords = nameLower.split(/[\s-]+/);
+  
+  // Check for professional titles that are legitimate in this industry
+  // These should receive a bonus rather than a penalty
+  if (INDUSTRY_PROFESSIONAL_TITLES[industry]) {
+    const hasProfessionalTitle = INDUSTRY_PROFESSIONAL_TITLES[industry].some(title => {
+      // Check for patterns like "John Smith, Engineer" or "Dr. Jane Doe"
+      if (nameLower.includes(`, ${title}`) || 
+          nameLower.startsWith(`${title} `) || 
+          nameLower.startsWith(`${title}. `)) {
+        return true;
+      }
+      return false;
+    });
+    
+    if (hasProfessionalTitle) {
+      // This appears to be a name with a professional title - give a boost
+      return 15; // Positive adjustment for industry-appropriate title
+    }
   }
   
   const termCount = countIndustryTerms(name, industry);
@@ -450,9 +518,23 @@ export function calculateIndustryContextScore(name: string, industry: string): n
     if (/^[A-Z][a-z]+\s+[A-Z][a-z]+$/.test(name)) {
       return 0; // No penalty for proper name format
     }
+    
+    // Check if the term appears after a comma (like "John Smith, Developer")
+    if (name.includes(",")) {
+      const afterComma = name.split(",")[1].trim().toLowerCase();
+      if (afterComma.length > 0 && INDUSTRY_SPECIFIC_TERMS[industry].includes(afterComma)) {
+        return 10; // Bonus for professional title after name
+      }
+    }
+    
     return -15; // Small penalty otherwise
   }
   
-  // Multiple industry terms suggest non-person entity (large penalty)
-  return -30 * termCount;
+  // Multiple industry terms - progressive penalty
+  if (termCount === 2) {
+    return -30; // Moderate penalty for two terms
+  }
+  
+  // Three or more terms is very likely not a person name
+  return -40 * (termCount - 1); // Severe penalty for multiple terms
 }
