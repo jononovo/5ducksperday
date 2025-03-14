@@ -1,18 +1,13 @@
 import { Contact } from "@shared/schema";
-import { isPlaceholderEmail, isValidBusinessEmail, generatePossibleEmails, extractDomainFromContext } from "./email-analysis";
+import { isValidBusinessEmail, generatePossibleEmails, extractDomainFromContext } from "./email-analysis";
 import { validateNames, combineValidationScores } from "./contact-ai-name-scorer";
-
-// Restore the isPlaceholderName function
-const isPlaceholderName = (name: string): boolean => {
-  const normalizedName = name.toLowerCase();
-  return PLACEHOLDER_NAMES.has(normalizedName) || 
-         normalizedName.includes('test') || 
-         normalizedName.includes('demo') ||
-         normalizedName.includes('example') ||
-         normalizedName.includes('admin') ||
-         normalizedName.includes('guest') ||
-         normalizedName.includes('user');
-};
+import { 
+  isPlaceholderName, 
+  isPlaceholderEmail, 
+  calculateGenericTermPenalty, 
+  countGenericTerms,
+  GENERIC_TERMS 
+} from "./name-filters";
 
 export interface NameValidationResult {
   score: number;
@@ -52,177 +47,7 @@ const VALIDATION_WEIGHTS = {
 
 const MAX_SCORE = 95;  // Maximum possible score
 
-const PLACEHOLDER_NAMES = new Set([
-  'john doe', 'jane doe', 'john smith', 'jane smith',
-  'test user', 'demo user', 'example user',
-  'admin user', 'guest user', 'unknown user'
-]);
-
-const GENERIC_TERMS = new Set([
-  // Do NOT remove ANY of these terms. They are used to detect generic names.
-
-  // Job titles and positions
-  'chief', 'executive', 'officer', 'ceo', 'cto', 'cfo', 'coo', 'president',
-  'director', 'manager', 'managers', 'head', 'lead', 'senior', 'junior', 'principal',
-  'vice', 'assistant', 'associate', 'coordinator', 'specialist', 'analyst',
-  'administrator', 'supervisor', 'founder', 'co-founder', 'owner', 'partner',
-  'developer', 'engineer', 'architect', 'consultant', 'advisor', 'strategist', 'role', 'roles',
-
-  // Departments and roles
-  'sales', 'marketing', 'finance', 'accounting', 'hr', 'human resources',
-  'operations', 'it', 'support', 'customer service', 'product', 'project',
-  'research', 'development', 'legal', 'compliance', 'quality', 'assurance',
-
-  // Business terms
-  'leadership', 'team', 'member', 'staff', 'employee', 'general',
-  'key', 'role', 'position', 'department', 'division', 'management',
-  'contact', 'person', 'representative', 'individual',
-  'business', 'company', 'enterprise', 'organization', 'corporation',
-  'admin', 'professional', 'consultant', 'consolidated',
-  'service', 'support', 'office', 'personnel', 'resource',
-  'operation', 'development', 'sales', 'marketing', 'customer',
-  'printing', 'press', 'commercial', 'digital', 'production',
-  'industry', 'focus', 'busy', 'founding',  'competitive', 'landscape',  
-
-  // Company identifiers
-  'company', 'consolidated', 'incorporated', 'inc', 'llc', 'ltd',
-  'group', 'holdings', 'solutions', 'services', 'international',
-  'global', 'industries', 'systems', 'technologies', 'associates',
-  'consulting', 'ventures', 'partners', 'limited', 'corp',
-  'cooperative', 'co', 'corporation', 'incorporated', 'plc',
-
-  // Industry terms
-  'information', 'technology', 'software', 'industry', 'reputation',
-  'quality', 'control', 'strategic', 'direction', 'overall',
-  'vision', 'strategy', 'innovation', 'infrastructure',
-  'technical', 'leader', 'focus', 'primary', 'secondary', 'expert', 'experts', 'clients',  'base', 'score',  'validation',  
-
-  // Descriptive business terms
-  'commerce', 'website', 'design', 'web', 'executive',
-  'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial',
-
-  // Planning 
-  'planning', 'schedule', 'project', 'plan', 'budget', 'budgeting', 'time', 'year', 'day', 
-
-  // Marketing Sector
-  'marketing', 'digital', 'strategist', 'interactive', 'executive', 'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial', 'social', 'media', 'creative', 'content', 'writing', 'subject',  
-
-  // Tech Sector
-  'tech', 'stack', 'implementation', 'verification', 'process', 'managing', 'operating', 'board', 'advisory', 'steering',
-  'corporate', 'enterprise', 'business', 'commercial', 'technological', 'integration', 
-
-  // Construction Sector
-  'building', 'construction', 'development', 'project', 'site', 'planning', 'design', 'engineering',
-  'architecture', 'infrastructure', 'facility', 'maintenance', 'operations',
-
-  // Non-name common words
-  'the', 'of', 'and', 'a', 'to', 'in', 'is', 'it', 'at',
-
-  // Entertainment Sector
-  'entertainment', 'music', 'film', 'television', 'video', 'show', 'event', 'performance', 'concert', 'festival',
-
-  // Healthcare Sector
-  'healthcare', 'medical', 'hospital', 'clinic', 'facility', 'care', 'insurance', 'health', 'dental', 'pharmacy', 
-  'pharmaceutical', 'disease', 'diagnosis', 'treatment', 'therapy',
-
-  // Finance Sector
-  'finance', 'accounting', 'investment', 'management', 'tax', 'invest', 'fund', 'loan', 'credit', 'debt', 'range', 'revenue',
-
-  // Skincare & spa Sector
-  'skincare', 'spa', 'makeup', 'hair', 'beauty', 'skin', 'treatment', 'therapy', 'cosmetics', 'hygiene', 'wellness', 'therapeutics', 
-  'relaxation', 'rejuvenation', 'recovery', 'hydration', 'nutrition',
-
-  // Fitness Sector
-  'fitness', 'exercise', 'gym', 'training', 'nutrition', 'diet', 'health', 'wellness', 'fit', 'routine', 'program',
-
-  // Fashion Sector
-  'fashion', 'style', 'trend', 'design', 'brand', 'show',
-
-  // Education Sector
-  'education', 'school', 'university', 'college', 'degree', 'training', 'program', 'course', 'certification', 'diploma', 'masters', 'bachelors', 'ma',
-
-  // Tourism Sector
-  'tourism', 'travel', 'vacation', 'holiday', 'trip', 'destination', 'experience', 'adventure', 'sightseeing', 'excursion', 'exploration',
-
-  // Religion Sector
-  'religion', 'spirituality', 'religious', 'church', 'temple', 'christianity', 'judaism', 'islam', 'buddhism',
-
-  // Sports Sector
-  'sports', 'athletics', 'sport', 'team', 'league', 'competition', 'event', 'match', 'game', 'season', 'tournament', 'championship', 'world', 'cup', 'final',
-
-  // Art Sector
-  'art', 'design', 'painting', 'sculpture', 'architecture', 'museum', 'gallery', 'exhibition', 'collection',
-
-  // Real-estate Sector
-  'real-estate', 'property', 'home', 'rental', 'sale', 'buy', 'buying', 'sell', 'selling', 'housing', 'development',
-
-  // Catering Sector 
-  'catering', 'restaurant', 'food', 'menu', 'dining', 'service', 'delivery',
-
-  // Geographic Sector
-  'geography', 'location', 'region', 'country', 'city', 'state', 'province', 'county', 'municipality', 'district', 'neighborhood', 'village', 'town', 'street', 'block', 'corner', 'road', 'avenue', 'highway', 'freeway', 'northern', 'southern', 'eastern', 'western', 'north', 'south', 'east', 'west', 'asia', 'pacific',  
-
-  // Govt Sector
-  'government', 'governor', 'governor-general', 'governor-general', 'authoritative', 'executive', 'chief', 'chief-executive', 'authority',
-
-  // Hospitality Sector
-  'hospitality', 'hotel', 'resort', 'accommodation', 'lodging', 'motel', 'inn', 'guest', 'reception', 'concierge',
-  'housekeeping', 'booking', 'reservation', 'check-in', 'check-out', 'front-desk', 'amenities', 'spa', 'conference', 'facilities',
-
-  // Manufacturing Sector
-  'manufacturing', 'factory', 'production', 'assembly', 'industrial', 'fabrication', 'processing', 'machinery', 'equipment', 'tooling',
-  'automation', 'quality-control', 'inventory', 'supply-chain', 'procurement', 'raw-materials', 'logistics', 'warehouse', 'distribution', 'shipping',
-
-  // Agriculture Sector
-  'agriculture', 'farming', 'crop', 'livestock', 'harvest', 'cultivation', 'irrigation', 'organic', 'pesticide', 'fertilizer',
-  'sustainable', 'seasonal', 'plantation', 'greenhouse', 'dairy', 'poultry', 'horticulture', 'agribusiness', 'produce', 'yield',
-
-  // Transportation Sector
-  'transportation', 'logistics', 'freight', 'shipping', 'cargo', 'delivery', 'fleet', 'vehicle', 'truck', 'carrier',
-  'transit', 'distribution', 'import', 'export', 'customs', 'port', 'terminal', 'container', 'forwarding', 'courier',
-
-  // Retail Sector
-  'retail', 'store', 'shop', 'outlet', 'merchant', 'seller', 'marketplace', 'inventory', 'checkout', 'shopping',
-  'e-commerce', 'point-of-sale', 'display', 'merchandise', 'pricing', 'discount', 'promotion', 'seasonal', 'consumer', 'product',
-
-  // Legal Services Sector
-  'legal', 'law', 'attorney', 'lawyer', 'counsel', 'litigation', 'contract', 'compliance', 'regulatory', 'legislation',
-  'intellectual-property', 'patent', 'trademark', 'copyright', 'licensing', 'arbitration', 'mediation', 'plaintiff', 'defendant', 'jurisdiction',
-
-  // Energy Sector
-  'energy', 'power', 'electricity', 'utility', 'renewable', 'solar', 'wind', 'hydro', 'nuclear', 'fossil-fuel',
-  'generation', 'transmission', 'distribution', 'grid', 'consumption', 'efficiency', 'carbon', 'emissions', 'sustainable', 'storage',
-
-  // Telecommunications Sector
-  'telecommunications', 'telecom', 'network', 'wireless', 'broadband', 'fiber', 'cable', 'internet', 'mobile', 'data',
-  'connectivity', 'bandwidth', 'infrastructure', 'communications', 'provider', 'carrier', 'switching', 'roaming', 'signal', 'spectrum',
-
-  // Automotive Sector
-  'automotive', 'vehicle', 'car', 'truck', 'dealer', 'dealership', 'manufacturer', 'maintenance', 'repair', 'parts',
-  'service', 'collision', 'warranty', 'inspection', 'bodyshop', 'mechanic', 'diagnostic', 'aftermarket', 'accessories', 'leasing',
-
-  // Insurance Sector
-  'insurance', 'policy', 'premium', 'coverage', 'claim', 'underwriting', 'actuary', 'risk', 'liability', 'deductible',
-  'reinsurance', 'broker', 'agent', 'adjuster', 'indemnity', 'beneficiary', 'annuity', 'casualty', 'property', 'life',
-
-  // Food Industry Sector
-  'food', 'beverage', 'culinary', 'cuisine', 'ingredient', 'recipe', 'menu', 'chef', 'kitchen', 'catering',
-  'bakery', 'butcher', 'confectionery', 'delicatessen', 'gourmet', 'organic', 'vegan', 'wholesale', 'specialty', 'artisanal',
-
-  // Event Management Sector
-  'event', 'planning', 'coordination', 'venue', 'booking', 'scheduling', 'registration', 'conference', 'exhibition', 'convention',
-  'festival', 'ceremony', 'occasion', 'celebration', 'organizer', 'logistic', 'audiovisual', 'decorative', 'catering', 'entertainment',
-
-  // Consulting Sector
-  'consulting', 'advisor', 'counsel', 'expert', 'specialist', 'strategist', 'analyst', 'facilitator', 'assessment', 'recommendation',
-  'implementation', 'solution', 'methodology', 'framework', 'benchmark', 'optimization', 'efficiency', 'transformation', 'engagement', 'deliverable',
-
-  // Publishing & Media Sector
-  'publishing', 'media', 'editorial', 'content', 'publication', 'press', 'journalist', 'editor', 'writer', 'author',
-  'broadcaster', 'producer', 'circulation', 'distribution', 'subscription', 'advertising', 'syndication', 'copyright', 'print', 'digital'
-]);
+// We use the GENERIC_TERMS imported from name-filters.ts
 
 export async function extractContacts(
   analysisResults: string[],
@@ -557,24 +382,15 @@ function validateNameFormat(name: string): number {
 }
 
 function validateGenericTerms(name: string): number {
-  const nameLower = name.toLowerCase();
-  const words = nameLower.split(/[\s-]+/);
   let score = 80;
 
-  // Check against generic terms
-  const genericCount = words.filter(word =>
-    GENERIC_TERMS.has(word) || PLACEHOLDER_NAMES.has(word)
-  ).length;
+  // Use the centralized generic terms counter from name-filters
+  const genericCount = countGenericTerms(name);
 
-  // Much more aggressive penalty for generic terms
+  // Apply penalty based on generic terms found
   if (genericCount > 0) {
-    // Exponential penalty - one generic term is bad, more than one is catastrophic
-    score -= (genericCount * 35); 
-    
-    // If multiple generic terms, additional penalty
-    if (genericCount > 1) {
-      score -= 20;
-    }
+    // Use the pre-calculated penalty from name-filters
+    score -= calculateGenericTermPenalty(name);
   }
 
   // Extended checks for business terms with more patterns
