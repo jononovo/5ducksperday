@@ -24,13 +24,29 @@ interface SearchStrategyProps {
   defaultStrategy?: string;
 }
 
+// Strategies to display in the dropdown
+const VALID_STRATEGIES = [
+  "Small Business Contacts",
+  "Enhanced Contact Discovery",
+  "Legacy Search (v1)",
+  "Comprehensive Search"
+];
+
+// Modules that should NOT be shown as strategies
+const EXCLUDED_MODULES = [
+  "Company Overview",
+  "Email Discovery",
+  "Enrich Email",
+  "Email Deepdive"
+];
+
 export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchStrategyProps) {
   const [selectedStrategy, setSelectedStrategy] = useState(defaultStrategy);
 
   const { data: strategies } = useQuery<SearchApproach[]>({
     queryKey: ["/api/search-approaches"],
     select: (data: SearchApproach[]) => data
-      .filter(s => s.active)
+      .filter(s => s.active && VALID_STRATEGIES.includes(s.name) && !EXCLUDED_MODULES.includes(s.name))
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
   });
 
@@ -40,6 +56,9 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
   };
 
   if (!strategies?.length) return null;
+
+  // Find the selected strategy object
+  const selectedStrategyObj = strategies.find(s => s.id.toString() === selectedStrategy);
 
   return (
     <Card className="p-4 mb-4">
@@ -89,63 +108,49 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
             <TooltipContent>
               <p className="max-w-xs">
                 Choose different search strategies optimized for specific business types and roles.
-                Enhanced strategies use advanced validation and improved email discovery techniques.
-                Standard strategies use basic validation rules and patterns.
+                Each strategy uses a different configuration of our four core search modules:
+                Company Overview → Email Discovery → Enrich Email → Email Deepdive.
               </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
 
-      {selectedStrategy && strategies.find(s => s.id.toString() === selectedStrategy) && (
+      {selectedStrategy && selectedStrategyObj && (
         <div className="mt-4">
           <p className="text-sm text-muted-foreground">
-            {strategies.find(s => s.id.toString() === selectedStrategy)?.prompt}
+            {selectedStrategyObj.prompt}
           </p>
           
-          {/* Additional details for specific approaches */}
-          {strategies.find(s => s.id.toString() === selectedStrategy)?.name === "Enhanced Contact Discovery" && (
+          {/* Strategy-specific descriptions */}
+          {selectedStrategyObj.name === "Enhanced Contact Discovery" && (
             <p className="text-xs text-muted-foreground mt-1">
               Uses advanced name parsing, enhanced pattern prediction, and cross-reference validation to improve contact discovery accuracy.
             </p>
           )}
           
-          {strategies.find(s => s.id.toString() === selectedStrategy)?.name === "Small Business Contacts" && (
+          {selectedStrategyObj.name === "Small Business Contacts" && (
             <p className="text-xs text-muted-foreground mt-1">
               Uses standard validation techniques to find contacts at small businesses with conventional email patterns.
             </p>
           )}
           
-          {strategies.find(s => s.id.toString() === selectedStrategy)?.name === "Legacy Search (v1)" && (
+          {selectedStrategyObj.name === "Legacy Search (v1)" && (
             <p className="text-xs text-muted-foreground mt-1">
               Uses the original search algorithm with direct website extraction and simpler validation. May find contacts that newer methods miss.
             </p>
           )}
           
           <div className="flex flex-wrap gap-2 mt-2">
-            {strategies
-              .find(s => s.id.toString() === selectedStrategy)
-              ?.moduleType && (
-                <Badge variant="outline">
-                  {(strategies.find(s => s.id.toString() === selectedStrategy)?.moduleType || "").replace(/_/g, ' ')}
-                </Badge>
-              )}
-            {strategies
-              .find(s => s.id.toString() === selectedStrategy)
-              ?.completedSearches?.map((search: string) => (
-                <Badge key={search} variant="outline" className="text-xs">
-                  {search.replace(/-/g, ' ')}
-                </Badge>
-              ))}
-              
-            {/* Show validation indicators */}
-            {strategies.find(s => s.id.toString() === selectedStrategy)?.name === "Enhanced Contact Discovery" && (
-              <Badge variant="secondary" className="text-xs">Enhanced Validation</Badge>
-            )}
+            {/* Show modules utilized */}
+            <Badge variant="outline" className="text-xs bg-blue-50">
+              Core Modules (4)
+            </Badge>
             
-            {((strategies.find(s => s.id.toString() === selectedStrategy)?.config as any)?.sequence?.validationStrategy) && (
+            {/* Show validation type */}
+            {((selectedStrategyObj.config as any)?.sequence?.validationStrategy) && (
               <Badge variant="outline" className="text-xs">
-                {((strategies.find(s => s.id.toString() === selectedStrategy)?.config as any)?.sequence?.validationStrategy)} validation
+                {((selectedStrategyObj.config as any)?.sequence?.validationStrategy)} validation
               </Badge>
             )}
           </div>

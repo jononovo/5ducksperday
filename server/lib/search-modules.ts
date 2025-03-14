@@ -185,11 +185,50 @@ export const LOCAL_SOURCES_MODULE = {
   defaultEnabledFor: ['email_discovery']
 };
 
-// All available search modules
+// All available search modules - The four core modules of our search system
 export const SEARCH_MODULES = {
+  // Core modules of our standard search flow
   company_overview: COMPANY_OVERVIEW_MODULE,
-  decision_maker: DECISION_MAKER_MODULE,
   email_discovery: EMAIL_DISCOVERY_MODULE,
+  
+  // Email enrichment module - validates and enhances email addresses
+  email_enrichment: {
+    type: 'email_enrichment',
+    defaultPrompt: "Validate and enrich email addresses for contacts at the company.",
+    technicalPrompt: `You are an email validation specialist. For each discovered email, perform detailed validation:
+      1. Pattern validation
+      2. Domain verification
+      3. Business email format analysis
+      4. Cross-reference with contact name
+      
+      Format your response with validation scores and confidence metrics.`,
+    responseStructure: {
+      validatedEmails: "array of validated emails with confidence scores",
+      validationMetrics: "detailed validation information"
+    },
+    defaultEnabledFor: ['email_discovery']
+  },
+  
+  // Email deepdive module - performs advanced analysis for high-value contacts
+  email_deepdive: {
+    type: 'email_deepdive',
+    defaultPrompt: "Perform deep analysis of contact information with focus on leadership.",
+    technicalPrompt: `For high-value contacts (leadership, founders, executives):
+      1. Perform deep pattern analysis
+      2. Cross-reference with social profiles
+      3. Analyze role-specific email patterns
+      4. Validate against business email conventions
+      
+      Focus on decision-makers and provide confidence metrics.`,
+    responseStructure: {
+      deepSearchResults: "detailed results from deep analysis",
+      confidenceScores: "confidence metrics for each result"
+    },
+    defaultEnabledFor: ['email_discovery']
+  },
+  
+  // Additional specialized search modules
+  decision_maker: DECISION_MAKER_MODULE,
   local_sources: LOCAL_SOURCES_MODULE
 };
 
@@ -1229,6 +1268,10 @@ export function createSearchModule(moduleType: string): SearchModule {
             return new DecisionMakerModule();
         case 'email_discovery':
             return new EmailDiscoveryModule();
+        case 'email_enrichment':
+            return new EmailEnrichmentModule();
+        case 'email_deepdive':
+            return new EmailDeepDiveModule();
         case 'local_sources':
             return new LocalSourcesModule();
         default:
