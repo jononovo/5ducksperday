@@ -23,7 +23,7 @@ import Workflows from "@/pages/workflows";
 import WorkflowDetails from "@/pages/workflow-details";
 import WorkflowExecutions from "@/pages/workflow-executions";
 import NotFound from "@/pages/not-found";
-import MainNav from "@/components/main-nav";
+import { MainNav } from "@/components/main-nav";
 import Privacy from "@/pages/privacy";
 import Terms from "@/pages/terms";
 import Pricing from "@/pages/pricing";
@@ -50,6 +50,9 @@ function Router() {
           <ProtectedRoute path="/companies/:id" component={CompanyDetails} />
           <ProtectedRoute path="/contacts/:id" component={ContactDetails} />
           <ProtectedRoute path="/api-templates" component={ApiTemplates} />
+          <ProtectedRoute path="/workflows" component={Workflows} />
+          <ProtectedRoute path="/workflows/:id" component={WorkflowDetails} />
+          <ProtectedRoute path="/workflows/:id/executions" component={WorkflowExecutions} />
           {/* Public Routes */}
           <Route path="/privacy" component={Privacy} />
           <Route path="/terms" component={Terms} />

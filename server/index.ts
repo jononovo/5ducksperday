@@ -54,6 +54,47 @@ app.get('/api/health', (_req, res) => {
   try {
     // Setup authentication before registering routes
     setupAuth(app);
+    
+    // Initialize database tables and migrations
+    await import('./db').then(async ({ db }) => {
+      try {
+        // Ensure the N8N workflow tables exist
+        log('Initializing N8N workflow tables...');
+        await db.execute(`
+          CREATE TABLE IF NOT EXISTS n8n_workflows (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            active BOOLEAN DEFAULT true,
+            "workflowData" JSONB,
+            "userId" INTEGER NOT NULL,
+            "strategyId" INTEGER,
+            "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          );
+        `);
+        
+        await db.execute(`
+          CREATE TABLE IF NOT EXISTS n8n_workflow_executions (
+            id SERIAL PRIMARY KEY,
+            "workflowId" INTEGER NOT NULL REFERENCES n8n_workflows(id) ON DELETE CASCADE,
+            "userId" INTEGER NOT NULL,
+            status VARCHAR(50) NOT NULL,
+            "executionId" VARCHAR(255),
+            "inputData" JSONB,
+            "outputData" JSONB,
+            error TEXT,
+            "startedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            "completedAt" TIMESTAMP WITH TIME ZONE,
+            "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          );
+        `);
+        
+        log('N8N workflow tables initialized');
+      } catch (dbError) {
+        console.error('Error initializing database tables:', dbError);
+      }
+    });
 
     const server = registerRoutes(app);
 

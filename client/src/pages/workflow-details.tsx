@@ -1,102 +1,60 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import Layout from "@/components/layout";
+import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-  Form,
-} from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Save, Play, Code } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { ArrowLeft, Save, Play, History } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { N8nWorkflow } from "@shared/schema";
 
-// Form schema for editing workflows
-const workflowFormSchema = z.object({
-  name: z.string().min(1, "Workflow name is required"),
-  description: z.string().optional(),
-  active: z.boolean().default(true),
-  strategyId: z.number().optional(),
-  workflowData: z.any().optional(),
-});
-
-type WorkflowFormValues = z.infer<typeof workflowFormSchema>;
-
 export default function WorkflowDetailsPage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  const workflowId = parseInt(params.id);
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("details");
-  const [workflowJson, setWorkflowJson] = useState("");
-  const [jsonError, setJsonError] = useState<string | null>(null);
-
+  
+  // State for workflow editor
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [active, setActive] = useState(true);
+  const [workflowData, setWorkflowData] = useState<Record<string, any>>({});
+  
   // Fetch workflow details
   const { data: workflow, isLoading } = useQuery({
-    queryKey: [`/api/workflows/${id}`],
-    enabled: !!user && !!id,
+    queryKey: [`/api/workflows/${workflowId}`],
+    enabled: !!user && !!workflowId,
   });
-
-  // Fetch search strategies for the strategy dropdown
-  const { data: strategies } = useQuery({
-    queryKey: ["/api/search-approaches"],
-    enabled: !!user,
-  });
-
-  // Form for editing workflow
-  const form = useForm<WorkflowFormValues>({
-    resolver: zodResolver(workflowFormSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      active: true,
-      strategyId: undefined,
-      workflowData: {},
-    },
-  });
-
-  // Update form when workflow data is loaded
+  
+  // Update state when workflow data is loaded
   useEffect(() => {
     if (workflow) {
-      form.reset({
-        name: workflow.name,
-        description: workflow.description || "",
-        active: workflow.active,
-        strategyId: workflow.strategyId || undefined,
-        workflowData: workflow.workflowData || {},
-      });
-
-      setWorkflowJson(JSON.stringify(workflow.workflowData || {}, null, 2));
+      setName(workflow.name || "");
+      setDescription(workflow.description || "");
+      setActive(workflow.active || false);
+      setWorkflowData(workflow.workflowData || {});
     }
-  }, [workflow, form]);
-
+  }, [workflow]);
+  
   // Mutation for updating a workflow
   const updateWorkflowMutation = useMutation({
-    mutationFn: async (data: WorkflowFormValues) => {
-      return apiRequest(`/api/workflows/${id}`, {
-        method: "PUT",
+    mutationFn: async (data: Partial<N8nWorkflow>) => {
+      return apiRequest(`/api/workflows/${workflowId}`, {
+        method: "PATCH",
         data,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/workflows/${id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/workflows/${workflowId}`] });
       toast({
         title: "Workflow updated",
         description: "The workflow has been updated successfully.",
@@ -111,11 +69,11 @@ export default function WorkflowDetailsPage() {
       console.error("Update workflow error:", error);
     },
   });
-
+  
   // Mutation for executing a workflow
   const executeWorkflowMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/workflows/${id}/execute`, {
+      return apiRequest(`/api/workflows/${workflowId}/execute`, {
         method: "POST",
         data: {},
       });
@@ -125,6 +83,11 @@ export default function WorkflowDetailsPage() {
         title: "Workflow executed",
         description: `Execution started with ID: ${data.executionId}`,
       });
+      
+      // Navigate to executions page after a short delay
+      setTimeout(() => {
+        navigate(`/workflows/${workflowId}/executions`);
+      }, 1500);
     },
     onError: (error) => {
       toast({
@@ -135,40 +98,22 @@ export default function WorkflowDetailsPage() {
       console.error("Execute workflow error:", error);
     },
   });
-
-  // Handle form submission for updating workflow
-  const onSubmit = (data: WorkflowFormValues) => {
-    // Parse the JSON input if we're on the JSON tab
-    if (activeTab === "json") {
-      try {
-        const parsedJson = JSON.parse(workflowJson);
-        data.workflowData = parsedJson;
-        setJsonError(null);
-      } catch (err) {
-        setJsonError("Invalid JSON format");
-        return;
-      }
-    }
-
-    updateWorkflowMutation.mutate(data);
+  
+  // Handle save workflow
+  const handleSave = () => {
+    updateWorkflowMutation.mutate({
+      name,
+      description,
+      active,
+      workflowData,
+    });
   };
-
-  // Function to execute a workflow
-  const executeWorkflow = () => {
+  
+  // Handle execute workflow
+  const handleExecute = () => {
     executeWorkflowMutation.mutate();
   };
-
-  // Handle JSON input change
-  const handleJsonChange = (value: string) => {
-    setWorkflowJson(value);
-    try {
-      JSON.parse(value);
-      setJsonError(null);
-    } catch (err) {
-      setJsonError("Invalid JSON format");
-    }
-  };
-
+  
   if (isLoading) {
     return (
       <Layout>
@@ -180,194 +125,157 @@ export default function WorkflowDetailsPage() {
       </Layout>
     );
   }
-
-  if (!workflow) {
-    return (
-      <Layout>
-        <div className="container mx-auto py-6">
-          <div className="flex flex-col items-center justify-center h-64">
-            <h3 className="text-lg font-medium mb-2">Workflow not found</h3>
-            <p className="text-muted-foreground mb-4">
-              The workflow you're looking for doesn't exist or you don't have permission to view it.
-            </p>
-            <Button onClick={() => navigate("/workflows")}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Workflows
-            </Button>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
+  
   return (
     <Layout>
       <div className="container mx-auto py-6">
+        {/* Header with back button */}
         <div className="flex items-center mb-6">
           <Button variant="ghost" onClick={() => navigate("/workflows")} className="mr-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Workflows
           </Button>
-          <h1 className="text-3xl font-bold flex-1">Edit Workflow</h1>
+          <h1 className="text-3xl font-bold flex-1">Workflow Details</h1>
           <div className="flex space-x-2">
             <Button
               variant="outline"
-              onClick={executeWorkflow}
+              onClick={() => navigate(`/workflows/${workflowId}/executions`)}
+            >
+              <History className="h-4 w-4 mr-2" />
+              Execution History
+            </Button>
+            <Button
+              onClick={handleExecute}
               disabled={executeWorkflowMutation.isPending}
             >
-              <Play className="mr-2 h-4 w-4" />
+              <Play className="h-4 w-4 mr-2" />
               {executeWorkflowMutation.isPending ? "Executing..." : "Execute Workflow"}
             </Button>
           </div>
         </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        
+        {/* Tabs for different workflow aspects */}
+        <Tabs defaultValue="details" className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="json">JSON Configuration</TabsTrigger>
+            <TabsTrigger value="editor">Workflow Editor</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <TabsContent value="details">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Workflow Details</CardTitle>
-                    <CardDescription>
-                      Configure the basic details of your workflow
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter workflow name" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            A descriptive name for your workflow
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+          
+          {/* Details Tab */}
+          <TabsContent value="details">
+            <Card>
+              <CardHeader>
+                <CardTitle>Workflow Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Workflow name"
                     />
-
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Enter workflow description"
-                              {...field}
-                              value={field.value || ""}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Optional details about what this workflow does
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={description || ""}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Describe what this workflow does"
+                      rows={4}
                     />
-
-                    <FormField
-                      control={form.control}
-                      name="active"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Active Status</FormLabel>
-                            <FormDescription>
-                              When active, this workflow can be executed and scheduled
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="active"
+                      checked={active}
+                      onCheckedChange={setActive}
                     />
-
-                    {strategies && (
-                      <FormField
-                        control={form.control}
-                        name="strategyId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Associated Strategy</FormLabel>
-                            <FormControl>
-                              <select
-                                className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                              >
-                                <option value="">None (Generic workflow)</option>
-                                {strategies.map((strategy) => (
-                                  <option key={strategy.id} value={strategy.id}>
-                                    {strategy.name} (ID: {strategy.id})
-                                  </option>
-                                ))}
-                              </select>
-                            </FormControl>
-                            <FormDescription>
-                              Link this workflow to a specific search strategy
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="json">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Workflow Configuration</CardTitle>
-                    <CardDescription>
-                      Edit the raw JSON configuration for this workflow (Advanced)
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="mb-4">
-                      <p className="text-sm text-muted-foreground mb-2">
-                        This is the advanced configuration used by N8N to execute the workflow.
-                      </p>
-                      {jsonError && (
-                        <div className="text-red-500 text-sm mb-2">{jsonError}</div>
-                      )}
-                      <Textarea
-                        value={workflowJson}
-                        onChange={(e) => handleJsonChange(e.target.value)}
-                        className="font-mono text-sm h-96"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <div className="flex justify-end">
-                <Button
-                  type="submit"
-                  disabled={updateWorkflowMutation.isPending || !!jsonError}
-                  className="w-full sm:w-auto"
-                >
-                  <Save className="mr-2 h-4 w-4" />
+                    <Label htmlFor="active">Active</Label>
+                  </div>
+                  
+                  <Button 
+                    onClick={handleSave}
+                    disabled={updateWorkflowMutation.isPending}
+                    className="mt-4"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {updateWorkflowMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Workflow Editor Tab */}
+          <TabsContent value="editor">
+            <Card>
+              <CardHeader>
+                <CardTitle>Workflow Editor</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted rounded-md p-4 min-h-[400px]">
+                  <p className="text-muted-foreground text-center mt-40">
+                    The N8N workflow editor will be integrated here.
+                    <br />
+                    Currently, workflows can be edited directly in the N8N interface.
+                  </p>
+                </div>
+                
+                <Button onClick={handleSave} className="mt-4" disabled={updateWorkflowMutation.isPending}>
+                  <Save className="h-4 w-4 mr-2" />
                   {updateWorkflowMutation.isPending ? "Saving..." : "Save Workflow"}
                 </Button>
-              </div>
-            </form>
-          </Form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Workflow Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="active-setting"
+                      checked={active}
+                      onCheckedChange={setActive}
+                    />
+                    <Label htmlFor="active-setting">Active</Label>
+                    <p className="text-sm text-muted-foreground ml-2">
+                      When inactive, the workflow will not be triggered automatically
+                    </p>
+                  </div>
+                  
+                  {workflow && (
+                    <div className="space-y-2 text-sm">
+                      <p><strong>ID:</strong> {workflowId}</p>
+                      <p><strong>Created:</strong> {new Date(workflow.createdAt || "").toLocaleString()}</p>
+                      <p><strong>Last Updated:</strong> {new Date(workflow.updatedAt || "").toLocaleString()}</p>
+                      
+                      {workflow.strategyId && (
+                        <p><strong>Associated Strategy:</strong> Strategy #{workflow.strategyId}</p>
+                      )}
+                    </div>
+                  )}
+                  
+                  <Button onClick={handleSave} className="mt-4" disabled={updateWorkflowMutation.isPending}>
+                    <Save className="h-4 w-4 mr-2" />
+                    {updateWorkflowMutation.isPending ? "Saving..." : "Save Settings"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </Layout>

@@ -14,7 +14,7 @@ const navigation = [
   { name: "Workflows", href: "/workflows" }
 ];
 
-export default function MainNav() {
+export function MainNav() {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
 
