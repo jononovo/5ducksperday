@@ -44,7 +44,11 @@ export default function Build() {
   const queryClient = useQueryClient();
   const [testQuery, setTestQuery] = useState<string>("");
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
-  const [testResults, setTestResults] = useState<TestResult[]>([]);
+  const [testResults, setTestResults] = useState<TestResult[]>(() => {
+    // Load saved test results from localStorage on component mount
+    const savedResults = localStorage.getItem('searchTestResults');
+    return savedResults ? JSON.parse(savedResults) : [];
+  });
   const [isRunningTest, setIsRunningTest] = useState<boolean>(false);
 
   // Fetch search strategies
@@ -129,7 +133,9 @@ export default function Build() {
         status: "running"
       };
       
-      setTestResults(prev => [runningTest, ...prev]);
+      const updatedResults = [runningTest, ...testResults];
+      setTestResults(updatedResults);
+      localStorage.setItem('searchTestResults', JSON.stringify(updatedResults));
       
       // Call the API to start the test
       const response = await apiRequest("POST", "/api/search-test", {
@@ -157,7 +163,7 @@ export default function Build() {
         Math.round((scores.companyQuality + scores.contactQuality + scores.emailQuality) / 3);
       
       // Update the test result
-      setTestResults(prev => prev.map(result => 
+      const updatedCompletedResults = testResults.map(result => 
         result.id === runningTest.id 
           ? {
               ...result,
@@ -166,7 +172,9 @@ export default function Build() {
               status: "completed" 
             }
           : result
-      ));
+      );
+      setTestResults(updatedCompletedResults);
+      localStorage.setItem('searchTestResults', JSON.stringify(updatedCompletedResults));
       
       toast({
         title: "Test completed",
@@ -179,11 +187,13 @@ export default function Build() {
         variant: "destructive"
       });
       
-      setTestResults(prev => prev.map(result => 
-        result.id === `test-${Date.now()}` 
+      const updatedFailedResults = testResults.map(result => 
+        result.id === runningTest.id 
           ? { ...result, status: "failed" }
           : result
-      ));
+      );
+      setTestResults(updatedFailedResults);
+      localStorage.setItem('searchTestResults', JSON.stringify(updatedFailedResults));
     } finally {
       setIsRunningTest(false);
     }
