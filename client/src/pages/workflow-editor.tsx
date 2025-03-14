@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Save, RefreshCw } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
+import { N8nWorkflow } from "@shared/schema";
 
 export default function WorkflowEditorPage() {
   const { workflowId } = useParams();
@@ -18,7 +19,7 @@ export default function WorkflowEditorPage() {
   const [iframeLoaded, setIframeLoaded] = useState(false);
   
   // Get the workflow details
-  const { data: workflow, isLoading } = useQuery({
+  const { data: workflow, isLoading } = useQuery<N8nWorkflow>({
     queryKey: [`/api/workflows/${workflowId}`],
     enabled: !!workflowId && !!user
   });
@@ -66,7 +67,7 @@ export default function WorkflowEditorPage() {
             
             {!isLoading && workflow && (
               <h1 className="text-xl font-bold hidden md:block">
-                Editing: {workflow.name}
+                Editing: {workflow.name || "Workflow"}
               </h1>
             )}
           </div>
@@ -107,6 +108,7 @@ export default function WorkflowEditorPage() {
               title="N8N Workflow Editor"
               onLoad={() => setIframeLoaded(true)}
               allow="accelerometer; camera; encrypted-media; fullscreen; geolocation; gyroscope; microphone; midi"
+              sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups"
             />
           </div>
         )}
