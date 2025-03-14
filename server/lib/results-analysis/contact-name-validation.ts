@@ -463,7 +463,56 @@ function validateDomainRules(name: string, context: string, options?: Validation
 
   // Apply industry-specific validation if industry context is provided
   if (options?.industry) {
-    const industryAdjustment = calculateIndustryContextScore(name, options.industry);
+    const industry = options.industry;
+    
+    // Healthcare-specific validation rules (applied before general industry adjustment)
+    if (industry === 'healthcare') {
+      const nameLower = name.toLowerCase();
+      
+      // Boost for medical titles at beginning of name (Dr. Jane Smith)
+      const medicalPrefixes = ['dr.', 'dr ', 'doctor', 'prof.', 'professor'];
+      if (medicalPrefixes.some(prefix => nameLower.startsWith(prefix))) {
+        score += 15;
+        console.log(`Healthcare boost: Medical prefix found in "${name}": +15`);
+      }
+      
+      // Boost for medical degrees at end of name (Jane Smith, MD)
+      const medicalSuffixes = [', md', ', do', ', phd', ', rn', ', np', ', pa', ', pharmd'];
+      if (medicalSuffixes.some(suffix => nameLower.endsWith(suffix))) {
+        score += 15;
+        console.log(`Healthcare boost: Medical suffix found in "${name}": +15`);
+      }
+      
+      // Check for healthcare titles in surrounding context
+      const titleInContext = (
+        context.match(new RegExp(`${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+(?:is|as)\\s+(?:a|the)\\s+([\\w\\s]+(?:doctor|physician|surgeon|specialist|practitioner|nurse|therapist))`, 'i')) ||
+        context.match(new RegExp(`${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*,\\s*([\\w\\s]+(?:doctor|physician|surgeon|specialist|practitioner|nurse|therapist))`, 'i'))
+      );
+      
+      if (titleInContext) {
+        score += 10;
+        console.log(`Healthcare boost: Title context match for "${name}": +10`);
+      }
+      
+      // Special case: Full healthcare professional patterns
+      if ((/Dr\.\s+[A-Z][a-z]+\s+[A-Z][a-z]+/.test(name) || 
+          /Professor\s+[A-Z][a-z]+\s+[A-Z][a-z]+/.test(name)) && 
+          !name.includes('Hospital') && !name.includes('Center')) {
+        // Very likely a real person with title
+        score += 20;
+        console.log(`Healthcare boost: Full title pattern match for "${name}": +20`);
+      }
+      
+      // Penalize department names
+      const departmentTerms = ['department', 'unit', 'center', 'ward', 'clinic', 'hospital', 'institute'];
+      if (departmentTerms.some(term => nameLower.includes(term))) {
+        score -= 30;
+        console.log(`Healthcare penalty: Department term found in "${name}": -30`);
+      }
+    }
+    
+    // Apply the general industry adjustment after specific rules
+    const industryAdjustment = calculateIndustryContextScore(name, industry);
     score += industryAdjustment;
     
     // Log the adjustment for debugging
