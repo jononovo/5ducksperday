@@ -203,14 +203,42 @@ export function registerRoutes(app: Express) {
         }
       }
 
-      const companyOverview = approaches.find(a =>
-        a.name === "Company Overview" && a.active
-      );
+      // If we have a selected strategy, use it as the primary analysis approach
+      // Otherwise fall back to default selection logic
+      let companyOverview;
+      let decisionMakerAnalysis;
+      
+      if (selectedStrategy && selectedStrategy.active) {
+        console.log(`Using selected strategy: ${selectedStrategy.name} (ID: ${selectedStrategy.id})`);
+        
+        // If the selected strategy is a decision maker module, assign it there and use Company Overview as base
+        if (selectedStrategy.moduleType === 'decision_maker') {
+          decisionMakerAnalysis = selectedStrategy;
+          
+          // Still need a company overview approach for base company data
+          companyOverview = approaches.find(a =>
+            a.name === "Company Overview" && a.active
+          );
+        } else {
+          // If it's any other type, use it as the company overview approach
+          companyOverview = selectedStrategy;
+          
+          // Optionally look for a decision maker approach if needed
+          decisionMakerAnalysis = approaches.find(a =>
+            (a.moduleType === 'decision_maker') && a.active
+          );
+        }
+      } else {
+        // Default selection logic (no specific strategy selected)
+        companyOverview = approaches.find(a =>
+          a.name === "Company Overview" && a.active
+        );
 
-      // Look for any active decision maker strategy with correct naming
-      const decisionMakerAnalysis = approaches.find(a =>
-        (a.moduleType === 'decision_maker') && a.active
-      );
+        // Look for any active decision maker strategy with correct naming
+        decisionMakerAnalysis = approaches.find(a =>
+          (a.moduleType === 'decision_maker') && a.active
+        );
+      }
 
       if (!companyOverview) {
         res.status(400).json({
@@ -295,6 +323,8 @@ export function registerRoutes(app: Express) {
       res.json({
         companies,
         query,
+        strategyId: selectedStrategy ? selectedStrategy.id : null,
+        strategyName: selectedStrategy ? selectedStrategy.name : "Default Flow",
       });
 
       // After sending response, start email enrichment if enabled

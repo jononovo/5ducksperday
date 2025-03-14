@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { Layout } from "@/components/layout";
+import { SearchStrategyProvider } from "@/lib/search-strategy-context";
 import Auth from "@/pages/auth";
 import Home from "@/pages/home";
 import Planning from "@/pages/planning";
@@ -64,8 +65,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
-        <Toaster />
+        <SearchStrategyProvider>
+          <Router />
+          <Toaster />
+        </SearchStrategyProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
