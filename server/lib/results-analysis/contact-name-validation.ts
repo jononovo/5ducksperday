@@ -165,7 +165,63 @@ const GENERIC_TERMS = new Set([
   'geography', 'location', 'region', 'country', 'city', 'state', 'province', 'county', 'municipality', 'district', 'neighborhood', 'village', 'town', 'street', 'block', 'corner', 'road', 'avenue', 'highway', 'freeway', 'northern', 'southern', 'eastern', 'western', 'north', 'south', 'east', 'west', 'asia', 'pacific',  
 
   // Govt Sector
-  'government', 'governor', 'governor-general', 'governor-general', 'authoritative', 'executive', 'chief', 'chief-executive', 'authority'
+  'government', 'governor', 'governor-general', 'governor-general', 'authoritative', 'executive', 'chief', 'chief-executive', 'authority',
+
+  // Hospitality Sector
+  'hospitality', 'hotel', 'resort', 'accommodation', 'lodging', 'motel', 'inn', 'guest', 'reception', 'concierge',
+  'housekeeping', 'booking', 'reservation', 'check-in', 'check-out', 'front-desk', 'amenities', 'spa', 'conference', 'facilities',
+
+  // Manufacturing Sector
+  'manufacturing', 'factory', 'production', 'assembly', 'industrial', 'fabrication', 'processing', 'machinery', 'equipment', 'tooling',
+  'automation', 'quality-control', 'inventory', 'supply-chain', 'procurement', 'raw-materials', 'logistics', 'warehouse', 'distribution', 'shipping',
+
+  // Agriculture Sector
+  'agriculture', 'farming', 'crop', 'livestock', 'harvest', 'cultivation', 'irrigation', 'organic', 'pesticide', 'fertilizer',
+  'sustainable', 'seasonal', 'plantation', 'greenhouse', 'dairy', 'poultry', 'horticulture', 'agribusiness', 'produce', 'yield',
+
+  // Transportation Sector
+  'transportation', 'logistics', 'freight', 'shipping', 'cargo', 'delivery', 'fleet', 'vehicle', 'truck', 'carrier',
+  'transit', 'distribution', 'import', 'export', 'customs', 'port', 'terminal', 'container', 'forwarding', 'courier',
+
+  // Retail Sector
+  'retail', 'store', 'shop', 'outlet', 'merchant', 'seller', 'marketplace', 'inventory', 'checkout', 'shopping',
+  'e-commerce', 'point-of-sale', 'display', 'merchandise', 'pricing', 'discount', 'promotion', 'seasonal', 'consumer', 'product',
+
+  // Legal Services Sector
+  'legal', 'law', 'attorney', 'lawyer', 'counsel', 'litigation', 'contract', 'compliance', 'regulatory', 'legislation',
+  'intellectual-property', 'patent', 'trademark', 'copyright', 'licensing', 'arbitration', 'mediation', 'plaintiff', 'defendant', 'jurisdiction',
+
+  // Energy Sector
+  'energy', 'power', 'electricity', 'utility', 'renewable', 'solar', 'wind', 'hydro', 'nuclear', 'fossil-fuel',
+  'generation', 'transmission', 'distribution', 'grid', 'consumption', 'efficiency', 'carbon', 'emissions', 'sustainable', 'storage',
+
+  // Telecommunications Sector
+  'telecommunications', 'telecom', 'network', 'wireless', 'broadband', 'fiber', 'cable', 'internet', 'mobile', 'data',
+  'connectivity', 'bandwidth', 'infrastructure', 'communications', 'provider', 'carrier', 'switching', 'roaming', 'signal', 'spectrum',
+
+  // Automotive Sector
+  'automotive', 'vehicle', 'car', 'truck', 'dealer', 'dealership', 'manufacturer', 'maintenance', 'repair', 'parts',
+  'service', 'collision', 'warranty', 'inspection', 'bodyshop', 'mechanic', 'diagnostic', 'aftermarket', 'accessories', 'leasing',
+
+  // Insurance Sector
+  'insurance', 'policy', 'premium', 'coverage', 'claim', 'underwriting', 'actuary', 'risk', 'liability', 'deductible',
+  'reinsurance', 'broker', 'agent', 'adjuster', 'indemnity', 'beneficiary', 'annuity', 'casualty', 'property', 'life',
+
+  // Food Industry Sector
+  'food', 'beverage', 'culinary', 'cuisine', 'ingredient', 'recipe', 'menu', 'chef', 'kitchen', 'catering',
+  'bakery', 'butcher', 'confectionery', 'delicatessen', 'gourmet', 'organic', 'vegan', 'wholesale', 'specialty', 'artisanal',
+
+  // Event Management Sector
+  'event', 'planning', 'coordination', 'venue', 'booking', 'scheduling', 'registration', 'conference', 'exhibition', 'convention',
+  'festival', 'ceremony', 'occasion', 'celebration', 'organizer', 'logistic', 'audiovisual', 'decorative', 'catering', 'entertainment',
+
+  // Consulting Sector
+  'consulting', 'advisor', 'counsel', 'expert', 'specialist', 'strategist', 'analyst', 'facilitator', 'assessment', 'recommendation',
+  'implementation', 'solution', 'methodology', 'framework', 'benchmark', 'optimization', 'efficiency', 'transformation', 'engagement', 'deliverable',
+
+  // Publishing & Media Sector
+  'publishing', 'media', 'editorial', 'content', 'publication', 'press', 'journalist', 'editor', 'writer', 'author',
+  'broadcaster', 'producer', 'circulation', 'distribution', 'subscription', 'advertising', 'syndication', 'copyright', 'print', 'digital'
 ]);
 
 export async function extractContacts(
