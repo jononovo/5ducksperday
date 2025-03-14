@@ -42,6 +42,7 @@ export interface IStorage {
   listSearchApproaches(): Promise<SearchApproach[]>;
   createSearchApproach(approach: InsertSearchApproach): Promise<SearchApproach>;
   updateSearchApproach(id: number, approach: Partial<SearchApproach>): Promise<SearchApproach | undefined>;
+  initializeDefaultSearchApproaches(): Promise<void>;
 
   // Campaigns
   getCampaign(campaignId: number, userId: number): Promise<Campaign | undefined>;
