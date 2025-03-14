@@ -33,6 +33,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
 import { PlusCircle, Play, Edit, Trash, Eye } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -61,6 +68,12 @@ export default function WorkflowsPage() {
     queryKey: ["/api/workflows"],
     enabled: !!user,
   });
+  
+  // Fetch search strategies
+  const { data: searchStrategies } = useQuery({
+    queryKey: ["/api/search-approaches"],
+    enabled: !!user,
+  });
 
   // Form for creating new workflows
   const form = useForm<WorkflowFormValues>({
@@ -73,13 +86,16 @@ export default function WorkflowsPage() {
 
   // Mutation for creating a new workflow
   const createWorkflowMutation = useMutation({
-    mutationFn: async (data: WorkflowFormValues) => {
+    mutationFn: async (data: any) => {
+      // Default workflowData if not provided
+      const workflowData = data.workflowData || {};
+      
       return apiRequest("/api/workflows", {
         method: "POST",
         data: {
           ...data,
           active: true,
-          workflowData: {},
+          workflowData, 
         },
       });
     },
@@ -126,9 +142,110 @@ export default function WorkflowsPage() {
     },
   });
 
+  // Advanced Key Contact Discovery workflow template
+  const keyContactWorkflowTemplate = {
+    name: "Advanced Key Contact Discovery",
+    active: true,
+    nodes: [
+      {
+        parameters: {
+          description: "Start the contact discovery process",
+          objectData: "={{ $workflow.company }}",
+          resultData: {
+            success: true,
+            data: {
+              name: "={{ $workflow.company.name }}",
+              website: "={{ $workflow.company.website }}"
+            }
+          }
+        },
+        name: "Start",
+        type: "n8n-nodes-base.start",
+        typeVersion: 1,
+        position: [100, 300]
+      },
+      {
+        parameters: {
+          description: "Search for key decision makers",
+          operation: "executeSingleFunction",
+          functionCode: "// This function searches for key decision makers using the ID17 strategy\nreturn {\n  success: true,\n  contacts: [\n    // The contacts will be populated by the advanced search algorithm\n  ]\n};"
+        },
+        name: "Discovery Function",
+        type: "n8n-nodes-base.function",
+        typeVersion: 1,
+        position: [300, 300]
+      },
+      {
+        parameters: {
+          description: "Filter and validate discovered contacts",
+          functionCode: "// Filter contacts with high confidence scores\nconst highConfidenceContacts = $input.all()[0].json.contacts.filter(c => c.score > 70);\nreturn { contacts: highConfidenceContacts, count: highConfidenceContacts.length };"
+        },
+        name: "Filter Contacts",
+        type: "n8n-nodes-base.function",
+        typeVersion: 1,
+        position: [500, 300]
+      },
+      {
+        parameters: {
+          description: "Save to database",
+          operation: "executeCustomCode",
+          customCode: "// Save contacts to database\nconst contacts = $input.all()[0].json.contacts;\nreturn { success: true, savedContacts: contacts.length };"
+        },
+        name: "Save Results",
+        type: "n8n-nodes-base.code",
+        typeVersion: 1,
+        position: [700, 300]
+      }
+    ],
+    connections: {
+      Start: {
+        main: [
+          [
+            {
+              node: "Discovery Function",
+              type: "main",
+              index: 0
+            }
+          ]
+        ]
+      },
+      "Discovery Function": {
+        main: [
+          [
+            {
+              node: "Filter Contacts",
+              type: "main",
+              index: 0
+            }
+          ]
+        ]
+      },
+      "Filter Contacts": {
+        main: [
+          [
+            {
+              node: "Save Results",
+              type: "main",
+              index: 0
+            }
+          ]
+        ]
+      }
+    }
+  };
+
   // Handle form submission for new workflow
   const onSubmit = (data: WorkflowFormValues) => {
-    createWorkflowMutation.mutate(data);
+    // If this is an Advanced Key Contact Discovery workflow (strategyId === 17)
+    // add the template workflow data
+    if (data.strategyId === 17) {
+      createWorkflowMutation.mutate({
+        ...data,
+        workflowData: keyContactWorkflowTemplate
+      });
+    } else {
+      createWorkflowMutation.mutate(data);
+    }
   };
 
   // Function to execute a workflow
@@ -188,6 +305,36 @@ export default function WorkflowsPage() {
                         </FormControl>
                         <FormDescription>
                           Optional details about what this workflow does
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="strategyId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Search Strategy</FormLabel>
+                        <Select
+                          onValueChange={(value) => field.onChange(parseInt(value))}
+                          defaultValue={field.value?.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a search strategy" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {searchStrategies?.map((strategy: any) => (
+                              <SelectItem key={strategy.id} value={strategy.id.toString()}>
+                                {strategy.name} {strategy.id === 17 && "(Advanced Key Contact Discovery)"}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Associate this workflow with a search strategy to automate contact discovery
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

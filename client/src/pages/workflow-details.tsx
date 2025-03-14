@@ -99,14 +99,98 @@ export default function WorkflowDetailsPage() {
     },
   });
   
+  // Function to fetch and sync the N8N workflow data
+  const syncN8nWorkflow = async () => {
+    try {
+      // Get iframe window to access N8N workflow data
+      const iframeEl = document.querySelector('iframe');
+      if (!iframeEl) {
+        toast({
+          title: "Error",
+          description: "Could not access the N8N editor iframe",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Get the workflow ID from the iframe URL
+      const iframeSrc = iframeEl.getAttribute('src') || '';
+      const n8nWorkflowId = iframeSrc.split('/workflow/')[1]?.replace('new', '');
+      
+      if (!n8nWorkflowId) {
+        toast({
+          title: "Warning",
+          description: "Please save your workflow in the N8N editor first",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Syncing workflow",
+        description: "Fetching workflow data from N8N...",
+      });
+
+      // Make a direct fetch to N8N API to get workflow data
+      const n8nApiResponse = await fetch(`http://localhost:5678/api/v1/workflows/${n8nWorkflowId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!n8nApiResponse.ok) {
+        toast({
+          title: "Error",
+          description: `Failed to fetch workflow data from N8N: ${n8nApiResponse.status}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const n8nWorkflowData = await n8nApiResponse.json();
+      
+      // Update our local workflow data state
+      const updatedWorkflowData = {
+        ...workflowData,
+        n8nWorkflowId,
+        n8nWorkflow: n8nWorkflowData
+      };
+      
+      setWorkflowData(updatedWorkflowData);
+      
+      // Save the workflow with updated N8N data
+      updateWorkflowMutation.mutate({
+        name,
+        description,
+        active,
+        workflowData: updatedWorkflowData,
+      });
+      
+    } catch (error) {
+      console.error('Error syncing N8N workflow:', error);
+      toast({
+        title: "Error",
+        description: "Failed to sync N8N workflow data",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Handle save workflow
   const handleSave = () => {
-    updateWorkflowMutation.mutate({
-      name,
-      description,
-      active,
-      workflowData,
-    });
+    // If we're on the editor tab, sync with N8N first
+    const activeTab = document.querySelector('[data-state="active"][role="tab"]')?.getAttribute('data-value');
+    
+    if (activeTab === 'editor') {
+      syncN8nWorkflow();
+    } else {
+      updateWorkflowMutation.mutate({
+        name,
+        description,
+        active,
+        workflowData,
+      });
+    }
   };
   
   // Handle execute workflow
@@ -220,12 +304,25 @@ export default function WorkflowDetailsPage() {
                 <CardTitle>Workflow Editor</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-muted rounded-md p-4 min-h-[400px]">
-                  <p className="text-muted-foreground text-center mt-40">
-                    The N8N workflow editor will be integrated here.
-                    <br />
-                    Currently, workflows can be edited directly in the N8N interface.
+                <div className="rounded-md overflow-hidden border border-border">
+                  <iframe 
+                    src={workflow?.workflowData?.n8nWorkflowId 
+                      ? `http://localhost:5678/workflow/${workflow.workflowData.n8nWorkflowId}` 
+                      : "http://localhost:5678/workflow/new"} 
+                    className="w-full h-[600px] border-0"
+                    title="N8N Workflow Editor"
+                  />
+                </div>
+                
+                <div className="mt-4 p-4 bg-muted rounded-md">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    <strong>Note:</strong> The N8N editor is embedded above. To properly save changes:
                   </p>
+                  <ol className="list-decimal ml-5 text-sm">
+                    <li>Design your workflow in the N8N editor</li>
+                    <li>Click "Save" in the N8N editor</li>
+                    <li>Then click the button below to sync the workflow with our system</li>
+                  </ol>
                 </div>
                 
                 <Button onClick={handleSave} className="mt-4" disabled={updateWorkflowMutation.isPending}>
