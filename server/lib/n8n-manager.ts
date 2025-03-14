@@ -52,7 +52,12 @@ export async function startN8n(): Promise<void> {
         DB_POSTGRESDB_HOST: process.env.PGHOST,
         DB_POSTGRESDB_PORT: process.env.PGPORT,
         DB_POSTGRESDB_USER: process.env.PGUSER,
-        DB_POSTGRESDB_PASSWORD: process.env.PGPASSWORD
+        DB_POSTGRESDB_PASSWORD: process.env.PGPASSWORD,
+        // Fix SSL mode issue
+        DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED: 'false',
+        DB_POSTGRESDB_SSL: 'true',
+        // Fix permissions issue
+        N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: 'false'
       };
 
       // Start n8n process
