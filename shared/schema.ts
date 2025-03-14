@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, jsonb, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, boolean, uuid } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 export const users = pgTable("users", {
@@ -121,6 +121,22 @@ export const userPreferences = pgTable("user_preferences", {
   hasSeenTour: boolean("has_seen_tour").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// New table for storing search test results
+export const searchTestResults = pgTable("search_test_results", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  strategyId: integer("strategy_id").notNull().references(() => searchApproaches.id),
+  testId: uuid("test_id").notNull(),
+  query: text("query").notNull(),
+  companyQuality: integer("company_quality").notNull(),
+  contactQuality: integer("contact_quality").notNull(),
+  emailQuality: integer("email_quality").notNull(),
+  overallScore: integer("overall_score").notNull(),
+  status: text("status").default("completed"),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 const listSchema = z.object({
@@ -256,6 +272,19 @@ const userPreferencesSchema = z.object({
   hasSeenTour: z.boolean().default(false)
 });
 
+const searchTestResultSchema = z.object({
+  userId: z.number(),
+  strategyId: z.number(),
+  testId: z.string().uuid(),
+  query: z.string(),
+  companyQuality: z.number().min(0).max(100),
+  contactQuality: z.number().min(0).max(100),
+  emailQuality: z.number().min(0).max(100),
+  overallScore: z.number().min(0).max(100),
+  status: z.enum(['completed', 'running', 'failed']).default('completed'),
+  metadata: z.record(z.unknown()).optional()
+});
+
 export const insertListSchema = listSchema.extend({
   userId: z.number()
 });
@@ -271,6 +300,7 @@ export const insertEmailTemplateSchema = emailTemplateSchema.extend({
 });
 export const insertContactFeedbackSchema = contactFeedbackSchema;
 export const insertUserPreferencesSchema = userPreferencesSchema;
+export const insertSearchTestResultSchema = searchTestResultSchema;
 
 export type List = typeof lists.$inferSelect;
 export type InsertList = z.infer<typeof insertListSchema>;
@@ -290,6 +320,8 @@ export type ContactFeedback = typeof contactFeedback.$inferSelect;
 export type InsertContactFeedback = z.infer<typeof insertContactFeedbackSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
+export type SearchTestResult = typeof searchTestResults.$inferSelect;
+export type InsertSearchTestResult = z.infer<typeof insertSearchTestResultSchema>;
 
 // Add user schema and type
 export const userSchema = z.object({
