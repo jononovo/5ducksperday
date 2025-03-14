@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Table,
@@ -32,9 +32,31 @@ interface SearchTestResultsProps {
   limit?: number;
 }
 
+// Local storage key for caching results
+const LOCAL_STORAGE_KEY = "searchTestResults";
+const STRATEGY_RESULTS_KEY = (id: string) => `searchTestResults_strategy_${id}`;
+
 export function SearchTestResults({ strategyId, limit = 5 }: SearchTestResultsProps) {
   const { toast } = useToast();
   const [selectedTestId, setSelectedTestId] = useState<string | null>(null);
+  const [localResults, setLocalResults] = useState<SearchTestResult[]>([]);
+  
+  // Load from local storage on component mount
+  useEffect(() => {
+    const storageKey = strategyId 
+      ? STRATEGY_RESULTS_KEY(strategyId)
+      : LOCAL_STORAGE_KEY;
+    
+    try {
+      const savedResults = localStorage.getItem(storageKey);
+      if (savedResults) {
+        console.log(`Loading cached test results from localStorage (${storageKey})`);
+        setLocalResults(JSON.parse(savedResults));
+      }
+    } catch (err) {
+      console.error("Error loading test results from localStorage:", err);
+    }
+  }, [strategyId]);
   
   const { data, isLoading, error } = useQuery<SearchTestResult[]>({
     queryKey: strategyId 
@@ -42,6 +64,22 @@ export function SearchTestResults({ strategyId, limit = 5 }: SearchTestResultsPr
       : ["/api/search-test-results"],
     enabled: true,
     retry: false,
+    onSuccess: (newData) => {
+      if (newData && newData.length > 0) {
+        // Save to local storage when we get new data
+        const storageKey = strategyId 
+          ? STRATEGY_RESULTS_KEY(strategyId)
+          : LOCAL_STORAGE_KEY;
+        
+        try {
+          console.log(`Saving ${newData.length} test results to localStorage (${storageKey})`);
+          localStorage.setItem(storageKey, JSON.stringify(newData));
+          setLocalResults(newData);
+        } catch (err) {
+          console.error("Error saving test results to localStorage:", err);
+        }
+      }
+    },
     onError: () => {
       toast({
         title: "Error",
@@ -77,8 +115,8 @@ export function SearchTestResults({ strategyId, limit = 5 }: SearchTestResultsPr
     return new Date(dateString).toLocaleString();
   };
 
-  // Display loading skeleton
-  if (isLoading) {
+  // Display loading skeleton - only show if we don't have local results to display
+  if (isLoading && localResults.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -96,8 +134,9 @@ export function SearchTestResults({ strategyId, limit = 5 }: SearchTestResultsPr
     );
   }
 
-  // Display error state
-  if (error || !data) {
+  // If we have an error but we have local results, use those instead
+  // Otherwise, show error state
+  if ((error || !data) && localResults.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -115,8 +154,12 @@ export function SearchTestResults({ strategyId, limit = 5 }: SearchTestResultsPr
     );
   }
 
+  // Determine which results to display
+  // Prefer API data over local storage, but fallback to local storage when API fails
+  const resultsToUse = (data && data.length > 0) ? data : localResults;
+  
   // Take the most recent 'limit' results
-  const results = data && data.length > 0 ? [...data].slice(-limit) : [];
+  const results = resultsToUse.length > 0 ? [...resultsToUse].slice(-limit) : [];
 
   return (
     <Card>

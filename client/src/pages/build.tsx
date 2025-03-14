@@ -40,6 +40,9 @@ interface TestResult {
   status: "completed" | "running" | "failed";
 }
 
+// Local storage key for persisting test results
+const LOCAL_STORAGE_KEY = "searchTestResults_build";
+
 // Local test results state 
 interface TestResultsState {
   results: TestResult[];
@@ -53,6 +56,19 @@ export default function Build() {
   const [isRunningTest, setIsRunningTest] = useState<boolean>(false);
   // Local state for test results
   const [testResults, setTestResults] = useState<TestResult[]>([]);
+  
+  // Load test results from localStorage on component mount
+  useEffect(() => {
+    try {
+      const savedResults = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (savedResults) {
+        console.log("Loading test results from localStorage");
+        setTestResults(JSON.parse(savedResults));
+      }
+    } catch (err) {
+      console.error("Error loading test results from localStorage:", err);
+    }
+  }, []);
 
   // Fetch search strategies
   const { data: strategies } = useQuery<SearchApproach[]>({
