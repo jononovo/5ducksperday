@@ -45,11 +45,8 @@ export default function Build() {
   const queryClient = useQueryClient();
   const [testQuery, setTestQuery] = useState<string>("");
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
-  const [testResults, setTestResults] = useState<TestResult[]>(() => {
-    // Load saved test results from localStorage on component mount
-    const savedResults = localStorage.getItem('searchTestResults');
-    return savedResults ? JSON.parse(savedResults) : [];
-  });
+  // Using database for test results instead of local storage
+  const [runningTest, setRunningTest] = useState<string | null>(null);
   const [isRunningTest, setIsRunningTest] = useState<boolean>(false);
 
   // Fetch search strategies
@@ -120,27 +117,6 @@ export default function Build() {
     });
     
     try {
-      // Generate a unique test ID
-      const testId = `test-${Date.now()}`;
-      
-      // Create a running test result entry
-      const runningTest: TestResult = {
-        id: testId,
-        strategyName: strategies?.find(s => s.id.toString() === selectedStrategy)?.name || 'Unknown Strategy',
-        strategyId: parseInt(selectedStrategy),
-        testQuery,
-        timestamp: new Date().toISOString(),
-        companyQuality: 0,
-        contactQuality: 0,
-        emailQuality: 0,
-        overallScore: 0,
-        status: "running"
-      };
-      
-      const updatedResults = [runningTest, ...testResults];
-      setTestResults(updatedResults);
-      localStorage.setItem('searchTestResults', JSON.stringify(updatedResults));
-      
       // Call the API to start the test
       const response = await apiRequest("POST", "/api/search-test", {
         strategyId: parseInt(selectedStrategy),
@@ -166,49 +142,36 @@ export default function Build() {
       const overallScore = data.overallScore || 
         Math.round((scores.companyQuality + scores.contactQuality + scores.emailQuality) / 3);
       
-      // Update the test result locally
-      const completedResult = {
-        ...runningTest,
-        ...scores,
-        overallScore,
-        status: "completed" as const
-      };
-      
-      const updatedCompletedResults = testResults.map(result => 
-        result.id === runningTest.id ? completedResult : result
-      );
-      
-      setTestResults(updatedCompletedResults);
-      localStorage.setItem('searchTestResults', JSON.stringify(updatedCompletedResults));
+      // Generate a valid UUID for the test
+      const testUuid = crypto.randomUUID ? crypto.randomUUID() : `test-${Date.now()}`;
       
       // Save the result to the database
       try {
-        // Generate a valid UUID using crypto API
-        const testUuid = crypto.randomUUID ? crypto.randomUUID() : completedResult.id.replace('test-', '');
+        const strategyName = strategies?.find(s => s.id.toString() === selectedStrategy)?.name || 'Unknown Strategy';
         
-        console.log('Attempting to save test result to database with payload:', {
+        console.log('Saving test result to database:', {
           strategyId: parseInt(selectedStrategy),
           testId: testUuid,
-          query: completedResult.testQuery,
-          companyQuality: completedResult.companyQuality,
-          contactQuality: completedResult.contactQuality, 
-          emailQuality: completedResult.emailQuality,
-          overallScore: completedResult.overallScore,
+          query: testQuery,
+          companyQuality: scores.companyQuality,
+          contactQuality: scores.contactQuality, 
+          emailQuality: scores.emailQuality,
+          overallScore,
           status: "completed"
         });
         
         const dbResponse = await apiRequest("POST", "/api/search-test-results", {
           strategyId: parseInt(selectedStrategy),
           testId: testUuid,
-          query: completedResult.testQuery,
-          companyQuality: completedResult.companyQuality,
-          contactQuality: completedResult.contactQuality, 
-          emailQuality: completedResult.emailQuality,
-          overallScore: completedResult.overallScore,
+          query: testQuery,
+          companyQuality: scores.companyQuality,
+          contactQuality: scores.contactQuality, 
+          emailQuality: scores.emailQuality,
+          overallScore,
           status: "completed",
           metadata: {
-            strategyName: completedResult.strategyName,
-            timestamp: completedResult.timestamp
+            strategyName,
+            timestamp: new Date().toISOString()
           }
         });
         
@@ -216,6 +179,13 @@ export default function Build() {
           console.error('Failed to save test result to database:', await dbResponse.text());
         } else {
           console.log('Test result saved to database successfully');
+          // Force a refresh of the test results display
+          queryClient.invalidateQueries({ 
+            queryKey: ["/api/search-test-results/strategy", selectedStrategy] 
+          });
+          queryClient.invalidateQueries({ 
+            queryKey: ["/api/search-test-results"] 
+          });
         }
       } catch (dbError) {
         console.error('Error saving test result to database:', dbError);
@@ -231,20 +201,6 @@ export default function Build() {
         description: "There was an error running the search quality test.",
         variant: "destructive"
       });
-      
-      // Mark the running test as failed
-      const failedTestId = `test-${Date.now()}`;
-      const failedTest = testResults.find(result => result.status === "running");
-      
-      if (failedTest) {
-        const updatedFailedResults = testResults.map(result => 
-          result.id === failedTest.id 
-            ? { ...result, status: "failed" as const }
-            : result
-        );
-        setTestResults(updatedFailedResults);
-        localStorage.setItem('searchTestResults', JSON.stringify(updatedFailedResults));
-      }
     } finally {
       setIsRunningTest(false);
     }
@@ -329,118 +285,6 @@ export default function Build() {
                   )}
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Test Results Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Search Quality Benchmark Results</CardTitle>
-            <CardDescription>
-              Performance metrics for search strategies
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Strategy</TableHead>
-                    <TableHead>Test Query</TableHead>
-                    <TableHead>
-                      <div className="flex items-center">
-                        <BarChart3 className="mr-1 h-4 w-4" />
-                        Company Quality
-                      </div>
-                    </TableHead>
-                    <TableHead>
-                      <div className="flex items-center">
-                        <Users className="mr-1 h-4 w-4" />
-                        Contact Quality
-                      </div>
-                    </TableHead>
-                    <TableHead>
-                      <div className="flex items-center">
-                        <Mail className="mr-1 h-4 w-4" />
-                        Email Quality
-                      </div>
-                    </TableHead>
-                    <TableHead>Overall Score</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {testResults.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                        No test results yet. Run a test to see results here.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    testResults.map((result) => (
-                      <TableRow key={result.id}>
-                        <TableCell className="font-medium">{result.strategyName}</TableCell>
-                        <TableCell>{result.testQuery}</TableCell>
-                        <TableCell>
-                          {result.status === "running" ? (
-                            <Progress value={undefined} className="h-2 w-16" />
-                          ) : (
-                            <div className="flex items-center">
-                              <span className={getScoreColor(result.companyQuality)}>
-                                {result.companyQuality}
-                              </span>
-                              <span className="text-muted-foreground">/100</span>
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {result.status === "running" ? (
-                            <Progress value={undefined} className="h-2 w-16" />
-                          ) : (
-                            <div className="flex items-center">
-                              <span className={getScoreColor(result.contactQuality)}>
-                                {result.contactQuality}
-                              </span>
-                              <span className="text-muted-foreground">/100</span>
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {result.status === "running" ? (
-                            <Progress value={undefined} className="h-2 w-16" />
-                          ) : (
-                            <div className="flex items-center">
-                              <span className={getScoreColor(result.emailQuality)}>
-                                {result.emailQuality}
-                              </span>
-                              <span className="text-muted-foreground">/100</span>
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {result.status === "running" ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Badge variant={getScoreBadgeVariant(result.overallScore)}>
-                              {result.overallScore}/100
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {result.status === "running" ? (
-                            <Badge variant="outline" className="bg-blue-50 text-blue-600">Running</Badge>
-                          ) : result.status === "completed" ? (
-                            <Badge variant="outline" className="bg-green-50 text-green-600">Completed</Badge>
-                          ) : (
-                            <Badge variant="outline" className="bg-red-50 text-red-600">Failed</Badge>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
             </div>
           </CardContent>
         </Card>
