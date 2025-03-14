@@ -438,34 +438,66 @@ export function validateName(
 
 function validateNameFormat(name: string): number {
   let score = 50;
-  const namePattern = /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}$/;
-  const nameParts = name.split(/\s+/);
-
-  // Full name format check
+  
+  // Strict name pattern with optional middle initial
+  // First name and last name required, middle name/initial optional
+  const namePattern = /^[A-Z][a-z]+(?:(?:\s+[A-Z](?:\.|\s+))?(?:\s+[A-Z][a-z]+){1,2})$/;
+  const nameParts = name.split(/\s+/).filter(part => part.length > 0);
+  
+  // CRITICAL CHECK: Must pass name pattern test
   if (namePattern.test(name)) {
-    score += 30;
-  }
-
-  // Name parts analysis
-  if (nameParts.length === 2) {
-    score += 15;
-  } else if (nameParts.length === 3) {
-    score += 10;
+    score += 35; // Increased bonus for proper format
   } else {
-    score -= 15;
+    score -= 30; // Significant penalty for improper format
   }
-
-  // Length checks
+  
+  // Check if ALL CAPS (unlikely for real person name)
+  if (name === name.toUpperCase() && name.length > 2) {
+    score -= 40; // Severe penalty
+  }
+  
+  // Stricter format checks for name parts
+  const validPartCount = nameParts.length >= 2 && nameParts.length <= 4;
+  if (!validPartCount) {
+    score -= 25; // Increased penalty for wrong number of parts
+  }
+  
+  // Ideal name format analysis
+  if (nameParts.length === 2) {
+    // First name + Last name (most common format)
+    score += 20;
+  } else if (nameParts.length === 3) {
+    // First name + Middle name/initial + Last name
+    score += 15;
+  } else if (nameParts.length > 4) {
+    // Too many parts, likely not a real name
+    score -= 15 * (nameParts.length - 4); // Progressive penalty
+  }
+  
+  // Length checks for each part
   const hasReasonableLengths = nameParts.every(part =>
     part.length >= 2 && part.length <= 20
   );
+  
   if (hasReasonableLengths) {
-    score += 10;
+    score += 15; // Increased bonus
   } else {
-    score -= 15;
+    score -= 25; // Increased penalty
   }
-
-  return Math.min(95, Math.max(20, score));
+  
+  // Check for invalid characters in names
+  const hasInvalidChars = /[0-9@#$%^&*()+=\[\]{}|\\/<>~`_]/.test(name);
+  if (hasInvalidChars) {
+    score -= 40; // Severe penalty for invalid chars
+  }
+  
+  // Check for common name prefixes (slight bonus)
+  const prefixes = ['Mr', 'Mrs', 'Ms', 'Dr', 'Prof'];
+  if (prefixes.includes(nameParts[0])) {
+    score += 5;
+  }
+  
+  return Math.min(95, Math.max(10, score)); // Allow lower minimum score for clearer validation failures
 }
 
 function validateGenericTerms(name: string): number {
@@ -478,16 +510,42 @@ function validateGenericTerms(name: string): number {
     GENERIC_TERMS.has(word) || PLACEHOLDER_NAMES.has(word)
   ).length;
 
+  // Much more aggressive penalty for generic terms
   if (genericCount > 0) {
-    score -= (genericCount * 25);
+    // Exponential penalty - one generic term is bad, more than one is catastrophic
+    score -= (genericCount * 35); 
+    
+    // If multiple generic terms, additional penalty
+    if (genericCount > 1) {
+      score -= 20;
+    }
   }
 
-  // Additional checks for business terms
-  if (/\b(department|team|group|division)\b/i.test(name)) {
-    score -= 40;
+  // Extended checks for business terms with more patterns
+  if (/\b(department|team|group|division|office|support|sales|service|info)\b/i.test(name)) {
+    score -= 50; // Increased penalty
+  }
+  
+  // Check for words that are commonly part of business activities and not names
+  if (/\b(contact|inquiry|question|help|service|request|consult|about)\b/i.test(name)) {
+    score -= 45;
+  }
+  
+  // Check for title-like words that indicate this is a role, not a person
+  if (/\b(manager|director|president|chief|officer|ceo|cfo|cto|owner|founder)\b/i.test(name)) {
+    // Only penalize if these words appear alone, not as part of "John Smith, CEO"
+    // Look for commas or parentheses that would indicate a name with title
+    if (!name.includes(',') && !name.includes('(') && !name.includes('-')) {
+      score -= 40;
+    }
+  }
+  
+  // Check for email-like patterns which are definitely not person names
+  if (name.includes('@') || /\b(email|mail)\b/i.test(name)) {
+    score -= 75; // Severe penalty
   }
 
-  return Math.min(95, Math.max(20, score));
+  return Math.min(95, Math.max(0, score)); // Allow complete rejection with score of 0
 }
 
 function validateContext(name: string, context: string, companyName?: string | null): number {
