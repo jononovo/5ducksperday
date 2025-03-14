@@ -283,20 +283,61 @@ class N8nService {
       if (!workflow) {
         throw new Error(`Workflow ${workflowId} not found`);
       }
+      
+      // Check for strategy-specific workflows
+      let executionData = { ...inputData };
+      
+      // If this is an Advanced Key Contact Discovery workflow (strategyId === 17)
+      // add template-specific execution data
+      if (workflow.strategyId === 17) {
+        console.log('Executing Advanced Key Contact Discovery workflow with strategyId 17');
+        
+        // Add company information to the execution data if it's missing
+        if (!executionData.company) {
+          // If no specific company is provided, use a test company or get from inputData
+          let testCompany = inputData.company || {
+            id: inputData.companyId,
+            name: inputData.companyName || "Target Company",
+            website: inputData.companyWebsite || "example.com"
+          };
+          
+          executionData = {
+            ...executionData,
+            company: testCompany,
+            searchStrategy: {
+              id: 17,
+              name: "Advanced Key Contact Discovery",
+              version: "1.0"
+            }
+          };
+        }
+        
+        console.log('Prepared execution data for Advanced Key Contact workflow:', {
+          hasCompany: !!executionData.company,
+          hasStrategy: !!executionData.searchStrategy
+        });
+      }
 
       // Create an execution record
       const execution = await this.saveExecution({
         workflowId,
         userId,
         status: 'running',
-        inputData
+        inputData: executionData // Use the enhanced execution data
       });
 
       try {
+        // Get the N8N workflow ID - it could be in different places depending on workflow creation method
+        const n8nWorkflowId = workflow.workflowData?.n8nWorkflowId || 
+                            workflow.workflowData?.id || 
+                            workflow.id.toString();
+                            
+        console.log(`Executing N8N workflow with ID: ${n8nWorkflowId}`);
+        
         // Execute the workflow in N8N
         const n8nExecutionResult = await this.executeWorkflow(
-          workflow.workflowData.id || workflow.id.toString(),
-          inputData
+          n8nWorkflowId,
+          executionData // Use the enhanced execution data
         );
 
         // Update the execution with the result
@@ -311,6 +352,8 @@ class N8nService {
           n8nExecutionId: n8nExecutionResult.id || null
         };
       } catch (error) {
+        console.error('N8N workflow execution error:', error);
+        
         // Update the execution with the error
         await this.updateExecution(execution.id, {
           status: 'failed',

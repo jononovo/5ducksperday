@@ -70,12 +70,44 @@ export default function WorkflowDetailsPage() {
     },
   });
   
+  // State for company selection in the Advanced Key Contact workflow
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
+  
+  // Fetch companies for Advanced Key Contact Discovery workflow
+  const { data: companies } = useQuery({
+    queryKey: ["/api/companies"],
+    enabled: !!user && workflow?.strategyId === 17,
+  });
+  
   // Mutation for executing a workflow
   const executeWorkflowMutation = useMutation({
     mutationFn: async () => {
+      // Prepare execution data
+      let executionData = {};
+      
+      // If this is an Advanced Key Contact Discovery workflow
+      if (workflow?.strategyId === 17) {
+        // If a company is selected, include it in the execution data
+        if (selectedCompanyId && companies) {
+          const selectedCompany = companies.find(company => company.id === selectedCompanyId);
+          if (selectedCompany) {
+            executionData = {
+              company: {
+                id: selectedCompany.id,
+                name: selectedCompany.name,
+                website: selectedCompany.website || 'example.com',
+                industry: selectedCompany.industry
+              }
+            };
+            
+            console.log('Executing workflow with company data:', executionData);
+          }
+        }
+      }
+      
       return apiRequest(`/api/workflows/${workflowId}/execute`, {
         method: "POST",
-        data: {},
+        data: executionData,
       });
     },
     onSuccess: (data) => {
@@ -247,13 +279,64 @@ export default function WorkflowDetailsPage() {
               <History className="h-4 w-4 mr-2" />
               Execution History
             </Button>
-            <Button
-              onClick={handleExecute}
-              disabled={executeWorkflowMutation.isPending}
-            >
-              <Play className="h-4 w-4 mr-2" />
-              {executeWorkflowMutation.isPending ? "Executing..." : "Execute Workflow"}
-            </Button>
+            {/* If Advanced Key Contact workflow, show company selection in execute button */}
+            {workflow?.strategyId === 17 ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button>
+                    <Play className="h-4 w-4 mr-2" />
+                    Execute Workflow
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Select a target company</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Choose the company to discover key contacts for:
+                    </p>
+                    
+                    {companies ? (
+                      <Select
+                        value={selectedCompanyId?.toString() || ""}
+                        onValueChange={(value) => setSelectedCompanyId(parseInt(value))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a company" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {companies.map((company) => (
+                            <SelectItem 
+                              key={company.id} 
+                              value={company.id.toString()}
+                            >
+                              {company.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Loading companies...</p>
+                    )}
+                    
+                    <Button 
+                      onClick={handleExecute}
+                      disabled={executeWorkflowMutation.isPending || !selectedCompanyId}
+                      className="w-full"
+                    >
+                      {executeWorkflowMutation.isPending ? "Executing..." : "Run Workflow"}
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <Button
+                onClick={handleExecute}
+                disabled={executeWorkflowMutation.isPending}
+              >
+                <Play className="h-4 w-4 mr-2" />
+                {executeWorkflowMutation.isPending ? "Executing..." : "Execute Workflow"}
+              </Button>
+            )}
           </div>
         </div>
         
