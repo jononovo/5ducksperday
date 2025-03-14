@@ -149,11 +149,25 @@ export default function WorkflowDetailsPage() {
 
       const n8nWorkflowData = await n8nApiResponse.json();
       
-      // Update our local workflow data state
+      // Check if this is a workflow with a strategy (e.g., Advanced Key Contact Discovery)
+      const hasStrategyTemplate = workflow?.strategyId === 17;
+      console.log('Workflow sync with strategy check:', {
+        strategyId: workflow?.strategyId,
+        isAdvancedKeyContactDiscovery: workflow?.strategyId === 17,
+        hasTemplate: hasStrategyTemplate
+      });
+      
+      // Update our local workflow data state, preserving template info if it exists
       const updatedWorkflowData = {
         ...workflowData,
         n8nWorkflowId,
-        n8nWorkflow: n8nWorkflowData
+        n8nWorkflow: n8nWorkflowData,
+        // Retain strategy template information if applicable
+        strategy: hasStrategyTemplate ? {
+          id: workflow?.strategyId,
+          type: 'Advanced Key Contact Discovery',
+          templateVersion: '1.0'
+        } : workflowData?.strategy
       };
       
       setWorkflowData(updatedWorkflowData);
@@ -164,6 +178,11 @@ export default function WorkflowDetailsPage() {
         description,
         active,
         workflowData: updatedWorkflowData,
+      });
+      
+      toast({
+        title: "Workflow synced",
+        description: "The workflow has been synchronized successfully",
       });
       
     } catch (error) {
@@ -311,6 +330,13 @@ export default function WorkflowDetailsPage() {
                       : "http://localhost:5678/workflow/new"} 
                     className="w-full h-[600px] border-0"
                     title="N8N Workflow Editor"
+                    onLoad={() => {
+                      console.log('N8N iframe loaded', {
+                        workflowData: workflow?.workflowData,
+                        n8nWorkflowId: workflow?.workflowData?.n8nWorkflowId,
+                        hasTemplate: !!workflow?.workflowData?.n8nWorkflow
+                      });
+                    }}
                   />
                 </div>
                 
@@ -360,7 +386,27 @@ export default function WorkflowDetailsPage() {
                       <p><strong>Last Updated:</strong> {new Date(workflow.updatedAt || "").toLocaleString()}</p>
                       
                       {workflow.strategyId && (
-                        <p><strong>Associated Strategy:</strong> Strategy #{workflow.strategyId}</p>
+                        <>
+                          <p><strong>Associated Strategy:</strong> {workflow.strategyId === 17 ? 
+                            "Advanced Key Contact Discovery (ID: 17)" : 
+                            `Strategy #${workflow.strategyId}`}</p>
+                          
+                          {workflow.strategyId === 17 && (
+                            <div className="mt-4 p-4 bg-muted rounded-md">
+                              <h4 className="text-sm font-medium mb-2">Advanced Key Contact Discovery</h4>
+                              <p className="text-xs text-muted-foreground mb-2">
+                                This workflow template is designed to find and validate key decision makers at target companies. 
+                                It implements:
+                              </p>
+                              <ul className="list-disc ml-5 text-xs space-y-1">
+                                <li>Automated discovery of leadership contacts</li>
+                                <li>AI-powered role validation</li>
+                                <li>Email pattern prediction</li>
+                                <li>Confidence scoring system</li>
+                              </ul>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   )}
