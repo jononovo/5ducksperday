@@ -8,6 +8,8 @@ import { N8nWorkflow, InsertN8nWorkflow, N8nWorkflowExecution, InsertN8nWorkflow
 import { db } from '../db';
 import { n8nWorkflows, n8nWorkflowExecutions } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
+import { startN8n, getN8nApiUrl, isN8nRunning } from './n8n-manager';
+import { log } from '../vite';
 
 // N8N API Base URL (typically would be environment variable)
 const N8N_API_BASE_URL = process.env.N8N_API_URL || 'http://localhost:5678/api/v1';
@@ -21,10 +23,36 @@ interface N8nApiOptions {
 class N8nService {
   private apiKey: string;
   private baseUrl: string;
+  private initialized: boolean = false;
 
   constructor(options: N8nApiOptions = {}) {
     this.apiKey = options.apiKey || N8N_API_KEY;
     this.baseUrl = options.baseUrl || N8N_API_BASE_URL;
+    
+    // Initialize the N8N server when constructed
+    this.initialize();
+  }
+  
+  /**
+   * Initialize the N8N service and server
+   */
+  async initialize() {
+    if (this.initialized) return;
+    
+    try {
+      if (!isN8nRunning()) {
+        log('Starting N8N server...', 'n8n-service');
+        await startN8n();
+      }
+      
+      // Update the base URL to the managed N8N instance
+      this.baseUrl = getN8nApiUrl();
+      this.initialized = true;
+      log('N8N service initialized with base URL: ' + this.baseUrl, 'n8n-service');
+    } catch (error) {
+      log('Failed to initialize N8N service: ' + error, 'n8n-service');
+      console.error('Error initializing N8N service:', error);
+    }
   }
 
   /**
