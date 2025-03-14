@@ -78,45 +78,54 @@ export default function Build() {
   // Fetch existing test results to populate local state
   const { data: dbTestResults, isLoading: isLoadingResults, refetch: refetchTestResults } = useQuery<TestResult[]>({
     queryKey: ["/api/search-test-results"],
-    onSuccess: (data: TestResult[]) => {
-      if (data && Array.isArray(data)) {
-        // Initialize local state with database results
-        console.log("Loaded test results from database:", data);
-        
-        // Map database results to match the local TestResult interface
-        const formattedResults = data.map(result => ({
-          id: result.testId || `test-${result.id}`,
-          strategyId: result.strategyId,
-          strategyName: result.metadata?.strategyName || "Unknown Strategy",
-          query: result.query,
-          companyQuality: result.companyQuality,
-          contactQuality: result.contactQuality,
-          emailQuality: result.emailQuality,
-          overallScore: result.overallScore,
-          status: result.status as "completed" | "running" | "failed",
-          timestamp: result.createdAt || new Date().toISOString()
-        }));
-        
-        // Save to localStorage and update state
-        try {
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formattedResults));
-          console.log("Saved database results to localStorage:", formattedResults.length);
-        } catch (err) {
-          console.error("Error saving test results to localStorage:", err);
-        }
-        
-        setTestResults(formattedResults);
+  });
+  
+  // Process database results and update local state
+  useEffect(() => {
+    if (dbTestResults && Array.isArray(dbTestResults)) {
+      // Initialize local state with database results
+      console.log("Loaded test results from database:", dbTestResults.length);
+      
+      // Map database results to match the local TestResult interface
+      const formattedResults = dbTestResults.map(result => ({
+        id: result.testId || `test-${result.id}`,
+        strategyId: result.strategyId,
+        strategyName: result.metadata?.strategyName || "Unknown Strategy",
+        query: result.query,
+        companyQuality: result.companyQuality,
+        contactQuality: result.contactQuality,
+        emailQuality: result.emailQuality,
+        overallScore: result.overallScore,
+        status: result.status as "completed" | "running" | "failed",
+        timestamp: result.createdAt || new Date().toISOString()
+      }));
+      
+      // Only take the most recent 20 results to avoid performance issues
+      const recentResults = formattedResults.slice(-20);
+      
+      // Save to localStorage and update state
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(recentResults));
+        console.log("Saved database results to localStorage:", recentResults.length);
+      } catch (err) {
+        console.error("Error saving test results to localStorage:", err);
       }
-    },
-    onError: (error) => {
-      console.error("Error loading test results:", error);
+      
+      setTestResults(recentResults);
+    }
+  }, [dbTestResults]);
+  
+  // Handle query errors
+  useEffect(() => {
+    if (isLoadingResults === false && !dbTestResults) {
+      console.error("Error loading test results");
       toast({
         title: "Error",
         description: "Failed to load saved test results.",
         variant: "destructive"
       });
     }
-  });
+  }, [isLoadingResults, dbTestResults, toast]);
 
   // Initialize default strategies
   const initializeMutation = useMutation({

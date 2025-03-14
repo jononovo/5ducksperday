@@ -162,10 +162,18 @@ export function SearchTestResults({ strategyId, limit = 5 }: SearchTestResultsPr
 
   // Determine which results to display
   // Prefer API data over local storage, but fallback to local storage when API fails
-  const resultsToUse = (data && data.length > 0) ? data : localResults;
+  const resultsToUse = (data && Array.isArray(data) && data.length > 0) 
+    ? data 
+    : (Array.isArray(localResults) ? localResults : []);
   
-  // Take the most recent 'limit' results
-  const results = resultsToUse.length > 0 ? [...resultsToUse].slice(-limit) : [];
+  // Take the most recent 'limit' results (default 5)
+  // Sort by timestamp descending to ensure newest first
+  const sortedResults = [...resultsToUse].sort((a, b) => {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+  
+  // Limit to the most recent 'limit' results
+  const results = sortedResults.slice(0, limit);
 
   return (
     <Card>
