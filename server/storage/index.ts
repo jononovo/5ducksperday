@@ -74,6 +74,14 @@ export interface IStorage {
   getContactFeedback(contactId: number): Promise<ContactFeedback[]>;
   updateContactConfidenceScore(id: number, score: number): Promise<Contact | undefined>;
   updateContactValidationStatus(id: number): Promise<Contact | undefined>;
+  
+  // Search Test Results
+  getSearchTestResult(id: number): Promise<SearchTestResult | undefined>;
+  listSearchTestResults(userId: number): Promise<SearchTestResult[]>;
+  getTestResultsByStrategy(strategyId: number, userId: number): Promise<SearchTestResult[]>;
+  createSearchTestResult(result: InsertSearchTestResult): Promise<SearchTestResult>;
+  updateTestResultStatus(id: number, status: 'completed' | 'running' | 'failed', metadata?: Record<string, unknown>): Promise<SearchTestResult>;
+  getStrategyPerformanceHistory(strategyId: number, userId: number): Promise<{ dates: string[], scores: number[] }>;
 }
 
 export * from './database';

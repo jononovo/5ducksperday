@@ -7,7 +7,7 @@ import { parseCompanyData } from "./lib/results-analysis/company-parser";
 import { queryPerplexity } from "./lib/api/perplexity-client";
 import { searchContactDetails } from "./lib/api-interactions";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
-import { insertEmailTemplateSchema } from "@shared/schema";
+import { insertEmailTemplateSchema, insertSearchTestResultSchema } from "@shared/schema";
 import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
 import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
@@ -589,6 +589,120 @@ export function registerRoutes(app: Express) {
       console.error('Error initializing search approaches:', error);
       res.status(500).json({
         message: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
+    }
+  });
+  
+  // Search Test Results endpoints
+  app.get("/api/search-test-results", requireAuth, async (req, res) => {
+    try {
+      const results = await storage.listSearchTestResults(req.user!.id);
+      res.json(results);
+    } catch (error) {
+      console.error('Error fetching search test results:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to fetch search test results"
+      });
+    }
+  });
+  
+  app.get("/api/search-test-results/:id", requireAuth, async (req, res) => {
+    try {
+      const result = await storage.getSearchTestResult(parseInt(req.params.id));
+      
+      if (!result || result.userId !== req.user!.id) {
+        res.status(404).json({ message: "Search test result not found" });
+        return;
+      }
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Error fetching search test result:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to fetch search test result"
+      });
+    }
+  });
+  
+  app.get("/api/search-test-results/strategy/:strategyId", requireAuth, async (req, res) => {
+    try {
+      const strategyId = parseInt(req.params.strategyId);
+      const results = await storage.getTestResultsByStrategy(strategyId, req.user!.id);
+      res.json(results);
+    } catch (error) {
+      console.error('Error fetching search test results by strategy:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to fetch search test results by strategy"
+      });
+    }
+  });
+  
+  app.post("/api/search-test-results", requireAuth, async (req, res) => {
+    try {
+      const result = insertSearchTestResultSchema.safeParse({
+        ...req.body,
+        userId: req.user!.id,
+        createdAt: new Date()
+      });
+      
+      if (!result.success) {
+        res.status(400).json({
+          message: "Invalid request body",
+          errors: result.error.errors
+        });
+        return;
+      }
+      
+      const testResult = await storage.createSearchTestResult(result.data);
+      res.status(201).json(testResult);
+    } catch (error) {
+      console.error('Error creating search test result:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to create search test result"
+      });
+    }
+  });
+  
+  app.patch("/api/search-test-results/:id/status", requireAuth, async (req, res) => {
+    try {
+      const { status, metadata } = req.body;
+      
+      if (!status || !['running', 'completed', 'failed'].includes(status)) {
+        res.status(400).json({ message: "Invalid status value" });
+        return;
+      }
+      
+      const result = await storage.getSearchTestResult(parseInt(req.params.id));
+      
+      if (!result || result.userId !== req.user!.id) {
+        res.status(404).json({ message: "Search test result not found" });
+        return;
+      }
+      
+      const updatedResult = await storage.updateTestResultStatus(
+        parseInt(req.params.id),
+        status as 'running' | 'completed' | 'failed',
+        metadata
+      );
+      
+      res.json(updatedResult);
+    } catch (error) {
+      console.error('Error updating search test result status:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to update search test result status"
+      });
+    }
+  });
+  
+  app.get("/api/search-test-results/strategy/:strategyId/performance", requireAuth, async (req, res) => {
+    try {
+      const strategyId = parseInt(req.params.strategyId);
+      const performanceData = await storage.getStrategyPerformanceHistory(strategyId, req.user!.id);
+      res.json(performanceData);
+    } catch (error) {
+      console.error('Error fetching strategy performance history:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to fetch strategy performance history"
       });
     }
   });
