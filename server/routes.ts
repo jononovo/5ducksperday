@@ -1576,6 +1576,175 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
+  // N8N Workflow Management Endpoints
+  app.get("/api/workflows", requireAuth, async (req, res) => {
+    try {
+      const workflows = await n8nService.getUserWorkflows(req.user!.id);
+      res.json(workflows);
+    } catch (error) {
+      console.error("Error fetching workflows:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to fetch workflows"
+      });
+    }
+  });
+
+  app.get("/api/workflows/:id", requireAuth, async (req, res) => {
+    try {
+      const workflow = await n8nService.getWorkflowFromDb(parseInt(req.params.id));
+      
+      if (!workflow) {
+        res.status(404).json({ message: "Workflow not found" });
+        return;
+      }
+      
+      if (workflow.userId !== req.user!.id) {
+        res.status(403).json({ message: "You don't have permission to access this workflow" });
+        return;
+      }
+      
+      res.json(workflow);
+    } catch (error) {
+      console.error(`Error fetching workflow ${req.params.id}:`, error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to fetch workflow"
+      });
+    }
+  });
+
+  app.post("/api/workflows", requireAuth, async (req, res) => {
+    try {
+      const workflowData = insertN8nWorkflowSchema.parse({
+        ...req.body,
+        userId: req.user!.id
+      });
+      
+      // First create the workflow in our database
+      const dbWorkflow = await n8nService.saveWorkflow(workflowData);
+      
+      // If there's an N8N instance to connect to, create the workflow there as well
+      let n8nWorkflow;
+      try {
+        if (req.body.workflowData) {
+          n8nWorkflow = await n8nService.createWorkflow(req.body.workflowData);
+          // Update our DB entry with the N8N workflow ID
+          if (n8nWorkflow && n8nWorkflow.id) {
+            await n8nService.updateWorkflowInDb(dbWorkflow.id, {
+              workflowData: {
+                ...dbWorkflow.workflowData,
+                n8nWorkflowId: n8nWorkflow.id
+              }
+            });
+          }
+        }
+      } catch (n8nError) {
+        console.warn("N8N workflow creation failed, but database entry was created:", n8nError);
+      }
+      
+      res.status(201).json(dbWorkflow);
+    } catch (error) {
+      console.error("Error creating workflow:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to create workflow"
+      });
+    }
+  });
+
+  app.put("/api/workflows/:id", requireAuth, async (req, res) => {
+    try {
+      const workflowId = parseInt(req.params.id);
+      const workflow = await n8nService.getWorkflowFromDb(workflowId);
+      
+      if (!workflow) {
+        res.status(404).json({ message: "Workflow not found" });
+        return;
+      }
+      
+      if (workflow.userId !== req.user!.id) {
+        res.status(403).json({ message: "You don't have permission to update this workflow" });
+        return;
+      }
+      
+      // Update in our database
+      const updatedWorkflow = await n8nService.updateWorkflowInDb(workflowId, {
+        name: req.body.name,
+        description: req.body.description,
+        active: req.body.active,
+        workflowData: req.body.workflowData,
+        strategyId: req.body.strategyId
+      });
+      
+      // If there's an N8N instance to connect to, update the workflow there as well
+      try {
+        const n8nWorkflowId = 
+          workflow.workflowData?.n8nWorkflowId || 
+          workflow.workflowData?.id ||
+          workflow.id.toString();
+        
+        await n8nService.updateWorkflow(n8nWorkflowId, req.body.workflowData);
+      } catch (n8nError) {
+        console.warn(`N8N workflow update failed, but database entry was updated:`, n8nError);
+      }
+      
+      res.json(updatedWorkflow);
+    } catch (error) {
+      console.error(`Error updating workflow ${req.params.id}:`, error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to update workflow"
+      });
+    }
+  });
+
+  app.post("/api/workflows/:id/execute", requireAuth, async (req, res) => {
+    try {
+      const workflowId = parseInt(req.params.id);
+      const workflow = await n8nService.getWorkflowFromDb(workflowId);
+      
+      if (!workflow) {
+        res.status(404).json({ message: "Workflow not found" });
+        return;
+      }
+      
+      const executionResult = await n8nService.executeAndTrack(
+        workflowId,
+        req.user!.id,
+        req.body.inputData || {}
+      );
+      
+      res.json(executionResult);
+    } catch (error) {
+      console.error(`Error executing workflow ${req.params.id}:`, error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to execute workflow"
+      });
+    }
+  });
+
+  app.get("/api/workflows/:id/executions", requireAuth, async (req, res) => {
+    try {
+      const workflowId = parseInt(req.params.id);
+      const workflow = await n8nService.getWorkflowFromDb(workflowId);
+      
+      if (!workflow) {
+        res.status(404).json({ message: "Workflow not found" });
+        return;
+      }
+      
+      if (workflow.userId !== req.user!.id) {
+        res.status(403).json({ message: "You don't have permission to access this workflow's executions" });
+        return;
+      }
+      
+      const executions = await n8nService.getWorkflowExecutions(workflowId);
+      res.json(executions);
+    } catch (error) {
+      console.error(`Error fetching executions for workflow ${req.params.id}:`, error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to fetch workflow executions"
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
