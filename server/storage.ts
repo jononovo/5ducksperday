@@ -1,13 +1,14 @@
 import { 
-  userPreferences, lists, companies, contacts, campaigns, emailTemplates, searchApproaches, users,
+  userPreferences, lists, companies, contacts, campaigns, emailTemplates, searchApproaches, users, searchTestResults,
   type UserPreferences, type InsertUserPreferences,
   type List, type InsertList,
   type Company, type InsertCompany,
   type Contact, type InsertContact,
   type Campaign, type InsertCampaign,
   type EmailTemplate, type InsertEmailTemplate,
-  type SearchApproach,
-  type User
+  type SearchApproach, type InsertSearchApproach,
+  type User, type InsertUser,
+  type SearchTestResult, type InsertSearchTestResult
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -384,6 +385,71 @@ class DatabaseStorage implements IStorage {
       .where(eq(searchApproaches.id, id))
       .returning();
     return updated;
+  }
+  
+  // Search Test Results
+  async getSearchTestResult(id: number): Promise<SearchTestResult | undefined> {
+    const [result] = await db
+      .select()
+      .from(searchTestResults)
+      .where(eq(searchTestResults.id, id));
+    return result;
+  }
+  
+  async listSearchTestResults(userId: number): Promise<SearchTestResult[]> {
+    return db
+      .select()
+      .from(searchTestResults)
+      .where(eq(searchTestResults.userId, userId));
+  }
+  
+  async getTestResultsByStrategy(strategyId: number, userId: number): Promise<SearchTestResult[]> {
+    return db
+      .select()
+      .from(searchTestResults)
+      .where(and(
+        eq(searchTestResults.strategyId, strategyId),
+        eq(searchTestResults.userId, userId)
+      ));
+  }
+  
+  async createSearchTestResult(result: InsertSearchTestResult): Promise<SearchTestResult> {
+    console.log('DatabaseStorage.createSearchTestResult - Creating search test result:', result);
+    const [created] = await db
+      .insert(searchTestResults)
+      .values(result)
+      .returning();
+    return created;
+  }
+  
+  async updateTestResultStatus(id: number, status: 'completed' | 'running' | 'failed', metadata?: Record<string, unknown>): Promise<SearchTestResult> {
+    const [updated] = await db
+      .update(searchTestResults)
+      .set({ 
+        status,
+        ...metadata ? { metadata } : {},
+        updatedAt: new Date()
+      })
+      .where(eq(searchTestResults.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async getStrategyPerformanceHistory(strategyId: number, userId: number): Promise<{ dates: string[], scores: number[] }> {
+    const results = await db
+      .select()
+      .from(searchTestResults)
+      .where(and(
+        eq(searchTestResults.strategyId, strategyId),
+        eq(searchTestResults.userId, userId),
+        eq(searchTestResults.status, 'completed')
+      ))
+      .orderBy(searchTestResults.createdAt);
+    
+    return {
+      dates: results.map(r => r.createdAt?.toISOString().split('T')[0] || ''),
+      scores: results.map(r => r.overallScore || 0)
+    };
   }
 
   async initializeDefaultSearchApproaches(): Promise<void> {
