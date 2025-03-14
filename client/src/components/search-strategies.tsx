@@ -26,6 +26,7 @@ interface SearchStrategyProps {
 
 // Strategies to display in the dropdown
 const VALID_STRATEGIES = [
+  "Advanced Key Contact Discovery",
   "Small Business Contacts",
   "Enhanced Contact Discovery",
   "Legacy Search (v1)",
@@ -82,6 +83,9 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
                     {(strategy.config as any)?.validationStrategy === 'strict' && (
                       <Badge variant="secondary" className="ml-2">Strict</Badge>
                     )}
+                    {strategy.name === "Advanced Key Contact Discovery" && (
+                      <Badge variant="default" className="bg-blue-600 hover:bg-blue-700 ml-2">Advanced</Badge>
+                    )}
                     {strategy.name === "Enhanced Contact Discovery" && (
                       <Badge variant="default" className="bg-green-600 hover:bg-green-700 ml-2">Enhanced</Badge>
                     )}
@@ -123,6 +127,12 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
           </p>
           
           {/* Strategy-specific descriptions */}
+          {selectedStrategyObj.name === "Advanced Key Contact Discovery" && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Uses leadership-focused algorithms with role-based scoring multipliers to prioritize key decision makers. Features enhanced validation for founder and C-level executive identification.
+            </p>
+          )}
+          
           {selectedStrategyObj.name === "Enhanced Contact Discovery" && (
             <p className="text-xs text-muted-foreground mt-1">
               Uses advanced name parsing, enhanced pattern prediction, and cross-reference validation to improve contact discovery accuracy.
