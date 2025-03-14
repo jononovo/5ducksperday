@@ -313,7 +313,7 @@ export default function Build() {
   };
 
   return (
-    <div className="container py-6">
+    <div className="py-6 px-4 md:px-6 max-w-full">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Search Testing & Benchmarking</h1>
@@ -326,7 +326,7 @@ export default function Build() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-6 w-full">
         {/* Test Configuration Card */}
         <Card>
           <CardHeader>
