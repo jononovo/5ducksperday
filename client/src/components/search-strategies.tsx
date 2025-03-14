@@ -69,6 +69,9 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
                     {strategy.name === "Small Business Contacts" && (
                       <Badge variant="outline" className="ml-2">Standard</Badge>
                     )}
+                    {strategy.name === "Legacy Search (v1)" && (
+                      <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-200 ml-2">Legacy</Badge>
+                    )}
                   </div>
                 </SelectItem>
               ))}
@@ -110,6 +113,12 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
           {strategies.find(s => s.id.toString() === selectedStrategy)?.name === "Small Business Contacts" && (
             <p className="text-xs text-muted-foreground mt-1">
               Uses standard validation techniques to find contacts at small businesses with conventional email patterns.
+            </p>
+          )}
+          
+          {strategies.find(s => s.id.toString() === selectedStrategy)?.name === "Legacy Search (v1)" && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Uses the original search algorithm with direct website extraction and simpler validation. May find contacts that newer methods miss.
             </p>
           )}
           
