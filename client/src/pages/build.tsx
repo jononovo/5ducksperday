@@ -140,11 +140,20 @@ export default function Build() {
         throw new Error("API call failed");
       }
       
-      // Generate scores for the test
-      // In a real implementation, these scores would come from the backend
-      // But for this prototype, we're generating them on the frontend
-      const scores = generateScores();
-      const overallScore = Math.round((scores.companyQuality + scores.contactQuality + scores.emailQuality) / 3);
+      // Parse the API response
+      const data = await response.json();
+      console.log('Search test API response:', data);
+      
+      // Extract scores from API response
+      const scores = {
+        companyQuality: data.metrics.companyQuality,
+        contactQuality: data.metrics.contactQuality,
+        emailQuality: data.metrics.emailQuality
+      };
+      
+      // Use overall score returned from API or calculate it
+      const overallScore = data.overallScore || 
+        Math.round((scores.companyQuality + scores.contactQuality + scores.emailQuality) / 3);
       
       // Update the test result
       setTestResults(prev => prev.map(result => 

@@ -56,6 +56,7 @@ export interface IStorage {
   createEmailTemplate(data: InsertEmailTemplate): Promise<EmailTemplate>;
 
   // Search Approaches
+  getSearchApproach(id: number): Promise<SearchApproach | undefined>;
   listSearchApproaches(): Promise<SearchApproach[]>;
   updateSearchApproach(id: number, data: Partial<SearchApproach>): Promise<SearchApproach>;
 }
@@ -356,6 +357,14 @@ class DatabaseStorage implements IStorage {
   }
 
   // Search Approaches
+  async getSearchApproach(id: number): Promise<SearchApproach | undefined> {
+    const [approach] = await db
+      .select()
+      .from(searchApproaches)
+      .where(eq(searchApproaches.id, id));
+    return approach;
+  }
+  
   async listSearchApproaches(): Promise<SearchApproach[]> {
     return db.select().from(searchApproaches);
   }
