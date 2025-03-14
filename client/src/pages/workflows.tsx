@@ -41,7 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
-import { PlusCircle, Play, Edit, Trash, Eye } from "lucide-react";
+import { PlusCircle, Play, Edit, Trash, Eye, Workflow } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -444,6 +444,15 @@ export default function WorkflowsPage() {
                         >
                           <Edit className="h-4 w-4" />
                           <span className="sr-only">Edit</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-primary text-primary-foreground hover:bg-primary/90"
+                          onClick={() => navigate(`/workflows/${workflow.id}/editor`)}
+                        >
+                          <Workflow className="h-4 w-4" />
+                          <span className="sr-only">Open in Editor</span>
                         </Button>
                       </div>
                     </TableCell>
