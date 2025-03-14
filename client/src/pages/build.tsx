@@ -630,14 +630,17 @@ export default function Build() {
                 <div>
                   <h3 className="text-lg font-medium mb-2">Example API Call</h3>
                   <pre className="bg-zinc-950 text-zinc-50 p-4 rounded-md text-sm font-mono overflow-x-auto">
-{`// Example: Running a search test
+{`// Example: Running a search test using correct URL
+// NOTE: Use the base domain of your application
+// In Replit: https://your-repl-domain.replit.dev/api/agent/run-search-test
+
 fetch('/api/agent/run-search-test', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    strategyId: 17,
+    strategyId: 10,  // ID of existing strategy
     query: "insurance brokers in hoboken"
   })
 })
@@ -647,6 +650,16 @@ fetch('/api/agent/run-search-test', {
   console.log('Overall score:', data.currentTest.overallScore);
   console.log('Improvement:', data.summary.improvement);
 });`}
+                  </pre>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-2">cURL Example</h3>
+                  <pre className="bg-zinc-950 text-zinc-50 p-4 rounded-md text-sm font-mono overflow-x-auto">
+{`# Example: Running a search test with cURL
+curl -X POST "https://your-repl-domain.replit.dev/api/agent/run-search-test" \\
+  -H "Content-Type: application/json" \\
+  -d '{"strategyId": 10, "query": "law firms in boston"}'`}
                   </pre>
                 </div>
                 
