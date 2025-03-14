@@ -1,176 +1,119 @@
 /**
- * Search Quality Testing Script
+ * Search Quality Test Runner
  * 
- * This script executes three specific search quality tests to evaluate
- * contact validation improvements.
+ * This script runs a series of search quality tests to compare baseline performance
+ * with improvements after implementing industry-specific name filtering.
  * 
  * Usage:
- * 1. Navigate to the Build page in the UI
- * 2. Open the browser console
- * 3. Copy and paste this entire script
- * 4. Execute it to run the baseline tests
+ * node run_search_quality_tests.js
+ * 
+ * Test process:
+ * 1. Run baseline tests against a specific set of queries
+ * 2. Save results to baseline_testN.json files
+ * 3. Run improved tests against the same queries
+ * 4. Save results to improved_testN.json files
+ * 5. Compare results and output improvement metrics
  */
 
-// Test configuration
-const TEST_CONFIG = {
-  strategyId: 17, // Advanced Key Contact Discovery strategy
-  baselineTests: [
-    {
-      query: "tech startups in San Francisco",
-      name: "Test 1: Tech Startups"
-    },
-    {
-      query: "marketing agencies in New York",
-      name: "Test 2: Marketing Agencies"
-    },
-    {
-      query: "healthcare providers in Chicago",
-      name: "Test 3: Healthcare Providers"
-    }
-  ]
-};
+const fs = require('fs');
+const path = require('path');
+const fetch = require('node-fetch');
 
-// Utility function to save results to a file download
+// Configuration
+const API_ENDPOINT = 'http://localhost:5000/api/agent/run-search-test';
+const STRATEGY_ID = 17; // ID of the search strategy to test
+const TEST_QUERIES = [
+  "tech startups in San Francisco",
+  "marketing agencies in New York",
+  "healthcare providers in Chicago"
+];
+
+// Function to save test results to a file
 function saveResultsToFile(results, filename) {
-  const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  
-  URL.revokeObjectURL(url);
+  fs.writeFileSync(path.join(__dirname, filename), JSON.stringify(results, null, 2));
   console.log(`Results saved to ${filename}`);
 }
 
-// Helper to format a timestamp
+// Function to format timestamp for console output
 function formatTime() {
-  return new Date().toISOString();
+  const now = new Date();
+  return now.toLocaleTimeString();
 }
 
-// Execute a single search test
+// Function to execute a single search test
 async function executeSearchTest(query, strategyId) {
-  console.log(`Executing test: "${query}"`);
+  console.log(`[${formatTime()}] Running test for query: "${query}"`);
   
   try {
-    // Create a unique test ID
-    const testId = `test-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-    
-    // Execute the search
-    const response = await fetch('/api/companies/search', {
+    const response = await fetch(API_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        strategyId,
         query,
-        strategyId,
-        testId
+        saveToDatabase: true
       })
     });
-    
+
     if (!response.ok) {
-      throw new Error(`Search failed: ${response.status} ${response.statusText}`);
+      throw new Error(`API request failed with status ${response.status}`);
     }
-    
-    const searchResults = await response.json();
-    console.log(`Search complete for "${query}". Found ${searchResults.companies?.length || 0} companies.`);
-    
-    // Score a full test result
-    const testResult = await fetch('/api/search-test-score', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        testId,
-        strategyId,
-        query
-      })
-    });
-    
-    if (!testResult.ok) {
-      throw new Error(`Test scoring failed: ${testResult.status} ${testResult.statusText}`);
-    }
-    
-    const testScore = await testResult.json();
-    
-    console.log(`Test results for "${query}":`, {
-      companyQuality: testScore.companyQuality,
-      contactQuality: testScore.contactQuality,
-      emailQuality: testScore.emailQuality,
-      overallScore: testScore.overallScore
-    });
-    
-    return {
-      ...testScore,
-      timestamp: formatTime(),
-      createdAt: formatTime()
-    };
+
+    const data = await response.json();
+    console.log(`[${formatTime()}] Test completed. Overall score: ${data.currentTest.overallScore}`);
+    return data;
   } catch (error) {
-    console.error(`Error executing test for "${query}":`, error);
+    console.error(`[${formatTime()}] Error executing search test:`, error.message);
     throw error;
   }
 }
 
-// Execute all three test cases
+// Main function to run all tests
 async function runAllTests() {
-  console.log("==== STARTING SEARCH QUALITY TESTS ====");
-  console.log(`Strategy ID: ${TEST_CONFIG.strategyId}`);
-  console.log("Test cases:", TEST_CONFIG.baselineTests.map(t => t.name));
+  console.log('=== 5 Ducks Search Quality Testing ===');
+  console.log(`Starting tests at ${formatTime()}`);
   
-  const results = [];
-  const allTestsData = {};
-  
-  for (const test of TEST_CONFIG.baselineTests) {
-    try {
-      console.log(`\n==== RUNNING ${test.name} ====`);
-      const result = await executeSearchTest(test.query, TEST_CONFIG.strategyId);
-      results.push({
-        name: test.name,
-        query: test.query,
-        ...result
-      });
-      
-      // Store for final save
-      allTestsData[test.name] = {
-        currentTest: result,
-        recentTests: [] // We don't load historical data here
-      };
-      
-    } catch (error) {
-      console.error(`Failed to run test "${test.name}":`, error);
+  try {
+    // Run baseline tests
+    console.log('\n=== Running Baseline Tests ===');
+    for (let i = 0; i < TEST_QUERIES.length; i++) {
+      const query = TEST_QUERIES[i];
+      const result = await executeSearchTest(query, STRATEGY_ID);
+      saveResultsToFile(result, `baseline_test${i+1}.json`);
     }
+    
+    // Pause to allow system to update with the new filters
+    console.log('\nPausing for 5 seconds to ensure system is updated...');
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    
+    // Run improved tests
+    console.log('\n=== Running Improved Tests ===');
+    for (let i = 0; i < TEST_QUERIES.length; i++) {
+      const query = TEST_QUERIES[i];
+      const result = await executeSearchTest(query, STRATEGY_ID);
+      saveResultsToFile(result, `improved_test${i+1}.json`);
+    }
+    
+    // Run final tests after all improvements
+    console.log('\n=== Running Final Tests ===');
+    for (let i = 0; i < TEST_QUERIES.length; i++) {
+      const query = TEST_QUERIES[i];
+      const result = await executeSearchTest(query, STRATEGY_ID);
+      saveResultsToFile(result, `final_test${i+1}.json`);
+    }
+    
+    console.log('\n=== All Tests Completed ===');
+    console.log('Baseline tests are in baseline_test*.json');
+    console.log('Intermediate tests are in improved_test*.json');
+    console.log('Final tests are in final_test*.json');
+    console.log('\nTo compare results, use the test_helper.js functions');
+    
+  } catch (error) {
+    console.error('Error running tests:', error);
   }
-  
-  console.log("\n==== TEST RUNS COMPLETED ====");
-  console.log("Results summary:");
-  results.forEach(r => {
-    console.log(`${r.name}: Overall ${r.overallScore}, Contacts ${r.contactQuality}`);
-  });
-  
-  // Calculate average scores
-  const contactScores = results.map(r => r.contactQuality);
-  const averageContactScore = contactScores.reduce((a, b) => a + b, 0) / contactScores.length;
-  
-  console.log(`\nAverage contact quality score: ${averageContactScore.toFixed(1)}`);
-  
-  // Save all results to files
-  saveResultsToFile(allTestsData[TEST_CONFIG.baselineTests[0].name], 'improved_test1.json');
-  saveResultsToFile(allTestsData[TEST_CONFIG.baselineTests[1].name], 'improved_test2.json');
-  saveResultsToFile(allTestsData[TEST_CONFIG.baselineTests[2].name], 'improved_test3.json');
-  
-  // Return the summary
-  return {
-    averageContactScore,
-    tests: results
-  };
 }
 
-// Execute all tests when this script is run
-runAllTests().then(summary => {
-  console.log("Search quality testing complete!");
-}).catch(error => {
-  console.error("Error in test execution:", error);
-});
+// Execute the tests
+runAllTests();
