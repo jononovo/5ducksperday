@@ -256,6 +256,12 @@ export function setupAuth(app: Express) {
     try {
       const { email, username, accessToken } = req.body;
 
+      console.log('Google auth endpoint received request:', { 
+        hasEmail: !!email, 
+        hasUsername: !!username,
+        hasAccessToken: !!accessToken 
+      });
+
       // Store Gmail token in session if provided
       if (accessToken) {
         req.session.gmailToken = accessToken;
@@ -266,12 +272,26 @@ export function setupAuth(app: Express) {
         });
       }
 
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
       // Try to find user by email
       let user = await storage.getUserByEmail(email);
 
       if (!user) {
         // Create new user if doesn't exist
-        user = await storage.createUser(email);
+        try {
+          user = await storage.createUser({
+            email,
+            username: username || email.split('@')[0],
+            password: '',  // Not used for Google auth
+          });
+          console.log('Created new user:', { id: user.id, email: email.split('@')[0] + '@...' });
+        } catch (createError) {
+          console.error('Failed to create user:', createError);
+          return res.status(500).json({ error: "Failed to create user account" });
+        }
       }
 
       req.login(user, (err) => {
@@ -279,7 +299,8 @@ export function setupAuth(app: Express) {
         res.json(user);
       });
     } catch (err) {
-      next(err);
+      console.error('Google auth endpoint error:', err);
+      res.status(500).json({ error: "Authentication failed" });
     }
   });
 

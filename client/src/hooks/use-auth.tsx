@@ -193,13 +193,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         domain: window.location.hostname
       });
 
-      const createRes = await apiRequest("POST", "/api/google-auth", {
-        email: firebaseUser.email,
-        username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-        accessToken // Add the access token to the request
+      // Get the ID token for authentication
+      const idToken = await firebaseUser.getIdToken(true);
+
+      const createRes = await fetch("/api/google-auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          email: firebaseUser.email,
+          username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+          accessToken // Add the access token to the request
+        })
       });
 
       if (!createRes.ok) {
+        const errorText = await createRes.text();
+        console.error('Backend sync error response:', {
+          status: createRes.status,
+          statusText: createRes.statusText,
+          responseText: errorText
+        });
         throw new Error(`Failed to sync with backend: ${createRes.status}`);
       }
 
