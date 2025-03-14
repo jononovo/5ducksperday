@@ -280,7 +280,76 @@ export function registerRoutes(app: Express) {
             userId: req.user!.id
           });
 
-          // Extract contacts with validation options
+          // Determine industry from company data or search context
+          let industry: string | undefined = undefined;
+          
+          // Check company services for industry indicators
+          if (companyData.services && companyData.services.length > 0) {
+            // Check for industry keywords in services
+            const industryKeywords: Record<string, string> = {
+              'software': 'technology',
+              'tech': 'technology',
+              'development': 'technology',
+              'it': 'technology',
+              'programming': 'technology',
+              'cloud': 'technology',
+              'healthcare': 'healthcare',
+              'medical': 'healthcare',
+              'hospital': 'healthcare',
+              'doctor': 'healthcare',
+              'finance': 'financial',
+              'banking': 'financial',
+              'investment': 'financial',
+              'construction': 'construction',
+              'building': 'construction',
+              'real estate': 'construction',
+              'legal': 'legal',
+              'law': 'legal',
+              'attorney': 'legal',
+              'retail': 'retail',
+              'shop': 'retail',
+              'store': 'retail',
+              'education': 'education',
+              'school': 'education',
+              'university': 'education',
+              'manufacturing': 'manufacturing',
+              'factory': 'manufacturing',
+              'production': 'manufacturing',
+              'consulting': 'consulting',
+              'advisor': 'consulting'
+            };
+            
+            // Look for industry keywords in company services
+            for (const service of companyData.services) {
+              const serviceLower = service.toLowerCase();
+              for (const [keyword, industryValue] of Object.entries(industryKeywords)) {
+                if (serviceLower.includes(keyword)) {
+                  industry = industryValue;
+                  break;
+                }
+              }
+              if (industry) break; // Stop if we found an industry
+            }
+          }
+          
+          // If no industry detected from services, try from company name
+          if (!industry && companyName) {
+            const nameLower = companyName.toLowerCase();
+            // Simple industry detection from company name
+            if (nameLower.includes('tech') || nameLower.includes('software')) {
+              industry = 'technology';
+            } else if (nameLower.includes('health') || nameLower.includes('medical')) {
+              industry = 'healthcare';
+            } else if (nameLower.includes('financ') || nameLower.includes('bank')) {
+              industry = 'financial';
+            } else if (nameLower.includes('consult')) {
+              industry = 'consulting';
+            }
+          }
+          
+          console.log(`Detected industry for ${companyName}: ${industry || 'unknown'}`);
+          
+          // Extract contacts with validation options including industry context
           const contacts = await extractContacts(
             analysisResults,
             companyName,
@@ -288,7 +357,8 @@ export function registerRoutes(app: Express) {
               useLocalValidation: true,
               localValidationWeight: 0.3,
               minimumScore: 20,
-              companyNamePenalty: 20
+              companyNamePenalty: 20,
+              industry: industry // Pass industry context to validation
             }
           );
 
@@ -397,7 +467,44 @@ export function registerRoutes(app: Express) {
         console.log('Decision-maker analysis result:', analysisResult);
 
         // Extract contacts focusing on core fields only
-        const newContacts = await extractContacts([analysisResult]);
+        // Determine industry from company name
+        let industry: string | undefined = undefined;
+        if (company.name) {
+          const nameLower = company.name.toLowerCase();
+          // Simple industry detection from company name
+          if (nameLower.includes('tech') || nameLower.includes('software')) {
+            industry = 'technology';
+          } else if (nameLower.includes('health') || nameLower.includes('medical')) {
+            industry = 'healthcare';
+          } else if (nameLower.includes('financ') || nameLower.includes('bank')) {
+            industry = 'financial';
+          } else if (nameLower.includes('consult')) {
+            industry = 'consulting';
+          } 
+          // Check for industry in company services if available
+          if (!industry && company.services && company.services.length > 0) {
+            const serviceString = company.services.join(' ').toLowerCase();
+            if (serviceString.includes('tech') || serviceString.includes('software') || serviceString.includes('development')) {
+              industry = 'technology';
+            } else if (serviceString.includes('health') || serviceString.includes('medical')) {
+              industry = 'healthcare';
+            } else if (serviceString.includes('financ') || serviceString.includes('bank')) {
+              industry = 'financial';
+            }
+          }
+        }
+        console.log(`Detected industry for contact enrichment: ${industry || 'unknown'}`);
+        
+        // Pass industry context to contact extraction
+        const newContacts = await extractContacts(
+          [analysisResult], 
+          company.name, 
+          { 
+            useLocalValidation: true,
+            minimumScore: 20,
+            industry: industry // Include industry context for validation
+          }
+        );
         console.log('Extracted contacts:', newContacts);
 
         // Remove existing contacts

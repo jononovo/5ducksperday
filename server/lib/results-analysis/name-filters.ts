@@ -208,6 +208,58 @@ export const DISALLOWED_NAME_TERMS = [
 ];
 
 /**
+ * Dictionary of industry-specific professional titles by sector
+ * These are legitimate role titles that should boost confidence scores
+ */
+export const INDUSTRY_PROFESSIONAL_TITLES: Record<string, string[]> = {
+  "technology": [
+    "software engineer", "systems architect", "cto", "developer", "devops engineer", 
+    "product manager", "scrum master", "data scientist", "full stack", "frontend", 
+    "backend", "qa engineer", "information security", "cloud architect", "engineer"
+  ],
+  "healthcare": [
+    "physician", "surgeon", "medical director", "nurse practitioner", "chief medical", 
+    "healthcare administrator", "medical officer", "clinical director", "doctor", 
+    "specialist", "head of radiology", "chief of staff", "pharmacist"
+  ],
+  "financial": [
+    "investment banker", "financial advisor", "financial analyst", "portfolio manager", 
+    "wealth manager", "fund manager", "chief financial", "controller", "treasurer", 
+    "actuary", "underwriter", "financial planner", "credit analyst"
+  ],
+  "legal": [
+    "attorney", "lawyer", "legal counsel", "partner", "associate", "legal director", 
+    "general counsel", "law partner", "chief legal", "litigator", "solicitor", 
+    "barrister", "compliance officer", "judge"
+  ],
+  "construction": [
+    "project manager", "general contractor", "construction manager", "site supervisor", 
+    "architect", "civil engineer", "structural engineer", "estimator", "surveyor", 
+    "superintendent", "foreman", "master plumber", "master electrician"
+  ],
+  "retail": [
+    "store manager", "retail director", "merchandising manager", "buyer", "category manager", 
+    "regional manager", "visual merchandiser", "sales associate", "operations manager", 
+    "ecommerce director", "supply chain manager"
+  ],
+  "education": [
+    "principal", "headmaster", "dean", "professor", "department chair", "superintendent", 
+    "academic director", "provost", "faculty head", "curriculum director", "school administrator", 
+    "teacher", "instructor"
+  ],
+  "manufacturing": [
+    "plant manager", "production manager", "quality control", "industrial engineer", 
+    "operations director", "manufacturing engineer", "supply chain", "procurement manager", 
+    "facilities manager", "lean manufacturing", "master craftsman"
+  ],
+  "consulting": [
+    "managing partner", "engagement manager", "consulting director", "principal consultant", 
+    "management consultant", "senior advisor", "strategy consultant", "transformation lead", 
+    "senior partner", "practice leader", "business consultant"
+  ]
+};
+
+/**
  * Placeholder email patterns that should be filtered
  */
 export const PLACEHOLDER_EMAIL_PATTERNS = [
@@ -458,19 +510,7 @@ export function containsDisallowedTerm(name: string): boolean {
   );
 }
 
-/**
- * Maps industry codes to a set of legitimate professional titles that may be part of a name
- * These should NOT be penalized as they are professional designations
- */
-export const INDUSTRY_PROFESSIONAL_TITLES: Record<string, string[]> = {
-  "technology": ["engineer", "developer", "architect"],
-  "healthcare": ["dr", "doctor", "physician", "nurse", "surgeon"],
-  "financial": ["cpa", "advisor", "analyst"],
-  "legal": ["attorney", "lawyer", "counsel", "esq"],
-  "education": ["professor", "dr", "phd", "dean"],
-  "construction": ["builder", "contractor", "architect"],
-  "consulting": ["consultant", "advisor", "strategist"]
-};
+/* This declaration was moved to the top of the file */
 
 /**
  * Calculates an industry-specific confidence score adjustment
