@@ -119,9 +119,12 @@ export default function Build() {
     });
     
     try {
+      // Generate a unique test ID
+      const testId = `test-${Date.now()}`;
+      
       // Create a running test result entry
       const runningTest: TestResult = {
-        id: `test-${Date.now()}`,
+        id: testId,
         strategyName: strategies?.find(s => s.id.toString() === selectedStrategy)?.name || 'Unknown Strategy',
         strategyId: parseInt(selectedStrategy),
         testQuery,
@@ -162,19 +165,46 @@ export default function Build() {
       const overallScore = data.overallScore || 
         Math.round((scores.companyQuality + scores.contactQuality + scores.emailQuality) / 3);
       
-      // Update the test result
+      // Update the test result locally
+      const completedResult = {
+        ...runningTest,
+        ...scores,
+        overallScore,
+        status: "completed" as const
+      };
+      
       const updatedCompletedResults = testResults.map(result => 
-        result.id === runningTest.id 
-          ? {
-              ...result,
-              ...scores,
-              overallScore,
-              status: "completed" 
-            }
-          : result
+        result.id === runningTest.id ? completedResult : result
       );
+      
       setTestResults(updatedCompletedResults);
       localStorage.setItem('searchTestResults', JSON.stringify(updatedCompletedResults));
+      
+      // Save the result to the database
+      try {
+        const dbResponse = await apiRequest("POST", "/api/search-test-results", {
+          strategyId: parseInt(selectedStrategy),
+          strategyName: completedResult.strategyName,
+          testQuery: completedResult.testQuery,
+          companyQuality: completedResult.companyQuality,
+          contactQuality: completedResult.contactQuality,
+          emailQuality: completedResult.emailQuality,
+          overallScore: completedResult.overallScore,
+          status: "completed",
+          metadata: {
+            timestamp: completedResult.timestamp,
+            testId: completedResult.id
+          }
+        });
+        
+        if (!dbResponse.ok) {
+          console.error('Failed to save test result to database:', await dbResponse.text());
+        } else {
+          console.log('Test result saved to database successfully');
+        }
+      } catch (dbError) {
+        console.error('Error saving test result to database:', dbError);
+      }
       
       toast({
         title: "Test completed",
@@ -187,13 +217,19 @@ export default function Build() {
         variant: "destructive"
       });
       
-      const updatedFailedResults = testResults.map(result => 
-        result.id === runningTest.id 
-          ? { ...result, status: "failed" }
-          : result
-      );
-      setTestResults(updatedFailedResults);
-      localStorage.setItem('searchTestResults', JSON.stringify(updatedFailedResults));
+      // Mark the running test as failed
+      const failedTestId = `test-${Date.now()}`;
+      const failedTest = testResults.find(result => result.status === "running");
+      
+      if (failedTest) {
+        const updatedFailedResults = testResults.map(result => 
+          result.id === failedTest.id 
+            ? { ...result, status: "failed" as const }
+            : result
+        );
+        setTestResults(updatedFailedResults);
+        localStorage.setItem('searchTestResults', JSON.stringify(updatedFailedResults));
+      }
     } finally {
       setIsRunningTest(false);
     }
