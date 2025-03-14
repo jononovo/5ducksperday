@@ -7,12 +7,13 @@ import { parseCompanyData } from "./lib/results-analysis/company-parser";
 import { queryPerplexity } from "./lib/api/perplexity-client";
 import { searchContactDetails } from "./lib/api-interactions";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
-import { insertEmailTemplateSchema, insertSearchTestResultSchema } from "@shared/schema";
+import { insertEmailTemplateSchema, insertSearchTestResultSchema, insertN8nWorkflowSchema } from "@shared/schema";
 import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
 import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
 import { google } from 'googleapis';
+import { n8nService } from './lib/n8n-service';
 
 // Helper functions for improved search test scoring and AI agent support
 function normalizeScore(score: number): number {

@@ -140,6 +140,31 @@ export const searchTestResults = pgTable("search_test_results", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// N8N Workflow tables
+export const n8nWorkflows = pgTable("n8n_workflows", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  active: boolean("active").default(true),
+  workflowData: jsonb("workflow_data"),
+  strategyId: integer("strategy_id").references(() => searchApproaches.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const n8nWorkflowExecutions = pgTable("n8n_workflow_executions", {
+  id: serial("id").primaryKey(),
+  workflowId: integer("workflow_id").notNull().references(() => n8nWorkflows.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  status: text("status").default("pending"),
+  startedAt: timestamp("started_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  inputData: jsonb("input_data"),
+  outputData: jsonb("output_data"),
+  error: text("error")
+});
+
 const listSchema = z.object({
   listId: z.number().min(1001),
   prompt: z.string().min(1, "Search prompt is required"),
@@ -286,6 +311,24 @@ const searchTestResultSchema = z.object({
   metadata: z.record(z.unknown()).optional()
 });
 
+// N8N Workflow schemas
+const n8nWorkflowSchema = z.object({
+  name: z.string().min(1, "Workflow name is required"),
+  description: z.string().optional(),
+  active: z.boolean().default(true),
+  workflowData: z.record(z.unknown()),
+  strategyId: z.number().optional()
+});
+
+const n8nWorkflowExecutionSchema = z.object({
+  workflowId: z.number(),
+  userId: z.number(),
+  status: z.enum(['pending', 'running', 'completed', 'failed']).default('pending'),
+  inputData: z.record(z.unknown()).optional(),
+  outputData: z.record(z.unknown()).optional(),
+  error: z.string().optional()
+});
+
 export const insertListSchema = listSchema.extend({
   userId: z.number()
 });
@@ -302,6 +345,10 @@ export const insertEmailTemplateSchema = emailTemplateSchema.extend({
 export const insertContactFeedbackSchema = contactFeedbackSchema;
 export const insertUserPreferencesSchema = userPreferencesSchema;
 export const insertSearchTestResultSchema = searchTestResultSchema;
+export const insertN8nWorkflowSchema = n8nWorkflowSchema.extend({
+  userId: z.number()
+});
+export const insertN8nWorkflowExecutionSchema = n8nWorkflowExecutionSchema;
 
 export type List = typeof lists.$inferSelect;
 export type InsertList = z.infer<typeof insertListSchema>;
@@ -323,6 +370,12 @@ export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export type SearchTestResult = typeof searchTestResults.$inferSelect;
 export type InsertSearchTestResult = z.infer<typeof insertSearchTestResultSchema>;
+
+// Define N8N workflow types
+export type N8nWorkflow = typeof n8nWorkflows.$inferSelect;
+export type InsertN8nWorkflow = z.infer<typeof insertN8nWorkflowSchema>;
+export type N8nWorkflowExecution = typeof n8nWorkflowExecutions.$inferSelect;
+export type InsertN8nWorkflowExecution = z.infer<typeof insertN8nWorkflowExecutionSchema>;
 
 // Add user schema and type
 export const userSchema = z.object({

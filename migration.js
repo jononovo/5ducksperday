@@ -1,41 +1,58 @@
-// migration.js
+// N8N Workflow tables migration script
+import { drizzle } from "drizzle-orm/node-postgres";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import pg from 'pg';
 const { Pool } = pg;
+import dotenv from "dotenv";
 
-// Use the same database URL as in server/db.ts
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Initialize environment variables
+dotenv.config();
+
+// SQL queries to create tables
+const createTablesSQL = `
+-- Create n8n_workflows table if it doesn't exist
+CREATE TABLE IF NOT EXISTS n8n_workflows (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  name TEXT NOT NULL,
+  description TEXT,
+  active BOOLEAN DEFAULT TRUE,
+  workflow_data JSONB,
+  strategy_id INTEGER REFERENCES search_approaches(id),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create n8n_workflow_executions table if it doesn't exist
+CREATE TABLE IF NOT EXISTS n8n_workflow_executions (
+  id SERIAL PRIMARY KEY,
+  workflow_id INTEGER NOT NULL REFERENCES n8n_workflows(id),
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  status TEXT DEFAULT 'pending',
+  started_at TIMESTAMP DEFAULT NOW(),
+  completed_at TIMESTAMP,
+  input_data JSONB,
+  output_data JSONB,
+  error TEXT
+);
+`;
 
 async function runMigration() {
+  console.log("Starting database migration for N8N workflow tables...");
+  
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+  
   try {
-    console.log('Checking if column alternative_emails exists in contacts table...');
-    
-    // Check if column exists first
-    const checkResult = await pool.query(`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'contacts' 
-      AND column_name = 'alternative_emails'
-    `);
-    
-    if (checkResult.rows.length === 0) {
-      console.log('Adding alternative_emails column to contacts table...');
-      
-      // Add the column
-      await pool.query(`
-        ALTER TABLE contacts 
-        ADD COLUMN alternative_emails TEXT[]
-      `);
-      
-      console.log('Migration completed successfully');
-    } else {
-      console.log('Column alternative_emails already exists');
-    }
+    // Execute the SQL to create tables
+    await pool.query(createTablesSQL);
+    console.log("Migration completed successfully.");
   } catch (error) {
-    console.error('Migration failed:', error);
+    console.error("Migration failed:", error);
   } finally {
     await pool.end();
-    process.exit(0);
   }
 }
 
-runMigration();
+runMigration().catch(console.error);
