@@ -289,11 +289,62 @@ export default function Build() {
           </CardContent>
         </Card>
 
-        {/* Search Test Results */}
-        <SearchTestResults
-          strategyId={selectedStrategy || null}
-          limit={5}
-        />
+        {/* Test Results Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Search Quality Benchmark Results</CardTitle>
+            <CardDescription>
+              Performance metrics for search strategies
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Strategy</TableHead>
+                    <TableHead>Test Query</TableHead>
+                    <TableHead>
+                      <div className="flex items-center">
+                        <BarChart3 className="mr-1 h-4 w-4" />
+                        Company Quality
+                      </div>
+                    </TableHead>
+                    <TableHead>
+                      <div className="flex items-center">
+                        <Users className="mr-1 h-4 w-4" />
+                        Contact Quality
+                      </div>
+                    </TableHead>
+                    <TableHead>
+                      <div className="flex items-center">
+                        <Mail className="mr-1 h-4 w-4" />
+                        Email Quality
+                      </div>
+                    </TableHead>
+                    <TableHead>Overall Score</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isRunningTest ? (
+                    <TableRow>
+                      <TableCell className="font-medium">{strategies?.find(s => s.id.toString() === selectedStrategy)?.name}</TableCell>
+                      <TableCell>{testQuery}</TableCell>
+                      <TableCell><Progress value={undefined} className="h-2 w-16" /></TableCell>
+                      <TableCell><Progress value={undefined} className="h-2 w-16" /></TableCell>
+                      <TableCell><Progress value={undefined} className="h-2 w-16" /></TableCell>
+                      <TableCell><Loader2 className="h-4 w-4 animate-spin" /></TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-blue-50 text-blue-600">Running</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
         
         {/* Strategy Performance History Chart */}
         <StrategyPerformanceChart 
