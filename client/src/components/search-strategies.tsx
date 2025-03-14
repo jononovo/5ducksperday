@@ -42,13 +42,27 @@ const EXCLUDED_MODULES = [
 ];
 
 export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchStrategyProps) {
-  const [selectedStrategy, setSelectedStrategy] = useState(defaultStrategy);
+  // We'll set the default strategy after the data is loaded
+  const [selectedStrategy, setSelectedStrategy] = useState<string | undefined>(defaultStrategy);
 
   const { data: strategies } = useQuery<SearchApproach[]>({
     queryKey: ["/api/search-approaches"],
     select: (data: SearchApproach[]) => data
       .filter(s => s.active && VALID_STRATEGIES.includes(s.name) && !EXCLUDED_MODULES.includes(s.name))
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+    onSuccess: (data) => {
+      // When the data loads, if no strategy is selected yet, find and select Advanced Key Contact Discovery
+      if (!selectedStrategy && data?.length) {
+        const advancedStrategy = data.find(s => s.name === "Advanced Key Contact Discovery");
+        if (advancedStrategy) {
+          // Set the Advanced Key Contact Discovery as the default strategy
+          const strategyId = advancedStrategy.id.toString();
+          setSelectedStrategy(strategyId);
+          onStrategyChange(strategyId);
+          console.log(`Auto-selecting default strategy: ${advancedStrategy.name} (${strategyId})`);
+        }
+      }
+    }
   });
 
   const handleStrategyChange = (value: string) => {
