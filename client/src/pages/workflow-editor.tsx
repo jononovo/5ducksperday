@@ -1,37 +1,36 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ExternalLink, Save } from "lucide-react";
+import { ArrowLeft, Save, RefreshCw } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function WorkflowEditorPage() {
   const { workflowId } = useParams();
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (!workflowId || !user) return;
-
-    // Instead of embedding in an iframe, we'll open the N8N editor directly
-    // This solves cross-origin and permission issues
-    const editorUrl = `http://localhost:5678/workflow/${workflowId}`;
-    window.open(editorUrl, "_blank", "noopener");
-    
-    // Redirect back to the workflows page after opening the editor
-    navigate("/workflows");
-  }, [workflowId, user, navigate]);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+  
+  // Get the workflow details
+  const { data: workflow, isLoading } = useQuery({
+    queryKey: [`/api/workflows/${workflowId}`],
+    enabled: !!workflowId && !!user
+  });
 
   // Function to sync workflow from N8N back to our database
   const syncWorkflow = async () => {
     if (!workflowId) return;
     
+    setIsSyncing(true);
     try {
       // This endpoint should extract the workflow data from N8N and update our database
-      await apiRequest(`/api/workflows/${workflowId}/sync`, {
+      const result = await apiRequest(`/api/workflows/${workflowId}/sync`, {
         method: "POST",
       });
       
@@ -39,9 +38,6 @@ export default function WorkflowEditorPage() {
         title: "Workflow synchronized",
         description: "The workflow has been synchronized with our database.",
       });
-      
-      // Navigate back to the workflows list
-      navigate("/workflows");
     } catch (error) {
       console.error("Error syncing workflow:", error);
       toast({
@@ -49,55 +45,71 @@ export default function WorkflowEditorPage() {
         description: "Failed to sync workflow changes. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSyncing(false);
     }
-  };
-
-  const openEditor = () => {
-    if (!workflowId) return;
-    const editorUrl = `http://localhost:5678/workflow/${workflowId}`;
-    window.open(editorUrl, "_blank", "noopener");
   };
 
   return (
     <Layout>
-      <div className="container mx-auto py-4">
+      <div className="container mx-auto p-4 flex flex-col h-[calc(100vh-80px)]">
         <div className="flex justify-between items-center mb-4">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate("/workflows")}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Workflows
-          </Button>
-        </div>
-        
-        <div className="bg-card rounded-lg shadow p-6">
-          <h1 className="text-2xl font-bold mb-4">N8N Workflow Editor</h1>
-          
-          <p className="mb-6">
-            The N8N workflow editor will open in a new tab. After making changes in the editor, 
-            return to this page and click the "Sync Workflow" button to save your changes to our database.
-          </p>
-          
-          <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+          <div className="flex items-center">
             <Button 
-              onClick={openEditor}
-              className="flex-1"
+              variant="outline" 
+              onClick={() => navigate("/workflows")}
+              className="mr-2"
             >
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Open Editor in New Tab
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Workflows
             </Button>
             
+            {!isLoading && workflow && (
+              <h1 className="text-xl font-bold hidden md:block">
+                Editing: {workflow.name}
+              </h1>
+            )}
+          </div>
+          
+          <div>
             <Button 
               onClick={syncWorkflow}
-              className="flex-1"
-              variant="outline"
+              disabled={isSyncing}
+              variant="default"
+              className="ml-2"
             >
-              <Save className="mr-2 h-4 w-4" />
-              Sync Workflow
+              {isSyncing ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              {isSyncing ? "Syncing..." : "Save Changes"}
             </Button>
           </div>
         </div>
+        
+        {isLoading ? (
+          <div className="flex-grow flex items-center justify-center">
+            <div className="text-center">
+              <Skeleton className="h-[600px] w-[800px] rounded-md" />
+              <p className="mt-4">Loading workflow editor...</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-grow border rounded-lg overflow-hidden relative">
+            {!iframeLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+                <div className="text-center">
+                  <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
+                  <p>Loading N8N editor...</p>
+                </div>
+              </div>
+            )}
+            <iframe 
+              src={`http://localhost:5678/workflow/${workflowId}`}
+              className="w-full h-full border-0"
+              title="N8N Workflow Editor"
+              onLoad={() => setIframeLoaded(true)}
+              allow="accelerometer; camera; encrypted-media; fullscreen; geolocation; gyroscope; microphone; midi"
+            />
+          </div>
+        )}
       </div>
     </Layout>
   );
