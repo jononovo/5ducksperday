@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Code2, ArrowLeft } from "lucide-react";
+import { Code2, ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 
@@ -24,6 +24,13 @@ export default function ApiTemplates() {
               API Request Templates
             </CardTitle>
           </div>
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation("/home")}
+          >
+            <Search className="w-4 h-4 mr-2" />
+            Go to Search
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-12">
