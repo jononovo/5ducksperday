@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search } from "lucide-react";
 import type { SearchModuleConfig } from "@shared/schema";
 import { useConfetti } from "@/hooks/use-confetti";
+import { useSearchStrategy } from "@/lib/search-strategy-context";
 
 interface PromptEditorProps {
   onAnalyze: () => void;
@@ -41,6 +42,9 @@ export default function PromptEditor({
     queryKey: ["/api/search-approaches"],
   });
 
+  // Use our search strategy context
+  const { selectedStrategyId } = useSearchStrategy();
+  
   const searchMutation = useMutation({
     mutationFn: async (searchQuery: string) => {
       // Get active flows and their configurations
@@ -54,10 +58,17 @@ export default function PromptEditor({
           completedSearches: flow.completedSearches || []
         }));
 
+      // Find the selected strategy if one is selected
+      const selectedStrategy = selectedStrategyId ? 
+        searchFlows.find(flow => flow.id.toString() === selectedStrategyId) : null;
+      
+      console.log(`Searching with strategy: ${selectedStrategy?.name || "Default"} (ID: ${selectedStrategyId || "none"})`);
+
       // Ensure proper typing for the search request
       const res = await apiRequest("POST", "/api/companies/search", { 
         query: searchQuery,
-        flows: activeFlows
+        flows: activeFlows,
+        strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined
       });
       return res.json();
     },

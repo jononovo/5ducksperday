@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Textarea } from "@/components/ui/textarea";
@@ -349,8 +349,12 @@ function ApproachEditor({ approach }: { approach: SearchApproach }) {
   );
 }
 
+import { useSearchStrategy } from "@/lib/search-strategy-context";
+
 export default function SearchFlowNew({ approaches }: SearchFlowNewProps) {
-  const [selectedStrategy, setSelectedStrategy] = useState<string>();
+  // Use the global strategy context
+  const { selectedStrategyId, setSelectedStrategyId } = useSearchStrategy();
+  const [localSelectedStrategy, setLocalSelectedStrategy] = useState<string>();
 
   // Sort approaches by fixed order
   const sortedApproaches = [...approaches].sort((a, b) => {
@@ -360,18 +364,29 @@ export default function SearchFlowNew({ approaches }: SearchFlowNewProps) {
   });
 
   // Find default strategy (company_overview type)
-  const defaultStrategy = approaches.find(a => a.moduleType === 'company_overview')?.id.toString();
+  const defaultStrategy = approaches.find(a => 
+    a.name === "Advanced Key Contact Discovery" || 
+    a.moduleType === 'company_overview')?.id.toString();
+
+  // Set default strategy on component mount if none is selected
+  useEffect(() => {
+    if (!selectedStrategyId && defaultStrategy) {
+      setSelectedStrategyId(defaultStrategy);
+      setLocalSelectedStrategy(defaultStrategy);
+    }
+  }, [defaultStrategy, selectedStrategyId, setSelectedStrategyId]);
 
   const handleStrategyChange = (strategyId: string) => {
-    setSelectedStrategy(strategyId);
-    // This will trigger a re-render with the selected strategy's approaches
+    setLocalSelectedStrategy(strategyId);
+    setSelectedStrategyId(strategyId); // Update the global context
+    console.log(`Strategy changed to: ${strategyId}`);
   };
 
   return (
     <div className="space-y-4">
       <SearchStrategies
         onStrategyChange={handleStrategyChange}
-        defaultStrategy={defaultStrategy}
+        defaultStrategy={selectedStrategyId || defaultStrategy}
       />
       <Accordion type="single" collapsible className="w-full">
         {sortedApproaches.map((approach) => (

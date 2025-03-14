@@ -174,7 +174,7 @@ export function registerRoutes(app: Express) {
 
   // Companies search endpoint
   app.post("/api/companies/search", requireAuth, async (req, res) => {
-    const { query } = req.body;
+    const { query, strategyId } = req.body;
 
     if (!query || typeof query !== 'string') {
       res.status(400).json({
@@ -189,6 +189,19 @@ export function registerRoutes(app: Express) {
 
       // Get search approaches for analysis
       const approaches = await storage.listSearchApproaches();
+      
+      // Check if a specific strategy was requested
+      let selectedStrategy = null;
+      if (strategyId) {
+        console.log(`Using selected strategy ID: ${strategyId}`);
+        selectedStrategy = await storage.getSearchApproach(strategyId);
+        
+        if (selectedStrategy) {
+          console.log(`Found selected strategy: ${selectedStrategy.name}`);
+        } else {
+          console.log(`Strategy with ID ${strategyId} not found, using default strategy flow`);
+        }
+      }
 
       const companyOverview = approaches.find(a =>
         a.name === "Company Overview" && a.active
