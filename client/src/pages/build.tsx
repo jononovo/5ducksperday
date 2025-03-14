@@ -65,8 +65,17 @@ export default function Build() {
     onSuccess: (data: TestResult[]) => {
       if (data && Array.isArray(data)) {
         // Initialize local state with database results
+        console.log("Loaded test results from database:", data);
         setTestResults(data);
       }
+    },
+    onError: (error) => {
+      console.error("Error loading test results:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load saved test results.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -159,7 +168,7 @@ export default function Build() {
         Math.round((scores.companyQuality + scores.contactQuality + scores.emailQuality) / 3);
       
       // Generate a valid UUID for the test
-      const testUuid = crypto.randomUUID ? crypto.randomUUID() : `test-${Date.now()}`;
+      const testUuid = crypto.randomUUID();
       
       // Get the strategy name
       const strategyName = strategies?.find(s => s.id.toString() === selectedStrategy)?.name || 'Unknown Strategy';
