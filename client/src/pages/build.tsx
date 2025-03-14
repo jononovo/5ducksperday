@@ -184,16 +184,16 @@ export default function Build() {
       try {
         const dbResponse = await apiRequest("POST", "/api/search-test-results", {
           strategyId: parseInt(selectedStrategy),
-          strategyName: completedResult.strategyName,
-          testQuery: completedResult.testQuery,
+          testId: completedResult.id.replace('test-', ''),  // Remove 'test-' prefix for UUID format
+          query: completedResult.testQuery,
           companyQuality: completedResult.companyQuality,
           contactQuality: completedResult.contactQuality,
           emailQuality: completedResult.emailQuality,
           overallScore: completedResult.overallScore,
           status: "completed",
           metadata: {
-            timestamp: completedResult.timestamp,
-            testId: completedResult.id
+            strategyName: completedResult.strategyName,
+            timestamp: completedResult.timestamp
           }
         });
         
