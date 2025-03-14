@@ -66,6 +66,7 @@ export class DatabaseStorage implements IStorage {
   createEmailTemplate = (template: any): Promise<any> => this.templateStorage.createEmailTemplate(template);
 
   // Search Approaches
+  getSearchApproach = (id: number): Promise<any> => this.searchStorage.getSearchApproach(id);
   listSearchApproaches = (): Promise<any[]> => this.searchStorage.listSearchApproaches();
   updateSearchApproach = (id: number, updates: any): Promise<any> => this.searchStorage.updateSearchApproach(id, updates);
 }

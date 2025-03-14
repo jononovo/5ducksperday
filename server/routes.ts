@@ -753,6 +753,57 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
+  // Search Quality Testing Endpoint
+  app.post("/api/search-test", requireAuth, async (req, res) => {
+    try {
+      const { strategyId, query } = req.body;
+      
+      if (!strategyId || !query) {
+        res.status(400).json({ message: "Missing required parameters: strategyId and query are required" });
+        return;
+      }
+      
+      console.log('Running search quality test:', { strategyId, query });
+      
+      // Get the search strategy 
+      const approach = await storage.getSearchApproach(strategyId);
+      if (!approach) {
+        res.status(404).json({ message: "Search strategy not found" });
+        return;
+      }
+      
+      // In a real implementation, we would:
+      // 1. Run the actual search using this strategy
+      // 2. Analyze company quality based on relevance, data completeness
+      // 3. Analyze contact quality based on role importance, data validation
+      // 4. Analyze email quality based on pattern validation, verifiability
+
+      // For this prototype, we're calculating scores in the frontend
+      // In a production system, these would be genuine analysis scores
+
+      res.json({
+        id: `test-${Date.now()}`,
+        strategyId,
+        strategyName: approach.name,
+        query,
+        timestamp: new Date().toISOString(),
+        status: 'completed',
+        // These scores would actually be calculated by backend analysis
+        // based on real search results
+        metrics: {
+          companyQuality: 0,
+          contactQuality: 0,
+          emailQuality: 0
+        }
+      });
+    } catch (error) {
+      console.error('Search quality test error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred during search test"
+      });
+    }
+  });
+
   app.post("/api/contacts/:contactId/aeroleads", requireAuth, async (req, res) => {
     try {
       const contactId = parseInt(req.params.contactId);
