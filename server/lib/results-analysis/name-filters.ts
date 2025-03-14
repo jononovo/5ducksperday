@@ -287,6 +287,129 @@ export function calculateGenericTermPenalty(name: string): number {
 }
 
 /**
+ * Industry-specific terms organized by sector
+ * Used for more targeted filtering in specific business contexts
+ */
+export const INDUSTRY_SPECIFIC_TERMS: Record<string, string[]> = {
+  // Technology and Software
+  "technology": [
+    "software", "hardware", "developer", "architect", "programmer", "coder", "engineer",
+    "frontend", "backend", "fullstack", "devops", "sysadmin", "database", "cloud",
+    "infrastructure", "security", "cybersecurity", "network", "ai", "ml", "data science"
+  ],
+  
+  // Healthcare and Medical
+  "healthcare": [
+    "physician", "doctor", "nurse", "practitioner", "surgeon", "specialist", "technician",
+    "therapist", "pharmacist", "clinician", "pathologist", "radiologist", "administrator",
+    "provider", "patient", "care", "medical", "clinical", "diagnostic", "therapeutic"
+  ],
+  
+  // Financial Services
+  "financial": [
+    "banker", "broker", "advisor", "analyst", "trader", "accountant", "auditor",
+    "controller", "underwriter", "portfolio", "wealth", "asset", "investment", "credit",
+    "loan", "mortgage", "insurance", "risk", "compliance", "regulatory", "fiduciary"
+  ],
+  
+  // Manufacturing
+  "manufacturing": [
+    "production", "assembly", "operator", "technician", "machinist", "welder", "fabricator",
+    "inspector", "supervisor", "scheduler", "inventory", "logistics", "safety", "quality",
+    "maintenance", "plant", "facility", "industrial", "supply chain", "process"
+  ],
+  
+  // Retail and E-commerce
+  "retail": [
+    "merchandiser", "buyer", "planner", "store", "shop", "associate", "clerk",
+    "cashier", "inventory", "ecommerce", "fulfillment", "category", "assortment", "pricing",
+    "vendor", "supplier", "procurement", "customer", "consumer", "shopping"
+  ],
+  
+  // Legal Services
+  "legal": [
+    "attorney", "lawyer", "counsel", "paralegal", "associate", "partner", "clerk",
+    "litigation", "corporate", "contract", "compliance", "regulatory", "intellectual", "property",
+    "patent", "trademark", "copyright", "estate", "family", "criminal", "civil"
+  ],
+  
+  // Education
+  "education": [
+    "teacher", "professor", "instructor", "educator", "faculty", "staff", "administrator",
+    "principal", "dean", "provost", "chancellor", "tutor", "coach", "counselor",
+    "academic", "curriculum", "pedagogy", "assessment", "learning", "teaching"
+  ],
+  
+  // Construction and Real Estate
+  "construction": [
+    "builder", "contractor", "subcontractor", "architect", "engineer", "estimator", "surveyor",
+    "foreman", "superintendent", "project", "manager", "inspector", "safety", "worker",
+    "laborer", "carpenter", "electrician", "plumber", "mason", "operator"
+  ],
+  
+  // Transportation and Logistics
+  "transportation": [
+    "driver", "operator", "conductor", "pilot", "captain", "attendant", "dispatcher",
+    "scheduler", "coordinator", "planner", "analyst", "specialist", "manager", "agent",
+    "broker", "customs", "freight", "shipping", "logistics", "fleet"
+  ],
+  
+  // Marketing and Advertising
+  "marketing": [
+    "advertiser", "marketer", "strategist", "planner", "buyer", "creative", "director",
+    "designer", "copywriter", "content", "digital", "social", "media", "brand", 
+    "public", "relations", "communications", "campaign", "manager", "specialist"
+  ],
+  
+  // Agriculture and Farming
+  "agriculture": [
+    "farmer", "grower", "rancher", "breeder", "herdsman", "worker", "laborer",
+    "agronomist", "technician", "specialist", "consultant", "operator", "veterinarian",
+    "inspector", "crop", "livestock", "dairy", "poultry", "organic", "sustainable"
+  ],
+  
+  // Energy and Utilities
+  "energy": [
+    "engineer", "technician", "operator", "analyst", "specialist", "manager", "coordinator",
+    "planner", "inspector", "regulator", "researcher", "scientist", "geologist", "developer",
+    "renewable", "fossil", "nuclear", "solar", "wind", "hydro", "power"
+  ],
+  
+  // Government and Public Administration
+  "government": [
+    "official", "administrator", "officer", "agent", "clerk", "coordinator", "specialist",
+    "planner", "analyst", "director", "commissioner", "secretary", "minister", "representative",
+    "diplomat", "legislator", "regulator", "inspector", "auditor", "policy"
+  ],
+  
+  // Hospitality and Tourism
+  "hospitality": [
+    "manager", "director", "coordinator", "supervisor", "attendant", "concierge", "receptionist",
+    "housekeeper", "chef", "cook", "server", "waiter", "waitress", "bartender", "host",
+    "hostess", "guide", "agent", "planner", "operator", "event"
+  ]
+};
+
+/**
+ * Checks if a name contains terms specific to an industry
+ * @param name The name to check
+ * @param industry The industry sector to check against
+ * @returns The count of industry-specific terms found
+ */
+export function countIndustryTerms(name: string, industry: string): number {
+  if (!INDUSTRY_SPECIFIC_TERMS[industry]) {
+    return 0;
+  }
+  
+  const nameLower = name.toLowerCase();
+  const words = nameLower.split(/[\s-]+/);
+  
+  return words.filter(word => 
+    INDUSTRY_SPECIFIC_TERMS[industry].includes(word)
+  ).length;
+}
+
+/**
  * Checks for disallowed terms in a name
  * @param name The name to check
  * @returns True if the name contains disallowed terms
@@ -301,4 +424,35 @@ export function containsDisallowedTerm(name: string): boolean {
     lowerName.startsWith(`${term} `) || 
     lowerName.endsWith(` ${term}`)
   );
+}
+
+/**
+ * Calculates an industry-specific confidence score adjustment
+ * @param name Name to check
+ * @param industry Industry context for the check
+ * @returns An adjustment value between -50 (bad) and +20 (good)
+ */
+export function calculateIndustryContextScore(name: string, industry: string): number {
+  if (!industry || !INDUSTRY_SPECIFIC_TERMS[industry]) {
+    return 0; // No adjustment if industry not specified or not recognized
+  }
+  
+  const termCount = countIndustryTerms(name, industry);
+  
+  // No industry terms - neutral
+  if (termCount === 0) {
+    return 0;
+  }
+  
+  // One industry term might be acceptable in some contexts (small penalty)
+  if (termCount === 1) {
+    // Check if it's part of a valid name pattern
+    if (/^[A-Z][a-z]+\s+[A-Z][a-z]+$/.test(name)) {
+      return 0; // No penalty for proper name format
+    }
+    return -15; // Small penalty otherwise
+  }
+  
+  // Multiple industry terms suggest non-person entity (large penalty)
+  return -30 * termCount;
 }

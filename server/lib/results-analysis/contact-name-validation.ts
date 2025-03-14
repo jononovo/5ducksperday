@@ -6,6 +6,7 @@ import {
   isPlaceholderEmail, 
   calculateGenericTermPenalty, 
   countGenericTerms,
+  calculateIndustryContextScore,
   GENERIC_TERMS 
 } from "./name-filters";
 
@@ -34,6 +35,7 @@ export interface ValidationOptions {
   searchPrompt?: string;
   searchTermPenalty?: number;
   aiScore?: number;
+  industry?: string; // Added industry context for more targeted validation
 }
 
 // Centralized scoring weights
@@ -251,11 +253,12 @@ export function validateName(
   });
 
   // Step 5: Domain Knowledge Rules (10% weight)
-  const domainScore = validateDomainRules(name, context);
+  const domainScore = validateDomainRules(name, context, options);
   validationSteps.push({
     name: "Domain Rules",
     score: domainScore,
-    weight: VALIDATION_WEIGHTS.domainKnowledge
+    weight: VALIDATION_WEIGHTS.domainKnowledge,
+    reason: options?.industry ? `Industry context: ${options.industry}` : undefined
   });
 
   // Calculate weighted total
@@ -445,10 +448,10 @@ function validateContext(name: string, context: string, companyName?: string | n
   return Math.min(95, Math.max(20, score));
 }
 
-function validateDomainRules(name: string, context: string): number {
+function validateDomainRules(name: string, context: string, options?: ValidationOptions): number {
   let score = 70;
 
-  // Check for industry-specific patterns
+  // Check for professional title patterns
   if (/Dr\.|Prof\.|PhD/i.test(name)) {
     score += 10;
   }
@@ -456,6 +459,15 @@ function validateDomainRules(name: string, context: string): number {
   // Check for common name patterns in business context
   if (/^[A-Z]\.\s[A-Z][a-z]+$/.test(name)) { // Initial + Last name
     score -= 15;
+  }
+
+  // Apply industry-specific validation if industry context is provided
+  if (options?.industry) {
+    const industryAdjustment = calculateIndustryContextScore(name, options.industry);
+    score += industryAdjustment;
+    
+    // Log the adjustment for debugging
+    console.log(`Applied industry-specific adjustment for industry "${options.industry}": ${industryAdjustment}`);
   }
 
   return Math.min(95, Math.max(20, score));
