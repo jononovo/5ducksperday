@@ -1,42 +1,11 @@
 import type { Contact } from "@shared/schema";
 import { validateName } from "./contact-name-validation";
-import { isPlaceholderEmail, isValidBusinessEmail } from "./email-analysis";
+import { isPlaceholderEmail, isValidBusinessEmail, generatePossibleEmails, extractDomainFromContext } from "./email-analysis";
 import { validateNames, combineValidationScores } from "./contact-ai-name-scorer";
+import { isPlaceholderName } from "./name-filters";
 
-// Common business email formats
-const EMAIL_FORMATS = [
-  (first: string, last: string) => `${first}.${last}`,
-  (first: string, last: string) => `${first[0]}${last}`,
-  (first: string, last: string) => `${first}${last[0]}`,
-  (first: string, last: string) => `${first}`,
-  (first: string, last: string) => `${last}`,
-  (first: string, last: string) => `${first[0]}.${last}`
-];
-
-export function generatePossibleEmails(name: string, domain: string): string[] {
-  const nameParts = name.toLowerCase().split(/\s+/);
-  if (nameParts.length < 2) return [];
-
-  const firstName = nameParts[0];
-  const lastName = nameParts[nameParts.length - 1];
-
-  return EMAIL_FORMATS.map(format =>
-    `${format(firstName, lastName)}@${domain}`
-  );
-}
-
-export function extractDomainFromContext(text: string): string | null {
-  const domainPattern = /(?:@|http:\/\/|https:\/\/|www\.)([a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,})/;
-  const match = text.match(domainPattern);
-  return match ? match[1] : null;
-}
-
-const placeholderNames = new Set([
-  'john doe', 'jane doe', 'john smith', 'jane smith',
-  'test user', 'demo user', 'example user'
-]);
-
-export const isPlaceholderName = (name: string): boolean => placeholderNames.has(name.toLowerCase());
+// Note: Common business email formats and email related functions are now imported from email-analysis.ts
+// Domain extraction is also imported from email-analysis.ts
 
 interface ValidationOptions {
   minimumScore?: number;

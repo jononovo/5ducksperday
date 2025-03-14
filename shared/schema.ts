@@ -47,6 +47,7 @@ export const contacts = pgTable("contacts", {
   name: text("name").notNull(),
   role: text("role"),
   email: text("email"),
+  alternativeEmails: text("alternative_emails").array(), // Added support for multiple email addresses
   probability: integer("probability"),
   linkedinUrl: text("linkedin_url"),
   twitterHandle: text("twitter_handle"),

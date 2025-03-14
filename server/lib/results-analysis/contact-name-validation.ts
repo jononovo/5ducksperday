@@ -265,9 +265,11 @@ export function validateName(
 
   // Apply penalties for generic terms more aggressively
   const nameParts = name.toLowerCase().split(/[\s-]+/);
-  const genericTermCount = nameParts.filter(part => GENERIC_TERMS.has(part)).length;
+  // Use the centralized countGenericTerms function
+  const genericTermCount = countGenericTerms(name);
   if (genericTermCount > 0) {
-    const genericPenalty = Math.min(75, genericTermCount * 35); // Increased penalty per generic term
+    // Use the pre-calculated penalty from name-filters
+    const genericPenalty = calculateGenericTermPenalty(name);
     totalScore = Math.max(20, totalScore - genericPenalty);
     validationSteps.push({
       name: "Generic Term Penalty",
