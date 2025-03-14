@@ -43,8 +43,9 @@ export class SearchStorage {
 
   async initializeDefaultSearchApproaches() {
     const existing = await this.listSearchApproaches();
-    if (existing.length === 0) {
-      const defaultApproaches: InsertSearchApproach[] = [
+    const existingNames = existing.map(a => a.name);
+    
+    const defaultApproaches: InsertSearchApproach[] = [
         {
           name: "Advanced Key Contact Discovery",
           prompt: "Enhanced discovery of decision makers with leadership role prioritization",
@@ -344,7 +345,10 @@ export class SearchStorage {
       ];
 
       for (const approach of defaultApproaches) {
-        await this.createSearchApproach(approach);
+        // Only insert if this approach name doesn't already exist
+        if (!existingNames.includes(approach.name)) {
+          await this.createSearchApproach(approach);
+        }
       }
     }
   }
