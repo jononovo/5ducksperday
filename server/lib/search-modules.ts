@@ -58,25 +58,32 @@ export const COMPANY_OVERVIEW_MODULE = {
 // Decision Maker Module Configuration
 export const DECISION_MAKER_MODULE = {
   type: 'decision_maker',
-  defaultPrompt: "Find key decision makers at [COMPANY], including their roles and contact information.",
-  technicalPrompt: `You are a business contact researcher. Find only real, verifiable decision makers at the company. For each identified decision maker, provide:
+  defaultPrompt: "Find key decision makers at [COMPANY], with a focus on leadership, executives, owners, and managers.",
+  technicalPrompt: `You are a specialized business contact researcher. Your task is to find ONLY real people at the company, specifically leaders and decision makers.
 
-    1. Full name 
-    2. position, title or role
-    3. Email address
+    I need a list of REAL PEOPLE with their ACTUAL NAMES and CURRENT ROLES. Focus on finding:
+    - Owners and founders
+    - C-suite executives (CEO, COO, CFO, CTO, etc.)
+    - Directors and department heads
+    - Key managers and team leads
 
-    Format your response as JSON with the following structure:
-    {
-      "contacts": [
-        {
-          "name": string,
-          "role": string,
-          "department": string,
-          "email": string | null,
-          "linkedinUrl": string | null
-        }
-      ]
-    }`,
+    FORMAT YOUR RESPONSE LIKE THIS:
+    
+    John Smith, CEO
+    Sarah Johnson, Operations Director
+    Michael Williams, Head of Marketing
+    Robert Davis, Owner
+    Jennifer Wilson, Technology Manager
+    
+    DO NOT INCLUDE ANY OF THESE:
+    - Department names without people
+    - Generic positions without names
+    - Company services or products
+    - General company information
+    - Company history
+    - Location information
+
+    ONLY RETURN A LIST OF ACTUAL PEOPLE WHO WORK AT THE COMPANY.`,
   responseStructure: {
     contacts: [
       {
@@ -89,9 +96,14 @@ export const DECISION_MAKER_MODULE = {
     ]
   },
   validationRules: {
-    minimumConfidence: 30,
+    minimumConfidence: 25, // Lowered to include more potential matches
     requireRole: true,
-    requireDepartment: false
+    requireDepartment: false,
+    // Adding specific multipliers for roles
+    founder_multiplier: 1.5,
+    c_level_multiplier: 1.3,
+    director_multiplier: 1.2,
+    manager_multiplier: 1.1
   }
 };
 

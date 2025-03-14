@@ -43,13 +43,14 @@ const DEFAULT_OPTIONS: DiscoveryOptions = {
   preferFullNames: true
 };
 
-// Legacy mode options for more lenient discovery
+// Legacy mode options for much more lenient discovery
+// Specifically tuned for decision maker search
 export const LEGACY_OPTIONS: DiscoveryOptions = {
-  minimumNameScore: 30,
-  companyNamePenalty: 15,
-  roleTitleBoost: 25,
-  filterGenericNames: false,
-  preferFullNames: true
+  minimumNameScore: 20, // Extremely low threshold to catch more potential contacts
+  companyNamePenalty: 10, // Minimal penalty for company name similarity
+  roleTitleBoost: 35, // Significantly boost contacts with roles
+  filterGenericNames: false, // Don't filter generic names in legacy mode
+  preferFullNames: true // Still require full names
 };
 
 /**

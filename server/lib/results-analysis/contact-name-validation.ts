@@ -180,9 +180,16 @@ export async function extractContacts(
 
   console.log('Starting contact extraction process');
   const contacts: Partial<Contact>[] = [];
-  const nameRegex = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g;
+  
+  // Enhanced name regex to catch more patterns of real names
+  // This pattern is more forgiving to catch various name formats
+  const nameRegex = /([A-Z][a-z]+(?:[-'\s]+[A-Z][a-z]+)+)|([A-Z][a-z]+\s+[A-Z]\.?\s+[A-Z][a-z]+)/g;
+  
+  // Standard email regex
   const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
-  const roleRegex = /(?:is|as|serves\s+as)\s+(?:the|a|an)\s+([^,.]+?(?:Manager|Director|Officer|Executive|Lead|Head|Chief|Founder|Owner|President|CEO|CTO|CFO))/gi;
+  
+  // Enhanced role regex to catch more leadership positions
+  const roleRegex = /(?:(?:is|as|serves\s+as)\s+(?:the|a|an)\s+|,\s+|:\s+)([^,.\n]*?(?:Manager|Director|VP|Officer|Executive|Lead|Head|Chief|Founder|Owner|President|CEO|CTO|CFO|Partner|Principal))/gi;
 
   try {
     // First pass: Extract and manually validate all names
@@ -215,8 +222,9 @@ export async function extractContacts(
         const validationResult = validateName(name, contextWindow, companyName);
         console.log(`Manual validation score for "${name}": ${validationResult.score}`);
 
-        // Only keep names that pass initial validation
-        if (validationResult.score >= 40) {
+        // Use a much lower threshold to include more potential matches
+        // We'll filter more aggressively later
+        if (validationResult.score >= 25) { // Significantly lower threshold (was 40)
           console.log(`Name "${name}" passed manual validation with score ${validationResult.score}`);
           potentialNames.push({
             name,
