@@ -23,9 +23,11 @@ import {
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, BarChart3, Search, Mail, Users, ArrowRight, RefreshCw } from "lucide-react";
+import { Loader2, BarChart3, Search, Mail, Users, ArrowRight, RefreshCw, Bot, Code } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StrategyPerformanceChart } from "@/components/strategy-performance-chart";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface TestResult {
   id: string;
@@ -519,6 +521,150 @@ export default function Build() {
           </CardContent>
         </Card>
         
+        {/* AI Agents API Documentation */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center">
+                <Bot className="mr-2 h-5 w-5" />
+                AI Agents API
+              </CardTitle>
+              <CardDescription>
+                API documentation for AI agents to run search quality tests
+              </CardDescription>
+            </div>
+            <Badge variant="outline" className="bg-blue-50 text-blue-600">
+              <Code className="mr-2 h-4 w-4" />
+              API
+            </Badge>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="overview">
+              <TabsList className="mb-4">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="endpoints">Endpoints</TabsTrigger>
+                <TabsTrigger value="examples">Examples</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Purpose</h3>
+                  <p className="text-muted-foreground">
+                    The AI Agents API allows automated benchmarking of search strategies. AI agents can run tests, 
+                    track performance over time, and make data-driven improvements to search configurations.
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Key Features</h3>
+                  <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                    <li>Run search quality tests programmatically</li>
+                    <li>Receive detailed performance metrics (company, contact, email quality)</li>
+                    <li>Track improvement over time with historical comparison</li>
+                    <li>Get AI-friendly structured response format</li>
+                  </ul>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="endpoints" className="space-y-4">
+                <Accordion type="single" collapsible className="border rounded-md">
+                  <AccordionItem value="endpoint-1">
+                    <AccordionTrigger className="px-4">
+                      <div className="flex items-center">
+                        <Badge className="mr-2">POST</Badge>
+                        <span className="font-mono text-sm">/api/agent/run-search-test</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4 space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-1">Description</h4>
+                        <p className="text-muted-foreground">Runs a search quality test for a specific strategy and query, returning detailed metrics.</p>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium mb-1">Request Body</h4>
+                        <pre className="bg-zinc-950 text-zinc-50 p-4 rounded-md text-sm font-mono overflow-x-auto">
+{`{
+  "strategyId": number,  // ID of the search strategy to test
+  "query": string,       // The search query to test
+  "saveToDatabase": boolean  // Optional, default: true
+}`}
+                        </pre>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium mb-1">Response</h4>
+                        <pre className="bg-zinc-950 text-zinc-50 p-4 rounded-md text-sm font-mono overflow-x-auto">
+{`{
+  "currentTest": {
+    "id": string,
+    "strategyId": number,
+    "strategyName": string,
+    "query": string,
+    "companyQuality": number,
+    "contactQuality": number,
+    "emailQuality": number,
+    "overallScore": number,
+    "status": "completed",
+    "timestamp": string
+  },
+  "recentTests": [
+    // Array of recent test results (same format as currentTest)
+  ],
+  "summary": {
+    "strategyName": string,
+    "averageOverallScore": number,
+    "testCount": number,
+    "latestScore": number,
+    "improvement": string  // Percentage improvement from oldest to newest test
+  }
+}`}
+                        </pre>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </TabsContent>
+              
+              <TabsContent value="examples" className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Example API Call</h3>
+                  <pre className="bg-zinc-950 text-zinc-50 p-4 rounded-md text-sm font-mono overflow-x-auto">
+{`// Example: Running a search test
+fetch('/api/agent/run-search-test', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    strategyId: 17,
+    query: "insurance brokers in hoboken"
+  })
+})
+.then(response => response.json())
+.then(data => {
+  console.log('Test result:', data.currentTest);
+  console.log('Overall score:', data.currentTest.overallScore);
+  console.log('Improvement:', data.summary.improvement);
+});`}
+                  </pre>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Automated Benchmarking Workflow</h3>
+                  <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
+                    <li>Run baseline test with default strategy configuration</li>
+                    <li>Make targeted improvements to search strategy</li>
+                    <li>Run follow-up test with the same query</li>
+                    <li>Compare results to measure improvement</li>
+                    <li>Continue iterating to optimize performance</li>
+                  </ol>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
         {/* Strategy Performance History Chart */}
         <StrategyPerformanceChart 
           strategyId={selectedStrategy || null}

@@ -12,6 +12,7 @@ The Build page serves several key functions within the application:
 2. **Quality Benchmarking**: Measures and displays quality metrics for search results
 3. **Performance History**: Tracks strategy performance over time
 4. **Strategy Comparison**: Enables users to compare different search strategies
+5. **AI Agent Integration**: Provides a programmatic API for AI agents to benchmark and improve search strategies
 
 ## Component Structure
 
@@ -23,6 +24,7 @@ The Build page consists of the following primary components:
 2. **Test Results Table** - Displays results from recent search tests with quality metrics
 3. **SearchTestResults** - Dedicated component showing test results from database
 4. **StrategyPerformanceChart** - Visualizes performance metrics over time
+5. **AI Agents API Documentation** - Provides documentation and examples for AI agent integration
 
 ### Data Flow
 
@@ -56,6 +58,7 @@ The Build page interacts with the following API endpoints:
 4. **POST /api/search-test-results** - Persists test results to database
 5. **GET /api/search-test-results** - Retrieves all test results
 6. **GET /api/search-test-results/strategy/:id** - Retrieves results for a specific strategy
+7. **POST /api/agent/run-search-test** - AI agent endpoint for programmatic testing and benchmarking
 
 ## Core Components
 
@@ -138,6 +141,37 @@ Test results are stored in the `search_test_results` table with the following sc
 - Careful management of API calls to reduce server load
 - Efficient state updates to minimize re-renders
 
+## AI Agent Integration
+
+The Build page provides an AI-friendly API for programmatic testing and benchmarking:
+
+### AI Agents API Documentation Component
+
+The Build page includes a dedicated API documentation section that provides:
+
+1. **API Overview** - Explains the purpose and capabilities of the AI agent endpoints
+2. **Endpoint Documentation** - Detailed specification of API parameters and response format
+3. **Example Code** - Sample code snippets showing how to use the API programmatically
+4. **Workflow Guidance** - Step-by-step process for AI-driven strategy optimization
+
+### Agent API Endpoint
+
+The `/api/agent/run-search-test` endpoint is specifically designed for AI agents:
+
+- **Input Parameters**: strategyId, query, saveToDatabase (optional)
+- **Response Format**: Structured data with current test, recent results, and performance summary
+- **Error Handling**: Standardized error responses with meaningful messages
+- **Performance Metrics**: Consistent scoring system aligned with the human UI
+
+### AI-Driven Benchmarking
+
+The agent integration enables:
+
+1. **Programmatic Testing**: Run multiple tests with different parameters
+2. **Performance Tracking**: Monitor improvements over time
+3. **Automated Analysis**: Identify patterns in successful strategies
+4. **Iterative Optimization**: Make data-driven improvements to search configurations
+
 ## Future Enhancements
 
 Potential areas for improvement include:
@@ -145,7 +179,8 @@ Potential areas for improvement include:
 1. Real-time updates for long-running tests
 2. More detailed result breakdowns
 3. A/B testing for strategy comparison
-4. Automated strategy optimization
+4. Expanded AI agent capabilities for autonomous optimization
+5. Real-time collaboration between human and AI agents
 
 ## Troubleshooting
 
