@@ -178,6 +178,125 @@ Content-Type: application/json
               </div>
             </div>
 
+            {/* Search Strategy Testing */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Search Strategy Testing</h3>
+              <p className="text-sm text-muted-foreground mb-2">
+                Test different search strategies to optimize contact discovery and quality:
+              </p>
+              
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-md font-medium mb-2">Request: Run Search Quality Test</h4>
+                  <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
+                    {`POST /api/search-test
+Content-Type: application/json
+
+{
+  "strategyId": 17,  // ID of the search strategy to test (e.g., 17 for "Advanced Key Contact Discovery")
+  "query": "tech startups in Boston"
+}`}
+                  </pre>
+                </div>
+                
+                <div>
+                  <h4 className="text-md font-medium mb-2">Response: Test Results</h4>
+                  <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
+                    {`{
+  "overallScore": 85,
+  "metrics": {
+    "companyQuality": 81,
+    "contactQuality": 87,
+    "emailQuality": 86
+  },
+  "scoringFactors": {
+    "roles": {
+      "cLevel": 1.9,       // Role weighting multipliers
+      "founder": 2.1,
+      "director": 1.6,
+      "manager": 1.2
+    },
+    "validation": {
+      "minScore": 81,      // Minimum quality threshold
+      "useLocalValidation": true,
+      "strictNameValidation": true
+    }
+  },
+  "analysis": {
+    "strengths": ["High-quality leadership contacts", "Strong email validation"],
+    "weaknesses": ["Limited small business coverage"],
+    "recommendations": ["Adjust role weightings for target market"]
+  }
+}`}
+                  </pre>
+                </div>
+                
+                <div>
+                  <h4 className="text-md font-medium mb-2">Get Test Results by Strategy</h4>
+                  <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
+                    {`GET /api/search-test-results/strategy/:strategyId
+
+Response:
+[
+  {
+    "id": 42,
+    "testId": "uuid-string",
+    "strategyId": 17,
+    "query": "tech startups in Boston",
+    "companyQuality": 81,
+    "contactQuality": 87,
+    "emailQuality": 86,
+    "overallScore": 85,
+    "status": "completed",
+    "createdAt": "2025-03-14T12:30:00.000Z",
+    "metadata": {
+      "strategyName": "Advanced Key Contact Discovery",
+      "scoringFactors": {
+        "roles": { ... },
+        "validation": { ... }
+      }
+    }
+  },
+  ...
+]`}
+                  </pre>
+                </div>
+                
+                <div>
+                  <h4 className="text-md font-medium mb-2">AI Agent Testing Endpoint</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Special endpoint designed for AI agents to run tests and get real-time feedback:
+                  </p>
+                  <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
+                    {`POST /api/agent/run-search-test
+Content-Type: application/json
+
+{
+  "strategyId": 17,
+  "query": "tech startups in Boston",
+  "saveToDatabase": true  // Optional, defaults to true
+}`}
+                  </pre>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                <h4 className="text-md font-medium mb-2">Search Strategy Guide</h4>
+                <p className="text-sm mb-2">
+                  Guidelines for optimizing search strategies:
+                </p>
+                <ul className="list-disc list-inside text-sm space-y-1 ml-2">
+                  <li><strong>Role Weighting:</strong> Adjust multipliers to prioritize discovering specific roles</li>
+                  <li><strong>Validation Rules:</strong> Configure strictness of contact validation</li>
+                  <li><strong>Testing:</strong> Run the same query across different strategies to compare effectiveness</li>
+                  <li><strong>Analysis:</strong> Track performance history to identify improvements over time</li>
+                </ul>
+                <p className="text-sm mt-3">
+                  💡 Tip: The "Advanced Key Contact Discovery" strategy (ID: 17) provides the best balance of quality and discovery for most use cases.
+                </p>
+              </div>
+            </div>
+            
             {/* Response Format */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Response Format</h3>
