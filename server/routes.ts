@@ -1770,7 +1770,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
           ...n8nWorkflow,
           n8nWorkflowId // Keep the n8nWorkflowId reference
         },
-        lastUpdated: new Date(),
+        updatedAt: new Date(),
       });
       
       res.json({ 

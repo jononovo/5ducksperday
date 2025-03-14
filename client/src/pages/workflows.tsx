@@ -446,13 +446,13 @@ export default function WorkflowsPage() {
                           <span className="sr-only">Edit</span>
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="default"
                           size="sm"
-                          className="bg-primary text-primary-foreground hover:bg-primary/90"
+                          className="bg-indigo-600 text-white hover:bg-indigo-700"
                           onClick={() => navigate(`/workflows/${workflow.id}/editor`)}
                         >
-                          <Workflow className="h-4 w-4" />
-                          <span className="sr-only">Open in Editor</span>
+                          <Workflow className="h-4 w-4 mr-1" />
+                          <span>N8N Editor</span>
                         </Button>
                       </div>
                     </TableCell>
