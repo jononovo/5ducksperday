@@ -7,6 +7,7 @@ import { type CampaignList, type InsertCampaignList } from "@shared/schema";
 import { type EmailTemplate, type InsertEmailTemplate } from "@shared/schema";
 import { type ContactFeedback, type InsertContactFeedback } from "@shared/schema";
 import { type User, type InsertUser } from "@shared/schema";
+import { type SearchTestResult, type InsertSearchTestResult } from "@shared/schema";
 
 // Base storage interface that defines all storage operations
 export interface IStorage {
