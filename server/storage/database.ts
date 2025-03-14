@@ -27,6 +27,25 @@ export class DatabaseStorage implements IStorage {
     this.userStorage = new UserStorage(db);
     this.searchTestResultsStorage = new SearchTestResultsStorage(db);
   }
+  
+  // Search Test Results Methods
+  getSearchTestResult = (id: number): Promise<SearchTestResult | undefined> => 
+    this.searchTestResultsStorage.getSearchTestResult(id);
+    
+  listSearchTestResults = (userId: number): Promise<SearchTestResult[]> => 
+    this.searchTestResultsStorage.listSearchTestResults(userId);
+    
+  getTestResultsByStrategy = (strategyId: number, userId: number): Promise<SearchTestResult[]> => 
+    this.searchTestResultsStorage.getTestResultsByStrategy(strategyId, userId);
+    
+  createSearchTestResult = (result: InsertSearchTestResult): Promise<SearchTestResult> => 
+    this.searchTestResultsStorage.createSearchTestResult(result);
+    
+  updateTestResultStatus = (id: number, status: 'completed' | 'running' | 'failed', metadata?: Record<string, unknown>): Promise<SearchTestResult> => 
+    this.searchTestResultsStorage.updateTestResultStatus(id, status, metadata);
+    
+  getStrategyPerformanceHistory = (strategyId: number, userId: number): Promise<{ dates: string[], scores: number[] }> => 
+    this.searchTestResultsStorage.getStrategyPerformanceHistory(strategyId, userId);
 
   // User operations
   createUser = (user: InsertUser): Promise<User> => this.userStorage.createUser(user);

@@ -182,12 +182,26 @@ export default function Build() {
       
       // Save the result to the database
       try {
-        const dbResponse = await apiRequest("POST", "/api/search-test-results", {
+        // Generate a valid UUID using crypto API
+        const testUuid = crypto.randomUUID ? crypto.randomUUID() : completedResult.id.replace('test-', '');
+        
+        console.log('Attempting to save test result to database with payload:', {
           strategyId: parseInt(selectedStrategy),
-          testId: completedResult.id.replace('test-', ''),  // Remove 'test-' prefix for UUID format
+          testId: testUuid,
           query: completedResult.testQuery,
           companyQuality: completedResult.companyQuality,
-          contactQuality: completedResult.contactQuality,
+          contactQuality: completedResult.contactQuality, 
+          emailQuality: completedResult.emailQuality,
+          overallScore: completedResult.overallScore,
+          status: "completed"
+        });
+        
+        const dbResponse = await apiRequest("POST", "/api/search-test-results", {
+          strategyId: parseInt(selectedStrategy),
+          testId: testUuid,
+          query: completedResult.testQuery,
+          companyQuality: completedResult.companyQuality,
+          contactQuality: completedResult.contactQuality, 
           emailQuality: completedResult.emailQuality,
           overallScore: completedResult.overallScore,
           status: "completed",

@@ -60,6 +60,14 @@ export interface IStorage {
   listSearchApproaches(): Promise<SearchApproach[]>;
   updateSearchApproach(id: number, data: Partial<SearchApproach>): Promise<SearchApproach>;
   initializeDefaultSearchApproaches(): Promise<void>;
+
+  // Search Test Results
+  getSearchTestResult(id: number): Promise<SearchTestResult | undefined>;
+  listSearchTestResults(userId: number): Promise<SearchTestResult[]>;
+  getTestResultsByStrategy(strategyId: number, userId: number): Promise<SearchTestResult[]>;
+  createSearchTestResult(result: InsertSearchTestResult): Promise<SearchTestResult>;
+  updateTestResultStatus(id: number, status: 'completed' | 'running' | 'failed', metadata?: Record<string, unknown>): Promise<SearchTestResult>;
+  getStrategyPerformanceHistory(strategyId: number, userId: number): Promise<{ dates: string[], scores: number[] }>;
 }
 
 class DatabaseStorage implements IStorage {

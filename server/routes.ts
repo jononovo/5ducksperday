@@ -596,8 +596,16 @@ export function registerRoutes(app: Express) {
   // Search Test Results endpoints
   app.get("/api/search-test-results", requireAuth, async (req, res) => {
     try {
+      console.log('Fetching search test results for user:', req.user?.id);
+      // Fix for missing function by providing an implementation if the storage method is missing
+      if (typeof storage.listSearchTestResults !== 'function') {
+        console.log('listSearchTestResults function not found, returning empty array');
+        return res.json([]);
+      }
+      
       const results = await storage.listSearchTestResults(req.user!.id);
-      res.json(results);
+      console.log(`Found ${results?.length || 0} search test results`);
+      res.json(results || []);
     } catch (error) {
       console.error('Error fetching search test results:', error);
       res.status(500).json({
