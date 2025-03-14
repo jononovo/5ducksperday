@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Select,
@@ -42,28 +42,37 @@ const EXCLUDED_MODULES = [
 ];
 
 export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchStrategyProps) {
-  // We'll set the default strategy after the data is loaded
-  const [selectedStrategy, setSelectedStrategy] = useState<string | undefined>(defaultStrategy);
+  // We'll use local state but initialized with defaultStrategy or "17" (Advanced Key Contact Discovery)
+  const [selectedStrategy, setSelectedStrategy] = useState<string | undefined>(defaultStrategy || "17");
 
-  const { data: strategies } = useQuery<SearchApproach[]>({
+  // Properly type the data and query
+  const { data: strategies = [] } = useQuery<SearchApproach[], Error, SearchApproach[]>({
     queryKey: ["/api/search-approaches"],
-    select: (data: SearchApproach[]) => data
+    select: (data) => data
       .filter(s => s.active && VALID_STRATEGIES.includes(s.name) && !EXCLUDED_MODULES.includes(s.name))
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
-    onSuccess: (data) => {
-      // When the data loads, if no strategy is selected yet, find and select Advanced Key Contact Discovery
-      if (!selectedStrategy && data?.length) {
-        const advancedStrategy = data.find(s => s.name === "Advanced Key Contact Discovery");
+  });
+  
+  // Ensure the strategy ID is properly initialized when the component loads
+  useEffect(() => {
+    // If we have strategies loaded and our current ID is not in the list, 
+    // find Advanced Key Contact Discovery
+    if (strategies.length > 0) {
+      if (!selectedStrategy || !strategies.some(s => s.id.toString() === selectedStrategy)) {
+        const advancedStrategy = strategies.find(s => s.name === "Advanced Key Contact Discovery");
         if (advancedStrategy) {
-          // Set the Advanced Key Contact Discovery as the default strategy
           const strategyId = advancedStrategy.id.toString();
           setSelectedStrategy(strategyId);
           onStrategyChange(strategyId);
           console.log(`Auto-selecting default strategy: ${advancedStrategy.name} (${strategyId})`);
         }
+      } else if (selectedStrategy) {
+        // Make sure parent component has the current strategy ID
+        onStrategyChange(selectedStrategy);
+        console.log(`Using already selected strategy ID: ${selectedStrategy}`);
       }
     }
-  });
+  }, [strategies, selectedStrategy, onStrategyChange]);
 
   const handleStrategyChange = (value: string) => {
     setSelectedStrategy(value);
