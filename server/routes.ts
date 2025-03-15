@@ -1845,6 +1845,40 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       });
     }
   });
+  
+  // Get N8N workflow ID mapping - this helps connect our DB IDs to N8N IDs
+  app.get("/api/n8n-workflow-mapping/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const workflowId = parseInt(req.params.id);
+      
+      // Get the workflow from our database
+      const workflow = await db.query.n8nWorkflows.findFirst({
+        where: (workflows, { and, eq }) => 
+          and(eq(workflows.id, workflowId), eq(workflows.userId, userId))
+      });
+      
+      if (!workflow) {
+        return res.status(404).json({ message: "Workflow not found" });
+      }
+      
+      // Check if the workflow has workflowData with an id property (this would be the N8N id)
+      let n8nWorkflowId = null;
+      if (workflow.workflowData && typeof workflow.workflowData === 'object' && 'id' in workflow.workflowData) {
+        n8nWorkflowId = workflow.workflowData.id;
+      }
+      
+      res.json({ 
+        id: workflow.id,
+        n8nWorkflowId: n8nWorkflowId
+      });
+    } catch (error) {
+      console.error("Error getting N8N workflow mapping:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to get N8N workflow mapping"
+      });
+    }
+  });
 
   // Proxy to N8N service
   app.use("/api/n8n-proxy", requireAuth, async (req, res) => {
@@ -1852,6 +1886,8 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       // Forward the request to the N8N service
       const n8nBaseUrl = "http://localhost:5678";
       const n8nPath = req.url;
+      
+      console.log(`N8N Proxy: Forwarding ${req.method} request to ${n8nBaseUrl}${n8nPath}`);
       
       // Create the proxied URL
       const proxiedUrl = `${n8nBaseUrl}${n8nPath}`;

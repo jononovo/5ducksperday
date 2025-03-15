@@ -449,10 +449,17 @@ export default function WorkflowsPage() {
                           variant="default"
                           size="sm"
                           className="bg-indigo-600 text-white hover:bg-indigo-700"
-                          onClick={() => navigate(`/workflows/${workflow.id}/editor`)}
+                          onClick={() => {
+                            // Use our proxy endpoint to access N8N
+                            const domain = window.location.origin;
+                            // N8N uses a different workflow ID pattern, which we need to retrieve from the workflow data
+                            // For now we'll use the workflow ID from our database
+                            const n8nEditorUrl = `${domain}/api/n8n-proxy/workflow/${workflow.id}`;
+                            window.open(n8nEditorUrl, '_blank');
+                          }}
                         >
                           <Workflow className="h-4 w-4 mr-1" />
-                          <span>N8N Editor</span>
+                          <span>Open Editor</span>
                         </Button>
                       </div>
                     </TableCell>
