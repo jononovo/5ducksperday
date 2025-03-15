@@ -384,6 +384,12 @@ export default function WorkflowsPage() {
           </div>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="md:col-span-2">
+            <N8nServiceStatus />
+          </div>
+        </div>
+        
         <div className="bg-card rounded-lg shadow">
           {isLoading ? (
             <div className="flex justify-center items-center h-64">

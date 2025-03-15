@@ -14,7 +14,7 @@ import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
 import { google } from 'googleapis';
 import { n8nService, createDemoWorkflow } from './lib/n8n-service';
-import { isN8nRunning, checkN8nHealth, getN8nApiUrl, getN8nEditorUrl, forceRestartN8n } from './lib/n8n-manager';
+import { isN8nRunning, checkN8nHealth, getN8nApiUrl, getN8nEditorUrl, forceRestartN8n, getServiceStatus } from './lib/n8n-manager';
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 

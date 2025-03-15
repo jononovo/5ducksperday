@@ -109,7 +109,7 @@ export function N8nServiceStatus() {
     
     if (!serviceStatus?.isHealthy) {
       return (
-        <Badge variant="warning" className="flex items-center bg-amber-500 hover:bg-amber-600">
+        <Badge variant="outline" className="flex items-center bg-amber-500 text-white hover:bg-amber-600">
           <AlertTriangle className="h-3 w-3 mr-1" />
           Service unhealthy
         </Badge>
@@ -117,7 +117,7 @@ export function N8nServiceStatus() {
     }
     
     return (
-      <Badge variant="success" className="flex items-center bg-green-500 hover:bg-green-600">
+      <Badge variant="outline" className="flex items-center bg-green-500 text-white hover:bg-green-600">
         <CheckCircle2 className="h-3 w-3 mr-1" />
         Service healthy
       </Badge>

@@ -9,165 +9,138 @@
  */
 
 import { spawn, ChildProcess } from 'child_process';
+import axios from 'axios';
 import * as path from 'path';
-import * as fs from 'fs';
 import { log } from '../vite';
 
 // Configuration
 const N8N_PORT = process.env.N8N_PORT || 5678;
-const N8N_ENCRYPTION_KEY = process.env.N8N_ENCRYPTION_KEY || 'a-random-string-for-encryption';
-const N8N_BASE_URL = process.env.N8N_BASE_URL || `http://localhost:${N8N_PORT}`;
-const N8N_USER = process.env.N8N_USER || 'admin@example.com';
-const N8N_PASSWORD = process.env.N8N_PASSWORD || 'password';
-const MAX_RESTART_ATTEMPTS = 3;
-const RESTART_DELAY_MS = 3000;
+const N8N_BASE_URL = `http://localhost:${N8N_PORT}`;
+const N8N_API_PATH = '/api/v1';
+const N8N_API_URL = `${N8N_BASE_URL}${N8N_API_PATH}`;
+const N8N_EDITOR_URL = N8N_BASE_URL;
 
-// N8N process reference
+// State variables
 let n8nProcess: ChildProcess | null = null;
 let restartAttempts = 0;
-let isRestarting = false;
+const MAX_RESTART_ATTEMPTS = 5;
+const INITIAL_RETRY_DELAY = 1000; // 1 second
+let isHealthy = false;
+let healthCheckTimer: NodeJS.Timeout | null = null;
+let startupTimer: NodeJS.Timeout | null = null;
+let lastError: Error | null = null;
+let statusMessage = 'N8N service not started';
+let pendingRestart = false;
+
+// Auto-restart configuration with exponential backoff
+const calculateBackoff = (attempt: number) => {
+  return Math.min(INITIAL_RETRY_DELAY * Math.pow(2, attempt), 30000); // max 30 seconds
+};
 
 /**
  * Start N8N server
  */
 export async function startN8n(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    try {
-      if (n8nProcess) {
-        log('N8N is already running', 'n8n');
-        return resolve();
-      }
+  if (n8nProcess) {
+    log('N8N process is already running', 'n8n');
+    return;
+  }
 
-      log('Starting N8N server...', 'n8n');
-
-      // Create .n8n directory if it doesn't exist
-      const n8nDir = path.join(process.cwd(), '.n8n');
-      if (!fs.existsSync(n8nDir)) {
-        fs.mkdirSync(n8nDir);
-      }
-
-      // Environment for n8n process
-      const env = {
+  try {
+    // Clear any previous pending restart
+    if (pendingRestart) {
+      pendingRestart = false;
+    }
+    
+    log('Initializing n8n process', 'n8n');
+    statusMessage = 'Starting N8N service...';
+    
+    const options = {
+      env: {
         ...process.env,
         N8N_PORT: N8N_PORT.toString(),
-        N8N_ENCRYPTION_KEY,
-        N8N_PROTOCOL: 'http',
-        N8N_HOST: 'localhost',
-        N8N_PATH: '/',
+        N8N_METRICS: 'false',
+        N8N_DIAGNOSTICS_ENABLED: 'false',
         N8N_USER_MANAGEMENT_DISABLED: 'true',
-        NODE_ENV: 'production',
+        N8N_PUBLIC_API_DISABLED: 'false',
         N8N_LOG_LEVEL: 'info',
-        DB_TYPE: 'postgresdb',
-        DB_POSTGRESDB_DATABASE: process.env.PGDATABASE, 
-        DB_POSTGRESDB_HOST: process.env.PGHOST,
-        DB_POSTGRESDB_PORT: process.env.PGPORT,
-        DB_POSTGRESDB_USER: process.env.PGUSER,
-        DB_POSTGRESDB_PASSWORD: process.env.PGPASSWORD,
-        // Fix SSL mode issue
-        DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED: 'false',
-        DB_POSTGRESDB_SSL: 'true',
-        // Fix permissions issue
-        N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: 'false'
-      };
+        NODE_ENV: 'production',
+        EXECUTIONS_PROCESS: 'main',
+        DB_TYPE: 'sqlite',
+        DB_PATH: path.join(process.cwd(), '.n8n', 'database.sqlite'),
+        N8N_PATH: path.join(process.cwd(), '.n8n'),
+      },
+    };
 
-      // Start n8n process
-      n8nProcess = spawn('npx', ['n8n', 'start'], {
-        env,
-        stdio: 'pipe',
-        shell: true,
-      });
+    // Start N8N process
+    n8nProcess = spawn('npx', ['n8n', 'start'], options);
+    
+    // Handle process output for logging
+    n8nProcess.stdout?.on('data', (data) => {
+      log(data.toString().trim(), 'n8n');
+    });
+    
+    n8nProcess.stderr?.on('data', (data) => {
+      log(data.toString().trim(), 'n8n');
+    });
+    
+    // Handle process exit
+    n8nProcess.on('exit', (code, signal) => {
+      log(`N8N process exited with code ${code} and signal ${signal}`, 'n8n');
+      n8nProcess = null;
+      isHealthy = false;
+      statusMessage = `N8N service exited unexpectedly (code: ${code})`;
+      
+      // Auto-restart on crash if not explicitly stopping
+      if (!pendingRestart && restartAttempts < MAX_RESTART_ATTEMPTS) {
+        const backoffDelay = calculateBackoff(restartAttempts);
+        log(`Scheduling N8N restart in ${backoffDelay}ms (attempt ${restartAttempts + 1}/${MAX_RESTART_ATTEMPTS})`, 'n8n');
+        statusMessage = `Restarting N8N service in ${backoffDelay/1000}s (attempt ${restartAttempts + 1}/${MAX_RESTART_ATTEMPTS})`;
+        
+        setTimeout(async () => {
+          restartAttempts++;
+          await startN8n();
+        }, backoffDelay);
+      } else if (restartAttempts >= MAX_RESTART_ATTEMPTS) {
+        statusMessage = `N8N service failed to start after ${MAX_RESTART_ATTEMPTS} attempts`;
+        log(`Maximum restart attempts (${MAX_RESTART_ATTEMPTS}) reached. N8N will not be auto-restarted.`, 'n8n');
+      }
+    });
+    
+    // Handle process errors
+    n8nProcess.on('error', (err) => {
+      log(`N8N process error: ${err.message}`, 'n8n');
+      lastError = err;
+      statusMessage = `N8N service error: ${err.message}`;
+    });
 
-      let ready = false;
-      let output = '';
-
-      // Handle stdout
-      n8nProcess.stdout?.on('data', (data) => {
-        const dataStr = data.toString();
-        output += dataStr;
-        log(dataStr, 'n8n');
-
-        // Check if n8n is ready
-        if (dataStr.includes('Editor is now accessible via') && !ready) {
-          ready = true;
-          log('N8N server is ready!', 'n8n');
-          
-          // Reset restart attempts after a successful start
-          if (restartAttempts > 0) {
-            setTimeout(() => {
-              // Only reset if there's been no crash for a minute
-              if (n8nProcess) {
-                restartAttempts = 0;
-                log('Restart attempt counter reset after successful running period', 'n8n');
-              }
-            }, 60000); // Reset counter after 1 minute of successful running
-          }
-          
-          resolve();
-        }
-      });
-
-      // Handle stderr
-      n8nProcess.stderr?.on('data', (data) => {
-        const dataStr = data.toString();
-        output += dataStr;
-        log(dataStr, 'n8n-error');
-      });
-
-      // Handle process exit
-      n8nProcess.on('exit', (code) => {
-        if (code !== 0) {
-          log(`N8N process exited with code ${code}`, 'n8n-error');
-          
-          if (!ready) {
-            n8nProcess = null;
-            reject(new Error(`N8N failed to start: ${output}`));
-          } else {
-            // If N8N was running and crashed, attempt to restart it
-            n8nProcess = null;
-            
-            if (!isRestarting && restartAttempts < MAX_RESTART_ATTEMPTS) {
-              isRestarting = true;
-              restartAttempts++;
-              
-              log(`Attempting to restart N8N (attempt ${restartAttempts}/${MAX_RESTART_ATTEMPTS})`, 'n8n');
-              
-              setTimeout(async () => {
-                try {
-                  await startN8n();
-                  log(`N8N successfully restarted after crash`, 'n8n');
-                  isRestarting = false;
-                } catch (error) {
-                  log(`Failed to restart N8N: ${error}`, 'n8n-error');
-                  isRestarting = false;
-                }
-              }, RESTART_DELAY_MS);
-            } else if (restartAttempts >= MAX_RESTART_ATTEMPTS) {
-              log(`Maximum restart attempts (${MAX_RESTART_ATTEMPTS}) reached. N8N will not be restarted.`, 'n8n-error');
-            }
-          }
-        } else {
-          log(`N8N process exited normally with code ${code}`, 'n8n');
-          n8nProcess = null;
-        }
-      });
-
-      // Set a timeout in case n8n doesn't start
-      setTimeout(() => {
-        if (!ready) {
-          log('N8N server failed to start within timeout', 'n8n-error');
-          if (n8nProcess) {
-            n8nProcess.kill();
-            n8nProcess = null;
-          }
-          reject(new Error('N8N server failed to start within timeout'));
-        }
-      }, 30000);
-
-    } catch (error) {
-      log(`Error starting N8N: ${error}`, 'n8n-error');
-      reject(error);
+    // Set a timeout for startup
+    if (startupTimer) {
+      clearTimeout(startupTimer);
     }
-  });
+    
+    startupTimer = setTimeout(async () => {
+      const healthy = await checkN8nHealth();
+      if (healthy) {
+        log('N8N server is ready!', 'n8n');
+        statusMessage = 'N8N service running normally';
+        restartAttempts = 0; // Reset restart counter on successful startup
+      } else {
+        log('N8N server failed to start properly', 'n8n');
+        statusMessage = 'N8N service started but appears unhealthy';
+      }
+    }, 3000);
+
+    // Start health check polling
+    startHealthCheck();
+    
+    return Promise.resolve();
+  } catch (error: any) {
+    log(`Failed to start N8N: ${error.message}`, 'n8n');
+    statusMessage = `Failed to start N8N: ${error.message}`;
+    lastError = error;
+    return Promise.reject(error);
+  }
 }
 
 /**
@@ -176,75 +149,127 @@ export async function startN8n(): Promise<void> {
 export function stopN8n(): Promise<void> {
   return new Promise((resolve) => {
     if (!n8nProcess) {
-      log('N8N is not running', 'n8n');
-      return resolve();
+      log('No N8N process to stop', 'n8n');
+      resolve();
+      return;
     }
 
-    log('Stopping N8N server...', 'n8n');
+    pendingRestart = true;
+    log('Shutting down N8N process', 'n8n');
+    statusMessage = 'Stopping N8N service...';
     
-    // Send SIGTERM to n8n process
-    n8nProcess.on('exit', () => {
-      n8nProcess = null;
-      log('N8N server stopped', 'n8n');
-      resolve();
-    });
+    // Stop health check
+    if (healthCheckTimer) {
+      clearInterval(healthCheckTimer);
+      healthCheckTimer = null;
+    }
     
-    n8nProcess.kill('SIGTERM');
-    
-    // Force kill after 5 seconds if it hasn't exited
-    setTimeout(() => {
-      if (n8nProcess) {
-        log('Force killing N8N process', 'n8n');
-        n8nProcess.kill('SIGKILL');
+    // Stop startup timer if running
+    if (startupTimer) {
+      clearTimeout(startupTimer);
+      startupTimer = null;
+    }
+
+    // Kill the process
+    const pid = n8nProcess.pid;
+    if (pid) {
+      try {
+        process.kill(pid);
+        log(`Sent SIGTERM to N8N process ${pid}`, 'n8n');
+
+        // Set a timeout to forcefully kill if it doesn't exit cleanly
+        setTimeout(() => {
+          if (n8nProcess) {
+            try {
+              process.kill(pid, 'SIGKILL');
+              log(`Forcefully killed N8N process ${pid}`, 'n8n');
+            } catch (e) {
+              // Process might already be gone
+            }
+            n8nProcess = null;
+            resolve();
+          }
+        }, 5000);
+      } catch (e) {
+        log(`Failed to kill N8N process: ${e}`, 'n8n');
         n8nProcess = null;
         resolve();
       }
-    }, 5000);
+    } else {
+      n8nProcess = null;
+      resolve();
+    }
   });
+}
+
+/**
+ * Start health check polling
+ */
+function startHealthCheck(): void {
+  // Clear any existing health check timer
+  if (healthCheckTimer) {
+    clearInterval(healthCheckTimer);
+  }
+  
+  // Set up regular health checks
+  healthCheckTimer = setInterval(async () => {
+    isHealthy = await checkN8nHealth();
+    if (isHealthy) {
+      statusMessage = 'N8N service running normally';
+    } else if (isN8nRunning()) {
+      statusMessage = 'N8N service running but responding abnormally';
+    } else {
+      statusMessage = 'N8N service not running';
+    }
+  }, 10000); // Check every 10 seconds
 }
 
 /**
  * Check if N8N server is running
  */
 export function isN8nRunning(): boolean {
-  return n8nProcess !== null;
+  return n8nProcess !== null && n8nProcess.exitCode === null;
 }
 
 /**
  * Get N8N API URL
  */
 export function getN8nApiUrl(): string {
-  return `${N8N_BASE_URL}/api/v1`;
+  return N8N_API_URL;
 }
 
 /**
  * Get N8N Editor URL
  */
 export function getN8nEditorUrl(): string {
-  return N8N_BASE_URL;
+  return N8N_EDITOR_URL;
+}
+
+/**
+ * Get current status message
+ */
+export function getStatusMessage(): string {
+  return statusMessage;
 }
 
 /**
  * Check N8N health by making a request to its API
  */
 export async function checkN8nHealth(): Promise<boolean> {
+  if (!isN8nRunning()) {
+    return false;
+  }
+  
   try {
-    // Use AbortController for timeout since fetch doesn't support timeout option directly
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-    
-    const response = await fetch(`${getN8nApiUrl()}/health`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-      signal: controller.signal
+    // Check if we can connect to the health endpoint
+    const response = await axios.get(`${N8N_BASE_URL}/healthz`, {
+      timeout: 2000,
     });
     
-    clearTimeout(timeoutId);
-    return response.ok;
+    // If we get a 200 response, the server is healthy
+    return response.status === 200;
   } catch (error) {
-    log(`Health check failed: ${error}`, 'n8n-error');
+    log(`N8N health check failed: ${error}`, 'n8n');
     return false;
   }
 }
@@ -255,39 +280,47 @@ export async function checkN8nHealth(): Promise<boolean> {
  */
 export async function forceRestartN8n(): Promise<boolean> {
   try {
-    // First stop the current instance if it exists
+    log('Force restarting N8N service', 'n8n');
     await stopN8n();
     
-    // Reset counter and flags
-    restartAttempts = 0;
-    isRestarting = false;
+    // Small delay to make sure everything is cleaned up
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Start a new instance
     await startN8n();
-    
-    log('N8N service was forcefully restarted', 'n8n');
     return true;
-  } catch (error) {
-    log(`Force restart failed: ${error}`, 'n8n-error');
+  } catch (error: any) {
+    log(`Failed to restart N8N: ${error.message}`, 'n8n');
     return false;
   }
 }
 
-// Ensure n8n process is cleaned up on exit
-process.on('exit', () => {
-  if (n8nProcess) {
-    n8nProcess.kill('SIGKILL');
+/**
+ * Get complete service status
+ */
+export function getServiceStatus(): {
+  isRunning: boolean;
+  isHealthy: boolean;
+  apiUrl: string;
+  editorUrl: string;
+  statusMessage: string;
+} {
+  return {
+    isRunning: isN8nRunning(),
+    isHealthy,
+    apiUrl: N8N_API_URL,
+    editorUrl: N8N_EDITOR_URL,
+    statusMessage
+  };
+}
+
+// Auto-start N8N on module load
+(async function initializeN8n() {
+  try {
+    // Wait a bit before starting to let the server initialize first
+    setTimeout(async () => {
+      await startN8n();
+    }, 1000);
+  } catch (error) {
+    log(`Failed to initialize N8N: ${error}`, 'n8n');
   }
-});
-
-process.on('SIGINT', () => {
-  stopN8n().finally(() => {
-    process.exit(0);
-  });
-});
-
-process.on('SIGTERM', () => {
-  stopN8n().finally(() => {
-    process.exit(0);
-  });
-});
+})();
