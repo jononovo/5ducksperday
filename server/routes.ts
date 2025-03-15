@@ -1830,6 +1830,69 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
+  // N8N URL endpoint for client
+  app.get("/api/n8n-url", requireAuth, async (req, res) => {
+    try {
+      // Send the URL to use for accessing the N8N editor
+      // In our case, we'll use a proxy approach through our main application
+      res.json({ 
+        url: "/api/n8n-proxy" 
+      });
+    } catch (error) {
+      console.error("Error getting N8N URL:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to get N8N URL"
+      });
+    }
+  });
+
+  // Proxy to N8N service
+  app.use("/api/n8n-proxy", requireAuth, async (req, res) => {
+    try {
+      // Forward the request to the N8N service
+      const n8nBaseUrl = "http://localhost:5678";
+      const n8nPath = req.url;
+      
+      // Create the proxied URL
+      const proxiedUrl = `${n8nBaseUrl}${n8nPath}`;
+      
+      // Make the request to N8N and forward the response
+      // Create a filtered headers object to avoid type errors
+      const headers: Record<string, string> = {};
+      Object.keys(req.headers).forEach(key => {
+        const value = req.headers[key];
+        if (typeof value === 'string') {
+          headers[key] = value;
+        }
+      });
+      
+      // Set host header for N8N
+      headers.host = 'localhost:5678';
+      
+      const response = await fetch(proxiedUrl, {
+        method: req.method,
+        headers,
+        body: req.method !== 'GET' && req.method !== 'HEAD' ? 
+          req.body instanceof Buffer ? req.body : JSON.stringify(req.body) : undefined
+      });
+      
+      // Copy status and headers from N8N response
+      res.status(response.status);
+      response.headers.forEach((value, key) => {
+        res.set(key, value);
+      });
+      
+      // Send the response body
+      const data = await response.text();
+      res.send(data);
+    } catch (error) {
+      console.error("Error proxying to N8N:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to proxy request to N8N"
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
