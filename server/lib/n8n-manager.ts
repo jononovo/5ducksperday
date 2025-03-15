@@ -1,5 +1,11 @@
 /**
  * N8N Manager - Handles starting, configuring, and interacting with n8n
+ * 
+ * This module provides robust handling of the N8N instance lifecycle, including:
+ * - Starting and stopping the N8N server
+ * - Monitoring N8N server status
+ * - Providing connection details for the N8N API and UI
+ * - Handling server crashes and automatic restarts
  */
 
 import { spawn, ChildProcess } from 'child_process';
@@ -13,9 +19,13 @@ const N8N_ENCRYPTION_KEY = process.env.N8N_ENCRYPTION_KEY || 'a-random-string-fo
 const N8N_BASE_URL = process.env.N8N_BASE_URL || `http://localhost:${N8N_PORT}`;
 const N8N_USER = process.env.N8N_USER || 'admin@example.com';
 const N8N_PASSWORD = process.env.N8N_PASSWORD || 'password';
+const MAX_RESTART_ATTEMPTS = 3;
+const RESTART_DELAY_MS = 3000;
 
 // N8N process reference
 let n8nProcess: ChildProcess | null = null;
+let restartAttempts = 0;
+let isRestarting = false;
 
 /**
  * Start N8N server
@@ -80,6 +90,18 @@ export async function startN8n(): Promise<void> {
         if (dataStr.includes('Editor is now accessible via') && !ready) {
           ready = true;
           log('N8N server is ready!', 'n8n');
+          
+          // Reset restart attempts after a successful start
+          if (restartAttempts > 0) {
+            setTimeout(() => {
+              // Only reset if there's been no crash for a minute
+              if (n8nProcess) {
+                restartAttempts = 0;
+                log('Restart attempt counter reset after successful running period', 'n8n');
+              }
+            }, 60000); // Reset counter after 1 minute of successful running
+          }
+          
           resolve();
         }
       });
@@ -93,12 +115,39 @@ export async function startN8n(): Promise<void> {
 
       // Handle process exit
       n8nProcess.on('exit', (code) => {
-        n8nProcess = null;
-        if (code !== 0 && !ready) {
+        if (code !== 0) {
           log(`N8N process exited with code ${code}`, 'n8n-error');
-          reject(new Error(`N8N failed to start: ${output}`));
+          
+          if (!ready) {
+            n8nProcess = null;
+            reject(new Error(`N8N failed to start: ${output}`));
+          } else {
+            // If N8N was running and crashed, attempt to restart it
+            n8nProcess = null;
+            
+            if (!isRestarting && restartAttempts < MAX_RESTART_ATTEMPTS) {
+              isRestarting = true;
+              restartAttempts++;
+              
+              log(`Attempting to restart N8N (attempt ${restartAttempts}/${MAX_RESTART_ATTEMPTS})`, 'n8n');
+              
+              setTimeout(async () => {
+                try {
+                  await startN8n();
+                  log(`N8N successfully restarted after crash`, 'n8n');
+                  isRestarting = false;
+                } catch (error) {
+                  log(`Failed to restart N8N: ${error}`, 'n8n-error');
+                  isRestarting = false;
+                }
+              }, RESTART_DELAY_MS);
+            } else if (restartAttempts >= MAX_RESTART_ATTEMPTS) {
+              log(`Maximum restart attempts (${MAX_RESTART_ATTEMPTS}) reached. N8N will not be restarted.`, 'n8n-error');
+            }
+          }
         } else {
-          log(`N8N process exited with code ${code}`, 'n8n');
+          log(`N8N process exited normally with code ${code}`, 'n8n');
+          n8nProcess = null;
         }
       });
 
@@ -173,6 +222,50 @@ export function getN8nApiUrl(): string {
  */
 export function getN8nEditorUrl(): string {
   return N8N_BASE_URL;
+}
+
+/**
+ * Check N8N health by making a request to its API
+ */
+export async function checkN8nHealth(): Promise<boolean> {
+  try {
+    const response = await fetch(`${getN8nApiUrl()}/health`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      timeout: 5000, // 5 second timeout
+    });
+    
+    return response.ok;
+  } catch (error) {
+    log(`Health check failed: ${error}`, 'n8n-error');
+    return false;
+  }
+}
+
+/**
+ * Force restart N8N service
+ * This can be used by the application to recover from a non-responsive state
+ */
+export async function forceRestartN8n(): Promise<boolean> {
+  try {
+    // First stop the current instance if it exists
+    await stopN8n();
+    
+    // Reset counter and flags
+    restartAttempts = 0;
+    isRestarting = false;
+    
+    // Start a new instance
+    await startN8n();
+    
+    log('N8N service was forcefully restarted', 'n8n');
+    return true;
+  } catch (error) {
+    log(`Force restart failed: ${error}`, 'n8n-error');
+    return false;
+  }
 }
 
 // Ensure n8n process is cleaned up on exit
