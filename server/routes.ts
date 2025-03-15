@@ -2048,9 +2048,10 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
   // N8N Service Status and Management API endpoints
   
-  // Get N8N service status
+  // Get N8N service status - public endpoint
   app.get("/api/n8n/status", async (req, res) => {
     try {
+      console.log("[n8n-manager] Getting N8N service status");
       const status = getServiceStatus();
       res.json(status);
     } catch (error) {
@@ -2061,9 +2062,10 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
   
-  // Restart N8N service
-  app.post("/api/n8n/restart", async (req, res) => {
+  // Restart N8N service - requires authentication
+  app.post("/api/n8n/restart", requireAuth, async (req, res) => {
     try {
+      console.log("[n8n-manager] Force restarting N8N service");
       const success = await forceRestartN8n();
       if (success) {
         res.json({ 
