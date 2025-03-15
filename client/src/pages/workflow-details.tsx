@@ -42,7 +42,7 @@ export default function WorkflowDetailsPage() {
   const [workflowData, setWorkflowData] = useState<Record<string, any>>({});
   
   // Fetch workflow details
-  const { data: workflow, isLoading } = useQuery({
+  const { data: workflow, isLoading } = useQuery<any>({
     queryKey: [`/api/workflows/${workflowId}`],
     enabled: !!user && !!workflowId,
   });
@@ -414,22 +414,33 @@ export default function WorkflowDetailsPage() {
           {/* Workflow Editor Tab */}
           <TabsContent value="editor">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Workflow Editor</CardTitle>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate(`/workflows/${workflowId}/editor`)}
+                >
+                  Open Full-Screen Editor
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="rounded-md overflow-hidden border border-border">
                   <iframe 
-                    src={workflow?.workflowData?.n8nWorkflowId 
-                      ? `http://localhost:5678/workflow/${workflow.workflowData.n8nWorkflowId}` 
-                      : "http://localhost:5678/workflow/new"} 
+                    src={(() => {
+                      const workflowData = workflow?.workflowData as any || {};
+                      const n8nWorkflowId = workflowData.n8nWorkflowId;
+                      return n8nWorkflowId 
+                        ? `/api/n8n-proxy/workflow/${n8nWorkflowId}` 
+                        : "/api/n8n-proxy/workflow/new";
+                    })()} 
                     className="w-full h-[600px] border-0"
                     title="N8N Workflow Editor"
                     onLoad={() => {
+                      const workflowData = workflow?.workflowData as any || {};
                       console.log('N8N iframe loaded', {
-                        workflowData: workflow?.workflowData,
-                        n8nWorkflowId: workflow?.workflowData?.n8nWorkflowId,
-                        hasTemplate: !!workflow?.workflowData?.n8nWorkflow
+                        workflowData,
+                        n8nWorkflowId: workflowData.n8nWorkflowId,
+                        hasTemplate: !!workflowData.n8nWorkflow
                       });
                     }}
                   />

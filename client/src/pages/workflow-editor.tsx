@@ -133,7 +133,8 @@ export default function WorkflowEditorPage() {
     if (!workflow) return '';
     
     // Use n8nWorkflowId from workflowData if available, otherwise use our internal workflowId
-    const n8nId = workflow.workflowData?.n8nWorkflowId;
+    const workflowData = workflow.workflowData as any || {};
+    const n8nId = workflowData.n8nWorkflowId;
     if (n8nId) {
       return `/api/n8n-proxy/workflow/${n8nId}`;
     } else {
@@ -144,21 +145,23 @@ export default function WorkflowEditorPage() {
 
   return (
     <Layout>
-      <div className="container mx-auto p-4 flex flex-col h-[calc(100vh-80px)]">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-2">
+      <div className="flex flex-col h-[calc(100vh-64px)]">
+        {/* Minimal header with fixed height */}
+        <div className="flex justify-between items-center p-2 border-b bg-background z-10 h-[50px]">
           <div className="flex items-center">
             <Button 
-              variant="outline" 
-              onClick={() => navigate("/workflows")}
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate(`/workflows/${workflowId}`)}
               className="mr-2"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Workflows
+              <ArrowLeft className="mr-1 h-4 w-4" />
+              Back
             </Button>
             
             {!isLoading && workflow && (
-              <h1 className="text-xl font-bold hidden md:block truncate max-w-md">
-                Editing: {workflow.name || "Workflow"}
+              <h1 className="text-lg font-semibold truncate max-w-md">
+                {workflow.name || "Workflow"}
               </h1>
             )}
           </div>
@@ -167,49 +170,52 @@ export default function WorkflowEditorPage() {
             <Button 
               onClick={executeWorkflow}
               variant="outline"
+              size="sm"
               className="whitespace-nowrap"
             >
-              <PlayCircle className="mr-2 h-4 w-4" />
-              Run Workflow
+              <PlayCircle className="mr-1 h-4 w-4" />
+              Run
             </Button>
             
             <Button 
               onClick={syncWorkflow}
               disabled={isSyncing}
               variant="default"
+              size="sm"
               className="whitespace-nowrap"
             >
-              {isSyncing ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              {isSyncing ? <RefreshCw className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
               {isSyncing ? "Syncing..." : "Save Changes"}
             </Button>
           </div>
         </div>
         
-        {isLoading ? (
-          <div className="flex-grow flex items-center justify-center">
-            <div className="text-center">
-              <Skeleton className="h-[600px] w-full max-w-[800px] rounded-md" />
-              <p className="mt-4">Loading workflow editor...</p>
+        {/* Main content - takes all remaining height */}
+        <div className="flex-grow relative">
+          {isLoading ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <Skeleton className="h-[80vh] w-[90vw] max-w-[1200px] rounded-md" />
+                <p className="mt-4">Loading workflow editor...</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="flex-grow border rounded-lg overflow-hidden relative">
-            {iframeError && (
-              <Alert variant="destructive" className="m-4">
-                <AlertTitle>Error Loading Editor</AlertTitle>
-                <AlertDescription>
-                  {iframeError}
-                  <Button variant="outline" size="sm" className="mt-2" onClick={reloadIframe}>
-                    Try Again
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            )}
+          ) : (
+            <div className="absolute inset-0">
+              {iframeError && (
+                <Alert variant="destructive" className="m-4">
+                  <AlertTitle>Error Loading Editor</AlertTitle>
+                  <AlertDescription>
+                    {iframeError}
+                    <Button variant="outline" size="sm" className="mt-2" onClick={reloadIframe}>
+                      Try Again
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
 
-            <div className="relative h-full">
-              {/* N8N Editor Iframe */}
+              {/* N8N Editor Iframe - takes up full remaining space */}
               {workflow && (
-                <div className="h-full w-full">
+                <>
                   {!iframeLoaded && !iframeError && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
                       <div className="flex flex-col items-center">
@@ -228,22 +234,18 @@ export default function WorkflowEditorPage() {
                     onError={handleIframeError}
                     allow="accelerometer; camera; encrypted-media; geolocation; gyroscope; microphone; midi"
                   />
-                </div>
+                </>
               )}
               
-              {/* Information overlay in the corner */}
-              <div className="absolute bottom-4 right-4 z-10 p-4 bg-card rounded-lg shadow-lg max-w-md">
-                <h3 className="text-sm font-semibold mb-2">N8N Editor Integration</h3>
-                <p className="text-xs text-muted-foreground mb-2">
-                  You're editing this workflow directly in the N8N editor. All changes are made in real-time.
-                </p>
+              {/* Small info indicator in the corner */}
+              <div className="absolute bottom-4 right-4 z-10 p-3 bg-card rounded-lg shadow-lg max-w-md opacity-70 hover:opacity-100 transition-opacity">
                 <p className="text-xs text-muted-foreground">
-                  Remember to click the "Save Changes" button above when finished to synchronize your workflow with our database.
+                  Remember to click "Save Changes" when finished to synchronize your workflow.
                 </p>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </Layout>
   );
