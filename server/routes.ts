@@ -1882,7 +1882,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
-  // Proxy to N8N service
+  // Enhanced Proxy to N8N service with iframe support
   app.use("/api/n8n-proxy", requireAuth, async (req, res) => {
     try {
       // Forward the request to the N8N service
@@ -1898,8 +1898,8 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       // Create a filtered headers object to avoid type errors
       const headers: Record<string, string> = {};
       Object.keys(req.headers).forEach(key => {
-        if (key.toLowerCase() === 'content-length') {
-          // Skip content-length to avoid issues with request bodies
+        // Skip special headers that could cause issues
+        if (['content-length', 'host', 'origin', 'referer', 'connection', 'x-frame-options'].includes(key.toLowerCase())) {
           return;
         }
         
@@ -1940,24 +1940,60 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       
       // Copy status and headers from N8N response
       res.status(response.status);
-      response.headers.forEach((value, key) => {
-        res.set(key, value);
-      });
-      
-      // Log response for debugging
-      console.log(`N8N Proxy: Response status:`, response.status);
       
       // Get response type to determine how to process the body
       const responseType = response.headers.get('content-type') || '';
+      
+      // Set appropriate headers for iframe embedding
+      // Handle special cases for different content types
+      if (responseType.includes('text/html')) {
+        // For HTML content, set headers that allow iframe embedding
+        res.set('Content-Type', 'text/html');
+        // Add headers to allow iframe embedding
+        res.set('X-Frame-Options', 'SAMEORIGIN');
+        res.set('Content-Security-Policy', "frame-ancestors 'self'");
+      } else {
+        // For other content types, forward all headers except those that would prevent iframe embedding
+        response.headers.forEach((value, key) => {
+          if (!['x-frame-options', 'content-security-policy'].includes(key.toLowerCase())) {
+            res.set(key, value);
+          }
+        });
+      }
+      
+      // Log response for debugging
+      console.log(`N8N Proxy: Response status:`, response.status);
+      console.log(`N8N Proxy: Response content-type:`, responseType);
       
       // Process the response body based on content type
       if (responseType.includes('application/json')) {
         const jsonData = await response.json();
         res.json(jsonData);
+      } else if (responseType.includes('text/html')) {
+        // For HTML responses, modify to ensure iframe compatibility
+        let htmlContent = await response.text();
+        
+        // Insert a base tag to ensure all relative URLs resolve correctly
+        // Also add a script to handle communication between the iframe and parent window
+        htmlContent = htmlContent.replace(
+          '<head>', 
+          `<head>
+            <base href="/api/n8n-proxy/" target="_self">
+            <script>
+              // Fix for iframe compatibility
+              window.addEventListener('message', function(event) {
+                if (event.data === 'n8n-reload') {
+                  window.location.reload();
+                }
+              });
+            </script>`
+        );
+        
+        res.send(htmlContent);
       } else {
-        // For non-JSON content, send as text
-        const data = await response.text();
-        res.send(data);
+        // For other non-JSON content, send as is
+        const data = await response.arrayBuffer();
+        res.end(Buffer.from(data));
       }
     } catch (error) {
       console.error("Error proxying to N8N:", error);

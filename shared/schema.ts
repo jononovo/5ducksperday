@@ -316,7 +316,9 @@ const n8nWorkflowSchema = z.object({
   name: z.string().min(1, "Workflow name is required"),
   description: z.string().optional(),
   active: z.boolean().default(true),
-  workflowData: z.record(z.unknown()),
+  workflowData: z.object({
+    n8nWorkflowId: z.string().optional()
+  }).passthrough(), // Use passthrough to allow additional unknown properties
   strategyId: z.number().optional()
 });
 

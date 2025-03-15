@@ -126,10 +126,10 @@ export default function WorkflowsPage() {
         data: {},
       });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Workflow executed",
-        description: `Execution started with ID: ${data.executionId}`,
+        description: `Execution started successfully${data.id ? ` with ID: ${data.id}` : ''}`,
       });
     },
     onError: (error) => {
@@ -449,37 +449,9 @@ export default function WorkflowsPage() {
                           variant="default"
                           size="sm"
                           className="bg-indigo-600 text-white hover:bg-indigo-700"
-                          onClick={async () => {
-                            try {
-                              // First get the proper N8N workflow ID from our mapping endpoint
-                              const response = await fetch(`/api/n8n-workflow-mapping/${workflow.id}`, {
-                                method: 'GET',
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                  'Authorization': `Bearer ${localStorage.getItem('token')}`
-                                }
-                              });
-                              
-                              if (!response.ok) {
-                                throw new Error('Failed to get workflow mapping');
-                              }
-                              
-                              const mapping = await response.json();
-                              const domain = window.location.origin;
-                              
-                              // Use the N8N workflow ID if available, otherwise fall back to our database ID
-                              const workflowIdToUse = mapping.n8nWorkflowId || workflow.id;
-                              const n8nEditorUrl = `${domain}/api/n8n-proxy/workflow/${workflowIdToUse}`;
-                              
-                              window.open(n8nEditorUrl, '_blank');
-                            } catch (error) {
-                              console.error('Error opening N8N editor:', error);
-                              toast({
-                                title: 'Error',
-                                description: 'Failed to open N8N editor. Please try again.',
-                                variant: 'destructive'
-                              });
-                            }
+                          onClick={() => {
+                            // Navigate to our enhanced iframe editor page instead of opening in a new tab
+                            navigate(`/workflows/${workflow.id}`);
                           }}
                         >
                           <Workflow className="h-4 w-4 mr-1" />
