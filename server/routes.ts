@@ -14,6 +14,7 @@ import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
 import { google } from 'googleapis';
 import { n8nService, createDemoWorkflow } from './lib/n8n-service';
+import { isN8nRunning, checkN8nHealth, getN8nApiUrl, getN8nEditorUrl, forceRestartN8n } from './lib/n8n-manager';
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 
@@ -1829,6 +1830,47 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       res.status(500).json({
         message: error instanceof Error ? error.message : "Failed to create demo workflow"
       });
+    }
+  });
+
+  // N8N Service Status and Health API
+  app.get("/api/n8n/status", requireAuth, async (req, res) => {
+    try {
+      const isRunning = isN8nRunning();
+      let isHealthy = false;
+      
+      if (isRunning) {
+        isHealthy = await checkN8nHealth();
+      }
+      
+      return res.json({
+        isRunning,
+        isHealthy,
+        apiUrl: getN8nApiUrl(),
+        editorUrl: getN8nEditorUrl(),
+        statusMessage: isRunning ? 
+          (isHealthy ? 'N8N service is running and healthy' : 'N8N service is running but may be unhealthy') 
+          : 'N8N service is not running'
+      });
+    } catch (error) {
+      console.error('Error checking N8N status:', error);
+      return res.status(500).json({ error: 'Failed to check N8N service status' });
+    }
+  });
+  
+  // N8N Service Restart API
+  app.post("/api/n8n/restart", requireAuth, async (req, res) => {
+    try {
+      const result = await forceRestartN8n();
+      
+      if (result) {
+        return res.json({ success: true, message: 'N8N service successfully restarted' });
+      } else {
+        return res.status(500).json({ error: 'Failed to restart N8N service' });
+      }
+    } catch (error) {
+      console.error('Error restarting N8N service:', error);
+      return res.status(500).json({ error: 'Failed to restart N8N service' });
     }
   });
 

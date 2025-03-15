@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { N8nServiceStatus } from "@/components/n8n-service-status";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";

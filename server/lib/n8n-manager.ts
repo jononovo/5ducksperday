@@ -229,14 +229,19 @@ export function getN8nEditorUrl(): string {
  */
 export async function checkN8nHealth(): Promise<boolean> {
   try {
+    // Use AbortController for timeout since fetch doesn't support timeout option directly
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
     const response = await fetch(`${getN8nApiUrl()}/health`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
       },
-      timeout: 5000, // 5 second timeout
+      signal: controller.signal
     });
     
+    clearTimeout(timeoutId);
     return response.ok;
   } catch (error) {
     log(`Health check failed: ${error}`, 'n8n-error');
