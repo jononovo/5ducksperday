@@ -5,11 +5,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, RefreshCw, PlayCircle } from "lucide-react";
+import { RefreshCw, ArrowLeft, Save, PlayCircle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { N8nWorkflow } from "@shared/schema";
+import { WorkflowHeader } from "@/components/workflow-header";
 
 export default function WorkflowEditorPage() {
   const { workflowId } = useParams();
@@ -147,48 +148,15 @@ export default function WorkflowEditorPage() {
     <Layout>
       <div className="flex flex-col h-[calc(100vh-64px)]">
         {/* Minimal header with fixed height */}
-        <div className="flex justify-between items-center p-2 border-b bg-background z-10 h-[50px]">
-          <div className="flex items-center">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => navigate(`/workflows/${workflowId}`)}
-              className="mr-2"
-            >
-              <ArrowLeft className="mr-1 h-4 w-4" />
-              Back
-            </Button>
-            
-            {!isLoading && workflow && (
-              <h1 className="text-lg font-semibold truncate max-w-md">
-                {workflow.name || "Workflow"}
-              </h1>
-            )}
-          </div>
-          
-          <div className="flex gap-2">
-            <Button 
-              onClick={executeWorkflow}
-              variant="outline"
-              size="sm"
-              className="whitespace-nowrap"
-            >
-              <PlayCircle className="mr-1 h-4 w-4" />
-              Run
-            </Button>
-            
-            <Button 
-              onClick={syncWorkflow}
-              disabled={isSyncing}
-              variant="default"
-              size="sm"
-              className="whitespace-nowrap"
-            >
-              {isSyncing ? <RefreshCw className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
-              {isSyncing ? "Syncing..." : "Save Changes"}
-            </Button>
-          </div>
-        </div>
+        <WorkflowHeader
+          workflowId={workflowId}
+          workflow={workflow}
+          isLoading={isLoading}
+          isSyncing={isSyncing}
+          onSync={syncWorkflow}
+          onExecute={executeWorkflow}
+          minimal={true}
+        />
         
         {/* Main content - takes all remaining height */}
         <div className="flex-grow relative">
