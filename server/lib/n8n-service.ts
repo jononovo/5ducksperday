@@ -328,8 +328,9 @@ class N8nService {
 
       try {
         // Get the N8N workflow ID - it could be in different places depending on workflow creation method
-        const n8nWorkflowId = workflow.workflowData?.n8nWorkflowId || 
-                            workflow.workflowData?.id || 
+        const workflowData = workflow.workflowData as Record<string, any> || {};
+        const n8nWorkflowId = workflowData.n8nWorkflowId || 
+                            workflowData.id || 
                             workflow.id.toString();
                             
         console.log(`Executing N8N workflow with ID: ${n8nWorkflowId}`);
@@ -357,7 +358,7 @@ class N8nService {
         // Update the execution with the error
         await this.updateExecution(execution.id, {
           status: 'failed',
-          error: error.message || 'Unknown error',
+          error: error instanceof Error ? error.message : 'Unknown error',
           completedAt: new Date()
         });
 
@@ -365,7 +366,7 @@ class N8nService {
       }
     } catch (error) {
       console.error(`Error executing workflow ${workflowId}:`, error);
-      throw new Error(`Failed to execute workflow ${workflowId}: ${error.message}`);
+      throw new Error(`Failed to execute workflow ${workflowId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

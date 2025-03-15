@@ -1898,6 +1898,11 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       // Create a filtered headers object to avoid type errors
       const headers: Record<string, string> = {};
       Object.keys(req.headers).forEach(key => {
+        if (key.toLowerCase() === 'content-length') {
+          // Skip content-length to avoid issues with request bodies
+          return;
+        }
+        
         const value = req.headers[key];
         if (typeof value === 'string') {
           headers[key] = value;
@@ -1907,11 +1912,30 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       // Set host header for N8N
       headers.host = 'localhost:5678';
       
+      // Determine the request body based on content type and method
+      let requestBody: any = undefined;
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        const contentType = req.headers['content-type'] || '';
+        
+        if (contentType.includes('application/json')) {
+          requestBody = JSON.stringify(req.body);
+        } else if (req.body) {
+          // For non-JSON content, use the raw body
+          requestBody = req.body instanceof Buffer ? req.body : JSON.stringify(req.body);
+        }
+      }
+      
+      // Log the fetch request for debugging
+      console.log(`N8N Proxy: Making ${req.method} request to ${proxiedUrl}`);
+      console.log(`N8N Proxy: Headers:`, headers);
+      if (requestBody) {
+        console.log(`N8N Proxy: Body size:`, requestBody.length);
+      }
+      
       const response = await fetch(proxiedUrl, {
         method: req.method,
         headers,
-        body: req.method !== 'GET' && req.method !== 'HEAD' ? 
-          req.body instanceof Buffer ? req.body : JSON.stringify(req.body) : undefined
+        body: requestBody
       });
       
       // Copy status and headers from N8N response
@@ -1920,13 +1944,26 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         res.set(key, value);
       });
       
-      // Send the response body
-      const data = await response.text();
-      res.send(data);
+      // Log response for debugging
+      console.log(`N8N Proxy: Response status:`, response.status);
+      
+      // Get response type to determine how to process the body
+      const responseType = response.headers.get('content-type') || '';
+      
+      // Process the response body based on content type
+      if (responseType.includes('application/json')) {
+        const jsonData = await response.json();
+        res.json(jsonData);
+      } else {
+        // For non-JSON content, send as text
+        const data = await response.text();
+        res.send(data);
+      }
     } catch (error) {
       console.error("Error proxying to N8N:", error);
       res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to proxy request to N8N"
+        message: error instanceof Error ? error.message : "Failed to proxy request to N8N",
+        details: error instanceof Error ? error.stack : undefined
       });
     }
   });
