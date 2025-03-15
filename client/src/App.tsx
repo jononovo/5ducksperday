@@ -23,6 +23,7 @@ import Workflows from "@/pages/workflows";
 import WorkflowDetails from "@/pages/workflow-details";
 import WorkflowExecutions from "@/pages/workflow-executions";
 import WorkflowEditor from "@/pages/workflow-editor";
+import SimpleN8n from "@/pages/simple-n8n";
 import NotFound from "@/pages/not-found";
 import { MainNav } from "@/components/main-nav";
 import Privacy from "@/pages/privacy";
@@ -55,6 +56,7 @@ function Router() {
           <ProtectedRoute path="/workflows/:id" component={WorkflowDetails} />
           <ProtectedRoute path="/workflows/:workflowId/editor" component={WorkflowEditor} />
           <ProtectedRoute path="/workflows/:id/executions" component={WorkflowExecutions} />
+          <ProtectedRoute path="/n8n" component={SimpleN8n} />
           {/* Public Routes */}
           <Route path="/privacy" component={Privacy} />
           <Route path="/terms" component={Terms} />

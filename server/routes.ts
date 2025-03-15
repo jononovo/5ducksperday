@@ -1925,7 +1925,46 @@ Then, on a new line, write the body of the email. Keep both subject and content 
   });
 
   // Enhanced Proxy to N8N service with iframe support
+  // N8N proxy using the new proxy config
   app.use("/api/n8n-proxy", requireAuth, async (req, res) => {
+    try {
+      // Forward the request to the N8N service
+      const n8nBaseUrl = "http://localhost:5678";
+      const n8nPath = req.url;
+      
+      console.log(`N8N Proxy: Forwarding ${req.method} request to ${n8nBaseUrl}${n8nPath}`);
+      
+      // Create the proxied URL
+      const proxiedUrl = `${n8nBaseUrl}${n8nPath}`;
+      
+      // Use node-fetch to proxy the request
+      const response = await fetch(proxiedUrl, {
+        method: req.method,
+        headers: {
+          'Content-Type': req.headers['content-type'] || 'application/json',
+        },
+        body: ['GET', 'HEAD'].includes(req.method || '') ? undefined : req.body,
+      });
+      
+      // Forward the response back to the client
+      res.status(response.status);
+      
+      // Copy response headers
+      for (const [key, value] of response.headers.entries()) {
+        res.setHeader(key, value);
+      }
+      
+      // Send the response body
+      const responseBody = await response.text();
+      res.send(responseBody);
+    } catch (error) {
+      console.error("Error proxying to N8N:", error);
+      res.status(500).json({ error: "Failed to proxy request to N8N" });
+    }
+  });
+  
+  // Legacy proxy code for reference
+  app.use("/api/n8n-proxy-legacy", requireAuth, async (req, res) => {
     try {
       // Forward the request to the N8N service
       const n8nBaseUrl = "http://localhost:5678";
