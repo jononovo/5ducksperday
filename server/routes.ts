@@ -14,6 +14,8 @@ import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
 import { google } from 'googleapis';
 import { n8nService, createDemoWorkflow } from './lib/n8n-service';
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 
 // Helper functions for improved search test scoring and AI agent support
 function normalizeScore(score: number): number {

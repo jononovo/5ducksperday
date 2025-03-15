@@ -449,13 +449,37 @@ export default function WorkflowsPage() {
                           variant="default"
                           size="sm"
                           className="bg-indigo-600 text-white hover:bg-indigo-700"
-                          onClick={() => {
-                            // Use our proxy endpoint to access N8N
-                            const domain = window.location.origin;
-                            // N8N uses a different workflow ID pattern, which we need to retrieve from the workflow data
-                            // For now we'll use the workflow ID from our database
-                            const n8nEditorUrl = `${domain}/api/n8n-proxy/workflow/${workflow.id}`;
-                            window.open(n8nEditorUrl, '_blank');
+                          onClick={async () => {
+                            try {
+                              // First get the proper N8N workflow ID from our mapping endpoint
+                              const response = await fetch(`/api/n8n-workflow-mapping/${workflow.id}`, {
+                                method: 'GET',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                }
+                              });
+                              
+                              if (!response.ok) {
+                                throw new Error('Failed to get workflow mapping');
+                              }
+                              
+                              const mapping = await response.json();
+                              const domain = window.location.origin;
+                              
+                              // Use the N8N workflow ID if available, otherwise fall back to our database ID
+                              const workflowIdToUse = mapping.n8nWorkflowId || workflow.id;
+                              const n8nEditorUrl = `${domain}/api/n8n-proxy/workflow/${workflowIdToUse}`;
+                              
+                              window.open(n8nEditorUrl, '_blank');
+                            } catch (error) {
+                              console.error('Error opening N8N editor:', error);
+                              toast({
+                                title: 'Error',
+                                description: 'Failed to open N8N editor. Please try again.',
+                                variant: 'destructive'
+                              });
+                            }
                           }}
                         >
                           <Workflow className="h-4 w-4 mr-1" />
