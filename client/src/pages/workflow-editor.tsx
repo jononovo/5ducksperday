@@ -16,7 +16,6 @@ export default function WorkflowEditorPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSyncing, setIsSyncing] = useState(false);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
   
   // Get the workflow details
   const { data: workflow, isLoading } = useQuery<N8nWorkflow>({
@@ -94,22 +93,28 @@ export default function WorkflowEditorPage() {
           </div>
         ) : (
           <div className="flex-grow border rounded-lg overflow-hidden relative">
-            {!iframeLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
-                <div className="text-center">
-                  <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-                  <p>Loading N8N editor...</p>
-                </div>
+
+            <div className="relative flex flex-col items-center justify-center h-full">
+              <div className="text-center p-6 max-w-md bg-card rounded-lg shadow-lg">
+                <h2 className="text-xl font-bold mb-4">N8N Editor Integration</h2>
+                <p className="mb-6">
+                  Due to browser security restrictions, we can't embed the N8N editor directly in an iframe.
+                </p>
+                <p className="mb-6">
+                  You can access the N8N editor by clicking the button below, which will open it in a new tab.
+                </p>
+                <button
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                  onClick={() => window.open(`http://localhost:5678/workflow/${workflowId}`, '_blank')}
+                >
+                  Open N8N Editor
+                </button>
+                <p className="mt-6 text-sm text-muted-foreground">
+                  After making changes in the N8N editor, return to this page and click the "Save Changes" button 
+                  to synchronize your workflow with our database.
+                </p>
               </div>
-            )}
-            <iframe 
-              src={`http://localhost:5678/workflow/${workflowId}`}
-              className="w-full h-full border-0"
-              title="N8N Workflow Editor"
-              onLoad={() => setIframeLoaded(true)}
-              allow="accelerometer; camera; encrypted-media; fullscreen; geolocation; gyroscope; microphone; midi"
-              sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups"
-            />
+            </div>
           </div>
         )}
       </div>
