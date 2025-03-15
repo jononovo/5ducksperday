@@ -105,7 +105,16 @@ export default function WorkflowEditorPage() {
                 </p>
                 <button
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-                  onClick={() => window.open(`http://localhost:5678/workflow/${workflowId}`, '_blank')}
+                  onClick={() => {
+                    // Get the current domain for the Replit app
+                    const domain = window.location.origin;
+                    // Replace Replit domain with the N8N port in dev, otherwise use a path-based approach
+                    const n8nEditorUrl = domain.includes('replit.dev') 
+                      ? `${domain.replace(/:(3000|5000)$|$/, `:5678`)}/workflow/${workflowId}`
+                      : `http://localhost:5678/workflow/${workflowId}`;
+                    
+                    window.open(n8nEditorUrl, '_blank');
+                  }}
                 >
                   Open N8N Editor
                 </button>
