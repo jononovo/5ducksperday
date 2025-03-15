@@ -2046,6 +2046,45 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
+  // N8N Service Status and Management API endpoints
+  
+  // Get N8N service status
+  app.get("/api/n8n/status", async (req, res) => {
+    try {
+      const status = getServiceStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Error getting N8N status:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to get N8N service status"
+      });
+    }
+  });
+  
+  // Restart N8N service
+  app.post("/api/n8n/restart", async (req, res) => {
+    try {
+      const success = await forceRestartN8n();
+      if (success) {
+        res.json({ 
+          success: true, 
+          message: "N8N service restart initiated" 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "Failed to restart N8N service" 
+        });
+      }
+    } catch (error) {
+      console.error("Error restarting N8N:", error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to restart N8N service"
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
