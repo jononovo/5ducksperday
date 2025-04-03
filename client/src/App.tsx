@@ -19,11 +19,6 @@ import DatabasePage from "@/pages/database";
 import CompanyDetails from "@/pages/company-details";
 import ContactDetails from "@/pages/contact-details";
 import ApiTemplates from "@/pages/api-templates";
-import Workflows from "@/pages/workflows";
-import WorkflowDetails from "@/pages/workflow-details";
-import WorkflowExecutions from "@/pages/workflow-executions";
-import WorkflowEditor from "@/pages/workflow-editor";
-import SimpleN8n from "@/pages/simple-n8n";
 import NotFound from "@/pages/not-found";
 import { MainNav } from "@/components/main-nav";
 import Privacy from "@/pages/privacy";
@@ -52,11 +47,7 @@ function Router() {
           <ProtectedRoute path="/companies/:id" component={CompanyDetails} />
           <ProtectedRoute path="/contacts/:id" component={ContactDetails} />
           <ProtectedRoute path="/api-templates" component={ApiTemplates} />
-          <ProtectedRoute path="/workflows" component={Workflows} />
-          <ProtectedRoute path="/workflows/:id" component={WorkflowDetails} />
-          <ProtectedRoute path="/workflows/:workflowId/editor" component={WorkflowEditor} />
-          <ProtectedRoute path="/workflows/:id/executions" component={WorkflowExecutions} />
-          <ProtectedRoute path="/n8n" component={SimpleN8n} />
+          {/* Workflow routes have been removed */}
           {/* Public Routes */}
           <Route path="/privacy" component={Privacy} />
           <Route path="/terms" component={Terms} />

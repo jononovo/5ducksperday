@@ -69,7 +69,6 @@
     "input-otp": "^1.2.4",
     "lucide-react": "^0.453.0",
     "memorystore": "^1.6.7",
-    "n8n": "^1.82.3",
     "openai": "^4.85.2",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",

@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./auth";
-import { isN8nRunning, getServiceStatus } from "./lib/n8n-manager";
 
 const app = express();
 app.use(express.json());
@@ -51,65 +50,12 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Add N8N status endpoint before auth setup to ensure it's public
-app.get('/api/n8n/public/status', (_req, res) => {
-  try {
-    console.log("[n8n-manager] Getting N8N service status (public endpoint)");
-    const status = getServiceStatus();
-    res.json(status);
-  } catch (error) {
-    console.error("Error getting N8N status:", error);
-    res.status(500).json({
-      message: error instanceof Error ? error.message : "Failed to get N8N service status"
-    });
-  }
-});
-
 (async () => {
   try {
     // Setup authentication before registering routes
     setupAuth(app);
     
-    // Initialize database tables and migrations
-    await import('./db').then(async ({ db }) => {
-      try {
-        // Ensure the N8N workflow tables exist
-        log('Initializing N8N workflow tables...');
-        await db.execute(`
-          CREATE TABLE IF NOT EXISTS n8n_workflows (
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            description TEXT,
-            active BOOLEAN DEFAULT true,
-            "workflowData" JSONB,
-            "userId" INTEGER NOT NULL,
-            "strategyId" INTEGER,
-            "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-            "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-          );
-        `);
-        
-        await db.execute(`
-          CREATE TABLE IF NOT EXISTS n8n_workflow_executions (
-            id SERIAL PRIMARY KEY,
-            "workflowId" INTEGER NOT NULL REFERENCES n8n_workflows(id) ON DELETE CASCADE,
-            "userId" INTEGER NOT NULL,
-            status VARCHAR(50) NOT NULL,
-            "executionId" VARCHAR(255),
-            "inputData" JSONB,
-            "outputData" JSONB,
-            error TEXT,
-            "startedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-            "completedAt" TIMESTAMP WITH TIME ZONE,
-            "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-          );
-        `);
-        
-        log('N8N workflow tables initialized');
-      } catch (dbError) {
-        console.error('Error initializing database tables:', dbError);
-      }
-    });
+    // Database already initialized through Drizzle
 
     const server = registerRoutes(app);
 
