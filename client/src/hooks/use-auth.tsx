@@ -38,7 +38,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
       const res = await apiRequest("POST", "/api/login", credentials);
-      return await res.json();
+      try {
+        return await res.json();
+      } catch (error) {
+        console.error('Login JSON parsing error:', error);
+        throw new Error(`Login failed: ${error instanceof Error ? error.message : 'Could not parse server response'}`);
+      }
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
@@ -54,8 +59,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
-      const res = await apiRequest("POST", "/api/register", credentials);
-      return await res.json();
+      try {
+        console.log('Submitting registration:', {
+          email: credentials.email,
+          hasPassword: !!credentials.password,
+          timestamp: new Date().toISOString()
+        });
+        
+        const res = await apiRequest("POST", "/api/register", credentials);
+        
+        try {
+          return await res.json();
+        } catch (parseError) {
+          console.error('Registration JSON parsing error:', {
+            error: parseError,
+            status: res.status,
+            statusText: res.statusText
+          });
+          
+          // Get raw text for debugging
+          const text = await res.clone().text();
+          console.error('Raw response text that failed to parse:', {
+            text: text.substring(0, 500) // Limit to 500 chars
+          });
+          
+          throw new Error(`Registration failed: Could not parse server response`);
+        }
+      } catch (error) {
+        console.error('Registration error:', error);
+        throw error;
+      }
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
@@ -143,8 +176,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       //Added logging for Gmail scopes verification on frontend
       console.log("Gmail API scopes granted (Frontend):", {
-        sendScope: tokenResult.claims.scope?.includes("https://www.googleapis.com/auth/gmail.send"),
-        composeScope: tokenResult.claims.scope?.includes("https://www.googleapis.com/auth/gmail.compose"),
+        hasScope: tokenResult.claims.scope !== undefined,
+        scopeType: typeof tokenResult.claims.scope,
         timestamp: new Date().toISOString()
       });
 
@@ -180,6 +213,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Safely parse JSON with better error handling
+  async function safeJsonParse(res: Response): Promise<any> {
+    try {
+      return await res.json();
+    } catch (error) {
+      console.error('JSON parsing error:', {
+        status: res.status,
+        statusText: res.statusText,
+        url: res.url,
+        error
+      });
+      
+      // Get the text content for debugging
+      try {
+        const text = await res.clone().text();
+        console.error('Response that failed to parse:', {
+          text: text.substring(0, 500), // Log only first 500 chars to avoid huge logs
+          contentType: res.headers.get('content-type')
+        });
+      } catch (textError) {
+        console.error('Could not get response text after JSON parse error:', textError);
+      }
+      
+      throw new Error(`Failed to parse JSON response: ${error instanceof Error ? error.message : 'Unknown parsing error'}`);
+    }
+  }
+
   // Function to get Firebase ID token and sync with backend
   const syncWithBackend = async (firebaseUser: FirebaseUser) => {
     try {
@@ -210,7 +270,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!createRes.ok) {
-        const errorText = await createRes.text();
+        let errorText;
+        try {
+          errorText = await createRes.text();
+        } catch (textError) {
+          errorText = 'Could not read error response';
+        }
+        
         console.error('Backend sync error response:', {
           status: createRes.status,
           statusText: createRes.statusText,
@@ -220,8 +286,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       console.log('Successfully synced with backend');
-      const user = await createRes.json();
-      queryClient.setQueryData(["/api/user"], user);
+      
+      try {
+        const user = await safeJsonParse(createRes);
+        queryClient.setQueryData(["/api/user"], user);
+      } catch (parseError) {
+        console.error('Error parsing user data from sync response:', parseError);
+        throw new Error('Failed to parse user data from backend response');
+      }
 
     } catch (error) {
       console.error("Error syncing with backend:", {

@@ -118,7 +118,13 @@ app.get('/api/n8n/public/status', (_req, res) => {
       console.error('Server error:', err);
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
-      res.status(status).json({ message });
+      
+      // Return a properly formatted error response
+      res.status(status).json({ 
+        error: message,
+        status: status,
+        timestamp: new Date().toISOString()
+      });
     });
 
     if (app.get("env") === "development") {

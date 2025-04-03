@@ -5,7 +5,7 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser } from "@shared/schema";
+import { User, User as SelectUser } from "@shared/schema";
 import admin from "firebase-admin";
 
 // Extend the session type to include gmailToken
@@ -80,7 +80,11 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
         timestamp: new Date().toISOString()
       });
 
-      user = await storage.createUser(decodedToken.email);
+      user = await storage.createUser({
+        email: decodedToken.email,
+        username: decodedToken.name || decodedToken.email.split('@')[0],
+        password: '',  // Not used for Firebase auth
+      });
     }
 
     return user;
@@ -204,33 +208,67 @@ export function setupAuth(app: Express) {
     try {
       const { email, password } = req.body;
 
+      console.log('Registration request received:', {
+        hasEmail: !!email,
+        hasPassword: !!password,
+        timestamp: new Date().toISOString()
+      });
+
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+      }
+
       // Check for existing email
       const existingEmail = await storage.getUserByEmail(email);
       if (existingEmail) {
         return res.status(400).json({ error: "Email already exists" });
       }
 
-      const user = await storage.createUser({
-        email,
-        password: await hashPassword(password),
-      });
+      // Hash password
+      const hashedPassword = await hashPassword(password);
 
-      req.login(user, (err) => {
-        if (err) return next(err);
-        res.status(201).json(user);
-      });
+      // Create user
+      try {
+        const user = await storage.createUser({
+          email,
+          password: hashedPassword,
+        });
+
+        console.log('User created successfully:', {
+          id: user.id,
+          email: email.split('@')[0] + '@...',
+          timestamp: new Date().toISOString()
+        });
+
+        // Login the user
+        req.login(user, (err) => {
+          if (err) {
+            console.error('Login error after registration:', err);
+            return next(err);
+          }
+          
+          // Return success response with user data
+          console.log('User logged in after registration');
+          return res.status(201).json(user);
+        });
+      } catch (createError) {
+        console.error('User creation error:', createError);
+        return res.status(500).json({ error: "Failed to create user account" });
+      }
     } catch (err) {
-      next(err);
+      console.error('Registration error:', err);
+      // Send proper JSON response instead of passing to generic error handler
+      return res.status(500).json({ error: "Registration failed", details: err instanceof Error ? err.message : "Unknown error" });
     }
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: Error | null, user: SelectUser | false, info: { message: string } | undefined) => {
       if (err) return next(err);
       if (!user) {
         return res.status(401).json({ error: info?.message || "Invalid credentials" });
       }
-      req.login(user, (err) => {
+      req.login(user, (err: Error | null) => {
         if (err) return next(err);
         res.json(user);
       });

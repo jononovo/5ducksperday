@@ -7,22 +7,56 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
-  url: string,
-  options: {
-    method: string,
-    data?: unknown | undefined,
-  },
-): Promise<Response> {
-  const res = await fetch(url, {
-    method: options.method,
-    headers: options.data ? { "Content-Type": "application/json" } : {},
-    body: options.data ? JSON.stringify(options.data) : undefined,
-    credentials: "include",
-  });
+// Safely parse JSON with better error handling
+async function safeJsonParse(res: Response): Promise<any> {
+  try {
+    return await res.json();
+  } catch (error) {
+    console.error('JSON parsing error:', {
+      status: res.status,
+      statusText: res.statusText,
+      url: res.url,
+      error
+    });
+    
+    // Get the text content for debugging
+    const text = await res.clone().text();
+    console.error('Response that failed to parse:', {
+      text: text.substring(0, 500), // Log only first 500 chars to avoid huge logs
+      contentType: res.headers.get('content-type')
+    });
+    
+    throw new Error(`Failed to parse JSON response: ${error instanceof Error ? error.message : 'Unknown parsing error'}`);
+  }
+}
 
-  await throwIfResNotOk(res);
-  return res;
+export async function apiRequest(
+  method: string,
+  url: string,
+  data?: unknown | undefined,
+): Promise<Response> {
+  try {
+    console.log(`API Request: ${method} ${url}`, {
+      hasData: !!data,
+      timestamp: new Date().toISOString()
+    });
+    
+    const res = await fetch(url, {
+      method: method,
+      headers: data ? { "Content-Type": "application/json" } : {},
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
+
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error) {
+    console.error(`API Request Error: ${method} ${url}`, {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -31,16 +65,21 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
-      credentials: "include",
-    });
+    try {
+      const res = await fetch(queryKey[0] as string, {
+        credentials: "include",
+      });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
+      }
+
+      await throwIfResNotOk(res);
+      return await safeJsonParse(res);
+    } catch (error) {
+      console.error(`Query error for ${queryKey[0]}:`, error);
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({
