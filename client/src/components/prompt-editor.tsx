@@ -45,9 +45,50 @@ export default function PromptEditor({
   // Use our search strategy context
   const { selectedStrategyId } = useSearchStrategy();
   
+  // Mutation for workflow-based search
+  const workflowSearchMutation = useMutation({
+    mutationFn: async ({ query, strategyId }: { query: string; strategyId?: number }) => {
+      console.log(`Sending workflow search request: ${query}`);
+      const res = await apiRequest("POST", "/api/workflow-search", { 
+        query,
+        strategyId
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      console.log("Workflow search started:", data);
+      toast({
+        title: "Search Started",
+        description: `Search request sent to workflow. SearchID: ${data.searchId}`,
+      });
+      // Note: Results will come back through the webhook
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Workflow Search Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      onComplete();
+    },
+  });
+
+  // Original search mutation
   const searchMutation = useMutation({
     mutationFn: async (searchQuery: string) => {
-      // Get active flows and their configurations
+      // If a provider is selected, use the workflow search instead
+      if (selectedProvider) {
+        const providersMap: Record<string, number> = {
+          'Lion': 10, // Use appropriate strategy IDs
+          'Rabbit': 11,
+          'Donkey': 12
+        };
+        
+        const strategyId = providersMap[selectedProvider];
+        return workflowSearchMutation.mutateAsync({ query: searchQuery, strategyId });
+      }
+      
+      // Otherwise use the standard search
       const activeFlows = searchFlows
         .filter((flow) => flow.active)
         .map((flow) => ({
@@ -73,6 +114,9 @@ export default function PromptEditor({
       return res.json();
     },
     onSuccess: (data) => {
+      // Skip processing if we used the workflow search
+      if (selectedProvider) return;
+      
       queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
       onSearchResults(data.query, data.companies);
       toast({
@@ -84,6 +128,9 @@ export default function PromptEditor({
       onComplete();
     },
     onError: (error: Error) => {
+      // Skip if this was a workflow search error
+      if (selectedProvider) return;
+      
       toast({
         title: "Search Failed",
         description: error.message,
@@ -106,25 +153,69 @@ export default function PromptEditor({
     searchMutation.mutate(query);
   };
 
+  // State to track the currently selected workflow provider
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+
+  // Function to handle workflow provider selection
+  const handleProviderSelect = (provider: string) => {
+    console.log(`Selected provider: ${provider}`);
+    setSelectedProvider(provider);
+    
+    toast({
+      title: `Selected ${provider} provider`,
+      description: `Using the ${provider} workflow for this search.`,
+    });
+  };
+
   return (
     <Card className="p-3">
-      <div className="flex gap-2">
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
-          className="flex-1"
-        />
-        <Button 
-          onClick={handleSearch} 
-          disabled={isAnalyzing || searchMutation.isPending}
-        >
-          {(isAnalyzing || searchMutation.isPending) && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          <Search className="mr-2 h-4 w-4" />
-          Search
-        </Button>
+      <div className="flex flex-col gap-2">
+        <div className="flex gap-2">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
+            className="flex-1"
+          />
+          <Button 
+            onClick={handleSearch} 
+            disabled={isAnalyzing || searchMutation.isPending}
+          >
+            {(isAnalyzing || searchMutation.isPending) && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            <Search className="mr-2 h-4 w-4" />
+            Search
+          </Button>
+        </div>
+        
+        {/* Workflow Provider Selection Buttons */}
+        <div className="flex gap-2 mt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1"
+            onClick={() => handleProviderSelect('Lion')}
+          >
+            <span role="img" aria-label="Lion">🦁</span> Lion
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1"
+            onClick={() => handleProviderSelect('Rabbit')}
+          >
+            <span role="img" aria-label="Rabbit">🐰</span> Rabbit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1"
+            onClick={() => handleProviderSelect('Donkey')}
+          >
+            <span role="img" aria-label="Donkey">🐴</span> Donkey
+          </Button>
+        </div>
       </div>
     </Card>
   );
