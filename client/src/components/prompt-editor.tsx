@@ -192,28 +192,50 @@ export default function PromptEditor({
         {/* Workflow Provider Selection Buttons */}
         <div className="flex gap-2 mt-2">
           <Button
-            variant="outline"
+            variant={selectedProvider === 'Lion' ? 'default' : 'outline'}
             size="sm"
             className="flex items-center gap-1"
             onClick={() => handleProviderSelect('Lion')}
           >
-            <span role="img" aria-label="Lion">🦁</span> Lion
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 1C7.4087 1 5.88258 1.63214 4.75736 2.75736C3.63214 3.88258 3 5.4087 3 7C3 10 9 15 9 15C9 15 15 10 15 7C15 5.4087 14.3679 3.88258 13.2426 2.75736C12.1174 1.63214 10.5913 1 9 1Z" 
+                fill={selectedProvider === 'Lion' ? 'currentColor' : 'none'} 
+                stroke="currentColor" 
+                strokeWidth="1.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"/>
+            </svg>
+            Lion
           </Button>
           <Button
-            variant="outline"
+            variant={selectedProvider === 'Rabbit' ? 'default' : 'outline'}
             size="sm"
             className="flex items-center gap-1"
             onClick={() => handleProviderSelect('Rabbit')}
           >
-            <span role="img" aria-label="Rabbit">🐰</span> Rabbit
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8V13M14 8V13M7 5C7 3.89543 7.89543 3 9 3C10.1046 3 11 3.89543 11 5M4 8H7C7 9.10457 7.89543 10 9 10C10.1046 10 11 9.10457 11 8H14M4 8C4 6.89543 4.89543 6 6 6H12C13.1046 6 14 6.89543 14 8M7 13L9 15L11 13"
+                stroke="currentColor" 
+                strokeWidth="1.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"/>
+            </svg>
+            Rabbit
           </Button>
           <Button
-            variant="outline"
+            variant={selectedProvider === 'Donkey' ? 'default' : 'outline'}
             size="sm"
             className="flex items-center gap-1"
             onClick={() => handleProviderSelect('Donkey')}
           >
-            <span role="img" aria-label="Donkey">🐴</span> Donkey
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 1.5V4.5M1.5 9H4.5M9 16.5V13.5M16.5 9H13.5M3.6 3.6L5.7 5.7M3.6 14.4L5.7 12.3M14.4 3.6L12.3 5.7M14.4 14.4L12.3 12.3M9 11.25C10.2426 11.25 11.25 10.2426 11.25 9C11.25 7.75736 10.2426 6.75 9 6.75C7.75736 6.75 6.75 7.75736 6.75 9C6.75 10.2426 7.75736 11.25 9 11.25Z"
+                stroke="currentColor" 
+                strokeWidth="1.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"/>
+            </svg>
+            Donkey
           </Button>
         </div>
       </div>
