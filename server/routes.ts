@@ -15,6 +15,8 @@ import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enri
 import { google } from 'googleapis';
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
+import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow-service";
+import { logIncomingWebhook } from "./lib/webhook-logger";
 
 // Helper functions for improved search test scoring and AI agent support
 function normalizeScore(score: number): number {
@@ -59,6 +61,208 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
 }
 
 export function registerRoutes(app: Express) {
+  // Webhook endpoint to receive results from N8N workflows
+  app.post("/api/webhooks/workflow/:param1/:param2/:param3/:param4", async (req, res) => {
+    try {
+      // Extract the search results from the request body
+      const { searchId, results, status, error } = req.body;
+      
+      if (!searchId) {
+        console.error("Webhook error: Missing searchId in payload");
+        return res.status(200).json({
+          success: false,
+          message: "Missing searchId in payload"
+        });
+      }
+      
+      // Log the incoming webhook
+      console.log(`Received webhook for searchId: ${searchId}, status: ${status || 'unknown'}`);
+      await logIncomingWebhook(searchId, req.body, req.headers as Record<string, string>);
+      
+      // Handle error case
+      if (error) {
+        console.error(`Search error for ${searchId}: ${error}`);
+        return res.status(200).json({
+          success: false,
+          message: "Error received and logged"
+        });
+      }
+      
+      // Process company results if available
+      if (results && results.companies && Array.isArray(results.companies) && req.user) {
+        console.log(`Processing ${results.companies.length} companies from webhook`);
+        
+        for (const company of results.companies) {
+          try {
+            // Create the company in database
+            const createdCompany = await storage.createCompany({
+              name: company.name,
+              website: company.website || null,
+              industry: company.industry || null,
+              size: company.size ? parseInt(company.size) : null,
+              location: company.location || null,
+              description: company.description || null,
+              services: company.services || [],
+              keyPeople: company.keyPeople || [],
+              foundedYear: company.foundedYear ? parseInt(company.foundedYear) : null,
+              userId: req.user.id
+            });
+            
+            console.log(`Created company: ${company.name} (ID: ${createdCompany.id})`);
+          } catch (err) {
+            console.error(`Error creating company ${company.name}: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        }
+      }
+      
+      // Process contact results if available
+      if (results && results.contacts && Array.isArray(results.contacts) && req.user) {
+        console.log(`Processing ${results.contacts.length} contacts from webhook`);
+        
+        // Get list of valid contacts (with names)
+        const validContacts = results.contacts.filter((contact: { name: string }) => 
+          contact.name && contact.name !== "Unknown"
+        );
+        
+        // Process each contact
+        await Promise.all(
+          validContacts.map(async (contact: any) => {
+            try {
+              // Find the companyId if available
+              let companyId = contact.companyId;
+              
+              // If no companyId but company name is provided, try to find or create the company
+              if (!companyId && contact.companyName) {
+                // Find existing company or create a new one
+                const companies = await storage.listCompanies(req.user!.id);
+                const existingCompany = companies.find(c => 
+                  c.name.toLowerCase() === contact.companyName.toLowerCase()
+                );
+                
+                if (existingCompany) {
+                  companyId = existingCompany.id;
+                } else {
+                  // Create a new company
+                  const newCompany = await storage.createCompany({
+                    name: contact.companyName,
+                    userId: req.user!.id
+                  });
+                  companyId = newCompany.id;
+                }
+              }
+              
+              if (!companyId) {
+                console.error(`Cannot create contact ${contact.name}: No company ID or name provided`);
+                return;
+              }
+              
+              // Create contact in database
+              const createdContact = await storage.createContact({
+                name: contact.name,
+                email: contact.email || null,
+                role: contact.title || null,
+                linkedinUrl: contact.linkedin || null,
+                phoneNumber: contact.phone || null,
+                companyId,
+                userId: req.user!.id,
+                probability: contact.probability ? parseFloat(contact.probability) : null,
+                alternativeEmails: contact.alternativeEmails || null,
+                confidence: contact.confidence || null
+              });
+              
+              console.log(`Created contact: ${contact.name} (ID: ${createdContact.id})`);
+            } catch (err) {
+              console.error(`Error creating contact ${contact.name}: ${err instanceof Error ? err.message : String(err)}`);
+            }
+          })
+        );
+      }
+      
+      // Stop keep-alive mechanism if it's running
+      stopKeepAlive(searchId);
+      
+      // Return success response
+      return res.status(200).json({
+        success: true,
+        message: "Webhook received and processed successfully"
+      });
+    } catch (error) {
+      console.error(`Error processing webhook: ${error instanceof Error ? error.message : String(error)}`);
+      
+      // Still return 200 OK to acknowledge receipt
+      return res.status(200).json({
+        success: false,
+        message: "Error processing webhook data",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Simple ping endpoint for keep-alive mechanism
+  app.get("/api/ping", (req, res) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+  
+  // Endpoint to trigger a search via N8N workflow
+  app.post("/api/workflow-search", requireAuth, async (req, res) => {
+    const { query, strategyId } = req.body;
+    
+    if (!query || typeof query !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid request: query must be a non-empty string"
+      });
+    }
+    
+    try {
+      // Get the selected search strategy if provided
+      let selectedStrategy = null;
+      if (strategyId) {
+        selectedStrategy = await storage.getSearchApproach(strategyId);
+      }
+      
+      // Prepare additional parameters based on the strategy
+      const additionalParams: Record<string, any> = {
+        userId: req.user!.id,
+        strategyId: strategyId || null
+      };
+      
+      if (selectedStrategy) {
+        additionalParams.strategyName = selectedStrategy.name;
+        additionalParams.strategyConfig = selectedStrategy.config;
+        additionalParams.responseStructure = selectedStrategy.responseStructure;
+      }
+      
+      // Send the search request to N8N
+      const searchResult = await sendSearchRequest(query, {
+        additionalParams
+      });
+      
+      if (searchResult.success) {
+        // Start the keep-alive mechanism for long-running search
+        startKeepAlive(searchResult.searchId, 15); // 15 minutes
+        
+        return res.json({
+          success: true,
+          message: "Search request sent to workflow",
+          searchId: searchResult.searchId
+        });
+      } else {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to send search request to workflow",
+          error: searchResult.error
+        });
+      }
+    } catch (error) {
+      console.error(`Workflow search error: ${error instanceof Error ? error.message : String(error)}`);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to process workflow search request",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
   // New route for enriching multiple contacts
   app.post("/api/enrich-contacts", requireAuth, async (req, res) => {
     try {

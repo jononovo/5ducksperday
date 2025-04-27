@@ -339,6 +339,41 @@ export const userSchema = z.object({
 
 export const insertUserSchema = userSchema;
 
+// Add webhook logs table for N8N workflow integration
+export const webhookLogs = pgTable("webhook_logs", {
+  id: serial("id").primaryKey(),
+  requestId: text("request_id").notNull(),
+  searchId: text("search_id"),
+  source: text("source").notNull(),  // Format: "provider-operation" (e.g. "n8n-send", "n8n-receive")
+  method: text("method"),
+  url: text("url"),
+  headers: jsonb("headers").default({}),
+  body: jsonb("body").default({}),
+  status: text("status").default("pending"), // pending, success, error
+  statusCode: integer("status_code"),
+  processingDetails: jsonb("processing_details").default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
+// Define Schema for webhook logs
+export const webhookLogSchema = z.object({
+  requestId: z.string(),
+  searchId: z.string().optional(),
+  source: z.string(),
+  method: z.string().optional(),
+  url: z.string().optional(),
+  headers: z.record(z.string()).optional(),
+  body: z.record(z.unknown()).optional(),
+  status: z.enum(["pending", "success", "error"]).default("pending"),
+  statusCode: z.number().optional(),
+  processingDetails: z.record(z.unknown()).optional()
+});
+
+export const insertWebhookLogSchema = webhookLogSchema;
+export type WebhookLog = typeof webhookLogs.$inferSelect;
+export type InsertWebhookLog = z.infer<typeof insertWebhookLogSchema>;
+
 // Add User type
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
