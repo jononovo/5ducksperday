@@ -1,7 +1,14 @@
 import { logOutgoingRequest, logHttpStatus } from "./webhook-logger";
 
 // Default N8N workflow webhook URL - this should be configurable in production
-const DEFAULT_N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://your-n8n-instance.com/webhook/5-ducks-search-workflow";
+const DEFAULT_N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://n8n.5ducks.io/webhook/5-ducks-search-workflow";
+
+// Provider-specific workflow webhook URLs
+const PROVIDER_WEBHOOK_URLS: Record<string, string> = {
+  "lion": process.env.LION_WEBHOOK_URL || "https://n8n.5ducks.io/webhook/lion-workflow",
+  "rabbit": process.env.RABBIT_WEBHOOK_URL || "https://lead-rabbit.replit.app/api/search",
+  "donkey": process.env.DONKEY_WEBHOOK_URL || "https://n8n.5ducks.io/webhook/donkey-workflow"
+};
 
 interface WorkflowRequestOptions {
   additionalParams?: Record<string, any>;
@@ -20,8 +27,17 @@ export async function sendSearchRequest(query: string, options: WorkflowRequestO
   // Generate a unique search ID
   const searchId = `search_${Date.now()}`;
   
-  // Get the webhook URL (from options or default)
-  const webhookUrl = options.customWebhookUrl || DEFAULT_N8N_WEBHOOK_URL;
+  // Get the workflow provider from additional params, if any
+  const provider = options.additionalParams?.provider?.toLowerCase() || null;
+  
+  // Get the webhook URL based on provider or use custom URL or default
+  let webhookUrl = options.customWebhookUrl || DEFAULT_N8N_WEBHOOK_URL;
+  
+  // If we have a valid provider, use its specific URL
+  if (provider && PROVIDER_WEBHOOK_URLS[provider]) {
+    webhookUrl = PROVIDER_WEBHOOK_URLS[provider];
+    console.log(`Using ${provider} webhook URL: ${webhookUrl}`);
+  }
   
   // Prepare the request payload
   const payload = {

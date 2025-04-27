@@ -47,11 +47,20 @@ export default function PromptEditor({
   
   // Mutation for workflow-based search
   const workflowSearchMutation = useMutation({
-    mutationFn: async ({ query, strategyId }: { query: string; strategyId?: number }) => {
-      console.log(`Sending workflow search request: ${query}`);
+    mutationFn: async ({ 
+      query, 
+      strategyId, 
+      provider 
+    }: { 
+      query: string; 
+      strategyId?: number;
+      provider?: string;
+    }) => {
+      console.log(`Sending workflow search request: ${query} (Provider: ${provider || 'default'})`);
       const res = await apiRequest("POST", "/api/workflow-search", { 
         query,
-        strategyId
+        strategyId,
+        provider
       });
       return res.json();
     },
@@ -62,6 +71,7 @@ export default function PromptEditor({
         description: `Search request sent to workflow. SearchID: ${data.searchId}`,
       });
       // Note: Results will come back through the webhook
+      onComplete();
     },
     onError: (error: Error) => {
       toast({
@@ -78,14 +88,20 @@ export default function PromptEditor({
     mutationFn: async (searchQuery: string) => {
       // If a provider is selected, use the workflow search instead
       if (selectedProvider) {
+        // Map animal providers to actual search approaches in the database
         const providersMap: Record<string, number> = {
-          'Lion': 10, // Use appropriate strategy IDs
-          'Rabbit': 11,
-          'Donkey': 12
+          'Lion': 17, // Advanced Key Contact Discovery
+          'Rabbit': 11, // Small Business Contacts
+          'Donkey': 15  // Enhanced Contact Discovery
         };
         
         const strategyId = providersMap[selectedProvider];
-        return workflowSearchMutation.mutateAsync({ query: searchQuery, strategyId });
+        const providerName = selectedProvider.toLowerCase();
+        return workflowSearchMutation.mutateAsync({ 
+          query: searchQuery, 
+          strategyId, 
+          provider: providerName 
+        });
       }
       
       // Otherwise use the standard search

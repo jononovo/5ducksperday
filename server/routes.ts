@@ -205,7 +205,7 @@ export function registerRoutes(app: Express) {
   
   // Endpoint to trigger a search via N8N workflow
   app.post("/api/workflow-search", requireAuth, async (req, res) => {
-    const { query, strategyId } = req.body;
+    const { query, strategyId, provider } = req.body;
     
     if (!query || typeof query !== 'string') {
       return res.status(400).json({
@@ -221,10 +221,25 @@ export function registerRoutes(app: Express) {
         selectedStrategy = await storage.getSearchApproach(strategyId);
       }
       
+      // Map strategy IDs to providers if no provider was explicitly specified
+      let workflowProvider = provider;
+      if (!workflowProvider && strategyId) {
+        const providerMappings: Record<number, string> = {
+          17: 'lion',   // Advanced Key Contact Discovery
+          11: 'rabbit', // Small Business Contacts
+          15: 'donkey'  // Enhanced Contact Discovery 
+        };
+        
+        workflowProvider = providerMappings[strategyId] || null;
+      }
+      
+      console.log(`Using workflow provider: ${workflowProvider || 'default'}`);
+      
       // Prepare additional parameters based on the strategy
       const additionalParams: Record<string, any> = {
         userId: req.user!.id,
-        strategyId: strategyId || null
+        strategyId: strategyId || null,
+        provider: workflowProvider
       };
       
       if (selectedStrategy) {
