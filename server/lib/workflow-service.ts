@@ -1,7 +1,7 @@
 import { logOutgoingRequest, logHttpStatus } from "./webhook-logger";
 
 // Default N8N workflow webhook URL - this should be configurable in production
-const DEFAULT_N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://example.com/api/webhook/workflow";
+const DEFAULT_N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://your-n8n-instance.com/webhook/5-ducks-search-workflow";
 
 interface WorkflowRequestOptions {
   additionalParams?: Record<string, any>;
@@ -27,7 +27,7 @@ export async function sendSearchRequest(query: string, options: WorkflowRequestO
   const payload = {
     query, 
     searchId,
-    callbackUrl: `${process.env.API_BASE_URL || ""}/api/webhooks/workflow/results`,
+    callbackUrl: `${process.env.API_BASE_URL || ""}/api/webhooks/workflow/results/unknown/node/webhook_trigger-${Date.now()}`,
     ...options.additionalParams
   };
   
