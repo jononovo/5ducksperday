@@ -513,8 +513,8 @@ interface ApproachCardProps {
 
 function ApproachCard({ approach, onEdit, onToggle, displayType }: ApproachCardProps) {
   return (
-    <Card className="hover:bg-accent/5 transition-colors cursor-pointer">
-      <Link href={`/approaches/${approach.id}`}>
+    <Link href={`/approaches/${approach.id}`} className="block">
+      <Card className="hover:bg-accent/5 transition-colors cursor-pointer">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -529,7 +529,15 @@ function ApproachCard({ approach, onEdit, onToggle, displayType }: ApproachCardP
               </CardDescription>
             </div>
             <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-              <Button variant="outline" size="sm" onClick={onToggle}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onToggle();
+                }}
+              >
                 {approach.active ? (
                   <>
                     <XCircle className="mr-2 h-4 w-4" />
@@ -542,20 +550,28 @@ function ApproachCard({ approach, onEdit, onToggle, displayType }: ApproachCardP
                   </>
                 )}
               </Button>
-              <Button variant="outline" size="sm" onClick={onEdit}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onEdit();
+                }}
+              >
                 <Edit3 className="mr-2 h-4 w-4" />
                 Edit
               </Button>
             </div>
           </div>
         </CardHeader>
-      </Link>
-      <CardContent>
-        <div className="truncate text-sm text-muted-foreground">
-          {approach.prompt.substring(0, 150)}
-          {approach.prompt.length > 150 && "..."}
-        </div>
-      </CardContent>
-    </Card>
+        <CardContent>
+          <div className="truncate text-sm text-muted-foreground">
+            {approach.prompt.substring(0, 150)}
+            {approach.prompt.length > 150 && "..."}
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
