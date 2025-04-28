@@ -51,6 +51,10 @@ export async function sendSearchRequest(query: string, options: WorkflowRequestO
   if (process.env.API_BASE_URL) {
     // Use the configured API base URL if available
     callbackUrl = `${process.env.API_BASE_URL}/api/webhooks/search-results`;
+  } else if (process.env.CURRENT_DOMAIN) {
+    // Use the domain captured from incoming requests
+    callbackUrl = `${process.env.CURRENT_DOMAIN}/api/webhooks/search-results`;
+    console.log(`Using current domain for callback URL: ${callbackUrl}`);
   } else {
     // Fallback to relative URL
     callbackUrl = `/api/webhooks/search-results`;

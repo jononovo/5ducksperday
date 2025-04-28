@@ -15,6 +15,17 @@ app.use((_req, res, next) => {
   next();
 });
 
+// Capture the domain from incoming requests for webhook callbacks
+app.use((req, res, next) => {
+  const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+  const host = req.get('host');
+  if (host) {
+    process.env.CURRENT_DOMAIN = `${protocol}://${host}`;
+    console.log(`Current domain captured: ${process.env.CURRENT_DOMAIN}`);
+  }
+  next();
+});
+
 // Add request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
