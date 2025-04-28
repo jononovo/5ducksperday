@@ -46,8 +46,8 @@ export async function sendSearchRequest(query: string, options: WorkflowRequestO
     console.log(`Using ${provider} webhook URL: ${webhookUrl}`);
   }
   
-  // Determine the callback URL
-  let callbackUrl = `${process.env.API_BASE_URL || ""}/api/webhooks/workflow/results/unknown/node/webhook_trigger-${Date.now()}`;
+  // Generate a standardized callback URL
+  let callbackUrl = `${process.env.API_BASE_URL || ""}/api/webhooks/search-results`;
   
   // If a resultsUrl was specified, use that instead
   if (resultsUrl) {

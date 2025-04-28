@@ -61,8 +61,8 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
 }
 
 export function registerRoutes(app: Express) {
-  // Webhook endpoint to receive results from N8N workflows
-  app.post("/api/webhooks/workflow/:param1/:param2/:param3/:param4", async (req, res) => {
+  // Simplified webhook endpoint to receive search results
+  app.post("/api/webhooks/search-results", async (req, res) => {
     try {
       // Extract the search results from the request body
       const { searchId, results, status, error } = req.body;
