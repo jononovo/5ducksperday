@@ -19,8 +19,6 @@ import DatabasePage from "@/pages/database";
 import CompanyDetails from "@/pages/company-details";
 import ContactDetails from "@/pages/contact-details";
 import ApiTemplates from "@/pages/api-templates";
-import Approaches from "@/pages/approaches";
-import ApproachDetails from "@/pages/approach-details";
 import NotFound from "@/pages/not-found";
 import { MainNav } from "@/components/main-nav";
 import Privacy from "@/pages/privacy";
@@ -49,8 +47,6 @@ function Router() {
           <ProtectedRoute path="/companies/:id" component={CompanyDetails} />
           <ProtectedRoute path="/contacts/:id" component={ContactDetails} />
           <ProtectedRoute path="/api-templates" component={ApiTemplates} />
-          <ProtectedRoute path="/approaches/:id" component={ApproachDetails} />
-          <ProtectedRoute path="/approaches" component={Approaches} />
           {/* Workflow routes have been removed */}
           {/* Public Routes */}
           <Route path="/privacy" component={Privacy} />

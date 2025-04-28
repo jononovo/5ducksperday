@@ -10,8 +10,7 @@ const navigation = [
   { name: "Lists", href: "/lists" },
   { name: "Campaigns", href: "/campaigns" },
   { name: "Outreach", href: "/outreach" },
-  { name: "Database", href: "/database" },
-  { name: "Approaches", href: "/approaches" }
+  { name: "Database", href: "/database" }
 ];
 
 export function MainNav() {

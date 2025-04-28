@@ -974,22 +974,6 @@ export function registerRoutes(app: Express) {
     res.json(approaches);
   });
 
-  app.get("/api/search-approaches/:id", async (req, res) => {
-    try {
-      const approach = await storage.getSearchApproach(parseInt(req.params.id));
-      if (!approach) {
-        res.status(404).json({ message: "Search approach not found" });
-        return;
-      }
-      res.json(approach);
-    } catch (error) {
-      console.error('Error fetching search approach:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to fetch search approach"
-      });
-    }
-  });
-
   app.patch("/api/search-approaches/:id", async (req, res) => {
     const result = insertSearchApproachSchema.partial().safeParse(req.body);
     if (!result.success) {
@@ -1004,27 +988,6 @@ export function registerRoutes(app: Express) {
     }
 
     res.json(updated);
-  });
-  
-  app.post("/api/search-approaches", async (req, res) => {
-    try {
-      const result = insertSearchApproachSchema.safeParse(req.body);
-      if (!result.success) {
-        res.status(400).json({ 
-          message: "Invalid request body",
-          errors: result.error.errors
-        });
-        return;
-      }
-      
-      const created = await storage.createSearchApproach(result.data);
-      res.status(201).json(created);
-    } catch (error) {
-      console.error('Error creating search approach:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to create search approach"
-      });
-    }
   });
 
   // Initialize search approaches
