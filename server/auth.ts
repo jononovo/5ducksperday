@@ -38,27 +38,45 @@ async function comparePasswords(supplied: string, stored: string) {
 
 // Firebase token verification middleware
 async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
+  // Try to get token from various sources
+  let token: string | null = null;
+  
+  // 1. Check Authorization header (traditional method)
   const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    token = authHeader.split('Bearer ')[1];
+  }
+  
+  // 2. Check cookies if header not available
+  if (!token && req.cookies?.authToken) {
+    token = req.cookies.authToken;
+  }
+  
+  // 3. Check custom header as fallback
+  if (!token && req.headers['x-auth-token']) {
+    token = req.headers['x-auth-token'] as string;
+  }
 
   console.log('Verifying Firebase token:', {
     hasAuthHeader: !!authHeader,
     headerFormat: authHeader?.startsWith('Bearer ') ? 'valid' : 'invalid',
+    hasToken: !!token,
+    tokenSource: token ? (authHeader ? 'header' : (req.cookies?.authToken ? 'cookie' : 'custom-header')) : 'none',
     hasFirebaseAdmin: !!admin.apps.length,
     timestamp: new Date().toISOString()
   });
 
-  if (!authHeader?.startsWith('Bearer ') || !admin.apps.length) {
+  if (!token || !admin.apps.length) {
     console.warn('Token verification failed:', {
-      reason: !authHeader?.startsWith('Bearer ') ? 'invalid header' : 'firebase admin not initialized',
+      reason: !token ? 'no token found' : 'firebase admin not initialized',
       timestamp: new Date().toISOString(),
     });
     return null;
   }
 
   try {
-    const idToken = authHeader.split('Bearer ')[1];
     console.log('Verifying ID token with Firebase Admin');
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const decodedToken = await admin.auth().verifyIdToken(token);
 
     // Log the token scopes and claims
     console.log('Token verified successfully:', {
@@ -113,7 +131,7 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     }
   };
 
