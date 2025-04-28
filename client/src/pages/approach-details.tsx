@@ -430,7 +430,7 @@ export default function ApproachDetailsPage() {
                   <h3 className="font-medium mb-1">Status</h3>
                   <div className="flex items-center gap-2 mt-1">
                     {approach.active ? (
-                      <Badge variant="success">Active</Badge>
+                      <Badge variant="default">Active</Badge>
                     ) : (
                       <Badge variant="outline">Inactive</Badge>
                     )}
