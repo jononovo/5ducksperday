@@ -46,8 +46,15 @@ export async function sendSearchRequest(query: string, options: WorkflowRequestO
     console.log(`Using ${provider} webhook URL: ${webhookUrl}`);
   }
   
-  // Generate a standardized callback URL
-  let callbackUrl = `${process.env.API_BASE_URL || ""}/api/webhooks/search-results`;
+  // Generate a standardized callback URL with full domain when possible
+  let callbackUrl;
+  if (process.env.API_BASE_URL) {
+    // Use the configured API base URL if available
+    callbackUrl = `${process.env.API_BASE_URL}/api/webhooks/search-results`;
+  } else {
+    // Fallback to relative URL
+    callbackUrl = `/api/webhooks/search-results`;
+  }
   
   // If a resultsUrl was specified, use that instead
   if (resultsUrl) {
