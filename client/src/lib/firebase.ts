@@ -1,5 +1,13 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth, GoogleAuthProvider, onAuthStateChanged, type User } from "firebase/auth";
+import { 
+  getAuth, 
+  type Auth, 
+  GoogleAuthProvider, 
+  onAuthStateChanged, 
+  type User,
+  setPersistence,
+  browserLocalPersistence
+} from "firebase/auth";
 
 // Validate Firebase configuration
 function validateFirebaseConfig() {
@@ -85,6 +93,16 @@ try {
 
   app = initializeApp(config);
   auth = getAuth(app);
+  
+  // Set persistence to LOCAL for long-term authentication
+  setPersistence(auth, browserLocalPersistence)
+    .then(() => {
+      console.log('Firebase persistence set to LOCAL');
+    })
+    .catch((error) => {
+      console.error('Error setting persistence:', error);
+    });
+    
   googleProvider = new GoogleAuthProvider();
 
   // Add required scopes for Gmail API
@@ -103,6 +121,9 @@ try {
           // Get the ID token
           const token = await user.getIdToken(true);
           currentAuthToken = token;
+          
+          // Store token in localStorage for added persistence
+          localStorage.setItem('authToken', token);
 
           // Set up axios defaults for the auth header
           const axios = (await import('axios')).default;
@@ -118,10 +139,19 @@ try {
           currentAuthToken = null;
         }
       } else {
-        currentAuthToken = null;
-        const axios = (await import('axios')).default;
-        delete axios.defaults.headers.common['Authorization'];
-        console.log('User signed out, removed auth token');
+        // Check if we're initializing with an existing token
+        const existingToken = localStorage.getItem('authToken');
+        if (existingToken) {
+          console.log('Found existing auth token during initialization');
+          // We'll let Firebase validation determine if this token is still valid
+        } else {
+          // Clear token on explicit logout
+          currentAuthToken = null;
+          localStorage.removeItem('authToken');
+          const axios = (await import('axios')).default;
+          delete axios.defaults.headers.common['Authorization'];
+          console.log('User signed out, removed auth token');
+        }
       }
     });
   }
