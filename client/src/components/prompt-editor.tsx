@@ -1,14 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, HelpCircle } from "lucide-react";
 import type { SearchModuleConfig } from "@shared/schema";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSearchStrategy } from "@/lib/search-strategy-context";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface PromptEditorProps {
   onAnalyze: () => void;
@@ -158,10 +164,29 @@ export default function PromptEditor({
     searchMutation.mutate(query);
   };
 
-  // State for custom workflow configuration
-  const [targetUrl, setTargetUrl] = useState<string>("");
-  const [resultsUrl, setResultsUrl] = useState<string>("");
+  // State for custom workflow configuration with localStorage persistence
+  const [targetUrl, setTargetUrl] = useState<string>(() => {
+    // Try to get the value from localStorage
+    const savedValue = localStorage.getItem('5ducks_target_url');
+    return savedValue || "";
+  });
+  
+  const [resultsUrl, setResultsUrl] = useState<string>(() => {
+    // Try to get the value from localStorage
+    const savedValue = localStorage.getItem('5ducks_results_url');
+    return savedValue || "";
+  });
+  
   const [customSelected, setCustomSelected] = useState<boolean>(false);
+  
+  // Save values to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('5ducks_target_url', targetUrl);
+  }, [targetUrl]);
+  
+  useEffect(() => {
+    localStorage.setItem('5ducks_results_url', resultsUrl);
+  }, [resultsUrl]);
 
   // Function to handle custom workflow search
   const handleCustomWorkflowSearch = () => {
@@ -220,21 +245,51 @@ export default function PromptEditor({
         
         {/* Custom Workflow Configuration */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
-          <div className="col-span-1">
-            <Input
-              value={targetUrl}
-              onChange={(e) => setTargetUrl(e.target.value)}
-              placeholder="Target URL"
-              className="w-full"
-            />
+          <div className="col-span-1 relative">
+            <div className="flex items-center">
+              <Input
+                value={targetUrl}
+                onChange={(e) => setTargetUrl(e.target.value)}
+                placeholder="Target URL"
+                className="w-full pr-8"
+              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6">
+                      <HelpCircle className="h-4 w-4" />
+                      <span className="sr-only">Target URL Info</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Enter the URL where search requests should be sent. This endpoint should accept a JSON payload with query and callbackUrl fields.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
-          <div className="col-span-1">
-            <Input
-              value={resultsUrl}
-              onChange={(e) => setResultsUrl(e.target.value)}
-              placeholder="Results URL (optional)"
-              className="w-full"
-            />
+          <div className="col-span-1 relative">
+            <div className="flex items-center">
+              <Input
+                value={resultsUrl}
+                onChange={(e) => setResultsUrl(e.target.value)}
+                placeholder="Results URL (optional)"
+                className="w-full pr-8"
+              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6">
+                      <HelpCircle className="h-4 w-4" />
+                      <span className="sr-only">Results URL Info</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Enter the URL where search results should be sent back. This is included in the payload as callbackUrl. If left empty, the default webhook endpoint will be used.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
           <div className="col-span-1">
             <Button
