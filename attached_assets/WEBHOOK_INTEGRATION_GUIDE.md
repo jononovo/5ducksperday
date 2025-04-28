@@ -91,9 +91,9 @@ The first essential component is properly sending search requests to the externa
 
    The most important part is using the correct workflow webhook URL. This is the URL where the provider will send results back to your application.
    
-   Current URL:
+   Current URL (SIMPLIFIED):
    ```
-   https://4e42bf38-b4c9-40d3-8c0c-2427f6eb9ef6-00-293iuvng6jglm.kirk.replit.dev/api/webhooks/workflow/unknown/node/webhook_trigger-1745710211752
+   https://4e42bf38-b4c9-40d3-8c0c-2427f6eb9ef6-00-293iuvng6jglm.kirk.replit.dev/api/webhooks/search-results
    ```
 
 ### 2. Receiving Search Results
@@ -108,17 +108,30 @@ The second critical component is properly receiving and processing search result
 
    ```javascript
    // Add to your routes.ts file
-   app.post("/api/webhooks/workflow/:param1/:param2/:param3/:param4", async (req, res) => {
+   app.post("/api/webhooks/search-results", async (req, res) => {
      try {
        // Extract the search results from the request body
        const { searchId, results, status, error } = req.body;
        
+       // Validate the search ID (critical)
+       if (!searchId) {
+         console.error("Webhook error: Missing searchId in payload");
+         return res.status(200).json({
+           success: false,
+           message: "Missing searchId in payload"
+         });
+       }
+       
        // Log the incoming webhook (critical for tracking)
        console.log(`Received webhook for searchId: ${searchId}`);
-       console.log(`Status: ${status}`);
+       console.log(`Status: ${status || 'unknown'}`);
        
        if (error) {
-         console.error(`Search error: ${error}`);
+         console.error(`Search error for ${searchId}: ${error}`);
+         return res.status(200).json({
+           success: false,
+           message: "Error received and logged"
+         });
        }
        
        // Process the results if available
@@ -156,13 +169,13 @@ The second critical component is properly receiving and processing search result
          message: "Webhook received and processed successfully"
        });
      } catch (error) {
-       console.error(`Error processing webhook: ${error.message}`);
+       console.error(`Error processing webhook: ${error instanceof Error ? error.message : String(error)}`);
        
        // Still return 200 OK to prevent retries, but indicate there was a processing error
        return res.status(200).json({
          success: false,
-         message: "Error processing webhook",
-         error: error.message
+         message: "Error processing webhook data",
+         error: error instanceof Error ? error.message : String(error)
        });
      }
    });
@@ -329,7 +342,7 @@ The third critical component is logging all webhook communications for monitorin
          searchId,
          source: `${provider}-receive`,
          method: 'POST',
-         url: '/api/webhooks/workflow',
+         url: '/api/webhooks/search-results',
          headers,
          body: payload,
          status: 'received',
@@ -464,7 +477,7 @@ This implementation guide has covered the three essential components needed to i
 
 ## Critical Implementation Checklist
 
-- [ ] Configured the correct workflow webhook URL: `https://4e42bf38-b4c9-40d3-8c0c-2427f6eb9ef6-00-293iuvng6jglm.kirk.replit.dev/api/webhooks/workflow/unknown/node/webhook_trigger-1745710211752`
+- [ ] Configured the correct workflow webhook URL: `https://4e42bf38-b4c9-40d3-8c0c-2427f6eb9ef6-00-293iuvng6jglm.kirk.replit.dev/api/webhooks/search-results`
 - [ ] Implemented search request function with proper error handling
 - [ ] Created webhook endpoint to receive and process search results
 - [ ] Set up basic logging for both outgoing requests and incoming webhooks

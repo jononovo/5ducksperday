@@ -37,7 +37,7 @@ Example request payload:
 {
   "query": "software companies in Boston",
   "searchId": "search_1682501234567",
-  "callbackUrl": "https://your-app-domain.com/api/webhooks/workflow/results",
+  "callbackUrl": "https://your-app-domain.com/api/webhooks/search-results",
   "userId": 123,
   "strategyId": 456,
   "strategyName": "Company Overview",
