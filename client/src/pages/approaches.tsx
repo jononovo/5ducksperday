@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import {
   Select,
   SelectContent,
@@ -488,50 +488,18 @@ export default function ApproachesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Tabs for different approach types */}
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="all">All Approaches</TabsTrigger>
-          <TabsTrigger value="company_overview">Company Overview</TabsTrigger>
-          <TabsTrigger value="decision_maker">Decision Maker</TabsTrigger>
-          <TabsTrigger value="email_discovery">Email Discovery</TabsTrigger>
-          <TabsTrigger value="email_enrichment">Email Enrichment</TabsTrigger>
-        </TabsList>
-        
-        {/* All approaches tab */}
-        <TabsContent value="all">
-          <div className="grid gap-4">
-            {approaches.map((approach) => (
-              <ApproachCard 
-                key={approach.id} 
-                approach={approach}
-                onEdit={() => startEditing(approach)}
-                onToggle={() => toggleActivation(approach)}
-                displayType={getModuleTypeDisplay}
-              />
-            ))}
-          </div>
-        </TabsContent>
-        
-        {/* Filtered tabs */}
-        {['company_overview', 'decision_maker', 'email_discovery', 'email_enrichment'].map((type) => (
-          <TabsContent key={type} value={type}>
-            <div className="grid gap-4">
-              {approaches
-                .filter((approach) => approach.moduleType === type)
-                .map((approach) => (
-                  <ApproachCard 
-                    key={approach.id} 
-                    approach={approach}
-                    onEdit={() => startEditing(approach)}
-                    onToggle={() => toggleActivation(approach)}
-                    displayType={getModuleTypeDisplay}
-                  />
-                ))}
-            </div>
-          </TabsContent>
+      {/* List of all search approaches */}
+      <div className="grid gap-4">
+        {approaches.map((approach) => (
+          <ApproachCard 
+            key={approach.id} 
+            approach={approach}
+            onEdit={() => startEditing(approach)}
+            onToggle={() => toggleActivation(approach)}
+            displayType={getModuleTypeDisplay}
+          />
         ))}
-      </Tabs>
+      </div>
     </div>
   );
 }
@@ -545,100 +513,48 @@ interface ApproachCardProps {
 
 function ApproachCard({ approach, onEdit, onToggle, displayType }: ApproachCardProps) {
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              {approach.name}
-              <Badge variant={approach.active ? "default" : "outline"}>
-                {approach.active ? "Active" : "Inactive"}
-              </Badge>
-            </CardTitle>
-            <CardDescription>
-              {displayType(approach.moduleType)} • Priority: {approach.order}
-            </CardDescription>
+    <Card className="hover:bg-accent/5 transition-colors cursor-pointer">
+      <Link href={`/approaches/${approach.id}`}>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                {approach.name}
+                <Badge variant={approach.active ? "default" : "outline"}>
+                  {approach.active ? "Active" : "Inactive"}
+                </Badge>
+              </CardTitle>
+              <CardDescription>
+                {displayType(approach.moduleType)} • Priority: {approach.order}
+              </CardDescription>
+            </div>
+            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+              <Button variant="outline" size="sm" onClick={onToggle}>
+                {approach.active ? (
+                  <>
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Disable
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Enable
+                  </>
+                )}
+              </Button>
+              <Button variant="outline" size="sm" onClick={onEdit}>
+                <Edit3 className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={onToggle}>
-              {approach.active ? (
-                <>
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Disable
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Enable
-                </>
-              )}
-            </Button>
-            <Button variant="outline" size="sm" onClick={onEdit}>
-              <Edit3 className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
+      </Link>
       <CardContent>
-        <Accordion type="single" collapsible>
-          <AccordionItem value="details">
-            <AccordionTrigger>View Details</AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-1">Prompt</h4>
-                  <p className="text-sm">{approach.prompt}</p>
-                </div>
-                
-                {approach.technicalPrompt && (
-                  <div>
-                    <h4 className="font-medium mb-1">Technical Prompt</h4>
-                    <pre className="bg-muted p-2 rounded-md text-xs font-mono overflow-x-auto">
-                      {approach.technicalPrompt}
-                    </pre>
-                  </div>
-                )}
-                
-                {approach.responseStructure && (
-                  <div>
-                    <h4 className="font-medium mb-1">Response Structure</h4>
-                    <pre className="bg-muted p-2 rounded-md text-xs font-mono overflow-x-auto">
-                      {approach.responseStructure}
-                    </pre>
-                  </div>
-                )}
-                
-                {approach.sequence && (
-                  <div>
-                    <h4 className="font-medium mb-1">Sequence</h4>
-                    <div className="bg-muted p-2 rounded-md">
-                      <div className="mb-2">
-                        <span className="text-xs font-semibold">Modules:</span>{" "}
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {approach.sequence.modules.map((module) => (
-                            <Badge key={module} variant="secondary">
-                              {displayType(module)}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      {approach.sequence.moduleConfigs && (
-                        <div>
-                          <span className="text-xs font-semibold">Module Configs:</span>
-                          <pre className="text-xs font-mono mt-1 overflow-x-auto">
-                            {JSON.stringify(approach.sequence.moduleConfigs, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+        <div className="truncate text-sm text-muted-foreground">
+          {approach.prompt.substring(0, 150)}
+          {approach.prompt.length > 150 && "..."}
+        </div>
       </CardContent>
     </Card>
   );
