@@ -271,27 +271,7 @@ export default function ApproachesPage() {
                     required
                   />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="moduleType" className="text-right">
-                    Module Type
-                  </Label>
-                  <Select 
-                    name="moduleType" 
-                    value={formData.moduleType} 
-                    onValueChange={(value) => handleSelectChange("moduleType", value)}
-                  >
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select module type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="company_overview">Company Overview</SelectItem>
-                      <SelectItem value="decision_maker">Decision Maker</SelectItem>
-                      <SelectItem value="email_discovery">Email Discovery</SelectItem>
-                      <SelectItem value="email_enrichment">Email Enrichment</SelectItem>
-                      <SelectItem value="email_deepdive">Email Deep Dive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Module Type dropdown has been removed as requested */}
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="order" className="text-right">
                     Display Order
