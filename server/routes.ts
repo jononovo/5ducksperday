@@ -601,7 +601,7 @@ export function registerRoutes(app: Express) {
           
           // Filter contacts by confidence score
           const contacts = allContacts.filter(contact => 
-            (!contact.confidence || contact.confidence >= 40) // Filter out contacts with low confidence scores
+            (!contact.probability || contact.probability >= 40) // Filter out contacts with low probability scores
           );
 
           // Create contact records with basic information
@@ -756,7 +756,7 @@ export function registerRoutes(app: Express) {
         const validContacts = newContacts.filter((contact: Contact) => 
           contact.name && 
           contact.name !== "Unknown" && 
-          (!contact.confidence || contact.confidence >= 40) // Filter out contacts with low confidence scores
+          (!contact.probability || contact.probability >= 40) // Filter out contacts with low confidence/probability scores
         );
         console.log('Valid contacts for enrichment:', validContacts);
 
