@@ -32,14 +32,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import type { Company, Contact } from "@shared/schema";
+import type { Company, Contact, SearchApproach } from "@shared/schema";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import SearchFlowNew from "@/components/search-flow-new";
 import { filterTopProspects } from "@/lib/results-analysis/prospect-filtering";
 import { IntroTourModal } from "@/components/intro-tour-modal";
 import {
@@ -66,7 +65,6 @@ export default function Home() {
   const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [pendingContactId, setPendingContactId] = useState<number | null>(null);
-  const [isSearchFlowExpanded, setIsSearchFlowExpanded] = useState(true);
   // Initialize showTour based on localStorage
   const [showTour, setShowTour] = useState(() => {
     try {
@@ -450,8 +448,8 @@ export default function Home() {
       <IntroTourModal open={showTour} onOpenChange={setShowTour} />
 
       <div className="grid grid-cols-12 gap-6">
-        {/* Main Content Area - 9 columns */}
-        <div className="col-span-9 space-y-6">
+        {/* Main Content Area - full width */}
+        <div className="col-span-12 space-y-6">
           {/* Search Section */}
           <Card>
             <CardHeader>
@@ -656,9 +654,6 @@ export default function Home() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                {console.log('Rendering CompanyTable with companies:',
-                  currentResults?.map(c => ({ id: c.id, name: c.name }))
-                )}
                 <CompanyTable
                   companies={currentResults || []}
                   handleCompanyView={handleCompanyView}
@@ -668,42 +663,17 @@ export default function Home() {
           </Card>
         </div>
 
-        {/* Search Flow Section - 3 columns */}
-        <div className="col-span-3">
-          <Card>
-            <CardHeader>
-              <div className="space-y-4">
-                <div
-                  className="flex items-center justify-between cursor-pointer"
-                  onClick={() => setIsSearchFlowExpanded(!isSearchFlowExpanded)}
-                >
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Search className="w-5 h-5" />
-                    Search Flow
-                    {isSearchFlowExpanded ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
-                  </CardTitle>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setLocation("/api-templates")}
-                  className="w-full justify-start"
-                >
-                  <Code2 className="h-4 w-4 mr-2" />
-                  View API Templates
-                </Button>
-              </div>
-            </CardHeader>
-            {isSearchFlowExpanded && (
-              <CardContent className="p-2">
-                <SearchFlowNew approaches={searchApproaches} />
-              </CardContent>
-            )}
-          </Card>
+        {/* API Templates Button added to main section footer */}
+        <div className="col-span-12 flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setLocation("/api-templates")}
+            className="ml-auto"
+          >
+            <Code2 className="h-4 w-4 mr-2" />
+            View API Templates
+          </Button>
         </div>
       </div>
     </div>
