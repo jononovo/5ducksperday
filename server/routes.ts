@@ -119,9 +119,14 @@ export function registerRoutes(app: Express) {
       if (results && results.contacts && Array.isArray(results.contacts) && req.user) {
         console.log(`Processing ${results.contacts.length} contacts from webhook`);
         
-        // Get list of valid contacts (with names)
-        const validContacts = results.contacts.filter((contact: { name: string }) => 
-          contact.name && contact.name !== "Unknown"
+        // Get list of valid contacts (with names and minimum confidence score)
+        const validContacts = results.contacts.filter((contact: { 
+          name: string, 
+          confidence?: number 
+        }) => 
+          contact.name && 
+          contact.name !== "Unknown" && 
+          (!contact.confidence || contact.confidence >= 40) // Filter out contacts with low confidence scores
         );
         
         // Process each contact
