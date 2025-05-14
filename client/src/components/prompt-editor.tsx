@@ -6,9 +6,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search, HelpCircle } from "lucide-react";
-import type { SearchModuleConfig } from "@shared/schema";
+import type { SearchModuleConfig, SearchApproach } from "@shared/schema";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSearchStrategy } from "@/lib/search-strategy-context";
+import SearchSettingsDrawer from "./search-settings-drawer";
 import {
   Tooltip,
   TooltipContent,
@@ -231,16 +232,21 @@ export default function PromptEditor({
             placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
             className="flex-1"
           />
-          <Button 
-            onClick={handleSearch} 
-            disabled={isAnalyzing || searchMutation.isPending}
-          >
-            {(isAnalyzing || searchMutation.isPending) && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            <Search className="mr-2 h-4 w-4" />
-            Search
-          </Button>
+          <div className="flex items-center">
+            <Button 
+              onClick={handleSearch} 
+              disabled={isAnalyzing || searchMutation.isPending}
+            >
+              {(isAnalyzing || searchMutation.isPending) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              <Search className="mr-2 h-4 w-4" />
+              Search
+            </Button>
+            
+            {/* Settings drawer trigger */}
+            <SearchSettingsDrawer approaches={searchFlows as SearchApproach[]} />
+          </div>
         </div>
         
         {/* Custom Workflow Configuration */}
