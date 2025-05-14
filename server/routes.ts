@@ -587,7 +587,7 @@ export function registerRoutes(app: Express) {
           console.log(`Detected industry for ${companyName}: ${industry || 'unknown'}`);
           
           // Extract contacts with validation options including industry context
-          const contacts = await extractContacts(
+          const allContacts = await extractContacts(
             analysisResults,
             companyName,
             {
@@ -597,6 +597,11 @@ export function registerRoutes(app: Express) {
               companyNamePenalty: 20,
               industry: industry // Pass industry context to validation
             }
+          );
+          
+          // Filter contacts by confidence score
+          const contacts = allContacts.filter(contact => 
+            (!contact.confidence || contact.confidence >= 40) // Filter out contacts with low confidence scores
           );
 
           // Create contact records with basic information
@@ -747,8 +752,12 @@ export function registerRoutes(app: Express) {
         // Remove existing contacts
         await storage.deleteContactsByCompany(companyId, req.user!.id);
 
-        // Create new contacts with only the essential fields
-        const validContacts = newContacts.filter((contact: Contact) => contact.name && contact.name !== "Unknown");
+        // Create new contacts with only the essential fields and minimum confidence score
+        const validContacts = newContacts.filter((contact: Contact) => 
+          contact.name && 
+          contact.name !== "Unknown" && 
+          (!contact.confidence || contact.confidence >= 40) // Filter out contacts with low confidence scores
+        );
         console.log('Valid contacts for enrichment:', validContacts);
 
         const createdContacts = await Promise.all(
