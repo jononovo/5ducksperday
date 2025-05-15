@@ -430,40 +430,75 @@ export default function Home() {
     return "";
   };
 
-  // Add AeroLeads mutation
+  // Add AeroLeads mutation with Set-based state management
   const aeroLeadsMutation = useMutation({
     mutationFn: async (contactId: number) => {
-      setPendingAeroLeadsId(contactId);
+      // Add this contact ID to the set of pending searches
+      setPendingAeroLeadsIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(contactId);
+        return newSet;
+      });
       const response = await apiRequest("POST", `/api/contacts/${contactId}/aeroleads`);
-      return response.json();
+      return {data: await response.json(), contactId};
     },
-    onSuccess: (data) => {
+    onSuccess: (result) => {
+      const {data, contactId} = result;
+      
+      // Update the contact in the results
       setCurrentResults(prev => {
         if (!prev) return null;
-        return prev.map(company => ({
-          ...company,
-          contacts: company.contacts?.map(contact =>
-            contact.id === data.id ? data : contact
-          )
-        }));
+        
+        // Only update the specific contact without affecting others
+        return prev.map(company => {
+          if (!company.contacts?.some(c => c.id === data.id)) {
+            return company;
+          }
+          
+          return {
+            ...company,
+            contacts: company.contacts?.map(contact =>
+              contact.id === data.id ? data : contact
+            )
+          };
+        });
       });
+      
+      // Remove this contact ID from the set of pending searches
+      setPendingAeroLeadsIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contactId);
+        return newSet;
+      });
+      
       toast({
-        title: "Email Found",
-        description: data.email ? "Successfully found contact email." : "No email found for this contact.",
+        title: "Email Search Complete",
+        description: `${data.name}: ${data.email 
+          ? "Successfully found email address."
+          : "No email found for this contact."}`,
       });
-      setPendingAeroLeadsId(null);
     },
-    onError: (error) => {
+    onError: (error, variables) => {
+      const contactId = variables;
+      
+      // Remove this contact ID from the set of pending searches
+      setPendingAeroLeadsIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contactId as number);
+        return newSet;
+      });
+      
       toast({
-        title: "Search Failed",
+        title: "AeroLeads Search Failed",
         description: error instanceof Error ? error.message : "Failed to find contact email",
         variant: "destructive",
       });
-      setPendingAeroLeadsId(null);
     },
   });
 
   const handleAeroLeadsSearch = (contactId: number) => {
+    // Allow multiple searches to run in parallel
+    if (pendingAeroLeadsIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
     aeroLeadsMutation.mutate(contactId);
   };
 
@@ -472,7 +507,7 @@ export default function Home() {
   };
 
   const isAeroLeadsPending = (contactId: number) => {
-    return pendingAeroLeadsId === contactId;
+    return pendingAeroLeadsIds.has(contactId);
   };
 
   const getAeroLeadsButtonClass = (contact: Contact) => {
