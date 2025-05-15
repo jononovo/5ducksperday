@@ -4,7 +4,7 @@ import {
   users, lists, companies, contacts, campaigns, 
   campaignLists, emailTemplates, searchApproaches, 
   userPreferences, searchTestResults, webhookLogs
-} from '@shared/schema';
+} from './shared/schema';
 
 /**
  * Utility script to migrate data from PostgreSQL to Replit DB

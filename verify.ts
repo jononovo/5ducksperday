@@ -1,5 +1,16 @@
 import { storage } from './server/storage-replit';
 
+// Function to safely list keys
+async function listKeys(prefix: string): Promise<string[]> {
+  try {
+    // @ts-ignore: Accessing private method for verification only
+    return await storage.list(prefix);
+  } catch (err) {
+    console.error(`Error listing keys with prefix ${prefix}:`, err);
+    return [];
+  }
+}
+
 /**
  * Utility script to verify data migration
  */
@@ -8,7 +19,7 @@ async function verifyMigration() {
   
   try {
     // Check users
-    const userKeys = await storage.list('user:');
+    const userKeys = await listKeys('user:');
     console.log(`Found ${userKeys.length} user records`);
     
     if (userKeys.length > 0) {
