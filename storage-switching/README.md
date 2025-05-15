@@ -10,9 +10,29 @@ This folder contains utilities to migrate from PostgreSQL to Replit Database.
 - `verify.ts` - Migration verification script
 - `migrate-to-replit-db.sh` - One-step migration utility
 - `toggle-storage.sh` - Toggle between storage backends
+- `direct-switch.sh` - Directly switch to Replit DB (recommended)
 - `cleanup.sh` - Remove all storage switching files
 
 ## How to Use
+
+### Option 1: Direct Switch (Recommended)
+
+For a fresh start with Replit DB without data migration:
+
+```bash
+bash storage-switching/direct-switch.sh
+```
+
+This will:
+- Switch the app to use Replit Database immediately
+- Create a default user on first startup
+- Start with a clean database
+
+This is the simplest and most reliable approach.
+
+### Option 2: Full Migration Process
+
+If you need to migrate existing data (may be unreliable for large datasets):
 
 1. **Migrate data**:
    ```
@@ -24,17 +44,25 @@ This folder contains utilities to migrate from PostgreSQL to Replit Database.
    bash storage-switching/toggle-storage.sh
    ```
 
-3. **Remove utilities**:
-   ```
-   bash storage-switching/cleanup.sh
-   ```
+### Cleanup
 
-## Data Migration Process
+When you're done:
 
-1. Data is transferred from PostgreSQL to Replit DB
-2. The verification process ensures all entities were migrated
-3. The application continues to use PostgreSQL by default
-4. You can toggle to Replit DB once migration is verified
+```bash
+bash storage-switching/cleanup.sh
+```
+
+## Switching Back to PostgreSQL
+
+For direct switch method:
+```bash
+sed -i 's/import { storage } from ".\/direct-storage-switch";/import { storage } from ".\/storage";/g' ./server/index.ts
+```
+
+For toggle method:
+```bash
+bash storage-switching/toggle-storage.sh
+```
 
 ## Key Structure in Replit DB
 
