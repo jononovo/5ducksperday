@@ -65,16 +65,34 @@ export class ContactStorage {
   async updateContact(
     id: number,
     updates: Partial<Contact>,
+    userId?: number
   ): Promise<Contact | undefined> {
-    const [updated] = await this.db
-      .update(contacts)
-      .set({
-        ...updates,
-        lastEnriched: new Date(),
-      })
-      .where(eq(contacts.id, id))
-      .returning();
-    return updated;
+    try {
+      console.log('ContactStorage.updateContact called with:', { id, updates, userId });
+      
+      const query = this.db
+        .update(contacts)
+        .set({
+          ...updates,
+          lastEnriched: new Date(),
+        });
+        
+      // Add userId check if provided
+      if (userId !== undefined) {
+        query.where(and(
+          eq(contacts.id, id),
+          eq(contacts.userId, userId)
+        ));
+      } else {
+        query.where(eq(contacts.id, id));
+      }
+      
+      const [updated] = await query.returning();
+      return updated;
+    } catch (error) {
+      console.error('Error in ContactStorage.updateContact:', error);
+      throw error;
+    }
   }
 
   async deleteContactsByCompany(companyId: number, userId: number): Promise<void> {
@@ -138,37 +156,50 @@ export class ContactStorage {
 
     return this.updateContact(id, {
       probability: combinedScore,
-    });
+    }, userId);
   }
 
   async updateContactWithAeroLeadsResult(
     id: number,
-    result: { email: string | null; confidence: number }
+    result: { email: string | null; confidence: number },
+    userId?: number
   ): Promise<Contact | undefined> {
     const appendSearchSql = sql`array_append(COALESCE(${contacts.completedSearches}, ARRAY[]::text[]), 'aeroleads_search')`;
     
-    if (!result.email) {
-      const [updated] = await this.db
-        .update(contacts)
-        .set({
+    try {
+      // Create base query
+      let query = this.db.update(contacts);
+      
+      // Set the appropriate fields based on whether we have an email
+      if (!result.email) {
+        query = query.set({
           completedSearches: appendSearchSql
-        })
-        .where(eq(contacts.id, id))
-        .returning();
+        });
+      } else {
+        query = query.set({
+          email: result.email,
+          // Use nameConfidenceScore since we don't have a separate email confidence column
+          nameConfidenceScore: result.confidence,
+          completedSearches: appendSearchSql,
+          lastValidated: new Date(),
+        });
+      }
+      
+      // Add userId check if provided for security
+      if (userId !== undefined) {
+        query = query.where(and(
+          eq(contacts.id, id),
+          eq(contacts.userId, userId)
+        ));
+      } else {
+        query = query.where(eq(contacts.id, id));
+      }
+      
+      const [updated] = await query.returning();
       return updated;
+    } catch (error) {
+      console.error('Error in ContactStorage.updateContactWithAeroLeadsResult:', error);
+      throw error;
     }
-
-    const [updated] = await this.db
-      .update(contacts)
-      .set({
-        email: result.email,
-        // Use nameConfidenceScore since we don't have a separate email confidence column
-        nameConfidenceScore: result.confidence,
-        completedSearches: appendSearchSql,
-        lastValidated: new Date(),
-      })
-      .where(eq(contacts.id, id))
-      .returning();
-    return updated;
   }
 }

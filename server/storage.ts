@@ -41,7 +41,7 @@ export interface IStorage {
   listContactsByCompany(companyId: number, userId: number): Promise<Contact[]>;
   getContact(id: number, userId: number): Promise<Contact | undefined>;
   createContact(data: InsertContact): Promise<Contact>;
-  updateContact(id: number, data: Partial<Contact>): Promise<Contact>;
+  updateContact(id: number, data: Partial<Contact>, userId?: number): Promise<Contact | undefined>;
   deleteContactsByCompany(companyId: number, userId: number): Promise<void>;
 
   // Campaigns
@@ -285,12 +285,25 @@ class DatabaseStorage implements IStorage {
     return contact;
   }
 
-  async updateContact(id: number, data: Partial<Contact>): Promise<Contact> {
-    const [updated] = await db.update(contacts)
-      .set(data)
-      .where(eq(contacts.id, id))
-      .returning();
-    return updated;
+  async updateContact(id: number, data: Partial<Contact>, userId?: number): Promise<Contact | undefined> {
+    try {
+      let query = db.update(contacts).set(data);
+      
+      if (userId !== undefined) {
+        query = query.where(and(
+          eq(contacts.id, id),
+          eq(contacts.userId, userId)
+        ));
+      } else {
+        query = query.where(eq(contacts.id, id));
+      }
+      
+      const [updated] = await query.returning();
+      return updated;
+    } catch (error) {
+      console.error('Error in DatabaseStorage.updateContact:', error);
+      throw error;
+    }
   }
 
   async deleteContactsByCompany(companyId: number, userId: number): Promise<void> {

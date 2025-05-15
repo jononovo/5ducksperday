@@ -3,15 +3,15 @@ import type { EnrichmentQueueItem, QueueStatus } from './types';
 import { storage } from '../../../storage';
 
 class PostSearchEnrichmentService {
-  async startEnrichment(searchId: string, contactIds: number[]): Promise<string> {
-    console.log(`Starting post-search enrichment for contacts: ${contactIds?.join(',')}`);
+  async startEnrichment(searchId: string, contactIds: number[], userId: number): Promise<string> {
+    console.log(`Starting post-search enrichment for contacts: ${contactIds?.join(',')} for user ${userId}`);
 
     // Get contacts for enrichment
     let contacts = [];
     if (contactIds && contactIds.length > 0) {
-      // Get only specified contacts
+      // Get only specified contacts with userId check for security
       contacts = await Promise.all(
-        contactIds.map(id => storage.getContact(id))
+        contactIds.map(id => storage.getContact(id, userId))
       );
       contacts = contacts.filter(c => c !== undefined) as any[];
     }
