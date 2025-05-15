@@ -1,5 +1,5 @@
 import { PgDatabase } from 'drizzle-orm/pg-core';
-import { eq } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import {
   type Contact,
   type InsertContact,
@@ -15,8 +15,10 @@ export class ContactStorage {
       const [contact] = await this.db
         .select()
         .from(contacts)
-        .where(eq(contacts.id, id))
-        .where(eq(contacts.userId, userId));
+        .where(and(
+          eq(contacts.id, id),
+          eq(contacts.userId, userId)
+        ));
 
       console.log('ContactStorage.getContact result:', {
         requested: { id, userId },
@@ -30,16 +32,34 @@ export class ContactStorage {
     }
   }
 
-  async listContactsByCompany(companyId: number): Promise<Contact[]> {
-    return this.db
-      .select()
-      .from(contacts)
-      .where(eq(contacts.companyId, companyId));
+  async listContactsByCompany(companyId: number, userId: number): Promise<Contact[]> {
+    try {
+      console.log('ContactStorage.listContactsByCompany called with:', { companyId, userId });
+      
+      const results = await this.db
+        .select()
+        .from(contacts)
+        .where(and(
+          eq(contacts.companyId, companyId),
+          eq(contacts.userId, userId)
+        ));
+        
+      console.log('ContactStorage.listContactsByCompany result count:', results.length);
+      return results;
+    } catch (error) {
+      console.error('Error in ContactStorage.listContactsByCompany:', error);
+      throw error;
+    }
   }
 
   async createContact(contact: InsertContact): Promise<Contact> {
-    const [created] = await this.db.insert(contacts).values(contact).returning();
-    return created;
+    try {
+      const [created] = await this.db.insert(contacts).values([contact]).returning();
+      return created;
+    } catch (error) {
+      console.error('Error in ContactStorage.createContact:', error);
+      throw error;
+    }
   }
 
   async updateContact(
@@ -57,10 +77,15 @@ export class ContactStorage {
     return updated;
   }
 
-  async deleteContactsByCompany(companyId: number): Promise<void> {
+  async deleteContactsByCompany(companyId: number, userId: number): Promise<void> {
+    console.log('ContactStorage.deleteContactsByCompany called with:', { companyId, userId });
+    
     await this.db
       .delete(contacts)
-      .where(eq(contacts.companyId, companyId));
+      .where(and(
+        eq(contacts.companyId, companyId),
+        eq(contacts.userId, userId)
+      ));
   }
 
   async enrichContact(
@@ -95,8 +120,9 @@ export class ContactStorage {
 
   async updateContactValidationStatus(
     id: number,
+    userId: number
   ): Promise<Contact | undefined> {
-    const contact = await this.getContact(id, 0); // Added userId 0 as a placeholder. Adjust as needed.
+    const contact = await this.getContact(id, userId);
     if (!contact) return undefined;
 
     const aiScore = contact.nameConfidenceScore || 0;
@@ -119,11 +145,13 @@ export class ContactStorage {
     id: number,
     result: { email: string | null; confidence: number }
   ): Promise<Contact | undefined> {
+    const appendSearchSql = sql`array_append(COALESCE(${contacts.completedSearches}, ARRAY[]::text[]), 'aeroleads_search')`;
+    
     if (!result.email) {
       const [updated] = await this.db
         .update(contacts)
         .set({
-          completedSearches: sql`array_append(COALESCE(${contacts.completedSearches}, ARRAY[]::text[]), 'aeroleads_search')`
+          completedSearches: appendSearchSql
         })
         .where(eq(contacts.id, id))
         .returning();
@@ -136,7 +164,7 @@ export class ContactStorage {
         email: result.email,
         // Use nameConfidenceScore since we don't have a separate email confidence column
         nameConfidenceScore: result.confidence,
-        completedSearches: sql`array_append(COALESCE(${contacts.completedSearches}, ARRAY[]::text[]), 'aeroleads_search')`,
+        completedSearches: appendSearchSql,
         lastValidated: new Date(),
       })
       .where(eq(contacts.id, id))
