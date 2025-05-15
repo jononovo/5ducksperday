@@ -15,8 +15,10 @@ import { Footer } from "@/components/ui/footer";
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 // Search process steps
 const SEARCH_STEPS = [
@@ -127,67 +129,87 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950">
-      {/* Header */}
-      <header className="container mx-auto py-4 px-4 flex justify-between items-center">
-        <div className="text-2xl font-bold flex items-center">
-          <span className="text-yellow-500 mr-1.5">5</span> 
-          <span className="text-blue-600 dark:text-blue-400">Ducks</span>
-          <div className="flex ml-2">
-            <span className="text-2xl">🐥</span>
-            <span className="text-xl">🥚🥚🥚🥚</span>
+      {/* Enhanced Header with subtle gradient */}
+      <header className="py-4 px-6 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto flex justify-between items-center">
+          <div className="text-2xl font-extrabold flex items-center">
+            <span className="text-yellow-500 mr-0.5">5</span> 
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Ducks</span>
+            <div className="flex ml-2">
+              <span className="text-2xl">🐥</span>
+              <span className="text-xl">🥚🥚🥚🥚</span>
+            </div>
           </div>
+          
+          <Link href="/auth">
+            <Button 
+              variant="ghost" 
+              className="flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-900"
+            >
+              <User size={16} />
+              <span>Login</span>
+            </Button>
+          </Link>
         </div>
-        <Link href="/auth">
-          <Button variant="outline" className="flex items-center gap-2">
-            <User size={16} />
-            Login
-          </Button>
-        </Link>
       </header>
 
       {/* Main Hero Section */}
       <main className="flex-1">
         <section className="py-16 md:py-24 px-4">
           <div className="container mx-auto max-w-4xl text-center">
-            <div className="mb-4 inline-flex items-center px-4 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
-              <Sparkles size={16} className="mr-2" />
+            {/* Animated badge */}
+            <div className="mb-4 inline-flex items-center px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-sm animate-pulse hover:animate-none transition-all duration-300">
+              <Sparkles size={16} className="mr-2 animate-[spin_4s_linear_infinite]" />
               <span className="text-sm font-medium">AI-Powered Contact Discovery</span>
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 leading-tight">
+            <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-violet-600 leading-tight">
               Find Your Perfect Prospects in Seconds
             </h1>
             
-            <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
+            <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto leading-relaxed">
               AI that identifies the right companies and decision makers for your business
             </p>
 
-            {/* Search Input */}
+            {/* Enhanced Search Input */}
             <div className="relative max-w-2xl mx-auto mb-10">
-              <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full opacity-70 blur"></div>
+              {/* Animated glow effect */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full opacity-70 blur-md animate-[pulse_3s_ease-in-out_infinite]"></div>
+              
               <div className="relative bg-white dark:bg-slate-900 rounded-full">
                 <Input
                   type="text"
                   placeholder="What type of businesses are you looking for?"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-36 py-7 text-lg rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500"
+                  className="pl-12 pr-36 py-7 text-lg rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500 transition-shadow duration-300"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       handleSearch();
                     }
                   }}
                 />
-                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-blue-500" size={20} />
+                
+                {/* Animated search icon */}
+                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-blue-500 transition-all duration-300 hover:scale-110" size={20} />
+                
                 <Button
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-5 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-5 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:shadow-lg hover:-translate-y-[2px] text-white transition-all duration-300"
                   onClick={() => handleSearch()}
                 >
                   <span className="mr-2">Search</span>
-                  <ArrowRight size={16} />
+                  <ArrowRight size={16} className="animate-[bounceX_1s_ease-in-out_infinite]" />
                 </Button>
               </div>
             </div>
+            
+            {/* Custom keyframes for arrow bounce animation */}
+            <style jsx>{`
+              @keyframes bounceX {
+                0%, 100% { transform: translateX(0); }
+                50% { transform: translateX(3px); }
+              }
+            `}</style>
 
             {/* Example Search Prompts */}
             <div className="flex flex-wrap justify-center gap-2 mb-16">
@@ -307,69 +329,88 @@ export default function LandingPage() {
       {/* Footer is imported from UI components */}
       <Footer />
 
-      {/* Compact Search Progress Dialog */}
+      {/* Enhanced Search Progress Dialog */}
       <Dialog open={showSearchProgress} onOpenChange={setShowSearchProgress}>
-        <DialogContent className="sm:max-w-sm p-0 gap-0 overflow-hidden">
-          <div className="p-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-            <h3 className="text-xl font-semibold">
+        <DialogContent className="p-0 gap-0 overflow-hidden border-none shadow-2xl sm:max-w-[65%] w-full md:w-[65%] h-auto max-h-[90vh] md:rounded-xl bg-white dark:bg-slate-900">
+          <VisuallyHidden>
+            <DialogTitle>Search Progress</DialogTitle>
+          </VisuallyHidden>
+          
+          {/* Gradient header */}
+          <div className="p-8 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <h3 className="text-2xl font-bold tracking-tight">
               Searching for "{searchQuery}"
             </h3>
           </div>
           
-          <div className="px-0">
-            <Progress value={progress} className="h-1 rounded-none" />
-          </div>
+          {/* Progress bar */}
+          <Progress value={progress} className="h-2" />
           
-          {/* Simplified step indicator - only show current step */}
-          <div className="p-6 pb-2">
-            <div className="flex items-center mb-2">
-              <div className="flex space-x-1 mr-4">
-                {SEARCH_STEPS.map((step, index) => (
+          {/* Enhanced step indicator */}
+          <div className="flex items-center justify-center p-6">
+            <div className="flex items-center space-x-3">
+              {SEARCH_STEPS.map((step, index) => (
+                <div key={step.id} className="flex flex-col items-center">
                   <div 
-                    key={step.id}
-                    className={`w-2 h-2 rounded-full transition-colors ${
+                    className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
                       currentStep === index + 1 
-                        ? "bg-blue-500" 
+                        ? "bg-blue-500 ring-4 ring-blue-200 dark:ring-blue-900/50 scale-110" 
                         : currentStep > index + 1
                           ? "bg-green-500"
                           : "bg-slate-200 dark:bg-slate-700"
                     }`}
-                  />
-                ))}
-              </div>
-              <p className="text-sm text-slate-500">
-                Step {currentStep} of {SEARCH_STEPS.length}
-              </p>
-            </div>
-            
-            {/* Only show current step description */}
-            <div className="min-h-[60px]">
-              <h4 className="font-medium">
-                {SEARCH_STEPS[currentStep - 1].title}
-              </h4>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                {SEARCH_STEPS[currentStep - 1].description}
-              </p>
+                  >
+                    {currentStep > index + 1 && (
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                      </svg>
+                    )}
+                  </div>
+                  {index < SEARCH_STEPS.length - 1 && (
+                    <div className={`h-0.5 w-10 md:w-14 mt-3 ${
+                      currentStep > index + 1 ? "bg-green-500" : "bg-slate-200 dark:bg-slate-700"
+                    }`}></div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
+            
+          {/* Current step details */}
+          <div className="px-8 py-6 min-h-[120px] flex flex-col items-center justify-center">
+            <h4 className="text-xl font-semibold text-center mb-2">
+              {SEARCH_STEPS[currentStep - 1].title}
+            </h4>
+            <p className="text-slate-600 dark:text-slate-400 text-center max-w-md">
+              {SEARCH_STEPS[currentStep - 1].description}
+            </p>
+          </div>
           
-          {/* Registration prompt always visible */}
-          <div className="p-6 pt-1 border-t">
-            <p className="mb-4 text-center text-sm font-medium">
+          {/* Registration prompt */}
+          <div className="p-8 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+            <p className="mb-5 text-center font-medium">
               Register to see your search results
             </p>
-            <Button 
-              onClick={() => setLocation("/auth")} 
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-            >
-              <span className="mr-2">Sign in with Google</span>
-              <ArrowRight size={16} />
-            </Button>
-            <p className="mt-3 text-center text-xs text-slate-500">
-              <Link href="/auth" className="text-blue-500 hover:underline">
-                Login with email instead
-              </Link>
-            </p>
+            <div className="max-w-sm mx-auto">
+              <Button 
+                onClick={() => {
+                  // Import the necessary functions for Google sign-in
+                  import("@/hooks/use-auth").then(({ useAuth }) => {
+                    const { signInWithGoogle } = useAuth();
+                    signInWithGoogle();
+                  });
+                }}
+                className="w-full py-6 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg rounded-lg"
+              >
+                <span className="mr-2">Sign in with Google</span>
+                <ArrowRight size={16} />
+              </Button>
+              <div className="text-center">
+                <Link href="/auth" className="text-blue-500 hover:underline text-sm">
+                  Login
+                </Link>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
