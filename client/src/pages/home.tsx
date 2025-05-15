@@ -86,16 +86,33 @@ export default function Home() {
 
   // Load state from localStorage on component mount
   useEffect(() => {
-    const savedState = localStorage.getItem('searchState');
-    if (savedState) {
-      const parsed = JSON.parse(savedState) as SavedSearchState;
-      console.log('Loading saved search state:', {
-        query: parsed.currentQuery,
-        resultsCount: parsed.currentResults?.length,
-        companies: parsed.currentResults?.map(c => ({ id: c.id, name: c.name }))
-      });
-      setCurrentQuery(parsed.currentQuery);
-      setCurrentResults(parsed.currentResults);
+    // Check for pending search query from landing page
+    const pendingQuery = localStorage.getItem('pendingSearchQuery');
+    if (pendingQuery) {
+      console.log('Found pending search query:', pendingQuery);
+      setCurrentQuery(pendingQuery);
+      localStorage.removeItem('pendingSearchQuery');
+      
+      // Automatically trigger the search if a pending query exists
+      setTimeout(() => {
+        const searchElement = document.querySelector('button[type="submit"]');
+        if (searchElement) {
+          (searchElement as HTMLButtonElement).click();
+        }
+      }, 500);
+    } else {
+      // Load saved search state if no pending query
+      const savedState = localStorage.getItem('searchState');
+      if (savedState) {
+        const parsed = JSON.parse(savedState) as SavedSearchState;
+        console.log('Loading saved search state:', {
+          query: parsed.currentQuery,
+          resultsCount: parsed.currentResults?.length,
+          companies: parsed.currentResults?.map(c => ({ id: c.id, name: c.name }))
+        });
+        setCurrentQuery(parsed.currentQuery);
+        setCurrentResults(parsed.currentResults);
+      }
     }
   }, []);
 

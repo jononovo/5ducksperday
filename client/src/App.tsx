@@ -56,13 +56,13 @@ function Router() {
                 <ProtectedRoute path="/contacts/:id" component={() => <ContactDetails />} />
                 <ProtectedRoute path="/api-templates" component={() => <ApiTemplates />} />
                 {/* Public Routes */}
-                <Route path="/privacy" component={Privacy} />
-                <Route path="/terms" component={Terms} />
-                <Route path="/pricing" component={Pricing} />
-                <Route path="/blog" component={Blog} />
-                <Route path="/contact" component={Contact} />
-                <Route path="/support" component={Support} />
-                <Route component={NotFound} />
+                <Route path="/privacy" component={() => <Privacy />} />
+                <Route path="/terms" component={() => <Terms />} />
+                <Route path="/pricing" component={() => <Pricing />} />
+                <Route path="/blog" component={() => <Blog />} />
+                <Route path="/contact" component={() => <Contact />} />
+                <Route path="/support" component={() => <Support />} />
+                <Route component={() => <NotFound />} />
               </Switch>
             </div>
           </Layout>

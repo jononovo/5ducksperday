@@ -20,7 +20,7 @@ type AuthContextType = {
   signInWithGoogle: () => Promise<void>;
 };
 
-type LoginData = Pick<InsertUser, "username" | "password">;
+type LoginData = Pick<InsertUser, "email" | "password">;
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 

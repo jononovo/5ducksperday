@@ -33,7 +33,7 @@ export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { user, loginMutation, registerMutation, signInWithGoogle } = useAuth();
 
-  const loginForm = useForm<Omit<InsertUser, "username">>({
+  const loginForm = useForm<Pick<InsertUser, "email" | "password">>({
     resolver: zodResolver(userSchema.omit({ username: true })),
     defaultValues: {
       email: "",
@@ -41,7 +41,7 @@ export default function AuthPage() {
     },
   });
 
-  const registerForm = useForm<Omit<InsertUser, "username">>({
+  const registerForm = useForm<Pick<InsertUser, "email" | "password">>({
     resolver: zodResolver(userSchema.omit({ username: true })),
     defaultValues: {
       email: "",
@@ -60,7 +60,12 @@ export default function AuthPage() {
   });
 
   const onRegister = registerForm.handleSubmit((data) => {
-    registerMutation.mutate(data);
+    // Add a default username based on email
+    const registerData = {
+      ...data,
+      username: data.email.split('@')[0]
+    };
+    registerMutation.mutate(registerData);
   });
 
   if (user) {
