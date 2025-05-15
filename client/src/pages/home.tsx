@@ -20,6 +20,7 @@ import {
   Gem,
   MoreHorizontal,
   Menu,
+  Mail,
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -209,33 +210,48 @@ export default function Home() {
       return response.json();
     },
     onSuccess: (data) => {
-      // Update the currentResults with the enriched contact
+      // Update the currentResults with the enriched contact - use a safer update pattern
       setCurrentResults(prev => {
         if (!prev) return null;
-        return prev.map(company => ({
-          ...company,
-          contacts: company.contacts?.map(contact =>
-            contact.id === data.id ? data : contact
-          )
-        }));
+        
+        // Make sure we're only updating this specific contact without disturbing other state
+        return prev.map(company => {
+          // Only update the company that contains this contact
+          if (!company.contacts?.some(c => c.id === data.id)) {
+            return company;
+          }
+          
+          return {
+            ...company,
+            contacts: company.contacts?.map(contact =>
+              contact.id === data.id ? data : contact
+            )
+          };
+        });
       });
+      
       toast({
-        title: "Contact Enriched",
-        description: "Successfully updated contact information.",
+        title: "Email Search Complete",
+        description: data.email 
+          ? "Successfully found contact's email address."
+          : "No email found for this contact.",
       });
       setPendingContactId(null);
     },
     onError: (error) => {
       toast({
-        title: "Enrichment Failed",
-        description: error instanceof Error ? error.message : "Failed to enrich contact information",
+        title: "Email Search Failed",
+        description: error instanceof Error ? error.message : "Failed to find contact's email",
         variant: "destructive",
       });
       setPendingContactId(null);
     },
   });
 
+  // Add debounce to prevent multiple rapid clicks
   const handleEnrichContact = (contactId: number) => {
+    // Don't allow if already pending
+    if (pendingContactId !== null) return;
     enrichContactMutation.mutate(contactId);
   };
 
@@ -637,11 +653,11 @@ export default function Home() {
                                       disabled={isContactPending(contact.id) || isContactEnriched(contact)}
                                       className={getEnrichButtonClass(contact)}
                                     >
-                                      <Banknote className={`w-4 h-4 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
+                                      <Mail className={`w-4 h-4 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>Do a dedicated search for this email</p>
+                                    <p>Find this contact's email</p>
                                   </TooltipContent>
                                 </Tooltip>
 
