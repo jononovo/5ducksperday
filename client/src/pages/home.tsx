@@ -171,18 +171,10 @@ export default function Home() {
     const allContacts: ContactWithCompanyInfo[] = [];
     currentResults.forEach(company => {
       if (company.contacts) {
-        // Ensure each contact has companyName and companyId
-        const contactsWithCompanyInfo = company.contacts.map(contact => ({
-          ...contact,
-          companyName: company.name,
-          companyId: company.id
-        }));
-        allContacts.push(...contactsWithCompanyInfo);
+        allContacts.push(...company.contacts);
       }
     });
 
-    console.log('All contacts with company info:', allContacts.length);
-    
     // Use the filtering logic
     return filterTopProspects(allContacts, {
       maxPerCompany: 3,
