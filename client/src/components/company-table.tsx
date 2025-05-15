@@ -28,7 +28,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
           <TableRow>
             <TableHead>Company Name</TableHead>
             <TableHead>Size</TableHead>
-            <TableHead>Success Score</TableHead>
+            <TableHead>Score</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -38,7 +38,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
             return (
               <TableRow key={company.id}>
                 <TableCell className="font-medium">{company.name}</TableCell>
-                <TableCell>{company.size} employees</TableCell>
+                <TableCell>{company.size ? `${company.size} employees` : ''}</TableCell>
                 <TableCell>
                   <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}>
                     {company.totalScore ?? 'N/A'}
