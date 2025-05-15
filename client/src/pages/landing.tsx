@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
@@ -65,6 +66,7 @@ const EXAMPLE_PROMPTS = [
 
 export default function LandingPage() {
   const [, setLocation] = useLocation();
+  const { signInWithGoogle } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchProgress, setShowSearchProgress] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -330,27 +332,20 @@ export default function LandingPage() {
           {/* Larger step indicators with numbers */}
           <div className="p-6 md:p-8 pb-4">
             <div className="flex justify-center mb-6">
-              <div className="flex space-x-4 md:space-x-6">
+              <div className="flex space-x-8 md:space-x-10">
                 {SEARCH_STEPS.map((step, index) => (
-                  <div key={step.id} className="flex flex-col items-center">
+                  <div key={step.id} className="flex items-center">
                     <div 
                       className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm md:text-base font-medium transition-colors ${
                         currentStep === index + 1 
-                          ? "bg-blue-500 text-white ring-4 ring-blue-200 dark:ring-blue-900/40" 
+                          ? "bg-blue-500 text-white ring-4 ring-blue-100 dark:ring-blue-900/30" 
                           : currentStep > index + 1
-                            ? "bg-green-500 text-white"
+                            ? "bg-blue-300 dark:bg-blue-600 text-white"
                             : "bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
                       }`}
                     >
                       {index + 1}
                     </div>
-                    {index < SEARCH_STEPS.length - 1 && (
-                      <div className={`h-0.5 w-6 md:w-8 mt-6 ${
-                        currentStep > index + 1 
-                          ? "bg-green-500" 
-                          : "bg-slate-200 dark:bg-slate-700"
-                      }`} />
-                    )}
                   </div>
                 ))}
               </div>
