@@ -369,11 +369,7 @@ export default function LandingPage() {
             </p>
             <div className="max-w-md mx-auto">
               <Button 
-                onClick={() => {
-                  // Directly trigger Google sign-in
-                  const { signInWithGoogle } = require("@/hooks/use-auth").useAuth();
-                  signInWithGoogle().catch(console.error);
-                }} 
+                onClick={() => signInWithGoogle().catch(err => console.error("Google sign-in error:", err))} 
                 className="w-full py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg text-base"
               >
                 <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-3" />
