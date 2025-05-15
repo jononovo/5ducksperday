@@ -36,6 +36,8 @@ export interface ValidationOptions {
   searchTermPenalty?: number;
   aiScore?: number;
   industry?: string; // Added industry context for more targeted validation
+  requireRole?: boolean;
+  roleMinimumScore?: number;
 }
 
 // Centralized scoring weights

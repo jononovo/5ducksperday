@@ -1,17 +1,11 @@
 import type { Contact } from "@shared/schema";
-import { validateName } from "./contact-name-validation";
+import { validateName, type ValidationOptions } from "./contact-name-validation";
 import { isPlaceholderEmail, isValidBusinessEmail, generatePossibleEmails, extractDomainFromContext } from "./email-analysis";
 import { validateNames, combineValidationScores } from "./contact-ai-name-scorer";
 import { isPlaceholderName } from "./name-filters";
 
 // Note: Common business email formats and email related functions are now imported from email-analysis.ts
 // Domain extraction is also imported from email-analysis.ts
-
-interface ValidationOptions {
-  minimumScore?: number;
-  searchPrompt?: string;
-  searchTermPenalty?: number;
-}
 
 export async function extractContacts(
   analysisResults: string[],

@@ -12,6 +12,7 @@ import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/serv
 import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
+import { findKeyDecisionMakers } from "./lib/search-logic/contact-discovery/enhanced-contact-finder";
 import { google } from 'googleapis';
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -586,8 +587,8 @@ export function registerRoutes(app: Express) {
           
           console.log(`Detected industry for ${companyName}: ${industry || 'unknown'}`);
           
-          // Extract contacts with validation options including industry context
-          const allContacts = await extractContacts(
+          // First use the standard extraction method
+          const standardContacts = await extractContacts(
             analysisResults,
             companyName,
             {
@@ -599,9 +600,36 @@ export function registerRoutes(app: Express) {
             }
           );
           
+          console.log(`Found ${standardContacts.length} contacts using standard extraction`);
+          
+          // Then use our enhanced contact finder with thorough decision maker search
+          console.log(`Starting enhanced decision maker search for ${companyName}`);
+          const enhancedContacts = await findKeyDecisionMakers(companyName, {
+            industry: industry,
+            minimumConfidence: 30,
+            maxContacts: 15,
+            includeMiddleManagement: true,
+            prioritizeLeadership: true,
+            useMultipleQueries: true
+          });
+          
+          console.log(`Found ${enhancedContacts.length} additional contacts using enhanced contact finder`);
+          
+          // Combine the results from both methods
+          const combinedContacts = [...standardContacts, ...enhancedContacts];
+          
+          // Deduplicate based on name
+          const uniqueContacts = combinedContacts.filter((contact, index, self) =>
+            index === self.findIndex(c => 
+              c.name && contact.name && c.name.toLowerCase() === contact.name.toLowerCase()
+            )
+          );
+          
+          console.log(`Combined results: ${uniqueContacts.length} unique contacts`);
+          
           // Filter contacts by confidence score
-          const contacts = allContacts.filter(contact => 
-            (!contact.probability || contact.probability >= 40) // Filter out contacts with low probability scores
+          const contacts = uniqueContacts.filter(contact => 
+            (!contact.probability || contact.probability >= 35) // Slightly lower threshold for filtering
           );
 
           // Create contact records with basic information
