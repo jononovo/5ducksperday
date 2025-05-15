@@ -157,11 +157,29 @@ export default function LandingPage() {
       <main className="flex-1">
         <section className="py-16 md:py-24 px-4">
           <div className="container mx-auto max-w-4xl text-center">
-            {/* Animated badge */}
-            <div className="mb-4 inline-flex items-center px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-sm animate-pulse hover:animate-none transition-all duration-300">
-              <Sparkles size={16} className="mr-2 animate-[spin_4s_linear_infinite]" />
+            {/* Static badge with subtle icon */}
+            <div className="mb-4 inline-flex items-center px-4 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800/50 shadow-sm">
+              <Sparkles size={16} className="mr-2" />
               <span className="text-sm font-medium">AI-Powered Contact Discovery</span>
             </div>
+            
+            {/* Subtle background animation - floating circles representing connections */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-blue-200/10 dark:bg-blue-500/5 blur-3xl animate-[float_15s_ease-in-out_infinite]"></div>
+              <div className="absolute top-3/4 right-1/4 w-96 h-96 rounded-full bg-purple-200/10 dark:bg-purple-500/5 blur-3xl animate-[float2_20s_ease-in-out_infinite]"></div>
+            </div>
+            
+            {/* Custom animations for subtle floating effect */}
+            <style dangerouslySetInnerHTML={{ __html: `
+              @keyframes float {
+                0%, 100% { transform: translate(0, 0); }
+                50% { transform: translate(-30px, 20px); }
+              }
+              @keyframes float2 {
+                0%, 100% { transform: translate(0, 0); }
+                50% { transform: translate(30px, -20px); }
+              }
+            `}} />
             
             <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-violet-600 leading-tight">
               Find Your Perfect Prospects in Seconds
@@ -204,12 +222,12 @@ export default function LandingPage() {
             </div>
             
             {/* Custom keyframes for arrow bounce animation */}
-            <style jsx>{`
+            <style dangerouslySetInnerHTML={{ __html: `
               @keyframes bounceX {
                 0%, 100% { transform: translateX(0); }
                 50% { transform: translateX(3px); }
               }
-            `}</style>
+            `}} />
 
             {/* Example Search Prompts */}
             <div className="flex flex-wrap justify-center gap-2 mb-16">
@@ -329,61 +347,56 @@ export default function LandingPage() {
       {/* Footer is imported from UI components */}
       <Footer />
 
-      {/* Enhanced Search Progress Dialog */}
+      {/* Enhanced Search Progress Dialog - More subtle */}
       <Dialog open={showSearchProgress} onOpenChange={setShowSearchProgress}>
-        <DialogContent className="p-0 gap-0 overflow-hidden border-none shadow-2xl sm:max-w-[65%] w-full md:w-[65%] h-auto max-h-[90vh] md:rounded-xl bg-white dark:bg-slate-900">
+        <DialogContent className="p-0 gap-0 overflow-hidden border-none shadow-xl sm:max-w-[65%] w-full md:w-[65%] h-auto max-h-[90vh] md:rounded-xl bg-white dark:bg-slate-900">
           <VisuallyHidden>
             <DialogTitle>Search Progress</DialogTitle>
           </VisuallyHidden>
           
-          {/* Gradient header */}
-          <div className="p-8 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-            <h3 className="text-2xl font-bold tracking-tight">
+          {/* More subtle header */}
+          <div className="p-6 md:p-8 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+            <h3 className="text-xl font-medium text-slate-900 dark:text-slate-100">
               Searching for "{searchQuery}"
             </h3>
           </div>
           
           {/* Progress bar */}
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-1" />
           
-          {/* Enhanced step indicator */}
-          <div className="flex items-center justify-center p-6">
-            <div className="flex items-center space-x-3">
-              {SEARCH_STEPS.map((step, index) => (
-                <div key={step.id} className="flex flex-col items-center">
-                  <div 
-                    className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
-                      currentStep === index + 1 
-                        ? "bg-blue-500 ring-4 ring-blue-200 dark:ring-blue-900/50 scale-110" 
-                        : currentStep > index + 1
-                          ? "bg-green-500"
-                          : "bg-slate-200 dark:bg-slate-700"
-                    }`}
-                  >
-                    {currentStep > index + 1 && (
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                      </svg>
-                    )}
-                  </div>
-                  {index < SEARCH_STEPS.length - 1 && (
-                    <div className={`h-0.5 w-10 md:w-14 mt-3 ${
-                      currentStep > index + 1 ? "bg-green-500" : "bg-slate-200 dark:bg-slate-700"
-                    }`}></div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-            
-          {/* Current step details */}
-          <div className="px-8 py-6 min-h-[120px] flex flex-col items-center justify-center">
-            <h4 className="text-xl font-semibold text-center mb-2">
+          {/* Current step details - moved above the steps */}
+          <div className="px-8 py-6 flex flex-col items-center justify-center">
+            <h4 className="text-xl font-medium text-center mb-2">
               {SEARCH_STEPS[currentStep - 1].title}
             </h4>
             <p className="text-slate-600 dark:text-slate-400 text-center max-w-md">
               {SEARCH_STEPS[currentStep - 1].description}
             </p>
+          </div>
+          
+          {/* More subtle step indicator without connecting lines */}
+          <div className="flex items-center justify-center py-2 pb-6">
+            <div className="flex items-center space-x-4">
+              {SEARCH_STEPS.map((step, index) => (
+                <div key={step.id} className="flex flex-col items-center">
+                  <div 
+                    className={`w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      currentStep === index + 1 
+                        ? "bg-blue-400 ring-2 ring-blue-100 dark:ring-blue-800/30" 
+                        : currentStep > index + 1
+                          ? "bg-blue-300"
+                          : "bg-slate-200 dark:bg-slate-700"
+                    }`}
+                  >
+                    {currentStep > index + 1 && (
+                      <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                      </svg>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
           
           {/* Registration prompt */}
@@ -400,7 +413,7 @@ export default function LandingPage() {
                     signInWithGoogle();
                   });
                 }}
-                className="w-full py-6 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg rounded-lg"
+                className="w-full py-6 mb-4 bg-blue-600 hover:bg-blue-700 text-white text-lg rounded-lg"
               >
                 <span className="mr-2">Sign in with Google</span>
                 <ArrowRight size={16} />
