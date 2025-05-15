@@ -41,7 +41,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { filterTopProspects } from "@/lib/results-analysis/prospect-filtering";
+import { filterTopProspects, ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
 import { IntroTourModal } from "@/components/intro-tour-modal";
 import {
   Tooltip,
@@ -53,7 +53,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
-  contacts?: (Contact & { companyName?: string; companyId?: number })[];
+  contacts?: ContactWithCompanyInfo[];
 }
 
 // Define interface for the saved state
@@ -165,17 +165,13 @@ export default function Home() {
   };
 
   // Get top prospects from all companies
-  const getTopProspects = () => {
+  const getTopProspects = (): ContactWithCompanyInfo[] => {
     if (!currentResults) return [];
 
-    const allContacts: (Contact & { companyName: string; companyId: number })[] = [];
+    const allContacts: ContactWithCompanyInfo[] = [];
     currentResults.forEach(company => {
       if (company.contacts) {
-        allContacts.push(...company.contacts.map(contact => ({
-          ...contact,
-          companyName: company.name,
-          companyId: company.id
-        })));
+        allContacts.push(...company.contacts);
       }
     });
 
@@ -296,7 +292,7 @@ export default function Home() {
     feedbackMutation.mutate({ contactId, feedbackType });
   };
 
-  const handleEnrichProspects = async (prospects: (Contact & { companyName: string; companyId: number })[]) => {
+  const handleEnrichProspects = async (prospects: ContactWithCompanyInfo[]) => {
     if (prospects.length === 0) {
       toast({
         title: "No Prospects",
@@ -547,53 +543,44 @@ export default function Home() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Feedback</TableHead>
+                        <TableHead className="w-10">
+                          <Checkbox 
+                            checked={getTopProspects().length > 0 && 
+                              getTopProspects().every(contact => selectedContacts.has(contact.id))}
+                            onCheckedChange={handleSelectAllContacts}
+                            aria-label="Select all contacts"
+                          />
+                        </TableHead>
                         <TableHead>Name</TableHead>
-                        <TableHead>Company</TableHead>
-                        <TableHead>Role</TableHead>
+                        <TableHead className="hidden md:table-cell"><span className="text-xs">Company</span></TableHead>
+                        <TableHead className="hidden md:table-cell"><span className="text-xs">Role</span></TableHead>
                         <TableHead>Score</TableHead>
-                        <TableHead>Email</TableHead>
+                        <TableHead className="hidden md:table-cell"><span className="text-xs">Email</span></TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {getTopProspects().map((contact) => (
-                        <TableRow key={contact.id}>
-                          <TableCell>
-                            <TooltipProvider delayDuration={500}>
-                              <Tooltip>
-                                <DropdownMenu>
-                                  <TooltipTrigger asChild>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="sm">
-                                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                  </TooltipTrigger>
-                                  <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "excellent")}>
-                                      <Star className="h-4 w-4 mr-2 text-yellow-500" />
-                                      Excellent Match
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "ok")}>
-                                      <ThumbsUp className="h-4 w-4 mr-2 text-blue-500" />
-                                      OK Match
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "terrible")}>
-                                      <ThumbsDown className="h-4 w-4 mr-2 text-red-500" />
-                                      Not a Match
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                                <TooltipContent>
-                                  <p>This allows you to rate if the contact is quality or not</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                        <TableRow key={contact.id} className="group">
+                          <TableCell className="w-10">
+                            <Checkbox 
+                              checked={isContactSelected(contact.id)}
+                              onCheckedChange={() => handleCheckboxChange(contact.id)}
+                              aria-label={`Select ${contact.name}`}
+                            />
                           </TableCell>
                           <TableCell className="font-medium">{contact.name}</TableCell>
-                          <TableCell>{contact.companyName}</TableCell>
-                          <TableCell>{contact.role || "N/A"}</TableCell>
+                          
+                          {/* Company name - hidden on mobile, shown as small text */}
+                          <TableCell className="hidden md:table-cell">
+                            <span className="text-xs text-muted-foreground">{contact.companyName}</span>
+                          </TableCell>
+                          
+                          {/* Role - hidden on mobile, shown as small text */}
+                          <TableCell className="hidden md:table-cell">
+                            <span className="text-xs text-muted-foreground">{contact.role || "N/A"}</span>
+                          </TableCell>
+                          
                           <TableCell>
                             <Badge
                               variant={
@@ -607,9 +594,24 @@ export default function Home() {
                               {contact.probability || 0}
                             </Badge>
                           </TableCell>
-                          <TableCell>{contact.email || "N/A"}</TableCell>
+                          
+                          {/* Email - hidden on mobile, shown as small text */}
+                          <TableCell className="hidden md:table-cell">
+                            <span className="text-xs text-muted-foreground">{contact.email || "N/A"}</span>
+                          </TableCell>
+                          
+                          {/* Mobile view - visible elements */}
+                          <TableCell className="md:hidden">
+                            <div className="text-xs space-y-1">
+                              <div>{contact.companyName}</div>
+                              <div>{contact.role || "N/A"}</div>
+                              <div>{contact.email || "N/A"}</div>
+                            </div>
+                          </TableCell>
+                          
                           <TableCell>
-                            <div className="flex gap-2">
+                            {/* Desktop view */}
+                            <div className="hidden md:flex gap-2">
                               <TooltipProvider delayDuration={500}>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -635,8 +637,7 @@ export default function Home() {
                                       disabled={isContactPending(contact.id) || isContactEnriched(contact)}
                                       className={getEnrichButtonClass(contact)}
                                     >
-                                      <Banknote className={`w-4 h-4 mr-2 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
-                                      {getEnrichButtonText(contact)}
+                                      <Banknote className={`w-4 h-4 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>
@@ -653,16 +654,88 @@ export default function Home() {
                                       disabled={isAeroLeadsPending(contact.id) || isAeroLeadsSearchComplete(contact)}
                                       className={getAeroLeadsButtonClass(contact)}
                                     >
-                                      <Gem
-                                        className={`w-4 h-4 ${isAeroLeadsPending(contact.id) ? "animate-spin" : ""}`}
-                                      />
+                                      <Gem className={`w-4 h-4 ${isAeroLeadsPending(contact.id) ? "animate-spin" : ""}`} />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p>Do a paid API call to find this contact's email</p>
                                   </TooltipContent>
                                 </Tooltip>
+                                
+                                {/* Feedback moved to Actions column */}
+                                <Tooltip>
+                                  <DropdownMenu>
+                                    <TooltipTrigger asChild>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm">
+                                          <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                    </TooltipTrigger>
+                                    <DropdownMenuContent>
+                                      <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "excellent")}>
+                                        <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                                        Excellent Match
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "ok")}>
+                                        <ThumbsUp className="h-4 w-4 mr-2 text-blue-500" />
+                                        OK Match
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "terrible")}>
+                                        <ThumbsDown className="h-4 w-4 mr-2 text-red-500" />
+                                        Not a Match
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                  <TooltipContent>
+                                    <p>Rate this contact</p>
+                                  </TooltipContent>
+                                </Tooltip>
                               </TooltipProvider>
+                            </div>
+                            
+                            {/* Mobile view - actions dropdown */}
+                            <div className="md:hidden">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <Menu className="h-4 w-4" />
+                                    <span className="sr-only">Actions</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleContactView(contact.id)}>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => handleEnrichContact(contact.id)}
+                                    disabled={isContactPending(contact.id) || isContactEnriched(contact)}
+                                  >
+                                    <Banknote className={`h-4 w-4 mr-2 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
+                                    Enrich
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => handleAeroLeadsSearch(contact.id)}
+                                    disabled={isAeroLeadsPending(contact.id) || isAeroLeadsSearchComplete(contact)}
+                                  >
+                                    <Gem className={`h-4 w-4 mr-2 ${isAeroLeadsPending(contact.id) ? "animate-spin" : ""}`} />
+                                    Find Email
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "excellent")}>
+                                    <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                                    Excellent Match
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "ok")}>
+                                    <ThumbsUp className="h-4 w-4 mr-2 text-blue-500" />
+                                    OK Match
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "terrible")}>
+                                    <ThumbsDown className="h-4 w-4 mr-2 text-red-500" />
+                                    Not a Match
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </TableCell>
                         </TableRow>

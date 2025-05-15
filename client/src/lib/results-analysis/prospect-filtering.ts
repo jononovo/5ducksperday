@@ -1,8 +1,8 @@
 import type { Contact } from "@shared/schema";
 
-interface ContactWithCompanyInfo extends Omit<Contact, 'companyId'> {
-  companyName?: string;
-  companyId?: number;
+export interface ContactWithCompanyInfo extends Contact {
+  companyName: string;
+  companyId: number;
 }
 
 interface FilterOptions {
