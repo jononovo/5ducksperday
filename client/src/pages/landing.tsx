@@ -15,10 +15,8 @@ import { Footer } from "@/components/ui/footer";
 import {
   Dialog,
   DialogContent,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 // Search process steps
 const SEARCH_STEPS = [
@@ -129,105 +127,67 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950">
-      {/* Enhanced Header with subtle gradient */}
-      <header className="py-4 px-6 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="text-2xl font-extrabold flex items-center">
-            <span className="text-yellow-500 mr-0.5">5</span> 
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Ducks</span>
-            <div className="flex ml-2">
-              <span className="text-2xl">🐥</span>
-              <span className="text-xl">🥚🥚🥚🥚</span>
-            </div>
+      {/* Header */}
+      <header className="container mx-auto py-4 px-4 flex justify-between items-center">
+        <div className="text-2xl font-bold flex items-center">
+          <span className="text-yellow-500 mr-1.5">5</span> 
+          <span className="text-blue-600 dark:text-blue-400">Ducks</span>
+          <div className="flex ml-2">
+            <span className="text-2xl">🐥</span>
+            <span className="text-xl">🥚🥚🥚🥚</span>
           </div>
-          
-          <Link href="/auth">
-            <Button 
-              variant="ghost" 
-              className="flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-900"
-            >
-              <User size={16} />
-              <span>Login</span>
-            </Button>
-          </Link>
         </div>
+        <Link href="/auth">
+          <Button variant="outline" className="flex items-center gap-2">
+            <User size={16} />
+            Login
+          </Button>
+        </Link>
       </header>
 
       {/* Main Hero Section */}
       <main className="flex-1">
         <section className="py-16 md:py-24 px-4">
           <div className="container mx-auto max-w-4xl text-center">
-            {/* Static badge with subtle icon */}
-            <div className="mb-4 inline-flex items-center px-4 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-800/50 shadow-sm">
+            <div className="mb-4 inline-flex items-center px-4 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
               <Sparkles size={16} className="mr-2" />
               <span className="text-sm font-medium">AI-Powered Contact Discovery</span>
             </div>
             
-            {/* Subtle background animation - floating circles representing connections */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-blue-200/10 dark:bg-blue-500/5 blur-3xl animate-[float_15s_ease-in-out_infinite]"></div>
-              <div className="absolute top-3/4 right-1/4 w-96 h-96 rounded-full bg-purple-200/10 dark:bg-purple-500/5 blur-3xl animate-[float2_20s_ease-in-out_infinite]"></div>
-            </div>
-            
-            {/* Custom animations for subtle floating effect */}
-            <style dangerouslySetInnerHTML={{ __html: `
-              @keyframes float {
-                0%, 100% { transform: translate(0, 0); }
-                50% { transform: translate(-30px, 20px); }
-              }
-              @keyframes float2 {
-                0%, 100% { transform: translate(0, 0); }
-                50% { transform: translate(30px, -20px); }
-              }
-            `}} />
-            
-            <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-violet-600 leading-tight">
+            <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 leading-tight">
               Find Your Perfect Prospects in Seconds
             </h1>
             
-            <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
               AI that identifies the right companies and decision makers for your business
             </p>
 
-            {/* Enhanced Search Input */}
+            {/* Search Input */}
             <div className="relative max-w-2xl mx-auto mb-10">
-              {/* Animated glow effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full opacity-70 blur-md animate-[pulse_3s_ease-in-out_infinite]"></div>
-              
+              <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full opacity-70 blur"></div>
               <div className="relative bg-white dark:bg-slate-900 rounded-full">
                 <Input
                   type="text"
                   placeholder="What type of businesses are you looking for?"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-36 py-7 text-lg rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500 transition-shadow duration-300"
+                  className="pl-12 pr-36 py-7 text-lg rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       handleSearch();
                     }
                   }}
                 />
-                
-                {/* Animated search icon */}
-                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-blue-500 transition-all duration-300 hover:scale-110" size={20} />
-                
+                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-blue-500" size={20} />
                 <Button
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-5 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:shadow-lg hover:-translate-y-[2px] text-white transition-all duration-300"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-5 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                   onClick={() => handleSearch()}
                 >
                   <span className="mr-2">Search</span>
-                  <ArrowRight size={16} className="animate-[bounceX_1s_ease-in-out_infinite]" />
+                  <ArrowRight size={16} />
                 </Button>
               </div>
             </div>
-            
-            {/* Custom keyframes for arrow bounce animation */}
-            <style dangerouslySetInnerHTML={{ __html: `
-              @keyframes bounceX {
-                0%, 100% { transform: translateX(0); }
-                50% { transform: translateX(3px); }
-              }
-            `}} />
 
             {/* Example Search Prompts */}
             <div className="flex flex-wrap justify-center gap-2 mb-16">
@@ -347,83 +307,69 @@ export default function LandingPage() {
       {/* Footer is imported from UI components */}
       <Footer />
 
-      {/* Enhanced Search Progress Dialog - More subtle */}
+      {/* Compact Search Progress Dialog */}
       <Dialog open={showSearchProgress} onOpenChange={setShowSearchProgress}>
-        <DialogContent className="p-0 gap-0 overflow-hidden border-none shadow-xl sm:max-w-[65%] w-full md:w-[65%] h-auto max-h-[90vh] md:rounded-xl bg-white dark:bg-slate-900">
-          <VisuallyHidden>
-            <DialogTitle>Search Progress</DialogTitle>
-          </VisuallyHidden>
-          
-          {/* More subtle header */}
-          <div className="p-6 md:p-8 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-            <h3 className="text-xl font-medium text-slate-900 dark:text-slate-100">
+        <DialogContent className="sm:max-w-sm p-0 gap-0 overflow-hidden">
+          <div className="p-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <h3 className="text-xl font-semibold">
               Searching for "{searchQuery}"
             </h3>
           </div>
           
-          {/* Progress bar */}
-          <Progress value={progress} className="h-1" />
-          
-          {/* Current step details - moved above the steps */}
-          <div className="px-8 py-6 flex flex-col items-center justify-center">
-            <h4 className="text-xl font-medium text-center mb-2">
-              {SEARCH_STEPS[currentStep - 1].title}
-            </h4>
-            <p className="text-slate-600 dark:text-slate-400 text-center max-w-md">
-              {SEARCH_STEPS[currentStep - 1].description}
-            </p>
+          <div className="px-0">
+            <Progress value={progress} className="h-1 rounded-none" />
           </div>
           
-          {/* More subtle step indicator without connecting lines */}
-          <div className="flex items-center justify-center py-2 pb-6">
-            <div className="flex items-center space-x-4">
-              {SEARCH_STEPS.map((step, index) => (
-                <div key={step.id} className="flex flex-col items-center">
+          {/* Simplified step indicator - only show current step */}
+          <div className="p-6 pb-2">
+            <div className="flex items-center mb-2">
+              <div className="flex space-x-1 mr-4">
+                {SEARCH_STEPS.map((step, index) => (
                   <div 
-                    className={`w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    key={step.id}
+                    className={`w-2 h-2 rounded-full transition-colors ${
                       currentStep === index + 1 
-                        ? "bg-blue-400 ring-2 ring-blue-100 dark:ring-blue-800/30" 
+                        ? "bg-blue-500" 
                         : currentStep > index + 1
-                          ? "bg-blue-300"
+                          ? "bg-green-500"
                           : "bg-slate-200 dark:bg-slate-700"
                     }`}
-                  >
-                    {currentStep > index + 1 && (
-                      <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                      </svg>
-                    )}
-                  </div>
-                </div>
-              ))}
+                  />
+                ))}
+              </div>
+              <p className="text-sm text-slate-500">
+                Step {currentStep} of {SEARCH_STEPS.length}
+              </p>
+            </div>
+            
+            {/* Only show current step description */}
+            <div className="min-h-[60px]">
+              <h4 className="font-medium">
+                {SEARCH_STEPS[currentStep - 1].title}
+              </h4>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {SEARCH_STEPS[currentStep - 1].description}
+              </p>
             </div>
           </div>
           
-          {/* Registration prompt */}
-          <div className="p-8 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-            <p className="mb-5 text-center font-medium">
+          {/* Registration prompt always visible */}
+          <div className="p-6 pt-1 border-t">
+            <p className="mb-4 text-center text-sm font-medium">
               Register to see your search results
             </p>
-            <div className="max-w-sm mx-auto">
-              <Button 
-                onClick={() => {
-                  // Import the necessary functions for Google sign-in
-                  import("@/hooks/use-auth").then(({ useAuth }) => {
-                    const { signInWithGoogle } = useAuth();
-                    signInWithGoogle();
-                  });
-                }}
-                className="w-full py-6 mb-4 bg-blue-600 hover:bg-blue-700 text-white text-lg rounded-lg"
-              >
-                <span className="mr-2">Sign in with Google</span>
-                <ArrowRight size={16} />
-              </Button>
-              <div className="text-center">
-                <Link href="/auth" className="text-blue-500 hover:underline text-sm">
-                  Login
-                </Link>
-              </div>
-            </div>
+            <Button 
+              onClick={() => setLocation("/auth")} 
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+            >
+              <span className="mr-2">Sign in with Google</span>
+              <ArrowRight size={16} />
+            </Button>
+            <p className="mt-3 text-center text-xs text-slate-500">
+              <Link href="/auth" className="text-blue-500 hover:underline">
+                Login with email instead
+              </Link>
+            </p>
           </div>
         </DialogContent>
       </Dialog>
