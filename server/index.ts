@@ -2,7 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./auth";
-import { storage } from "./direct-storage-switch";
+import { storage } from "./storage";
 
 const app = express();
 app.use(express.json());

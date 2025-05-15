@@ -106,7 +106,8 @@ Your task is to identify the leadership team members at the specified company.`;
 For each person, provide their:
 - Full name (first and last name)
 - Current role/position
-- Do NOT fabricate names. If you don't know a specific person, do not include them.`;
+
+IMPORTANT: If you cannot find data, return an empty array. Do NOT make up data.`;
 
   // Add industry context if available
   if (industry) {
@@ -197,7 +198,8 @@ ${industryContext}
 For each person, provide their:
 - Full name (first and last name)
 - Current role/position
-- Do NOT fabricate names. If you don't know a specific person, do not include them.`;
+
+IMPORTANT: If you cannot find data, return an empty array. Do NOT make up data.`;
 
   const responseFormat = `{ 
   "departmentLeaders": [
@@ -237,7 +239,8 @@ Your task is to identify key people who make important decisions but may not be 
 For each person, provide their:
 - Full name (first and last name)
 - Current role/position
-- Do NOT fabricate names. If you don't know a specific person, do not include them.`;
+
+IMPORTANT: If you cannot find data, return an empty array. Do NOT make up data.`;
 
   // Add industry context if available
   if (industry) {

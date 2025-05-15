@@ -59,7 +59,9 @@ export async function searchContactDetails(
         3. LinkedIn URL
         4. Location
 
-        Format your response in JSON.`
+        IMPORTANT: If you cannot find data, leave fields empty. Do NOT make up data.
+
+        Format your response as JSON.`
     },
     {
       role: "user",
