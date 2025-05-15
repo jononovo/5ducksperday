@@ -18,6 +18,8 @@ import {
   Star,
   MessageSquare,
   Gem,
+  MoreHorizontal,
+  Menu,
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +49,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -65,6 +68,8 @@ export default function Home() {
   const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [pendingContactId, setPendingContactId] = useState<number | null>(null);
+  // State for selected contacts (for multi-select checkboxes)
+  const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
   // Initialize showTour based on localStorage
   const [showTour, setShowTour] = useState(() => {
     try {
@@ -442,6 +447,41 @@ export default function Home() {
     }
     return "";
   };
+  
+  // Functions for checkbox selection
+  const handleCheckboxChange = (contactId: number) => {
+    setSelectedContacts(prev => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(contactId)) {
+        newSelected.delete(contactId);
+      } else {
+        newSelected.add(contactId);
+      }
+      return newSelected;
+    });
+  };
+
+  const isContactSelected = (contactId: number) => {
+    return selectedContacts.has(contactId);
+  };
+
+  const handleSelectAllContacts = () => {
+    const prospects = getTopProspects();
+    if (prospects.length === 0) return;
+    
+    // If all are already selected, deselect all
+    if (prospects.every(contact => selectedContacts.has(contact.id))) {
+      setSelectedContacts(new Set());
+    } else {
+      // Otherwise select all
+      setSelectedContacts(new Set(prospects.map(contact => contact.id)));
+    }
+  };
+
+  // Get selected contacts for batch operations
+  const getSelectedProspects = () => {
+    return getTopProspects().filter(contact => selectedContacts.has(contact.id));
+  };
 
   return (
     <div className="container mx-auto py-6">
@@ -478,14 +518,25 @@ export default function Home() {
                     <UserCircle className="w-5 h-5" />
                     Top Prospects
                   </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEnrichProspects(getTopProspects())}
-                  >
-                    <Banknote className="mr-2 h-4 w-4" />
-                    Enrich Prospects
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const selectedProspects = getSelectedProspects();
+                        if (selectedProspects.length > 0) {
+                          handleEnrichProspects(selectedProspects);
+                        } else {
+                          handleEnrichProspects(getTopProspects());
+                        }
+                      }}
+                    >
+                      <Banknote className="mr-2 h-4 w-4" />
+                      {selectedContacts.size > 0 
+                        ? `Enrich Selected (${selectedContacts.size})` 
+                        : "Enrich All Prospects"}
+                    </Button>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Highest probability contacts across all companies
