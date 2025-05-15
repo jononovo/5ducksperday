@@ -242,7 +242,7 @@ class DatabaseStorage implements IStorage {
   }
 
   async createCompany(data: InsertCompany): Promise<Company> {
-    const [company] = await db.insert(companies).values(data).returning();
+    const [company] = await db.insert(companies).values(data as any).returning();
     return company;
   }
 
@@ -281,7 +281,7 @@ class DatabaseStorage implements IStorage {
   }
 
   async createContact(data: InsertContact): Promise<Contact> {
-    const [contact] = await db.insert(contacts).values(data).returning();
+    const [contact] = await db.insert(contacts).values(data as any).returning();
     return contact;
   }
 
@@ -317,7 +317,7 @@ class DatabaseStorage implements IStorage {
   }
 
   async createCampaign(data: InsertCampaign): Promise<Campaign> {
-    const [campaign] = await db.insert(campaigns).values(data).returning();
+    const [campaign] = await db.insert(campaigns).values(data as any).returning();
     return campaign;
   }
 
@@ -455,127 +455,276 @@ class DatabaseStorage implements IStorage {
   async initializeDefaultSearchApproaches(): Promise<void> {
     console.log('Initializing default search approaches...');
     
-    // Define our new advanced key contact discovery approach
-    const advancedApproach = {
-      name: "Advanced Key Contact Discovery",
-      prompt: "Enhanced discovery of decision makers with leadership role prioritization",
-      order: 0,
-      active: true,
-      moduleType: "company_overview",
-      sequence: {
-        modules: ['company_overview', 'decision_maker', 'email_discovery', 'email_deepdive'],
-        moduleConfigs: {
-          company_overview: {
-            subsearches: { 
-              'small-business-validation': true,
-              'company-size-analysis': true 
+    // Define our search approaches
+    const searchApproachesList = [
+      // 1. Advanced Key Contact Discovery
+      {
+        name: "Advanced Key Contact Discovery",
+        prompt: "Enhanced discovery of decision makers with leadership role prioritization",
+        order: 0,
+        active: true,
+        moduleType: "company_overview",
+        sequence: {
+          modules: ['company_overview', 'decision_maker', 'email_discovery', 'email_deepdive'],
+          moduleConfigs: {
+            company_overview: {
+              subsearches: { 
+                'small-business-validation': true,
+                'company-size-analysis': true 
+              },
+              searchOptions: { 
+                ignoreFranchises: true,
+                locallyHeadquartered: true,
+                focusOnLeadership: true
+              }
             },
-            searchOptions: { 
-              ignoreFranchises: true,
-              locallyHeadquartered: true,
-              focusOnLeadership: true
+            decision_maker: {
+              subsearches: { 
+                'owner-identification': true,
+                'leadership-role-validation': true,
+                'enhanced-name-validation': true
+              },
+              searchOptions: { 
+                requireRole: true,
+                roleMinimumScore: 85,
+                minimumNameScore: 80,
+                preferFullNames: true
+              }
+            },
+            email_discovery: {
+              subsearches: { 
+                'direct-contact-discovery': true,
+                'enhanced-pattern-prediction-search': true,
+                'domain-analysis-search': true
+              },
+              searchOptions: { 
+                validatePatterns: true,
+                useEnhancedValidation: true,
+                crossReferenceValidation: true
+              }
+            },
+            email_deepdive: {
+              subsearches: {
+                'leadership-email-verification': true
+              },
+              searchOptions: {
+                focusOnLeadership: true
+              }
             }
           },
-          decision_maker: {
-            subsearches: { 
-              'owner-identification': true,
-              'leadership-role-validation': true,
-              'enhanced-name-validation': true
-            },
-            searchOptions: { 
-              requireRole: true,
-              roleMinimumScore: 85,
-              minimumNameScore: 80,
-              preferFullNames: true
+          validationStrategy: 'strict'
+        },
+        config: {
+          subsearches: {
+            'leadership-role-validation': true,
+            'enhanced-name-validation': true
+          },
+          searchOptions: {
+            focusOnLeadership: true
+          },
+          searchSections: {
+            'leadership-identification': {
+              priority: 'high',
+              required: true
             }
           },
-          email_discovery: {
-            subsearches: { 
-              'direct-contact-discovery': true,
-              'enhanced-pattern-prediction-search': true,
-              'domain-analysis-search': true
+          validationRules: {
+            requiredFields: ["name", "role"],
+            scoreThresholds: { 
+              roleConfidence: 85,
+              nameConfidence: 80,
+              emailConfidence: 75
             },
-            searchOptions: { 
-              validatePatterns: true,
-              useEnhancedValidation: true,
-              crossReferenceValidation: true
-            }
-          },
-          email_deepdive: {
-            subsearches: {
-              'leadership-email-verification': true
-            },
-            searchOptions: {
-              focusOnLeadership: true
-            }
-          }
-        },
-        validationStrategy: 'strict'
-      },
-      config: {
-        subsearches: {
-          'leadership-role-validation': true,
-          'enhanced-name-validation': true
-        },
-        searchOptions: {
-          focusOnLeadership: true
-        },
-        searchSections: {
-          'leadership-identification': {
-            priority: 'high',
-            required: true
+            minimumConfidence: 80,
+            founder_multiplier: 2.0,
+            c_level_multiplier: 1.8,
+            director_multiplier: 1.5
           }
         },
         validationRules: {
-          requiredFields: ["name", "role"],
-          scoreThresholds: { 
-            roleConfidence: 85,
-            nameConfidence: 80,
-            emailConfidence: 75
+          nameValidation: {
+            minimumScore: 80,
+            businessTermPenalty: 25,
+            preferFullNames: true,
+            filterGenericNames: true,
+            requireRole: true
           },
-          minimumConfidence: 80,
-          founder_multiplier: 2.0,
-          c_level_multiplier: 1.8,
-          director_multiplier: 1.5
-        }
-      },
-      validationRules: {
-        nameValidation: {
-          minimumScore: 80,
-          businessTermPenalty: 25,
-          preferFullNames: true,
-          filterGenericNames: true,
-          requireRole: true
+          emailValidation: {
+            minimumScore: 75,
+            patternScore: 0.7,
+            businessDomainScore: 0.8,
+            placeholderCheck: true
+          }
         },
-        emailValidation: {
-          minimumScore: 75,
-          patternScore: 0.7,
-          businessDomainScore: 0.8,
-          placeholderCheck: true
-        }
+        completedSearches: [
+          'leadership-role-validation',
+          'enhanced-name-validation',
+          'domain-analysis-search'
+        ]
       },
-      completedSearches: [
-        'leadership-role-validation',
-        'enhanced-name-validation',
-        'domain-analysis-search'
-      ]
-    };
+      
+      // 2. Company Overview
+      {
+        name: "Company Overview",
+        prompt: "General company information and basic contact details",
+        order: 1,
+        active: true,
+        moduleType: "company_overview",
+        sequence: {
+          modules: ['company_overview'],
+          moduleConfigs: {
+            company_overview: {
+              subsearches: { 
+                'company-size-analysis': true,
+                'business-overview': true 
+              },
+              searchOptions: { 
+                includeSocialProfiles: true,
+                includeBasicMetrics: true
+              }
+            }
+          },
+          validationStrategy: 'standard'
+        },
+        config: {
+          subsearches: {
+            'business-overview': true,
+            'company-size-analysis': true
+          },
+          searchOptions: {
+            includeSocialProfiles: true
+          },
+          validationRules: {
+            requiredFields: ["name"],
+            minimumConfidence: 70
+          }
+        },
+        validationRules: {
+          nameValidation: {
+            minimumScore: 70,
+            preferFullNames: true
+          }
+        },
+        completedSearches: [
+          'business-overview',
+          'company-size-analysis'
+        ]
+      },
+      
+      // 3. Decision Maker Identification
+      {
+        name: "Decision Maker Identification",
+        prompt: "Focus on identifying key decision makers and leadership roles",
+        order: 2,
+        active: true,
+        moduleType: "decision_maker",
+        sequence: {
+          modules: ['decision_maker'],
+          moduleConfigs: {
+            decision_maker: {
+              subsearches: { 
+                'leadership-role-validation': true,
+                'executive-identification': true
+              },
+              searchOptions: { 
+                focusOnLeadership: true,
+                includeMiddleManagement: false
+              }
+            }
+          },
+          validationStrategy: 'standard'
+        },
+        config: {
+          subsearches: {
+            'leadership-role-validation': true,
+            'executive-identification': true
+          },
+          searchOptions: {
+            focusOnLeadership: true
+          },
+          validationRules: {
+            requiredFields: ["name", "role"],
+            minimumConfidence: 75
+          }
+        },
+        validationRules: {
+          nameValidation: {
+            minimumScore: 75,
+            requireRole: true
+          }
+        },
+        completedSearches: [
+          'leadership-role-validation',
+          'executive-identification'
+        ]
+      },
+      
+      // 4. Email Discovery
+      {
+        name: "Email Discovery",
+        prompt: "Focus on finding verified email addresses for contacts",
+        order: 3,
+        active: true,
+        moduleType: "email_discovery",
+        sequence: {
+          modules: ['email_discovery'],
+          moduleConfigs: {
+            email_discovery: {
+              subsearches: { 
+                'direct-contact-discovery': true,
+                'domain-analysis-search': true
+              },
+              searchOptions: { 
+                validatePatterns: true,
+                crossReferenceValidation: true
+              }
+            }
+          },
+          validationStrategy: 'standard'
+        },
+        config: {
+          subsearches: {
+            'direct-contact-discovery': true,
+            'domain-analysis-search': true
+          },
+          searchOptions: {
+            validatePatterns: true
+          },
+          validationRules: {
+            requiredFields: ["email"],
+            minimumConfidence: 75
+          }
+        },
+        validationRules: {
+          emailValidation: {
+            minimumScore: 75,
+            patternScore: 0.7,
+            businessDomainScore: 0.8
+          }
+        },
+        completedSearches: [
+          'direct-contact-discovery',
+          'domain-analysis-search'
+        ]
+      }
+    ];
 
-    // Check if this approach already exists
-    const [exists] = await db
-      .select()
-      .from(searchApproaches)
-      .where(eq(searchApproaches.name, "Advanced Key Contact Discovery"));
+    // Check if approaches exist and create/update them
+    for (const approach of searchApproachesList) {
+      const [exists] = await db
+        .select()
+        .from(searchApproaches)
+        .where(eq(searchApproaches.name, approach.name));
 
-    // If it doesn't exist, create it
-    if (!exists) {
-      console.log('Creating Advanced Key Contact Discovery approach...');
-      await db.insert(searchApproaches).values(advancedApproach);
-    } else {
-      console.log('Advanced Key Contact Discovery approach already exists, updating...');
-      await db.update(searchApproaches)
-        .set(advancedApproach)
-        .where(eq(searchApproaches.id, exists.id));
+      if (!exists) {
+        console.log(`Creating ${approach.name} approach...`);
+        await db.insert(searchApproaches).values(approach);
+      } else {
+        console.log(`${approach.name} approach already exists, updating...`);
+        await db.update(searchApproaches)
+          .set(approach)
+          .where(eq(searchApproaches.id, exists.id));
+      }
     }
 
     console.log('Default search approaches initialized successfully.');
