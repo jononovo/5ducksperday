@@ -10,6 +10,7 @@ import {
 import { validateName } from "./results-analysis/contact-name-validation";
 import { extractContacts } from "./results-analysis/email-extraction-format";
 import { validateNames } from "./results-analysis/contact-ai-name-scorer";
+import { findKeyDecisionMakers } from "./search-logic/contact-discovery/enhanced-contact-finder";
 
 // Core search functions
 export async function searchCompanies(query: string): Promise<string[]> {

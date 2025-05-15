@@ -1,0 +1,512 @@
+import { Contact } from "@shared/schema";
+import { analyzeWithPerplexity } from "../../perplexity";
+import { isPlaceholderName } from "../../results-analysis/name-filters";
+import { validateName } from "../../results-analysis/contact-name-validation";
+import { extractDomainFromContext } from "../../results-analysis/email-analysis";
+import { INDUSTRY_PROFESSIONAL_TITLES } from "../../results-analysis/name-filters";
+
+/**
+ * Enhanced contact finder that uses industry-specific prompts
+ * to discover more decision makers at a company
+ */
+export interface EnhancedContactFinderOptions {
+  minimumConfidence?: number;
+  maxContacts?: number;
+  includeMiddleManagement?: boolean;
+  prioritizeLeadership?: boolean;
+  includeEmailPredictions?: boolean;
+  useMultipleQueries?: boolean;
+  industry?: string;
+}
+
+const DEFAULT_OPTIONS: EnhancedContactFinderOptions = {
+  minimumConfidence: 30,
+  maxContacts: 10,
+  includeMiddleManagement: true,
+  prioritizeLeadership: true,
+  includeEmailPredictions: true,
+  useMultipleQueries: true
+};
+
+/**
+ * Find key decision makers at a company using multiple specialized queries
+ * to improve contact discovery
+ */
+export async function findKeyDecisionMakers(
+  companyName: string,
+  options: EnhancedContactFinderOptions = {}
+): Promise<Partial<Contact>[]> {
+  try {
+    // Merge with default options
+    const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+    
+    // Initialize empty contacts array
+    const allContacts: Partial<Contact>[] = [];
+    
+    // Run different searches based on context for better coverage
+    console.log(`Running enhanced decision maker search for ${companyName}`);
+    
+    // Get industry-specific roles if available
+    const industry = mergedOptions.industry || detectIndustry(companyName);
+    console.log(`Detected industry context: ${industry || "unknown"}`);
+    
+    // 1. Core leadership search (always run)
+    const coreLeadership = await searchCoreLeadership(companyName, industry);
+    allContacts.push(...coreLeadership);
+    
+    // 2. Role-specific search when enabled
+    if (mergedOptions.useMultipleQueries) {
+      const departmentHeads = await searchDepartmentHeads(companyName, industry);
+      allContacts.push(...departmentHeads);
+      
+      // 3. Include middle management when requested
+      if (mergedOptions.includeMiddleManagement) {
+        const middleManagement = await searchMiddleManagement(companyName, industry);
+        allContacts.push(...middleManagement);
+      }
+    }
+    
+    // Deduplicate contacts based on name
+    const uniqueContacts = deduplicateContacts(allContacts);
+    
+    // Filter contacts by confidence score
+    const filteredContacts = uniqueContacts.filter(contact => 
+      (contact.probability || 0) >= (mergedOptions.minimumConfidence || 30)
+    );
+    
+    // Sort contacts by probability and limit to max contacts
+    const sortedContacts = filteredContacts
+      .sort((a, b) => (b.probability || 0) - (a.probability || 0))
+      .slice(0, mergedOptions.maxContacts || 10);
+    
+    console.log(`Found ${sortedContacts.length} validated contacts for ${companyName}`);
+    return sortedContacts;
+  } catch (error) {
+    console.error(`Error in findKeyDecisionMakers for ${companyName}:`, error);
+    return [];
+  }
+}
+
+/**
+ * Search for core leadership team (C-level, founders, directors)
+ */
+async function searchCoreLeadership(
+  companyName: string,
+  industry?: string
+): Promise<Partial<Contact>[]> {
+  const systemPrompt = `You are an expert in identifying key leadership personnel at companies. 
+Your task is to identify the leadership team members at the specified company.`;
+
+  let userPrompt = `Identify the core leadership team at ${companyName}. Focus on:
+1. C-level executives (CEO, CTO, CFO, COO, etc.)
+2. Founders and co-founders
+3. Board members and directors
+4. Division/department heads
+
+For each person, provide their:
+- Full name (first and last name)
+- Current role/position
+- Do NOT fabricate names. If you don't know a specific person, do not include them.`;
+
+  // Add industry context if available
+  if (industry) {
+    userPrompt += `\nThis company is in the ${industry} industry. Focus on industry-specific leadership roles.`;
+  }
+
+  const responseFormat = `{ 
+  "leaders": [
+    {
+      "name": "John Smith", 
+      "role": "Chief Executive Officer"
+    }
+  ]
+}`;
+
+  try {
+    const result = await analyzeWithPerplexity(userPrompt, systemPrompt, responseFormat);
+    return parseContactsFromResponse(result, 'leadership', companyName);
+  } catch (error) {
+    console.error(`Error in searchCoreLeadership:`, error);
+    return [];
+  }
+}
+
+/**
+ * Search for department heads
+ */
+async function searchDepartmentHeads(
+  companyName: string,
+  industry?: string
+): Promise<Partial<Contact>[]> {
+  const systemPrompt = `You are an expert in identifying department leaders at companies.
+Your task is to identify key people leading various departments at the specified company.`;
+
+  let industryContext = "";
+  let departmentFocus = `
+- Engineering/Development/IT
+- Sales/Business Development
+- Marketing/Communications
+- Finance/Accounting
+- Operations
+- Human Resources
+- Product Management`;
+
+  // Customize departments based on industry
+  if (industry) {
+    switch (industry.toLowerCase()) {
+      case "technology":
+        departmentFocus = `
+- Engineering/Development
+- Product Management
+- Customer Success
+- Data Science
+- Information Security
+- Technical Operations
+- UX/Design`;
+        break;
+      case "healthcare":
+        departmentFocus = `
+- Medical Affairs
+- Clinical Operations
+- Patient Services
+- Healthcare Administration
+- Medical Research
+- Regulatory Affairs
+- Care Management`;
+        break;
+      case "financial":
+        departmentFocus = `
+- Investment Banking
+- Asset Management
+- Risk Management
+- Wealth Management
+- Trading
+- Financial Analysis
+- Credit Operations`;
+        break;
+      // Add more industry-specific departments as needed
+    }
+    industryContext = `This company is in the ${industry} industry. Focus on industry-specific department leaders.`;
+  }
+
+  const userPrompt = `Identify the key department leaders at ${companyName}. Focus on these departments:
+${departmentFocus}
+
+${industryContext}
+
+For each person, provide their:
+- Full name (first and last name)
+- Current role/position
+- Do NOT fabricate names. If you don't know a specific person, do not include them.`;
+
+  const responseFormat = `{ 
+  "departmentLeaders": [
+    {
+      "name": "Jane Doe", 
+      "role": "Head of Marketing"
+    }
+  ]
+}`;
+
+  try {
+    const result = await analyzeWithPerplexity(userPrompt, systemPrompt, responseFormat);
+    return parseContactsFromResponse(result, 'department_head', companyName);
+  } catch (error) {
+    console.error(`Error in searchDepartmentHeads:`, error);
+    return [];
+  }
+}
+
+/**
+ * Search for middle management and key technical staff
+ */
+async function searchMiddleManagement(
+  companyName: string,
+  industry?: string
+): Promise<Partial<Contact>[]> {
+  const systemPrompt = `You are an expert in identifying influential middle managers and technical leaders at companies.
+Your task is to identify key people who make important decisions but may not be in the C-suite.`;
+
+  let userPrompt = `Identify important middle managers and key technical leaders at ${companyName}. Focus on:
+1. Team leads
+2. Senior managers
+3. Project managers
+4. Technical specialists with authority
+5. Key decision-makers below C-level
+
+For each person, provide their:
+- Full name (first and last name)
+- Current role/position
+- Do NOT fabricate names. If you don't know a specific person, do not include them.`;
+
+  // Add industry context if available
+  if (industry) {
+    const industryRoles = getIndustrySpecificRoles(industry);
+    userPrompt += `\nThis company is in the ${industry} industry. Focus especially on these roles:
+${industryRoles.join("\n")}`;
+  }
+
+  const responseFormat = `{ 
+  "managers": [
+    {
+      "name": "Alice Johnson", 
+      "role": "Senior Product Manager"
+    }
+  ]
+}`;
+
+  try {
+    const result = await analyzeWithPerplexity(userPrompt, systemPrompt, responseFormat);
+    return parseContactsFromResponse(result, 'middle_management', companyName);
+  } catch (error) {
+    console.error(`Error in searchMiddleManagement:`, error);
+    return [];
+  }
+}
+
+/**
+ * Parse contacts from Perplexity API response
+ */
+function parseContactsFromResponse(
+  response: string,
+  source: string,
+  companyName: string
+): Partial<Contact>[] {
+  try {
+    const contacts: Partial<Contact>[] = [];
+    
+    // Extract JSON from the response
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.log(`No valid JSON found in response from ${source}`);
+      return [];
+    }
+    
+    const json = JSON.parse(jsonMatch[0]);
+    
+    // Find the array of people - could be under different keys
+    let people: any[] = [];
+    
+    if (json.leaders) {
+      people = json.leaders;
+    } else if (json.departmentLeaders) {
+      people = json.departmentLeaders;
+    } else if (json.managers) {
+      people = json.managers;
+    } else {
+      // Try to find any array in the response
+      for (const key in json) {
+        if (Array.isArray(json[key])) {
+          people = json[key];
+          break;
+        }
+      }
+    }
+    
+    if (!people || people.length === 0) {
+      console.log(`No contacts found in ${source} response`);
+      return [];
+    }
+    
+    console.log(`Found ${people.length} potential contacts from ${source}`);
+    
+    // Process each person
+    for (const person of people) {
+      const { name, role } = person;
+      
+      // Skip if name is missing or a placeholder
+      if (!name || isPlaceholderName(name)) continue;
+      
+      // Validate name using our existing validation logic
+      const validationResult = validateName(name, role || "", companyName, {
+        minimumScore: 20, // Lower threshold for validation
+        companyNamePenalty: 20,
+        industry: detectIndustry(companyName)
+      });
+      
+      // Adjust probability score based on source
+      let probability = validationResult.score;
+      
+      // Boost scores for leadership positions
+      if (source === 'leadership' && role && isLeadershipRole(role)) {
+        probability = Math.min(95, probability + 15);
+      }
+      
+      // Apply industry-specific score adjustments
+      if (role) {
+        const industry = detectIndustry(companyName);
+        if (industry && isIndustrySpecificRole(role, industry)) {
+          probability = Math.min(92, probability + 10);
+        }
+      }
+      
+      contacts.push({
+        name,
+        role: role || null,
+        probability,
+        nameConfidenceScore: validationResult.score,
+        verificationSource: `ai_${source}`,
+        lastValidated: new Date(),
+        completedSearches: ['perplexity_decision_maker']
+      });
+    }
+    
+    return contacts;
+  } catch (error) {
+    console.error(`Error parsing contacts from ${source} response:`, error);
+    return [];
+  }
+}
+
+/**
+ * Deduplicate contacts based on name
+ */
+function deduplicateContacts(contacts: Partial<Contact>[]): Partial<Contact>[] {
+  const uniqueContacts: Partial<Contact>[] = [];
+  const nameMap = new Map<string, Partial<Contact>>();
+  
+  for (const contact of contacts) {
+    if (!contact.name) continue;
+    
+    const normalizedName = contact.name.toLowerCase();
+    
+    // If this name already exists with a higher probability, skip
+    if (nameMap.has(normalizedName)) {
+      const existing = nameMap.get(normalizedName)!;
+      
+      // Keep the contact with higher probability score
+      if ((contact.probability || 0) > (existing.probability || 0)) {
+        nameMap.set(normalizedName, contact);
+      }
+      
+      continue;
+    }
+    
+    nameMap.set(normalizedName, contact);
+  }
+  
+  // Convert back to array
+  return Array.from(nameMap.values());
+}
+
+/**
+ * Check if a role is a leadership position
+ */
+function isLeadershipRole(role: string): boolean {
+  const leadershipPatterns = [
+    /\b(ceo|cto|cfo|coo|cmo|cio|chief)\b/i,
+    /\b(president|founder|co-founder|owner)\b/i,
+    /\b(chairman|chairwoman|chair)\b/i,
+    /\b(director|head|lead)\b/i,
+    /\b(vp|vice president)\b/i,
+    /\b(partner|principal)\b/i
+  ];
+  
+  return leadershipPatterns.some(pattern => pattern.test(role));
+}
+
+/**
+ * Check if a role is industry-specific
+ */
+function isIndustrySpecificRole(role: string, industry: string): boolean {
+  const industryTitles = INDUSTRY_PROFESSIONAL_TITLES[industry.toLowerCase()];
+  
+  if (!industryTitles) return false;
+  
+  return industryTitles.some(title => 
+    role.toLowerCase().includes(title.toLowerCase())
+  );
+}
+
+/**
+ * Get industry-specific roles for specialized queries
+ */
+function getIndustrySpecificRoles(industry: string): string[] {
+  const industryTitles = INDUSTRY_PROFESSIONAL_TITLES[industry.toLowerCase()];
+  
+  if (!industryTitles || industryTitles.length === 0) {
+    return [
+      "Team Lead",
+      "Senior Manager",
+      "Project Manager",
+      "Director"
+    ];
+  }
+  
+  return industryTitles.map(title => `- ${title.charAt(0).toUpperCase() + title.slice(1)}`);
+}
+
+/**
+ * Detect company industry from name and keywords
+ */
+function detectIndustry(companyName: string): string | undefined {
+  const nameLower = companyName.toLowerCase();
+  
+  // Technology industry
+  if (nameLower.includes('tech') || nameLower.includes('software') || 
+      nameLower.includes('digital') || nameLower.includes('data') ||
+      nameLower.includes('cyber') || nameLower.includes('computer') ||
+      nameLower.includes('ai') || nameLower.includes('app')) {
+    return 'technology';
+  }
+  
+  // Healthcare industry
+  if (nameLower.includes('health') || nameLower.includes('medical') || 
+      nameLower.includes('pharma') || nameLower.includes('care') ||
+      nameLower.includes('hospital') || nameLower.includes('clinic') ||
+      nameLower.includes('therapeutics')) {
+    return 'healthcare';
+  }
+  
+  // Financial industry
+  if (nameLower.includes('financ') || nameLower.includes('bank') || 
+      nameLower.includes('invest') || nameLower.includes('capital') ||
+      nameLower.includes('wealth') || nameLower.includes('asset') ||
+      nameLower.includes('fund')) {
+    return 'financial';
+  }
+  
+  // Legal industry
+  if (nameLower.includes('law') || nameLower.includes('legal') || 
+      nameLower.includes('attorney') || nameLower.includes('advocate') ||
+      nameLower.includes('counsel')) {
+    return 'legal';
+  }
+  
+  // Construction industry
+  if (nameLower.includes('construct') || nameLower.includes('build') || 
+      nameLower.includes('architect') || nameLower.includes('engineer') ||
+      nameLower.includes('development') || nameLower.includes('property')) {
+    return 'construction';
+  }
+  
+  // Retail industry
+  if (nameLower.includes('retail') || nameLower.includes('shop') || 
+      nameLower.includes('store') || nameLower.includes('market') ||
+      nameLower.includes('consumer')) {
+    return 'retail';
+  }
+  
+  // Education industry
+  if (nameLower.includes('educat') || nameLower.includes('school') || 
+      nameLower.includes('academy') || nameLower.includes('learn') ||
+      nameLower.includes('university') || nameLower.includes('college')) {
+    return 'education';
+  }
+  
+  // Manufacturing industry
+  if (nameLower.includes('manufact') || nameLower.includes('factory') || 
+      nameLower.includes('product') || nameLower.includes('industrial') ||
+      nameLower.includes('good')) {
+    return 'manufacturing';
+  }
+  
+  // Consulting industry
+  if (nameLower.includes('consult') || nameLower.includes('advisor') || 
+      nameLower.includes('partner') || nameLower.includes('service') ||
+      nameLower.includes('solution')) {
+    return 'consulting';
+  }
+  
+  return undefined;
+}
