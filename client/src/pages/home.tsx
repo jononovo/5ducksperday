@@ -68,7 +68,7 @@ export default function Home() {
   const [currentQuery, setCurrentQuery] = useState<string | null>(null);
   const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [pendingContactId, setPendingContactId] = useState<number | null>(null);
+  const [pendingContactIds, setPendingContactIds] = useState<Set<number>>(new Set());
   // State for selected contacts (for multi-select checkboxes)
   const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
   // Initialize showTour based on localStorage
@@ -205,11 +205,19 @@ export default function Home() {
 
   const enrichContactMutation = useMutation({
     mutationFn: async (contactId: number) => {
-      setPendingContactId(contactId);
+      // Add this contact ID to the set of pending contacts
+      setPendingContactIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(contactId);
+        return newSet;
+      });
       const response = await apiRequest("POST", `/api/contacts/${contactId}/enrich`);
-      return response.json();
+      return {data: await response.json(), contactId};
     },
-    onSuccess: (data) => {
+    onSuccess: (result) => {
+      // The data and the contactId that was processed
+      const {data, contactId} = result;
+      
       // Update the currentResults with the enriched contact - use a safer update pattern
       setCurrentResults(prev => {
         if (!prev) return null;
@@ -230,28 +238,42 @@ export default function Home() {
         });
       });
       
+      // Remove this contact ID from the set of pending contacts
+      setPendingContactIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contactId);
+        return newSet;
+      });
+      
       toast({
         title: "Email Search Complete",
-        description: data.email 
-          ? "Successfully found contact's email address."
-          : "No email found for this contact.",
+        description: `${data.name}: ${data.email 
+          ? "Successfully found email address."
+          : "No email found for this contact."}`,
       });
-      setPendingContactId(null);
     },
-    onError: (error) => {
+    onError: (error, variables) => {
+      const contactId = variables; // This will be the contactId that was passed to mutate
+      
+      // Remove this contact ID from the set of pending contacts
+      setPendingContactIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contactId as number);
+        return newSet;
+      });
+      
       toast({
         title: "Email Search Failed",
         description: error instanceof Error ? error.message : "Failed to find contact's email",
         variant: "destructive",
       });
-      setPendingContactId(null);
     },
   });
 
-  // Add debounce to prevent multiple rapid clicks
+  // Update to allow multiple searches to run in parallel
   const handleEnrichContact = (contactId: number) => {
-    // Don't allow if already pending
-    if (pendingContactId !== null) return;
+    // Only prevent if this specific contact is already being processed
+    if (pendingContactIds.has(contactId)) return;
     enrichContactMutation.mutate(contactId);
   };
 
@@ -261,7 +283,7 @@ export default function Home() {
   };
 
   const isContactPending = (contactId: number) => {
-    return pendingContactId === contactId;
+    return pendingContactIds.has(contactId);
   };
 
   // Add mutation for contact feedback
