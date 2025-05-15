@@ -15,6 +15,8 @@ import { Footer } from "@/components/ui/footer";
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 
@@ -307,69 +309,87 @@ export default function LandingPage() {
       {/* Footer is imported from UI components */}
       <Footer />
 
-      {/* Compact Search Progress Dialog */}
+      {/* Larger Search Progress Dialog */}
       <Dialog open={showSearchProgress} onOpenChange={setShowSearchProgress}>
-        <DialogContent className="sm:max-w-sm p-0 gap-0 overflow-hidden">
-          <div className="p-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-            <h3 className="text-xl font-semibold">
+        <DialogContent 
+          className="w-[95%] md:w-[65%] p-0 gap-0 max-w-5xl overflow-hidden rounded-xl border-0 shadow-2xl"
+        >
+          <div className="p-6 md:p-8 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <DialogTitle className="text-xl md:text-2xl font-semibold text-white">
               Searching for "{searchQuery}"
-            </h3>
+            </DialogTitle>
+            <DialogDescription className="text-white/80 mt-1">
+              Our AI is analyzing your query and searching for matches
+            </DialogDescription>
           </div>
           
           <div className="px-0">
-            <Progress value={progress} className="h-1 rounded-none" />
+            <Progress value={progress} className="h-2 rounded-none bg-slate-100 dark:bg-slate-800" />
           </div>
           
-          {/* Simplified step indicator - only show current step */}
-          <div className="p-6 pb-2">
-            <div className="flex items-center mb-2">
-              <div className="flex space-x-1 mr-4">
+          {/* Larger step indicators with numbers */}
+          <div className="p-6 md:p-8 pb-4">
+            <div className="flex justify-center mb-6">
+              <div className="flex space-x-4 md:space-x-6">
                 {SEARCH_STEPS.map((step, index) => (
-                  <div 
-                    key={step.id}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      currentStep === index + 1 
-                        ? "bg-blue-500" 
-                        : currentStep > index + 1
-                          ? "bg-green-500"
+                  <div key={step.id} className="flex flex-col items-center">
+                    <div 
+                      className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm md:text-base font-medium transition-colors ${
+                        currentStep === index + 1 
+                          ? "bg-blue-500 text-white ring-4 ring-blue-200 dark:ring-blue-900/40" 
+                          : currentStep > index + 1
+                            ? "bg-green-500 text-white"
+                            : "bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
+                      }`}
+                    >
+                      {index + 1}
+                    </div>
+                    {index < SEARCH_STEPS.length - 1 && (
+                      <div className={`h-0.5 w-6 md:w-8 mt-6 ${
+                        currentStep > index + 1 
+                          ? "bg-green-500" 
                           : "bg-slate-200 dark:bg-slate-700"
-                    }`}
-                  />
+                      }`} />
+                    )}
+                  </div>
                 ))}
               </div>
-              <p className="text-sm text-slate-500">
-                Step {currentStep} of {SEARCH_STEPS.length}
-              </p>
             </div>
             
             {/* Only show current step description */}
-            <div className="min-h-[60px]">
-              <h4 className="font-medium">
+            <div className="min-h-[80px] text-center max-w-2xl mx-auto">
+              <h4 className="text-lg md:text-xl font-medium mb-2">
                 {SEARCH_STEPS[currentStep - 1].title}
               </h4>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
                 {SEARCH_STEPS[currentStep - 1].description}
               </p>
             </div>
           </div>
           
           {/* Registration prompt always visible */}
-          <div className="p-6 pt-1 border-t">
-            <p className="mb-4 text-center text-sm font-medium">
+          <div className="p-6 md:p-8 pt-4 border-t">
+            <p className="mb-6 text-center text-base md:text-lg font-medium">
               Register to see your search results
             </p>
-            <Button 
-              onClick={() => setLocation("/auth")} 
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-            >
-              <span className="mr-2">Sign in with Google</span>
-              <ArrowRight size={16} />
-            </Button>
-            <p className="mt-3 text-center text-xs text-slate-500">
-              <Link href="/auth" className="text-blue-500 hover:underline">
-                Login with email instead
-              </Link>
-            </p>
+            <div className="max-w-md mx-auto">
+              <Button 
+                onClick={() => {
+                  // Directly trigger Google sign-in
+                  const { signInWithGoogle } = require("@/hooks/use-auth").useAuth();
+                  signInWithGoogle().catch(console.error);
+                }} 
+                className="w-full py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg text-base"
+              >
+                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-3" />
+                <span>Sign in with Google</span>
+              </Button>
+              <p className="mt-4 text-center text-sm text-slate-500">
+                <Link href="/auth" className="text-blue-500 hover:underline">
+                  Login
+                </Link>
+              </p>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
