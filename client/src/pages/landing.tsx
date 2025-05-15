@@ -3,14 +3,18 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
-import { Search, ArrowRight, User } from "lucide-react";
+import { 
+  Search, 
+  ArrowRight, 
+  User, 
+  PlayCircle, 
+  ChevronRight,
+  Sparkles
+} from "lucide-react";
 import { Footer } from "@/components/ui/footer";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 
@@ -111,29 +115,6 @@ export default function LandingPage() {
     };
   }, [showSearchProgress]);
 
-  // Handle video scroll effect
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (entry.isIntersecting) {
-          setIsVideoExpanded(true);
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (videoRef.current) {
-      observer.observe(videoRef.current);
-    }
-
-    return () => {
-      if (videoRef.current) {
-        observer.unobserve(videoRef.current);
-      }
-    };
-  }, []);
-
   // Redirect to search page after "fake" search completes
   useEffect(() => {
     if (currentStep >= SEARCH_STEPS.length && progress >= 100) {
@@ -145,12 +126,19 @@ export default function LandingPage() {
   }, [currentStep, progress, setLocation]);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950">
       {/* Header */}
       <header className="container mx-auto py-4 px-4 flex justify-between items-center">
-        <div className="text-xl font-bold">Simple B2B Sales</div>
+        <div className="text-2xl font-bold flex items-center">
+          <span className="text-yellow-500 mr-1.5">5</span> 
+          <span className="text-blue-600 dark:text-blue-400">Ducks</span>
+          <div className="flex ml-2">
+            <span className="text-2xl">🐥</span>
+            <span className="text-xl">🥚🥚🥚🥚</span>
+          </div>
+        </div>
         <Link href="/auth">
-          <Button variant="ghost" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2">
             <User size={16} />
             Login
           </Button>
@@ -159,46 +147,55 @@ export default function LandingPage() {
 
       {/* Main Hero Section */}
       <main className="flex-1">
-        <section className="py-20 px-4">
+        <section className="py-16 md:py-24 px-4">
           <div className="container mx-auto max-w-4xl text-center">
-            <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600">
-              Discover Your Perfect Prospects
+            <div className="mb-4 inline-flex items-center px-4 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+              <Sparkles size={16} className="mr-2" />
+              <span className="text-sm font-medium">AI-Powered Contact Discovery</span>
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 leading-tight">
+              Find Your Perfect Prospects in Seconds
             </h1>
-            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-              Use AI to find the right companies and decision makers in seconds
+            
+            <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
+              AI that identifies the right companies and decision makers for your business
             </p>
 
             {/* Search Input */}
-            <div className="relative max-w-2xl mx-auto mb-8">
-              <Input
-                type="text"
-                placeholder="What type of businesses are you looking for?"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-20 py-6 text-lg rounded-full"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleSearch();
-                  }
-                }}
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-              <Button
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 rounded-full"
-                onClick={() => handleSearch()}
-              >
-                <span className="mr-2">Search</span>
-                <ArrowRight size={16} />
-              </Button>
+            <div className="relative max-w-2xl mx-auto mb-10">
+              <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full opacity-70 blur"></div>
+              <div className="relative bg-white dark:bg-slate-900 rounded-full">
+                <Input
+                  type="text"
+                  placeholder="What type of businesses are you looking for?"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 pr-36 py-7 text-lg rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSearch();
+                    }
+                  }}
+                />
+                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-blue-500" size={20} />
+                <Button
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-5 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                  onClick={() => handleSearch()}
+                >
+                  <span className="mr-2">Search</span>
+                  <ArrowRight size={16} />
+                </Button>
+              </div>
             </div>
 
             {/* Example Search Prompts */}
-            <div className="flex flex-wrap justify-center gap-2 mb-12">
+            <div className="flex flex-wrap justify-center gap-2 mb-16">
               {EXAMPLE_PROMPTS.map((prompt) => (
                 <Button
                   key={prompt}
                   variant="outline"
-                  className="text-sm"
+                  className="text-sm bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all"
                   onClick={() => {
                     setSearchQuery(prompt);
                     handleSearch(prompt);
@@ -208,31 +205,100 @@ export default function LandingPage() {
                 </Button>
               ))}
             </div>
+            
+            <div className="flex justify-center space-x-6 my-10">
+              <div className="text-center p-4">
+                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">10M+</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">Company Records</div>
+              </div>
+              <div className="text-center p-4">
+                <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">98%</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">Contact Accuracy</div>
+              </div>
+              <div className="text-center p-4">
+                <div className="text-4xl font-bold text-pink-600 dark:text-pink-400 mb-2">250K+</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">Daily Updates</div>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* Video Section */}
-        <section 
-          ref={videoRef} 
-          className={`py-20 px-4 bg-slate-50 dark:bg-slate-900 transition-all duration-700 ${
-            isVideoExpanded ? "min-h-[80vh]" : "min-h-[20vh]"
-          }`}
-        >
+        <section ref={videoRef} className="py-20 px-4 bg-white dark:bg-slate-900">
           <div className="container mx-auto max-w-5xl">
             <h2 className="text-3xl font-bold mb-8 text-center">See How It Works</h2>
+            
             <div 
-              className={`aspect-video bg-slate-200 dark:bg-slate-800 rounded-lg overflow-hidden transition-all duration-700 mx-auto ${
-                isVideoExpanded ? "w-[90%] shadow-xl" : "w-[50%] cursor-pointer opacity-70"
-              }`}
+              className={`relative aspect-video bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden transition-all duration-500 mx-auto 
+                ${isVideoExpanded ? "w-[90%] shadow-xl" : "w-[60%] cursor-pointer"}
+              `}
+              onClick={() => !isVideoExpanded && setIsVideoExpanded(true)}
             >
+              {/* Thumbnail overlay when not expanded */}
+              {!isVideoExpanded && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-transparent to-slate-900/60 text-white">
+                  <PlayCircle size={64} className="mb-4 text-white opacity-90" />
+                  <p className="font-medium">Click to watch demo</p>
+                </div>
+              )}
+              
               {/* Replace this with your arcade.software embed */}
               <div className="h-full w-full flex items-center justify-center">
-                <p className="text-muted-foreground text-center">
-                  {isVideoExpanded 
-                    ? "Interactive demo video will be displayed here" 
-                    : "Scroll to view demo"}
-                </p>
+                {isVideoExpanded ? (
+                  <div className="w-full h-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                    <p className="text-muted-foreground text-center">Interactive demo will load here</p>
+                  </div>
+                ) : (
+                  <img 
+                    src="https://placehold.co/1920x1080/2563eb/FFFFFF?text=5+Ducks+Demo+Video" 
+                    alt="Video thumbnail" 
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
+            </div>
+          </div>
+        </section>
+        
+        {/* Features Section */}
+        <section className="py-16 px-4 bg-blue-50 dark:bg-blue-950/30">
+          <div className="container mx-auto max-w-6xl">
+            <h2 className="text-3xl font-bold mb-12 text-center">How We Find Your Perfect Prospects</h2>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
+                  <Search className="text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">AI-Powered Search</h3>
+                <p className="text-slate-600 dark:text-slate-400">Advanced algorithms find companies that match your exact requirements</p>
+              </div>
+              
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
+                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mb-4">
+                  <User className="text-purple-600 dark:text-purple-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Key Contact Discovery</h3>
+                <p className="text-slate-600 dark:text-slate-400">Automatically identifies decision-makers and their contact information</p>
+              </div>
+              
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
+                <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center mb-4">
+                  <Sparkles className="text-pink-600 dark:text-pink-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Email Enrichment</h3>
+                <p className="text-slate-600 dark:text-slate-400">Enhances contact details with verified email addresses and social profiles</p>
+              </div>
+            </div>
+            
+            <div className="text-center mt-12">
+              <Button 
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-6"
+                onClick={() => handleSearch("Software companies in New York")}
+              >
+                <span className="mr-2">Try it for free</span>
+                <ChevronRight size={16} />
+              </Button>
             </div>
           </div>
         </section>
@@ -241,61 +307,70 @@ export default function LandingPage() {
       {/* Footer is imported from UI components */}
       <Footer />
 
-      {/* Search Progress Dialog */}
+      {/* Compact Search Progress Dialog */}
       <Dialog open={showSearchProgress} onOpenChange={setShowSearchProgress}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Processing your search</DialogTitle>
-            <DialogDescription>
-              Our AI is searching for the best matches for "{searchQuery}"
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <Progress value={progress} className="h-2 mb-6" />
-            
-            <div className="space-y-4">
-              {SEARCH_STEPS.map((step) => (
-                <div 
-                  key={step.id}
-                  className={`flex items-start gap-3 p-3 rounded-lg transition-colors ${
-                    currentStep >= step.id 
-                      ? "bg-blue-50 dark:bg-blue-950/20" 
-                      : "opacity-50"
-                  }`}
-                >
-                  <div 
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                      currentStep >= step.id 
-                        ? "bg-blue-500 text-white" 
-                        : "bg-slate-200 dark:bg-slate-700 text-slate-500"
-                    }`}
-                  >
-                    {step.id}
-                  </div>
-                  <div>
-                    <p className="font-medium">{step.title}</p>
-                    <p className="text-sm text-muted-foreground">{step.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <DialogContent className="sm:max-w-sm p-0 gap-0 overflow-hidden">
+          <div className="p-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <h3 className="text-xl font-semibold">
+              Searching for "{searchQuery}"
+            </h3>
           </div>
-
-          {currentStep >= SEARCH_STEPS.length && (
-            <div className="mt-4 text-center">
-              <p className="mb-4">Register to see your search results</p>
-              <Button onClick={() => setLocation("/auth")} className="w-full">
-                <span className="mr-2">Sign in with Google</span>
-                <ArrowRight size={16} />
-              </Button>
-              <p className="mt-2 text-sm text-muted-foreground">
-                <Link href="/auth" className="text-blue-500 hover:underline">
-                  Login with email instead
-                </Link>
+          
+          <div className="px-0">
+            <Progress value={progress} className="h-1 rounded-none" />
+          </div>
+          
+          {/* Simplified step indicator - only show current step */}
+          <div className="p-6 pb-2">
+            <div className="flex items-center mb-2">
+              <div className="flex space-x-1 mr-4">
+                {SEARCH_STEPS.map((step, index) => (
+                  <div 
+                    key={step.id}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      currentStep === index + 1 
+                        ? "bg-blue-500" 
+                        : currentStep > index + 1
+                          ? "bg-green-500"
+                          : "bg-slate-200 dark:bg-slate-700"
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-sm text-slate-500">
+                Step {currentStep} of {SEARCH_STEPS.length}
               </p>
             </div>
-          )}
+            
+            {/* Only show current step description */}
+            <div className="min-h-[60px]">
+              <h4 className="font-medium">
+                {SEARCH_STEPS[currentStep - 1].title}
+              </h4>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {SEARCH_STEPS[currentStep - 1].description}
+              </p>
+            </div>
+          </div>
+          
+          {/* Registration prompt always visible */}
+          <div className="p-6 pt-1 border-t">
+            <p className="mb-4 text-center text-sm font-medium">
+              Register to see your search results
+            </p>
+            <Button 
+              onClick={() => setLocation("/auth")} 
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+            >
+              <span className="mr-2">Sign in with Google</span>
+              <ArrowRight size={16} />
+            </Button>
+            <p className="mt-3 text-center text-xs text-slate-500">
+              <Link href="/auth" className="text-blue-500 hover:underline">
+                Login with email instead
+              </Link>
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
