@@ -79,7 +79,7 @@ export default function Home() {
       return true; // Default to showing tour if localStorage fails
     }
   });
-  const [pendingAeroLeadsId, setPendingAeroLeadsId] = useState<number | null>(null);
+  const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
