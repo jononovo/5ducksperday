@@ -423,13 +423,14 @@ class DatabaseStorage implements IStorage {
   }
   
   async updateTestResultStatus(id: number, status: 'completed' | 'running' | 'failed', metadata?: Record<string, unknown>): Promise<SearchTestResult> {
+    const updateData: any = { 
+      status,
+      ...metadata ? { metadata } : {}
+    };
+    
     const [updated] = await db
       .update(searchTestResults)
-      .set({ 
-        status,
-        ...metadata ? { metadata } : {},
-        updatedAt: new Date()
-      })
+      .set(updateData)
       .where(eq(searchTestResults.id, id))
       .returning();
     return updated;
