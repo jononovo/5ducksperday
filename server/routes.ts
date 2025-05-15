@@ -1701,8 +1701,9 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     try {
       const contactId = parseInt(req.params.contactId);
       console.log('Starting AeroLeads search for contact ID:', contactId);
+      console.log('User ID:', req.user?.id);
 
-      const contact = await storage.getContact(contactId);
+      const contact = await storage.getContact(contactId, req.user!.id);
       if (!contact) {
         console.error('Contact not found in database for ID:', contactId);
         res.status(404).json({ message: "Contact not found" });
@@ -1714,7 +1715,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         companyId: contact.companyId
       });
 
-      const company = await storage.getCompany(contact.companyId);
+      const company = await storage.getCompany(contact.companyId, req.user!.id);
       if (!company) {
         console.error('Company not found in database for ID:', contact.companyId);
         res.status(404).json({ message: "Company not found" });
