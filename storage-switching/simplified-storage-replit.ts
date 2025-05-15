@@ -443,17 +443,99 @@ export class ReplitStorage implements IStorage {
 
   // @ts-ignore
   async listSearchApproaches(): Promise<SearchApproach[]> {
-    const keys = await this.list('searchApproach:');
-    const approaches: SearchApproach[] = [];
-    
-    for (const key of keys) {
-      const approach = await this.get<SearchApproach>(key);
-      // @ts-ignore: Date handling issues
-      if (approach) approaches.push(approach);
+    try {
+      // Initial approach approaches - since we don't have any in the DB yet
+      // we'll create them directly
+      const defaultApproaches = [
+        {
+          id: 1,
+          name: "Basic Contact Search",
+          prompt: "Find basic contact information for decision makers",
+          order: 1,
+          active: true,
+          moduleType: "default",
+          config: {
+            moduleName: "basic",
+            includeParameters: true,
+            validationRules: {
+              requiredFields: ["name", "role"],
+              scoreThresholds: { name: 0.7, email: 0.6 },
+              minimumConfidence: 0.5
+            },
+            subsearches: {},
+            searchOptions: { ignoreFranchises: true, locallyHeadquartered: true },
+            searchSections: {}
+          }
+        },
+        {
+          id: 2,
+          name: "Enhanced Contact Search",
+          prompt: "Find detailed contact information with email verification",
+          order: 2,
+          active: true,
+          moduleType: "enhanced",
+          config: {
+            moduleName: "enhanced",
+            includeParameters: true,
+            validationRules: {
+              requiredFields: ["name", "role", "email"],
+              scoreThresholds: { name: 0.8, email: 0.7 },
+              minimumConfidence: 0.6
+            },
+            subsearches: {},
+            searchOptions: { ignoreFranchises: true, locallyHeadquartered: true },
+            searchSections: {}
+          }
+        },
+        {
+          id: 3,
+          name: "Advanced Contact Search",
+          prompt: "Find complete contact profile with social media",
+          order: 3,
+          active: true,
+          moduleType: "advanced",
+          config: {
+            moduleName: "advanced",
+            includeParameters: true,
+            validationRules: {
+              requiredFields: ["name", "role", "email", "linkedinUrl"],
+              scoreThresholds: { name: 0.9, email: 0.8, linkedinUrl: 0.7 },
+              minimumConfidence: 0.7
+            },
+            subsearches: {},
+            searchOptions: { ignoreFranchises: true, locallyHeadquartered: true },
+            searchSections: {}
+          }
+        }
+      ];
+            
+      // Try to get the approaches from the database
+      const keys = await this.list('searchApproach:');
+      
+      // If we have data in the database, use it
+      if (keys && Array.isArray(keys) && keys.length > 0) {
+        const approaches: SearchApproach[] = [];
+        
+        for (const key of keys) {
+          const approach = await this.get<SearchApproach>(key);
+          // @ts-ignore: Date handling issues
+          if (approach) approaches.push(approach);
+        }
+        
+        // Sort by order
+        return approaches.sort((a, b) => a.order - b.order);
+      } 
+      
+      // Otherwise, initialize default approaches
+      for (const approach of defaultApproaches) {
+        await this.set(`searchApproach:${approach.id}`, approach);
+      }
+      
+      return defaultApproaches;
+    } catch (error) {
+      console.error("Error listing search approaches:", error);
+      return [];
     }
-    
-    // Sort by order
-    return approaches.sort((a, b) => a.order - b.order);
   }
 
   // @ts-ignore
