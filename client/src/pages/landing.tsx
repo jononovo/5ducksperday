@@ -324,8 +324,8 @@ export default function LandingPage() {
                 <p className="mt-4">Now back to those pushups. Well, I realized that the harder the task is, at least initially, the more likely it'll be for me to give up on the daily habit.
                 And I figured, if I can make the selling process much, much easier, but then put a limit so that people know when they enter the website they will not feel guilty leaving after five minutes, that they might enjoy it more AND may make a habit out of it.</p>
 
-                <p className="mt-4">Umm,... yeah. <br>
-                Thanks for listening and enjoy. <br>
+                <p className="mt-4">Umm,... yeah. <br />
+                Thanks for listening and enjoy. <br />
                 - <strong>Jon</strong>
                 </p>
                 
