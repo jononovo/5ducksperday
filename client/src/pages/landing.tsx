@@ -163,7 +163,7 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
-              AI that identifies the right companies and decision makers for your business
+              Don't waste time on stuff you don't need
             </p>
 
             {/* Search Input */}
