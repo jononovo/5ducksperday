@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Bird, LogOut, User, Settings, LayoutDashboard } from "lucide-react";
+import { Bird, LogOut, User, Menu, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navigation = [
-  { name: "Build", href: "/build" },
   { name: "Search", href: "/" },
   { name: "Lists", href: "/lists" },
   { name: "Campaigns", href: "/campaigns" },
@@ -51,27 +50,10 @@ export function MainNav() {
       </div>
       {user && (
         <div className="flex items-center ml-auto">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => logoutMutation.mutate()}
-            disabled={logoutMutation.isPending}
-            className="mr-2"
-          >
-            {logoutMutation.isPending ? (
-              "Logging out..."
-            ) : (
-              <>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </>
-            )}
-          </Button>
-          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="h-8 w-8">
-                <Settings className="h-4 w-4" />
+                <Menu className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
