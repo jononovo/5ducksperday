@@ -163,7 +163,7 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
-              <span className="font-normal">5 Ducks 🦆 are waiting ⏳ for you to click "Send". <br />
+              <span className="font-normal">5 Ducks 🦆 are waiting for you to click "Send". <br />
               What are you waiting for? 🤷🏼‍♀️</span>
             </p>
 
@@ -276,14 +276,14 @@ export default function LandingPage() {
                   <Search className="text-blue-600 dark:text-blue-400" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">You're already wasting time</h3>
-                <p className="text-slate-600 dark:text-slate-400">Just reading garbage like this.</p>
+                <p className="text-slate-600 dark:text-slate-400">What you should be doing is sending simple emails to amazing people about how you are going to solve their problem.</p>
               </div>
               
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                 <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mb-4">
                   <User className="text-purple-600 dark:text-purple-400" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">We limit you to 5 Email per Day</h3>
+                <h3 className="text-xl font-semibold mb-2">We limit you to 5 Emails per Day</h3>
                 <p className="text-slate-600 dark:text-slate-400">So that you never have to feel intimidated about doing outreach.</p>
               </div>
               
@@ -301,7 +301,7 @@ export default function LandingPage() {
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-6"
                 onClick={() => handleSearch("Software companies in New York")}
               >
-                <span className="mr-2">Try it for free</span>
+                <span className="mr-2">Try it for free (for 5 Minutes)</span>
                 <ChevronRight size={16} />
               </Button>
             </div>
