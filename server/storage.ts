@@ -199,8 +199,8 @@ class DatabaseStorage implements IStorage {
   }
 
   async getNextListId(): Promise<number> {
-    const [result] = await db.select({ maxId: lists.listId }).from(lists);
-    return (result?.maxId || 1000) + 1;
+    const result = await db.select({ maxId: sql`MAX(${lists.listId})` }).from(lists);
+    return (result[0]?.maxId || 1000) + 1;
   }
 
   async createList(data: InsertList): Promise<List> {
