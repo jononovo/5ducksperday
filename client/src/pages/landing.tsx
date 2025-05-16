@@ -159,11 +159,11 @@ export default function LandingPage() {
             </div>
             
             <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 leading-tight">
-              Sell to 5 new people every day. Not more, not less.
+              Sell to 5 new people every day.
             </h1>
             
             <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
-              Don't waste time on stuff you don't need. Focus. Search. Sell. Move on!
+              A. Open the page. B. Choose which feels best. C. Scan the email. D. Click "Send". E. Feel AMAZING and move on!
             </p>
 
             {/* Search Input */}
