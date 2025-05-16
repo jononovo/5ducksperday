@@ -309,20 +309,25 @@ export default function LandingPage() {
             <div className="mt-20 max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg">
               <h3 className="text-2xl font-semibold mb-6 text-center">My Story</h3>
               <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
-                <p>I do 10 push-ups before every shower. And I realized that if I do 20, I will very soon stop doing them, but I'll come back to that later.</p>
+                <p>I do 10 push-ups before every shower and I realized that if I do 20, I will very soon stop doing them. But I'll come back to that later.</p>
                 
                 <p className="mt-4">In February, after spending an embarrassingly long amount of time creating a SaaS product with a couple of developers.
                 It was finally time to start selling. But being easily distracted, I instead figured that I should create a tool that will make selling easier for me. (Of course!!! That's not procrastination. That's efficiency.)</p>
                 
-                <p className="mt-4">I then got distracted in creating workflows to optimize the sales and lead generation. However, finally coming back to this, I decided to launch it because, who the hell wants to open their inbox (with all those clickbait newsletters and juicy news updates) and THEN start sending sales emails?!?
+                <p className="mt-4">I then got distracted in workflows to optimize the sales and lead generation. However, finally coming back to this, I decided to launch it because, who the hell wants to open their inbox (with all those clickbait newsletters and juicy news updates) and THEN start sending sales emails?!?
                 That's like asking an alcoholic to work at a bar. It's so distracting.</p>
                 
-                <p className="mt-4">The other thing I realized is that all the other lead generation software that popped-up when I was searching, was for people with big budgets and usually also required someone who could set it up for them.</p>
+                <p className="mt-4">The other thing I realized is that all the other lead generation services that popped-up when I was searching, were for people with big budgets and usually needed someone to set it up for them.</p>
                 
-                <p className="mt-4">I wanted something for the small guy that he could get running in less than 60 seconds. That would mainly be paid based on use.</p>
+                <p className="mt-4">I wanted something for the small guy that he could get running in less than 60 seconds. And that could be addictive and fun.</p>
                 
                 <p className="mt-4">Now back to those pushups. Well, I realized that the harder the task is, at least initially, the more likely it'll be for me to give up on the daily habit.
-                And I figured if I can make this software make selling much much easier, but then put a limit so that people know when they enter the website they will not be able to feel bad or feel guilty after leaving after five minutes, but they might enjoy it more AND hopefully make a habit out of it.</p>
+                And I figured, if I can make the selling process much, much easier, but then put a limit so that people know when they enter the website they will not feel guilty leaving after five minutes, that they might enjoy it more AND may make a habit out of it.</p>
+
+                <p className="mt-4">Umm,... yeah. <br>
+                Thanks for listening and enjoy. <br>
+                - <strong>Jon</strong>
+                </p>
                 
                 <p className="mt-4 font-medium">Enjoy!</p>
               </div>
