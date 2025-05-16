@@ -135,7 +135,7 @@ export default function LandingPage() {
       <header className="container mx-auto py-4 px-4 flex justify-between items-center">
         <div className="text-2xl font-bold flex items-center">
           <span className="text-gray-500 dark:text-gray-400">5</span>
-          <span className="text-black dark:text-white">Ducks</span>
+          <span className="text-gray-700 dark:text-gray-300">Ducks</span>
           <div className="flex ml-2">
             <span className="text-2xl">🐥</span>
             <span className="text-xl">🥚🥚🥚🥚</span>
