@@ -11,7 +11,7 @@ import {
   type SearchTestResult, type InsertSearchTestResult
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User Auth
@@ -199,8 +199,16 @@ class DatabaseStorage implements IStorage {
   }
 
   async getNextListId(): Promise<number> {
-    const result = await db.select({ maxId: sql`MAX(${lists.listId})` }).from(lists);
-    return (result[0]?.maxId || 1000) + 1;
+    const allLists = await db.select().from(lists);
+    let maxId = 1000;
+    
+    for (const list of allLists) {
+      if (list.listId > maxId) {
+        maxId = list.listId;
+      }
+    }
+    
+    return maxId + 1;
   }
 
   async createList(data: InsertList): Promise<List> {
