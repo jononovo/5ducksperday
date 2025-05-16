@@ -839,7 +839,25 @@ export default function Home() {
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>Do a paid API call to find this contact's email</p>
+                                    <p>Search AeroLeads for email</p>
+                                  </TooltipContent>
+                                </Tooltip>
+
+                                {/* Hunter.io search button */}
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleHunterSearch(contact.id)}
+                                      disabled={isHunterPending(contact.id) || isHunterSearchComplete(contact)}
+                                      className={getHunterButtonClass(contact)}
+                                    >
+                                      <Target className={`w-4 h-4 ${isHunterPending(contact.id) ? "animate-spin" : ""}`} />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Search Hunter.io for email</p>
                                   </TooltipContent>
                                 </Tooltip>
                                 
@@ -901,7 +919,14 @@ export default function Home() {
                                     disabled={isAeroLeadsPending(contact.id) || isAeroLeadsSearchComplete(contact)}
                                   >
                                     <Gem className={`h-4 w-4 mr-2 ${isAeroLeadsPending(contact.id) ? "animate-spin" : ""}`} />
-                                    Find Email
+                                    AeroLeads Email
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => handleHunterSearch(contact.id)}
+                                    disabled={isHunterPending(contact.id) || isHunterSearchComplete(contact)}
+                                  >
+                                    <Target className={`h-4 w-4 mr-2 ${isHunterPending(contact.id) ? "animate-spin" : ""}`} />
+                                    Hunter.io Email
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "excellent")}>
                                     <Star className="h-4 w-4 mr-2 text-yellow-500" />
