@@ -163,7 +163,7 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
-              A. Open the page. B. Choose which feels best. C. Scan the email. D. Click "Send". E. Feel AMAZING and move on!
+              Open Outreach. Choose contact. Scan email. Click "Send". Move on!
             </p>
 
             {/* Search Input */}
