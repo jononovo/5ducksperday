@@ -1697,6 +1697,84 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
+  // Hunter.io email finder endpoint
+  app.post("/api/contacts/:contactId/hunter", requireAuth, async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.contactId);
+      console.log('Starting Hunter.io search for contact ID:', contactId);
+      console.log('User ID:', req.user?.id);
+
+      const contact = await storage.getContact(contactId, req.user!.id);
+      if (!contact) {
+        console.error('Contact not found in database for ID:', contactId);
+        res.status(404).json({ message: "Contact not found" });
+        return;
+      }
+      console.log('Contact data from database:', {
+        id: contact.id,
+        name: contact.name,
+        companyId: contact.companyId
+      });
+
+      const company = await storage.getCompany(contact.companyId, req.user!.id);
+      if (!company) {
+        console.error('Company not found in database for ID:', contact.companyId);
+        res.status(404).json({ message: "Company not found" });
+        return;
+      }
+      console.log('Company data from database:', {
+        id: company.id,
+        name: company.name
+      });
+
+      // Get the Hunter.io API key from environment variables
+      const hunterApiKey = process.env.HUNTER_API_KEY;
+      if (!hunterApiKey) {
+        res.status(500).json({ message: "Hunter.io API key not configured" });
+        return;
+      }
+
+      // Use the Hunter.io API to search for the email
+      const { searchHunter } = await import('./lib/search-logic/email-discovery/hunter-search');
+      console.log('Initiating Hunter.io search for:', {
+        contactName: contact.name,
+        companyName: company.name
+      });
+
+      const result = await searchHunter(
+        contact.name,
+        company.name,
+        hunterApiKey
+      );
+
+      console.log('Hunter.io search result:', result);
+
+      // Update the contact with the results
+      const updatedContact = await storage.updateContact(contactId, {
+        ...contact,
+        email: result.email,
+        nameConfidenceScore: result.confidence,
+        completedSearches: [...(contact.completedSearches || []), 'hunter_search'],
+        lastValidated: new Date()
+      });
+
+      console.log('Contact updated with Hunter.io result:', {
+        id: updatedContact?.id,
+        email: updatedContact?.email,
+        confidence: updatedContact?.nameConfidenceScore
+      });
+
+      res.json(updatedContact);
+    } catch (error) {
+      console.error('Hunter.io search error:', error);
+      // Send a more detailed error response
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to search Hunter.io",
+        details: error instanceof Error ? error.stack : undefined
+      });
+    }
+  });
+
   app.post("/api/contacts/:contactId/aeroleads", requireAuth, async (req, res) => {
     try {
       const contactId = parseInt(req.params.contactId);

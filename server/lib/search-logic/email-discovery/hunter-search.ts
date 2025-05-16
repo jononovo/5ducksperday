@@ -1,0 +1,140 @@
+import axios from 'axios';
+
+interface HunterResponse {
+  data?: {
+    email?: string;
+    score?: number;
+    verification?: {
+      status?: string;
+      score?: number;
+    };
+    sources?: any[];
+  };
+  meta?: {
+    params?: {
+      first_name?: string;
+      last_name?: string;
+      domain?: string;
+    };
+  };
+  errors?: {
+    message?: string;
+    details?: string;
+  }[];
+}
+
+export interface NameParts {
+  firstName: string;
+  lastName: string;
+}
+
+export function splitFullName(fullName: string): NameParts {
+  // Handle case where full name is provided
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) {
+    return { firstName: parts[0], lastName: '' };
+  }
+  const firstName = parts[0];
+  const lastName = parts.slice(1).join(' ');
+  return { firstName, lastName };
+}
+
+/**
+ * Extract domain from company name or URL
+ * Tries to make a best guess of the domain based on the company name
+ */
+export function extractDomain(company: string): string {
+  // Remove number prefix if present (e.g., "1. Company Name" -> "Company Name")
+  let normalized = company.replace(/^\d+\.\s+/, '').trim();
+  
+  // Remove any trailing spaces
+  normalized = normalized.trim();
+  
+  // If it's already a domain or URL, extract just the domain part
+  if (normalized.includes('.')) {
+    // Try to extract domain from URL
+    try {
+      // If it looks like a URL, parse it
+      if (normalized.startsWith('http')) {
+        const url = new URL(normalized);
+        return url.hostname;
+      }
+      
+      // If it looks like a domain (contains dots)
+      if (normalized.includes('.') && !normalized.includes(' ')) {
+        // Remove any path or query parts
+        return normalized.split('/')[0];
+      }
+    } catch (e) {
+      // Not a valid URL, continue with other approaches
+    }
+  }
+  
+  // For company names, convert to lowercase and remove spaces/special chars
+  const simplifiedName = normalized.toLowerCase()
+    .replace(/[^\w\s]/g, '') // Remove special characters
+    .replace(/\s+/g, '');     // Remove spaces
+  
+  // If still no clear domain, append .com as a best guess
+  return simplifiedName + '.com';
+}
+
+export async function searchHunter(
+  name: string,
+  company: string,
+  apiKey: string
+): Promise<{ email: string | null; confidence: number }> {
+  const { firstName, lastName } = splitFullName(name);
+  const domain = extractDomain(company);
+
+  try {
+    console.log(`Searching Hunter.io for: ${firstName} ${lastName} at ${domain}`);
+
+    const response = await axios.get<HunterResponse>(
+      'https://api.hunter.io/v2/email-finder',
+      {
+        params: {
+          api_key: apiKey,
+          first_name: firstName,
+          last_name: lastName,
+          domain: domain
+        },
+        timeout: 10000 // 10 second timeout
+      }
+    );
+
+    console.log('Hunter.io API response:', response.data);
+
+    if (response.data && response.data.data && response.data.data.email) {
+      // Calculate confidence based on Hunter's score
+      let confidence = 50; // Default moderate confidence
+      
+      if (response.data.data.score) {
+        confidence = Math.round(response.data.data.score * 100);
+      }
+      
+      console.log(`Found email via Hunter.io: ${response.data.data.email} (confidence: ${confidence})`);
+      
+      return {
+        email: response.data.data.email,
+        confidence: confidence
+      };
+    }
+
+    console.log('No email found in Hunter.io response');
+    return {
+      email: null,
+      confidence: 0
+    };
+  } catch (error) {
+    console.error('Hunter.io API error:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Response:', error.response?.data);
+      console.error('Status:', error.response?.status);
+    }
+    return {
+      email: null,
+      confidence: 0
+    };
+  }
+}

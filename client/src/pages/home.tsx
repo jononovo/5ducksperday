@@ -21,6 +21,7 @@ import {
   MoreHorizontal,
   Menu,
   Mail,
+  Target,
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
