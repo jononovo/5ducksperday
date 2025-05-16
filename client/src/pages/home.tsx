@@ -81,6 +81,7 @@ export default function Home() {
     }
   });
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
+  const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -448,6 +449,79 @@ export default function Home() {
     return "";
   };
 
+  // Add Hunter.io mutation with Set-based state management
+  const hunterMutation = useMutation({
+    mutationFn: async (contactId: number) => {
+      // Add this contact ID to the set of pending searches
+      setPendingHunterIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(contactId);
+        return newSet;
+      });
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/hunter`);
+      return {data: await response.json(), contactId};
+    },
+    onSuccess: (result) => {
+      const {data, contactId} = result;
+      
+      // Update the contact in the results
+      setCurrentResults(prev => {
+        if (!prev) return null;
+        
+        // Only update the specific contact without affecting others
+        return prev.map(company => {
+          if (!company.contacts?.some(c => c.id === data.id)) {
+            return company;
+          }
+          
+          return {
+            ...company,
+            contacts: company.contacts?.map(contact =>
+              contact.id === data.id ? data : contact
+            )
+          };
+        });
+      });
+      
+      // Remove this contact ID from the set of pending searches
+      setPendingHunterIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contactId);
+        return newSet;
+      });
+      
+      toast({
+        title: "Hunter.io Email Search Complete",
+        description: `${data.name}: ${data.email 
+          ? `Found email with ${data.nameConfidenceScore || 'unknown'} confidence.`
+          : "No email found for this contact."}`,
+      });
+    },
+    onError: (error, variables) => {
+      const contactId = variables;
+      
+      // Remove this contact ID from the set of pending searches
+      setPendingHunterIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contactId as number);
+        return newSet;
+      });
+      
+      toast({
+        title: "Hunter.io Search Failed",
+        description: error instanceof Error ? error.message : "Failed to find contact email",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Handler for Hunter.io search
+  const handleHunterSearch = (contactId: number) => {
+    // Allow multiple searches to run in parallel
+    if (pendingHunterIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
+    hunterMutation.mutate(contactId);
+  };
+  
   // Add AeroLeads mutation with Set-based state management
   const aeroLeadsMutation = useMutation({
     mutationFn: async (contactId: number) => {
@@ -531,6 +605,22 @@ export default function Home() {
   const getAeroLeadsButtonClass = (contact: Contact) => {
     if (isAeroLeadsSearchComplete(contact)) {
       return contact.email ? "text-yellow-500" : "text-muted-foreground opacity-50";
+    }
+    return "";
+  };
+  
+  // Hunter.io helpers
+  const isHunterSearchComplete = (contact: Contact) => {
+    return contact.completedSearches?.includes('hunter_search') || false;
+  };
+
+  const isHunterPending = (contactId: number) => {
+    return pendingHunterIds.has(contactId);
+  };
+
+  const getHunterButtonClass = (contact: Contact) => {
+    if (isHunterSearchComplete(contact)) {
+      return contact.email ? "text-blue-500" : "text-muted-foreground opacity-50";
     }
     return "";
   };
