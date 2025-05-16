@@ -11,10 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navigation = [
-  { name: "Search", href: "/" },
+  { name: "Search", href: "/app" },
+  { name: "Outreach", href: "/outreach" },
   { name: "Lists", href: "/lists" },
-  { name: "Campaigns", href: "/campaigns" },
-  { name: "Outreach", href: "/outreach" }
+  { name: "Campaigns", href: "/campaigns" }
 ];
 
 export function MainNav() {
