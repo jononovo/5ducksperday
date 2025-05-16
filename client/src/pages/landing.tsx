@@ -267,31 +267,31 @@ export default function LandingPage() {
         {/* Features Section */}
         <section className="py-16 px-4 bg-blue-50 dark:bg-blue-950/30">
           <div className="container mx-auto max-w-6xl">
-            <h2 className="text-3xl font-bold mb-12 text-center">No-distraction Selling for Busy (or easily-distractable) People</h2>
+            <h2 className="text-3xl font-bold mb-12 text-center">No-distraction Selling for Busy <span className="text-gray-400">(or easily-distractable)</span> People</h2>
             
             <div className="grid md:grid-cols-3 gap-8">
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
                   <Search className="text-blue-600 dark:text-blue-400" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">AI-Powered Search</h3>
-                <p className="text-slate-600 dark:text-slate-400">Advanced algorithms find companies that match your exact requirements</p>
+                <h3 className="text-xl font-semibold mb-2">You're already wasting time</h3>
+                <p className="text-slate-600 dark:text-slate-400">Just reading garbage like this.</p>
               </div>
               
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                 <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mb-4">
                   <User className="text-purple-600 dark:text-purple-400" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Key Contact Discovery</h3>
-                <p className="text-slate-600 dark:text-slate-400">Automatically identifies decision-makers and their contact information</p>
+                <h3 className="text-xl font-semibold mb-2">We limit you to 5 Email per Day</h3>
+                <p className="text-slate-600 dark:text-slate-400">So that you never have to feel intimidated about doing outreach.</p>
               </div>
               
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                 <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center mb-4">
                   <Sparkles className="text-pink-600 dark:text-pink-400" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Email Enrichment</h3>
-                <p className="text-slate-600 dark:text-slate-400">Enhances contact details with verified email addresses and social profiles</p>
+                <h3 className="text-xl font-semibold mb-2">You'll be done in 5 Mins (or less)</h3>
+                <p className="text-slate-600 dark:text-slate-400">And you won't even be distracted by your inbox, because we don't include that here.</p>
               </div>
             </div>
             
