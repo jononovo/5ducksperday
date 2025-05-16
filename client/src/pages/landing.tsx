@@ -267,7 +267,7 @@ export default function LandingPage() {
         {/* Features Section */}
         <section className="py-16 px-4 bg-blue-50 dark:bg-blue-950/30">
           <div className="container mx-auto max-w-6xl">
-            <h2 className="text-3xl font-bold mb-12 text-center">How We Find Your Perfect Prospects</h2>
+            <h2 className="text-3xl font-bold mb-12 text-center">No-distraction Selling for Busy (or easily-distractable) People</h2>
             
             <div className="grid md:grid-cols-3 gap-8">
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
