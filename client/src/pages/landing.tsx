@@ -210,18 +210,30 @@ export default function LandingPage() {
               ))}
             </div>
             
-            <div className="flex justify-center space-x-6 my-10">
-              <div className="text-center p-4">
-                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">10M+</div>
+            <div className="flex flex-wrap justify-center space-x-2 md:space-x-8 my-10">
+              <div className="text-center p-3 md:p-4">
+                <div className="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">10M+</div>
                 <div className="text-sm text-slate-500 dark:text-slate-400">Company Records</div>
               </div>
-              <div className="text-center p-4">
-                <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">98%</div>
+              <div className="text-center p-3 md:p-4">
+                <div className="text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">98%</div>
                 <div className="text-sm text-slate-500 dark:text-slate-400">Contact Accuracy</div>
               </div>
-              <div className="text-center p-4">
-                <div className="text-4xl font-bold text-pink-600 dark:text-pink-400 mb-2">250K+</div>
+              <div className="text-center p-3 md:p-4">
+                <div className="text-3xl md:text-4xl font-bold text-pink-600 dark:text-pink-400 mb-2">250K+</div>
                 <div className="text-sm text-slate-500 dark:text-slate-400">Daily Updates</div>
+              </div>
+              <div className="text-center p-3 md:p-4">
+                <div className="text-3xl md:text-4xl font-bold text-green-600 dark:text-green-400 mb-2">3 Hrs</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">Saved per Week</div>
+              </div>
+              <div className="text-center p-3 md:p-4">
+                <div className="text-3xl md:text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2">25 Emails</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">To Ultra Targets</div>
+              </div>
+              <div className="text-center p-3 md:p-4">
+                <div className="text-3xl md:text-4xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">~$50k</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">New Revenue Pipeline*</div>
               </div>
             </div>
           </div>
