@@ -159,11 +159,11 @@ export default function LandingPage() {
             </div>
             
             <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 leading-tight">
-              Find Your Perfect Prospects in Seconds
+              Sell to 5 new people every day. Not more, not less.
             </h1>
             
             <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
-              Don't waste time on stuff you don't need
+              Don't waste time on stuff you don't need. Focus. Search. Sell. Move on!
             </p>
 
             {/* Search Input */}
