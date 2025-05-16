@@ -57,11 +57,11 @@ const SEARCH_STEPS = [
 
 // Example search prompts
 const EXAMPLE_PROMPTS = [
-  "Plumbers in Brooklyn",
-  "Software engineers in London",
-  "Marketing directors in tech companies",
-  "Healthcare executives in Boston",
-  "Restaurants in San Francisco",
+  "High-rated Greek restaurants in Toronto",
+  "Chicken coop builders in Kentucky",
+  "Mid-sized roofing companies in Atlanta",
+  "Stationary suppliers in Scranton",
+  "Health-tech SaaS in NYC",
 ];
 
 export default function LandingPage() {
