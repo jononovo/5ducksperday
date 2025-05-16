@@ -163,7 +163,7 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
-              <span className="font-normal">Open Outreach. <strong>Choose</strong> contact.   <strong>Scan</strong> email.   Click <strong>Send</strong>. Move on! 😉 🚀</span>
+              <span className="font-normal">5 Ducks 🦆 are waiting ⏳ for you to click "Send". ✉️  What are you waiting for?  🤨 🤌🏼 🤷🏼‍♀️</span>
             </p>
 
             {/* Search Input */}
@@ -321,15 +321,14 @@ export default function LandingPage() {
                 
                 <p className="mt-4">I wanted something for the small guy that he could get running in less than 60 seconds. And that could be addictive and fun.</p>
                 
-                <p className="mt-4">Now back to those pushups. Well, I realized that the harder the task is, at least initially, the more likely it'll be for me to give up on the daily habit.
-                And I figured, if I can make the selling process much, much easier, but then put a limit so that people know when they enter the website they will not feel guilty leaving after five minutes, that they might enjoy it more AND may make a habit out of it.</p>
+                <p className="mt-4">Now back to those pushups. Well, I realized that the harder the task is, the more likely that I will abandon it, and not make it habit.
+                And I figured, if I can make the selling process much, much easier, but then put a limit so that people will not feel guilty leaving after five minutes, that they might enjoy it more AND may make a habit out of it.</p>
 
                 <p className="mt-4">Umm,... yeah. <br />
                 Thanks for listening and enjoy. <br />
                 - <strong>Jon</strong>
                 </p>
-                
-                <p className="mt-4 font-medium">Enjoy!</p>
+
               </div>
             </div>
           </div>
