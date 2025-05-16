@@ -1,12 +1,19 @@
 import axios from 'axios';
 
 interface AeroLeadsResponse {
-  success: boolean;
-  data: {
+  // Traditional expected response format
+  success?: boolean;
+  data?: {
     email?: string;
     score?: number;
   };
   message?: string;
+  
+  // Actual response format we're seeing in logs
+  email?: string;
+  email_status?: string;
+  name?: string;
+  company_url?: string;
 }
 
 export interface NameParts {
@@ -51,10 +58,20 @@ export async function searchAeroLeads(
 
     console.log('AeroLeads API response:', response.data);
 
+    // Handle traditional API response format
     if (response.data.success && response.data.data?.email) {
       return {
         email: response.data.data.email,
         confidence: response.data.data.score || 75 // Default confidence if not provided
+      };
+    }
+    
+    // Handle the actual response format we're seeing in logs
+    if (response.data.email) {
+      console.log(`Found email in direct response format: ${response.data.email}`);
+      return {
+        email: response.data.email,
+        confidence: 75 // Default confidence since score isn't provided in this format
       };
     }
 
