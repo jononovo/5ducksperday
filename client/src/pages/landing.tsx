@@ -163,7 +163,7 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
-              Open Outreach. Choose contact. Scan email. Click "Send". Move on!
+              <span className="font-normal">Open Outreach. <strong>Choose</strong> contact.   <strong>Scan</strong> email.   Click <strong>Send</strong>. Move on! 😉 🚀</span>
             </p>
 
             {/* Search Input */}
