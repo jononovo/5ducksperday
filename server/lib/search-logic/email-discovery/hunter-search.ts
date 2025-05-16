@@ -45,9 +45,9 @@ export function splitFullName(fullName: string): NameParts {
  */
 export function extractDomain(company: string): string {
   // Remove number prefix if present (e.g., "1. Company Name" -> "Company Name")
-  let normalized = company.replace(/^\d+\.\s+/, '').trim();
+  let normalized = company.replace(/^\d+[\.\s]+/, '').trim();
   
-  // Remove any trailing spaces
+  // Remove extra spaces and trim
   normalized = normalized.trim();
   
   // If it's already a domain or URL, extract just the domain part
@@ -71,9 +71,21 @@ export function extractDomain(company: string): string {
   }
   
   // For company names, convert to lowercase and remove spaces/special chars
-  const simplifiedName = normalized.toLowerCase()
+  let simplifiedName = normalized.toLowerCase()
     .replace(/[^\w\s]/g, '') // Remove special characters
     .replace(/\s+/g, '');     // Remove spaces
+    
+  // Special case handling for common company suffixes
+  if (simplifiedName.endsWith('inc')) {
+    simplifiedName = simplifiedName.substring(0, simplifiedName.length - 3);
+  } else if (simplifiedName.endsWith('llc')) {
+    simplifiedName = simplifiedName.substring(0, simplifiedName.length - 3);
+  } else if (simplifiedName.endsWith('co')) {
+    simplifiedName = simplifiedName.substring(0, simplifiedName.length - 2);
+  }
+  
+  // Log the domain extraction process
+  console.log(`Hunter domain extraction: "${company}" -> "${normalized}" -> "${simplifiedName}.com"`);
   
   // If still no clear domain, append .com as a best guess
   return simplifiedName + '.com';
@@ -89,7 +101,20 @@ export async function searchHunter(
 
   try {
     console.log(`Searching Hunter.io for: ${firstName} ${lastName} at ${domain}`);
+    console.log(`Hunter API key available: ${!!apiKey}`);
 
+    // Validate inputs before making the API call
+    if (!firstName || !lastName) {
+      console.warn('Hunter.io search warning: Missing first or last name');
+    }
+    
+    if (!domain || domain === '.com') {
+      console.warn('Hunter.io search warning: Invalid domain extracted');
+    }
+
+    // Make the API request with detailed logging
+    console.log(`Hunter.io API request params: firstName=${firstName}, lastName=${lastName}, domain=${domain}`);
+    
     const response = await axios.get<HunterResponse>(
       'https://api.hunter.io/v2/email-finder',
       {
@@ -99,12 +124,23 @@ export async function searchHunter(
           last_name: lastName,
           domain: domain
         },
-        timeout: 10000 // 10 second timeout
+        timeout: 15000 // 15 second timeout
       }
     );
 
-    console.log('Hunter.io API response:', response.data);
+    console.log('Hunter.io API response status:', response.status);
+    console.log('Hunter.io API response:', JSON.stringify(response.data, null, 2));
 
+    // Check for API errors in the response
+    if (response.data && response.data.errors && response.data.errors.length > 0) {
+      console.error('Hunter.io API returned errors:', response.data.errors);
+      return {
+        email: null,
+        confidence: 0
+      };
+    }
+
+    // Process successful response
     if (response.data && response.data.data && response.data.data.email) {
       // Calculate confidence based on Hunter's score
       let confidence = 50; // Default moderate confidence
@@ -121,7 +157,7 @@ export async function searchHunter(
       };
     }
 
-    console.log('No email found in Hunter.io response');
+    console.log('No email found in Hunter.io response for', { firstName, lastName, domain });
     return {
       email: null,
       confidence: 0
@@ -129,8 +165,15 @@ export async function searchHunter(
   } catch (error) {
     console.error('Hunter.io API error:', error);
     if (axios.isAxiosError(error)) {
-      console.error('Response:', error.response?.data);
-      console.error('Status:', error.response?.status);
+      console.error('Hunter.io error response:', error.response?.data);
+      console.error('Hunter.io error status:', error.response?.status);
+      
+      // Check for common error cases
+      if (error.response?.status === 401) {
+        console.error('Hunter.io authentication error - API key may be invalid or expired');
+      } else if (error.response?.status === 429) {
+        console.error('Hunter.io rate limit exceeded');
+      }
     }
     return {
       email: null,
