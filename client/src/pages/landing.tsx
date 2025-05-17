@@ -157,8 +157,7 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
-              <span className="font-normal">5 Ducks 🦆 are waiting for you to click "Send". <br />
-              What are you waiting for? 🤷🏼‍♀️</span>
+              <span className="font-normal">Our AI will find the key decision-makers and help you send an email in 30 seconds.</span>
             </p>
 
             {/* Search Input */}
