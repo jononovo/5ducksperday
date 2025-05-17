@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LogOut, User, Menu, LayoutDashboard } from "lucide-react";
+import { LogOut, User, Menu, LayoutDashboard, ListTodo, Mail } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
@@ -14,8 +14,7 @@ import {
 const navigation = [
   { name: "Search", href: "/app" },
   { name: "Outreach", href: "/outreach" },
-  { name: "Lists", href: "/lists" },
-  { name: "Campaigns", href: "/campaigns" }
+  { name: "Replies", href: "/replies" }
 ];
 
 export function MainNav() {
@@ -69,6 +68,18 @@ export function MainNav() {
                 <DropdownMenuItem>
                   <User className="h-4 w-4 mr-2" />
                   <span>Account</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/lists">
+                <DropdownMenuItem>
+                  <ListTodo className="h-4 w-4 mr-2" />
+                  <span>Lists</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/campaigns">
+                <DropdownMenuItem>
+                  <Mail className="h-4 w-4 mr-2" />
+                  <span>Campaigns</span>
                 </DropdownMenuItem>
               </Link>
             </DropdownMenuContent>
