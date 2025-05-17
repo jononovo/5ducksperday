@@ -332,6 +332,18 @@ export default function LandingPage() {
 
               </div>
             </div>
+            
+            {/* Why Sign-up Section */}
+            <div className="mt-20 max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg">
+              <h3 className="text-2xl font-semibold mb-6 text-center">Why Sign-up?</h3>
+              <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
+                <ol className="list-decimal pl-6 space-y-4">
+                  <li>Because Consistency beats Motivation Every. Single. Time.</li>
+                  <li>If you have not sold anything in 90 days will give you the full 3 months re-imbursed (and will ban you from our platform as either your product sucks or you are a liar.)</li>
+                  <li>Because "Hakuna Matata" means "No worries" and we allow you to sell without analysis-paralysis. (The primary cause of bankruptcy, besides shit alt-coins of course.)</li>
+                </ol>
+              </div>
+            </div>
           </div>
         </section>
       </main>
