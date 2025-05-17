@@ -127,10 +127,11 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'temporary-secret-key',
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Set to false to work in development
+      httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     }
   };
