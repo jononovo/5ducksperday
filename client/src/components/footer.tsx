@@ -64,12 +64,12 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <Link href="/blog/privacy-policy" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                <Link href="/blog/privacy" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/blog/terms-of-service" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                <Link href="/blog/tos" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
                   Terms of Service
                 </Link>
               </li>

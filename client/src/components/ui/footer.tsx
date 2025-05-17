@@ -44,12 +44,12 @@ export function Footer() {
             <h3 className="font-semibold text-lg">Company</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/blog/privacy-policy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/blog/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/blog/terms-of-service" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/blog/tos" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Terms & Conditions
                 </Link>
               </li>

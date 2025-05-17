@@ -14,7 +14,7 @@ export interface BlogPost {
 export const blogPosts: BlogPost[] = [
   {
     id: 5,
-    slug: "terms-of-service",
+    slug: "tos",
     title: "5Ducks Terms of Service",
     excerpt: "Our complete terms of service, last updated May 17, 2025.",
     content: `
@@ -275,7 +275,7 @@ Address: 55 Water Street, New York City, 10005 NY
   },
   {
     id: 4,
-    slug: "privacy-policy",
+    slug: "privacy",
     title: "5Ducks Privacy Policy",
     excerpt: "Our complete privacy policy, last updated May 17, 2025.",
     content: `
