@@ -38,8 +38,7 @@ export default function Blog() {
                       className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center">
-                      <div className="absolute inset-0 bg-grid-white/[0.2] opacity-30"></div>
+                    <div className="w-full h-full bg-gradient-to-br from-blue-400/80 to-blue-600/80 flex items-center justify-center">
                       <div className="relative text-center px-6">
                         <h3 className="text-white text-xl md:text-2xl font-bold">
                           {post.title.split(' ').slice(0, 2).join(' ')}
@@ -47,7 +46,7 @@ export default function Blog() {
                       </div>
                     </div>
                   )}
-                  <div className="absolute top-0 right-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-bold px-3 py-1 m-2 rounded-full">
+                  <div className="absolute top-0 right-0 bg-blue-500/90 text-white text-xs font-bold px-3 py-1 m-2 rounded-full">
                     {post.category}
                   </div>
                 </div>
