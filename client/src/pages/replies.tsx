@@ -207,7 +207,7 @@ export default function Replies() {
       <div className="flex h-full space-x-4 overflow-hidden">
         {/* Column 1: Active Contacts (hidden when viewing a thread) */}
         {!selectedThreadId && (
-          <div className="w-1/3 h-full flex flex-col">
+          <div className={`${selectedContactId ? "w-1/3" : "w-full"} h-full flex flex-col`}>
             <Card className="h-full flex flex-col">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xl flex items-center">
@@ -444,24 +444,7 @@ export default function Replies() {
               </CardContent>
             </Card>
           </div>
-        ) : (
-          <div className="w-2/3 h-full flex flex-col items-center justify-center">
-            <Card className="w-2/3 max-w-md">
-              <CardContent className="pt-6 text-center">
-                <Mail className="h-12 w-12 text-primary/60 mx-auto mb-4" />
-                <h2 className="text-xl font-semibold mb-2">Email Replies</h2>
-                <p className="text-muted-foreground mb-6">
-                  Select a contact to view your conversations and manage replies.
-                </p>
-                <div className="flex justify-center">
-                  <Button variant="outline" onClick={() => setSelectedContactId(1)}>
-                    View Example
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
