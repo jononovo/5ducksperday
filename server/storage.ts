@@ -1,5 +1,6 @@
 import { 
   userPreferences, lists, companies, contacts, campaigns, emailTemplates, searchApproaches, users, searchTestResults,
+  emailThreads, emailMessages,
   type UserPreferences, type InsertUserPreferences,
   type List, type InsertList,
   type Company, type InsertCompany,
@@ -8,7 +9,9 @@ import {
   type EmailTemplate, type InsertEmailTemplate,
   type SearchApproach, type InsertSearchApproach,
   type User, type InsertUser,
-  type SearchTestResult, type InsertSearchTestResult
+  type SearchTestResult, type InsertSearchTestResult,
+  type EmailThread, type InsertEmailThread,
+  type EmailMessage, type InsertEmailMessage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql } from "drizzle-orm";
@@ -44,6 +47,17 @@ export interface IStorage {
   updateContact(id: number, data: Partial<Contact>): Promise<Contact>;
   deleteContactsByCompany(companyId: number, userId: number): Promise<void>;
 
+  // Email Conversations
+  listActiveContactsWithThreads(userId: number): Promise<(Contact & { lastMessage: string, lastMessageDate: Date, unread: boolean })[]>;
+  listThreadsByContact(contactId: number, userId: number): Promise<EmailThread[]>;
+  getThread(id: number, userId: number): Promise<EmailThread | undefined>;
+  createThread(data: InsertEmailThread): Promise<EmailThread>;
+  updateThread(id: number, data: Partial<EmailThread>): Promise<EmailThread>;
+  listMessagesByThread(threadId: number): Promise<EmailMessage[]>;
+  getThreadMessage(id: number): Promise<EmailMessage | undefined>;
+  createMessage(data: InsertEmailMessage): Promise<EmailMessage>;
+  markThreadMessagesAsRead(threadId: number): Promise<void>;
+  
   // Campaigns
   listCampaigns(userId: number): Promise<Campaign[]>;
   getCampaign(id: number, userId: number): Promise<Campaign | undefined>;

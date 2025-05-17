@@ -340,6 +340,30 @@ export const userSchema = z.object({
 export const insertUserSchema = userSchema;
 
 // Add webhook logs table for N8N workflow integration
+// Email conversation tables
+export const emailThreads = pgTable("email_threads", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  contactId: integer("contact_id").notNull().references(() => contacts.id),
+  subject: text("subject").notNull(),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  isArchived: boolean("is_archived").default(false)
+});
+
+export const emailMessages = pgTable("email_messages", {
+  id: serial("id").primaryKey(),
+  threadId: integer("thread_id").notNull().references(() => emailThreads.id),
+  from: text("from").notNull(),
+  fromEmail: text("from_email").notNull(),
+  to: text("to").notNull(),
+  toEmail: text("to_email").notNull(),
+  content: text("content").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  isRead: boolean("is_read").default(false),
+  direction: text("direction").notNull() // "outbound" or "inbound"
+});
+
 export const webhookLogs = pgTable("webhook_logs", {
   id: serial("id").primaryKey(),
   requestId: text("request_id").notNull(),
@@ -357,6 +381,24 @@ export const webhookLogs = pgTable("webhook_logs", {
 });
 
 // Define Schema for webhook logs
+// Email conversation schemas
+export const emailThreadSchema = z.object({
+  contactId: z.number(),
+  subject: z.string().min(1, "Subject is required"),
+  isArchived: z.boolean().default(false)
+});
+
+export const emailMessageSchema = z.object({
+  threadId: z.number(),
+  from: z.string().min(1, "Sender name is required"),
+  fromEmail: z.string().email("Invalid from email"),
+  to: z.string().min(1, "Recipient name is required"),
+  toEmail: z.string().email("Invalid to email"),
+  content: z.string().min(1, "Message content is required"),
+  isRead: z.boolean().default(false),
+  direction: z.enum(["outbound", "inbound"])
+});
+
 export const webhookLogSchema = z.object({
   requestId: z.string(),
   searchId: z.string().optional(),
@@ -370,7 +412,18 @@ export const webhookLogSchema = z.object({
   processingDetails: z.record(z.unknown()).optional()
 });
 
+export const insertEmailThreadSchema = emailThreadSchema.extend({
+  userId: z.number()
+});
+
+export const insertEmailMessageSchema = emailMessageSchema;
+
 export const insertWebhookLogSchema = webhookLogSchema;
+
+export type EmailThread = typeof emailThreads.$inferSelect;
+export type InsertEmailThread = z.infer<typeof insertEmailThreadSchema>;
+export type EmailMessage = typeof emailMessages.$inferSelect;
+export type InsertEmailMessage = z.infer<typeof insertEmailMessageSchema>;
 export type WebhookLog = typeof webhookLogs.$inferSelect;
 export type InsertWebhookLog = z.infer<typeof insertWebhookLogSchema>;
 
