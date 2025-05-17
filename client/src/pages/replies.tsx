@@ -449,17 +449,17 @@ export default function Replies() {
       <>
         {/* Left Column - Contacts or Thread List */}
         <div className={selectedThreadId ? "w-1/3" : (selectedContactId ? "w-1/3" : "w-full")} style={{ height: "100%" }}>
-          <Card className="h-full flex flex-col rounded-lg shadow">
+          <Card className="h-full flex flex-col rounded-lg shadow-none border-0">
             {!selectedThreadId ? (
               // Show contacts list when no thread is selected
               <>
-                <CardHeader className="pb-3 px-6">
+                <CardHeader className="pb-3 px-2">
                   <CardTitle className="text-xl flex items-center">
                     <Mail className="mr-2 h-5 w-5" />
                     Active Conversations
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex-1 overflow-hidden px-6 py-4">
+                <CardContent className="flex-1 overflow-hidden px-2 py-1">
                   <ScrollArea className="h-full pr-4">
                     <div className="space-y-2">
                       {activeContacts.map(contact => (
