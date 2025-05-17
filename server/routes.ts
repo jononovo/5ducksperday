@@ -6,6 +6,8 @@ import { extractContacts } from "./lib/perplexity";
 import { parseCompanyData } from "./lib/results-analysis/company-parser";
 import { queryPerplexity } from "./lib/api/perplexity-client";
 import { searchContactDetails } from "./lib/api-interactions";
+import { google } from "googleapis";
+import { getEmailProvider } from "./services/emailService";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
 import { insertEmailTemplateSchema, insertSearchTestResultSchema, insertEmailThreadSchema, insertEmailMessageSchema } from "@shared/schema";
 import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
@@ -140,9 +142,10 @@ export function registerRoutes(app: Express) {
   app.post('/api/replies/thread', requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user.id;
+      const gmailToken = (req.session as any)?.gmailToken || null;
       
       // Get the appropriate email provider
-      const emailProvider = getEmailProvider(userId);
+      const emailProvider = getEmailProvider(userId, gmailToken);
       
       // Create thread using the provider
       const thread = await emailProvider.createThread({
@@ -160,9 +163,10 @@ export function registerRoutes(app: Express) {
   app.post('/api/replies/message', requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user.id;
+      const gmailToken = (req.session as any)?.gmailToken || null;
       
       // Get the appropriate email provider
-      const emailProvider = getEmailProvider(userId);
+      const emailProvider = getEmailProvider(userId, gmailToken);
       
       // Create message using the provider
       const message = await emailProvider.createMessage(req.body);
