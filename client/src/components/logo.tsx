@@ -10,13 +10,16 @@ interface LogoProps {
   asLink?: boolean;
   // Optional additional className
   className?: string;
+  // Whether to use image logo
+  useImage?: boolean;
 }
 
 export function Logo({ 
   size = "md", 
   showEmojis = true, 
   asLink = true,
-  className = ""
+  className = "",
+  useImage = false
 }: LogoProps) {
   // Size-specific classes
   const sizeClasses = {
@@ -46,7 +49,14 @@ export function Logo({
     lg: "text-2xl"
   };
   
-  const LogoContent = (
+  // Image logo size classes
+  const imageSizeClasses = {
+    sm: "h-8 w-8",
+    md: "h-10 w-10",
+    lg: "h-12 w-12"
+  };
+  
+  const TextLogoContent = (
     <div className={`font-bold flex items-center ${sizeClasses[size]} ${className}`}>
       <span className="text-gray-500 dark:text-gray-400">5</span>
       <span className="text-gray-700 dark:text-gray-300">Ducks</span>
@@ -59,6 +69,22 @@ export function Logo({
       )}
     </div>
   );
+  
+  const ImageLogoContent = (
+    <div className={`flex items-center ${className}`}>
+      <img 
+        src="/logo.png" 
+        alt="5Ducks Logo" 
+        className={`${imageSizeClasses[size]} mr-2`} 
+      />
+      <div className={`font-bold ${sizeClasses[size]}`}>
+        <span className="text-gray-500 dark:text-gray-400">5</span>
+        <span className="text-gray-700 dark:text-gray-300">Ducks</span>
+      </div>
+    </div>
+  );
+  
+  const LogoContent = useImage ? ImageLogoContent : TextLogoContent;
   
   // If logo should be a link, wrap in Link component
   if (asLink) {

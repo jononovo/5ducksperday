@@ -134,7 +134,7 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950">
       {/* Header */}
       <header className="container mx-auto py-4 px-4 flex justify-between items-center">
-        <Logo size="lg" asLink={false} />
+        <Logo size="lg" asLink={false} useImage={true} />
         <Link href="/auth">
           <Button variant="outline" className="flex items-center gap-2">
             <User size={16} />
