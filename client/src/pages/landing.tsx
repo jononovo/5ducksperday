@@ -12,7 +12,7 @@ import {
   ChevronRight,
   Sparkles
 } from "lucide-react";
-import { Footer } from "@/components/ui/footer";
+import { Footer } from "@/components/footer";
 import {
   Dialog,
   DialogContent,
@@ -217,11 +217,11 @@ export default function LandingPage() {
                 <div className="text-sm text-slate-500 dark:text-slate-400">Saved per Week</div>
               </div>
               <div className="text-center p-3 md:p-4">
-                <div className="text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">125 Targets </div>
+                <div className="text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">225 Targets </div>
                 <div className="text-sm text-slate-500 dark:text-slate-400">Sweet-talked to per Month</div>
               </div>
               <div className="text-center p-3 md:p-4">
-                <div className="text-3xl md:text-4xl font-bold text-pink-600 dark:text-pink-400 mb-2">~$50k</div>
+                <div className="text-3xl md:text-4xl font-bold text-pink-600 dark:text-pink-400 mb-2">Avg $50k</div>
                 <div className="text-sm text-slate-500 dark:text-slate-400">New Revenue Pipeline*</div>
               </div>
             </div>
@@ -283,7 +283,7 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mb-4">
                   <User className="text-purple-600 dark:text-purple-400" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">We limit you to 5 Emails per Day</h3>
+                <h3 className="text-xl font-semibold mb-2">We limit you to 10 Emails per Day</h3>
                 <p className="text-slate-600 dark:text-slate-400">So that you never have to feel intimidated about doing outreach.</p>
               </div>
               
@@ -329,7 +329,6 @@ export default function LandingPage() {
                 Thanks for listening and enjoy. <br />
                 - <strong>Jon</strong>
                 </p>
-
               </div>
             </div>
             
@@ -414,35 +413,22 @@ export default function LandingPage() {
               </div>
             </div>
             
-            {/* Only show current step description */}
-            <div className="min-h-[80px] text-center max-w-2xl mx-auto">
-              <h4 className="text-lg md:text-xl font-medium mb-2">
-                {SEARCH_STEPS[currentStep - 1].title}
-              </h4>
-              <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
-                {SEARCH_STEPS[currentStep - 1].description}
+            {/* Current step description */}
+            <div className="text-center mb-4">
+              <h3 className="text-xl md:text-2xl font-semibold mb-2">
+                {SEARCH_STEPS[currentStep - 1]?.title || "Finalizing..."}
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400">
+                {SEARCH_STEPS[currentStep - 1]?.description || "Almost done..."}
               </p>
             </div>
-          </div>
-          
-          {/* Registration prompt always visible */}
-          <div className="p-6 md:p-8 pt-4 border-t">
-            <p className="mb-6 text-center text-base md:text-lg font-medium">
-              Register to see your search results
-            </p>
-            <div className="max-w-md mx-auto">
-              <Button 
-                onClick={() => signInWithGoogle().catch(err => console.error("Google sign-in error:", err))} 
-                className="w-full py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg text-base"
-              >
-                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-3" />
-                <span>Sign in with Google</span>
-              </Button>
-              <p className="mt-4 text-center text-sm text-slate-500">
-                <Link href="/auth" className="text-blue-500 hover:underline">
-                  Login
-                </Link>
-              </p>
+            
+            {/* Loading animation */}
+            <div className="flex justify-center my-8">
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-900/30 rounded-full"></div>
+                <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+              </div>
             </div>
           </div>
         </DialogContent>
