@@ -32,21 +32,31 @@ export default function Blog() {
               <Card key={post.id} className="overflow-hidden transition-all duration-300 hover:shadow-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-full flex flex-col">
                 <div className="relative w-full h-48 overflow-hidden">
                   <div className={`w-full h-full flex items-center justify-center
-                    ${post.category === 'Strategy' ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20' : 
-                      post.category === 'Technology' ? 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20' : 
-                      'bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20'}`}>
-                    <h3 className={`${post.category === 'Strategy' ? 'text-purple-600 dark:text-purple-400' : 
-                      post.category === 'Technology' ? 'text-blue-600 dark:text-blue-400' : 
-                      'text-indigo-600 dark:text-indigo-400'} text-xl md:text-2xl font-bold text-center px-6`}>
-                      {post.title.split(' ').slice(0, 3).join(' ')}
-                    </h3>
+                    ${post.category === 'Strategy' 
+                      ? 'bg-gradient-to-r from-yellow-50 via-purple-50 to-blue-50 dark:from-yellow-900/10 dark:via-purple-900/10 dark:to-blue-900/10' 
+                      : post.category === 'Technology' 
+                      ? 'bg-gradient-to-br from-blue-50 via-cyan-50 to-green-50 dark:from-blue-900/10 dark:via-cyan-900/10 dark:to-green-900/10' 
+                      : 'bg-gradient-to-r from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-900/10 dark:via-amber-900/10 dark:to-yellow-900/10'}`}>
+                    <div className="relative z-10 p-4">
+                      <h3 className={`${post.category === 'Strategy' 
+                        ? 'text-purple-700 dark:text-purple-400' 
+                        : post.category === 'Technology' 
+                        ? 'text-blue-700 dark:text-blue-400' 
+                        : 'text-amber-700 dark:text-amber-400'} text-xl md:text-2xl font-bold text-center`}>
+                        {post.title.split(' ').slice(0, 3).join(' ')}
+                      </h3>
+                    </div>
                     
                     <div className={`absolute top-0 right-0 text-white text-xs font-bold px-3 py-1 m-2 rounded-full
-                      ${post.category === 'Strategy' ? 'bg-purple-500' : 
-                        post.category === 'Technology' ? 'bg-blue-500' : 
-                        'bg-indigo-500'}`}>
+                      ${post.category === 'Strategy' 
+                        ? 'bg-gradient-to-r from-purple-500 to-indigo-500' 
+                        : post.category === 'Technology' 
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500' 
+                        : 'bg-gradient-to-r from-amber-500 to-orange-500'}`}>
                       {post.category}
                     </div>
+                    
+                    <div className="absolute inset-0 opacity-10 bg-grid-slate-700/20"></div>
                   </div>
                 </div>
                 <CardHeader className="pb-2">
