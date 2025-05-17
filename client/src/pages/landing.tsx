@@ -217,8 +217,8 @@ export default function LandingPage() {
                 <div className="text-sm text-slate-500 dark:text-slate-400">Saved per Week</div>
               </div>
               <div className="text-center p-3 md:p-4">
-                <div className="text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">25 Emails</div>
-                <div className="text-sm text-slate-500 dark:text-slate-400">To Ultra Targets</div>
+                <div className="text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">125 Targets </div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">Sweet-talked to per Month</div>
               </div>
               <div className="text-center p-3 md:p-4">
                 <div className="text-3xl md:text-4xl font-bold text-pink-600 dark:text-pink-400 mb-2">~$50k</div>
@@ -276,7 +276,7 @@ export default function LandingPage() {
                   <Search className="text-blue-600 dark:text-blue-400" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">You're already wasting time</h3>
-                <p className="text-slate-600 dark:text-slate-400">What you should be doing is sending simple emails to amazing people about how you are going to solve their problem.</p>
+                <p className="text-slate-600 dark:text-slate-400">You should be sending simple emails to amazing people about how you are solving their problem.</p>
               </div>
               
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
