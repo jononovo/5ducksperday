@@ -31,23 +31,14 @@ export default function Blog() {
             {posts.map((post) => (
               <Card key={post.id} className="overflow-hidden transition-all duration-300 hover:shadow-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-full flex flex-col">
                 <div className="relative w-full h-48 overflow-hidden">
-                  {post.imageUrl ? (
-                    <img 
-                      src={post.imageUrl} 
-                      alt={post.title}
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-blue-400/80 to-blue-600/80 flex items-center justify-center">
-                      <div className="relative text-center px-6">
-                        <h3 className="text-white text-xl md:text-2xl font-bold">
-                          {post.title.split(' ').slice(0, 2).join(' ')}
-                        </h3>
-                      </div>
+                  <div className="w-full h-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                    <h3 className="text-blue-600 text-xl md:text-2xl font-bold text-center px-6">
+                      {post.title.split(' ').slice(0, 3).join(' ')}
+                    </h3>
+                    
+                    <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 m-2 rounded-full">
+                      {post.category}
                     </div>
-                  )}
-                  <div className="absolute top-0 right-0 bg-blue-500/90 text-white text-xs font-bold px-3 py-1 m-2 rounded-full">
-                    {post.category}
                   </div>
                 </div>
                 <CardHeader className="pb-2">
