@@ -538,7 +538,7 @@ export default function Replies() {
                     New Email
                   </Button>
                 </CardHeader>
-                <CardContent className="flex-1 overflow-hidden px-6 py-4">
+                <CardContent className="flex-1 overflow-hidden px-2 py-2">
                   <ScrollArea className="h-full pr-4">
                     <div className="space-y-3">
                       {contactThreads.map(thread => (
@@ -606,7 +606,7 @@ export default function Replies() {
                   New Email
                 </Button>
               </CardHeader>
-              <CardContent className="flex-1 overflow-hidden px-6 py-4">
+              <CardContent className="flex-1 overflow-hidden px-2 py-2">
                 <ScrollArea className="h-full pr-4">
                   <div className="space-y-3">
                     {contactThreads.length > 0 ? (
@@ -659,8 +659,8 @@ export default function Replies() {
         {/* Right Column - Thread Content */}
         {selectedThreadId && (
           <div className="w-2/3 pl-4" style={{ height: "100%" }}>
-            <Card className="h-full flex flex-col rounded-lg shadow">
-              <CardHeader className="pb-3 px-6">
+            <Card className="h-full flex flex-col rounded-lg shadow-none border-0">
+              <CardHeader className="pb-3 px-2">
                 <div>
                   <CardTitle className="text-xl truncate">
                     {selectedThread?.subject}
@@ -670,7 +670,7 @@ export default function Replies() {
                   </p>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 flex flex-col overflow-hidden px-6 py-4">
+              <CardContent className="flex-1 flex flex-col overflow-hidden px-2 py-2">
                 {/* Message thread view */}
                 <ScrollArea className="flex-1 pr-4 mb-4">
                   <div className="space-y-6">
