@@ -384,7 +384,7 @@ export function registerRoutes(app: Express) {
                   // Create a new company
                   const newCompany = await storage.createCompany({
                     name: contact.companyName,
-                    userId: req.user!.id
+                    userId: userId
                   });
                   companyId = newCompany.id;
                 }
@@ -403,7 +403,7 @@ export function registerRoutes(app: Express) {
                 linkedinUrl: contact.linkedin || null,
                 phoneNumber: contact.phone || null,
                 companyId,
-                userId: req.user!.id,
+                userId: userId,
                 probability: contact.probability ? parseFloat(contact.probability) : null,
                 alternativeEmails: contact.alternativeEmails || null,
                 confidence: contact.confidence || null
@@ -476,7 +476,7 @@ export function registerRoutes(app: Express) {
       
       // Prepare additional parameters based on the strategy and custom URLs
       const additionalParams: Record<string, any> = {
-        userId: req.user!.id,
+        userId: userId,
         strategyId: strategyId || null,
         provider: workflowProvider
       };
@@ -592,7 +592,7 @@ export function registerRoutes(app: Express) {
         listId,
         prompt,
         resultCount: companies.length,
-        userId: req.user!.id
+        userId: userId
       });
 
       await Promise.all(
@@ -620,7 +620,7 @@ export function registerRoutes(app: Express) {
     try {
       console.log('GET /api/companies/:id - Request params:', {
         id: req.params.id,
-        userId: req.user!.id
+        userId: userId
       });
 
       const company = await storage.getCompany(parseInt(req.params.id), req.user!.id);
@@ -887,7 +887,7 @@ export function registerRoutes(app: Express) {
                 nameConfidenceScore: contact.nameConfidenceScore ?? null,
                 userFeedbackScore: null,
                 feedbackCount: 0,
-                userId: req.user!.id
+                userId: userId
               })
             )
           );
@@ -1041,7 +1041,7 @@ export function registerRoutes(app: Express) {
               department: null,
               location: null,
               verificationSource: 'Decision-maker Analysis',
-              userId: req.user!.id
+              userId: userId
             });
           })
         );
@@ -1067,7 +1067,7 @@ export function registerRoutes(app: Express) {
     try {
       console.log('GET /api/contacts/:id - Request params:', {
         id: req.params.id,
-        userId: req.user!.id
+        userId: userId
       });
 
       const contact = await storage.getContact(parseInt(req.params.id), req.user!.id);
@@ -1144,7 +1144,7 @@ export function registerRoutes(app: Express) {
         ...req.body,
         campaignId,
         totalCompanies: 0,
-        userId: req.user!.id
+        userId: userId
       });
 
       if (!result.success) {
@@ -1212,12 +1212,12 @@ export function registerRoutes(app: Express) {
     try {
       console.log('POST /api/email-templates - Request body:', {
         ...req.body,
-        userId: req.user!.id
+        userId: userId
       });
 
       const result = insertEmailTemplateSchema.safeParse({
         ...req.body,
-        userId: req.user!.id,
+        userId: userId,
         category: req.body.category || 'general'
       });
 
@@ -1343,7 +1343,7 @@ export function registerRoutes(app: Express) {
     try {
       const result = insertSearchTestResultSchema.safeParse({
         ...req.body,
-        userId: req.user!.id,
+        userId: userId,
         createdAt: new Date()
       });
       
@@ -1714,7 +1714,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         // Persist the test result to the database
         const testData = {
           testId: testResponse.id,
-          userId: req.user!.id,
+          userId: userId,
           strategyId: strategyId,
           query: query,
           companyQuality: metrics.companyQuality,
