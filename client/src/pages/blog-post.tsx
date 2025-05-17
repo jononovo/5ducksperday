@@ -24,15 +24,14 @@ export default function BlogPost() {
     <div className="min-h-screen flex flex-col">
       <div className="container mx-auto py-12 px-4 flex-1">
         <div className="max-w-3xl mx-auto">
-          <Link href="/blog">
-            <Button 
-              variant="ghost" 
-              className="mb-8 flex items-center" 
-            >
-              <ArrowLeft size={16} className="mr-2" />
-              Back to Blog
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            className="mb-8 flex items-center" 
+            onClick={() => navigate("/blog")}
+          >
+            <ArrowLeft size={16} className="mr-2" />
+            Back to Blog
+          </Button>
 
           {/* Create a header area with matching gradients based on category */}
           <div className={`mb-8 w-full h-64 rounded-xl flex items-center justify-center overflow-hidden
