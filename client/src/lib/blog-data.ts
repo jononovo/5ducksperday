@@ -60,7 +60,7 @@ After your first week, you'll unlock HATCHED-LEVEL status with expanded limits a
     author: "Jon Smith",
     category: "Tutorial",
     tags: ["getting started", "tutorial", "outreach"],
-    imageUrl: "https://placehold.co/600x400/f0f4f8/666666?text=5+Ducks+Guide"
+    imageUrl: "https://placehold.co/600x400/eef2ff-d1fae5/4338ca?text=5+Ducks+Guide"
   },
   {
     id: 2,
@@ -106,7 +106,7 @@ Build your 5-per-day habit with 5Ducks, and watch how these small, consistent ac
     author: "Jon Smith",
     category: "Strategy",
     tags: ["consistency", "habits", "sales strategy"],
-    imageUrl: "https://placehold.co/600x400/f8f9fa/666666?text=Consistency+Beats+Motivation"
+    imageUrl: "https://placehold.co/600x400/f5f3ff-faf5ff/7c3aed?text=Consistency+Beats+Motivation"
   },
   {
     id: 3,
@@ -160,7 +160,7 @@ This balanced approach is at the heart of the 5Ducks philosophy—technology tha
     author: "Jon Smith",
     category: "Technology",
     tags: ["AI", "technology", "future of sales"],
-    imageUrl: "https://placehold.co/600x400/f5f7fa/666666?text=AI+in+Sales"
+    imageUrl: "https://placehold.co/600x400/eff6ff-dbeafe/3b82f6?text=AI+in+Sales"
   }
 ];
 
