@@ -33,15 +33,26 @@ export default function BlogPost() {
             Back to Blog
           </Button>
 
-          {post.imageUrl && (
-            <div className="mb-8">
-              <img 
-                src={post.imageUrl} 
-                alt={post.title}
-                className="w-full h-64 object-cover rounded-xl"
-              />
+          {/* Create a header area with matching gradients based on category */}
+          <div className={`mb-8 w-full h-64 rounded-xl flex items-center justify-center overflow-hidden
+            ${post.category === 'Strategy' 
+              ? 'bg-gradient-to-r from-yellow-50 via-purple-50 to-blue-50 dark:from-yellow-900/10 dark:via-purple-900/10 dark:to-blue-900/10' 
+              : post.category === 'Technology' 
+              ? 'bg-gradient-to-br from-blue-50 via-cyan-50 to-green-50 dark:from-blue-900/10 dark:via-cyan-900/10 dark:to-green-900/10' 
+              : 'bg-gradient-to-r from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-900/10 dark:via-amber-900/10 dark:to-yellow-900/10'}`}>
+            <div className="relative z-10">
+              <h2 className={`text-6xl font-bold text-center px-6
+                ${post.category === 'Strategy' 
+                  ? 'text-purple-600 dark:text-purple-400' 
+                  : post.category === 'Technology' 
+                  ? 'text-blue-600 dark:text-blue-400' 
+                  : 'text-amber-600 dark:text-amber-400'}`}>
+                {post.title.split(' ').slice(0, 3).join(' ')}
+              </h2>
             </div>
-          )}
+            <div className="absolute inset-0 opacity-10 bg-grid-slate-700/20"></div>
+          </div>
+          
 
           <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
           
