@@ -79,7 +79,7 @@ export default function BlogPost() {
 
           <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
             <h3 className="font-semibold mb-4">Tags</h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mb-8">
               {post.tags.map((tag) => (
                 <span 
                   key={tag}
@@ -92,7 +92,6 @@ export default function BlogPost() {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
