@@ -47,12 +47,7 @@ export default function Blog() {
                       </h3>
                     </div>
                     
-                    <div className={`absolute top-0 right-0 text-white text-xs font-bold px-3 py-1 m-2 rounded-full
-                      ${post.category === 'Strategy' 
-                        ? 'bg-gradient-to-r from-purple-500 to-indigo-500' 
-                        : post.category === 'Technology' 
-                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500' 
-                        : 'bg-gradient-to-r from-amber-500 to-orange-500'}`}>
+                    <div className="absolute top-0 right-0 bg-gray-800 dark:bg-gray-900 text-white text-xs font-bold px-3 py-1 m-2 rounded-full">
                       {post.category}
                     </div>
                     
