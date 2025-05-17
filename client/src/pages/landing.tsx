@@ -13,6 +13,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { Footer } from "@/components/footer";
+import { Logo } from "@/components/logo";
 import {
   Dialog,
   DialogContent,
@@ -133,14 +134,7 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950">
       {/* Header */}
       <header className="container mx-auto py-4 px-4 flex justify-between items-center">
-        <div className="text-2xl font-bold flex items-center">
-          <span className="text-gray-500 dark:text-gray-400">5</span>
-          <span className="text-gray-700 dark:text-gray-300">Ducks</span>
-          <div className="flex ml-2">
-            <span className="text-2xl">🐥</span>
-            <span className="text-xl">🥚🥚🥚🥚</span>
-          </div>
-        </div>
+        <Logo size="lg" asLink={false} />
         <Link href="/auth">
           <Button variant="outline" className="flex items-center gap-2">
             <User size={16} />

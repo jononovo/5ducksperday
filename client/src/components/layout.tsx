@@ -1,4 +1,4 @@
-import { Footer } from "@/components/ui/footer";
+import { Footer } from "@/components/footer";
 
 interface LayoutProps {
   children: React.ReactNode;

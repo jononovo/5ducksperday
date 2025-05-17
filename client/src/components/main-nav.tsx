@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
-import { Bird, LogOut, User, Menu, LayoutDashboard } from "lucide-react";
+import { LogOut, User, Menu, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,11 +25,7 @@ export function MainNav() {
   return (
     <nav className="flex items-center justify-between border-b mb-4 px-4 py-3">
       <div className="flex items-center space-x-4">
-        <Link href="/" className="group flex items-center gap-2 mr-8">
-          <Bird className="h-7 w-7 text-primary transition-colors group-hover:text-primary/90" 
-                style={{ transform: 'scaleX(-1)' }} /> {/* Flip the bird to face right */}
-          <span className="font-semibold text-lg transition-colors group-hover:text-primary/90">5 Ducks</span>
-        </Link>
+        <Logo size="sm" className="mr-8" />
         {navigation.map((item) => {
           const isActive = item.href === location || 
             (item.href === "/" && location === "/");
