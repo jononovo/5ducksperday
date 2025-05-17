@@ -25,11 +25,25 @@ export function Logo({
     lg: "text-3xl"
   };
   
-  // Emoji size classes
-  const emojiSizeClasses = {
-    sm: "text-lg ml-1",
-    md: "text-2xl ml-2",
-    lg: "text-3xl ml-3"
+  // Emoji container size classes (for spacing)
+  const emojiContainerClasses = {
+    sm: "ml-1",
+    md: "ml-2",
+    lg: "ml-3"
+  };
+  
+  // Duck emoji size classes (slightly larger)
+  const duckSizeClasses = {
+    sm: "text-xl",
+    md: "text-2xl",
+    lg: "text-3xl"
+  };
+  
+  // Egg emoji size classes (slightly smaller than duck)
+  const eggSizeClasses = {
+    sm: "text-base",
+    md: "text-xl",
+    lg: "text-2xl"
   };
   
   const LogoContent = (
@@ -38,9 +52,9 @@ export function Logo({
       <span className="text-gray-700 dark:text-gray-300">Ducks</span>
       
       {showEmojis && (
-        <div className={`flex ${emojiSizeClasses[size]}`}>
-          <span className={sizeClasses[size]}>🐥</span>
-          <span className={size === "sm" ? "text-md" : "text-xl"}>🥚🥚🥚🥚</span>
+        <div className={`flex items-end ${emojiContainerClasses[size]}`}>
+          <span className={duckSizeClasses[size]}>🐥</span>
+          <span className={eggSizeClasses[size]}>🥚🥚🥚🥚</span>
         </div>
       )}
     </div>
