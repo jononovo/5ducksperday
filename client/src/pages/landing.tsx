@@ -167,7 +167,7 @@ export default function LandingPage() {
               <div className="relative bg-white dark:bg-slate-900 rounded-full">
                 <Input
                   type="text"
-                  placeholder="What type of businesses are you looking for?"
+                  placeholder="What type of businesses do you sell to?"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-12 pr-36 py-7 text-lg rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500"
@@ -304,7 +304,7 @@ export default function LandingPage() {
             <div className="mt-20 max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg">
               <h3 className="text-2xl font-semibold mb-6 text-center">My Story</h3>
               <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
-                <p>I do 10 push-ups before every shower and I realized that if I do 20, I will very soon stop doing them. But I'll come back to that later.</p>
+                <p>I do 10 push-ups before every shower and I realized that if I do 20, I will very soon stop doing them. But I will explain that later. </p>
                 
                 <p className="mt-4">In February, after spending an embarrassingly long amount of time creating a SaaS product with a couple of developers.
                 It was finally time to start selling. But being easily distracted, I instead figured that I should create a tool that will make selling easier for me. (Of course!!! That's not procrastination. That's efficiency.)</p>
@@ -331,35 +331,14 @@ export default function LandingPage() {
               <h3 className="text-2xl font-semibold mb-6 text-center">Why Sign-up?</h3>
               <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
                 <ol className="list-decimal pl-6 space-y-4">
-                  <li>Because Consistency beats Motivation Every. Single. Time.</li>
-                  <li>If you have not sold anything in 90 days will give you the full 3 months re-imbursed (and will ban you from our platform as either your product sucks or you are a liar.)</li>
-                  <li>Because "Hakuna Matata" means "No worries" and we allow you to sell without analysis-paralysis. (The primary cause of bankruptcy, besides shit alt-coins of course.)</li>
+                  <li>Because <strong>consistency beats motivation</strong> Every. Single. Time.</li>
+                  <li>If you have not sold anything* in 90 days will <strong>reimburse you the full 3 months</strong> subscription (and will gently encourage you to find a better product to sell.)</li>
+                  <li>Because "Hakuna Matata" means "No worries" and we allow you to <strong>sell without analysis-paralysis</strong> (which is primary cause of bankruptcy.)</li>
                 </ol>
               </div>
             </div>
             
-            {/* Become an Eliteist Section */}
-            <div className="mt-20 max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg">
-              <h3 className="text-2xl font-semibold mb-6 text-center">Become an Eliteist</h3>
-              <p className="text-slate-600 dark:text-slate-400 italic mb-6 text-center">(Someone who thinks they are better than others, usually because they have some capacity that most don't.)</p>
-              
-              <div className="space-y-8">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-lg">
-                  <h4 className="font-bold text-lg mb-2 text-blue-700 dark:text-blue-300">HATCHED-LEVEL</h4>
-                  <p className="text-slate-700 dark:text-slate-300"><strong>After one week: Limits are doubled</strong> We release the cap of max 5 emails per day. You will then be allowed to send up to 10 per day. But we will still only celebrate once the first 5 are sent.</p>
-                </div>
-                
-                <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-lg">
-                  <h4 className="font-bold text-lg mb-2 text-purple-700 dark:text-purple-300">PEEPING-LEVEL</h4>
-                  <p className="text-slate-700 dark:text-slate-300"><strong>After 2-3 weeks: AI Starts Learning</strong> Our AI engine can begin to analyse which email content and which types of contacts respond best to you.</p>
-                </div>
-                
-                <div className="bg-green-50 dark:bg-green-900/20 p-5 rounded-lg">
-                  <h4 className="font-bold text-lg mb-2 text-green-700 dark:text-green-300">CHIRPING-LEVEL</h4>
-                  <p className="text-slate-700 dark:text-slate-300"><strong>After 4-6 weeks: Full Automation</strong> Our system can begin to auto-generate and send emails on your behalf based on your performance history.</p>
-                </div>
-              </div>
-            </div>
+            
           </div>
         </section>
       </main>
