@@ -47,7 +47,7 @@ export default function Blog() {
                       </h3>
                     </div>
                     
-                    <div className="absolute top-0 right-0 bg-gray-800 dark:bg-gray-900 text-white text-xs font-bold px-3 py-1 m-2 rounded-full">
+                    <div className="absolute top-0 right-0 bg-gray-700 dark:bg-gray-800 text-white text-xs font-bold px-3 py-1 m-2 rounded-full">
                       {post.category}
                     </div>
                     
