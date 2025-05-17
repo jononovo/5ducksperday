@@ -61,7 +61,9 @@ export default function BlogPost() {
           </div>
 
           <div className="prose dark:prose-invert max-w-none">
-            <ReactMarkdown>{post.content}</ReactMarkdown>
+            <ReactMarkdown>
+              {post.content.replace(`# ${post.title}`, '')}
+            </ReactMarkdown>
           </div>
 
           <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
