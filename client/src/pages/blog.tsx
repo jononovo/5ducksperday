@@ -31,12 +31,20 @@ export default function Blog() {
             {posts.map((post) => (
               <Card key={post.id} className="overflow-hidden transition-all duration-300 hover:shadow-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-full flex flex-col">
                 <div className="relative w-full h-48 overflow-hidden">
-                  <div className="w-full h-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
-                    <h3 className="text-blue-600 text-xl md:text-2xl font-bold text-center px-6">
+                  <div className={`w-full h-full flex items-center justify-center
+                    ${post.category === 'Strategy' ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20' : 
+                      post.category === 'Technology' ? 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20' : 
+                      'bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20'}`}>
+                    <h3 className={`${post.category === 'Strategy' ? 'text-purple-600 dark:text-purple-400' : 
+                      post.category === 'Technology' ? 'text-blue-600 dark:text-blue-400' : 
+                      'text-indigo-600 dark:text-indigo-400'} text-xl md:text-2xl font-bold text-center px-6`}>
                       {post.title.split(' ').slice(0, 3).join(' ')}
                     </h3>
                     
-                    <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 m-2 rounded-full">
+                    <div className={`absolute top-0 right-0 text-white text-xs font-bold px-3 py-1 m-2 rounded-full
+                      ${post.category === 'Strategy' ? 'bg-purple-500' : 
+                        post.category === 'Technology' ? 'bg-blue-500' : 
+                        'bg-indigo-500'}`}>
                       {post.category}
                     </div>
                   </div>
