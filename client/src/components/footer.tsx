@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { Logo } from "@/components/logo";
 
 export function Footer() {
   return (
@@ -6,8 +7,8 @@ export function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">5Ducks</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <Logo size="sm" asLink={false} showEmojis={false} />
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-4">
               Helping you discover and connect with your ideal prospects, 5 contacts at a time.
             </p>
           </div>
@@ -16,24 +17,18 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-4">Product</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/pricing">
-                  <a className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
-                    Pricing
-                  </a>
+                <Link href="/pricing" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                  Pricing
                 </Link>
               </li>
               <li>
-                <Link href="/levels">
-                  <a className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
-                    Levels
-                  </a>
+                <Link href="/levels" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                  Levels
                 </Link>
               </li>
               <li>
-                <Link href="/blog">
-                  <a className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
-                    Blog
-                  </a>
+                <Link href="/blog" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                  Blog
                 </Link>
               </li>
             </ul>
@@ -43,45 +38,59 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-4">Company</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/contact">
-                  <a className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
-                    Contact
-                  </a>
+                <Link href="/contact" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                  Contact
                 </Link>
               </li>
               <li>
-                <Link href="/support">
-                  <a className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
-                    Support
-                  </a>
+                <Link href="/support" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                  Support
                 </Link>
               </li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-4">Legal</h3>
+            <h3 className="text-lg font-semibold mb-4">Stay Connected</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/privacy">
-                  <a className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
-                    Privacy Policy
-                  </a>
+                <a 
+                  href="https://newsletter.5ducks.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  Newsletter
+                </a>
+              </li>
+              <li>
+                <Link href="/privacy" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                  Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms">
-                  <a className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
-                    Terms of Service
-                  </a>
+                <Link href="/terms" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                  Terms of Service
                 </Link>
               </li>
             </ul>
           </div>
         </div>
         
-        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 text-center text-sm text-slate-600 dark:text-slate-400">
-          <p>© {new Date().getFullYear()} 5Ducks. All rights reserved.</p>
+        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <div className="text-sm text-slate-600 dark:text-slate-400">
+            © {new Date().getFullYear()} 5Ducks. All rights reserved.
+          </div>
+          <div className="flex items-center space-x-4">
+            <a
+              href="https://www.linkedin.com/company/5-ducks"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              LinkedIn
+            </a>
+          </div>
         </div>
       </div>
     </footer>
