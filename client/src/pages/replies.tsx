@@ -131,13 +131,11 @@ export default function Replies() {
   // In a real implementation, these would be API calls
   const { data: activeContacts = MOCK_ACTIVE_CONTACTS } = useQuery<Contact[]>({
     queryKey: ["/api/replies/contacts"],
-    // This would be enabled in the real implementation
     enabled: false
   });
 
   const { data: emailThreads = MOCK_EMAIL_THREADS } = useQuery<EmailThread[]>({
     queryKey: ["/api/replies/threads", selectedContactId],
-    // This would be enabled in the real implementation when a contact is selected
     enabled: false
   });
 
@@ -147,13 +145,9 @@ export default function Replies() {
       setIsMobile(window.innerWidth < 768);
     };
     
-    // Set initial value
     handleResize();
-    
-    // Add event listener
     window.addEventListener('resize', handleResize);
     
-    // Cleanup
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -165,9 +159,14 @@ export default function Replies() {
   // Get the currently selected thread
   const selectedThread = emailThreads.find(thread => thread.id === selectedThreadId);
 
+  // Get the selected contact
+  const selectedContact = activeContacts.find(
+    contact => contact.id === selectedContactId
+  );
+
   const handleSelectContact = (contactId: number) => {
     setSelectedContactId(contactId);
-    setSelectedThreadId(null); // Reset thread selection
+    setSelectedThreadId(null);
   };
 
   const handleSelectThread = (threadId: number) => {
@@ -176,22 +175,19 @@ export default function Replies() {
 
   const handleBack = () => {
     if (selectedThreadId) {
-      setSelectedThreadId(null); // Go back to threads view
+      setSelectedThreadId(null);
     } else if (selectedContactId) {
-      setSelectedContactId(null); // Go back to contacts view
+      setSelectedContactId(null);
     }
   };
 
-  // Start a new thread with the selected contact
   const handleNewThread = () => {
     toast({
       title: "Starting new thread",
       description: "This functionality will allow you to start a new thread with this contact."
     });
-    // In a real implementation, this would create a new thread and open it
   };
 
-  // Send a reply in the current thread
   const handleSendReply = () => {
     if (!replyContent.trim()) {
       toast({
@@ -206,105 +202,387 @@ export default function Replies() {
       title: "Sending reply",
       description: "Your reply is being sent..."
     });
-
-    // In a real implementation, this would call the API to send the email
-    // For now, we'll just clear the reply content
+    
     setReplyContent("");
   };
 
-  // Get the selected contact
-  const selectedContact = activeContacts.find(
-    contact => contact.id === selectedContactId
-  );
-
-  // Determine what content to show based on selection state and screen size
-  const showContactsList = !selectedThreadId || (isMobile && !selectedContactId);
-  const showThreadList = selectedContactId && (!selectedThreadId || (isMobile && !selectedThreadId));
-  const showThreadContent = selectedThreadId;
-
-  return (
-    <div className="h-[calc(100vh-4rem)] md:py-4 md:px-4">
-      <div className="flex h-full overflow-hidden">
-        {/* Column 1: Contacts List - Full width on mobile when nothing selected */}
-        {(!isMobile || (isMobile && !selectedContactId && !selectedThreadId)) && (
-          <div className={`${!isMobile && selectedContactId ? "w-1/3" : "w-full"} h-full transition-all`}>
-            <Card className="h-full flex flex-col rounded-none md:rounded-lg shadow-none md:shadow">
-              <CardHeader className="pb-3 px-4">
-                {isMobile && (selectedContactId || selectedThreadId) && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleBack}
-                    className="mr-2 -ml-2"
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                  </Button>
-                )}
-                <CardTitle className="text-xl flex items-center">
-                  <Mail className="mr-2 h-5 w-5" />
-                  Active Conversations
+  // Mobile view rendering
+  const renderMobileView = () => {
+    // What to show on mobile depends on the navigation state
+    if (selectedThreadId) {
+      // Show thread content when a thread is selected
+      return (
+        <div className="w-full h-full">
+          <Card className="h-full flex flex-col rounded-none shadow-none">
+            <CardHeader className="pb-3 px-4">
+              <div className="flex items-center mb-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleBack}
+                  className="mr-2 -ml-2"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <CardTitle className="text-xl truncate">
+                  {selectedThread?.subject}
                 </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-hidden p-3 md:p-4">
-                <ScrollArea className="h-full pr-2 md:pr-4">
-                  <div className="space-y-2">
-                    {activeContacts.map(contact => (
-                      <div
-                        key={contact.id}
-                        className={cn(
-                          "cursor-pointer p-3 rounded-lg transition-colors",
-                          "hover:bg-accent",
-                          selectedContactId === contact.id
-                            ? "bg-accent"
-                            : "bg-card border border-border"
-                        )}
-                        onClick={() => handleSelectContact(contact.id)}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <Avatar>
-                            <AvatarImage src={contact.avatarUrl} />
-                            <AvatarFallback className="bg-primary/10 text-primary">
-                              {contact.name.split(" ").map(n => n[0]).join("")}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                With {selectedContact?.name} ({selectedContact?.email})
+              </p>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col overflow-hidden p-3">
+              <ScrollArea className="flex-1 pr-2 mb-4">
+                <div className="space-y-4">
+                  {selectedThread?.messages.map(message => (
+                    <div
+                      key={message.id}
+                      className={cn(
+                        "p-4 rounded-lg",
+                        message.from === "me"
+                          ? "bg-primary/10 ml-4"
+                          : "bg-accent/50 mr-4 border border-border"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                          <Avatar className="h-8 w-8 mr-2">
+                            <AvatarFallback className={cn(
+                              message.from === "me"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted text-muted-foreground"
+                            )}>
+                              {message.from === "me" ? "ME" : message.from.split(" ").map(n => n[0]).join("")}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-medium truncate">{contact.name}</h4>
-                              <span className="text-xs text-muted-foreground">
-                                {format(contact.lastMessageDate, "MMM d")}
-                              </span>
-                            </div>
-                            <p className="text-sm text-muted-foreground truncate">
-                              {contact.company}
-                              {contact.role && ` • ${contact.role}`}
+                          <div>
+                            <p className="font-medium">
+                              {message.from === "me" ? "Me" : message.from}
                             </p>
-                            <p className={cn(
-                              "text-sm mt-1 truncate",
-                              contact.unread ? "font-medium" : "text-muted-foreground"
-                            )}>
-                              {contact.lastMessage}
+                            <p className="text-xs text-muted-foreground">
+                              {message.from === "me" ? "to " : "from "}
+                              {message.from === "me" ? message.to : message.fromEmail}
                             </p>
                           </div>
                         </div>
-                        {contact.unread && (
-                          <div className="flex justify-end mt-1">
-                            <Badge variant="default" className="text-xs">New</Badge>
-                          </div>
-                        )}
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Clock className="mr-1 h-3 w-3" />
+                          {format(message.timestamp, "MMM d, h:mm a")}
+                        </div>
                       </div>
-                    ))}
+                      <div className="mt-2 text-sm whitespace-pre-line">
+                        {message.content}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+              
+              <div className="mt-auto">
+                <div className="border rounded-lg p-3">
+                  <Textarea
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    placeholder="Type your reply here..."
+                    className="min-h-[80px] focus-visible:ring-0 border-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/50"
+                  />
+                  <div className="flex justify-between items-center mt-3">
+                    <Button onClick={handleSendReply} className="w-full">
+                      <Send className="mr-2 h-4 w-4" />
+                      Send Reply
+                    </Button>
                   </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    } else if (selectedContactId) {
+      // Show thread list when a contact is selected but no thread
+      return (
+        <div className="w-full h-full">
+          <Card className="h-full flex flex-col rounded-none shadow-none">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between px-4">
+              <div className="flex items-center">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleBack}
+                  className="mr-2 -ml-2"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <CardTitle className="text-xl truncate">
+                  {selectedContact?.name}
+                </CardTitle>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNewThread}
+                className="ml-auto"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                New Email
+              </Button>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden p-3">
+              <ScrollArea className="h-full pr-2">
+                <div className="space-y-3">
+                  {contactThreads.length > 0 ? (
+                    contactThreads.map(thread => (
+                      <Card
+                        key={thread.id}
+                        className="cursor-pointer transition-colors hover:bg-accent/30"
+                        onClick={() => handleSelectThread(thread.id)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <h3 className="font-semibold truncate mr-2">{thread.subject}</h3>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {format(
+                                thread.messages[thread.messages.length - 1].timestamp,
+                                "MMM d, h:mm a"
+                              )}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {thread.messages[thread.messages.length - 1].content}
+                          </p>
+                          <div className="flex items-center mt-2 text-xs text-muted-foreground">
+                            <Mail className="mr-1 h-3 w-3" />
+                            <span>{thread.messages.length} messages</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-60 text-center">
+                      <Mail className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                      <h3 className="font-medium text-muted-foreground">No email threads</h3>
+                      <p className="text-sm text-muted-foreground/70 mt-1 max-w-sm">
+                        Start a new conversation with this contact
+                      </p>
+                      <Button className="mt-4" onClick={handleNewThread}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Start New Thread
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    } else {
+      // Show contacts list when nothing is selected
+      return (
+        <div className="w-full h-full">
+          <Card className="h-full flex flex-col rounded-none shadow-none">
+            <CardHeader className="pb-3 px-4">
+              <CardTitle className="text-xl flex items-center">
+                <Mail className="mr-2 h-5 w-5" />
+                Active Conversations
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden p-3">
+              <ScrollArea className="h-full pr-2">
+                <div className="space-y-2">
+                  {activeContacts.map(contact => (
+                    <div
+                      key={contact.id}
+                      className={cn(
+                        "cursor-pointer p-3 rounded-lg transition-colors",
+                        "hover:bg-accent",
+                        "bg-card border border-border"
+                      )}
+                      onClick={() => handleSelectContact(contact.id)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Avatar>
+                          <AvatarImage src={contact.avatarUrl} />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {contact.name.split(" ").map(n => n[0]).join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium truncate">{contact.name}</h4>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {format(contact.lastMessageDate, "MMM d")}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {contact.company}
+                            {contact.role && ` • ${contact.role}`}
+                          </p>
+                          <p className={cn(
+                            "text-sm mt-1 truncate",
+                            contact.unread ? "font-medium" : "text-muted-foreground"
+                          )}>
+                            {contact.lastMessage}
+                          </p>
+                        </div>
+                      </div>
+                      {contact.unread && (
+                        <div className="flex justify-end mt-1">
+                          <Badge variant="default" className="text-xs">New</Badge>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+  };
 
-        {/* Column 2: Threads List - Only shown when a contact is selected */}
-        {selectedContactId && (!selectedThreadId || (isMobile && selectedThreadId)) && !isMobile && (
-          <div className="w-2/3 h-full flex flex-col md:pl-4">
-            <Card className="h-full flex flex-col rounded-none md:rounded-lg shadow-none md:shadow">
-              <CardHeader className="pb-3 flex flex-row items-center justify-between px-4">
+  // Desktop layout rendering
+  const renderDesktopLayout = () => {
+    return (
+      <>
+        {/* Left Column - Contacts or Thread List */}
+        <div className={selectedThreadId ? "w-1/2" : (selectedContactId ? "w-1/3" : "w-full")} style={{ height: "100%" }}>
+          <Card className="h-full flex flex-col rounded-lg shadow">
+            {!selectedThreadId ? (
+              // Show contacts list when no thread is selected
+              <>
+                <CardHeader className="pb-3 px-6">
+                  <CardTitle className="text-xl flex items-center">
+                    <Mail className="mr-2 h-5 w-5" />
+                    Active Conversations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 overflow-hidden px-6 py-4">
+                  <ScrollArea className="h-full pr-4">
+                    <div className="space-y-2">
+                      {activeContacts.map(contact => (
+                        <div
+                          key={contact.id}
+                          className={cn(
+                            "cursor-pointer p-3 rounded-lg transition-colors",
+                            "hover:bg-accent",
+                            selectedContactId === contact.id
+                              ? "bg-accent"
+                              : "bg-card border border-border"
+                          )}
+                          onClick={() => handleSelectContact(contact.id)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Avatar>
+                              <AvatarImage src={contact.avatarUrl} />
+                              <AvatarFallback className="bg-primary/10 text-primary">
+                                {contact.name.split(" ").map(n => n[0]).join("")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-medium truncate">{contact.name}</h4>
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                  {format(contact.lastMessageDate, "MMM d")}
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground truncate">
+                                {contact.company}
+                                {contact.role && ` • ${contact.role}`}
+                              </p>
+                              <p className={cn(
+                                "text-sm mt-1 truncate",
+                                contact.unread ? "font-medium" : "text-muted-foreground"
+                              )}>
+                                {contact.lastMessage}
+                              </p>
+                            </div>
+                          </div>
+                          {contact.unread && (
+                            <div className="flex justify-end mt-1">
+                              <Badge variant="default" className="text-xs">New</Badge>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </>
+            ) : (
+              // Show thread list when a thread is selected
+              <>
+                <CardHeader className="pb-3 flex flex-row items-center justify-between px-6">
+                  <div className="flex items-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleBack}
+                      className="mr-2 -ml-2"
+                    >
+                      <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <CardTitle className="text-xl truncate">
+                      {selectedContact?.name}
+                    </CardTitle>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNewThread}
+                    className="ml-auto"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Email
+                  </Button>
+                </CardHeader>
+                <CardContent className="flex-1 overflow-hidden px-6 py-4">
+                  <ScrollArea className="h-full pr-4">
+                    <div className="space-y-3">
+                      {contactThreads.map(thread => (
+                        <Card
+                          key={thread.id}
+                          className={cn(
+                            "cursor-pointer transition-colors hover:bg-accent/30",
+                            selectedThreadId === thread.id && "bg-accent/20"
+                          )}
+                          onClick={() => handleSelectThread(thread.id)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <h3 className="font-semibold truncate mr-2">{thread.subject}</h3>
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {format(
+                                  thread.messages[thread.messages.length - 1].timestamp,
+                                  "MMM d, h:mm a"
+                                )}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {thread.messages[thread.messages.length - 1].content}
+                            </p>
+                            <div className="flex items-center mt-2 text-xs text-muted-foreground">
+                              <Mail className="mr-1 h-3 w-3" />
+                              <span>{thread.messages.length} messages</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </>
+            )}
+          </Card>
+        </div>
+
+        {/* Middle Column - Threads List */}
+        {selectedContactId && !selectedThreadId && (
+          <div className="w-2/3 pl-4" style={{ height: "100%" }}>
+            <Card className="h-full flex flex-col rounded-lg shadow">
+              <CardHeader className="pb-3 flex flex-row items-center justify-between px-6">
                 <div className="flex items-center">
                   <Button
                     variant="ghost"
@@ -314,7 +592,7 @@ export default function Replies() {
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
-                  <CardTitle className="text-xl">
+                  <CardTitle className="text-xl truncate">
                     {selectedContact?.name}
                   </CardTitle>
                 </div>
@@ -328,23 +606,20 @@ export default function Replies() {
                   New Email
                 </Button>
               </CardHeader>
-              <CardContent className="flex-1 overflow-hidden p-3 md:p-4">
-                <ScrollArea className="h-full pr-2 md:pr-4">
+              <CardContent className="flex-1 overflow-hidden px-6 py-4">
+                <ScrollArea className="h-full pr-4">
                   <div className="space-y-3">
                     {contactThreads.length > 0 ? (
                       contactThreads.map(thread => (
                         <Card
                           key={thread.id}
-                          className={cn(
-                            "cursor-pointer transition-colors hover:bg-accent/30",
-                            selectedThreadId === thread.id && "bg-accent/20"
-                          )}
+                          className="cursor-pointer transition-colors hover:bg-accent/30"
                           onClick={() => handleSelectThread(thread.id)}
                         >
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between mb-2">
-                              <h3 className="font-semibold">{thread.subject}</h3>
-                              <span className="text-xs text-muted-foreground">
+                              <h3 className="font-semibold truncate mr-2">{thread.subject}</h3>
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
                                 {format(
                                   thread.messages[thread.messages.length - 1].timestamp,
                                   "MMM d, h:mm a"
@@ -381,173 +656,101 @@ export default function Replies() {
           </div>
         )}
 
-        {/* Thread Details - Only shown when a thread is selected */}
+        {/* Right Column - Thread Content */}
         {selectedThreadId && (
-          <>
-            {/* On mobile, we only show one column at a time */}
-            {!isMobile && (
-              <div className="w-1/2 h-full flex flex-col">
-                <Card className="h-full flex flex-col rounded-none md:rounded-lg shadow-none md:shadow">
-                  <CardHeader className="pb-3 flex flex-row items-center justify-between px-4">
-                    <div className="flex items-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleBack}
-                        className="mr-2 -ml-2"
+          <div className="w-1/2 pl-4" style={{ height: "100%" }}>
+            <Card className="h-full flex flex-col rounded-lg shadow">
+              <CardHeader className="pb-3 px-6">
+                <div>
+                  <CardTitle className="text-xl truncate">
+                    {selectedThread?.subject}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    With {selectedContact?.name} ({selectedContact?.email})
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col overflow-hidden px-6 py-4">
+                {/* Message thread view */}
+                <ScrollArea className="flex-1 pr-4 mb-4">
+                  <div className="space-y-6">
+                    {selectedThread?.messages.map(message => (
+                      <div
+                        key={message.id}
+                        className={cn(
+                          "p-4 rounded-lg",
+                          message.from === "me"
+                            ? "bg-primary/10 ml-12"
+                            : "bg-accent/50 mr-12 border border-border"
+                        )}
                       >
-                        <ArrowLeft className="h-5 w-5" />
-                      </Button>
-                      <CardTitle className="text-xl">
-                        {selectedContact?.name}
-                      </CardTitle>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleNewThread}
-                      className="ml-auto"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      New Email
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="flex-1 overflow-hidden p-3 md:p-4">
-                    <ScrollArea className="h-full pr-2 md:pr-4">
-                      <div className="space-y-3">
-                        {contactThreads.map(thread => (
-                          <Card
-                            key={thread.id}
-                            className={cn(
-                              "cursor-pointer transition-colors hover:bg-accent/30",
-                              selectedThreadId === thread.id && "bg-accent/20"
-                            )}
-                            onClick={() => handleSelectThread(thread.id)}
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-start justify-between mb-2">
-                                <h3 className="font-semibold">{thread.subject}</h3>
-                                <span className="text-xs text-muted-foreground">
-                                  {format(
-                                    thread.messages[thread.messages.length - 1].timestamp,
-                                    "MMM d, h:mm a"
-                                  )}
-                                </span>
-                              </div>
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {thread.messages[thread.messages.length - 1].content}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center">
+                            <Avatar className="h-8 w-8 mr-2">
+                              <AvatarFallback className={cn(
+                                message.from === "me"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted text-muted-foreground"
+                              )}>
+                                {message.from === "me" ? "ME" : message.from.split(" ").map(n => n[0]).join("")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">
+                                {message.from === "me" ? "Me" : message.from}
                               </p>
-                              <div className="flex items-center mt-2 text-xs text-muted-foreground">
-                                <Mail className="mr-1 h-3 w-3" />
-                                <span>{thread.messages.length} messages</span>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* Email Thread Content */}
-            <div className={`${isMobile ? "w-full" : "w-1/2"} h-full flex flex-col ${!isMobile && 'pl-4'}`}>
-              <Card className="h-full flex flex-col rounded-none md:rounded-lg shadow-none md:shadow">
-                <CardHeader className="pb-3 px-4">
-                  {isMobile && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleBack}
-                      className="mr-2 -ml-2 mb-2"
-                    >
-                      <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                  )}
-                  <div>
-                    <CardTitle className="text-xl">
-                      {selectedThread?.subject}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      With {selectedContact?.name} ({selectedContact?.email})
-                    </p>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-1 flex flex-col overflow-hidden p-3 md:p-4">
-                  {/* Message thread view */}
-                  <ScrollArea className="flex-1 pr-2 md:pr-4 mb-4">
-                    <div className="space-y-6">
-                      {selectedThread?.messages.map(message => (
-                        <div
-                          key={message.id}
-                          className={cn(
-                            "p-4 rounded-lg",
-                            message.from === "me"
-                              ? "bg-primary/10 ml-4 md:ml-12"
-                              : "bg-accent/50 mr-4 md:mr-12 border border-border"
-                          )}
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center">
-                              <Avatar className="h-8 w-8 mr-2">
-                                <AvatarFallback className={cn(
-                                  message.from === "me"
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-muted text-muted-foreground"
-                                )}>
-                                  {message.from === "me" ? "ME" : message.from.split(" ").map(n => n[0]).join("")}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">
-                                  {message.from === "me" ? "Me" : message.from}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {message.from === "me" ? "to " : "from "}
-                                  {message.from === "me" ? message.to : message.fromEmail}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center text-xs text-muted-foreground">
-                              <Clock className="mr-1 h-3 w-3" />
-                              {format(message.timestamp, "MMM d, h:mm a")}
+                              <p className="text-xs text-muted-foreground">
+                                {message.from === "me" ? "to " : "from "}
+                                {message.from === "me" ? message.to : message.fromEmail}
+                              </p>
                             </div>
                           </div>
-                          <div className="mt-2 text-sm whitespace-pre-line">
-                            {message.content}
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Clock className="mr-1 h-3 w-3" />
+                            {format(message.timestamp, "MMM d, h:mm a")}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                  
-                  {/* Reply editor */}
-                  <div className="mt-auto">
-                    <div className="border rounded-lg p-3">
-                      <Textarea
-                        value={replyContent}
-                        onChange={(e) => setReplyContent(e.target.value)}
-                        placeholder="Type your reply here..."
-                        className="min-h-[80px] md:min-h-[100px] focus-visible:ring-0 border-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/50"
-                      />
-                      <div className="flex justify-between items-center mt-3">
-                        <Button variant="outline" size="sm" className="hidden md:flex">
-                          <Edit3 className="mr-2 h-4 w-4" />
-                          Format
-                        </Button>
-                        <Button onClick={handleSendReply} className="w-full md:w-auto">
-                          <Send className="mr-2 h-4 w-4" />
-                          Send Reply
-                        </Button>
+                        <div className="mt-2 text-sm whitespace-pre-line">
+                          {message.content}
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+                
+                {/* Reply editor */}
+                <div className="mt-auto">
+                  <div className="border rounded-lg p-3">
+                    <Textarea
+                      value={replyContent}
+                      onChange={(e) => setReplyContent(e.target.value)}
+                      placeholder="Type your reply here..."
+                      className="min-h-[100px] focus-visible:ring-0 border-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/50"
+                    />
+                    <div className="flex justify-between items-center mt-3">
+                      <Button variant="outline" size="sm">
+                        <Edit3 className="mr-2 h-4 w-4" />
+                        Format
+                      </Button>
+                      <Button onClick={handleSendReply}>
+                        <Send className="mr-2 h-4 w-4" />
+                        Send Reply
+                      </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
+      </>
+    );
+  };
+
+  return (
+    <div className="h-[calc(100vh-4rem)] md:py-6 md:px-6">
+      <div className="flex h-full overflow-hidden md:space-x-4">
+        {isMobile ? renderMobileView() : renderDesktopLayout()}
       </div>
     </div>
   );
