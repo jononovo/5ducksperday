@@ -67,6 +67,123 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
 }
 
 export function registerRoutes(app: Express) {
+  // Gmail authorization routes
+  app.get('/api/gmail/auth', requireAuth, (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      
+      // Create OAuth2 client
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GMAIL_CLIENT_ID,
+        process.env.GMAIL_CLIENT_SECRET,
+        `${req.protocol}://${req.hostname}/api/gmail/callback`
+      );
+      
+      // Generate authentication URL
+      const scopes = [
+        'https://www.googleapis.com/auth/gmail.readonly',
+        'https://www.googleapis.com/auth/gmail.send',
+        'https://www.googleapis.com/auth/gmail.modify'
+      ];
+      
+      const authUrl = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: scopes,
+        prompt: 'consent', // Force to get refresh token
+        state: userId.toString() // Pass user ID to callback
+      });
+      
+      // Redirect the user to the auth URL
+      res.redirect(authUrl);
+    } catch (error) {
+      console.error('Error initiating Gmail authorization:', error);
+      res.status(500).json({ error: 'Failed to start Gmail authorization' });
+    }
+  });
+  
+  app.get('/api/gmail/callback', async (req, res) => {
+    try {
+      const { code, state } = req.query;
+      
+      if (!code) {
+        return res.status(400).json({ error: 'Authorization code missing' });
+      }
+      
+      // Get user ID from state
+      const userId = parseInt(state as string, 10);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ error: 'Invalid state parameter' });
+      }
+      
+      // Create OAuth2 client
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GMAIL_CLIENT_ID,
+        process.env.GMAIL_CLIENT_SECRET,
+        `${req.protocol}://${req.hostname}/api/gmail/callback`
+      );
+      
+      // Exchange code for tokens
+      const { tokens } = await oauth2Client.getToken(code as string);
+      
+      // Store token in session
+      (req.session as any).gmailToken = tokens.access_token;
+      (req.session as any).gmailRefreshToken = tokens.refresh_token;
+      
+      // Save session
+      await new Promise<void>((resolve, reject) => {
+        req.session.save(err => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+      
+      // Redirect to replies page
+      res.redirect('/replies');
+    } catch (error) {
+      console.error('Error handling Gmail callback:', error);
+      res.status(500).json({ error: 'Failed to complete Gmail authorization' });
+    }
+  });
+  
+  app.get('/api/gmail/status', requireAuth, (req, res) => {
+    try {
+      const hasToken = !!(req.session as any)?.gmailToken;
+      
+      res.json({
+        connected: hasToken,
+        authUrl: hasToken ? null : '/api/gmail/auth'
+      });
+    } catch (error) {
+      console.error('Error checking Gmail status:', error);
+      res.status(500).json({ error: 'Failed to check Gmail connection status' });
+    }
+  });
+  
+  app.get('/api/gmail/disconnect', requireAuth, (req, res) => {
+    try {
+      // Remove Gmail tokens from session
+      delete (req.session as any).gmailToken;
+      delete (req.session as any).gmailRefreshToken;
+      
+      // Save session
+      req.session.save(err => {
+        if (err) {
+          console.error('Error saving session:', err);
+          return res.status(500).json({ error: 'Failed to disconnect Gmail' });
+        }
+        
+        res.json({ success: true, message: 'Gmail disconnected successfully' });
+      });
+    } catch (error) {
+      console.error('Error disconnecting Gmail:', error);
+      res.status(500).json({ error: 'Failed to disconnect Gmail' });
+    }
+  });
+  
   // Email conversations routes
   app.get('/api/replies/contacts', requireAuth, async (req, res) => {
     try {
