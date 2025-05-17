@@ -20,7 +20,7 @@ import ContactDetails from "@/pages/contact-details";
 import ApiTemplates from "@/pages/api-templates";
 import NotFound from "@/pages/not-found";
 import { MainNav } from "@/components/main-nav";
-import Privacy from "@/pages/privacy";
+
 import Terms from "@/pages/terms";
 import Pricing from "@/pages/pricing";
 import Blog from "@/pages/blog";
@@ -54,7 +54,7 @@ function Router() {
                 <ProtectedRoute path="/contacts/:id" component={() => <ContactDetails />} />
                 <ProtectedRoute path="/api-templates" component={() => <ApiTemplates />} />
                 {/* Public Routes */}
-                <Route path="/privacy" component={() => <Privacy />} />
+                {/* Privacy Policy is now available as a blog post */}
                 <Route path="/terms" component={() => <Terms />} />
                 <Route path="/pricing" component={() => <Pricing />} />
                 <Route path="/blog" component={() => <Blog />} />

@@ -27,7 +27,10 @@ export default function BlogPost() {
           <Button 
             variant="ghost" 
             className="mb-8 flex items-center" 
-            onClick={() => navigate("/blog")}
+            onClick={() => {
+              console.log("Navigating back to blog...");
+              navigate("/blog");
+            }}
           >
             <ArrowLeft size={16} className="mr-2" />
             Back to Blog
