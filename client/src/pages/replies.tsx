@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -125,6 +125,7 @@ export default function Replies() {
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [selectedThreadId, setSelectedThreadId] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
   const { toast } = useToast();
 
   // In a real implementation, these would be API calls
@@ -139,6 +140,22 @@ export default function Replies() {
     // This would be enabled in the real implementation when a contact is selected
     enabled: false
   });
+
+  // Handle responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Set initial value
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Filter threads for the selected contact
   const contactThreads = emailThreads.filter(
@@ -200,21 +217,36 @@ export default function Replies() {
     contact => contact.id === selectedContactId
   );
 
+  // Determine what content to show based on selection state and screen size
+  const showContactsList = !selectedThreadId || (isMobile && !selectedContactId);
+  const showThreadList = selectedContactId && (!selectedThreadId || (isMobile && !selectedThreadId));
+  const showThreadContent = selectedThreadId;
+
   return (
-    <div className="container py-6 h-[calc(100vh-4rem)]">
-      <div className="flex h-full space-x-4 overflow-hidden">
-        {/* Left Column */}
-        {(!selectedThreadId || !selectedContactId) && (
-          <div className={selectedContactId ? "w-1/3" : "w-full"}>
-            <Card className="h-full flex flex-col">
-              <CardHeader className="pb-3">
+    <div className="h-[calc(100vh-4rem)] md:py-4 md:px-4">
+      <div className="flex h-full overflow-hidden">
+        {/* Column 1: Contacts List - Full width on mobile when nothing selected */}
+        {(!isMobile || (isMobile && !selectedContactId && !selectedThreadId)) && (
+          <div className={`${!isMobile && selectedContactId ? "w-1/3" : "w-full"} h-full transition-all`}>
+            <Card className="h-full flex flex-col rounded-none md:rounded-lg shadow-none md:shadow">
+              <CardHeader className="pb-3 px-4">
+                {isMobile && (selectedContactId || selectedThreadId) && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleBack}
+                    className="mr-2 -ml-2"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                )}
                 <CardTitle className="text-xl flex items-center">
                   <Mail className="mr-2 h-5 w-5" />
                   Active Conversations
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full pr-4">
+              <CardContent className="flex-1 overflow-hidden p-3 md:p-4">
+                <ScrollArea className="h-full pr-2 md:pr-4">
                   <div className="space-y-2">
                     {activeContacts.map(contact => (
                       <div
@@ -268,17 +300,17 @@ export default function Replies() {
           </div>
         )}
 
-        {/* Middle Column - Thread List */}
-        {selectedContactId && !selectedThreadId && (
-          <div className="w-2/3 h-full flex flex-col">
-            <Card className="h-full flex flex-col">
-              <CardHeader className="pb-3 flex flex-row items-center justify-between">
+        {/* Column 2: Threads List - Only shown when a contact is selected */}
+        {selectedContactId && (!selectedThreadId || (isMobile && selectedThreadId)) && !isMobile && (
+          <div className="w-2/3 h-full flex flex-col md:pl-4">
+            <Card className="h-full flex flex-col rounded-none md:rounded-lg shadow-none md:shadow">
+              <CardHeader className="pb-3 flex flex-row items-center justify-between px-4">
                 <div className="flex items-center">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={handleBack}
-                    className="mr-2"
+                    className="mr-2 -ml-2"
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
@@ -296,15 +328,16 @@ export default function Replies() {
                   New Email
                 </Button>
               </CardHeader>
-              <CardContent className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full pr-4">
+              <CardContent className="flex-1 overflow-hidden p-3 md:p-4">
+                <ScrollArea className="h-full pr-2 md:pr-4">
                   <div className="space-y-3">
                     {contactThreads.length > 0 ? (
                       contactThreads.map(thread => (
                         <Card
                           key={thread.id}
                           className={cn(
-                            "cursor-pointer transition-colors hover:bg-accent/30"
+                            "cursor-pointer transition-colors hover:bg-accent/30",
+                            selectedThreadId === thread.id && "bg-accent/20"
                           )}
                           onClick={() => handleSelectThread(thread.id)}
                         >
@@ -348,78 +381,90 @@ export default function Replies() {
           </div>
         )}
 
-        {/* Thread Details - Right Column when thread is selected */}
+        {/* Thread Details - Only shown when a thread is selected */}
         {selectedThreadId && (
           <>
-            {/* Left Column - Thread List */}
-            <div className="w-1/2 h-full flex flex-col">
-              <Card className="h-full flex flex-col">
-                <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                  <div className="flex items-center">
+            {/* On mobile, we only show one column at a time */}
+            {!isMobile && (
+              <div className="w-1/2 h-full flex flex-col">
+                <Card className="h-full flex flex-col rounded-none md:rounded-lg shadow-none md:shadow">
+                  <CardHeader className="pb-3 flex flex-row items-center justify-between px-4">
+                    <div className="flex items-center">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleBack}
+                        className="mr-2 -ml-2"
+                      >
+                        <ArrowLeft className="h-5 w-5" />
+                      </Button>
+                      <CardTitle className="text-xl">
+                        {selectedContact?.name}
+                      </CardTitle>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNewThread}
+                      className="ml-auto"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      New Email
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="flex-1 overflow-hidden p-3 md:p-4">
+                    <ScrollArea className="h-full pr-2 md:pr-4">
+                      <div className="space-y-3">
+                        {contactThreads.map(thread => (
+                          <Card
+                            key={thread.id}
+                            className={cn(
+                              "cursor-pointer transition-colors hover:bg-accent/30",
+                              selectedThreadId === thread.id && "bg-accent/20"
+                            )}
+                            onClick={() => handleSelectThread(thread.id)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between mb-2">
+                                <h3 className="font-semibold">{thread.subject}</h3>
+                                <span className="text-xs text-muted-foreground">
+                                  {format(
+                                    thread.messages[thread.messages.length - 1].timestamp,
+                                    "MMM d, h:mm a"
+                                  )}
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {thread.messages[thread.messages.length - 1].content}
+                              </p>
+                              <div className="flex items-center mt-2 text-xs text-muted-foreground">
+                                <Mail className="mr-1 h-3 w-3" />
+                                <span>{thread.messages.length} messages</span>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Email Thread Content */}
+            <div className={`${isMobile ? "w-full" : "w-1/2"} h-full flex flex-col ${!isMobile && 'pl-4'}`}>
+              <Card className="h-full flex flex-col rounded-none md:rounded-lg shadow-none md:shadow">
+                <CardHeader className="pb-3 px-4">
+                  {isMobile && (
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={handleBack}
-                      className="mr-2"
+                      className="mr-2 -ml-2 mb-2"
                     >
                       <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <CardTitle className="text-xl">
-                      {selectedContact?.name}
-                    </CardTitle>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleNewThread}
-                    className="ml-auto"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Email
-                  </Button>
-                </CardHeader>
-                <CardContent className="flex-1 overflow-hidden">
-                  <ScrollArea className="h-full pr-4">
-                    <div className="space-y-3">
-                      {contactThreads.map(thread => (
-                        <Card
-                          key={thread.id}
-                          className={cn(
-                            "cursor-pointer transition-colors hover:bg-accent/30",
-                            selectedThreadId === thread.id && "bg-accent/20"
-                          )}
-                          onClick={() => handleSelectThread(thread.id)}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-2">
-                              <h3 className="font-semibold">{thread.subject}</h3>
-                              <span className="text-xs text-muted-foreground">
-                                {format(
-                                  thread.messages[thread.messages.length - 1].timestamp,
-                                  "MMM d, h:mm a"
-                                )}
-                              </span>
-                            </div>
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {thread.messages[thread.messages.length - 1].content}
-                            </p>
-                            <div className="flex items-center mt-2 text-xs text-muted-foreground">
-                              <Mail className="mr-1 h-3 w-3" />
-                              <span>{thread.messages.length} messages</span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Column - Thread Content */}
-            <div className="w-1/2 h-full flex flex-col">
-              <Card className="h-full flex flex-col">
-                <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                  )}
                   <div>
                     <CardTitle className="text-xl">
                       {selectedThread?.subject}
@@ -429,9 +474,9 @@ export default function Replies() {
                     </p>
                   </div>
                 </CardHeader>
-                <CardContent className="flex-1 flex flex-col overflow-hidden">
+                <CardContent className="flex-1 flex flex-col overflow-hidden p-3 md:p-4">
                   {/* Message thread view */}
-                  <ScrollArea className="flex-1 pr-4 mb-4">
+                  <ScrollArea className="flex-1 pr-2 md:pr-4 mb-4">
                     <div className="space-y-6">
                       {selectedThread?.messages.map(message => (
                         <div
@@ -439,8 +484,8 @@ export default function Replies() {
                           className={cn(
                             "p-4 rounded-lg",
                             message.from === "me"
-                              ? "bg-primary/10 ml-12"
-                              : "bg-accent/50 mr-12 border border-border"
+                              ? "bg-primary/10 ml-4 md:ml-12"
+                              : "bg-accent/50 mr-4 md:mr-12 border border-border"
                           )}
                         >
                           <div className="flex items-center justify-between mb-3">
@@ -484,14 +529,14 @@ export default function Replies() {
                         value={replyContent}
                         onChange={(e) => setReplyContent(e.target.value)}
                         placeholder="Type your reply here..."
-                        className="min-h-[100px] focus-visible:ring-0 border-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/50"
+                        className="min-h-[80px] md:min-h-[100px] focus-visible:ring-0 border-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/50"
                       />
                       <div className="flex justify-between items-center mt-3">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="hidden md:flex">
                           <Edit3 className="mr-2 h-4 w-4" />
                           Format
                         </Button>
-                        <Button onClick={handleSendReply}>
+                        <Button onClick={handleSendReply} className="w-full md:w-auto">
                           <Send className="mr-2 h-4 w-4" />
                           Send Reply
                         </Button>
