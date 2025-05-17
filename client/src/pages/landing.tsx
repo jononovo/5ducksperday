@@ -344,6 +344,29 @@ export default function LandingPage() {
                 </ol>
               </div>
             </div>
+            
+            {/* Become an Eliteist Section */}
+            <div className="mt-20 max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg">
+              <h3 className="text-2xl font-semibold mb-6 text-center">Become an Eliteist</h3>
+              <p className="text-slate-600 dark:text-slate-400 italic mb-6 text-center">(Someone who thinks they are better than others, usually because they have some capacity that most don't.)</p>
+              
+              <div className="space-y-8">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-lg">
+                  <h4 className="font-bold text-lg mb-2 text-blue-700 dark:text-blue-300">HATCHED-LEVEL</h4>
+                  <p className="text-slate-700 dark:text-slate-300"><strong>After one week: Limits are doubled</strong> We release the cap of max 5 emails per day. You will then be allowed to send up to 10 per day. But we will still only celebrate once the first 5 are sent.</p>
+                </div>
+                
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-lg">
+                  <h4 className="font-bold text-lg mb-2 text-purple-700 dark:text-purple-300">PEEPING-LEVEL</h4>
+                  <p className="text-slate-700 dark:text-slate-300"><strong>After 2-3 weeks: AI Starts Learning</strong> Our AI engine can begin to analyse which email content and which types of contacts respond best to you.</p>
+                </div>
+                
+                <div className="bg-green-50 dark:bg-green-900/20 p-5 rounded-lg">
+                  <h4 className="font-bold text-lg mb-2 text-green-700 dark:text-green-300">CHIRPING-LEVEL</h4>
+                  <p className="text-slate-700 dark:text-slate-300"><strong>After 4-6 weeks: Full Automation</strong> Our system can begin to auto-generate and send emails on your behalf based on your performance history.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
       </main>

@@ -24,8 +24,10 @@ import Privacy from "@/pages/privacy";
 import Terms from "@/pages/terms";
 import Pricing from "@/pages/pricing";
 import Blog from "@/pages/blog";
+import BlogPost from "@/pages/blog-post";
 import Contact from "@/pages/contact";
 import Support from "@/pages/support";
+import Levels from "@/pages/levels";
 
 function Router() {
   return (
@@ -56,6 +58,8 @@ function Router() {
                 <Route path="/terms" component={() => <Terms />} />
                 <Route path="/pricing" component={() => <Pricing />} />
                 <Route path="/blog" component={() => <Blog />} />
+                <Route path="/blog/:slug" component={() => <BlogPost />} />
+                <Route path="/levels" component={() => <Levels />} />
                 <Route path="/contact" component={() => <Contact />} />
                 <Route path="/support" component={() => <Support />} />
                 <Route component={() => <NotFound />} />
