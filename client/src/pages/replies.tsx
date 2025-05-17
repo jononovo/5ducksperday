@@ -1,17 +1,15 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Send, Plus, ArrowLeft, Clock, Edit3 } from "lucide-react";
+import { Mail, Send, Plus, ArrowLeft, Clock, Edit3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 
 // Mock data for development - will be replaced with actual data from API
 const MOCK_ACTIVE_CONTACTS = [
@@ -205,9 +203,9 @@ export default function Replies() {
   return (
     <div className="container py-6 h-[calc(100vh-4rem)]">
       <div className="flex h-full space-x-4 overflow-hidden">
-        {/* Column 1: Active Contacts (hidden when viewing a thread) */}
-        {!selectedThreadId && (
-          <div className={`${selectedContactId ? "w-1/3" : "w-full"} h-full flex flex-col`}>
+        {/* Left Column */}
+        {(!selectedThreadId || !selectedContactId) && (
+          <div className={selectedContactId ? "w-1/3" : "w-full"}>
             <Card className="h-full flex flex-col">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xl flex items-center">
@@ -270,8 +268,8 @@ export default function Replies() {
           </div>
         )}
 
-        {/* Column 2: Email Threads or Thread Details */}
-        {selectedContactId && !selectedThreadId ? (
+        {/* Middle Column - Thread List */}
+        {selectedContactId && !selectedThreadId && (
           <div className="w-2/3 h-full flex flex-col">
             <Card className="h-full flex flex-col">
               <CardHeader className="pb-3 flex flex-row items-center justify-between">
@@ -306,8 +304,7 @@ export default function Replies() {
                         <Card
                           key={thread.id}
                           className={cn(
-                            "cursor-pointer transition-colors hover:bg-accent/30",
-                            selectedThreadId === thread.id && "bg-accent/20"
+                            "cursor-pointer transition-colors hover:bg-accent/30"
                           )}
                           onClick={() => handleSelectThread(thread.id)}
                         >
@@ -349,19 +346,80 @@ export default function Replies() {
               </CardContent>
             </Card>
           </div>
-        ) : selectedThreadId ? (
-          <div className="w-2/3 h-full flex flex-col">
-            <Card className="h-full flex flex-col">
-              <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                <div className="flex items-center">
+        )}
+
+        {/* Thread Details - Right Column when thread is selected */}
+        {selectedThreadId && (
+          <>
+            {/* Left Column - Thread List */}
+            <div className="w-1/2 h-full flex flex-col">
+              <Card className="h-full flex flex-col">
+                <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                  <div className="flex items-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleBack}
+                      className="mr-2"
+                    >
+                      <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <CardTitle className="text-xl">
+                      {selectedContact?.name}
+                    </CardTitle>
+                  </div>
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleBack}
-                    className="mr-2"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNewThread}
+                    className="ml-auto"
                   >
-                    <ArrowLeft className="h-5 w-5" />
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Email
                   </Button>
+                </CardHeader>
+                <CardContent className="flex-1 overflow-hidden">
+                  <ScrollArea className="h-full pr-4">
+                    <div className="space-y-3">
+                      {contactThreads.map(thread => (
+                        <Card
+                          key={thread.id}
+                          className={cn(
+                            "cursor-pointer transition-colors hover:bg-accent/30",
+                            selectedThreadId === thread.id && "bg-accent/20"
+                          )}
+                          onClick={() => handleSelectThread(thread.id)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <h3 className="font-semibold">{thread.subject}</h3>
+                              <span className="text-xs text-muted-foreground">
+                                {format(
+                                  thread.messages[thread.messages.length - 1].timestamp,
+                                  "MMM d, h:mm a"
+                                )}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {thread.messages[thread.messages.length - 1].content}
+                            </p>
+                            <div className="flex items-center mt-2 text-xs text-muted-foreground">
+                              <Mail className="mr-1 h-3 w-3" />
+                              <span>{thread.messages.length} messages</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column - Thread Content */}
+            <div className="w-1/2 h-full flex flex-col">
+              <Card className="h-full flex flex-col">
+                <CardHeader className="pb-3 flex flex-row items-center justify-between">
                   <div>
                     <CardTitle className="text-xl">
                       {selectedThread?.subject}
@@ -370,81 +428,81 @@ export default function Replies() {
                       With {selectedContact?.name} ({selectedContact?.email})
                     </p>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col overflow-hidden">
-                {/* Message thread view */}
-                <ScrollArea className="flex-1 pr-4 mb-4">
-                  <div className="space-y-6">
-                    {selectedThread?.messages.map(message => (
-                      <div
-                        key={message.id}
-                        className={cn(
-                          "p-4 rounded-lg",
-                          message.from === "me"
-                            ? "bg-primary/10 ml-12"
-                            : "bg-accent/50 mr-12 border border-border"
-                        )}
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center">
-                            <Avatar className="h-8 w-8 mr-2">
-                              <AvatarFallback className={cn(
-                                message.from === "me"
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-muted text-muted-foreground"
-                              )}>
-                                {message.from === "me" ? "ME" : message.from.split(" ").map(n => n[0]).join("")}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">
-                                {message.from === "me" ? "Me" : message.from}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {message.from === "me" ? "to " : "from "}
-                                {message.from === "me" ? message.to : message.fromEmail}
-                              </p>
+                </CardHeader>
+                <CardContent className="flex-1 flex flex-col overflow-hidden">
+                  {/* Message thread view */}
+                  <ScrollArea className="flex-1 pr-4 mb-4">
+                    <div className="space-y-6">
+                      {selectedThread?.messages.map(message => (
+                        <div
+                          key={message.id}
+                          className={cn(
+                            "p-4 rounded-lg",
+                            message.from === "me"
+                              ? "bg-primary/10 ml-12"
+                              : "bg-accent/50 mr-12 border border-border"
+                          )}
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center">
+                              <Avatar className="h-8 w-8 mr-2">
+                                <AvatarFallback className={cn(
+                                  message.from === "me"
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted text-muted-foreground"
+                                )}>
+                                  {message.from === "me" ? "ME" : message.from.split(" ").map(n => n[0]).join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  {message.from === "me" ? "Me" : message.from}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {message.from === "me" ? "to " : "from "}
+                                  {message.from === "me" ? message.to : message.fromEmail}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <Clock className="mr-1 h-3 w-3" />
+                              {format(message.timestamp, "MMM d, h:mm a")}
                             </div>
                           </div>
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Clock className="mr-1 h-3 w-3" />
-                            {format(message.timestamp, "MMM d, h:mm a")}
+                          <div className="mt-2 text-sm whitespace-pre-line">
+                            {message.content}
                           </div>
                         </div>
-                        <div className="mt-2 text-sm whitespace-pre-line">
-                          {message.content}
-                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  
+                  {/* Reply editor */}
+                  <div className="mt-auto">
+                    <div className="border rounded-lg p-3">
+                      <Textarea
+                        value={replyContent}
+                        onChange={(e) => setReplyContent(e.target.value)}
+                        placeholder="Type your reply here..."
+                        className="min-h-[100px] focus-visible:ring-0 border-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/50"
+                      />
+                      <div className="flex justify-between items-center mt-3">
+                        <Button variant="outline" size="sm">
+                          <Edit3 className="mr-2 h-4 w-4" />
+                          Format
+                        </Button>
+                        <Button onClick={handleSendReply}>
+                          <Send className="mr-2 h-4 w-4" />
+                          Send Reply
+                        </Button>
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-                
-                {/* Reply editor */}
-                <div className="mt-auto">
-                  <div className="border rounded-lg p-3">
-                    <Textarea
-                      value={replyContent}
-                      onChange={(e) => setReplyContent(e.target.value)}
-                      placeholder="Type your reply here..."
-                      className="min-h-[100px] focus-visible:ring-0 border-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/50"
-                    />
-                    <div className="flex justify-between items-center mt-3">
-                      <Button variant="outline" size="sm">
-                        <Edit3 className="mr-2 h-4 w-4" />
-                        Format
-                      </Button>
-                      <Button onClick={handleSendReply}>
-                        <Send className="mr-2 h-4 w-4" />
-                        Send Reply
-                      </Button>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ) : null}
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
