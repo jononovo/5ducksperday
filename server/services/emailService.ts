@@ -565,13 +565,12 @@ export class GmailProvider implements EmailProvider {
 
 // Factory to get appropriate email provider based on environment and user settings
 export function getEmailProvider(userId: number, accessToken?: string): EmailProvider {
-  // Check if we're in development mode or don't have Gmail token
-  const isDevMode = process.env.NODE_ENV !== 'production';
-  const useGmail = accessToken && !isDevMode;
-  
-  if (useGmail) {
-    return new GmailProvider(accessToken);
+  // If we have a Gmail access token, use the Gmail provider
+  if (accessToken) {
+    console.log(`Using Gmail provider for user ${userId}`);
+    return new GmailProvider(accessToken, userId);
   } else {
+    console.log(`Using mock email provider for user ${userId} (no Gmail token available)`);
     return new MockEmailProvider();
   }
 }

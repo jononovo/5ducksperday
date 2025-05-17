@@ -69,9 +69,10 @@ export function registerRoutes(app: Express) {
   app.get('/api/replies/contacts', requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user.id;
+      const gmailToken = (req.session as any)?.gmailToken || null;
       
-      // Get the appropriate email provider (mock or Gmail when implemented)
-      const emailProvider = getEmailProvider(userId);
+      // Get the appropriate email provider (Gmail or mock)
+      const emailProvider = getEmailProvider(userId, gmailToken);
       
       // Fetch active contacts using the provider
       const activeContacts = await emailProvider.getActiveContacts(userId);
@@ -87,13 +88,14 @@ export function registerRoutes(app: Express) {
     try {
       const userId = (req as any).user.id;
       const contactId = parseInt(req.params.contactId, 10);
+      const gmailToken = (req.session as any)?.gmailToken || null;
       
       if (isNaN(contactId)) {
         return res.status(400).json({ error: 'Invalid contact ID' });
       }
       
-      // Get the appropriate email provider
-      const emailProvider = getEmailProvider(userId);
+      // Get the appropriate email provider 
+      const emailProvider = getEmailProvider(userId, gmailToken);
       
       // Fetch threads for this contact using the provider
       const threads = await emailProvider.getThreadsByContact(contactId, userId);
@@ -109,13 +111,14 @@ export function registerRoutes(app: Express) {
     try {
       const userId = (req as any).user.id;
       const threadId = parseInt(req.params.id, 10);
+      const gmailToken = (req.session as any)?.gmailToken || null;
       
       if (isNaN(threadId)) {
         return res.status(400).json({ error: 'Invalid thread ID' });
       }
       
       // Get the appropriate email provider
-      const emailProvider = getEmailProvider(userId);
+      const emailProvider = getEmailProvider(userId, gmailToken);
       
       // Fetch thread with messages using the provider
       const threadData = await emailProvider.getThreadWithMessages(threadId, userId);
