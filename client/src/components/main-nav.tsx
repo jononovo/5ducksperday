@@ -12,9 +12,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navigation = [
-  { name: "Search", href: "/app", icon: <LayoutDashboard className="mr-1 h-4 w-4" /> },
-  { name: "Outreach", href: "/outreach", icon: <Mail className="mr-1 h-4 w-4" /> },
-  { name: "Replies", href: "/replies", icon: <MessageCircle className="mr-1 h-4 w-4" /> }
+  { name: "Search", href: "/app", icon: "dashboard" },
+  { name: "Outreach", href: "/outreach", icon: "mail" },
+  { name: "Replies", href: "/replies", icon: "message" }
 ];
 
 export function MainNav() {
@@ -39,7 +39,12 @@ export function MainNav() {
                   : "text-muted-foreground hover:text-foreground"
               } px-2 py-1.5 text-sm font-medium transition-colors`}
             >
-              {item.name}
+              <div className="flex items-center">
+                {item.icon === "dashboard" && <LayoutDashboard className="mr-1 h-4 w-4" />}
+                {item.icon === "mail" && <Mail className="mr-1 h-4 w-4" />}
+                {item.icon === "message" && <MessageCircle className="mr-1 h-4 w-4" />}
+                {item.name}
+              </div>
             </Link>
           );
         })}
