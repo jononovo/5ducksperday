@@ -15,6 +15,7 @@ import ListDetails from "@/pages/list-details";
 import Campaigns from "@/pages/campaigns";
 import CampaignDetails from "@/pages/campaign-details";
 import Outreach from "@/pages/outreach";
+import Replies from "@/pages/replies";
 import CompanyDetails from "@/pages/company-details";
 import ContactDetails from "@/pages/contact-details";
 import ApiTemplates from "@/pages/api-templates";
@@ -50,6 +51,7 @@ function Router() {
                 <ProtectedRoute path="/campaigns" component={() => <Campaigns />} />
                 <ProtectedRoute path="/campaigns/:id" component={() => <CampaignDetails />} />
                 <ProtectedRoute path="/outreach" component={() => <Outreach />} />
+                <ProtectedRoute path="/replies" component={() => <Replies />} />
                 <ProtectedRoute path="/companies/:id" component={() => <CompanyDetails />} />
                 <ProtectedRoute path="/contacts/:id" component={() => <ContactDetails />} />
                 <ProtectedRoute path="/api-templates" component={() => <ApiTemplates />} />

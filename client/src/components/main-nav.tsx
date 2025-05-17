@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LogOut, User, Menu, LayoutDashboard, ListTodo, Mail } from "lucide-react";
+import { LogOut, User, Menu, LayoutDashboard, ListTodo, Mail, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
@@ -12,9 +12,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navigation = [
-  { name: "Search", href: "/app" },
-  { name: "Outreach", href: "/outreach" },
-  { name: "Replies", href: "/replies" }
+  { name: "Search", href: "/app", icon: <LayoutDashboard className="mr-1 h-4 w-4" /> },
+  { name: "Outreach", href: "/outreach", icon: <Mail className="mr-1 h-4 w-4" /> },
+  { name: "Replies", href: "/replies", icon: <MessageCircle className="mr-1 h-4 w-4" /> }
 ];
 
 export function MainNav() {
