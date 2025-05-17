@@ -136,8 +136,7 @@ export default function LandingPage() {
       <header className="container mx-auto py-4 px-4 flex justify-between items-center">
         <Logo size="lg" asLink={false} />
         <Link href="/auth">
-          <Button variant="outline" className="flex items-center gap-2">
-            <User size={16} />
+          <Button variant="outline">
             Login
           </Button>
         </Link>
@@ -323,6 +322,16 @@ export default function LandingPage() {
                 Thanks for listening and enjoy. <br />
                 - <strong>Jon</strong>
                 </p>
+              </div>
+              
+              <div className="text-center mt-8">
+                <Button 
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-6"
+                  onClick={() => handleSearch("Software companies in New York")}
+                >
+                  <span className="mr-2">Find 5 New Leads Now</span>
+                  <ChevronRight size={16} />
+                </Button>
               </div>
             </div>
             
