@@ -7,7 +7,7 @@ import { parseCompanyData } from "./lib/results-analysis/company-parser";
 import { queryPerplexity } from "./lib/api/perplexity-client";
 import { searchContactDetails } from "./lib/api-interactions";
 import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
-import { insertEmailTemplateSchema, insertSearchTestResultSchema } from "@shared/schema";
+import { insertEmailTemplateSchema, insertSearchTestResultSchema, insertEmailThreadSchema, insertEmailMessageSchema } from "@shared/schema";
 import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
 import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
@@ -18,6 +18,107 @@ import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow-service";
 import { logIncomingWebhook } from "./lib/webhook-logger";
+
+// Mock data for email conversation features
+const MOCK_ACTIVE_CONTACTS = [
+  {
+    id: 1,
+    name: "Sarah Johnson",
+    email: "sarah.johnson@acmecorp.com",
+    company: "Acme Corporation",
+    role: "Marketing Director",
+    lastMessage: "That sounds interesting. Can you tell me more about your pricing?",
+    lastMessageDate: new Date("2025-05-10T14:30:00"),
+    unread: true,
+    companyId: 1,
+    userId: 1
+  },
+  {
+    id: 2,
+    name: "Michael Chen",
+    email: "michael.chen@techinnovate.com",
+    company: "Tech Innovate",
+    role: "CTO",
+    lastMessage: "I've forwarded your proposal to our team. Let's schedule a call.",
+    lastMessageDate: new Date("2025-05-09T09:15:00"),
+    unread: false,
+    companyId: 2,
+    userId: 1
+  },
+  {
+    id: 3,
+    name: "Aisha Patel",
+    email: "aisha.patel@globexind.com",
+    company: "Globex Industries",
+    role: "Head of Operations",
+    lastMessage: "Thanks for your email. I'd be interested in learning how this works for our industry specifically.",
+    lastMessageDate: new Date("2025-05-08T16:45:00"),
+    unread: true,
+    companyId: 3,
+    userId: 1
+  }
+];
+
+const MOCK_EMAIL_THREADS = [
+  {
+    id: 101,
+    contactId: 1,
+    userId: 1,
+    subject: "Introduction to 5Ducks Lead Generation Platform",
+    lastUpdated: new Date("2025-05-10T14:30:00"),
+    createdAt: new Date("2025-05-07T10:30:00"),
+    isArchived: false,
+    messages: [
+      {
+        id: 1001,
+        threadId: 101,
+        from: "me",
+        fromEmail: "user@example.com",
+        to: "Sarah Johnson",
+        toEmail: "sarah.johnson@acmecorp.com",
+        content: "Hi Sarah,\n\nI noticed Acme Corporation has been expanding its marketing efforts recently. I wanted to introduce you to our lead generation platform that has helped companies like yours increase qualified leads by 35%.\n\nWould you be interested in a quick 15-minute demo?\n\nBest regards,\nAlex",
+        timestamp: new Date("2025-05-07T10:30:00"),
+        isRead: true,
+        direction: "outbound"
+      },
+      {
+        id: 1002,
+        threadId: 101,
+        from: "Sarah Johnson",
+        fromEmail: "sarah.johnson@acmecorp.com",
+        to: "me",
+        toEmail: "user@example.com",
+        content: "Hi Alex,\n\nThat sounds interesting. Can you tell me more about your pricing?\n\nSarah Johnson\nMarketing Director\nAcme Corporation",
+        timestamp: new Date("2025-05-10T14:30:00"),
+        isRead: false,
+        direction: "inbound"
+      }
+    ]
+  },
+  {
+    id: 102,
+    contactId: 1,
+    userId: 1,
+    subject: "Marketing Webinar Invitation",
+    lastUpdated: new Date("2025-05-01T11:15:00"),
+    createdAt: new Date("2025-05-01T11:15:00"),
+    isArchived: false,
+    messages: [
+      {
+        id: 1003,
+        threadId: 102,
+        from: "me",
+        fromEmail: "user@example.com",
+        to: "Sarah Johnson",
+        toEmail: "sarah.johnson@acmecorp.com",
+        content: "Hi Sarah,\n\nWe're hosting a webinar next week on 'Digital Marketing Trends for 2025'. Given your role at Acme, I thought you might be interested.\n\nHere's the registration link: [webinar link]\n\nBest,\nAlex",
+        timestamp: new Date("2025-05-01T11:15:00"),
+        isRead: true,
+        direction: "outbound"
+      }
+    ]
+  }
+];
 
 // Helper functions for improved search test scoring and AI agent support
 function normalizeScore(score: number): number {
@@ -62,6 +163,87 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
 }
 
 export function registerRoutes(app: Express) {
+  // Email conversations routes
+  app.get('/api/replies/contacts', requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      // For now, return mock data as we implement the storage methods
+      const activeContacts = MOCK_ACTIVE_CONTACTS;
+      res.json(activeContacts);
+    } catch (error) {
+      console.error('Error fetching active contacts with threads:', error);
+      res.status(500).json({ error: 'Failed to fetch active contacts' });
+    }
+  });
+  
+  app.get('/api/replies/threads/:contactId', requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const contactId = parseInt(req.params.contactId, 10);
+      
+      if (isNaN(contactId)) {
+        return res.status(400).json({ error: 'Invalid contact ID' });
+      }
+      
+      // For now, return mock data as we implement the storage methods
+      const threads = MOCK_EMAIL_THREADS.filter(thread => thread.contactId === contactId);
+      res.json(threads);
+    } catch (error) {
+      console.error('Error fetching threads for contact:', error);
+      res.status(500).json({ error: 'Failed to fetch email threads' });
+    }
+  });
+  
+  app.get('/api/replies/thread/:id', requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const threadId = parseInt(req.params.id, 10);
+      
+      if (isNaN(threadId)) {
+        return res.status(400).json({ error: 'Invalid thread ID' });
+      }
+      
+      // For now, return mock data as we implement the storage methods
+      const thread = MOCK_EMAIL_THREADS.find(t => t.id === threadId);
+      
+      if (!thread) {
+        return res.status(404).json({ error: 'Thread not found' });
+      }
+      
+      res.json({
+        thread,
+        messages: thread.messages
+      });
+    } catch (error) {
+      console.error('Error fetching thread details:', error);
+      res.status(500).json({ error: 'Failed to fetch thread details' });
+    }
+  });
+  
+  app.post('/api/replies/thread', requireAuth, async (req, res) => {
+    try {
+      // For now just return success response while we implement storage
+      res.status(201).json({ id: Date.now(), ...req.body });
+    } catch (error) {
+      console.error('Error creating email thread:', error);
+      res.status(500).json({ error: 'Failed to create thread' });
+    }
+  });
+  
+  app.post('/api/replies/message', requireAuth, async (req, res) => {
+    try {
+      // For now just return success response while we implement storage
+      res.status(201).json({ 
+        id: Date.now(), 
+        timestamp: new Date(),
+        ...req.body 
+      });
+    } catch (error) {
+      console.error('Error creating email message:', error);
+      res.status(500).json({ error: 'Failed to create message' });
+    }
+  });
+
   // Simplified webhook endpoint to receive search results
   app.post("/api/webhooks/search-results", async (req, res) => {
     try {
