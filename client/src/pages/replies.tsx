@@ -448,7 +448,7 @@ export default function Replies() {
     return (
       <>
         {/* Left Column - Contacts or Thread List */}
-        <div className={selectedThreadId ? "w-2/5" : (selectedContactId ? "w-1/3" : "w-full")} style={{ height: "100%" }}>
+        <div className={selectedThreadId ? "w-1/3" : (selectedContactId ? "w-1/3" : "w-full")} style={{ height: "100%" }}>
           <Card className="h-full flex flex-col rounded-lg shadow">
             {!selectedThreadId ? (
               // Show contacts list when no thread is selected
@@ -658,7 +658,7 @@ export default function Replies() {
 
         {/* Right Column - Thread Content */}
         {selectedThreadId && (
-          <div className="w-3/5 pl-4" style={{ height: "100%" }}>
+          <div className="w-2/3 pl-4" style={{ height: "100%" }}>
             <Card className="h-full flex flex-col rounded-lg shadow">
               <CardHeader className="pb-3 px-6">
                 <div>
