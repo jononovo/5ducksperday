@@ -329,7 +329,7 @@ export default function LandingPage() {
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-6"
                   onClick={() => handleSearch("Software companies in New York")}
                 >
-                  <span className="mr-2">Find 5 New Leads Now</span>
+                  <span className="mr-2">Start a new habit today</span>
                   <ChevronRight size={16} />
                 </Button>
               </div>
