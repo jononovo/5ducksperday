@@ -26,8 +26,12 @@ import { getEmailProvider } from "./services/emailService";
 
 // Helper function to safely get user ID from request
 function getUserId(req: express.Request): number {
-  if (req.isAuthenticated() && req.user && (req.user as any).id) {
-    return (req.user as any).id;
+  try {
+    if (req.isAuthenticated() && req.user && (req.user as any).id) {
+      return (req.user as any).id;
+    }
+  } catch (error) {
+    console.error('Error accessing user ID:', error);
   }
   
   // For testing only - using default user ID
