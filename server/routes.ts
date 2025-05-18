@@ -624,12 +624,13 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/companies/:id", requireAuth, async (req, res) => {
     try {
+      const userId = getUserId(req);
       console.log('GET /api/companies/:id - Request params:', {
         id: req.params.id,
         userId: userId
       });
 
-      const company = await storage.getCompany(parseInt(req.params.id), req.user!.id);
+      const company = await storage.getCompany(parseInt(req.params.id), userId);
 
       console.log('GET /api/companies/:id - Retrieved company:', {
         requested: req.params.id,
