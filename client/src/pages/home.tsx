@@ -82,6 +82,7 @@ export default function Home() {
   });
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
+  const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -625,6 +626,95 @@ export default function Home() {
     return "";
   };
   
+  // Apollo.io helpers
+  const isApolloSearchComplete = (contact: Contact) => {
+    return contact.completedSearches?.includes('apollo_search') || false;
+  };
+
+  const isApolloPending = (contactId: number) => {
+    return pendingApolloIds.has(contactId);
+  };
+
+  const getApolloButtonClass = (contact: Contact) => {
+    if (isApolloSearchComplete(contact)) {
+      return contact.email ? "text-purple-500" : "text-muted-foreground opacity-50";
+    }
+    return "";
+  };
+  
+  // Apollo.io mutation
+  const apolloMutation = useMutation({
+    mutationFn: async (contactId: number) => {
+      // Add this contact ID to the set of pending searches
+      setPendingApolloIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(contactId);
+        return newSet;
+      });
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/apollo`);
+      return {data: await response.json(), contactId};
+    },
+    onSuccess: (result) => {
+      const {data, contactId} = result;
+      
+      // Update the contact in the results
+      setCurrentResults(prev => {
+        if (!prev) return null;
+        
+        // Only update the specific contact without affecting others
+        return prev.map(company => {
+          if (!company.contacts?.some(c => c.id === data.id)) {
+            return company;
+          }
+          
+          return {
+            ...company,
+            contacts: company.contacts?.map(contact =>
+              contact.id === data.id ? data : contact
+            )
+          };
+        });
+      });
+      
+      // Remove this contact ID from the set of pending searches
+      setPendingApolloIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contactId);
+        return newSet;
+      });
+      
+      toast({
+        title: "Apollo.io Search Complete",
+        description: `${data.name}: ${data.email 
+          ? `Found email with ${data.nameConfidenceScore || 'unknown'} confidence.`
+          : "No email found for this contact."}`,
+      });
+    },
+    onError: (error, variables) => {
+      const contactId = variables;
+      
+      // Remove this contact ID from the set of pending searches
+      setPendingApolloIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contactId as number);
+        return newSet;
+      });
+      
+      toast({
+        title: "Apollo.io Search Failed",
+        description: error instanceof Error ? error.message : "Failed to find contact email",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Handler for Apollo.io search
+  const handleApolloSearch = (contactId: number) => {
+    // Allow multiple searches to run in parallel
+    if (pendingApolloIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
+    apolloMutation.mutate(contactId);
+  };
+  
   // Functions for checkbox selection
   const handleCheckboxChange = (contactId: number) => {
     setSelectedContacts(prev => {
@@ -858,6 +948,24 @@ export default function Home() {
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p>Search Hunter.io for email</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                                
+                                {/* Apollo API button */}
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleApolloSearch(contact.id)}
+                                      disabled={isApolloPending(contact.id) || isApolloSearchComplete(contact)}
+                                      className={getApolloButtonClass(contact)}
+                                    >
+                                      <Rocket className={`w-4 h-4 ${isApolloPending(contact.id) ? "animate-spin" : ""}`} />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Search Apollo.io for contact details</p>
                                   </TooltipContent>
                                 </Tooltip>
                                 
