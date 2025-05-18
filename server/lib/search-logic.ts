@@ -22,7 +22,7 @@ export async function searchCompanies(query: string): Promise<Array<{name: strin
     {
       role: "user",
       content: `Find companies that match this criteria: ${query}. 
-Please output a JSON array containing 5 objects, where each object has exactly two fields: 
+Please output a JSON array containing 7 objects, where each object has exactly two fields: 
 "name" and "website".`
     }
   ];
