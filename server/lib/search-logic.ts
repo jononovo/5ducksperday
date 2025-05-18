@@ -13,7 +13,7 @@ import { validateNames } from "./results-analysis/contact-ai-name-scorer";
 import { findKeyDecisionMakers } from "./search-logic/contact-discovery/enhanced-contact-finder";
 
 // Core search functions
-export async function searchCompanies(query: string): Promise<Array<{name: string, website: string | null, description?: string}>> {
+export async function searchCompanies(query: string): Promise<Array<{name: string, website: string | null, description: string | null}>> {
   const messages: PerplexityMessage[] = [
     {
       role: "system",

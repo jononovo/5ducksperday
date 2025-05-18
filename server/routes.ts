@@ -692,7 +692,7 @@ export function registerRoutes(app: Express) {
 
     try {
       // Search for matching companies
-      const companyNames = await searchCompanies(query);
+      const companyResults = await searchCompanies(query);
 
       // Get search approaches for analysis
       const approaches = await storage.listSearchApproaches();
