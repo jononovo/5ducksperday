@@ -21,9 +21,9 @@ export async function searchCompanies(query: string): Promise<Array<{name: strin
     },
     {
       role: "user",
-      content: `Find 5 companies that match this criteria: ${query}. 
+      content: `Find companies that match this criteria: ${query}. 
 Please output a JSON array containing 5 objects, where each object has exactly two fields: 
-"name" (the company name) and "website" (the company's official website URL).`
+"name" and "website".`
     }
   ];
 
@@ -33,179 +33,123 @@ Please output a JSON array containing 5 objects, where each object has exactly t
   console.log('Raw Perplexity response:', response);
   
   try {
-    console.log('Attempting to extract JSON from response');
+    console.log('Attempting to parse Perplexity response:', response);
     
-    // Try to extract JSON from the response if it's inside a code block
-    const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    let jsonString = response;
-    let parsed;
+    // Remove any Markdown formatting or surrounding text
+    let cleanedResponse = response.trim();
     
-    if (jsonMatch && jsonMatch[1]) {
-      console.log('Found JSON in code block');
-      jsonString = jsonMatch[1];
+    // Remove code block markers
+    cleanedResponse = cleanedResponse.replace(/```json\s*|\s*```/g, '');
+    
+    // Extract any JSON array that might be in the response
+    const arrayMatch = cleanedResponse.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    if (arrayMatch) {
+      cleanedResponse = arrayMatch[0];
+    }
+    
+    let companies = [];
+    
+    // Try to parse as JSON first
+    try {
+      const parsed = JSON.parse(cleanedResponse);
       
-      try {
-        parsed = JSON.parse(jsonString);
-        console.log('Successfully parsed JSON from code block');
-      } catch (innerError) {
-        console.error('Error parsing extracted JSON block:', innerError);
-        
-        // Try to extract just the array part from the code block
-        const arrayMatch = jsonString.match(/(\[\s*\{[\s\S]*\}\s*\])/);
-        if (arrayMatch && arrayMatch[1]) {
-          console.log('Found array in JSON block');
-          try {
-            parsed = JSON.parse(arrayMatch[1]);
-            console.log('Successfully parsed array from JSON block');
-          } catch (arrayError) {
-            console.error('Error parsing array from JSON block:', arrayError);
-          }
-        }
+      if (Array.isArray(parsed)) {
+        // Handle direct array of companies
+        companies = parsed.slice(0, 5).map((company: {name: string, website?: string}) => ({
+          name: company.name,
+          website: company.website || null
+        }));
+        console.log('Successfully parsed JSON array of companies:', companies);
+      } 
+      else if (parsed.companies && Array.isArray(parsed.companies)) {
+        // Handle response with companies property
+        companies = parsed.companies.slice(0, 5).map((company: {name: string, website?: string}) => ({
+          name: company.name,
+          website: company.website || null
+        }));
+        console.log('Successfully parsed JSON with companies field:', companies);
       }
-    }
-    
-    // If we couldn't extract JSON from a code block, try to find and parse any JSON array in the response
-    if (!parsed) {
-      const arrayMatch = response.match(/(\[\s*\{[\s\S]*?\}\s*\])/s);
-      if (arrayMatch && arrayMatch[1]) {
-        console.log('Found JSON array in response');
-        try {
-          parsed = JSON.parse(arrayMatch[1]);
-          console.log('Successfully parsed JSON array from response');
-        } catch (arrayError) {
-          console.error('Error parsing JSON array from response:', arrayError);
-        }
+      
+      if (companies.length > 0) {
+        return companies;
       }
-    }
-    
-    // Last attempt: try to parse the entire response
-    if (!parsed) {
-      try {
-        parsed = JSON.parse(response);
-        console.log('Successfully parsed entire response as JSON');
-      } catch (fullError) {
-        console.error('Error parsing entire response as JSON:', fullError);
-        
-        // If all parsing attempts failed, try one more approach with regex for company names and websites
-        const companyData = [];
-        const companyRegex = /"name":\s*"([^"]*)"/g;
-        const websiteRegex = /"website":\s*"([^"]*)"/g;
-        let nameMatch;
-        let websiteMatch;
-        
-        // Find all company names
-        const companyNames = [];
-        while ((nameMatch = companyRegex.exec(response)) !== null) {
-          if (nameMatch[1] && nameMatch[1].trim()) {
-            companyNames.push({
-              name: nameMatch[1].trim(),
-              index: nameMatch.index
-            });
-          }
-        }
-        
-        // Find all websites
-        const websites = [];
-        while ((websiteMatch = websiteRegex.exec(response)) !== null) {
-          websites.push({
-            website: websiteMatch[1] ? websiteMatch[1].trim() : null,
-            index: websiteMatch.index
+    } 
+    catch (jsonError) {
+      console.error('JSON parsing failed:', jsonError);
+      
+      // If JSON parsing fails, use regex as a fallback
+      const companyData = [];
+      const nameRegex = /"name":\s*"([^"]*)"/g;
+      const websiteRegex = /"website":\s*"([^"]*)"/g;
+      
+      // Extract all company names and their positions in the text
+      const names = [];
+      let nameMatch;
+      while ((nameMatch = nameRegex.exec(cleanedResponse)) !== null) {
+        if (nameMatch[1] && nameMatch[1].trim()) {
+          names.push({
+            name: nameMatch[1].trim(),
+            index: nameMatch.index
           });
         }
+      }
+      
+      // Extract all websites and their positions
+      const websites = [];
+      let websiteMatch;
+      while ((websiteMatch = websiteRegex.exec(cleanedResponse)) !== null) {
+        websites.push({
+          website: websiteMatch[1] ? websiteMatch[1].trim() : null,
+          index: websiteMatch.index
+        });
+      }
+      
+      console.log(`Found ${names.length} company names and ${websites.length} websites with regex`);
+      
+      // Match companies with their websites based on proximity in the text
+      for (const company of names) {
+        let nearestWebsite = null;
+        let minDistance = Number.MAX_SAFE_INTEGER;
         
-        console.log('Found company names with regex:', companyNames.length);
-        console.log('Found websites with regex:', websites.length);
-        
-        // Try to match companies with websites based on proximity in the text
-        for (const company of companyNames) {
-          let nearestWebsite = null;
-          let minDistance = Number.MAX_SAFE_INTEGER;
-          
-          for (const site of websites) {
-            const distance = Math.abs(company.index - site.index);
-            if (distance < minDistance) {
-              minDistance = distance;
-              nearestWebsite = site.website;
-            }
-          }
-          
-          // Only pair if they're reasonably close (within 100 chars)
-          if (minDistance < 100) {
-            companyData.push({
-              name: company.name,
-              website: nearestWebsite
-            });
-          } else {
-            companyData.push({
-              name: company.name,
-              website: null
-            });
+        for (const site of websites) {
+          const distance = Math.abs(company.index - site.index);
+          if (distance < 100 && distance < minDistance) {
+            minDistance = distance;
+            nearestWebsite = site.website;
           }
         }
         
-        if (companyData.length > 0) {
-          console.log('Extracted companies with websites using regex:', companyData);
-          return companyData.slice(0, 5);
-        }
-        
-        throw fullError; // Rethrow to fall to the catch block
+        companyData.push({
+          name: company.name,
+          website: nearestWebsite
+        });
+      }
+      
+      if (companyData.length > 0) {
+        console.log('Extracted companies using regex fallback:', companyData);
+        return companyData.slice(0, 5);
       }
     }
     
-    if (Array.isArray(parsed)) {
-      const companies = parsed.slice(0, 5).map((company: {name: string, website?: string}) => {
-        return {
-          name: company.name,
-          website: company.website || null
-        };
-      });
-      console.log('Extracted companies from array:', companies);
-      return companies;
+    // Last resort: line-by-line parsing
+    const lines = cleanedResponse.split('\n').filter(line => line.trim());
+    for (const line of lines) {
+      const nameMatch = line.match(/"?name"?\s*:?\s*"?([^",]+)"?/i);
+      if (nameMatch && nameMatch[1]) {
+        companies.push({
+          name: nameMatch[1].trim(),
+          website: null
+        });
+      }
     }
     
-    // Handle case where the response might be wrapped in another object
-    if (parsed.companies && Array.isArray(parsed.companies)) {
-      const companies = parsed.companies.slice(0, 5).map((company: {name: string, website?: string}) => {
-        return {
-          name: company.name,
-          website: company.website || null
-        };
-      });
-      console.log('Extracted companies from companies field:', companies);
-      return companies;
+    if (companies.length > 0) {
+      console.log('Extracted companies using line parsing:', companies);
+      return companies.slice(0, 5);
     }
     
-    // Fallback to original parsing if structure doesn't match expectations
-    console.log('JSON structure did not match expected format, falling back to line splitting');
-    const companyLines = response.split('\n')
-      .filter(line => line.trim() && !line.includes('```') && !line.includes('[') && !line.includes(']'))
-      .filter(line => line.includes('"name":'))
-      .map(line => {
-        const nameMatch = line.match(/"name":\s*"([^"]+)"/);
-        // Try to find a website in the same line
-        const websiteMatch = line.match(/"website":\s*"([^"]*)"/);
-        const website = websiteMatch && websiteMatch[1] ? websiteMatch[1] : null;
-        
-        return {
-          name: nameMatch ? nameMatch[1] : line,
-          website: website
-        };
-      })
-      .slice(0, 5);
-      
-    if (companyLines.length > 0) {
-      console.log('Extracted companies from JSON lines:', companyLines);
-      return companyLines;
-    }
-    
-    // Last resort fallback
-    const companies = response.split('\n')
-      .filter(line => line.trim())
-      .slice(0, 5)
-      .map(name => ({ name, website: null }));
-      
-    console.log('Fallback company data:', companies);
-    return companies;
+    // If no companies found, return empty array
+    return [];
   } catch (error) {
     console.error('Error parsing JSON response:', error);
     
