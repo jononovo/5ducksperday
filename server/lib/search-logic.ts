@@ -64,7 +64,7 @@ export async function searchCompanies(query: string): Promise<string[]> {
     
     // If we couldn't extract JSON from a code block, try to find and parse any JSON array in the response
     if (!parsed) {
-      const arrayMatch = response.match(/(\[\s*\{[\s\S]*?\}\s*\])/);
+      const arrayMatch = response.match(/(\[\s*\{[\s\S]*?\}\s*\])/s);
       if (arrayMatch && arrayMatch[1]) {
         console.log('Found JSON array in response');
         try {
@@ -83,6 +83,22 @@ export async function searchCompanies(query: string): Promise<string[]> {
         console.log('Successfully parsed entire response as JSON');
       } catch (fullError) {
         console.error('Error parsing entire response as JSON:', fullError);
+        
+        // If all parsing attempts failed, try one more approach with regex for company names
+        const companyNameMatches = response.match(/"name":\s*"([^"]*)"/g);
+        if (companyNameMatches && companyNameMatches.length > 0) {
+          console.log('Found company names with regex');
+          const companyNames = companyNameMatches.map(match => {
+            const nameMatch = match.match(/"name":\s*"([^"]*)"/);
+            return nameMatch ? nameMatch[1] : '';
+          }).filter(name => name.length > 0);
+          
+          if (companyNames.length > 0) {
+            console.log('Extracted company names with regex:', companyNames);
+            return companyNames.slice(0, 5);
+          }
+        }
+        
         throw fullError; // Rethrow to fall to the catch block
       }
     }
