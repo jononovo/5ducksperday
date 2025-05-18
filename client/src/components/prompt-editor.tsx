@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,9 @@ export default function PromptEditor({
 
   // Use our search strategy context
   const { selectedStrategyId } = useSearchStrategy();
+  
+  // Navigation hook for API Templates
+  const [, setLocation] = useLocation();
   
   // Mutation for workflow-based search
   const workflowSearchMutation = useMutation({
@@ -260,6 +264,7 @@ export default function PromptEditor({
               customSelected={customSelected}
               isCustomLoading={isCustomLoading}
               handleCustomWorkflowSearch={handleCustomWorkflowSearch}
+              onViewApiTemplates={() => setLocation("/api-templates")}
             />
           </div>
         </div>
