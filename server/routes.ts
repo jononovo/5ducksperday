@@ -675,13 +675,84 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Quick company search endpoint - returns companies immediately without waiting for contacts
+  app.post("/api/companies/quick-search", async (req, res) => {
+    // For compatibility with the existing search functionality
+    // This temporary fix uses a default user ID if authentication fails
+    const userId = req.isAuthenticated() && req.user ? (req.user as any).id : 1;
+    
+    const { query, strategyId } = req.body;
+
+    if (!query || typeof query !== 'string') {
+      res.status(400).json({
+        message: "Invalid request: query must be a non-empty string"
+      });
+      return;
+    }
+    
+    try {
+      console.log(`[Quick Search] Processing query: ${query}`);
+      console.log(`[Quick Search] Using strategy ID: ${strategyId || 'default'}`);
+      
+      // First, get the company search results quickly
+      const companyResults = await searchCompanies(query);
+      
+      if (!companyResults || companyResults.length === 0) {
+        return res.json({
+          companies: [],
+          query
+        });
+      }
+      
+      // Prepare companies with minimal processing for quick display
+      const companies = await Promise.all(
+        companyResults.map(async (company) => {
+          // Extract company name, website and description (if available)
+          const companyName = typeof company === 'string' ? company : company.name;
+          const companyWebsite = typeof company === 'string' ? null : (company.website || null);
+          const companyDescription = typeof company === 'string' ? null : (company.description || null);
+          
+          // Create the company record with basic info
+          const createdCompany = await storage.createCompany({
+            name: companyName,
+            website: companyWebsite,
+            description: companyDescription,
+            industry: null,
+            employeeCount: null,
+            headquarters: null, 
+            founded: null,
+            revenue: null,
+            fundingStatus: null,
+            socialMedia: {},
+            userId
+          });
+          
+          return createdCompany;
+        })
+      );
+      
+      // Return the quick company data
+      res.json({
+        companies,
+        query,
+        strategyId: strategyId || null
+      });
+      
+    } catch (error) {
+      console.error('Quick search error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
+    }
+  });
+
   // Companies search endpoint
   app.post("/api/companies/search", async (req, res) => {
     // For compatibility with the existing search functionality
     // This temporary fix uses a default user ID if authentication fails
     const userId = req.isAuthenticated() && req.user ? (req.user as any).id : 1;
     
-    const { query, strategyId } = req.body;
+    const { query, strategyId, includeContacts = true } = req.body;
 
     if (!query || typeof query !== 'string') {
       res.status(400).json({

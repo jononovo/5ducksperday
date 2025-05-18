@@ -111,10 +111,10 @@ export default function PromptEditor({
     },
   });
 
-  // Original search mutation (standard search without workflow)
-  const searchMutation = useMutation({
+  // Quick search mutation - gets companies immediately
+  const quickSearchMutation = useMutation({
     mutationFn: async (searchQuery: string) => {
-      // Use the standard search
+      // Use the standard search but optimize for quick company results
       const activeFlows = searchFlows
         .filter((flow) => flow.active)
         .map((flow) => ({
@@ -129,10 +129,10 @@ export default function PromptEditor({
       const selectedStrategy = selectedStrategyId ? 
         searchFlows.find(flow => flow.id.toString() === selectedStrategyId) : null;
       
-      console.log(`Searching with strategy: ${selectedStrategy?.name || "Default"} (ID: ${selectedStrategyId || "none"})`);
+      console.log(`Quick search with strategy: ${selectedStrategy?.name || "Default"} (ID: ${selectedStrategyId || "none"})`);
 
-      // Ensure proper typing for the search request
-      const res = await apiRequest("POST", "/api/companies/search", { 
+      // Get companies quickly without waiting for contact enrichment
+      const res = await apiRequest("POST", "/api/companies/quick-search", { 
         query: searchQuery,
         flows: activeFlows,
         strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined
@@ -141,18 +141,68 @@ export default function PromptEditor({
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
+      
+      // Pass companies immediately to the parent component
+      console.log("Quick search found companies:", data.companies.length);
+      onCompaniesReceived(data.query, data.companies);
+      
+      toast({
+        title: "Companies Found",
+        description: `Found ${data.companies.length} companies. Loading contacts...`,
+      });
+      
+      // Start the full search with contacts
+      fullContactSearchMutation.mutate(data.query);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Company Search Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      onComplete();
+    },
+  });
+  
+  // Full search mutation - gets contacts after companies are displayed
+  const fullContactSearchMutation = useMutation({
+    mutationFn: async (searchQuery: string) => {
+      // Use the standard search
+      const activeFlows = searchFlows
+        .filter((flow) => flow.active)
+        .map((flow) => ({
+          id: flow.id,
+          name: flow.name,
+          moduleType: flow.moduleType,
+          config: flow.config,
+          completedSearches: flow.completedSearches || []
+        }));
+
+      // Ensure proper typing for the full search request with contacts
+      const res = await apiRequest("POST", "/api/companies/search", { 
+        query: searchQuery,
+        flows: activeFlows,
+        strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
+        includeContacts: true
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      // Send full results with contacts to parent component
       onSearchResults(data.query, data.companies);
+      
       toast({
         title: "Search Complete",
-        description: "Company analysis has been completed successfully.",
+        description: "Contact discovery has been completed successfully.",
       });
+      
       // Trigger confetti animation on successful search
       triggerConfetti();
       onComplete();
     },
     onError: (error: Error) => {
       toast({
-        title: "Search Failed",
+        title: "Contact Search Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -170,7 +220,8 @@ export default function PromptEditor({
       return;
     }
     onAnalyze();
-    searchMutation.mutate(query);
+    // Use quickSearchMutation to first get companies without waiting for contact enrichment
+    quickSearchMutation.mutate(query);
   };
 
   // State for custom workflow configuration with localStorage persistence
@@ -247,9 +298,9 @@ export default function PromptEditor({
           <div className="flex items-center">
             <Button 
               onClick={handleSearch} 
-              disabled={isAnalyzing || searchMutation.isPending}
+              disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
             >
-              {(isAnalyzing || searchMutation.isPending) && (
+              {(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               <Search className="mr-2 h-4 w-4" />
