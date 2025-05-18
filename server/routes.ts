@@ -582,12 +582,14 @@ export function registerRoutes(app: Express) {
 
   // Lists
   app.get("/api/lists", requireAuth, async (req, res) => {
-    const lists = await storage.listLists(req.user!.id);
+    const userId = getUserId(req);
+    const lists = await storage.listLists(userId);
     res.json(lists);
   });
 
   app.get("/api/lists/:listId", requireAuth, async (req, res) => {
-    const list = await storage.getList(parseInt(req.params.listId), req.user!.id);
+    const userId = getUserId(req);
+    const list = await storage.getList(parseInt(req.params.listId), userId);
     if (!list) {
       res.status(404).json({ message: "List not found" });
       return;
@@ -596,7 +598,8 @@ export function registerRoutes(app: Express) {
   });
 
   app.get("/api/lists/:listId/companies", requireAuth, async (req, res) => {
-    const companies = await storage.listCompaniesByList(parseInt(req.params.listId), req.user!.id);
+    const userId = getUserId(req);
+    const companies = await storage.listCompaniesByList(parseInt(req.params.listId), userId);
     res.json(companies);
   });
 
