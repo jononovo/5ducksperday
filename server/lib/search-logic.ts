@@ -17,7 +17,7 @@ export async function searchCompanies(query: string): Promise<Array<{name: strin
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: "Be precise and concise."
+      content: "Be precise and concise. Remove www and any http/https from the website. Only include the official domain name." 
     },
     {
       role: "user",
