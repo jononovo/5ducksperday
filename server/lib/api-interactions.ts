@@ -55,7 +55,7 @@ export async function searchContactDetails(
     }
   ];
 
-  const response = await queryPerplexity(messages);
+  const response = await queryPerplexity(messages, "sonar");
   return parseEmailDetails(response);
 }
 
