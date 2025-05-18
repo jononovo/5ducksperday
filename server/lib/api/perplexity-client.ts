@@ -9,11 +9,13 @@ interface PerplexityResponse {
 }
 
 // Query Perplexity AI API
-export async function queryPerplexity(messages: PerplexityMessage[]): Promise<string> {
+export async function queryPerplexity(messages: PerplexityMessage[], model: string = "sonar"): Promise<string> {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) {
     throw new Error("Perplexity API key is not configured");
   }
+
+  console.log(`Using Perplexity model: ${model}`);
 
   try {
     const response = await fetch("https://api.perplexity.ai/chat/completions", {
@@ -23,7 +25,7 @@ export async function queryPerplexity(messages: PerplexityMessage[]): Promise<st
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "sonar",
+        model: model,
         messages,
         temperature: 0.1,
         max_tokens: 1000,

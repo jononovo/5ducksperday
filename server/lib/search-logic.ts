@@ -17,7 +17,7 @@ export async function searchCompanies(query: string): Promise<string[]> {
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: "Find exactly 5 real companies that match the search criteria. Format your response as a JSON array of objects with 'name' and 'website' properties. The 'name' should be the full legal name, and 'website' should be the official company website URL."
+      content: "Find exactly 5 real companies that match the search criteria. Please output a JSON array of objects, where each object contains 'name' and 'website' properties. The 'name' should be the full legal name without any numbering or prefixes, and 'website' should be the official company website domain. If you can't find correct data, leave it empty."
     },
     {
       role: "user",
@@ -25,7 +25,8 @@ export async function searchCompanies(query: string): Promise<string[]> {
     }
   ];
 
-  const response = await queryPerplexity(messages);
+  // Ensure we're using the correct model
+  const response = await queryPerplexity(messages, "sonar");
   
   // Log the raw response for debugging
   console.log('Raw Perplexity response:', response);
