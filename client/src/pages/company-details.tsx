@@ -176,15 +176,26 @@ export default function CompanyDetails() {
     { name: "Rating", value: company.rating || 0 },
   ];
 
+  // Function to go back to previous page if possible, or to home as fallback
+  const handleBack = () => {
+    // Check if there's a history to go back to
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      // Fallback to home page if no history
+      navigate("/");
+    }
+  };
+
   return (
     <div className="container mx-auto py-8">
       <Button
         variant="ghost"
         className="mb-6"
-        onClick={() => navigate("/")}
+        onClick={handleBack}
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Search
+        Back
       </Button>
 
       <div className="grid gap-8">

@@ -66,6 +66,17 @@ export default function ContactDetails() {
   }
 
   // Show not found state
+  // Function to go back to previous page if possible, or to home as fallback
+  const handleBack = () => {
+    // Check if there's a history to go back to
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      // Fallback to home page if no history
+      navigate("/");
+    }
+  };
+
   if (!contact && !contactLoading) {
     return (
       <div className="container mx-auto py-8">
@@ -73,10 +84,10 @@ export default function ContactDetails() {
         <Button
           variant="ghost"
           className="mt-4"
-          onClick={() => navigate("/")}
+          onClick={handleBack}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Search
+          Back
         </Button>
       </div>
     );
@@ -92,10 +103,10 @@ export default function ContactDetails() {
         <Button
           variant="ghost"
           className="mb-6"
-          onClick={() => navigate("/")}
+          onClick={handleBack}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Search
+          Back
         </Button>
 
         <div className="grid gap-6">
