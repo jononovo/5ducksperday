@@ -92,7 +92,7 @@ export async function validateNames(
   ];
 
   try {
-    const response = await queryPerplexity(messages, "sonar");
+    const response = await queryPerplexity(messages);
     console.log('AI validation response received');
 
     const jsonMatch = response.match(/\{[\s\S]*\}/);

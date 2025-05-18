@@ -25,7 +25,7 @@ export async function analyzeWithPerplexity(
     }
   ];
 
-  return queryPerplexity(messages, "sonar");
+  return queryPerplexity(messages);
 }
 
 export interface EmailValidationResult {
@@ -85,7 +85,7 @@ export async function validateEmails(emails: string[]): Promise<EmailValidationR
         }
       ];
 
-      const response = await queryPerplexity(messages, "sonar");
+      const response = await queryPerplexity(messages);
       let aiConfidence = 0;
 
       try {

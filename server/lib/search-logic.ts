@@ -25,8 +25,7 @@ export async function searchCompanies(query: string): Promise<string[]> {
     }
   ];
 
-  // Ensure we're using the correct model
-  const response = await queryPerplexity(messages, "sonar");
+  const response = await queryPerplexity(messages);
   
   // Log the raw response for debugging
   console.log('Raw Perplexity response:', response);
@@ -84,7 +83,7 @@ export async function analyzeCompany(
     messages[0].content += `\n\nFormat your response as JSON:\n${responseStructure}`;
   }
 
-  return queryPerplexity(messages, "sonar");
+  return queryPerplexity(messages);
 }
 
 // Export the functions we need

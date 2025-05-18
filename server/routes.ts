@@ -1487,7 +1487,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         }
       ];
 
-      const response = await queryPerplexity(messages, "sonar");
+      const response = await queryPerplexity(messages);
 
       // Split response into subject and content
       const parts = response.split('\n').filter(line => line.trim());

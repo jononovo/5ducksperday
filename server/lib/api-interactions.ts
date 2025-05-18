@@ -29,7 +29,7 @@ export async function analyzeCompany(
     messages[0].content += `\n\nFormat your response as JSON:\n${responseStructure}`;
   }
 
-  return queryPerplexity(messages, "sonar");
+  return queryPerplexity(messages);
 }
 
 export async function searchContactDetails(
@@ -55,7 +55,7 @@ export async function searchContactDetails(
     }
   ];
 
-  const response = await queryPerplexity(messages, "sonar");
+  const response = await queryPerplexity(messages);
   return parseEmailDetails(response);
 }
 
