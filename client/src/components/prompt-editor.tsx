@@ -290,6 +290,12 @@ export default function PromptEditor({
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !(isAnalyzing || searchMutation.isPending)) {
+                e.preventDefault();
+                handleSearch();
+              }
+            }}
             placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
             className="flex-1"
           />
