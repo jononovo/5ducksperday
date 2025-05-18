@@ -23,6 +23,7 @@ export const companies = pgTable("companies", {
   userId: integer("user_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   listId: integer("list_id"),  
+  description: text("description"),
   age: integer("age"),
   size: integer("size"),
   website: text("website"),
@@ -151,6 +152,7 @@ const listSchema = z.object({
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required"),
   listId: z.number().nullable(),
+  description: z.string().nullable(),
   age: z.number().nullable(),
   size: z.number().nullable(),
   website: z.string().nullable(),

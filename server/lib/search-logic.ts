@@ -13,17 +13,19 @@ import { validateNames } from "./results-analysis/contact-ai-name-scorer";
 import { findKeyDecisionMakers } from "./search-logic/contact-discovery/enhanced-contact-finder";
 
 // Core search functions
-export async function searchCompanies(query: string): Promise<Array<{name: string, website: string | null}>> {
+export async function searchCompanies(query: string): Promise<Array<{name: string, website: string | null, description?: string}>> {
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: "Be precise and concise. Remove www and any http/https from the website. Only include the official domain name." 
+      content: "Be precise and concise. Remove www and any http/https from the website URLs. Only include the official domain name." 
     },
     {
       role: "user",
       content: `Find companies that match this criteria: ${query}. 
-Please output a JSON array containing 7 objects, where each object has exactly two fields: 
-"name" and "website".`
+Please output a JSON array containing 7 objects, where each object has exactly three fields:
+"name" (the company name),
+"website" (the company's domain without http/www), and
+"description" (a 1-2 sentence description of what the company does).`
     }
   ];
 
@@ -49,9 +51,10 @@ Please output a JSON array containing 7 objects, where each object has exactly t
       
       if (companiesArray) {
         // Map to our standard format and return up to 7 companies
-        const companies = companiesArray.slice(0, 7).map(company => ({
+        const companies = companiesArray.slice(0, 7).map((company: {name: string, website?: string, description?: string}) => ({
           name: company.name,
-          website: company.website || null
+          website: company.website || null,
+          description: company.description || null
         }));
         console.log('Successfully parsed companies:', companies);
         return companies;
@@ -64,6 +67,7 @@ Please output a JSON array containing 7 objects, where each object has exactly t
     console.log('Falling back to regex extraction');
     const nameMatches = cleanedResponse.match(/"name":\s*"([^"]*)"/g) || [];
     const websiteMatches = cleanedResponse.match(/"website":\s*"([^"]*)"/g) || [];
+    const descriptionMatches = cleanedResponse.match(/"description":\s*"([^"]*)"/g) || [];
     
     const companies = [];
     for (let i = 0; i < nameMatches.length && companies.length < 7; i++) {
@@ -76,9 +80,17 @@ Please output a JSON array containing 7 objects, where each object has exactly t
           website = websiteMatch && websiteMatch[1] ? websiteMatch[1].trim() : null;
         }
         
+        // Find corresponding description if available
+        let description = null;
+        if (i < descriptionMatches.length) {
+          const descriptionMatch = descriptionMatches[i].match(/"description":\s*"([^"]*)"/);
+          description = descriptionMatch && descriptionMatch[1] ? descriptionMatch[1].trim() : null;
+        }
+        
         companies.push({
           name: nameMatch[1].trim(),
-          website: website
+          website: website,
+          description: description
         });
       }
     }
