@@ -104,15 +104,25 @@ export async function searchCompanies(query: string): Promise<string[]> {
     }
     
     if (Array.isArray(parsed)) {
-      const companies = parsed.slice(0, 5).map((company: {name: string, website?: string}) => company.name);
-      console.log('Extracted company names from array:', companies);
+      const companies = parsed.slice(0, 5).map((company: {name: string, website?: string}) => {
+        return {
+          name: company.name,
+          website: company.website || null
+        };
+      });
+      console.log('Extracted companies from array:', companies);
       return companies;
     }
     
     // Handle case where the response might be wrapped in another object
     if (parsed.companies && Array.isArray(parsed.companies)) {
-      const companies = parsed.companies.slice(0, 5).map((company: {name: string, website?: string}) => company.name);
-      console.log('Extracted company names from companies field:', companies);
+      const companies = parsed.companies.slice(0, 5).map((company: {name: string, website?: string}) => {
+        return {
+          name: company.name,
+          website: company.website || null
+        };
+      });
+      console.log('Extracted companies from companies field:', companies);
       return companies;
     }
     
