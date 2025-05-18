@@ -5,37 +5,8 @@ import { queryPerplexity } from "./api/perplexity-client";
 import type { PerplexityMessage } from "./types/perplexity";
 import { analyzeWithPerplexity } from "./perplexity";
 
-// Company search and analysis functions
-export async function searchCompanies(query: string): Promise<string[]> {
-  const messages: PerplexityMessage[] = [
-    {
-      role: "system",
-      content: "Find exactly 5 real companies that match the search criteria. Format your response as a JSON array of objects with 'name' and 'website' properties. The 'name' should be the full legal name, and 'website' should be the official company website URL."
-    },
-    {
-      role: "user",
-      content: `Find 5 companies that match this criteria: ${query}`
-    }
-  ];
-
-  const response = await queryPerplexity(messages);
-  try {
-    const parsed = JSON.parse(response);
-    if (Array.isArray(parsed)) {
-      return parsed.slice(0, 5).map(company => company.name);
-    }
-    // Handle case where the response might be wrapped in another object
-    if (parsed.companies && Array.isArray(parsed.companies)) {
-      return parsed.companies.slice(0, 5).map(company => company.name);
-    }
-    // Fallback to original parsing if structure doesn't match expectations
-    return response.split('\n').filter(line => line.trim()).slice(0, 5);
-  } catch (error) {
-    console.error('Error parsing JSON response:', error);
-    // Fallback to original parsing method
-    return response.split('\n').filter(line => line.trim()).slice(0, 5);
-  }
-}
+// Company analysis functions
+// Note: The searchCompanies function has been consolidated into the search-logic.ts implementation
 
 export async function analyzeCompany(
   companyName: string,
