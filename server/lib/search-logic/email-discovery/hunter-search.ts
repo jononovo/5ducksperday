@@ -97,10 +97,9 @@ export async function searchHunter(
   apiKey: string
 ): Promise<{ email: string | null; confidence: number }> {
   const { firstName, lastName } = splitFullName(name);
-  const domain = extractDomain(company);
-
+  
   try {
-    console.log(`Searching Hunter.io for: ${firstName} ${lastName} at ${domain}`);
+    console.log(`Searching Hunter.io for: ${firstName} ${lastName} at company "${company}"`);
     console.log(`Hunter API key available: ${!!apiKey}`);
 
     // Validate inputs before making the API call
@@ -108,12 +107,12 @@ export async function searchHunter(
       console.warn('Hunter.io search warning: Missing first or last name');
     }
     
-    if (!domain || domain === '.com') {
-      console.warn('Hunter.io search warning: Invalid domain extracted');
+    if (!company) {
+      console.warn('Hunter.io search warning: Missing company name');
     }
 
     // Make the API request with detailed logging
-    console.log(`Hunter.io API request params: firstName=${firstName}, lastName=${lastName}, domain=${domain}`);
+    console.log(`Hunter.io API request params: firstName=${firstName}, lastName=${lastName}, company=${company}`);
     
     const response = await axios.get<HunterResponse>(
       'https://api.hunter.io/v2/email-finder',
@@ -122,7 +121,7 @@ export async function searchHunter(
           api_key: apiKey,
           first_name: firstName,
           last_name: lastName,
-          domain: domain
+          company: company
         },
         timeout: 15000 // 15 second timeout
       }
@@ -157,7 +156,7 @@ export async function searchHunter(
       };
     }
 
-    console.log('No email found in Hunter.io response for', { firstName, lastName, domain });
+    console.log('No email found in Hunter.io response for', { firstName, lastName, company });
     return {
       email: null,
       confidence: 0
