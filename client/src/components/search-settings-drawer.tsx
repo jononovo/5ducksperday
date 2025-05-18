@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Settings2, HelpCircle, Loader2 } from "lucide-react";
+import { X, Settings2, HelpCircle, Loader2, Code2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -24,6 +24,7 @@ interface SearchSettingsDrawerProps {
   customSelected?: boolean;
   isCustomLoading?: boolean;
   handleCustomWorkflowSearch?: () => void;
+  onViewApiTemplates?: () => void;
 }
 
 export default function SearchSettingsDrawer({ 
@@ -34,7 +35,8 @@ export default function SearchSettingsDrawer({
   setResultsUrl,
   customSelected,
   isCustomLoading,
-  handleCustomWorkflowSearch
+  handleCustomWorkflowSearch,
+  onViewApiTemplates
 }: SearchSettingsDrawerProps) {
   const [open, setOpen] = useState(false);
 
@@ -161,6 +163,21 @@ export default function SearchSettingsDrawer({
                 </div>
               )}
             </div>
+            
+            {/* API Templates Button */}
+            {onViewApiTemplates && (
+              <div className="px-6 py-4 mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onViewApiTemplates}
+                  className="w-full flex items-center justify-center"
+                >
+                  <Code2 className="h-4 w-4 mr-2" />
+                  View API Templates
+                </Button>
+              </div>
+            )}
 
             <SheetFooter className="px-6 py-4 border-t sticky bottom-0 bg-background">
               <SheetClose asChild>
