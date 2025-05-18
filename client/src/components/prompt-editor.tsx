@@ -91,6 +91,7 @@ export default function PromptEditor({
         description: `Search request sent to workflow. SearchID: ${data.searchId}`,
       });
       // Note: Results will come back through the webhook
+      setIsCustomLoading(false);
       onComplete();
     },
     onError: (error: Error) => {
@@ -99,6 +100,7 @@ export default function PromptEditor({
         description: error.message,
         variant: "destructive",
       });
+      setIsCustomLoading(false);
       onComplete();
     },
   });
@@ -180,6 +182,9 @@ export default function PromptEditor({
   
   const [customSelected, setCustomSelected] = useState<boolean>(false);
   
+  // Separate loading states for search and custom buttons
+  const [isCustomLoading, setIsCustomLoading] = useState<boolean>(false);
+  
   // Save values to localStorage when they change
   useEffect(() => {
     localStorage.setItem('5ducks_target_url', targetUrl);
@@ -211,6 +216,7 @@ export default function PromptEditor({
 
     console.log(`Executing custom workflow search with target: ${targetUrl}`);
     setCustomSelected(true);
+    setIsCustomLoading(true);
     
     // Execute the search with custom URLs
     onAnalyze();
@@ -303,9 +309,9 @@ export default function PromptEditor({
               size="sm"
               className="flex items-center gap-1 w-full"
               onClick={handleCustomWorkflowSearch}
-              disabled={isAnalyzing || workflowSearchMutation.isPending}
+              disabled={isAnalyzing || isCustomLoading}
             >
-              {(isAnalyzing || workflowSearchMutation.isPending && customSelected) && (
+              {isCustomLoading && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
