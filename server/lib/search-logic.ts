@@ -26,21 +26,39 @@ export async function searchCompanies(query: string): Promise<string[]> {
   ];
 
   const response = await queryPerplexity(messages);
+  
+  // Log the raw response for debugging
+  console.log('Raw Perplexity response:', response);
+  
   try {
     const parsed = JSON.parse(response);
+    console.log('Successfully parsed JSON response');
+    
     if (Array.isArray(parsed)) {
-      return parsed.slice(0, 5).map(company => company.name);
+      const companies = parsed.slice(0, 5).map(company => company.name);
+      console.log('Extracted company names from array:', companies);
+      return companies;
     }
+    
     // Handle case where the response might be wrapped in another object
     if (parsed.companies && Array.isArray(parsed.companies)) {
-      return parsed.companies.slice(0, 5).map(company => company.name);
+      const companies = parsed.companies.slice(0, 5).map(company => company.name);
+      console.log('Extracted company names from companies field:', companies);
+      return companies;
     }
+    
     // Fallback to original parsing if structure doesn't match expectations
-    return response.split('\n').filter(line => line.trim()).slice(0, 5);
+    console.log('JSON structure did not match expected format, falling back to line splitting');
+    const companies = response.split('\n').filter(line => line.trim()).slice(0, 5);
+    console.log('Fallback company names:', companies);
+    return companies;
   } catch (error) {
     console.error('Error parsing JSON response:', error);
+    
     // Fallback to original parsing method
-    return response.split('\n').filter(line => line.trim()).slice(0, 5);
+    const companies = response.split('\n').filter(line => line.trim()).slice(0, 5);
+    console.log('Fallback company names after JSON parse error:', companies);
+    return companies;
   }
 }
 
