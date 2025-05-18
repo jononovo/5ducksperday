@@ -39,57 +39,7 @@ export function splitFullName(fullName: string): NameParts {
   return { firstName, lastName };
 }
 
-/**
- * Extract domain from company name or URL
- * Tries to make a best guess of the domain based on the company name
- */
-export function extractDomain(company: string): string {
-  // Remove number prefix if present (e.g., "1. Company Name" -> "Company Name")
-  let normalized = company.replace(/^\d+[\.\s]+/, '').trim();
-  
-  // Remove extra spaces and trim
-  normalized = normalized.trim();
-  
-  // If it's already a domain or URL, extract just the domain part
-  if (normalized.includes('.')) {
-    // Try to extract domain from URL
-    try {
-      // If it looks like a URL, parse it
-      if (normalized.startsWith('http')) {
-        const url = new URL(normalized);
-        return url.hostname;
-      }
-      
-      // If it looks like a domain (contains dots)
-      if (normalized.includes('.') && !normalized.includes(' ')) {
-        // Remove any path or query parts
-        return normalized.split('/')[0];
-      }
-    } catch (e) {
-      // Not a valid URL, continue with other approaches
-    }
-  }
-  
-  // For company names, convert to lowercase and remove spaces/special chars
-  let simplifiedName = normalized.toLowerCase()
-    .replace(/[^\w\s]/g, '') // Remove special characters
-    .replace(/\s+/g, '');     // Remove spaces
-    
-  // Special case handling for common company suffixes
-  if (simplifiedName.endsWith('inc')) {
-    simplifiedName = simplifiedName.substring(0, simplifiedName.length - 3);
-  } else if (simplifiedName.endsWith('llc')) {
-    simplifiedName = simplifiedName.substring(0, simplifiedName.length - 3);
-  } else if (simplifiedName.endsWith('co')) {
-    simplifiedName = simplifiedName.substring(0, simplifiedName.length - 2);
-  }
-  
-  // Log the domain extraction process
-  console.log(`Hunter domain extraction: "${company}" -> "${normalized}" -> "${simplifiedName}.com"`);
-  
-  // If still no clear domain, append .com as a best guess
-  return simplifiedName + '.com';
-}
+// Domain extraction function has been removed as we're now using company name directly
 
 export async function searchHunter(
   name: string,
