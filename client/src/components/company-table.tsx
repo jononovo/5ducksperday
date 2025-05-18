@@ -38,7 +38,20 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
             return (
               <TableRow key={company.id}>
                 <TableCell className="font-medium">{company.name}</TableCell>
-                <TableCell>{company.size ? `${company.size} employees` : ''}</TableCell>
+                <TableCell>
+                  {company.website ? (
+                    <a 
+                      href={company.website.startsWith('http') ? company.website : `https://${company.website}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      {company.website}
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground">Not available</span>
+                  )}
+                </TableCell>
                 <TableCell>
                   <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}>
                     {company.totalScore ?? 'N/A'}
