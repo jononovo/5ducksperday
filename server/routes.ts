@@ -756,7 +756,13 @@ export function registerRoutes(app: Express) {
 
       // Analyze each company using technical prompts and response structures
       const companies = await Promise.all(
-        companyNames.map(async (companyName) => {
+        companyNames.map(async (company) => {
+          // Extract company name and website (if available)
+          const companyName = typeof company === 'string' ? company : company.name;
+          const companyWebsite = typeof company === 'string' ? null : (company.website || null);
+          
+          console.log(`Processing company: ${companyName}, Website: ${companyWebsite || 'Not available'}`);
+          
           // Run Company Overview analysis with technical prompt
           const overviewResult = await analyzeCompany(
             companyName,
@@ -783,6 +789,7 @@ export function registerRoutes(app: Express) {
           // Create the company record first
           const createdCompany = await storage.createCompany({
             name: companyName,
+            website: companyWebsite, // Use website from API response
             ...companyData,
             userId: userId // Use the userId we defined at the top of the route
           });

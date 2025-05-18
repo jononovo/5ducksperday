@@ -13,7 +13,7 @@ import { validateNames } from "./results-analysis/contact-ai-name-scorer";
 import { findKeyDecisionMakers } from "./search-logic/contact-discovery/enhanced-contact-finder";
 
 // Core search functions
-export async function searchCompanies(query: string): Promise<string[]> {
+export async function searchCompanies(query: string): Promise<Array<{name: string, website: string | null}>> {
   const messages: PerplexityMessage[] = [
     {
       role: "system",
@@ -95,7 +95,7 @@ export async function searchCompanies(query: string): Promise<string[]> {
           
           if (companyNames.length > 0) {
             console.log('Extracted company names with regex:', companyNames);
-            return companyNames.slice(0, 5);
+            return companyNames.slice(0, 5).map(name => ({ name, website: null }));
           }
         }
         
@@ -133,18 +133,29 @@ export async function searchCompanies(query: string): Promise<string[]> {
       .filter(line => line.includes('"name":'))
       .map(line => {
         const nameMatch = line.match(/"name":\s*"([^"]+)"/);
-        return nameMatch ? nameMatch[1] : line;
+        // Try to find a website in the same line
+        const websiteMatch = line.match(/"website":\s*"([^"]*)"/);
+        const website = websiteMatch && websiteMatch[1] ? websiteMatch[1] : null;
+        
+        return {
+          name: nameMatch ? nameMatch[1] : line,
+          website: website
+        };
       })
       .slice(0, 5);
       
     if (companyLines.length > 0) {
-      console.log('Extracted company names from JSON lines:', companyLines);
+      console.log('Extracted companies from JSON lines:', companyLines);
       return companyLines;
     }
     
     // Last resort fallback
-    const companies = response.split('\n').filter(line => line.trim()).slice(0, 5);
-    console.log('Fallback company names:', companies);
+    const companies = response.split('\n')
+      .filter(line => line.trim())
+      .slice(0, 5)
+      .map(name => ({ name, website: null }));
+      
+    console.log('Fallback company data:', companies);
     return companies;
   } catch (error) {
     console.error('Error parsing JSON response:', error);
@@ -156,12 +167,19 @@ export async function searchCompanies(query: string): Promise<string[]> {
         .filter(line => line.includes('"name":'))
         .map(line => {
           const nameMatch = line.match(/"name":\s*"([^"]+)"/);
-          return nameMatch ? nameMatch[1] : line;
+          // Try to find a website in the same line
+          const websiteMatch = line.match(/"website":\s*"([^"]*)"/);
+          const website = websiteMatch && websiteMatch[1] ? websiteMatch[1] : null;
+          
+          return {
+            name: nameMatch ? nameMatch[1] : line,
+            website: website
+          };
         })
         .slice(0, 5);
         
       if (companyLines.length > 0) {
-        console.log('Extracted company names from JSON lines after parse error:', companyLines);
+        console.log('Extracted companies from JSON lines after parse error:', companyLines);
         return companyLines;
       }
     } catch (extractError) {
@@ -169,8 +187,12 @@ export async function searchCompanies(query: string): Promise<string[]> {
     }
     
     // Last resort fallback to original parsing method
-    const companies = response.split('\n').filter(line => line.trim()).slice(0, 5);
-    console.log('Fallback company names after JSON parse error:', companies);
+    const companies = response.split('\n')
+      .filter(line => line.trim())
+      .slice(0, 5)
+      .map(name => ({ name, website: null }));
+      
+    console.log('Fallback company data after JSON parse error:', companies);
     return companies;
   }
 }

@@ -27,7 +27,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
         <TableHeader>
           <TableRow>
             <TableHead>Company Name</TableHead>
-            <TableHead>Size</TableHead>
+            <TableHead>Website</TableHead>
             <TableHead>Score</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
