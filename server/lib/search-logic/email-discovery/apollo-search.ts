@@ -59,54 +59,102 @@ export async function searchApollo(
       console.warn('Apollo.io search warning: Missing company name');
     }
 
+    // Clean up inputs - remove leading numbers and dots from company names
+    // This is important as many of the company entries might have format like "1. DLA Piper LLP"
+    const cleanedCompanyName = company.replace(/^\d+\.\s+/, '').trim();
+    console.log(`Cleaned company name for Apollo search: "${cleanedCompanyName}"`);
+
     // Prepare the request payload
     const payload = {
       api_key: apiKey,
-      first_name: firstName,
-      last_name: lastName,
-      organization_name: company
+      first_name: firstName || undefined, // Only include if non-empty
+      last_name: lastName || undefined,   // Only include if non-empty
+      organization_name: cleanedCompanyName || undefined // Only include if non-empty
     };
+
+    // Clean up payload by removing undefined values
+    Object.keys(payload).forEach(key => {
+      if (payload[key] === undefined) {
+        delete payload[key];
+      }
+    });
 
     // Make the API request with detailed logging
     console.log(`Apollo.io API request payload:`, JSON.stringify(payload));
     
     const response = await axios.post<ApolloResponse>(
-      'https://api.apollo.io/api/v1/people/match',
+      'https://api.apollo.io/v1/people/match',
       payload,
       {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
         },
         timeout: 15000 // 15 second timeout
       }
     );
 
     console.log('Apollo.io API response status:', response.status);
-    console.log('Apollo.io API response:', JSON.stringify(response.data, null, 2));
-
-    // Process successful response
-    if (response.data && response.data.person) {
-      const person = response.data.person;
-      
-      // Calculate confidence based on Apollo's score if available
-      const confidence = person.confidence_score ? 
-        Math.round(person.confidence_score * 100) : 50; // Default to 50 if not provided
-      
-      // Extract phone if available
-      let phone = null;
-      if (person.phone_numbers && person.phone_numbers.length > 0) {
-        phone = person.phone_numbers[0].value || null;
+    
+    // Check if response is valid JSON
+    if (response.data) {
+      if (typeof response.data === 'string') {
+        console.warn('Received string response instead of JSON:', response.data.substring(0, 100));
+        // Try to parse if it might be JSON string
+        try {
+          const parsedData = JSON.parse(response.data);
+          console.log('Successfully parsed string response as JSON');
+          
+          if (parsedData && parsedData.person) {
+            const person = parsedData.person;
+            const confidence = person.confidence_score ? 
+              Math.round(person.confidence_score * 100) : 50;
+            
+            let phone = null;
+            if (person.phone_numbers && person.phone_numbers.length > 0) {
+              phone = person.phone_numbers[0].value || null;
+            }
+            
+            return {
+              email: person.email || null,
+              confidence: confidence,
+              linkedinUrl: person.linkedin_url || null,
+              title: person.title || null,
+              phone: phone
+            };
+          }
+        } catch (parseError) {
+          console.error('Failed to parse response as JSON:', parseError);
+        }
+      } else {
+        // Normal JSON response
+        console.log('Apollo.io API response:', JSON.stringify(response.data, null, 2));
+        
+        // Process successful response
+        if (response.data && response.data.person) {
+          const person = response.data.person;
+          
+          // Calculate confidence based on Apollo's score if available
+          const confidence = person.confidence_score ? 
+            Math.round(person.confidence_score * 100) : 50; // Default to 50 if not provided
+          
+          // Extract phone if available
+          let phone = null;
+          if (person.phone_numbers && person.phone_numbers.length > 0) {
+            phone = person.phone_numbers[0].value || null;
+          }
+          
+          console.log(`Found contact via Apollo.io: ${person.email} (confidence: ${confidence})`);
+          
+          return {
+            email: person.email || null,
+            confidence: confidence,
+            linkedinUrl: person.linkedin_url || null,
+            title: person.title || null,
+            phone: phone
+          };
+        }
       }
-      
-      console.log(`Found contact via Apollo.io: ${person.email} (confidence: ${confidence})`);
-      
-      return {
-        email: person.email || null,
-        confidence: confidence,
-        linkedinUrl: person.linkedin_url || null,
-        title: person.title || null,
-        phone: phone
-      };
     }
 
     console.log('No contact found in Apollo.io response for', { firstName, lastName, company });
@@ -120,7 +168,19 @@ export async function searchApollo(
   } catch (error) {
     console.error('Apollo.io API error:', error);
     if (axios.isAxiosError(error)) {
-      console.error('Apollo.io error response:', error.response?.data);
+      // Safely log error details
+      const errorResponseData = error.response?.data;
+      if (errorResponseData) {
+        if (typeof errorResponseData === 'string') {
+          // If the response data is a string (e.g., HTML), just log the first 200 chars
+          console.error('Apollo.io error response (truncated):', 
+            errorResponseData.substring(0, 200));
+        } else {
+          // Otherwise log the entire object
+          console.error('Apollo.io error response:', errorResponseData);
+        }
+      }
+      
       console.error('Apollo.io error status:', error.response?.status);
       
       // Check for common error cases

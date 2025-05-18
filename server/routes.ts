@@ -2093,8 +2093,12 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         name: company.name
       });
 
-      // Get the Apollo.io API key
-      const apolloApiKey = "OPlAQCo9oLJQLD43mAjFFg";
+      // Get the Apollo.io API key from environment variables
+      const apolloApiKey = process.env.APOLLO_API_KEY;
+      if (!apolloApiKey) {
+        res.status(500).json({ message: "Apollo.io API key not configured" });
+        return;
+      }
 
       // Use the Apollo.io API to search for the email
       const { searchApollo } = await import('./lib/search-logic/email-discovery/apollo-search');
