@@ -17,24 +17,13 @@ export async function searchCompanies(query: string): Promise<Array<{name: strin
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: `Find exactly 5 real companies that match the search criteria. Your response MUST be a valid JSON array of objects ONLY.
-
-DO NOT include any text, disclaimers, or explanations outside the JSON structure.
-DO NOT wrap the JSON in code blocks or markdown.
-
-Each object in the array must have these exact properties:
-- "name": The full legal company name
-- "website": The official company website URL (include http/https prefix if known)
-
-Example of expected output format:
-[
-  {"name": "Apple Inc.", "website": "https://www.apple.com"},
-  {"name": "Microsoft Corporation", "website": "https://www.microsoft.com"}
-]`
+      content: "Be precise and concise."
     },
     {
       role: "user",
-      content: `Find 5 companies that match this criteria: ${query}. Return ONLY a JSON array as specified.`
+      content: `Find 5 companies that match this criteria: ${query}. 
+Please output a JSON array containing 5 objects, where each object has exactly two fields: 
+"name" (the company name) and "website" (the company's official website URL).`
     }
   ];
 
