@@ -22,6 +22,7 @@ import {
   Menu,
   Mail,
   Target,
+  Rocket,
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
