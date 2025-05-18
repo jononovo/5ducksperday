@@ -941,14 +941,21 @@ export function registerRoutes(app: Express) {
 
   // Contacts
   app.get("/api/companies/:companyId/contacts", requireAuth, async (req, res) => {
-    const contacts = await storage.listContactsByCompany(parseInt(req.params.companyId), req.user!.id);
-    res.json(contacts);
+    try {
+      const userId = getUserId(req);
+      const contacts = await storage.listContactsByCompany(parseInt(req.params.companyId), userId);
+      res.json(contacts);
+    } catch (error) {
+      console.error("Error fetching contacts by company:", error);
+      res.status(500).json({ message: "Failed to fetch contacts" });
+    }
   });
 
   app.post("/api/companies/:companyId/enrich-contacts", requireAuth, async (req, res) => {
     try {
+      const userId = getUserId(req);
       const companyId = parseInt(req.params.companyId);
-      const company = await storage.getCompany(companyId, req.user!.id);
+      const company = await storage.getCompany(companyId, userId);
 
       if (!company) {
         res.status(404).json({ message: "Company not found" });

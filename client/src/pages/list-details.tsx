@@ -23,6 +23,12 @@ export default function ListDetails() {
 
   if (!list) return null;
 
+  // Add a company view handler
+  const handleCompanyView = (companyId: number) => {
+    console.log('Navigating to company:', { companyId });
+    navigate(`/companies/${companyId}`);
+  };
+
   return (
     <div className="container mx-auto py-8">
       <Button
@@ -39,7 +45,7 @@ export default function ListDetails() {
           <CardTitle>List {list.listId}: {list.prompt}</CardTitle>
         </CardHeader>
         <CardContent>
-          <CompanyTable companies={companies} />
+          <CompanyTable companies={companies} handleCompanyView={handleCompanyView} />
         </CardContent>
       </Card>
     </div>
