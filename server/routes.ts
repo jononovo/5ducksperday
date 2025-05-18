@@ -1235,12 +1235,14 @@ export function registerRoutes(app: Express) {
 
   // Email Templates
   app.get("/api/email-templates", requireAuth, async (req, res) => {
-    const templates = await storage.listEmailTemplates(req.user!.id);
+    const userId = getUserId(req);
+    const templates = await storage.listEmailTemplates(userId);
     res.json(templates);
   });
 
   app.get("/api/email-templates/:id", requireAuth, async (req, res) => {
-    const template = await storage.getEmailTemplate(parseInt(req.params.id), req.user!.id);
+    const userId = getUserId(req);
+    const template = await storage.getEmailTemplate(parseInt(req.params.id), userId);
     if (!template) {
       res.status(404).json({ message: "Template not found" });
       return;
@@ -1250,6 +1252,8 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/email-templates", requireAuth, async (req, res) => {
     try {
+      const userId = getUserId(req);
+      
       console.log('POST /api/email-templates - Request body:', {
         ...req.body,
         userId: userId
