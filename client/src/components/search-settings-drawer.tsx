@@ -77,9 +77,6 @@ export default function SearchSettingsDrawer({
                 <div>
                   <SearchFlowNew approaches={approaches} />
                 </div>
-                
-
-                
                 {/* External Search Configuration */}
                 {setTargetUrl && setResultsUrl && handleCustomWorkflowSearch && (
                   <div>
