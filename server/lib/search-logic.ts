@@ -27,125 +27,65 @@ Please output a JSON array containing 7 objects, where each object has exactly t
     }
   ];
 
-  const response = await queryPerplexity(messages);
-  
-  // Log the raw response for debugging
-  console.log('Raw Perplexity response:', response);
-  
   try {
-    console.log('Attempting to parse Perplexity response:', response);
+    // Get response from Perplexity API
+    const response = await queryPerplexity(messages);
+    console.log('Raw Perplexity response:', response);
     
-    // Remove any Markdown formatting or surrounding text
-    let cleanedResponse = response.trim();
+    // Clean the response to handle any unexpected formatting
+    const cleanedResponse = response.trim().replace(/```(?:json)?\s*|\s*```/g, '');
     
-    // Remove code block markers
-    cleanedResponse = cleanedResponse.replace(/```json\s*|\s*```/g, '');
+    // Extract a JSON array if present
+    const jsonMatch = cleanedResponse.match(/(\[\s*\{[\s\S]*?\}\s*\])/);
+    const jsonString = jsonMatch ? jsonMatch[1] : cleanedResponse;
     
-    // Extract any JSON array that might be in the response
-    const arrayMatch = cleanedResponse.match(/\[\s*\{[\s\S]*\}\s*\]/);
-    if (arrayMatch) {
-      cleanedResponse = arrayMatch[0];
-    }
-    
-    let companies = [];
-    
-    // Try to parse as JSON first
     try {
-      const parsed = JSON.parse(cleanedResponse);
+      // Parse the JSON response
+      const parsed = JSON.parse(jsonString);
       
-      if (Array.isArray(parsed)) {
-        // Handle direct array of companies
-        companies = parsed.slice(0, 5).map((company: {name: string, website?: string}) => ({
+      // Handle either a direct array or a nested "companies" property
+      const companiesArray = Array.isArray(parsed) ? parsed : 
+                          (parsed.companies && Array.isArray(parsed.companies) ? parsed.companies : null);
+      
+      if (companiesArray) {
+        // Map to our standard format and return up to 7 companies
+        const companies = companiesArray.slice(0, 7).map(company => ({
           name: company.name,
           website: company.website || null
         }));
-        console.log('Successfully parsed JSON array of companies:', companies);
-      } 
-      else if (parsed.companies && Array.isArray(parsed.companies)) {
-        // Handle response with companies property
-        companies = parsed.companies.slice(0, 5).map((company: {name: string, website?: string}) => ({
-          name: company.name,
-          website: company.website || null
-        }));
-        console.log('Successfully parsed JSON with companies field:', companies);
-      }
-      
-      if (companies.length > 0) {
+        console.log('Successfully parsed companies:', companies);
         return companies;
       }
-    } 
-    catch (jsonError) {
+    } catch (jsonError) {
       console.error('JSON parsing failed:', jsonError);
-      
-      // If JSON parsing fails, use regex as a fallback
-      const companyData = [];
-      const nameRegex = /"name":\s*"([^"]*)"/g;
-      const websiteRegex = /"website":\s*"([^"]*)"/g;
-      
-      // Extract all company names and their positions in the text
-      const names = [];
-      let nameMatch;
-      while ((nameMatch = nameRegex.exec(cleanedResponse)) !== null) {
-        if (nameMatch[1] && nameMatch[1].trim()) {
-          names.push({
-            name: nameMatch[1].trim(),
-            index: nameMatch.index
-          });
-        }
-      }
-      
-      // Extract all websites and their positions
-      const websites = [];
-      let websiteMatch;
-      while ((websiteMatch = websiteRegex.exec(cleanedResponse)) !== null) {
-        websites.push({
-          website: websiteMatch[1] ? websiteMatch[1].trim() : null,
-          index: websiteMatch.index
-        });
-      }
-      
-      console.log(`Found ${names.length} company names and ${websites.length} websites with regex`);
-      
-      // Match companies with their websites based on proximity in the text
-      for (const company of names) {
-        let nearestWebsite = null;
-        let minDistance = Number.MAX_SAFE_INTEGER;
-        
-        for (const site of websites) {
-          const distance = Math.abs(company.index - site.index);
-          if (distance < 100 && distance < minDistance) {
-            minDistance = distance;
-            nearestWebsite = site.website;
-          }
-        }
-        
-        companyData.push({
-          name: company.name,
-          website: nearestWebsite
-        });
-      }
-      
-      if (companyData.length > 0) {
-        console.log('Extracted companies using regex fallback:', companyData);
-        return companyData.slice(0, 5);
-      }
     }
     
-    // Last resort: line-by-line parsing
-    const lines = cleanedResponse.split('\n').filter(line => line.trim());
-    for (const line of lines) {
-      const nameMatch = line.match(/"?name"?\s*:?\s*"?([^",]+)"?/i);
+    // If we couldn't parse JSON properly, use a simple regex extraction as fallback
+    console.log('Falling back to regex extraction');
+    const nameMatches = cleanedResponse.match(/"name":\s*"([^"]*)"/g) || [];
+    const websiteMatches = cleanedResponse.match(/"website":\s*"([^"]*)"/g) || [];
+    
+    const companies = [];
+    for (let i = 0; i < nameMatches.length && companies.length < 7; i++) {
+      const nameMatch = nameMatches[i].match(/"name":\s*"([^"]*)"/);
       if (nameMatch && nameMatch[1]) {
+        // Find corresponding website if available
+        let website = null;
+        if (i < websiteMatches.length) {
+          const websiteMatch = websiteMatches[i].match(/"website":\s*"([^"]*)"/);
+          website = websiteMatch && websiteMatch[1] ? websiteMatch[1].trim() : null;
+        }
+        
         companies.push({
           name: nameMatch[1].trim(),
-          website: null
+          website: website
         });
       }
     }
     
     if (companies.length > 0) {
-      console.log('Extracted companies using line parsing:', companies);
-      return companies.slice(0, 5);
+      console.log('Extracted companies using regex fallback:', companies);
+      return companies;
     }
     
     // If no companies found, return empty array
