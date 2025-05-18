@@ -1103,12 +1103,14 @@ export function registerRoutes(app: Express) {
   // Add new route for getting a single contact
   app.get("/api/contacts/:id", requireAuth, async (req, res) => {
     try {
+      const userId = getUserId(req);
+      
       console.log('GET /api/contacts/:id - Request params:', {
         id: req.params.id,
         userId: userId
       });
 
-      const contact = await storage.getContact(parseInt(req.params.id), req.user!.id);
+      const contact = await storage.getContact(parseInt(req.params.id), userId);
 
       console.log('GET /api/contacts/:id - Retrieved contact:', {
         requested: req.params.id,
