@@ -23,7 +23,7 @@ export async function queryPerplexity(messages: PerplexityMessage[]): Promise<st
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "sonar",
+        model: "llama-3.1-sonar-small-128k-online",
         messages,
         temperature: 0.1,
         max_tokens: 1000,

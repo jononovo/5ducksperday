@@ -17,11 +17,24 @@ export async function searchCompanies(query: string): Promise<Array<{name: strin
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: "Find exactly 5 real companies that match the search criteria. Please output a JSON array of objects, where each object contains 'name' and 'website' properties. The 'name' should be the full legal name without any numbering or prefixes, and 'website' should be the official company website domain. If you can't find correct data, leave it empty."
+      content: `Find exactly 5 real companies that match the search criteria. Your response MUST be a valid JSON array of objects ONLY.
+
+DO NOT include any text, disclaimers, or explanations outside the JSON structure.
+DO NOT wrap the JSON in code blocks or markdown.
+
+Each object in the array must have these exact properties:
+- "name": The full legal company name
+- "website": The official company website URL (include http/https prefix if known)
+
+Example of expected output format:
+[
+  {"name": "Apple Inc.", "website": "https://www.apple.com"},
+  {"name": "Microsoft Corporation", "website": "https://www.microsoft.com"}
+]`
     },
     {
       role: "user",
-      content: `Find 5 companies that match this criteria: ${query}`
+      content: `Find 5 companies that match this criteria: ${query}. Return ONLY a JSON array as specified.`
     }
   ];
 
@@ -84,19 +97,66 @@ export async function searchCompanies(query: string): Promise<Array<{name: strin
       } catch (fullError) {
         console.error('Error parsing entire response as JSON:', fullError);
         
-        // If all parsing attempts failed, try one more approach with regex for company names
-        const companyNameMatches = response.match(/"name":\s*"([^"]*)"/g);
-        if (companyNameMatches && companyNameMatches.length > 0) {
-          console.log('Found company names with regex');
-          const companyNames = companyNameMatches.map(match => {
-            const nameMatch = match.match(/"name":\s*"([^"]*)"/);
-            return nameMatch ? nameMatch[1] : '';
-          }).filter(name => name.length > 0);
-          
-          if (companyNames.length > 0) {
-            console.log('Extracted company names with regex:', companyNames);
-            return companyNames.slice(0, 5).map(name => ({ name, website: null }));
+        // If all parsing attempts failed, try one more approach with regex for company names and websites
+        const companyData = [];
+        const companyRegex = /"name":\s*"([^"]*)"/g;
+        const websiteRegex = /"website":\s*"([^"]*)"/g;
+        let nameMatch;
+        let websiteMatch;
+        
+        // Find all company names
+        const companyNames = [];
+        while ((nameMatch = companyRegex.exec(response)) !== null) {
+          if (nameMatch[1] && nameMatch[1].trim()) {
+            companyNames.push({
+              name: nameMatch[1].trim(),
+              index: nameMatch.index
+            });
           }
+        }
+        
+        // Find all websites
+        const websites = [];
+        while ((websiteMatch = websiteRegex.exec(response)) !== null) {
+          websites.push({
+            website: websiteMatch[1] ? websiteMatch[1].trim() : null,
+            index: websiteMatch.index
+          });
+        }
+        
+        console.log('Found company names with regex:', companyNames.length);
+        console.log('Found websites with regex:', websites.length);
+        
+        // Try to match companies with websites based on proximity in the text
+        for (const company of companyNames) {
+          let nearestWebsite = null;
+          let minDistance = Number.MAX_SAFE_INTEGER;
+          
+          for (const site of websites) {
+            const distance = Math.abs(company.index - site.index);
+            if (distance < minDistance) {
+              minDistance = distance;
+              nearestWebsite = site.website;
+            }
+          }
+          
+          // Only pair if they're reasonably close (within 100 chars)
+          if (minDistance < 100) {
+            companyData.push({
+              name: company.name,
+              website: nearestWebsite
+            });
+          } else {
+            companyData.push({
+              name: company.name,
+              website: null
+            });
+          }
+        }
+        
+        if (companyData.length > 0) {
+          console.log('Extracted companies with websites using regex:', companyData);
+          return companyData.slice(0, 5);
         }
         
         throw fullError; // Rethrow to fall to the catch block
