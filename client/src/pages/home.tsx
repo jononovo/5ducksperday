@@ -1122,18 +1122,7 @@ export default function Home() {
           )}
         </div>
 
-        {/* API Templates Button added to main section footer */}
-        <div className="col-span-12 flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setLocation("/api-templates")}
-            className="ml-auto"
-          >
-            <Code2 className="h-4 w-4 mr-2" />
-            View API Templates
-          </Button>
-        </div>
+        {/* API Templates Button moved to settings drawer */}
       </div>
     </div>
   );
