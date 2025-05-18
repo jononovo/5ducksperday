@@ -24,6 +24,11 @@ import { logIncomingWebhook } from "./lib/webhook-logger";
 // Import email service providers
 import { getEmailProvider } from "./services/emailService";
 
+// Helper function to safely get user ID from request
+function getUserId(req: express.Request): number {
+  return req.isAuthenticated() && req.user ? (req.user as any).id : 1;
+}
+
 // Helper functions for improved search test scoring and AI agent support
 function normalizeScore(score: number): number {
   return Math.min(Math.max(Math.round(score), 30), 100);
@@ -587,6 +592,7 @@ export function registerRoutes(app: Express) {
     }
 
     try {
+      const userId = getUserId(req);
       const listId = await storage.getNextListId();
       const list = await storage.createList({
         listId,
