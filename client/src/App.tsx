@@ -19,7 +19,7 @@ import Outreach from "@/pages/outreach";
 import Replies from "@/pages/replies";
 import CompanyDetails from "@/pages/company-details";
 import ContactDetails from "@/pages/contact-details";
-import ApiTemplates from "@/pages/api-templates";
+
 import NotFound from "@/pages/not-found";
 import { MainNav } from "@/components/main-nav";
 
@@ -59,7 +59,7 @@ function Router() {
                 <ProtectedRoute path="/outreach" component={() => <Outreach />} />
                 <ProtectedRoute path="/replies" component={() => <Replies />} />
                 <ProtectedRoute path="/contacts/:id" component={() => <ContactDetails />} />
-                <ProtectedRoute path="/api-templates" component={() => <ApiTemplates />} />
+
                 {/* Public Routes */}
                 {/* Privacy Policy is now available as a blog post */}
                 <Route path="/terms" component={() => <Terms />} />
