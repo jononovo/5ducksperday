@@ -333,7 +333,7 @@ export default function CompanyDetails() {
                 <span>Company Website:</span>
                 {company.website ? (
                   <a
-                    href={company.website}
+                    href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline"

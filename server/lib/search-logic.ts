@@ -17,14 +17,14 @@ export async function searchCompanies(query: string): Promise<Array<{name: strin
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: "Be precise and concise. Remove www and any http/https from the website URLs. Only include the official domain name." 
+      content: "Be precise and concise. Website: Only include the official domain, otherwise leave empty." 
     },
     {
       role: "user",
       content: `Find companies that match this criteria: ${query}. 
 Please output a JSON array containing 7 objects, where each object has exactly three fields:
 "name" (the company name),
-"website" (the company's domain without http/www), and
+"website" (the company's official domain), and
 "description" (a 1-2 sentence description of what the company does).`
     }
   ];
