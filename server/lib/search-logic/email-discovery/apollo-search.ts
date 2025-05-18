@@ -59,35 +59,33 @@ export async function searchApollo(
       console.warn('Apollo.io search warning: Missing company name');
     }
 
-    // Clean up inputs - remove leading numbers and dots from company names
-    // This is important as many of the company entries might have format like "1. DLA Piper LLP"
-    const cleanedCompanyName = company.replace(/^\d+\.\s+/, '').trim();
-    console.log(`Cleaned company name for Apollo search: "${cleanedCompanyName}"`);
-
     // Prepare the request payload
     const payload = {
-      api_key: apiKey,
       first_name: firstName || undefined, // Only include if non-empty
       last_name: lastName || undefined,   // Only include if non-empty
-      organization_name: cleanedCompanyName || undefined // Only include if non-empty
+      organization_name: company || undefined // Use original company name
     };
 
     // Clean up payload by removing undefined values
-    Object.keys(payload).forEach(key => {
-      if (payload[key] === undefined) {
-        delete payload[key];
+    const cleanPayload: Record<string, any> = { ...payload };
+    Object.keys(cleanPayload).forEach(key => {
+      if (cleanPayload[key] === undefined) {
+        delete cleanPayload[key];
       }
     });
+    
+    // Use the cleaned payload for the request
 
     // Make the API request with detailed logging
-    console.log(`Apollo.io API request payload:`, JSON.stringify(payload));
+    console.log(`Apollo.io API request payload:`, JSON.stringify(cleanPayload));
     
     const response = await axios.post<ApolloResponse>(
-      'https://api.apollo.io/v1/people/match',
-      payload,
+      'https://api.apollo.io/api/v1/people/match',
+      cleanPayload,
       {
         headers: {
           'Content-Type': 'application/json',
+          'X-Api-Key': apiKey,
           'Cache-Control': 'no-cache'
         },
         timeout: 15000 // 15 second timeout
@@ -99,7 +97,9 @@ export async function searchApollo(
     // Check if response is valid JSON
     if (response.data) {
       if (typeof response.data === 'string') {
-        console.warn('Received string response instead of JSON:', response.data.substring(0, 100));
+        const responseStr = response.data as string;
+        console.warn('Received string response instead of JSON:', 
+          responseStr.length > 100 ? responseStr.substring(0, 100) + '...' : responseStr);
         // Try to parse if it might be JSON string
         try {
           const parsedData = JSON.parse(response.data);
