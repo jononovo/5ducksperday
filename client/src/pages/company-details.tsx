@@ -204,9 +204,11 @@ export default function CompanyDetails() {
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle className="text-2xl font-bold">{company.name}</CardTitle>
-                <CardDescription>
-                  Company Age: {company.age} years
-                </CardDescription>
+                {company.description && (
+                  <CardDescription className="mt-2">
+                    {company.description}
+                  </CardDescription>
+                )}
               </div>
               <Badge
                 className="text-lg py-2"
@@ -321,7 +323,7 @@ export default function CompanyDetails() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Globe className="h-5 w-5" />
-              External Links
+              Company Information
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -358,6 +360,13 @@ export default function CompanyDetails() {
                   <span className="italic">No profile link available</span>
                 )}
               </div>
+              {company.age && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Building2 className="h-5 w-5" />
+                  <span>Company Age:</span>
+                  <span>{company.age} years</span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
