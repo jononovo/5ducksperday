@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { SemiProtectedRoute } from "@/lib/semi-protected-route";
 import { Layout } from "@/components/layout";
 import { SearchStrategyProvider } from "@/lib/search-strategy-context";
 import Auth from "@/pages/auth";
@@ -44,7 +45,12 @@ function Router() {
             <div className="flex-1">
               <Switch>
                 <Route path="/auth" component={Auth} />
-                <ProtectedRoute path="/app" component={() => <Home />} />
+                
+                {/* Semi-protected routes - allow initial access but prompt for login for certain actions */}
+                <SemiProtectedRoute path="/app" component={() => <Home />} />
+                <SemiProtectedRoute path="/companies/:id" component={() => <CompanyDetails />} />
+                
+                {/* Fully protected routes - require login */}
                 <ProtectedRoute path="/build" component={() => <Build />} />
                 <ProtectedRoute path="/lists" component={() => <Lists />} />
                 <ProtectedRoute path="/lists/:listId" component={() => <ListDetails />} />
@@ -52,7 +58,6 @@ function Router() {
                 <ProtectedRoute path="/campaigns/:id" component={() => <CampaignDetails />} />
                 <ProtectedRoute path="/outreach" component={() => <Outreach />} />
                 <ProtectedRoute path="/replies" component={() => <Replies />} />
-                <ProtectedRoute path="/companies/:id" component={() => <CompanyDetails />} />
                 <ProtectedRoute path="/contacts/:id" component={() => <ContactDetails />} />
                 <ProtectedRoute path="/api-templates" component={() => <ApiTemplates />} />
                 {/* Public Routes */}
