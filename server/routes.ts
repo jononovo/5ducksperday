@@ -27,7 +27,7 @@ import { getEmailProvider } from "./services/emailService";
 // Helper function to safely get user ID from request
 function getUserId(req: express.Request): number {
   try {
-    if (req.isAuthenticated() && req.user && (req.user as any).id) {
+    if (req.isAuthenticated && req.isAuthenticated() && req.user && (req.user as any).id) {
       return (req.user as any).id;
     }
   } catch (error) {
@@ -36,8 +36,9 @@ function getUserId(req: express.Request): number {
   
   // For testing only - using default user ID
   console.log('Using default user ID - authentication issue', {
-    isAuthenticated: req.isAuthenticated(),
+    isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
     hasUser: !!req.user,
+    path: req.path,
     timestamp: new Date().toISOString()
   });
   return 1;
