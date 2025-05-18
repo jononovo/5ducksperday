@@ -73,6 +73,9 @@ export default function Home() {
   const [pendingContactIds, setPendingContactIds] = useState<Set<number>>(new Set());
   // State for selected contacts (for multi-select checkboxes)
   const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
+  // Add new state for tracking contact loading status
+  const [isLoadingContacts, setIsLoadingContacts] = useState(false);
+  const [contactsLoaded, setContactsLoaded] = useState(false);
   // Initialize showTour based on localStorage
   const [showTour, setShowTour] = useState(() => {
     try {
@@ -168,10 +171,26 @@ export default function Home() {
     setIsAnalyzing(false);
   };
 
+  // New handler for initial companies data
+  const handleCompaniesReceived = (query: string, companies: Company[]) => {
+    console.log('Companies received:', companies.length);
+    // Update the UI with just the companies data
+    setCurrentQuery(query);
+    // Convert Company[] to CompanyWithContacts[] with empty contacts arrays
+    setCurrentResults(companies.map(company => ({ ...company, contacts: [] })));
+    setIsSaved(false);
+    setIsLoadingContacts(true);
+    setContactsLoaded(false);
+  };
+
+  // Modified search results handler for the full data with contacts
   const handleSearchResults = (query: string, results: CompanyWithContacts[]) => {
+    console.log('Complete results received with contacts:', results.length);
     setCurrentQuery(query);
     setCurrentResults(results);
     setIsSaved(false);
+    setIsLoadingContacts(false);
+    setContactsLoaded(true);
   };
 
   const handleSaveList = () => {
@@ -771,13 +790,46 @@ export default function Home() {
                 onAnalyze={() => setIsAnalyzing(true)}
                 onComplete={handleAnalysisComplete}
                 onSearchResults={handleSearchResults}
+                onCompaniesReceived={handleCompaniesReceived}
                 isAnalyzing={isAnalyzing}
                 initialPrompt={currentQuery || ""}
               />
             </CardContent>
           </Card>
 
-          {/* Top Prospects Section - Moved above Companies Analysis */}
+          {/* Companies Analysis Section - Moved to top */}
+          <Card className="w-full">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Companies Analysis</CardTitle>
+                {currentResults && (
+                  <Button
+                    variant="outline"
+                    onClick={handleSaveList}
+                    disabled={isSaved || saveMutation.isPending}
+                  >
+                    <ListPlus className="mr-2 h-4 w-4" />
+                    {isSaved ? "Saved" : "Save as List"}
+                  </Button>
+                )}
+              </div>
+              {currentQuery && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Search: {currentQuery}
+                </p>
+              )}
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <CompanyTable
+                  companies={currentResults || []}
+                  handleCompanyView={handleCompanyView}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Top Prospects Section - Moved below Companies Analysis */}
           {currentResults && currentResults.length > 0 && (
             <Card className="w-full">
               <CardHeader>
@@ -1068,38 +1120,6 @@ export default function Home() {
               </CardContent>
             </Card>
           )}
-
-          {/* Companies Analysis Section */}
-          <Card className="w-full">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Companies Analysis</CardTitle>
-                {currentResults && (
-                  <Button
-                    variant="outline"
-                    onClick={handleSaveList}
-                    disabled={isSaved || saveMutation.isPending}
-                  >
-                    <ListPlus className="mr-2 h-4 w-4" />
-                    {isSaved ? "Saved" : "Save as List"}
-                  </Button>
-                )}
-              </div>
-              {currentQuery && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Search: {currentQuery}
-                </p>
-              )}
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <CompanyTable
-                  companies={currentResults || []}
-                  handleCompanyView={handleCompanyView}
-                />
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* API Templates Button added to main section footer */}

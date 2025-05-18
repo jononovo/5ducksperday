@@ -22,6 +22,7 @@ interface PromptEditorProps {
   onAnalyze: () => void;
   onComplete: () => void;
   onSearchResults: (query: string, results: any[]) => void;
+  onCompaniesReceived: (query: string, companies: any[]) => void; // New callback for quick results
   isAnalyzing: boolean;
   initialPrompt?: string;
 }
@@ -30,6 +31,7 @@ export default function PromptEditor({
   onAnalyze, 
   onComplete, 
   onSearchResults, 
+  onCompaniesReceived,
   isAnalyzing,
   initialPrompt = ""
 }: PromptEditorProps) {
