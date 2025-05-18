@@ -10,7 +10,7 @@ export async function searchCompanies(query: string): Promise<string[]> {
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: "You are a business intelligence analyst. List exactly 5 real company names that match the search criteria. Format your response as a simple list with one company name per line, nothing else."
+      content: "List exactly 5 real company names that match the search criteria. One company name per line, nothing else."
     },
     {
       role: "user",
