@@ -9,7 +9,26 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
+import { 
+  Eye, 
+  ChevronDown, 
+  ChevronRight, 
+  ExternalLink, 
+  Mail, 
+  Gem,
+  Target,
+  Rocket,
+  Star,
+  ThumbsUp,
+  ThumbsDown
+} from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { Company, Contact } from "@shared/schema";
 import { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
 
@@ -131,65 +150,97 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                 </TableRow>
                 
                 {/* Expanded details row - only visible when expanded */}
-                {isExpanded && (
-                  <TableRow key={`${company.id}-details`} className="bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-50/80 dark:hover:bg-slate-900/80">
-                    <TableCell colSpan={6} className="px-4 py-4">
-                      <div className="space-y-4">
-                        {/* Company description section */}
-                        {company.description && (
-                          <div>
-                            <h4 className="text-sm font-medium mb-1">About {company.name}</h4>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                              {company.description}
-                            </p>
-                          </div>
-                        )}
-                        
-                        {/* Key contacts section */}
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Key Contacts</h4>
-                          {topContacts.length > 0 ? (
-                            <div className="border rounded-md overflow-hidden">
-                              <Table className="w-full">
-                                <TableHeader>
-                                  <TableRow className="bg-slate-100 dark:bg-slate-800">
-                                    <TableHead className="py-2">Name</TableHead>
-                                    <TableHead className="py-2">Role</TableHead>
-                                    <TableHead className="py-2">Score</TableHead>
-                                    <TableHead className="py-2">Email</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {topContacts.map((contact) => (
-                                    <TableRow key={contact.id} className="hover:bg-slate-100 dark:hover:bg-slate-800">
-                                      <TableCell className="py-2 font-medium">{contact.name}</TableCell>
-                                      <TableCell className="py-2 text-sm">{contact.role || "N/A"}</TableCell>
-                                      <TableCell className="py-2">
-                                        <Badge
-                                          variant={(contact.probability || 0) >= 80 ? "default" : "secondary"}
-                                          className="text-xs"
-                                        >
-                                          {contact.probability || 0}
-                                        </Badge>
-                                      </TableCell>
-                                      <TableCell className="py-2 text-sm">
-                                        {contact.email || "Not available"}
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </div>
-                          ) : (
-                            <div className="text-sm text-slate-500 dark:text-slate-400 italic">
-                              No key contacts found for this company
-                            </div>
-                          )}
-                        </div>
+                {isExpanded && topContacts.map((contact) => (
+                  <TableRow 
+                    key={`${company.id}-contact-${contact.id}`} 
+                    className="bg-slate-50/50 dark:bg-slate-800/50 border-t-0"
+                  >
+                    <TableCell className="w-10 pl-2">
+                      <div className="pl-8">
+                        <input 
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300"
+                          aria-label={`Select ${contact.name}`}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">{contact.name}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <span className="text-xs text-muted-foreground">{contact.role || "N/A"}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={(contact.probability || 0) >= 80 ? "default" : "secondary"}
+                      >
+                        {contact.probability || 0}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <span className="text-xs text-muted-foreground">{contact.email || "Not available"}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="hidden md:flex gap-2">
+                        <TooltipProvider delayDuration={500}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>View contact</p>
+                            </TooltipContent>
+                          </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                              >
+                                <Mail className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Find email</p>
+                            </TooltipContent>
+                          </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                              >
+                                <Gem className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>AeroLeads search</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                              >
+                                <Target className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Hunter.io search</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </TableCell>
                   </TableRow>
-                )}
+                ))}
               </>
             );
           })}
