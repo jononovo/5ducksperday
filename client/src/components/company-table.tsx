@@ -43,9 +43,25 @@ import { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filterin
 interface CompanyTableProps {
   companies: Array<Company & { contacts?: ContactWithCompanyInfo[] }>;
   handleCompanyView: (companyId: number) => void;
+  // Add these props to connect to existing functionality
+  handleHunterSearch?: (contactId: number) => void;
+  handleAeroLeadsSearch?: (contactId: number) => void;
+  handleEnrichContact?: (contactId: number) => void;
+  pendingHunterIds?: Set<number>;
+  pendingAeroLeadsIds?: Set<number>;
+  pendingContactIds?: Set<number>;
 }
 
-export default function CompanyTable({ companies, handleCompanyView }: CompanyTableProps) {
+export default function CompanyTable({ 
+  companies, 
+  handleCompanyView,
+  handleHunterSearch,
+  handleAeroLeadsSearch,
+  handleEnrichContact,
+  pendingHunterIds,
+  pendingAeroLeadsIds,
+  pendingContactIds
+}: CompanyTableProps) {
   console.log('CompanyTable received companies:', 
     companies.map(c => ({ id: c.id, name: c.name }))
   );
