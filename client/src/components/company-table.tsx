@@ -28,6 +28,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Company, Contact } from "@shared/schema";
 import { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
 
@@ -194,7 +200,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                         {contact.email || "Email not available"}
                       </span>
                     </TableCell>
-                    <TableCell className="py-1">
+                    <TableCell className="py-1 hidden md:table-cell">
                       <Badge
                         variant="secondary"
                         className="text-xs"
@@ -203,7 +209,8 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                       </Badge>
                     </TableCell>
                     <TableCell className="py-1">
-                      <div className="flex items-center gap-1">
+                      {/* Desktop action buttons */}
+                      <div className="hidden md:flex items-center gap-1">
                         <TooltipProvider delayDuration={500}>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -280,6 +287,39 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
+                      </div>
+                      
+                      {/* Mobile dropdown menu */}
+                      <div className="md:hidden flex justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Menu className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              View
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Mail className="h-4 w-4 mr-2" />
+                              Send Email
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Gem className="h-4 w-4 mr-2" />
+                              AeroLeads Email
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Target className="h-4 w-4 mr-2" />
+                              Hunter.io Email
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Rocket className="h-4 w-4 mr-2" />
+                              Add to campaign
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                   </TableRow>
