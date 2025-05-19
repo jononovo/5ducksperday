@@ -78,10 +78,9 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-10"></TableHead>
-            <TableHead>Company Name</TableHead>
-            <TableHead>Website</TableHead>
-            <TableHead>Contacts</TableHead>
+            <TableHead className="w-8"></TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Details</TableHead>
             <TableHead>Score</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -97,47 +96,56 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                 {/* Main company row - always visible */}
                 <TableRow 
                   key={company.id} 
-                  className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900"
+                  className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 bg-slate-100/50 dark:bg-slate-800/20 h-10"
                   onClick={() => toggleRowExpansion(company.id)}
                 >
-                  <TableCell className="px-2">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                    </Button>
+                  <TableCell className="px-2 py-1">
+                    <input 
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300"
+                      aria-label={`Select ${company.name}`}
+                      onClick={(e) => e.stopPropagation()}
+                    />
                   </TableCell>
-                  <TableCell className="font-medium">{company.name}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium py-1">
+                    <div className="flex items-center gap-1">
+                      {isExpanded ? (
+                        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                      ) : (
+                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                      )}
+                      {company.name}
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-1">
                     {company.website ? (
                       <a 
                         href={company.website.startsWith('http') ? company.website : `https://${company.website}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline flex items-center gap-1"
+                        className="text-blue-600 hover:underline flex items-center gap-1 text-sm"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {company.website.replace(/^https?:\/\//, '')}
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     ) : null}
+                    <div className="text-xs text-muted-foreground">
+                      <Badge variant="outline" className="text-xs">
+                        {company.contacts?.length || 0} contacts
+                      </Badge>
+                    </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {company.contacts?.length || 0}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
+                  <TableCell className="py-1">
                     <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}>
                       {company.totalScore ?? 'N/A'}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-1">
                     <Button
                       size="sm"
                       variant="ghost"
+                      className="h-7 w-7 p-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         console.log('Company view button clicked:', { id: company.id, name: company.name });
@@ -153,10 +161,10 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                 {isExpanded && topContacts.map((contact) => (
                   <TableRow 
                     key={`${company.id}-contact-${contact.id}`} 
-                    className="bg-slate-50/50 dark:bg-slate-800/50 border-t-0"
+                    className="border-t-0 h-10"
                   >
-                    <TableCell className="w-10 pl-2">
-                      <div className="pl-8">
+                    <TableCell className="px-2 py-1">
+                      <div className="pl-4">
                         <input 
                           type="checkbox"
                           className="h-4 w-4 rounded border-gray-300"
@@ -164,30 +172,34 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                         />
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{contact.name}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <span className="text-xs text-muted-foreground">{contact.role || "N/A"}</span>
+                    <TableCell className="py-1">
+                      <div className="font-medium leading-tight">{contact.name}</div>
+                      <div className="text-xs text-muted-foreground leading-tight -mt-0.5">{contact.role || "N/A"}</div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-1">
+                      <span className="text-xs text-muted-foreground">
+                        {contact.email || "Email not available"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-1">
                       <Badge
                         variant={(contact.probability || 0) >= 80 ? "default" : "secondary"}
+                        className="text-xs"
                       >
                         {contact.probability || 0}
                       </Badge>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <span className="text-xs text-muted-foreground">{contact.email || "Not available"}</span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="hidden md:flex gap-2">
+                    <TableCell className="py-1">
+                      <div className="flex items-center gap-1">
                         <TooltipProvider delayDuration={500}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                className="h-7 w-7 p-0"
                               >
-                                <Eye className="h-4 w-4" />
+                                <Eye className="h-3.5 w-3.5" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -200,8 +212,9 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                className="h-7 w-7 p-0"
                               >
-                                <Mail className="h-4 w-4" />
+                                <Mail className="h-3.5 w-3.5" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -214,26 +227,13 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                className="h-7 w-7 p-0"
                               >
-                                <Gem className="h-4 w-4" />
+                                <Gem className="h-3.5 w-3.5" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>AeroLeads search</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                              >
-                                <Target className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Hunter.io search</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
