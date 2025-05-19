@@ -113,6 +113,9 @@ export default function PromptEditor({
   // Quick search mutation - gets companies immediately
   const quickSearchMutation = useMutation({
     mutationFn: async (searchQuery: string) => {
+      console.log("Initiating company search process...");
+      console.log("Sending request to company discovery API...");
+      
       // Use the standard search but optimize for quick company results
       const activeFlows = searchFlows
         .filter((flow) => flow.active)
@@ -142,7 +145,8 @@ export default function PromptEditor({
       queryClient.invalidateQueries({ queryKey: ["/api/companies"] });
       
       // Pass companies immediately to the parent component
-      console.log("Quick search found companies:", data.companies.length);
+      console.log("Processing company results...");
+      console.log(`Found ${data.companies.length} companies matching your search`);
       onCompaniesReceived(data.query, data.companies);
       
       toast({
@@ -218,6 +222,9 @@ export default function PromptEditor({
       });
       return;
     }
+    
+    console.log("Analyzing search query...");
+    console.log("Preparing to search for companies and contacts...");
     onAnalyze();
     // Use quickSearchMutation to first get companies without waiting for contact enrichment
     quickSearchMutation.mutate(query);
@@ -326,6 +333,9 @@ export default function PromptEditor({
             />
           </div>
         </div>
+        
+        {/* Search Progress Indicator */}
+        <SearchProgressIndicator isSearching={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending} />
       </div>
     </Card>
   );
