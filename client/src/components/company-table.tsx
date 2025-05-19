@@ -164,7 +164,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                       {company.totalScore ?? 'N/A'}
                     </Badge>
                   </TableCell>
-                  <TableCell className={`${isExpanded ? 'py-0' : 'py-1'}`}>
+                  <TableCell className={`text-center ${isExpanded ? 'py-0' : 'py-1'}`}>
                     <TooltipProvider delayDuration={500}>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -306,10 +306,10 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                       </div>
                       
                       {/* Mobile dropdown menu */}
-                      <div className="md:hidden flex justify-end">
+                      <div className="md:hidden">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 mr-1">
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
                               <Menu className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
