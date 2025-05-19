@@ -1,6 +1,6 @@
 import { useRoute, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Footer } from "@/components/ui/footer";
+import { Footer } from "@/components/footer";
 import {
   Card,
   CardContent,
