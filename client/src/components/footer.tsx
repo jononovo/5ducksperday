@@ -9,7 +9,7 @@ export function Footer() {
           <div>
             <Logo size="sm" asLink={false} showEmojis={false} />
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-4">
-              5Ducks makes it easy for founders to build a $75k pipeline in only five minutes per day.
+              5Ducks makes it easy for founders to build a $70k pipeline in only five minutes per day.
             </p>
           </div>
           
