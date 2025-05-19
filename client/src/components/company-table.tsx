@@ -10,9 +10,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
-  Eye, 
-  ChevronDown, 
-  ChevronRight, 
   ExternalLink, 
   Mail, 
   Gem,
@@ -20,7 +17,9 @@ import {
   Rocket,
   Star,
   ThumbsUp,
-  ThumbsDown
+  ThumbsDown,
+  FileText,
+  ExternalLinkSquare
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -78,7 +77,17 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-8"></TableHead>
+            <TableHead className="w-8">
+              <input 
+                type="checkbox"
+                className="h-4 w-4 rounded border-gray-300"
+                aria-label="Select all companies and contacts"
+                onChange={(e) => {
+                  // Logic to select/deselect all will be implemented here
+                  console.log("Select all checkbox clicked:", e.target.checked);
+                }}
+              />
+            </TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Details</TableHead>
             <TableHead>Score</TableHead>
@@ -124,9 +133,9 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                       </a>
                     ) : null}
                     <div className="text-xs text-muted-foreground">
-                      <Badge variant="outline" className="text-xs">
+                      <span className="text-xs text-slate-500">
                         {company.contacts?.length || 0} contacts
-                      </Badge>
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="py-1">
@@ -135,18 +144,27 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                     </Badge>
                   </TableCell>
                   <TableCell className="py-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 w-7 p-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log('Company view button clicked:', { id: company.id, name: company.name });
-                        handleCompanyView(company.id);
-                      }}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    <TooltipProvider delayDuration={500}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 w-7 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('Company view button clicked:', { id: company.id, name: company.name });
+                              handleCompanyView(company.id);
+                            }}
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Open company page</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </TableCell>
                 </TableRow>
                 
@@ -165,7 +183,9 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                     </TableCell>
                     <TableCell className="py-1">
                       <div className="font-medium leading-tight">{contact.name}</div>
-                      <div className="text-xs text-muted-foreground leading-tight -mt-0.5">{contact.role || "N/A"}</div>
+                      <div className="text-xs text-slate-500 leading-tight -mt-0.5 truncate max-w-[300px]" title={contact.role || "N/A"}>
+                        {contact.role || "N/A"}
+                      </div>
                     </TableCell>
                     <TableCell className="py-1">
                       <span className="text-xs text-muted-foreground">
@@ -182,41 +202,82 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                     </TableCell>
                     <TableCell className="py-1">
                       <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                        >
-                          <Mail className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                        >
-                          <Gem className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                        >
-                          <Target className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                        >
-                          <Rocket className="h-3.5 w-3.5" />
-                        </Button>
+                        <TooltipProvider delayDuration={500}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Open contact page</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                              >
+                                <Mail className="h-3.5 w-3.5" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Find email</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                              >
+                                <Gem className="h-3.5 w-3.5" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>AeroLeads search</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                              >
+                                <Target className="h-3.5 w-3.5" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Hunter.io search</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                              >
+                                <Rocket className="h-3.5 w-3.5" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Add to campaign</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </TableCell>
                   </TableRow>
