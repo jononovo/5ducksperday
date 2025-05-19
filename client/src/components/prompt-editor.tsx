@@ -10,6 +10,7 @@ import type { SearchModuleConfig, SearchApproach } from "@shared/schema";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSearchStrategy } from "@/lib/search-strategy-context";
 import SearchSettingsDrawer from "./search-settings-drawer";
+import SearchProgressIndicator from "./search-progress-indicator";
 import {
   Tooltip,
   TooltipContent,
