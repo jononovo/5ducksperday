@@ -309,7 +309,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                       <div className="md:hidden flex justify-end">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 mr-1">
                               <Menu className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
