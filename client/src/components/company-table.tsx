@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -126,10 +126,9 @@ export default function CompanyTable({
             const topContacts = getTopContacts(company);
             
             return (
-              <>
+              <React.Fragment key={`company-${company.id}`}>
                 {/* Main company row - always visible */}
                 <TableRow 
-                  key={company.id} 
                   className={`cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-800/30 bg-blue-100/80 dark:bg-blue-700/30 ${isExpanded ? 'h-5 opacity-50' : 'h-10 opacity-100'} transition-all duration-200`}
                   onClick={() => toggleRowExpansion(company.id)}
                 >
@@ -268,8 +267,19 @@ export default function CompanyTable({
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 w-6 p-0"
+                                disabled={pendingContactIds?.has(contact.id) || contact.completedSearches?.includes('contact_enrichment')}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEnrichContact?.(contact.id);
+                                }}
                               >
-                                <Mail className="h-3.5 w-3.5" />
+                                {pendingContactIds?.has(contact.id) ? (
+                                  <div className="animate-spin h-3.5 w-3.5">
+                                    <Mail className="h-3.5 w-3.5" />
+                                  </div>
+                                ) : (
+                                  <Mail className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('contact_enrichment') && contact.email ? "text-green-500" : ""}`} />
+                                )}
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -283,8 +293,19 @@ export default function CompanyTable({
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 w-6 p-0"
+                                disabled={pendingAeroLeadsIds?.has(contact.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAeroLeadsSearch?.(contact.id);
+                                }}
                               >
-                                <Gem className="h-3.5 w-3.5" />
+                                {pendingAeroLeadsIds?.has(contact.id) ? (
+                                  <div className="animate-spin h-3.5 w-3.5">
+                                    <Gem className="h-3.5 w-3.5" />
+                                  </div>
+                                ) : (
+                                  <Gem className="h-3.5 w-3.5" />
+                                )}
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -298,8 +319,19 @@ export default function CompanyTable({
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 w-6 p-0"
+                                disabled={pendingHunterIds?.has(contact.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleHunterSearch?.(contact.id);
+                                }}
                               >
-                                <Target className="h-3.5 w-3.5" />
+                                {pendingHunterIds?.has(contact.id) ? (
+                                  <div className="animate-spin h-3.5 w-3.5">
+                                    <Target className="h-3.5 w-3.5" />
+                                  </div>
+                                ) : (
+                                  <Target className="h-3.5 w-3.5" />
+                                )}
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -359,7 +391,7 @@ export default function CompanyTable({
                     </TableCell>
                   </TableRow>
                 ))}
-              </>
+              </React.Fragment>
             );
           })}
         </TableBody>

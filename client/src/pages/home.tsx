@@ -824,6 +824,12 @@ export default function Home() {
                 <CompanyTable
                   companies={currentResults || []}
                   handleCompanyView={handleCompanyView}
+                  handleHunterSearch={handleHunterSearch}
+                  handleAeroLeadsSearch={handleAeroLeadsSearch}
+                  handleEnrichContact={handleEnrichContact}
+                  pendingHunterIds={pendingHunterIds}
+                  pendingAeroLeadsIds={pendingAeroLeadsIds}
+                  pendingContactIds={pendingContactIds}
                 />
               </div>
             </CardContent>
