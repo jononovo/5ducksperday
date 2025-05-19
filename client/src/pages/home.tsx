@@ -45,7 +45,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { filterTopProspects, ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
-import { IntroTourModal } from "@/components/intro-tour-modal";
+
 import {
   Tooltip,
   TooltipContent,
@@ -76,14 +76,7 @@ export default function Home() {
   // Add new state for tracking contact loading status
   const [isLoadingContacts, setIsLoadingContacts] = useState(false);
   const [contactsLoaded, setContactsLoaded] = useState(false);
-  // Initialize showTour based on localStorage
-  const [showTour, setShowTour] = useState(() => {
-    try {
-      return localStorage.getItem('hasSeenTour') !== 'true';
-    } catch (e) {
-      return true; // Default to showing tour if localStorage fails
-    }
-  });
+  // Tour modal has been removed
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
@@ -772,7 +765,7 @@ export default function Home() {
 
   return (
     <div className="container mx-auto py-6">
-      <IntroTourModal open={showTour} onOpenChange={setShowTour} />
+      {/* Intro tour modal has been removed */}
 
       <div className="grid grid-cols-12 gap-6">
         {/* Main Content Area - full width */}
