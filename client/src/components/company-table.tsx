@@ -17,7 +17,9 @@ import {
   Rocket,
   Star,
   ThumbsUp,
-  ThumbsDown
+  ThumbsDown,
+  Menu,
+  Tag
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -88,7 +90,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
             </TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Details</TableHead>
-            <TableHead>Score</TableHead>
+            <TableHead className="hidden md:table-cell">Score</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -138,7 +140,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className={`${isExpanded ? 'py-0' : 'py-1'}`}>
+                  <TableCell className={`hidden md:table-cell ${isExpanded ? 'py-0' : 'py-1'}`}>
                     <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}>
                       {company.totalScore ?? 'N/A'}
                     </Badge>
