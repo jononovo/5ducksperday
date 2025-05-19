@@ -106,7 +106,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                   className={`cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 bg-slate-100/50 dark:bg-slate-800/20 ${isExpanded ? 'h-5 opacity-50' : 'h-10 opacity-100'} transition-all duration-200`}
                   onClick={() => toggleRowExpansion(company.id)}
                 >
-                  <TableCell className="px-2 py-1">
+                  <TableCell className={`px-2 ${isExpanded ? 'py-0' : 'py-1'}`}>
                     <input 
                       type="checkbox"
                       className="h-4 w-4 rounded border-gray-300"
@@ -114,10 +114,10 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                       onClick={(e) => e.stopPropagation()}
                     />
                   </TableCell>
-                  <TableCell className="font-medium py-1">
+                  <TableCell className={`font-medium ${isExpanded ? 'py-0' : 'py-1'}`}>
                     {company.name}
                   </TableCell>
-                  <TableCell className="py-1">
+                  <TableCell className={`${isExpanded ? 'py-0' : 'py-1'}`}>
                     {company.website ? (
                       <a 
                         href={company.website.startsWith('http') ? company.website : `https://${company.website}`} 
@@ -130,13 +130,15 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     ) : null}
-                    <div className="text-xs text-muted-foreground">
-                      <span className="text-xs text-slate-500">
-                        {company.contacts?.length || 0} contacts
-                      </span>
-                    </div>
+                    {!isExpanded && (
+                      <div className="text-xs text-muted-foreground">
+                        <span className="text-xs text-slate-500">
+                          {company.contacts?.length || 0} contacts
+                        </span>
+                      </div>
+                    )}
                   </TableCell>
-                  <TableCell className="py-1">
+                  <TableCell className={`${isExpanded ? 'py-0' : 'py-1'}`}>
                     <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}>
                       {company.totalScore ?? 'N/A'}
                     </Badge>
