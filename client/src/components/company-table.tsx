@@ -17,9 +17,7 @@ import {
   Rocket,
   Star,
   ThumbsUp,
-  ThumbsDown,
-  FileText,
-  ExternalLinkSquare
+  ThumbsDown
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
