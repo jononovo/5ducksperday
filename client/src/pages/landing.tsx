@@ -59,7 +59,7 @@ const SEARCH_STEPS = [
 // Example search prompts
 const EXAMPLE_PROMPTS = [
   "High-rated Greek restaurants in Toronto",
-  "Plumbers in West Palm Beach",
+  "Horse cleaning accessories manufacturers in the US",
   "Mid-sized roofing companies in Atlanta",
   "Stationary suppliers in Scranton",
   "Health-tech SaaS in NYC",
@@ -207,14 +207,14 @@ export default function LandingPage() {
             <div className="flex flex-wrap justify-center space-x-2 md:space-x-8 my-10">
               <div className="text-center p-3 md:p-4">
                 <div className="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">22 Hours</div>
-                <div className="text-sm text-slate-500 dark:text-slate-400">Saved per Day</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">Saved per Month</div>
               </div>
               <div className="text-center p-3 md:p-4">
                 <div className="text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">225 Targets </div>
                 <div className="text-sm text-slate-500 dark:text-slate-400">Sweet-talked to per Month</div>
               </div>
               <div className="text-center p-3 md:p-4">
-                <div className="text-3xl md:text-4xl font-bold text-pink-600 dark:text-pink-400 mb-2">Avg $73k</div>
+                <div className="text-3xl md:text-4xl font-bold text-pink-600 dark:text-pink-400 mb-2">Avg $70k</div>
                 <div className="text-sm text-slate-500 dark:text-slate-400">New Revenue Pipeline*</div>
               </div>
             </div>
