@@ -170,6 +170,9 @@ export default function PromptEditor({
   // Full search mutation - gets contacts after companies are displayed
   const fullContactSearchMutation = useMutation({
     mutationFn: async (searchQuery: string) => {
+      console.log("Starting contact discovery process...");
+      console.log("Searching for key decision makers and contacts...");
+      
       // Use the standard search
       const activeFlows = searchFlows
         .filter((flow) => flow.active)
@@ -182,6 +185,9 @@ export default function PromptEditor({
         }));
 
       // Ensure proper typing for the full search request with contacts
+      console.log("Sending comprehensive search request to API...");
+      console.log("This process may take a moment while we find the most relevant contacts...");
+      
       const res = await apiRequest("POST", "/api/companies/search", { 
         query: searchQuery,
         flows: activeFlows,
@@ -191,6 +197,14 @@ export default function PromptEditor({
       return res.json();
     },
     onSuccess: (data) => {
+      // Calculate total contacts found
+      const totalContacts = data.companies.reduce((sum: number, company: any) => 
+        sum + (company.contacts?.length || 0), 0);
+      
+      console.log("Contact discovery completed successfully");
+      console.log(`Found ${totalContacts} contacts across ${data.companies.length} companies`);
+      console.log("Processing and organizing results...");
+      
       // Send full results with contacts to parent component
       onSearchResults(data.query, data.companies);
       
@@ -198,6 +212,8 @@ export default function PromptEditor({
         title: "Search Complete",
         description: "Contact discovery has been completed successfully.",
       });
+      
+      console.log("Search process completed!");
       
       // Trigger confetti animation on successful search
       triggerConfetti();
