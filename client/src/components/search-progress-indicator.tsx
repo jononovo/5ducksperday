@@ -19,13 +19,11 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
     }
     
     const originalConsoleLog = console.log;
+    const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
     
-    console.log = (...args) => {
-      originalConsoleLog(...args);
-      
-      // Convert arguments to string for easier filtering
-      const message = args.join(' ');
-      
+    // Helper function to process a message and add it to logs if relevant
+    const processMessage = (message: string, isError = false) => {
       // Only capture search-related logs with relevant keywords
       if (
         message.includes('search') || 
@@ -39,7 +37,11 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
         message.includes('analyzing') ||
         message.includes('processing') ||
         message.includes('enriching') ||
-        message.includes('discovering')
+        message.includes('discovering') ||
+        message.includes('error') ||
+        message.includes('failed') ||
+        message.includes('failure') ||
+        isError
       ) {
         // Clean up the message - remove quotes, brackets, etc.
         const cleanMessage = message
@@ -47,16 +49,42 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
           .replace(/,/g, ' ')
           .trim();
         
+        // Format errors differently
+        const formattedMessage = isError ? `🔴 Error: ${cleanMessage}` : cleanMessage;
+        
         setLogMessages(prev => {
           // Only add if it's a new message
-          if (prev.includes(cleanMessage)) return prev;
-          return [...prev, cleanMessage];
+          if (prev.includes(formattedMessage)) return prev;
+          return [...prev, formattedMessage];
         });
       }
     };
     
+    // Override console.log
+    console.log = (...args) => {
+      originalConsoleLog(...args);
+      const message = args.join(' ');
+      processMessage(message);
+    };
+    
+    // Override console.error to capture errors
+    console.error = (...args) => {
+      originalConsoleError(...args);
+      const message = args.join(' ');
+      processMessage(message, true);
+    };
+    
+    // Override console.warn to capture warnings
+    console.warn = (...args) => {
+      originalConsoleWarn(...args);
+      const message = args.join(' ');
+      processMessage(message, true);
+    };
+    
     return () => {
       console.log = originalConsoleLog;
+      console.error = originalConsoleError;
+      console.warn = originalConsoleWarn;
     };
   }, [isSearching]);
   
@@ -77,7 +105,7 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
     <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-2 text-sm transition-all duration-300">
       <div className="flex items-center">
         <Loader2 className="mr-2 h-4 w-4 animate-spin text-blue-500" />
-        <div className="flex-1 truncate">
+        <div className={`flex-1 truncate ${logMessages[currentIndex].includes('Error:') ? 'text-red-800' : ''}`}>
           {logMessages[currentIndex]}
         </div>
         <button 
@@ -93,7 +121,10 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
           {logMessages.map((msg, i) => (
             <div 
               key={i} 
-              className={`px-2 py-1 ${i === currentIndex ? 'bg-blue-50' : ''}`}
+              className={`px-2 py-1 rounded ${
+                msg.includes('Error:') ? 'bg-red-50 text-red-800' : 
+                i === currentIndex ? 'bg-blue-50' : ''
+              }`}
             >
               {msg}
             </div>
