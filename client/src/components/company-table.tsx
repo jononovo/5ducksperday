@@ -95,7 +95,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
               />
             </TableHead>
             <TableHead>Name</TableHead>
-            <TableHead>Details</TableHead>
+            <TableHead className="hidden md:table-cell">Details</TableHead>
             <TableHead className="hidden md:table-cell">Score</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -123,9 +123,22 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                     />
                   </TableCell>
                   <TableCell className={`font-medium pl-1 ${isExpanded ? 'py-0' : 'py-1'}`}>
-                    {company.name}
+                    <div>{company.name}</div>
+                    {!isExpanded && company.website && (
+                      <div className="md:hidden text-xs text-muted-foreground leading-tight">
+                        <a 
+                          href={company.website.startsWith('http') ? company.website : `https://${company.website}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {company.website.replace(/^https?:\/\//, '')}
+                        </a>
+                      </div>
+                    )}
                   </TableCell>
-                  <TableCell className={`${isExpanded ? 'py-0' : 'py-1'}`}>
+                  <TableCell className={`hidden md:table-cell ${isExpanded ? 'py-0' : 'py-1'}`}>
                     {company.website ? (
                       <a 
                         href={company.website.startsWith('http') ? company.website : `https://${company.website}`} 
@@ -194,8 +207,11 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                       <div className="text-xs text-slate-500 leading-tight -mt-0.5 truncate max-w-[300px]" title={contact.role || "N/A"}>
                         {contact.role || "N/A"}
                       </div>
+                      <div className="md:hidden text-xs text-muted-foreground leading-tight mt-0.5">
+                        {contact.email || "Email not available"}
+                      </div>
                     </TableCell>
-                    <TableCell className="py-1">
+                    <TableCell className="py-1 hidden md:table-cell">
                       <span className="text-xs text-muted-foreground">
                         {contact.email || "Email not available"}
                       </span>
