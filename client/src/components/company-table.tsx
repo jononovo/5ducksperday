@@ -143,7 +143,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                       {company.totalScore ?? 'N/A'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="py-1">
+                  <TableCell className={`${isExpanded ? 'py-0' : 'py-1'}`}>
                     <TooltipProvider delayDuration={500}>
                       <Tooltip>
                         <TooltipTrigger asChild>
