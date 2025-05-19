@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle2 } from 'lucide-react';
 
 interface SearchProgressIndicatorProps {
   isSearching: boolean;
@@ -9,6 +9,8 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
   const [logMessages, setLogMessages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
+  const [completionMessage, setCompletionMessage] = useState<string | null>(null);
   
   // Listen for console logs and capture relevant search messages
   useEffect(() => {
@@ -88,42 +90,92 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
     };
   }, [isSearching]);
   
+  // Detect completion of search
+  useEffect(() => {
+    if (!isSearching && logMessages.length > 0) {
+      // Check if search is complete based on certain messages
+      const lastMessages = logMessages.slice(-5);
+      const isSearchComplete = lastMessages.some(msg => 
+        msg.includes("Search process completed") || 
+        msg.includes("completed successfully") || 
+        msg.includes("Complete results received")
+      );
+      
+      if (isSearchComplete) {
+        setIsComplete(true);
+        
+        // Sequence of completion messages
+        setCompletionMessage("Search complete! 🎉");
+        
+        setTimeout(() => {
+          setCompletionMessage("Click on a company to see the contacts. 👀");
+          
+          setTimeout(() => {
+            setCompletionMessage("Select enhanced searches to dig deeper.");
+            
+            // Keep showing the last message
+          }, 3000);
+        }, 3000);
+      }
+    } else if (isSearching) {
+      setIsComplete(false);
+      setCompletionMessage(null);
+    }
+  }, [isSearching, logMessages]);
+  
   // Cycle through messages with minimum display time
   useEffect(() => {
-    if (!logMessages.length || !isSearching) return;
+    if (!logMessages.length || !isSearching || isComplete) return;
     
     const interval = setInterval(() => {
       setCurrentIndex(prev => (prev + 1) % logMessages.length);
     }, 2000); // Show each message for 2 seconds minimum
     
     return () => clearInterval(interval);
-  }, [logMessages, isSearching]);
+  }, [logMessages, isSearching, isComplete]);
   
-  if (!isSearching || !logMessages.length) return null;
+  if ((!isSearching && !isComplete) || (!logMessages.length && !completionMessage)) return null;
   
   return (
-    <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-2 text-sm transition-all duration-300">
+    <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm transition-all duration-300">
       <div className="flex items-center">
-        <Loader2 className="mr-2 h-4 w-4 animate-spin text-blue-500" />
-        <div className={`flex-1 truncate ${logMessages[currentIndex].includes('Error:') ? 'text-red-800' : ''}`}>
-          {logMessages[currentIndex]}
+        {isComplete ? (
+          <CheckCircle2 className="mr-2 h-5 w-5 text-green-500" />
+        ) : (
+          <Loader2 className="mr-2 h-5 w-5 animate-spin text-blue-500" />
+        )}
+        
+        <div className={`flex-1 truncate font-medium ${
+          completionMessage 
+            ? 'text-green-700' 
+            : logMessages[currentIndex]?.includes('Error:') 
+              ? 'text-red-800' 
+              : 'text-slate-700'
+        }`}>
+          {completionMessage || logMessages[currentIndex]}
         </div>
-        <button 
-          onClick={() => setExpanded(!expanded)} 
-          className="ml-2 text-xs text-slate-500 hover:text-slate-700"
-        >
-          {expanded ? 'Hide' : 'More'}
-        </button>
+        
+        {!isComplete && (
+          <button 
+            onClick={() => setExpanded(!expanded)} 
+            className="ml-2 rounded px-2 py-0.5 text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+          >
+            {expanded ? 'Hide' : 'More'}
+          </button>
+        )}
       </div>
       
-      {expanded && (
-        <div className="mt-2 max-h-32 overflow-y-auto">
+      {expanded && !isComplete && (
+        <div className="mt-2 max-h-36 overflow-y-auto border-t border-slate-100 pt-2">
           {logMessages.map((msg, i) => (
             <div 
               key={i} 
-              className={`px-2 py-1 rounded ${
-                msg.includes('Error:') ? 'bg-red-50 text-red-800' : 
-                i === currentIndex ? 'bg-blue-50' : ''
+              className={`px-2 py-1 mb-1 rounded-sm ${
+                msg.includes('Error:') 
+                  ? 'bg-red-50 text-red-800 border-l-2 border-red-500' 
+                  : i === currentIndex 
+                    ? 'bg-blue-50 border-l-2 border-blue-400' 
+                    : 'border-l-2 border-transparent'
               }`}
             >
               {msg}
