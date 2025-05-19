@@ -103,7 +103,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                 {/* Main company row - always visible */}
                 <TableRow 
                   key={company.id} 
-                  className={`cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 bg-slate-100/50 dark:bg-slate-800/20 ${isExpanded ? 'h-5 opacity-50' : 'h-10 opacity-100'} transition-all duration-200`}
+                  className={`cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 bg-slate-300 dark:bg-slate-600/50 ${isExpanded ? 'h-5 opacity-50' : 'h-10 opacity-100'} transition-all duration-200`}
                   onClick={() => toggleRowExpansion(company.id)}
                 >
                   <TableCell className={`px-2 ${isExpanded ? 'py-0' : 'py-1'}`}>
