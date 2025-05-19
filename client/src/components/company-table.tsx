@@ -224,9 +224,9 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                         {contact.probability || 0}
                       </Badge>
                     </TableCell>
-                    <TableCell className="py-1">
+                    <TableCell className="py-1 text-center">
                       {/* Desktop action buttons */}
-                      <div className="hidden md:flex items-center gap-1">
+                      <div className="hidden md:flex items-center justify-center gap-1">
                         <TooltipProvider delayDuration={500}>
                           <Tooltip>
                             <TooltipTrigger asChild>
