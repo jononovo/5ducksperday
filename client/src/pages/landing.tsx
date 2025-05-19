@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -14,47 +14,6 @@ import {
 } from "lucide-react";
 import { Footer } from "@/components/footer";
 import { Logo } from "@/components/logo";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
-
-// Search process steps
-const SEARCH_STEPS = [
-  {
-    id: 1,
-    title: "Initiating search analysis",
-    description: "Analyzing your search query and preparing the AI models...",
-  },
-  {
-    id: 2,
-    title: "Searching for companies",
-    description: "Scanning databases and sources for relevant companies...",
-  },
-  {
-    id: 3,
-    title: "Identifying key companies",
-    description: "Evaluating and ranking the most relevant companies...",
-  },
-  {
-    id: 4,
-    title: "Searching for contacts",
-    description: "Finding decision makers and key personnel within target companies...",
-  },
-  {
-    id: 5,
-    title: "Identifying leadership roles",
-    description: "Identifying executives, managers, and key contacts with decision-making power...",
-  },
-  {
-    id: 6,
-    title: "Preparing results",
-    description: "Organizing and formatting the search results for presentation...",
-  },
-];
 
 // Example search prompts
 const EXAMPLE_PROMPTS = [
@@ -69,9 +28,6 @@ export default function LandingPage() {
   const [, setLocation] = useLocation();
   const { signInWithGoogle } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [showSearchProgress, setShowSearchProgress] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [progress, setProgress] = useState(0);
   const videoRef = useRef<HTMLDivElement>(null);
   const [isVideoExpanded, setIsVideoExpanded] = useState(false);
 
@@ -79,56 +35,12 @@ export default function LandingPage() {
   const handleSearch = (query: string = searchQuery) => {
     if (!query.trim()) return;
     
-    // Start fake search progress
-    setShowSearchProgress(true);
-    setCurrentStep(1);
-    setProgress(0);
-
-    // Use query to set a value in local storage for later use
+    // Store the search query for use on the app page
     localStorage.setItem("pendingSearchQuery", query);
+    
+    // Navigate directly to the app page
+    setLocation("/app");
   };
-
-  // Progress through search steps
-  useEffect(() => {
-    if (!showSearchProgress) return;
-
-    // Progress bar logic
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 50);
-
-    // Step advancement logic
-    const stepInterval = setInterval(() => {
-      setCurrentStep((prev) => {
-        if (prev >= SEARCH_STEPS.length) {
-          clearInterval(stepInterval);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 3000);
-
-    return () => {
-      clearInterval(progressInterval);
-      clearInterval(stepInterval);
-    };
-  }, [showSearchProgress]);
-
-  // Redirect to search page after "fake" search completes
-  useEffect(() => {
-    if (currentStep >= SEARCH_STEPS.length && progress >= 100) {
-      const timer = setTimeout(() => {
-        setLocation("/");
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [currentStep, progress, setLocation]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950">
