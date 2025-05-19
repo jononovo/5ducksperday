@@ -1692,7 +1692,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const userId = req.isAuthenticated() && req.user ? (req.user as any).id : 1;
       
       const preferences = await storage.getUserPreferences(userId);
-      res.json(preferences || { hasSeenTour: false });
+      res.json(preferences || {});
     } catch (error) {
       console.error('Error getting user preferences:', error);
       res.status(500).json({
@@ -1703,9 +1703,9 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
   app.post("/api/user/preferences", requireAuth, async (req, res) => {
     try {
-      const { hasSeenTour } = req.body;
+      // Remove hasSeenTour extraction and use other preferences from body
       const preferences = await storage.updateUserPreferences(req.user!.id, {
-        hasSeenTour: hasSeenTour
+        ...req.body  // Allow other preference fields to be updated
       });
       res.json(preferences);
     } catch (error) {
