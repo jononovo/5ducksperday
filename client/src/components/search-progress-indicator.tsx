@@ -104,7 +104,7 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
       if (isSearchComplete) {
         setIsComplete(true);
         
-        // Sequence of completion messages
+        // Sequence of completion messages with timing
         setCompletionMessage("Search complete! 🎉");
         
         setTimeout(() => {
@@ -140,17 +140,17 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
     <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm transition-all duration-300">
       <div className="flex items-center">
         {isComplete ? (
-          <CheckCircle2 className="mr-2 h-5 w-5 text-green-500" />
+          <CheckCircle2 className="mr-2 h-5 w-5 text-purple-500" />
         ) : (
           <Loader2 className="mr-2 h-5 w-5 animate-spin text-blue-500" />
         )}
         
         <div className={`flex-1 truncate font-medium ${
           completionMessage 
-            ? 'text-green-700' 
+            ? 'text-purple-700' 
             : logMessages[currentIndex]?.includes('Error:') 
               ? 'text-red-800' 
-              : 'text-slate-700'
+              : 'text-indigo-600'
         }`}>
           {completionMessage || logMessages[currentIndex]}
         </div>
