@@ -108,14 +108,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                     />
                   </TableCell>
                   <TableCell className="font-medium py-1">
-                    <div className="flex items-center gap-1">
-                      {isExpanded ? (
-                        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                      ) : (
-                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                      )}
-                      {company.name}
-                    </div>
+                    {company.name}
                   </TableCell>
                   <TableCell className="py-1">
                     {company.website ? (
@@ -164,13 +157,11 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                     className="border-t-0 h-10"
                   >
                     <TableCell className="px-2 py-1">
-                      <div className="pl-4">
-                        <input 
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300"
-                          aria-label={`Select ${contact.name}`}
-                        />
-                      </div>
+                      <input 
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300"
+                        aria-label={`Select ${contact.name}`}
+                      />
                     </TableCell>
                     <TableCell className="py-1">
                       <div className="font-medium leading-tight">{contact.name}</div>
@@ -191,52 +182,41 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                     </TableCell>
                     <TableCell className="py-1">
                       <div className="flex items-center gap-1">
-                        <TooltipProvider delayDuration={500}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0"
-                              >
-                                <Eye className="h-3.5 w-3.5" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>View contact</p>
-                            </TooltipContent>
-                          </Tooltip>
-
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0"
-                              >
-                                <Mail className="h-3.5 w-3.5" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Find email</p>
-                            </TooltipContent>
-                          </Tooltip>
-
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0"
-                              >
-                                <Gem className="h-3.5 w-3.5" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>AeroLeads search</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                        >
+                          <Gem className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                        >
+                          <Target className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                        >
+                          <Rocket className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
