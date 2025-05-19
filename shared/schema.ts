@@ -120,7 +120,7 @@ export const emailTemplates = pgTable("email_templates", {
 export const userPreferences = pgTable("user_preferences", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  hasSeenTour: boolean("has_seen_tour").default(false),
+  // hasSeenTour field removed
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -273,8 +273,8 @@ const emailTemplateSchema = z.object({
 });
 
 const userPreferencesSchema = z.object({
-  userId: z.number(),
-  hasSeenTour: z.boolean().default(false)
+  userId: z.number()
+  // hasSeenTour field removed
 });
 
 const searchTestResultSchema = z.object({
