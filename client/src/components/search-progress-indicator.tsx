@@ -134,20 +134,38 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
     return () => clearInterval(interval);
   }, [logMessages, isSearching, isComplete]);
   
+  // Keep indicator visible for 10 minutes after completion
+  const [hideTimeout, setHideTimeout] = useState<NodeJS.Timeout | null>(null);
+  
+  useEffect(() => {
+    if (isComplete && hideTimeout === null) {
+      const timeout = setTimeout(() => {
+        setIsComplete(false);
+        setCompletionMessage(null);
+      }, 10 * 60 * 1000); // 10 minutes in milliseconds
+      
+      setHideTimeout(timeout);
+      
+      return () => {
+        if (timeout) clearTimeout(timeout);
+      };
+    }
+  }, [isComplete, hideTimeout]);
+
   if ((!isSearching && !isComplete) || (!logMessages.length && !completionMessage)) return null;
   
   return (
     <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm transition-all duration-300">
       <div className="flex items-center">
         {isComplete ? (
-          <CheckCircle2 className="mr-2 h-5 w-5 text-purple-500" />
+          <CheckCircle2 className="mr-2 h-5 w-5 text-blue-500" />
         ) : (
           <Loader2 className="mr-2 h-5 w-5 animate-spin text-blue-500" />
         )}
         
         <div className={`flex-1 truncate font-medium ${
           completionMessage 
-            ? 'text-purple-700' 
+            ? 'text-blue-700' 
             : logMessages[currentIndex]?.includes('Error:') 
               ? 'text-red-800' 
               : 'text-indigo-600'
