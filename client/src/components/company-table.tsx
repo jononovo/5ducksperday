@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -69,6 +69,13 @@ export default function CompanyTable({
   // State to track which company rows are expanded
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   
+  // State to track selected companies and contacts
+  const [selectedCompanies, setSelectedCompanies] = useState<Set<number>>(new Set());
+  const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
+  
+  // State to track "select all" status
+  const [selectAll, setSelectAll] = useState(false);
+  
   // Toggle expansion state for a company row
   const toggleRowExpansion = (companyId: number) => {
     setExpandedRows(prev => {
@@ -84,6 +91,86 @@ export default function CompanyTable({
   
   // Check if a company row is expanded
   const isRowExpanded = (companyId: number) => expandedRows.has(companyId);
+  
+  // Handle select all checkbox
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const isChecked = e.target.checked;
+    setSelectAll(isChecked);
+    console.log("Select all checkbox clicked:", isChecked);
+    
+    if (isChecked) {
+      // Select all companies
+      const companyIds = new Set(companies.map(company => company.id));
+      setSelectedCompanies(companyIds);
+      
+      // Select all contacts
+      const contactIds = new Set(
+        companies.flatMap(company => 
+          (company.contacts || []).map(contact => contact.id)
+        )
+      );
+      setSelectedContacts(contactIds);
+    } else {
+      // Deselect all
+      setSelectedCompanies(new Set());
+      setSelectedContacts(new Set());
+    }
+  };
+  
+  // Toggle company selection
+  const toggleCompanySelection = (e: React.MouseEvent, companyId: number) => {
+    e.stopPropagation(); // Prevent row from expanding when clicking checkbox
+    
+    setSelectedCompanies(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(companyId)) {
+        newSet.delete(companyId);
+      } else {
+        newSet.add(companyId);
+      }
+      return newSet;
+    });
+    
+    // Update select all status
+    updateSelectAllStatus();
+  };
+  
+  // Toggle contact selection
+  const toggleContactSelection = (e: React.MouseEvent, contactId: number) => {
+    e.stopPropagation();
+    
+    setSelectedContacts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(contactId)) {
+        newSet.delete(contactId);
+      } else {
+        newSet.add(contactId);
+      }
+      return newSet;
+    });
+    
+    // Update select all status
+    updateSelectAllStatus();
+  };
+  
+  // Helper to update "select all" checkbox state
+  const updateSelectAllStatus = () => {
+    // Only set selectAll to true if ALL companies and contacts are selected
+    const allCompanyIds = companies.map(company => company.id);
+    const allContactIds = companies.flatMap(company => 
+      (company.contacts || []).map(contact => contact.id)
+    );
+    
+    const allCompaniesSelected = allCompanyIds.every(id => selectedCompanies.has(id));
+    const allContactsSelected = allContactIds.every(id => selectedContacts.has(id));
+    
+    setSelectAll(allCompaniesSelected && allContactsSelected && allCompanyIds.length > 0);
+  };
+  
+  // Update selectAll state whenever selections change
+  useEffect(() => {
+    updateSelectAllStatus();
+  }, [selectedCompanies, selectedContacts]);
   
   // Get top contacts for a company (up to 3)
   const getTopContacts = (company: Company & { contacts?: ContactWithCompanyInfo[] }) => {
@@ -103,14 +190,12 @@ export default function CompanyTable({
         <TableHeader>
           <TableRow>
             <TableHead className="w-8">
-              <input 
-                type="checkbox"
-                className="h-4 w-4 rounded border-gray-300"
-                aria-label="Select all companies and contacts"
-                onChange={(e) => {
-                  // Logic to select/deselect all will be implemented here
-                  console.log("Select all checkbox clicked:", e.target.checked);
+              <Checkbox 
+                checked={selectAll}
+                onCheckedChange={(checked) => {
+                  handleSelectAll({ target: { checked: checked === true } } as React.ChangeEvent<HTMLInputElement>);
                 }}
+                aria-label="Select all companies and contacts"
               />
             </TableHead>
             <TableHead>Name</TableHead>
@@ -133,11 +218,13 @@ export default function CompanyTable({
                   onClick={() => toggleRowExpansion(company.id)}
                 >
                   <TableCell className={`px-2 ${isExpanded ? 'py-0' : 'py-1'}`}>
-                    <input 
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300"
-                      aria-label={`Select ${company.name}`}
+                    <Checkbox 
+                      checked={selectedCompanies.has(company.id)}
+                      onCheckedChange={(checked) => {
+                        toggleCompanySelection({stopPropagation: () => {}} as React.MouseEvent, company.id);
+                      }}
                       onClick={(e) => e.stopPropagation()}
+                      aria-label={`Select ${company.name}`}
                     />
                   </TableCell>
                   <TableCell className={`font-medium pl-1 ${isExpanded ? 'py-0' : 'py-1'}`}>
@@ -214,9 +301,12 @@ export default function CompanyTable({
                     className="border-t-0 h-10"
                   >
                     <TableCell className="px-2 py-1">
-                      <input 
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-gray-300"
+                      <Checkbox 
+                        checked={selectedContacts.has(contact.id)}
+                        onCheckedChange={(checked) => {
+                          toggleContactSelection({stopPropagation: () => {}} as React.MouseEvent, contact.id);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
                         aria-label={`Select ${contact.name}`}
                       />
                     </TableCell>
