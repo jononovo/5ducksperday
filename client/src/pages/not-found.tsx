@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
-import { Footer } from "@/components/ui/footer";
+import { Footer } from "@/components/footer";
 
 export default function NotFound() {
   return (

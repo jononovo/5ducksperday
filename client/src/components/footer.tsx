@@ -9,7 +9,7 @@ export function Footer() {
           <div>
             <Logo size="sm" asLink={false} showEmojis={false} />
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-4">
-              Helping you discover and connect with your ideal prospects, 5 contacts at a time.
+              5Ducks makes it easy for founders to build a $75k pipeline in only five minutes per day.
             </p>
           </div>
           
@@ -83,7 +83,7 @@ export function Footer() {
           </div>
           <div className="flex items-center space-x-4">
             <a
-              href="https://www.linkedin.com/company/5-ducks"
+              href="https://www.linkedin.com/company/5ducks/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
