@@ -103,7 +103,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                 {/* Main company row - always visible */}
                 <TableRow 
                   key={company.id} 
-                  className={`cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 bg-slate-300 dark:bg-slate-600/50 ${isExpanded ? 'h-5 opacity-50' : 'h-10 opacity-100'} transition-all duration-200`}
+                  className={`cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-800/30 bg-blue-100/80 dark:bg-blue-700/30 ${isExpanded ? 'h-5 opacity-50' : 'h-10 opacity-100'} transition-all duration-200`}
                   onClick={() => toggleRowExpansion(company.id)}
                 >
                   <TableCell className={`px-2 ${isExpanded ? 'py-0' : 'py-1'}`}>
@@ -114,7 +114,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                       onClick={(e) => e.stopPropagation()}
                     />
                   </TableCell>
-                  <TableCell className={`font-medium ${isExpanded ? 'py-0' : 'py-1'}`}>
+                  <TableCell className={`font-medium pl-1 ${isExpanded ? 'py-0' : 'py-1'}`}>
                     {company.name}
                   </TableCell>
                   <TableCell className={`${isExpanded ? 'py-0' : 'py-1'}`}>
@@ -181,7 +181,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                         aria-label={`Select ${contact.name}`}
                       />
                     </TableCell>
-                    <TableCell className="py-1">
+                    <TableCell className="py-1 pl-1">
                       <div className="font-medium leading-tight">{contact.name}</div>
                       <div className="text-xs text-slate-500 leading-tight -mt-0.5 truncate max-w-[300px]" title={contact.role || "N/A"}>
                         {contact.role || "N/A"}
@@ -194,7 +194,7 @@ export default function CompanyTable({ companies, handleCompanyView }: CompanyTa
                     </TableCell>
                     <TableCell className="py-1">
                       <Badge
-                        variant={(contact.probability || 0) >= 80 ? "default" : "secondary"}
+                        variant="secondary"
                         className="text-xs"
                       >
                         {contact.probability || 0}
