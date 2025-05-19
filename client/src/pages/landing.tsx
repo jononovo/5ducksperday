@@ -266,67 +266,6 @@ export default function LandingPage() {
 
       {/* Footer is imported from UI components */}
       <Footer />
-
-      {/* Larger Search Progress Dialog */}
-      <Dialog open={showSearchProgress} onOpenChange={setShowSearchProgress}>
-        <DialogContent 
-          className="w-[95%] md:w-[65%] p-0 gap-0 max-w-5xl overflow-hidden rounded-xl border-0 shadow-2xl"
-        >
-          <div className="p-6 md:p-8 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-            <DialogTitle className="text-xl md:text-2xl font-semibold text-white">
-              Searching for "{searchQuery}"
-            </DialogTitle>
-            <DialogDescription className="text-white/80 mt-1">
-              Our AI is analyzing your query and searching for matches
-            </DialogDescription>
-          </div>
-          
-          <div className="px-0">
-            <Progress value={progress} className="h-2 rounded-none bg-slate-100 dark:bg-slate-800" />
-          </div>
-          
-          {/* Larger step indicators with numbers */}
-          <div className="p-6 md:p-8 pb-4">
-            <div className="flex justify-center mb-6">
-              <div className="flex space-x-8 md:space-x-10">
-                {SEARCH_STEPS.map((step, index) => (
-                  <div key={step.id} className="flex items-center">
-                    <div 
-                      className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm md:text-base font-medium transition-colors ${
-                        currentStep === index + 1 
-                          ? "bg-blue-500 text-white ring-4 ring-blue-100 dark:ring-blue-900/30" 
-                          : currentStep > index + 1
-                            ? "bg-blue-300 dark:bg-blue-600 text-white"
-                            : "bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
-                      }`}
-                    >
-                      {index + 1}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Current step description */}
-            <div className="text-center mb-4">
-              <h3 className="text-xl md:text-2xl font-semibold mb-2">
-                {SEARCH_STEPS[currentStep - 1]?.title || "Finalizing..."}
-              </h3>
-              <p className="text-slate-600 dark:text-slate-400">
-                {SEARCH_STEPS[currentStep - 1]?.description || "Almost done..."}
-              </p>
-            </div>
-            
-            {/* Loading animation */}
-            <div className="flex justify-center my-8">
-              <div className="relative">
-                <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-900/30 rounded-full"></div>
-                <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
