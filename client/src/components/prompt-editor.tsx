@@ -332,6 +332,7 @@ export default function PromptEditor({
           />
           <div className="flex items-center">
             <Button 
+              type="submit"
               onClick={handleSearch} 
               disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
             >
