@@ -38,9 +38,67 @@ function Router() {
         {/* Public Landing Page (no layout or nav) */}
         <Route path="/" component={LandingPage} />
         
-        {/* All other routes with standard layout */}
-        <Route path="*">
+        {/* Marketing pages with full footer */}
+        <Route path="/terms">
           <Layout>
+            <MainNav />
+            <div className="flex-1">
+              <Terms />
+            </div>
+          </Layout>
+        </Route>
+        <Route path="/pricing">
+          <Layout>
+            <MainNav />
+            <div className="flex-1">
+              <Pricing />
+            </div>
+          </Layout>
+        </Route>
+        <Route path="/blog">
+          <Layout>
+            <MainNav />
+            <div className="flex-1">
+              <Blog />
+            </div>
+          </Layout>
+        </Route>
+        <Route path="/blog/:slug">
+          <Layout>
+            <MainNav />
+            <div className="flex-1">
+              <BlogPost />
+            </div>
+          </Layout>
+        </Route>
+        <Route path="/levels">
+          <Layout>
+            <MainNav />
+            <div className="flex-1">
+              <Levels />
+            </div>
+          </Layout>
+        </Route>
+        <Route path="/contact">
+          <Layout>
+            <MainNav />
+            <div className="flex-1">
+              <Contact />
+            </div>
+          </Layout>
+        </Route>
+        <Route path="/support">
+          <Layout>
+            <MainNav />
+            <div className="flex-1">
+              <Support />
+            </div>
+          </Layout>
+        </Route>
+
+        {/* App pages with mini footer */}
+        <Route path="*">
+          <AppLayout>
             <MainNav />
             <div className="flex-1">
               <Switch>
@@ -59,20 +117,12 @@ function Router() {
                 <ProtectedRoute path="/outreach" component={() => <Outreach />} />
                 <ProtectedRoute path="/replies" component={() => <Replies />} />
                 <ProtectedRoute path="/contacts/:id" component={() => <ContactDetails />} />
-
-                {/* Public Routes */}
-                {/* Privacy Policy is now available as a blog post */}
-                <Route path="/terms" component={() => <Terms />} />
-                <Route path="/pricing" component={() => <Pricing />} />
-                <Route path="/blog" component={() => <Blog />} />
-                <Route path="/blog/:slug" component={() => <BlogPost />} />
-                <Route path="/levels" component={() => <Levels />} />
-                <Route path="/contact" component={() => <Contact />} />
-                <Route path="/support" component={() => <Support />} />
+                
+                {/* 404 Page */}
                 <Route component={() => <NotFound />} />
               </Switch>
             </div>
-          </Layout>
+          </AppLayout>
         </Route>
       </Switch>
     </>
