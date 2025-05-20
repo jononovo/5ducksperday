@@ -2116,14 +2116,20 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
       console.log('Hunter.io search result:', result);
 
-      // Update the contact with the results
-      const updatedContact = await storage.updateContact(contactId, {
+      // Update the contact with the results, but preserve existing email if no new email found
+      const updateData: any = {
         ...contact,
-        email: result.email,
-        nameConfidenceScore: result.confidence,
         completedSearches: [...(contact.completedSearches || []), 'hunter_search'],
         lastValidated: new Date()
-      });
+      };
+      
+      // Only update email if a valid one was found (don't overwrite existing email with null)
+      if (result.email) {
+        updateData.email = result.email;
+        updateData.nameConfidenceScore = result.confidence;
+      }
+      
+      const updatedContact = await storage.updateContact(contactId, updateData);
 
       console.log('Contact updated with Hunter.io result:', {
         id: updatedContact?.id,
@@ -2276,14 +2282,20 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
       console.log('AeroLeads search result:', result);
 
-      // Update the contact with the results
-      const updatedContact = await storage.updateContact(contactId, {
+      // Update the contact with the results, but preserve existing email if no new email found
+      const updateData: any = {
         ...contact,
-        email: result.email,
-        nameConfidenceScore: result.confidence,
         completedSearches: [...(contact.completedSearches || []), 'aeroleads_search'],
         lastValidated: new Date()
-      });
+      };
+      
+      // Only update email if a valid one was found (don't overwrite existing email with null)
+      if (result.email) {
+        updateData.email = result.email;
+        updateData.nameConfidenceScore = result.confidence;
+      }
+      
+      const updatedContact = await storage.updateContact(contactId, updateData);
 
       console.log('Contact updated with AeroLeads result:', {
         id: updatedContact?.id,
