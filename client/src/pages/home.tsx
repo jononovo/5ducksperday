@@ -825,7 +825,11 @@ export default function Home() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button variant="outline" size="sm" className="flex items-center gap-1 h-8">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 transition-opacity"
+                        >
                           <ChevronDown className="h-4 w-4" />
                           <span>Expand</span>
                         </Button>
@@ -839,7 +843,11 @@ export default function Home() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button variant="outline" size="sm" className="flex items-center gap-1 h-8">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 transition-opacity"
+                        >
                           <Mail className="h-4 w-4" />
                           <span>Search Emails</span>
                         </Button>
@@ -853,7 +861,11 @@ export default function Home() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button variant="outline" size="sm" className="flex items-center gap-1 h-8">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 transition-opacity"
+                        >
                           <Plus className="h-4 w-4" />
                           <span>+5 More</span>
                         </Button>
