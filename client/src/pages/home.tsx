@@ -825,49 +825,16 @@ export default function Home() {
         return;
       }
       
-      // Phase 2: AeroLeads search - using parallel processing
+      // Phase 2: Hunter search - using parallel processing (swapped with AeroLeads for better performance)
       setSearchProgress({ 
-        phase: "AeroLeads Search", 
+        phase: "Hunter Search", 
         completed: 0, 
         total: companiesStillNeedingEmails.length 
       });
       
-      // Collect best contacts for AeroLeads
-      const aeroLeadsContacts: Contact[] = [];
-      companiesStillNeedingEmails.forEach(company => {
-        const bestContact = getBestContact(company);
-        if (bestContact && (!bestContact.email || bestContact.email.length <= 5)) {
-          aeroLeadsContacts.push(bestContact);
-        }
-      });
-      
-      // Process AeroLeads searches in parallel batches (2 at a time)
-      // Using smaller batch size for AeroLeads since it's slower
-      await processContactsBatch(
-        aeroLeadsContacts, 
-        (contactId) => aeroLeadsMutation.mutateAsync(contactId),
-        2 // Batch size of 2 for AeroLeads
-      );
-      
-      // Check which companies still need emails
-      const companiesNeedingFinalSearch = getCurrentCompaniesWithoutEmails();
-      
-      if (companiesNeedingFinalSearch.length === 0) {
-        finishSearch("Email search complete", 
-          `Found emails for all ${companiesNeedingEmails.length} companies`);
-        return;
-      }
-      
-      // Phase 3: Hunter search - using parallel processing
-      setSearchProgress({ 
-        phase: "Hunter Search", 
-        completed: 0, 
-        total: companiesNeedingFinalSearch.length 
-      });
-      
       // Collect best contacts for Hunter
       const hunterContacts: Contact[] = [];
-      companiesNeedingFinalSearch.forEach(company => {
+      companiesStillNeedingEmails.forEach(company => {
         const bestContact = getBestContact(company);
         if (bestContact && (!bestContact.email || bestContact.email.length <= 5)) {
           hunterContacts.push(bestContact);
@@ -879,6 +846,38 @@ export default function Home() {
         hunterContacts, 
         (contactId) => hunterMutation.mutateAsync(contactId),
         3 // Batch size of 3 for Hunter
+      );
+      
+      // Check which companies still need emails
+      const companiesNeedingFinalSearch = getCurrentCompaniesWithoutEmails();
+      
+      if (companiesNeedingFinalSearch.length === 0) {
+        finishSearch("Email search complete", 
+          `Found emails for all ${companiesNeedingEmails.length} companies`);
+        return;
+      }
+      
+      // Phase 3: AeroLeads search - using parallel processing (moved to last phase since it's slowest)
+      setSearchProgress({ 
+        phase: "AeroLeads Search", 
+        completed: 0, 
+        total: companiesNeedingFinalSearch.length 
+      });
+      
+      // Collect best contacts for AeroLeads
+      const aeroLeadsContacts: Contact[] = [];
+      companiesNeedingFinalSearch.forEach(company => {
+        const bestContact = getBestContact(company);
+        if (bestContact && (!bestContact.email || bestContact.email.length <= 5)) {
+          aeroLeadsContacts.push(bestContact);
+        }
+      });
+      
+      // Process AeroLeads searches in parallel batches (2 at a time)
+      await processContactsBatch(
+        aeroLeadsContacts, 
+        (contactId) => aeroLeadsMutation.mutateAsync(contactId),
+        2 // Batch size of 2 for AeroLeads (smaller because it's slower)
       );
       
       // Final summary
