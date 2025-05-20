@@ -357,7 +357,7 @@ export default function PromptEditor({
               }
             }}
             placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
-            className="flex-1 hover:border-gray-300 focus-visible:border-gray-400"
+            className={`flex-1 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''}`}
           />
           <div className="flex items-center relative">
             {/* Improved landing page tooltip with nicer design */}

@@ -63,6 +63,35 @@
   background-position: center;
 }
 
+/* Racing light animation for search input */
+@keyframes racingLight {
+  0% {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.2);
+  }
+  25% {
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.4);
+    border-color: rgba(14, 165, 233, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.7);
+    border-color: rgba(56, 189, 248, 1);
+  }
+  75% {
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.4);
+    border-color: rgba(14, 165, 233, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.2);
+  }
+}
+
+.racing-light-effect {
+  animation: racingLight 2s ease-in-out;
+  animation-iteration-count: 3;
+}
+
 @layer base {
   * {
     @apply border-border;
