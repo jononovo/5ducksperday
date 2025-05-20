@@ -361,7 +361,7 @@ export default function PromptEditor({
   return (
     <div className="pl-0 pr-1 pt-1 pb-1 shadow-none"> {/* Container with no padding */}
       <div className="flex flex-col gap-2">
-        <div className="flex gap-2 pl-0">
+        <div className="flex flex-col md:flex-row gap-2 pl-0">
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -374,10 +374,10 @@ export default function PromptEditor({
             placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
             className={`flex-1 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
           />
-          <div className="flex items-center relative">
+          <div className="flex items-center justify-end md:justify-start relative">
             {/* Improved landing page tooltip with nicer design */}
             {isFromLandingPage && !isAnalyzing && (
-              <div className="absolute -top-24 left-1/3 transform -translate-x-1/3 
+              <div className="absolute md:-top-24 md:left-1/3 md:transform md:-translate-x-1/3 -top-32 left-[55%] transform -translate-x-1/2
                    bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 
                    p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 
                    animate-fade-in max-w-xs text-center">

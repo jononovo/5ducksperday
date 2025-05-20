@@ -54,7 +54,7 @@ export function Logo({
       {showEmojis && (
         <div className={`flex items-end ${emojiContainerClasses[size]}`}>
           <span className={duckSizeClasses[size]}>🐥</span>
-          <span className={eggSizeClasses[size]}>🥚🥚🥚🥚</span>
+          <span className={`${eggSizeClasses[size]} md:inline hidden`}>🥚🥚🥚🥚</span>
         </div>
       )}
     </div>

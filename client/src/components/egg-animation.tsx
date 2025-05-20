@@ -69,7 +69,7 @@ export function EggAnimation() {
     '';
 
   return (
-    <div className="flex items-center gap-2 ml-4">
+    <div className="flex items-center gap-2">
       <span 
         className={`text-4xl transform transition-transform duration-300 ${animationClass}`}
       >
