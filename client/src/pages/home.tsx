@@ -780,43 +780,44 @@ export default function Home() {
           </div>
 
           {/* Companies Analysis Section - Moved to top */}
-          {currentResults && currentResults.length > 0 && (
+          {currentResults && currentResults.length > 0 ? (
             <Card className="w-full">
               <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Companies Analysis</CardTitle>
-                {currentResults && (
-                  <Button
-                    variant="outline"
-                    onClick={handleSaveList}
-                    disabled={isSaved || saveMutation.isPending}
-                  >
-                    <ListPlus className="mr-2 h-4 w-4" />
-                    {isSaved ? "Saved" : "Save as List"}
-                  </Button>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Companies Analysis</CardTitle>
+                  {currentResults && (
+                    <Button
+                      variant="outline"
+                      onClick={handleSaveList}
+                      disabled={isSaved || saveMutation.isPending}
+                    >
+                      <ListPlus className="mr-2 h-4 w-4" />
+                      {isSaved ? "Saved" : "Save as List"}
+                    </Button>
+                  )}
+                </div>
+                {currentQuery && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Search: {currentQuery}
+                  </p>
                 )}
-              </div>
-              {currentQuery && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Search: {currentQuery}
-                </p>
-              )}
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <CompanyTable
-                  companies={currentResults || []}
-                  handleCompanyView={handleCompanyView}
-                  handleHunterSearch={handleHunterSearch}
-                  handleAeroLeadsSearch={handleAeroLeadsSearch}
-                  handleEnrichContact={handleEnrichContact}
-                  pendingHunterIds={pendingHunterIds}
-                  pendingAeroLeadsIds={pendingAeroLeadsIds}
-                  pendingContactIds={pendingContactIds}
-                />
-              </div>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <CompanyTable
+                    companies={currentResults || []}
+                    handleCompanyView={handleCompanyView}
+                    handleHunterSearch={handleHunterSearch}
+                    handleAeroLeadsSearch={handleAeroLeadsSearch}
+                    handleEnrichContact={handleEnrichContact}
+                    pendingHunterIds={pendingHunterIds}
+                    pendingAeroLeadsIds={pendingAeroLeadsIds}
+                    pendingContactIds={pendingContactIds}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
 
           {/* Top Prospects Section - Moved below Companies Analysis */}
           {currentResults && currentResults.length > 0 && (
