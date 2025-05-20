@@ -771,7 +771,7 @@ export default function Home() {
         {/* Main Content Area - full width */}
         <div className="col-span-12 space-y-4 mt-[-10px]">
           {/* Search Section - border removed and moved up */}
-          <div className="pl-6 pr-4 py-1"> {/* Matched padding with CardHeader (p-6) */}
+          <div className="px-6 py-1"> {/* Matched padding with CardHeader (p-6) */}
             <div className="flex items-center gap-4 mb-3">
               <h2 className="text-2xl font-semibold">Search for target businesses</h2>
               <EggAnimation />
