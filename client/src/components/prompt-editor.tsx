@@ -381,7 +381,7 @@ export default function PromptEditor({
               className={`
                 transition-all duration-300 flex items-center gap-2
                 ${lastExecutedQuery && !inputHasChanged 
-                  ? 'bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 dark:from-gray-500 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-700 shadow-md hover:shadow-lg' 
+                  ? 'bg-gradient-to-r from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 dark:from-gray-400 dark:to-gray-500 dark:hover:from-gray-500 dark:hover:to-gray-600 shadow-md hover:shadow-lg' 
                   : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-md hover:shadow-lg'
                 }
               `}
