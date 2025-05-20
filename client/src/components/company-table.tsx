@@ -186,27 +186,25 @@ export default function CompanyTable({
 
   return (
     <div className="w-full overflow-hidden">
-      {/* Wrapper div with the flowing gradient background */}
-      <div className="bg-gradient-to-br from-blue-50/30 via-white to-cyan-50/30 dark:from-blue-950/30 dark:via-gray-900 dark:to-cyan-950/30 rounded-md">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-8">
-                <Checkbox 
-                  checked={selectAll}
-                  onCheckedChange={(checked) => {
-                    handleSelectAll({ target: { checked: checked === true } } as React.ChangeEvent<HTMLInputElement>);
-                  }}
-                  aria-label="Select all companies and contacts"
-                />
-              </TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead className="hidden md:table-cell">Details</TableHead>
-              <TableHead className="hidden md:table-cell">Score</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-8">
+              <Checkbox 
+                checked={selectAll}
+                onCheckedChange={(checked) => {
+                  handleSelectAll({ target: { checked: checked === true } } as React.ChangeEvent<HTMLInputElement>);
+                }}
+                aria-label="Select all companies and contacts"
+              />
+            </TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead className="hidden md:table-cell">Details</TableHead>
+            <TableHead className="hidden md:table-cell">Score</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {companies.map((company) => {
             console.log('Rendering company row:', { id: company.id, name: company.name });
             const isExpanded = isRowExpanded(company.id);
@@ -385,33 +383,7 @@ export default function CompanyTable({
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 w-6 p-0"
-                                disabled={pendingAeroLeadsIds?.has(contact.id)}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAeroLeadsSearch?.(contact.id);
-                                }}
-                              >
-                                {pendingAeroLeadsIds?.has(contact.id) ? (
-                                  <div className="animate-spin h-3.5 w-3.5">
-                                    <Gem className="h-3.5 w-3.5" />
-                                  </div>
-                                ) : (
-                                  <Gem className="h-3.5 w-3.5" />
-                                )}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>AeroLeads search</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                disabled={pendingHunterIds?.has(contact.id)}
+                                disabled={pendingHunterIds?.has(contact.id) || contact.completedSearches?.includes('hunter')}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleHunterSearch?.(contact.id);
@@ -422,12 +394,12 @@ export default function CompanyTable({
                                     <Target className="h-3.5 w-3.5" />
                                   </div>
                                 ) : (
-                                  <Target className="h-3.5 w-3.5" />
+                                  <Target className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('hunter') && contact.email ? "text-green-500" : ""}`} />
                                 )}
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Hunter.io search</p>
+                              <p>Hunter search</p>
                             </TooltipContent>
                           </Tooltip>
                           
@@ -437,45 +409,63 @@ export default function CompanyTable({
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 w-6 p-0"
+                                disabled={pendingAeroLeadsIds?.has(contact.id) || contact.completedSearches?.includes('aeroleads')}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAeroLeadsSearch?.(contact.id)
+                                }}
                               >
-                                <Rocket className="h-3.5 w-3.5" />
+                                {pendingAeroLeadsIds?.has(contact.id) ? (
+                                  <div className="animate-spin h-3.5 w-3.5">
+                                    <Rocket className="h-3.5 w-3.5" />
+                                  </div>
+                                ) : (
+                                  <Rocket className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('aeroleads') && contact.email ? "text-green-500" : ""}`} />
+                                )}
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Add to campaign</p>
+                              <p>AeroLeads search</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       </div>
                       
-                      {/* Mobile dropdown menu */}
+                      {/* Mobile action dropdown */}
                       <div className="md:hidden">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                              <Menu className="h-4 w-4" />
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                              <Menu className="h-3.5 w-3.5" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              View
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                handleEnrichContact?.(contact.id);
+                              }}
+                              disabled={pendingContactIds?.has(contact.id) || contact.completedSearches?.includes('contact_enrichment')}
+                            >
+                              <Mail className="mr-2 h-4 w-4" />
+                              Find Email
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Mail className="h-4 w-4 mr-2" />
-                              Send Email
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                handleHunterSearch?.(contact.id);
+                              }}
+                              disabled={pendingHunterIds?.has(contact.id) || contact.completedSearches?.includes('hunter')}
+                            >
+                              <Target className="mr-2 h-4 w-4" />
+                              Hunter Search
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Gem className="h-4 w-4 mr-2" />
-                              AeroLeads Email
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Target className="h-4 w-4 mr-2" />
-                              Hunter.io Email
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Rocket className="h-4 w-4 mr-2" />
-                              Add to campaign
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                handleAeroLeadsSearch?.(contact.id);
+                              }}
+                              disabled={pendingAeroLeadsIds?.has(contact.id) || contact.completedSearches?.includes('aeroleads')}
+                            >
+                              <Rocket className="mr-2 h-4 w-4" />
+                              AeroLeads Search
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
