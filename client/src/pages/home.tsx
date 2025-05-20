@@ -788,6 +788,10 @@ export default function Home() {
               onCompaniesReceived={handleCompaniesReceived}
               isAnalyzing={isAnalyzing}
               initialPrompt={currentQuery || ""}
+              isFromLandingPage={isFromLandingPage}
+              onDismissLandingHint={() => setIsFromLandingPage(false)}
+              lastExecutedQuery={lastExecutedQuery}
+              onInputChange={(newValue) => setInputHasChanged(newValue !== lastExecutedQuery)}
             />
           </div>
 

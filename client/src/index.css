@@ -58,6 +58,29 @@
   100% { transform: rotate(720deg) scale(1); }
 }
 
+/* Search tooltip animation */
+@keyframes fade-in {
+  0% { opacity: 0; transform: translate(-50%, 10px); }
+  100% { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* Search tooltip arrow styling */
+.tooltip-arrow {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; 
+  height: 0; 
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #eff6ff; /* from-blue-50 */
+}
+
+.dark .tooltip-arrow {
+  border-top-color: rgba(30, 58, 138, 0.9); /* dark:from-blue-900/90 */
+}
+
 @layer utilities {
   .animate-egg-shake {
     animation: egg-shake 0.7s ease-in-out infinite;
@@ -81,5 +104,9 @@
 
   .animate-breakdance {
     animation: breakdance 5s ease-in-out;
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
   }
 }
