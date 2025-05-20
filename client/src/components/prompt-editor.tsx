@@ -362,7 +362,7 @@ export default function PromptEditor({
           <div className="flex items-center relative">
             {/* Improved landing page tooltip with nicer design */}
             {isFromLandingPage && !isAnalyzing && (
-              <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 
+              <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 
                    bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 
                    p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 
                    animate-fade-in max-w-xs text-center">
@@ -381,8 +381,9 @@ export default function PromptEditor({
               className={`
                 transition-all duration-300 flex items-center gap-2
                 ${lastExecutedQuery && !inputHasChanged 
-                  ? 'bg-slate-600 hover:bg-slate-700' // Normal state when results shown
-                  : 'bg-blue-600 hover:bg-blue-700 ring-2 ring-blue-300 dark:ring-blue-800 ring-opacity-50'} // Enhanced state
+                  ? 'bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800' 
+                  : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-md hover:shadow-lg'
+                }
               `}
             >
               {(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending) ? (
