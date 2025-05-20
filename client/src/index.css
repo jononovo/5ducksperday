@@ -92,6 +92,15 @@
   animation-iteration-count: 3;
 }
 
+/* Gradient text effect for highlighting the landing page prompt */
+.gradient-text-input {
+  color: transparent;
+  background-image: linear-gradient(to right, #3b82f6, #0ea5e9, #06b6d4);
+  background-clip: text;
+  -webkit-background-clip: text;
+  font-weight: 500;
+}
+
 @layer base {
   * {
     @apply border-border;

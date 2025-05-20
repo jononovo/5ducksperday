@@ -61,12 +61,27 @@ export default function PromptEditor({
     }
   }, [query, lastExecutedQuery, onInputChange]);
   
+  // State to track if we should apply the gradient text effect
+  const [showGradientText, setShowGradientText] = useState(false);
+  
   // Update the query when initialPrompt changes
   useEffect(() => {
     if (initialPrompt) {
       setQuery(initialPrompt);
+      
+      // If we're coming from the landing page, apply the gradient text effect temporarily
+      if (isFromLandingPage) {
+        setShowGradientText(true);
+        
+        // Reset after 10 seconds or when the user changes the input
+        const timer = setTimeout(() => {
+          setShowGradientText(false);
+        }, 10000);
+        
+        return () => clearTimeout(timer);
+      }
     }
-  }, [initialPrompt]);
+  }, [initialPrompt, isFromLandingPage]);
 
   // Fetch active search flows with proper typing
   const { data: searchFlows = [] } = useQuery<Array<{
@@ -357,7 +372,7 @@ export default function PromptEditor({
               }
             }}
             placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
-            className={`flex-1 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''}`}
+            className={`flex-1 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
           />
           <div className="flex items-center relative">
             {/* Improved landing page tooltip with nicer design */}
