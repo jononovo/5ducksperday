@@ -780,8 +780,9 @@ export default function Home() {
           </div>
 
           {/* Companies Analysis Section - Moved to top */}
-          <Card className="w-full">
-            <CardHeader>
+          {currentResults && currentResults.length > 0 && (
+            <Card className="w-full">
+              <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>Companies Analysis</CardTitle>
                 {currentResults && (
