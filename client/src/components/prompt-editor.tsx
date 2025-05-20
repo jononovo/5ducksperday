@@ -39,6 +39,13 @@ export default function PromptEditor({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { triggerConfetti } = useConfetti();
+  
+  // Update the query when initialPrompt changes
+  useEffect(() => {
+    if (initialPrompt) {
+      setQuery(initialPrompt);
+    }
+  }, [initialPrompt]);
 
   // Fetch active search flows with proper typing
   const { data: searchFlows = [] } = useQuery<Array<{
