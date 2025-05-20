@@ -806,6 +806,7 @@ export default function Home() {
                       variant="outline"
                       onClick={handleSaveList}
                       disabled={isSaved || saveMutation.isPending}
+                      className="opacity-45 hover:opacity-100 hover:bg-white transition-all"
                     >
                       <ListPlus className="mr-2 h-4 w-4" />
                       {isSaved ? "Saved" : "Save as List"}
