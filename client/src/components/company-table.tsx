@@ -214,7 +214,10 @@ export default function CompanyTable({
               <React.Fragment key={`company-${company.id}`}>
                 {/* Main company row - always visible */}
                 <TableRow 
-                  className={`cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-800/30 bg-gradient-to-l from-blue-100/80 to-blue-50/70 dark:from-blue-800/30 dark:to-blue-700/20 ${isExpanded ? 'h-5 opacity-50' : 'h-10 opacity-100'} transition-all duration-200`}
+                  className={`cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-800/30 
+                  bg-[radial-gradient(ellipse_at_bottom_right,rgba(219,234,254,0.9),rgba(239,246,255,0.7),rgba(224,242,254,0.6))]
+                  dark:bg-[radial-gradient(ellipse_at_bottom_right,rgba(30,58,138,0.3),rgba(37,99,235,0.2),rgba(29,78,216,0.15))]
+                  ${isExpanded ? 'h-5 opacity-50' : 'h-10 opacity-100'} transition-all duration-200`}
                   onClick={() => toggleRowExpansion(company.id)}
                 >
                   <TableCell className={`px-2 ${isExpanded ? 'py-0' : 'py-1'}`}>
