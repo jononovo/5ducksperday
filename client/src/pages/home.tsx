@@ -6,6 +6,7 @@ import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
 import { EmailSearchProgress } from "@/components/email-search-progress";
 import { EmailSearchSummary } from "@/components/email-search-summary";
+import { useToast } from "@/hooks/use-toast";
 import {
   ListPlus,
   Search,
