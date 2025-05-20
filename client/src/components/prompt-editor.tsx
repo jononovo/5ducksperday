@@ -315,7 +315,7 @@ export default function PromptEditor({
   };
 
   return (
-    <Card className="p-3">
+    <div className="p-1 shadow-none"> {/* Removed Card and reduced padding */}
       <div className="flex flex-col gap-2">
         <div className="flex gap-2">
           <Input
@@ -328,7 +328,7 @@ export default function PromptEditor({
               }
             }}
             placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
-            className="flex-1"
+            className="flex-1 border-transparent hover:border-gray-200 focus-visible:ring-transparent focus-visible:border-gray-300"
           />
           <div className="flex items-center">
             <Button 
@@ -361,6 +361,6 @@ export default function PromptEditor({
         {/* Search Progress Indicator */}
         <SearchProgressIndicator isSearching={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending} />
       </div>
-    </Card>
+    </div>
   );
 }
