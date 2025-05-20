@@ -370,7 +370,7 @@ export default function PromptEditor({
               }
             }}
             placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
-            className={`flex-1 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect landing-transition-effect' : ''} ${showGradientText ? 'gradient-text-input landing-transition-effect' : ''}`}
+            className={`flex-1 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
           />
           <div className="flex items-center justify-end md:justify-start relative">
             {/* Improved landing page tooltip with nicer design */}

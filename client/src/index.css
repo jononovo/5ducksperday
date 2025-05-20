@@ -106,6 +106,7 @@
   0% {
     color: inherit;
     font-weight: normal;
+    background-image: none;
   }
   100% {
     color: transparent;
@@ -114,7 +115,7 @@
 }
 
 .gradient-text-input {
-  color: transparent;
+  color: transparent !important;
   background-image: linear-gradient(to right, #3b82f6, #0ea5e9, #06b6d4);
   background-clip: text;
   -webkit-background-clip: text;
