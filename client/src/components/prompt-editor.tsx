@@ -381,7 +381,7 @@ export default function PromptEditor({
               className={`
                 transition-all duration-300 flex items-center gap-2
                 ${lastExecutedQuery && !inputHasChanged 
-                  ? 'bg-gradient-to-r from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 dark:from-gray-400 dark:to-gray-500 dark:hover:from-gray-500 dark:hover:to-gray-600 shadow-md hover:shadow-lg' 
+                  ? 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-400 dark:hover:bg-gray-500 shadow-md hover:shadow-lg' 
                   : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-md hover:shadow-lg'
                 }
               `}
