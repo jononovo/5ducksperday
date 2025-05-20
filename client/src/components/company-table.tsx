@@ -515,8 +515,17 @@ export default function CompanyTable({
                               }}
                               disabled={pendingAeroLeadsIds?.has(contact.id) || contact.completedSearches?.includes('aeroleads')}
                             >
-                              <Rocket className="mr-2 h-4 w-4" />
+                              <Gem className="mr-2 h-4 w-4" />
                               AeroLeads Search
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                handleApolloSearch?.(contact.id);
+                              }}
+                              disabled={pendingApolloIds?.has(contact.id) || contact.completedSearches?.includes('apollo_search')}
+                            >
+                              <Rocket className="mr-2 h-4 w-4" />
+                              Apollo.io Search
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
