@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
+import { EmailSearchProgress } from "@/components/email-search-progress";
+import { EmailSearchSummary } from "@/components/email-search-summary";
 import {
   ListPlus,
   Search,
@@ -1030,6 +1032,31 @@ export default function Home() {
                 )}
               </CardHeader>
               
+              {/* Email Search Summary */}
+              {summaryVisible && (
+                <div className="px-6 pb-3">
+                  <EmailSearchSummary 
+                    companiesWithEmails={currentResults?.filter(company => 
+                      company.contacts?.some(contact => contact.email && contact.email.length > 5)).length || 0}
+                    totalCompanies={currentResults?.length || 0}
+                    onClose={() => setSummaryVisible(false)}
+                    isVisible={summaryVisible}
+                  />
+                </div>
+              )}
+              
+              {/* Email Search Progress */}
+              {isConsolidatedSearching && (
+                <div className="px-6 pb-3">
+                  <EmailSearchProgress 
+                    phase={searchProgress.phase}
+                    completed={searchProgress.completed}
+                    total={searchProgress.total}
+                    isVisible={isConsolidatedSearching}
+                  />
+                </div>
+              )}
+              
               {/* Mini Search Menu */}
               {currentResults && currentResults.length > 0 && (
                 <div className="px-6 pb-3 flex items-center gap-2">
@@ -1040,9 +1067,11 @@ export default function Home() {
                           variant="outline" 
                           size="sm" 
                           className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                          onClick={runConsolidatedEmailSearch}
+                          disabled={isConsolidatedSearching}
                         >
-                          <Mail className="h-4 w-4" />
-                          <span>Search Emails</span>
+                          <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
+                          <span>{isConsolidatedSearching ? "Searching..." : "Search Emails"}</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom">
