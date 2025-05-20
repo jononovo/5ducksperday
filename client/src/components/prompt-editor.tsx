@@ -315,7 +315,7 @@ export default function PromptEditor({
   };
 
   return (
-    <div className="p-1 shadow-none"> {/* Removed Card and reduced padding */}
+    <div className="pl-0 pr-1 pt-1 pb-1 shadow-none"> {/* Adjusted padding for alignment */}
       <div className="flex flex-col gap-2">
         <div className="flex gap-2">
           <Input
@@ -328,7 +328,7 @@ export default function PromptEditor({
               }
             }}
             placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
-            className="flex-1 border-transparent hover:border-gray-200 focus-visible:ring-transparent focus-visible:border-gray-300"
+            className="flex-1 hover:border-gray-300 focus-visible:border-gray-400"
           />
           <div className="flex items-center">
             <Button 

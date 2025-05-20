@@ -772,7 +772,7 @@ export default function Home() {
         <div className="col-span-12 space-y-4 mt-[-10px]">
           {/* Search Section - border removed and moved up */}
           <div className="px-2 py-1">
-            <div className="flex items-center gap-4 mb-3">
+            <div className="flex items-center gap-4 mb-3 ml-0">
               <h2 className="text-2xl font-semibold">Search for target businesses</h2>
               <EggAnimation />
             </div>
