@@ -52,7 +52,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { filterTopProspects, ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
-
 import { Checkbox } from "@/components/ui/checkbox";
 
 // Extend Company type to include contacts
