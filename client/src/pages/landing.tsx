@@ -38,6 +38,9 @@ export default function LandingPage() {
     // Store the search query for use on the app page
     localStorage.setItem("pendingSearchQuery", query);
     
+    // Set flag indicating user is coming from landing page
+    localStorage.setItem("5ducks_from_landing", "true");
+    
     // Navigate directly to the app page
     setLocation("/app");
   };
