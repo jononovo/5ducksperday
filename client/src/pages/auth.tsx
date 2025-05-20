@@ -227,7 +227,7 @@ export default function AuthPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>5 Simple Leads DONE in 1 Minute EVERY Day</CardTitle>
+              <CardTitle>Sell to 5 new people every day.</CardTitle>
             </CardHeader>
             <CardContent className="prose prose-sm">
               <p>
