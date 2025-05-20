@@ -76,6 +76,11 @@ export default function Home() {
   // Add new state for tracking contact loading status
   const [isLoadingContacts, setIsLoadingContacts] = useState(false);
   const [contactsLoaded, setContactsLoaded] = useState(false);
+  // Track if user came from landing page
+  const [isFromLandingPage, setIsFromLandingPage] = useState(false);
+  // Track the last executed search query and if input has changed
+  const [lastExecutedQuery, setLastExecutedQuery] = useState<string | null>(null);
+  const [inputHasChanged, setInputHasChanged] = useState(false);
   // Tour modal has been removed
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
