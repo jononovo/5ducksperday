@@ -43,7 +43,7 @@ export function MainNav() {
                 {item.icon === "dashboard" && <LayoutDashboard className="mr-1 h-4 w-4" />}
                 {item.icon === "mail" && <Mail className="mr-1 h-4 w-4" />}
                 {item.icon === "message" && <MessageCircle className="mr-1 h-4 w-4" />}
-                {item.name}
+                <span className="md:inline hidden">{item.name}</span>
               </div>
             </Link>
           );
