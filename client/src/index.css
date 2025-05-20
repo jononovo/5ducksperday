@@ -105,24 +105,21 @@
 @keyframes gradientFadeIn {
   0% {
     color: inherit;
-    font-weight: normal;
     background-image: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
   }
   100% {
     color: transparent;
-    font-weight: 500;
+    background-image: linear-gradient(to right, #3b82f6, #0ea5e9, #06b6d4);
+    -webkit-background-clip: text;
+    background-clip: text;
   }
 }
 
 .gradient-text-input {
-  color: transparent !important;
-  background-image: linear-gradient(to right, #3b82f6, #0ea5e9, #06b6d4);
-  background-clip: text;
-  -webkit-background-clip: text;
-  font-weight: 400;
-  animation: gradientFadeIn 2s ease;
+  animation: gradientFadeIn 2s ease forwards;
   animation-delay: 1.2s;
-  animation-fill-mode: backwards;
 }
 
 @layer base {
