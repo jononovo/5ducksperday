@@ -1176,9 +1176,11 @@ export default function Home() {
                     handleCompanyView={handleCompanyView}
                     handleHunterSearch={handleHunterSearch}
                     handleAeroLeadsSearch={handleAeroLeadsSearch}
+                    handleApolloSearch={handleApolloSearch}
                     handleEnrichContact={handleEnrichContact}
                     pendingHunterIds={pendingHunterIds}
                     pendingAeroLeadsIds={pendingAeroLeadsIds}
+                    pendingApolloIds={pendingApolloIds}
                     pendingContactIds={pendingContactIds}
                   />
                 </div>

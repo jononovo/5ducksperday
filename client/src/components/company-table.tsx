@@ -46,9 +46,11 @@ interface CompanyTableProps {
   // Add these props to connect to existing functionality
   handleHunterSearch?: (contactId: number) => void;
   handleAeroLeadsSearch?: (contactId: number) => void;
+  handleApolloSearch?: (contactId: number) => void;
   handleEnrichContact?: (contactId: number) => void;
   pendingHunterIds?: Set<number>;
   pendingAeroLeadsIds?: Set<number>;
+  pendingApolloIds?: Set<number>;
   pendingContactIds?: Set<number>;
 }
 
@@ -57,9 +59,11 @@ export default function CompanyTable({
   handleCompanyView,
   handleHunterSearch,
   handleAeroLeadsSearch,
+  handleApolloSearch,
   handleEnrichContact,
   pendingHunterIds,
   pendingAeroLeadsIds,
+  pendingApolloIds,
   pendingContactIds
 }: CompanyTableProps) {
   console.log('CompanyTable received companies:', 
@@ -438,15 +442,41 @@ export default function CompanyTable({
                               >
                                 {pendingAeroLeadsIds?.has(contact.id) ? (
                                   <div className="animate-spin h-3.5 w-3.5">
-                                    <Rocket className="h-3.5 w-3.5" />
+                                    <Gem className="h-3.5 w-3.5" />
                                   </div>
                                 ) : (
-                                  <Rocket className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('aeroleads') && contact.email ? "text-green-500" : ""}`} />
+                                  <Gem className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('aeroleads') && contact.email ? "text-yellow-500" : ""}`} />
                                 )}
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>AeroLeads search</p>
+                            </TooltipContent>
+                          </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                disabled={pendingApolloIds?.has(contact.id) || contact.completedSearches?.includes('apollo_search')}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleApolloSearch?.(contact.id)
+                                }}
+                              >
+                                {pendingApolloIds?.has(contact.id) ? (
+                                  <div className="animate-spin h-3.5 w-3.5">
+                                    <Rocket className="h-3.5 w-3.5" />
+                                  </div>
+                                ) : (
+                                  <Rocket className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('apollo_search') && contact.email ? "text-purple-500" : ""}`} />
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Apollo.io search</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
