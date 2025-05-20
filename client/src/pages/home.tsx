@@ -83,6 +83,8 @@ export default function Home() {
   // Track the last executed search query and if input has changed
   const [lastExecutedQuery, setLastExecutedQuery] = useState<string | null>(null);
   const [inputHasChanged, setInputHasChanged] = useState(false);
+  // Track when to highlight the email search button
+  const [highlightEmailButton, setHighlightEmailButton] = useState(false);
   // Tour modal has been removed
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
@@ -191,6 +193,12 @@ export default function Home() {
     if (isFromLandingPage) {
       setIsFromLandingPage(false);
     }
+    
+    // Highlight the email search button for 10 seconds after search completes
+    setHighlightEmailButton(true);
+    setTimeout(() => {
+      setHighlightEmailButton(false);
+    }, 10000);
   };
 
   const handleSaveList = () => {
@@ -1104,7 +1112,11 @@ export default function Home() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                          className={`flex items-center gap-1 h-8 ${
+                            highlightEmailButton 
+                              ? 'email-button-highlight' 
+                              : 'opacity-45 hover:opacity-100 hover:bg-white'
+                          } transition-all`}
                           onClick={runConsolidatedEmailSearch}
                           disabled={isConsolidatedSearching}
                         >
