@@ -98,6 +98,7 @@
   animation: racingLight 3.5s ease-in-out;
   animation-delay: 1.2s;
   animation-iteration-count: 1;
+  animation-fill-mode: backwards;
 }
 
 /* Gradient text effect for highlighting the landing page prompt */

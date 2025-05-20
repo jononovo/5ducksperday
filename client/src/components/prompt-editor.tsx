@@ -62,7 +62,7 @@ export default function PromptEditor({
   }, [query, lastExecutedQuery, onInputChange]);
   
   // State to track if we should apply the gradient text effect
-  const [showGradientText, setShowGradientText] = useState(false);
+  const [showGradientText, setShowGradientText] = useState(isFromLandingPage);
   
   // Update the query when initialPrompt changes
   useEffect(() => {
@@ -71,8 +71,6 @@ export default function PromptEditor({
       
       // If we're coming from the landing page, apply the gradient text effect temporarily
       if (isFromLandingPage) {
-        setShowGradientText(true);
-        
         // Reset after 6 seconds or when the user changes the input
         const timer = setTimeout(() => {
           setShowGradientText(false);
@@ -372,7 +370,7 @@ export default function PromptEditor({
               }
             }}
             placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
-            className={`flex-1 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
+            className={`flex-1 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect landing-transition-effect' : ''} ${showGradientText ? 'gradient-text-input landing-transition-effect' : ''}`}
           />
           <div className="flex items-center justify-end md:justify-start relative">
             {/* Improved landing page tooltip with nicer design */}
