@@ -73,10 +73,10 @@ export default function PromptEditor({
       if (isFromLandingPage) {
         setShowGradientText(true);
         
-        // Reset after 10 seconds or when the user changes the input
+        // Reset after 6 seconds or when the user changes the input
         const timer = setTimeout(() => {
           setShowGradientText(false);
-        }, 10000);
+        }, 6000);
         
         return () => clearTimeout(timer);
       }

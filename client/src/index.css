@@ -88,17 +88,32 @@
 }
 
 .racing-light-effect {
-  animation: racingLight 2s ease-in-out;
-  animation-iteration-count: 3;
+  animation: racingLight 3s ease-in-out;
+  animation-delay: 1s;
+  animation-iteration-count: 2;
 }
 
 /* Gradient text effect for highlighting the landing page prompt */
+@keyframes gradientFadeIn {
+  0% {
+    color: inherit;
+    font-weight: normal;
+  }
+  100% {
+    color: transparent;
+    font-weight: 500;
+  }
+}
+
 .gradient-text-input {
   color: transparent;
   background-image: linear-gradient(to right, #3b82f6, #0ea5e9, #06b6d4);
   background-clip: text;
   -webkit-background-clip: text;
   font-weight: 500;
+  animation: gradientFadeIn 1.5s ease;
+  animation-delay: 1.5s;
+  animation-fill-mode: backwards;
 }
 
 @layer base {
