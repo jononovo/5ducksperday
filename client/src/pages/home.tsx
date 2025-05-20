@@ -1263,7 +1263,18 @@ export default function Home() {
                           
                           {/* Email - hidden on mobile, shown as small text */}
                           <TableCell className="hidden md:table-cell">
-                            <span className="text-xs text-muted-foreground">{contact.email || "N/A"}</span>
+                            <div className="flex flex-col">
+                              <span className="text-xs text-muted-foreground">{contact.email || "N/A"}</span>
+                              {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                                <div className="mt-1 flex flex-col gap-0.5">
+                                  {contact.alternativeEmails.map((email, i) => (
+                                    <span key={i} className="text-xs italic text-muted-foreground opacity-70">
+                                      {email}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </TableCell>
                           
                           {/* Mobile view - visible elements */}
@@ -1271,7 +1282,18 @@ export default function Home() {
                             <div className="text-xs space-y-1">
                               <div>{contact.companyName}</div>
                               <div>{contact.role || "N/A"}</div>
-                              <div>{contact.email || "N/A"}</div>
+                              <div className="flex flex-col">
+                                <div>{contact.email || "N/A"}</div>
+                                {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                                  <div className="flex flex-col gap-0.5 mt-1">
+                                    {contact.alternativeEmails.map((email, i) => (
+                                      <span key={i} className="italic opacity-70">
+                                        {email}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                           
