@@ -185,26 +185,28 @@ export default function CompanyTable({
   };
 
   return (
-    <div className="w-full">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-8">
-              <Checkbox 
-                checked={selectAll}
-                onCheckedChange={(checked) => {
-                  handleSelectAll({ target: { checked: checked === true } } as React.ChangeEvent<HTMLInputElement>);
-                }}
-                aria-label="Select all companies and contacts"
-              />
-            </TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead className="hidden md:table-cell">Details</TableHead>
-            <TableHead className="hidden md:table-cell">Score</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+    <div className="w-full overflow-hidden">
+      {/* Wrapper div with the flowing gradient background */}
+      <div className="bg-gradient-to-br from-blue-50/30 via-white to-cyan-50/30 dark:from-blue-950/30 dark:via-gray-900 dark:to-cyan-950/30 rounded-md">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-8">
+                <Checkbox 
+                  checked={selectAll}
+                  onCheckedChange={(checked) => {
+                    handleSelectAll({ target: { checked: checked === true } } as React.ChangeEvent<HTMLInputElement>);
+                  }}
+                  aria-label="Select all companies and contacts"
+                />
+              </TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead className="hidden md:table-cell">Details</TableHead>
+              <TableHead className="hidden md:table-cell">Score</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
           {companies.map((company) => {
             console.log('Rendering company row:', { id: company.id, name: company.name });
             const isExpanded = isRowExpanded(company.id);
@@ -214,7 +216,7 @@ export default function CompanyTable({
               <React.Fragment key={`company-${company.id}`}>
                 {/* Main company row - always visible */}
                 <TableRow 
-                  className={`cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-800/30 bg-blue-100/80 dark:bg-blue-700/30 ${isExpanded ? 'h-5 opacity-50' : 'h-10 opacity-100'} transition-all duration-200`}
+                  className={`cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-800/30 bg-gradient-to-r from-blue-100/90 to-blue-50/80 dark:from-blue-800/40 dark:to-blue-700/20 ${isExpanded ? 'h-5 opacity-50' : 'h-10 opacity-100'} transition-all duration-200`}
                   onClick={() => toggleRowExpansion(company.id)}
                 >
                   <TableCell className={`px-2 ${isExpanded ? 'py-0' : 'py-1'}`}>
