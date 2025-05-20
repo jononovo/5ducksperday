@@ -362,13 +362,13 @@ export default function PromptEditor({
           <div className="flex items-center relative">
             {/* Improved landing page tooltip with nicer design */}
             {isFromLandingPage && !isAnalyzing && (
-              <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 
+              <div className="absolute -top-24 left-1/3 transform -translate-x-1/3 
                    bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 
                    p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 
                    animate-fade-in max-w-xs text-center">
                 <div className="tooltip-arrow"></div>
                 <p className="font-medium text-blue-800 dark:text-blue-200">
-                  Ready to discover results? Click search to begin
+                  If you are happy with this prompt, click search.
                 </p>
               </div>
             )}
