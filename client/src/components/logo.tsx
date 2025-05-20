@@ -49,7 +49,7 @@ export function Logo({
   const LogoContent = (
     <div className={`font-bold flex items-center ${sizeClasses[size]} ${className}`}>
       <span className="text-gray-500 dark:text-gray-400">5</span>
-      <span className="text-gray-700 dark:text-gray-300 md:inline hidden">Ducks</span>
+      <span className="text-gray-700 dark:text-gray-300">Ducks</span>
       
       {showEmojis && (
         <div className={`flex items-end ${emojiContainerClasses[size]}`}>
