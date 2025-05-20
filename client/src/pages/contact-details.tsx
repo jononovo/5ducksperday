@@ -148,7 +148,17 @@ export default function ContactDetails() {
                         Email
                       </div>
                     </TableCell>
-                    <TableCell>{contact.email || "Not available"}</TableCell>
+                    <TableCell>
+                      <div>{contact.email || "Not available"}</div>
+                      {Array.isArray(contact.alternativeEmails) && contact.alternativeEmails.length > 0 && (
+                        <div className="mt-1 text-sm text-muted-foreground italic">
+                          Alternative emails: 
+                          {contact.alternativeEmails.map((email, index) => (
+                            <div key={email} className="ml-2">• {email}</div>
+                          ))}
+                        </div>
+                      )}
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>

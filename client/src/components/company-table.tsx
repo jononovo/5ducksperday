@@ -320,8 +320,8 @@ export default function CompanyTable({
                       </div>
                       <div className="md:hidden text-xs text-muted-foreground leading-tight mt-0.5">
                         {contact.email || "Email not available"}
-                        {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
-                          <div className="text-xs opacity-75 mt-0.5">
+                        {Array.isArray(contact.alternativeEmails) && contact.alternativeEmails.length > 0 && (
+                          <div className="text-xs opacity-75 mt-0.5 italic">
                             {contact.alternativeEmails.map((altEmail, index) => (
                               <div key={index} className="text-xs italic">
                                 {altEmail}
