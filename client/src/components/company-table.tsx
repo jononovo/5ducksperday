@@ -217,7 +217,7 @@ export default function CompanyTable({
               <React.Fragment key={`company-${company.id}`}>
                 {/* Main company row - always visible */}
                 <TableRow 
-                  className={`cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-800/30 bg-white/40 dark:bg-gray-900/40 ${isExpanded ? 'h-5 opacity-50' : 'h-10 opacity-100'} transition-all duration-200`}
+                  className={`cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-800/30 bg-transparent ${isExpanded ? 'h-5 opacity-50' : 'h-10 opacity-100'} transition-all duration-200`}
                   onClick={() => toggleRowExpansion(company.id)}
                 >
                   <TableCell className={`px-2 ${isExpanded ? 'py-0' : 'py-1'}`}>
@@ -301,7 +301,7 @@ export default function CompanyTable({
                 {isExpanded && topContacts.map((contact) => (
                   <TableRow 
                     key={`${company.id}-contact-${contact.id}`} 
-                    className="border-t-0 h-10"
+                    className="border-t-0 h-10 bg-transparent"
                   >
                     <TableCell className="px-2 py-1">
                       <Checkbox 

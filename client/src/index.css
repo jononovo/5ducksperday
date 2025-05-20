@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom fluffy gradient backgrounds */
+.fluffy-gradient-bg {
+  background-image: radial-gradient(
+    ellipse at bottom right,
+    rgba(219, 234, 254, 0.7),
+    rgba(239, 246, 255, 0.4),
+    rgba(224, 242, 254, 0.3)
+  );
+}
+
+.dark .fluffy-gradient-bg {
+  background-image: radial-gradient(
+    ellipse at bottom right,
+    rgba(30, 58, 138, 0.2),
+    rgba(37, 99, 235, 0.15),
+    rgba(29, 78, 216, 0.1)
+  );
+}
+
 @layer base {
   * {
     @apply border-border;
