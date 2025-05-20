@@ -315,7 +315,7 @@ export default function PromptEditor({
   };
 
   return (
-    <div className="pl-0 pr-1 pt-1 pb-1 shadow-none"> {/* Adjusted padding for alignment */}
+    <div className="pl-0 pr-1 pt-1 pb-1 shadow-none"> {/* Container with no padding */}
       <div className="flex flex-col gap-2">
         <div className="flex gap-2 pl-0">
           <Input
