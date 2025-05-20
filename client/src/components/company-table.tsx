@@ -265,7 +265,7 @@ export default function CompanyTable({
                     )}
                   </TableCell>
                   <TableCell className={`hidden md:table-cell ${isExpanded ? 'py-0' : 'py-1'}`}>
-                    <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}>
+                    <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"} className="opacity-50">
                       {company.totalScore ?? 'N/A'}
                     </Badge>
                   </TableCell>
@@ -327,7 +327,7 @@ export default function CompanyTable({
                     <TableCell className="py-1 hidden md:table-cell">
                       <Badge
                         variant="secondary"
-                        className="text-xs"
+                        className="text-xs opacity-50"
                       >
                         {contact.probability || 0}
                       </Badge>
