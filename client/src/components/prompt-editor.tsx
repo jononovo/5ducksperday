@@ -62,7 +62,7 @@ export default function PromptEditor({
   }, [query, lastExecutedQuery, onInputChange]);
   
   // State to track if we should apply the gradient text effect
-  const [showGradientText, setShowGradientText] = useState(isFromLandingPage);
+  const [showGradientText, setShowGradientText] = useState(false);
   
   // Update the query when initialPrompt changes
   useEffect(() => {
@@ -71,6 +71,8 @@ export default function PromptEditor({
       
       // If we're coming from the landing page, apply the gradient text effect temporarily
       if (isFromLandingPage) {
+        setShowGradientText(true);
+        
         // Reset after 6 seconds or when the user changes the input
         const timer = setTimeout(() => {
           setShowGradientText(false);

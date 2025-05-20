@@ -87,18 +87,10 @@
   }
 }
 
-/* Combined transition effect class for the landing page transition */
-.landing-transition-effect {
-  animation-delay: 1.2s;
-  animation-iteration-count: 1;
-  animation-fill-mode: backwards;
-}
-
 .racing-light-effect {
   animation: racingLight 3.5s ease-in-out;
   animation-delay: 1.2s;
   animation-iteration-count: 1;
-  animation-fill-mode: backwards;
 }
 
 /* Gradient text effect for highlighting the landing page prompt */
@@ -106,7 +98,6 @@
   0% {
     color: inherit;
     font-weight: normal;
-    background-image: none;
   }
   100% {
     color: transparent;
@@ -115,7 +106,7 @@
 }
 
 .gradient-text-input {
-  color: transparent !important;
+  color: transparent;
   background-image: linear-gradient(to right, #3b82f6, #0ea5e9, #06b6d4);
   background-clip: text;
   -webkit-background-clip: text;
