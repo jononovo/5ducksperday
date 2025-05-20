@@ -92,14 +92,7 @@ export default function Home() {
       console.log('Found pending search query:', pendingQuery);
       setCurrentQuery(pendingQuery);
       localStorage.removeItem('pendingSearchQuery');
-      
-      // Automatically trigger the search if a pending query exists
-      setTimeout(() => {
-        const searchElement = document.querySelector('button[type="submit"]');
-        if (searchElement) {
-          (searchElement as HTMLButtonElement).click();
-        }
-      }, 500);
+      // No longer automatically triggering search - user must click the search button
     } else {
       // Load saved search state if no pending query
       const savedState = localStorage.getItem('searchState');
