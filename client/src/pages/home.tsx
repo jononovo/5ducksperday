@@ -652,6 +652,216 @@ export default function Home() {
   const isApolloPending = (contactId: number) => {
     return pendingApolloIds.has(contactId);
   };
+  
+  // Consolidated Email Search functionality
+  const [isConsolidatedSearching, setIsConsolidatedSearching] = useState(false);
+  const [searchProgress, setSearchProgress] = useState({
+    phase: "",
+    completed: 0,
+    total: 0
+  });
+  const [summaryVisible, setSummaryVisible] = useState(false);
+
+  // Helper to get current companies without emails
+  const getCurrentCompaniesWithoutEmails = () => {
+    return currentResults?.filter(company => 
+      !company.contacts?.some(contact => contact.email && contact.email.length > 5)
+    ) || [];
+  };
+
+  // Helper to get a contact by ID from current results
+  const getCurrentContact = (contactId: number) => {
+    if (!currentResults) return null;
+    
+    for (const company of currentResults) {
+      const contact = company.contacts?.find(c => c.id === contactId);
+      if (contact) return contact;
+    }
+    return null;
+  };
+
+  // Helper to get top N contacts from a company based on role importance
+  const getTopContacts = (company: any, count: number) => {
+    if (!company.contacts || company.contacts.length === 0) return [];
+    
+    // Sort contacts by role importance
+    const sorted = [...company.contacts].sort((a, b) => {
+      const roleA = a.role?.toLowerCase() || "";
+      const roleB = b.role?.toLowerCase() || "";
+      
+      // Prioritize executive roles
+      const execA = roleA.includes("ceo") || roleA.includes("chief") || 
+                    roleA.includes("president") || roleA.includes("founder") ||
+                    roleA.includes("director") || roleA.includes("vp");
+      const execB = roleB.includes("ceo") || roleB.includes("chief") || 
+                    roleB.includes("president") || roleB.includes("founder") ||
+                    roleB.includes("director") || roleB.includes("vp");
+      
+      if (execA && !execB) return -1;
+      if (!execA && execB) return 1;
+      
+      // Secondary priority to managers
+      const managerA = roleA.includes("manager") || roleA.includes("head");
+      const managerB = roleB.includes("manager") || roleB.includes("head");
+      
+      if (managerA && !managerB) return -1;
+      if (!managerA && managerB) return 1;
+      
+      return 0;
+    });
+    
+    return sorted.slice(0, count);
+  };
+
+  // Helper to get the best contact from a company for email search
+  const getBestContact = (company: any) => {
+    return getTopContacts(company, 1)[0];
+  };
+
+  // Helper function to finish search with toast
+  const finishSearch = (title: string, description: string) => {
+    toast({ title, description });
+    setIsConsolidatedSearching(false);
+    setSummaryVisible(true);
+  };
+
+  // Add delay helper for throttling API requests
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  
+  // Main consolidated email search function
+  const runConsolidatedEmailSearch = async () => {
+    if (!currentResults || currentResults.length === 0) return;
+    
+    setIsConsolidatedSearching(true);
+    setSummaryVisible(false);
+    setSearchProgress({ phase: "Preparing", completed: 0, total: currentResults.length });
+    
+    try {
+      // Get companies without emails
+      const companiesNeedingEmails = currentResults.filter(company => 
+        !company.contacts?.some(contact => contact.email && contact.email.length > 5)
+      );
+      
+      if (companiesNeedingEmails.length === 0) {
+        toast({
+          title: "Email Search Complete",
+          description: "All companies already have email addresses",
+        });
+        setIsConsolidatedSearching(false);
+        return;
+      }
+      
+      // Phase 1: Perplexity search (2 contacts per company)
+      setSearchProgress({ 
+        phase: "Perplexity Search", 
+        completed: 0, 
+        total: companiesNeedingEmails.length 
+      });
+      
+      // For each company, try to get emails for top 2 contacts using Perplexity
+      for (const company of companiesNeedingEmails) {
+        const topContacts = getTopContacts(company, 2);
+        
+        for (const contact of topContacts) {
+          // Skip if we already have an email for this contact
+          if (contact.email && contact.email.length > 5) continue;
+          
+          // Run Perplexity search
+          await enrichContactMutation.mutateAsync(contact.id);
+          await delay(500); // Small delay to avoid overwhelming API
+          
+          // If we found an email, break from the inner loop for this company
+          const updatedContact = getCurrentContact(contact.id);
+          if (updatedContact?.email && updatedContact.email.length > 5) {
+            break;
+          }
+        }
+        
+        setSearchProgress(prev => ({ 
+          ...prev, 
+          completed: prev.completed + 1 
+        }));
+      }
+      
+      // Check which companies still need emails
+      const companiesStillNeedingEmails = getCurrentCompaniesWithoutEmails();
+      
+      if (companiesStillNeedingEmails.length === 0) {
+        finishSearch("Email search complete", `Found emails for all ${companiesNeedingEmails.length} companies`);
+        return;
+      }
+      
+      // Phase 2: AeroLeads search (1 contact per company)
+      setSearchProgress({ 
+        phase: "AeroLeads Search", 
+        completed: 0, 
+        total: companiesStillNeedingEmails.length 
+      });
+      
+      for (const company of companiesStillNeedingEmails) {
+        const bestContact = getBestContact(company);
+        
+        if (bestContact) {
+          await aeroLeadsMutation.mutateAsync(bestContact.id);
+          await delay(500); // Small delay to avoid overwhelming API
+        }
+        
+        setSearchProgress(prev => ({ 
+          ...prev, 
+          completed: prev.completed + 1 
+        }));
+      }
+      
+      // Check which companies still need emails
+      const companiesNeedingFinalSearch = getCurrentCompaniesWithoutEmails();
+      
+      if (companiesNeedingFinalSearch.length === 0) {
+        finishSearch("Email search complete", 
+          `Found emails for all ${companiesNeedingEmails.length} companies`);
+        return;
+      }
+      
+      // Phase 3: Hunter search (1 contact per company)
+      setSearchProgress({ 
+        phase: "Hunter Search", 
+        completed: 0, 
+        total: companiesNeedingFinalSearch.length 
+      });
+      
+      for (const company of companiesNeedingFinalSearch) {
+        const bestContact = getBestContact(company);
+        
+        if (bestContact) {
+          await hunterMutation.mutateAsync(bestContact.id);
+          await delay(500); // Small delay to avoid overwhelming API
+        }
+        
+        setSearchProgress(prev => ({ 
+          ...prev, 
+          completed: prev.completed + 1 
+        }));
+      }
+      
+      // Final summary
+      const finalCompaniesWithEmails = currentResults.filter(company => 
+        company.contacts?.some(contact => contact.email && contact.email.length > 5)
+      );
+      
+      finishSearch(
+        "Email search complete",
+        `Found emails for ${finalCompaniesWithEmails.length} of ${currentResults.length} companies`
+      );
+      
+    } catch (error) {
+      console.error("Consolidated email search error:", error);
+      toast({
+        title: "Search Failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive"
+      });
+      setIsConsolidatedSearching(false);
+    }
+  };
 
   const getApolloButtonClass = (contact: Contact) => {
     if (isApolloSearchComplete(contact)) {
