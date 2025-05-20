@@ -29,6 +29,7 @@ interface PromptEditorProps {
   onDismissLandingHint?: () => void; // Callback to dismiss landing page hint
   lastExecutedQuery?: string | null; // Last executed search query
   onInputChange?: (newValue: string) => void; // Callback for input changes
+  onSearchSuccess?: () => void; // Callback when search completes successfully
 }
 
 export default function PromptEditor({ 
@@ -41,7 +42,8 @@ export default function PromptEditor({
   isFromLandingPage = false,
   onDismissLandingHint,
   lastExecutedQuery = null,
-  onInputChange
+  onInputChange,
+  onSearchSuccess
 }: PromptEditorProps) {
   const [query, setQuery] = useState(initialPrompt);
   const { toast } = useToast();
@@ -260,6 +262,10 @@ export default function PromptEditor({
       
       // Trigger confetti animation on successful search
       triggerConfetti();
+      // Call the onSearchSuccess callback to highlight the email button (if provided)
+      if (onSearchSuccess) {
+        onSearchSuccess();
+      }
       onComplete();
     },
     onError: (error: Error) => {
