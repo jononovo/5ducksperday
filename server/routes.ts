@@ -1612,16 +1612,33 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       console.log('Enriched details found:', enrichedDetails);
 
       // Update contact with enriched information
-      const updatedContact = await storage.updateContact(contactId, {
+      // Create the update data object
+      const updateData: any = {
         ...contact,
-        email: enrichedDetails.email || contact.email,
         linkedinUrl: enrichedDetails.linkedinUrl || contact.linkedinUrl,
         twitterHandle: enrichedDetails.twitterHandle || contact.twitterHandle,
         phoneNumber: enrichedDetails.phoneNumber || contact.phoneNumber,
         department: enrichedDetails.department || contact.department,
         location: enrichedDetails.location || contact.location,
         completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
-      });
+      };
+      
+      // Handle email updates intelligently
+      if (enrichedDetails.email) {
+        // If we already have a primary email but it's different from the new one
+        if (contact.email && contact.email !== enrichedDetails.email) {
+          // Add the new email to alternativeEmails array if not already present
+          const existingAlternatives = contact.alternativeEmails || [];
+          if (!existingAlternatives.includes(enrichedDetails.email)) {
+            updateData.alternativeEmails = [...existingAlternatives, enrichedDetails.email];
+          }
+        } else {
+          // If no primary email exists, set this as the primary
+          updateData.email = enrichedDetails.email;
+        }
+      }
+      
+      const updatedContact = await storage.updateContact(contactId, updateData);
       console.log('Updated contact:', updatedContact);
 
       res.json(updatedContact);
@@ -2123,9 +2140,19 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         lastValidated: new Date()
       };
       
-      // Only update email if a valid one was found (don't overwrite existing email with null)
+      // Handle email updates intelligently
       if (result.email) {
-        updateData.email = result.email;
+        // If we already have a primary email but it's different from the new one
+        if (contact.email && contact.email !== result.email) {
+          // Add the new email to alternativeEmails array if not already present
+          const existingAlternatives = contact.alternativeEmails || [];
+          if (!existingAlternatives.includes(result.email)) {
+            updateData.alternativeEmails = [...existingAlternatives, result.email];
+          }
+        } else {
+          // If no primary email exists, set this as the primary
+          updateData.email = result.email;
+        }
         updateData.nameConfidenceScore = result.confidence;
       }
       
@@ -2289,9 +2316,19 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         lastValidated: new Date()
       };
       
-      // Only update email if a valid one was found (don't overwrite existing email with null)
+      // Handle email updates intelligently
       if (result.email) {
-        updateData.email = result.email;
+        // If we already have a primary email but it's different from the new one
+        if (contact.email && contact.email !== result.email) {
+          // Add the new email to alternativeEmails array if not already present
+          const existingAlternatives = contact.alternativeEmails || [];
+          if (!existingAlternatives.includes(result.email)) {
+            updateData.alternativeEmails = [...existingAlternatives, result.email];
+          }
+        } else {
+          // If no primary email exists, set this as the primary
+          updateData.email = result.email;
+        }
         updateData.nameConfidenceScore = result.confidence;
       }
       

@@ -320,12 +320,30 @@ export default function CompanyTable({
                       </div>
                       <div className="md:hidden text-xs text-muted-foreground leading-tight mt-0.5">
                         {contact.email || "Email not available"}
+                        {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                          <div className="text-xs opacity-75 mt-0.5">
+                            {contact.alternativeEmails.map((altEmail, index) => (
+                              <div key={index} className="text-xs italic">
+                                {altEmail}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="py-1 hidden md:table-cell">
-                      <span className="text-xs text-muted-foreground">
+                      <div className="text-xs text-muted-foreground">
                         {contact.email || "Email not available"}
-                      </span>
+                      </div>
+                      {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                        <div className="text-xs text-muted-foreground opacity-75 mt-1">
+                          {contact.alternativeEmails.map((altEmail, index) => (
+                            <div key={index} className="text-xs italic">
+                              {altEmail}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="py-1 hidden md:table-cell">
                       <Badge
