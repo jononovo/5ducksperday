@@ -381,7 +381,7 @@ export default function PromptEditor({
               className={`
                 transition-all duration-300 flex items-center gap-2
                 ${lastExecutedQuery && !inputHasChanged 
-                  ? 'bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800' 
+                  ? 'bg-gradient-to-b from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 dark:from-gray-600 dark:to-gray-700 dark:hover:from-gray-700 dark:hover:to-gray-800 shadow-md' 
                   : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-md hover:shadow-lg'
                 }
               `}
@@ -390,11 +390,6 @@ export default function PromptEditor({
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Searching...</span>
-                </>
-              ) : lastExecutedQuery && !inputHasChanged ? (
-                <>
-                  <Search className="h-4 w-4" />
-                  <span>New Search</span>
                 </>
               ) : (
                 <>
