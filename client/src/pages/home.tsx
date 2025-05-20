@@ -730,7 +730,47 @@ export default function Home() {
   // Add delay helper for throttling API requests
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   
-  // Main consolidated email search function
+  // Helper function for processing contacts in parallel batches
+  const processContactsBatch = async (
+    contacts: Contact[], 
+    processFn: (contactId: number) => Promise<any>, 
+    batchSize = 3
+  ) => {
+    // Track total progress for UI updates
+    const totalBatches = Math.ceil(contacts.length / batchSize);
+    let completedBatches = 0;
+    
+    // Process contacts in batches of the specified size
+    for (let i = 0; i < contacts.length; i += batchSize) {
+      const batch = contacts.slice(i, i + batchSize);
+      
+      // Process this batch in parallel
+      await Promise.all(batch.map(contact => processFn(contact.id)));
+      
+      // Update progress
+      completedBatches++;
+      setSearchProgress(prev => ({
+        ...prev,
+        completed: Math.floor((completedBatches / totalBatches) * prev.total)
+      }));
+      
+      // Small delay between batches to avoid overwhelming APIs
+      await delay(500);
+      
+      // Check if any of these contacts now have emails
+      const anyFoundEmails = batch.some(contact => {
+        const updatedContact = getCurrentContact(contact.id);
+        return updatedContact?.email && updatedContact.email.length > 5;
+      });
+      
+      // Stop processing this company if we found an email
+      if (anyFoundEmails) {
+        break;
+      }
+    }
+  };
+  
+  // Main consolidated email search function with parallel processing
   const runConsolidatedEmailSearch = async () => {
     if (!currentResults || currentResults.length === 0) return;
     
@@ -753,37 +793,29 @@ export default function Home() {
         return;
       }
       
-      // Phase 1: Perplexity search (2 contacts per company)
+      // Phase 1: Perplexity search (2 contacts per company) - using parallel processing
       setSearchProgress({ 
         phase: "Perplexity Search", 
         completed: 0, 
         total: companiesNeedingEmails.length 
       });
       
-      // For each company, try to get emails for top 2 contacts using Perplexity
-      for (const company of companiesNeedingEmails) {
-        const topContacts = getTopContacts(company, 2);
-        
-        for (const contact of topContacts) {
-          // Skip if we already have an email for this contact
-          if (contact.email && contact.email.length > 5) continue;
-          
-          // Run Perplexity search
-          await enrichContactMutation.mutateAsync(contact.id);
-          await delay(500); // Small delay to avoid overwhelming API
-          
-          // If we found an email, break from the inner loop for this company
-          const updatedContact = getCurrentContact(contact.id);
-          if (updatedContact?.email && updatedContact.email.length > 5) {
-            break;
-          }
-        }
-        
-        setSearchProgress(prev => ({ 
-          ...prev, 
-          completed: prev.completed + 1 
-        }));
-      }
+      // Collect all contacts needing emails for parallel processing
+      const perplexityContacts: Contact[] = [];
+      
+      // Collect top contacts from each company
+      companiesNeedingEmails.forEach(company => {
+        const topContacts = getTopContacts(company, 2)
+          .filter(contact => !contact.email || contact.email.length <= 5);
+        perplexityContacts.push(...topContacts);
+      });
+      
+      // Process Perplexity searches in parallel batches (3 at a time)
+      await processContactsBatch(
+        perplexityContacts, 
+        (contactId) => enrichContactMutation.mutateAsync(contactId),
+        3 // Batch size of 3 for Perplexity
+      );
       
       // Check which companies still need emails
       const companiesStillNeedingEmails = getCurrentCompaniesWithoutEmails();
@@ -793,26 +825,29 @@ export default function Home() {
         return;
       }
       
-      // Phase 2: AeroLeads search (1 contact per company)
+      // Phase 2: AeroLeads search - using parallel processing
       setSearchProgress({ 
         phase: "AeroLeads Search", 
         completed: 0, 
         total: companiesStillNeedingEmails.length 
       });
       
-      for (const company of companiesStillNeedingEmails) {
+      // Collect best contacts for AeroLeads
+      const aeroLeadsContacts: Contact[] = [];
+      companiesStillNeedingEmails.forEach(company => {
         const bestContact = getBestContact(company);
-        
-        if (bestContact) {
-          await aeroLeadsMutation.mutateAsync(bestContact.id);
-          await delay(500); // Small delay to avoid overwhelming API
+        if (bestContact && (!bestContact.email || bestContact.email.length <= 5)) {
+          aeroLeadsContacts.push(bestContact);
         }
-        
-        setSearchProgress(prev => ({ 
-          ...prev, 
-          completed: prev.completed + 1 
-        }));
-      }
+      });
+      
+      // Process AeroLeads searches in parallel batches (2 at a time)
+      // Using smaller batch size for AeroLeads since it's slower
+      await processContactsBatch(
+        aeroLeadsContacts, 
+        (contactId) => aeroLeadsMutation.mutateAsync(contactId),
+        2 // Batch size of 2 for AeroLeads
+      );
       
       // Check which companies still need emails
       const companiesNeedingFinalSearch = getCurrentCompaniesWithoutEmails();
@@ -823,26 +858,28 @@ export default function Home() {
         return;
       }
       
-      // Phase 3: Hunter search (1 contact per company)
+      // Phase 3: Hunter search - using parallel processing
       setSearchProgress({ 
         phase: "Hunter Search", 
         completed: 0, 
         total: companiesNeedingFinalSearch.length 
       });
       
-      for (const company of companiesNeedingFinalSearch) {
+      // Collect best contacts for Hunter
+      const hunterContacts: Contact[] = [];
+      companiesNeedingFinalSearch.forEach(company => {
         const bestContact = getBestContact(company);
-        
-        if (bestContact) {
-          await hunterMutation.mutateAsync(bestContact.id);
-          await delay(500); // Small delay to avoid overwhelming API
+        if (bestContact && (!bestContact.email || bestContact.email.length <= 5)) {
+          hunterContacts.push(bestContact);
         }
-        
-        setSearchProgress(prev => ({ 
-          ...prev, 
-          completed: prev.completed + 1 
-        }));
-      }
+      });
+      
+      // Process Hunter searches in parallel batches (3 at a time)
+      await processContactsBatch(
+        hunterContacts, 
+        (contactId) => hunterMutation.mutateAsync(contactId),
+        3 // Batch size of 3 for Hunter
+      );
       
       // Final summary
       const finalCompaniesWithEmails = currentResults.filter(company => 
