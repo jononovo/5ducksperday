@@ -193,12 +193,6 @@ export default function Home() {
     if (isFromLandingPage) {
       setIsFromLandingPage(false);
     }
-    
-    // Highlight the email search button for 10 seconds after search completes
-    setHighlightEmailButton(true);
-    setTimeout(() => {
-      setHighlightEmailButton(false);
-    }, 10000);
   };
 
   const handleSaveList = () => {
