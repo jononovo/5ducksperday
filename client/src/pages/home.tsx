@@ -828,25 +828,7 @@ export default function Home() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 transition-opacity"
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                          <span>Expand</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        <p className="text-xs">Expand or collapse all company rows of contacts</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 transition-opacity"
+                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
                         >
                           <Mail className="h-4 w-4" />
                           <span>Search Emails</span>
@@ -864,14 +846,32 @@ export default function Home() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 transition-opacity"
+                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
                         >
                           <Plus className="h-4 w-4" />
-                          <span>+5 More</span>
+                          <span>5 More</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom">
                         <p className="text-xs">Expand the search to include another five companies with the same prompt</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                          <span>Expand</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p className="text-xs">Expand or collapse all company rows of contacts</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
