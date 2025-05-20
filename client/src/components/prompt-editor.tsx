@@ -40,6 +40,17 @@ export default function PromptEditor({
   const queryClient = useQueryClient();
   const { triggerConfetti } = useConfetti();
   
+  // State for showing tooltip when user comes from landing page
+  const [showTooltip, setShowTooltip] = useState(false);
+  
+  // Check if user came from landing page with a search query
+  useEffect(() => {
+    const fromLanding = localStorage.getItem('5ducks_from_landing');
+    if (fromLanding === 'true') {
+      setShowTooltip(true);
+    }
+  }, []);
+  
   // Update the query when initialPrompt changes
   useEffect(() => {
     if (initialPrompt) {
@@ -246,6 +257,10 @@ export default function PromptEditor({
       return;
     }
     
+    // Clear the landing page flag and hide tooltip
+    localStorage.removeItem('5ducks_from_landing');
+    setShowTooltip(false);
+    
     console.log("Analyzing search query...");
     console.log("Preparing to search for companies and contacts...");
     onAnalyze();
@@ -331,17 +346,40 @@ export default function PromptEditor({
             className="flex-1 hover:border-gray-300 focus-visible:border-gray-400"
           />
           <div className="flex items-center">
-            <Button 
-              type="submit"
-              onClick={handleSearch} 
-              disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-            >
-              {(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              <Search className="mr-2 h-4 w-4" />
-              Search
-            </Button>
+            {showTooltip ? (
+              <TooltipProvider>
+                <Tooltip open={showTooltip}>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      type="submit"
+                      onClick={handleSearch} 
+                      disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+                    >
+                      {(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      <Search className="mr-2 h-4 w-4" />
+                      Search
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="bg-primary text-primary-foreground p-3 max-w-xs">
+                    <p>If you are happy with this prompt, please click search.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <Button 
+                type="submit"
+                onClick={handleSearch} 
+                disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+              >
+                {(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                <Search className="mr-2 h-4 w-4" />
+                Search
+              </Button>
+            )}
             
             {/* Settings drawer trigger with custom search props */}
             <SearchSettingsDrawer 
