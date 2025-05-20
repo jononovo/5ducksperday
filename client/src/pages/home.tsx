@@ -23,7 +23,14 @@ import {
   Mail,
   Target,
   Rocket,
+  Plus,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -46,12 +53,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { filterTopProspects, ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 
 // Extend Company type to include contacts
@@ -818,6 +819,54 @@ export default function Home() {
                   </p>
                 )}
               </CardHeader>
+              
+              {/* Mini Search Menu */}
+              {currentResults && currentResults.length > 0 && (
+                <div className="px-6 pb-3 flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex items-center gap-1 h-8">
+                          <ChevronDown className="h-4 w-4" />
+                          <span>Expand</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p className="text-xs">Expand or collapse all company rows of contacts</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex items-center gap-1 h-8">
+                          <Mail className="h-4 w-4" />
+                          <span>Search Emails</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p className="text-xs">Run core search to acquire at least five emails from different companies</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex items-center gap-1 h-8">
+                          <Plus className="h-4 w-4" />
+                          <span>+5 More</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p className="text-xs">Expand the search to include another five companies with the same prompt</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
+              
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <CompanyTable
