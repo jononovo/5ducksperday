@@ -96,6 +96,7 @@ export default function Home() {
     if (pendingQuery) {
       console.log('Found pending search query:', pendingQuery);
       setCurrentQuery(pendingQuery);
+      setIsFromLandingPage(true); // Set flag when coming from landing page
       localStorage.removeItem('pendingSearchQuery');
       // No longer automatically triggering search - user must click the search button
     } else {
@@ -182,6 +183,12 @@ export default function Home() {
     setIsSaved(false);
     setIsLoadingContacts(false);
     setContactsLoaded(true);
+    setLastExecutedQuery(query); // Store the last executed query
+    setInputHasChanged(false); // Reset the input changed flag
+    // Dismiss the landing page tooltip after search
+    if (isFromLandingPage) {
+      setIsFromLandingPage(false);
+    }
   };
 
   const handleSaveList = () => {

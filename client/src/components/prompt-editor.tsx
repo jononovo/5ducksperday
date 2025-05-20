@@ -25,6 +25,10 @@ interface PromptEditorProps {
   onCompaniesReceived: (query: string, companies: any[]) => void; // New callback for quick results
   isAnalyzing: boolean;
   initialPrompt?: string;
+  isFromLandingPage?: boolean; // Flag to indicate if user came from landing page
+  onDismissLandingHint?: () => void; // Callback to dismiss landing page hint
+  lastExecutedQuery?: string | null; // Last executed search query
+  onInputChange?: (newValue: string) => void; // Callback for input changes
 }
 
 export default function PromptEditor({ 
@@ -33,23 +37,29 @@ export default function PromptEditor({
   onSearchResults, 
   onCompaniesReceived,
   isAnalyzing,
-  initialPrompt = ""
+  initialPrompt = "",
+  isFromLandingPage = false,
+  onDismissLandingHint,
+  lastExecutedQuery = null,
+  onInputChange
 }: PromptEditorProps) {
   const [query, setQuery] = useState(initialPrompt);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { triggerConfetti } = useConfetti();
   
-  // State for showing tooltip when user comes from landing page
-  const [showTooltip, setShowTooltip] = useState(false);
+  // Track if input has changed from last executed query
+  const [inputHasChanged, setInputHasChanged] = useState(false);
   
-  // Check if user came from landing page with a search query
+  // Track input changes to update UI accordingly
   useEffect(() => {
-    const fromLanding = localStorage.getItem('5ducks_from_landing');
-    if (fromLanding === 'true') {
-      setShowTooltip(true);
+    if (lastExecutedQuery !== null && query !== lastExecutedQuery) {
+      setInputHasChanged(true);
+      if (onInputChange) {
+        onInputChange(query);
+      }
     }
-  }, []);
+  }, [query, lastExecutedQuery, onInputChange]);
   
   // Update the query when initialPrompt changes
   useEffect(() => {
@@ -257,9 +267,13 @@ export default function PromptEditor({
       return;
     }
     
-    // Clear the landing page flag and hide tooltip
-    localStorage.removeItem('5ducks_from_landing');
-    setShowTooltip(false);
+    // Dismiss the landing page hint if active
+    if (isFromLandingPage && onDismissLandingHint) {
+      onDismissLandingHint();
+    }
+    
+    // Reset input changed state
+    setInputHasChanged(false);
     
     console.log("Analyzing search query...");
     console.log("Preparing to search for companies and contacts...");
@@ -345,41 +359,49 @@ export default function PromptEditor({
             placeholder="Enter a search query (e.g., 'mid-sized plumbers in Atlanta')..."
             className="flex-1 hover:border-gray-300 focus-visible:border-gray-400"
           />
-          <div className="flex items-center">
-            {showTooltip ? (
-              <TooltipProvider>
-                <Tooltip open={showTooltip}>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      type="submit"
-                      onClick={handleSearch} 
-                      disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-                    >
-                      {(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      <Search className="mr-2 h-4 w-4" />
-                      Search
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="bg-primary text-primary-foreground p-3 max-w-xs">
-                    <p>If you are happy with this prompt, please click search.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            ) : (
-              <Button 
-                type="submit"
-                onClick={handleSearch} 
-                disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-              >
-                {(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                <Search className="mr-2 h-4 w-4" />
-                Search
-              </Button>
+          <div className="flex items-center relative">
+            {/* Improved landing page tooltip with nicer design */}
+            {isFromLandingPage && !isAnalyzing && (
+              <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 
+                   bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 
+                   p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 
+                   animate-fade-in max-w-xs text-center">
+                <div className="tooltip-arrow"></div>
+                <p className="font-medium text-blue-800 dark:text-blue-200">
+                  Ready to discover results? Click search to begin
+                </p>
+              </div>
             )}
+            
+            {/* Enhanced search button with dynamic styling based on state */}
+            <Button 
+              type="submit"
+              onClick={handleSearch} 
+              disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+              className={`
+                transition-all duration-300 flex items-center gap-2
+                ${lastExecutedQuery && !inputHasChanged 
+                  ? 'bg-slate-600 hover:bg-slate-700' // Normal state when results shown
+                  : 'bg-blue-600 hover:bg-blue-700 ring-2 ring-blue-300 dark:ring-blue-800 ring-opacity-50'} // Enhanced state
+              `}
+            >
+              {(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending) ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Searching...</span>
+                </>
+              ) : lastExecutedQuery && !inputHasChanged ? (
+                <>
+                  <Search className="h-4 w-4" />
+                  <span>New Search</span>
+                </>
+              ) : (
+                <>
+                  <Search className="h-4 w-4" />
+                  <span>Search</span>
+                </>
+              )}
+            </Button>
             
             {/* Settings drawer trigger with custom search props */}
             <SearchSettingsDrawer 
