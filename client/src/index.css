@@ -87,6 +87,13 @@
   }
 }
 
+/* Combined transition effect class for the landing page transition */
+.landing-transition-effect {
+  animation-delay: 1.2s;
+  animation-iteration-count: 1;
+  animation-fill-mode: backwards;
+}
+
 .racing-light-effect {
   animation: racingLight 3.5s ease-in-out;
   animation-delay: 1.2s;
