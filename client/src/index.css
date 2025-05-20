@@ -112,7 +112,7 @@
   -webkit-background-clip: text;
   font-weight: 400;
   animation: gradientFadeIn 2s ease;
-  animation-delay: 1.8s;
+  animation-delay: 1.2s;
   animation-fill-mode: backwards;
 }
 
