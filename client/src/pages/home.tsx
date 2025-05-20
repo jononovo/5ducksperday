@@ -769,26 +769,22 @@ export default function Home() {
 
       <div className="grid grid-cols-12 gap-6">
         {/* Main Content Area - full width */}
-        <div className="col-span-12 space-y-6">
-          {/* Search Section */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-4">
-                <CardTitle>Search for target businesses</CardTitle>
-                <EggAnimation />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <PromptEditor
-                onAnalyze={() => setIsAnalyzing(true)}
-                onComplete={handleAnalysisComplete}
-                onSearchResults={handleSearchResults}
-                onCompaniesReceived={handleCompaniesReceived}
-                isAnalyzing={isAnalyzing}
-                initialPrompt={currentQuery || ""}
-              />
-            </CardContent>
-          </Card>
+        <div className="col-span-12 space-y-4 mt-[-10px]">
+          {/* Search Section - border removed and moved up */}
+          <div className="px-2 py-1">
+            <div className="flex items-center gap-4 mb-3">
+              <h2 className="text-2xl font-semibold">Search for target businesses</h2>
+              <EggAnimation />
+            </div>
+            <PromptEditor
+              onAnalyze={() => setIsAnalyzing(true)}
+              onComplete={handleAnalysisComplete}
+              onSearchResults={handleSearchResults}
+              onCompaniesReceived={handleCompaniesReceived}
+              isAnalyzing={isAnalyzing}
+              initialPrompt={currentQuery || ""}
+            />
+          </div>
 
           {/* Companies Analysis Section - Moved to top */}
           <Card className="w-full">
