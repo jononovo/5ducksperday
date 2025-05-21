@@ -2252,17 +2252,45 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
       console.log('Apollo.io search result:', result);
 
-      // Update the contact with the results
-      const updatedContact = await storage.updateContact(contactId, {
+      // Update the contact with the results, but preserve existing email if no new email found
+      const updateData: any = {
         ...contact,
-        email: result.email || contact.email,
         nameConfidenceScore: result.confidence || contact.nameConfidenceScore,
         linkedinUrl: result.linkedinUrl || contact.linkedinUrl,
         role: result.title || contact.role,
         phoneNumber: result.phone || contact.phoneNumber,
         completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
         lastValidated: new Date()
-      });
+      };
+      
+      // Handle email updates intelligently
+      if (result.email) {
+        console.log('Processing Apollo.io search email result:', {
+          newEmail: result.email,
+          existingEmail: contact.email,
+          alternativeEmails: contact.alternativeEmails,
+          contactId: contact.id
+        });
+        
+        // If we already have a primary email but it's different from the new one
+        if (contact.email && contact.email !== result.email) {
+          // Initialize empty array if alternativeEmails is null or undefined
+          const existingAlternatives = Array.isArray(contact.alternativeEmails) ? contact.alternativeEmails : [];
+          console.log('Current alternative emails:', existingAlternatives);
+          
+          if (!existingAlternatives.includes(result.email)) {
+            // Create a proper array for the database
+            updateData.alternativeEmails = [...existingAlternatives, result.email];
+            console.log('Updated alternative emails:', updateData.alternativeEmails);
+          }
+        } else {
+          // If no primary email exists, set this as the primary
+          updateData.email = result.email;
+          console.log('Setting as primary email:', result.email);
+        }
+      }
+      
+      const updatedContact = await storage.updateContact(contactId, updateData);
 
       console.log('Contact updated with Apollo.io result:', {
         id: updatedContact?.id,
