@@ -309,7 +309,7 @@ export default function CompanyTable({
                 {isExpanded && topContacts.map((contact) => (
                   <TableRow 
                     key={`${company.id}-contact-${contact.id}`} 
-                    className="border-t-0 h-10 bg-white/75 dark:bg-slate-900/75 hover:bg-white dark:hover:bg-slate-800 hover:scale-[1.01] hover:font-medium transition-all"
+                    className="border-t-0 h-10 bg-white/75 dark:bg-slate-900/75 hover:bg-white dark:hover:bg-slate-800 hover:scale-[1.01] hover:font-medium hover:border-l-4 hover:border-blue-500 transition-all"
                   >
                     <TableCell className="px-2 py-1">
                       <Checkbox 
