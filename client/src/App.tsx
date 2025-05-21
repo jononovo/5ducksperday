@@ -7,6 +7,9 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import { SemiProtectedRoute } from "@/lib/semi-protected-route";
 import { Layout, AppLayout } from "@/components/layout";
 import { SearchStrategyProvider } from "@/lib/search-strategy-context";
+import { useEffect } from "react";
+import { initGA } from "./lib/analytics";
+import { useAnalytics } from "./hooks/use-analytics";
 import Auth from "@/pages/auth";
 import Home from "@/pages/home";
 import LandingPage from "@/pages/landing";
@@ -33,6 +36,9 @@ import Levels from "@/pages/levels";
 import Privacy from "@/pages/privacy";
 
 function Router() {
+  // Track page views when routes change
+  useAnalytics();
+  
   return (
     <>
       <Switch>
@@ -139,6 +145,16 @@ function Router() {
 }
 
 function App() {
+  // Initialize Google Analytics when app loads
+  useEffect(() => {
+    // Verify required environment variable is present
+    if (!import.meta.env.VITE_GA_MEASUREMENT_ID) {
+      console.warn('Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID');
+    } else {
+      initGA();
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
