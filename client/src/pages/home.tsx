@@ -1125,7 +1125,7 @@ export default function Home() {
                           <span>{isConsolidatedSearching ? "Searching..." : "Search Emails"}</span>
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="bottom">
+                      <TooltipContent side="top">
                         <p className="text-xs">Run core search to acquire at least five emails from different companies</p>
                       </TooltipContent>
                     </Tooltip>
@@ -1143,7 +1143,7 @@ export default function Home() {
                           <span>5 More</span>
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="bottom">
+                      <TooltipContent side="top">
                         <p className="text-xs">Expand the search to include another five companies with the same prompt</p>
                       </TooltipContent>
                     </Tooltip>
@@ -1161,7 +1161,7 @@ export default function Home() {
                           <span>Expand</span>
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="bottom">
+                      <TooltipContent side="top">
                         <p className="text-xs">Expand or collapse all company rows of contacts</p>
                       </TooltipContent>
                     </Tooltip>
