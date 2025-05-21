@@ -51,7 +51,7 @@ export default function BlogPost() {
                 {post.title.split(' ').slice(0, 3).join(' ')}
               </h2>
             </div>
-            <div className="absolute inset-0 opacity-10 bg-grid-slate-700/20"></div>
+
           </div>
           
 

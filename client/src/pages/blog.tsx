@@ -51,7 +51,7 @@ export default function Blog() {
                       {post.category}
                     </div>
                     
-                    <div className="absolute inset-0 opacity-10 bg-grid-slate-700/20"></div>
+
                   </div>
                 </div>
                 <CardHeader className="pb-2">
