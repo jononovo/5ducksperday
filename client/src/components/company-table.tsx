@@ -66,9 +66,12 @@ export default function CompanyTable({
   pendingApolloIds,
   pendingContactIds
 }: CompanyTableProps) {
-  console.log('CompanyTable received companies:', 
-    companies.map(c => ({ id: c.id, name: c.name }))
-  );
+  // Move console logging to useEffect to avoid React warnings about state updates during render
+  useEffect(() => {
+    console.log('CompanyTable received companies:', 
+      companies.map(c => ({ id: c.id, name: c.name }))
+    );
+  }, [companies]);
   
   // State to track which company rows are expanded
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
