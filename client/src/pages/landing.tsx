@@ -15,6 +15,7 @@ import {
 import { Footer } from "@/components/footer";
 import { Logo } from "@/components/logo";
 import { SEOHead } from "@/components/ui/seo-head";
+import { trackEvent } from "@/lib/analytics";
 
 // Example search prompts
 const EXAMPLE_PROMPTS = [
@@ -35,6 +36,9 @@ export default function LandingPage() {
   // Function to handle search submission
   const handleSearch = (query: string = searchQuery) => {
     if (!query.trim()) return;
+    
+    // Track the search event in Google Analytics
+    trackEvent('search', 'landing_page', query);
     
     // Store the search query for use on the app page
     localStorage.setItem("pendingSearchQuery", query);
@@ -118,6 +122,7 @@ export default function LandingPage() {
                   variant="outline"
                   className="text-sm bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all"
                   onClick={() => {
+                    trackEvent('example_prompt_click', 'landing_page', prompt);
                     setSearchQuery(prompt);
                     handleSearch(prompt);
                   }}
@@ -153,7 +158,12 @@ export default function LandingPage() {
               className={`relative aspect-video bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden transition-all duration-500 mx-auto 
                 ${isVideoExpanded ? "w-[90%] shadow-xl" : "w-[60%] cursor-pointer"}
               `}
-              onClick={() => !isVideoExpanded && setIsVideoExpanded(true)}
+              onClick={() => {
+                if (!isVideoExpanded) {
+                  trackEvent('video_play', 'landing_page', 'demo_video');
+                  setIsVideoExpanded(true);
+                }
+              }}
             >
               {/* Thumbnail overlay when not expanded */}
               {!isVideoExpanded && (
@@ -215,7 +225,10 @@ export default function LandingPage() {
             <div className="text-center mt-12">
               <Button 
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-6"
-                onClick={() => handleSearch("Software companies in New York")}
+                onClick={() => {
+                  trackEvent('cta_click', 'landing_page', 'try_free_5min');
+                  handleSearch("Software companies in New York");
+                }}
               >
                 <span className="mr-2">Try it for free (for 5 Minutes)</span>
                 <ChevronRight size={16} />
@@ -250,7 +263,10 @@ export default function LandingPage() {
               <div className="text-center mt-8">
                 <Button 
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-6"
-                  onClick={() => handleSearch("Software companies in New York")}
+                  onClick={() => {
+                    trackEvent('cta_click', 'landing_page', 'start_habit');
+                    handleSearch("Software companies in New York");
+                  }}
                 >
                   <span className="mr-2">Start a new habit today</span>
                   <ChevronRight size={16} />
