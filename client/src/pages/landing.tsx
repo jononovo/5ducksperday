@@ -18,10 +18,10 @@ import { Logo } from "@/components/logo";
 // Example search prompts
 const EXAMPLE_PROMPTS = [
   "Highly-rated Greek restaurants in Midtown NYC",
-  "Wolf-of-wallstreet-esque trading companies",
   "Real-estate lawyers in Salt Lake City",
   "Stationary suppliers in Scranton",
   "Health-tech SaaS in Brooklyn",
+  "Wolf-of-wallstreet-esque trading companies",
 ];
 
 export default function LandingPage() {
