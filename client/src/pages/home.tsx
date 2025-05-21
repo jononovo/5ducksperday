@@ -1110,7 +1110,7 @@ export default function Home() {
                           disabled={isConsolidatedSearching}
                         >
                           <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
-                          <span>{isConsolidatedSearching ? "Searching..." : "2. Find Key Emails"}</span>
+                          <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
@@ -1128,7 +1128,7 @@ export default function Home() {
                           className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
                         >
                           <Rocket className="h-4 w-4" />
-                          <span>3. Start Selling</span>
+                          <span>Start Selling</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
