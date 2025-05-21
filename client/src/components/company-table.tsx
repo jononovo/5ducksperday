@@ -103,6 +103,7 @@ export default function CompanyTable({
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
     setSelectAll(isChecked);
+    // Safe to keep this console.log as it's in an event handler, not during render
     console.log("Select all checkbox clicked:", isChecked);
     
     if (isChecked) {
