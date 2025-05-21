@@ -8,6 +8,7 @@ interface SEOProps {
   image?: string;
   type?: 'website' | 'article';
   twitterCard?: 'summary' | 'summary_large_image';
+  jsonLd?: Record<string, any>; // Optional JSON-LD structured data
 }
 
 /**
@@ -20,6 +21,7 @@ export function SEOHead({
   image = 'https://5ducks.ai/images/5Ducks-logo-square-lrg.png',
   type = 'website',
   twitterCard = 'summary',
+  jsonLd,
 }: SEOProps) {
   // Construct full title with brand name if not already included
   const fullTitle = title.includes('5Ducks') ? title : `${title} | 5Ducks`;
@@ -46,6 +48,14 @@ export function SEOHead({
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       {image && <meta name="twitter:image" content={image} />}
+      
+      {/* JSON-LD structured data */}
+      {jsonLd && (
+        <script 
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
     </Helmet>
   );
 }

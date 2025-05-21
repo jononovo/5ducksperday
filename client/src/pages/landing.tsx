@@ -55,9 +55,27 @@ export default function LandingPage() {
       {/* SEO tags for landing page */}
       <SEOHead 
         title="5Ducks - Sell to 5 new people every day"
-        description="5Ducks helps you find and contact potential clients with AI-powered contact discovery. Save 22 hours per month and build your sales pipeline."
+        description="Easy Selling for Small Businesses - Sell to 5 new people every day."
         type="website"
         twitterCard="summary_large_image"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "5Ducks",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "offers": {
+            "@type": "Offer",
+            "price": "29.00",
+            "priceCurrency": "USD"
+          },
+          "description": "Easy Selling for Small Businesses - Sell to 5 new people every day.",
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "reviewCount": "57"
+          }
+        }}
       />
       {/* Header */}
       <header className="container mx-auto py-4 px-4 flex justify-between items-center">
