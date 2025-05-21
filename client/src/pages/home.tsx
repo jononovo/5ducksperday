@@ -1128,7 +1128,7 @@ export default function Home() {
                           className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
                         >
                           <Rocket className="h-4 w-4" />
-                          <span>Start Selling</span>
+                          <span>3. Start Selling</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
