@@ -1132,7 +1132,7 @@ export default function Home() {
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
-                        <p className="text-xs">Save list, open "Outreach" & load this list</p>
+                        <p className="text-xs">Save list, open "Outreach" page & load this list</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
