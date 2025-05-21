@@ -124,18 +124,14 @@ async function generateSitemap(req: express.Request, res: express.Response) {
     // Fetch blog posts from database
     let blogPages: string[] = [];
     try {
-      const blogPosts = await db.query(`
-        SELECT slug, updated_at 
-        FROM blog_posts 
-        WHERE published = true
-        ORDER BY created_at DESC
-      `);
+      // Get blog posts from the database using the proper method for the drizzle ORM
+      const blogPosts = await storage.listBlogPosts();
       
       // Generate blog post entries
-      blogPages = blogPosts.rows.map(post => `
+      blogPages = blogPosts.map(post => `
   <url>
     <loc>${baseUrl}/blog/${post.slug}</loc>
-    <lastmod>${new Date(post.updated_at || Date.now()).toISOString().split('T')[0]}</lastmod>
+    <lastmod>${new Date(post.updatedAt || Date.now()).toISOString().split('T')[0]}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>`);
