@@ -859,27 +859,27 @@ export default function Home() {
         return;
       }
       
-      // Phase 3: AeroLeads search - using parallel processing (moved to last phase since it's slowest)
+      // Phase 3: Apollo search - faster and higher quality alternative to AeroLeads
       setSearchProgress({ 
-        phase: "AeroLeads Search", 
+        phase: "Apollo Search", 
         completed: 0, 
         total: companiesNeedingFinalSearch.length 
       });
       
-      // Collect best contacts for AeroLeads
-      const aeroLeadsContacts: Contact[] = [];
+      // Collect best contacts for Apollo
+      const apolloContacts: Contact[] = [];
       companiesNeedingFinalSearch.forEach(company => {
         const bestContact = getBestContact(company);
         if (bestContact && (!bestContact.email || bestContact.email.length <= 5)) {
-          aeroLeadsContacts.push(bestContact);
+          apolloContacts.push(bestContact);
         }
       });
       
-      // Process AeroLeads searches in parallel batches (2 at a time)
+      // Process Apollo searches in parallel batches (3 at a time)
       await processContactsBatch(
-        aeroLeadsContacts, 
-        (contactId) => aeroLeadsMutation.mutateAsync(contactId),
-        2 // Batch size of 2 for AeroLeads (smaller because it's slower)
+        apolloContacts, 
+        (contactId) => apolloMutation.mutateAsync(contactId),
+        3 // Batch size of 3 for Apollo (can be larger since it's faster than AeroLeads)
       );
       
       // Final summary
