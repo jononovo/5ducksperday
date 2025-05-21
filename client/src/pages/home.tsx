@@ -1114,7 +1114,7 @@ export default function Home() {
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
-                        <p className="text-xs">Run specialized search for 1-2 decision-maker's emails per company</p>
+                        <p className="text-xs">Run email search for 1-2 decision-maker's per company</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
