@@ -673,11 +673,17 @@ export default function Home() {
   useEffect(() => {
     // If the consolidated search just finished (summary is visible and not searching)
     if (summaryVisible && !isConsolidatedSearching) {
-      // The search has completed and results are available, highlight the Start Selling button
-      setHighlightStartSellingButton(true);
-      setTimeout(() => {
-        setHighlightStartSellingButton(false);
-      }, 25000);
+      // Add a 2-second delay before highlighting the Start Selling button
+      const timer = setTimeout(() => {
+        // The search has completed and results are available, highlight the Start Selling button
+        setHighlightStartSellingButton(true);
+        setTimeout(() => {
+          setHighlightStartSellingButton(false);
+        }, 25000);
+      }, 2000);
+      
+      // Clean up timer if component unmounts or dependencies change
+      return () => clearTimeout(timer);
     }
   }, [summaryVisible, isConsolidatedSearching]);
 
