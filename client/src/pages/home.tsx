@@ -83,8 +83,9 @@ export default function Home() {
   // Track the last executed search query and if input has changed
   const [lastExecutedQuery, setLastExecutedQuery] = useState<string | null>(null);
   const [inputHasChanged, setInputHasChanged] = useState(false);
-  // Track when to highlight the email search button
+  // Track when to highlight the email search button and start selling button
   const [highlightEmailButton, setHighlightEmailButton] = useState(false);
+  const [highlightStartSellingButton, setHighlightStartSellingButton] = useState(false);
   // Tour modal has been removed
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
@@ -1035,8 +1036,11 @@ export default function Home() {
               onSearchSuccess={() => {
                 // Highlight the email search button for 25 seconds
                 setHighlightEmailButton(true);
+                // Also highlight the start selling button
+                setHighlightStartSellingButton(true);
                 setTimeout(() => {
                   setHighlightEmailButton(false);
+                  setHighlightStartSellingButton(false);
                 }, 25000);
               }}
             />
@@ -1125,7 +1129,11 @@ export default function Home() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                          className={`flex items-center gap-1 h-8 ${
+                            highlightStartSellingButton 
+                              ? 'email-button-highlight' 
+                              : 'opacity-45 hover:opacity-100 hover:bg-white'
+                          } transition-all`}
                         >
                           <Rocket className="h-4 w-4" />
                           <span>Start Selling</span>
