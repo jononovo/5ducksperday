@@ -18,14 +18,14 @@ export function EmailSearchProgress({
   const percentComplete = total > 0 ? Math.round((completed / total) * 100) : 0;
   
   return (
-    <div className="mb-4 w-full">
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-sm font-medium">
+    <div className="mb-2 w-full">
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-xs font-medium">
           {phase} ({completed}/{total} companies)
         </span>
-        <span className="text-sm text-muted-foreground">{percentComplete}%</span>
+        <span className="text-xs text-muted-foreground">{percentComplete}%</span>
       </div>
-      <Progress value={percentComplete} className="h-2" />
+      <Progress value={percentComplete} className="h-1.5" />
     </div>
   );
 }

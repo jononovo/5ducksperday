@@ -1067,9 +1067,9 @@ export default function Home() {
                 )}
               </CardHeader>
               
-              {/* Email Search Summary */}
+              {/* Email Search Summary - with reduced padding */}
               {summaryVisible && (
-                <div className="px-6 pb-3">
+                <div className="px-4 pt-1 pb-0">
                   <EmailSearchSummary 
                     companiesWithEmails={currentResults?.filter(company => 
                       company.contacts?.some(contact => contact.email && contact.email.length > 5)).length || 0}
@@ -1080,9 +1080,9 @@ export default function Home() {
                 </div>
               )}
               
-              {/* Email Search Progress */}
+              {/* Email Search Progress - with reduced padding */}
               {isConsolidatedSearching && (
-                <div className="px-6 pb-3">
+                <div className="px-4 pt-1 pb-0">
                   <EmailSearchProgress 
                     phase={searchProgress.phase}
                     completed={searchProgress.completed}
