@@ -377,7 +377,7 @@ export default function PromptEditor({
                 handleSearch();
               }
             }}
-            placeholder="Enter a search query (e.g., 'High-rated Greek restaurants in Mid-town NYC')..."
+            placeholder="Enter a search query (e.g., 'High-rated Greek restaurants in Midtown NYC')..."
             className={`flex-1 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
           />
           <div className="flex items-center justify-end md:justify-start relative">
