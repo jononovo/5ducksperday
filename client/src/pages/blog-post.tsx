@@ -4,12 +4,18 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Tag, User } from "lucide-react";
 import { Footer } from "@/components/footer";
 import ReactMarkdown from 'react-markdown';
+import { useEffect } from "react";
 
 export default function BlogPost() {
   const [, params] = useRoute("/blog/:slug");
   const [, navigate] = useLocation();
   const slug = params?.slug || "";
   const post = getBlogPost(slug);
+  
+  // Reset scroll position when blog post component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [slug]);
 
   if (!post) {
     return (
