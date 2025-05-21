@@ -134,6 +134,8 @@ export default function Home() {
     localStorage.setItem('searchState', JSON.stringify(stateToSave));
   }, [currentQuery, currentResults]);
 
+
+
   const { data: searchApproaches = [] } = useQuery<SearchApproach[]>({
     queryKey: ["/api/search-approaches"],
   });
