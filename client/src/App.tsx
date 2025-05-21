@@ -30,6 +30,7 @@ import BlogPost from "@/pages/blog-post";
 import Contact from "@/pages/contact";
 import Support from "@/pages/support";
 import Levels from "@/pages/levels";
+import Privacy from "@/pages/privacy";
 
 function Router() {
   return (
@@ -92,6 +93,14 @@ function Router() {
             <MainNav />
             <div className="flex-1">
               <Support />
+            </div>
+          </Layout>
+        </Route>
+        <Route path="/privacy">
+          <Layout>
+            <MainNav />
+            <div className="flex-1">
+              <Privacy />
             </div>
           </Layout>
         </Route>
