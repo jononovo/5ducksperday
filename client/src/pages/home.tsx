@@ -722,9 +722,8 @@ export default function Home() {
     return getTopContacts(company, 1)[0];
   };
 
-  // Helper function to finish search with toast
-  const finishSearch = (title: string, description: string) => {
-    toast({ title, description });
+  // Helper function to finish search (no longer shows toast)
+  const finishSearch = () => {
     setIsConsolidatedSearching(false);
     setSummaryVisible(true);
   };
@@ -787,11 +786,8 @@ export default function Home() {
       );
       
       if (companiesNeedingEmails.length === 0) {
-        toast({
-          title: "Email Search Complete",
-          description: "All companies already have email addresses",
-        });
         setIsConsolidatedSearching(false);
+        setSummaryVisible(true);
         return;
       }
       
@@ -823,7 +819,7 @@ export default function Home() {
       const companiesStillNeedingEmails = getCurrentCompaniesWithoutEmails();
       
       if (companiesStillNeedingEmails.length === 0) {
-        finishSearch("Email search complete", `Found emails for all ${companiesNeedingEmails.length} companies`);
+        finishSearch();
         return;
       }
       
@@ -854,8 +850,7 @@ export default function Home() {
       const companiesNeedingFinalSearch = getCurrentCompaniesWithoutEmails();
       
       if (companiesNeedingFinalSearch.length === 0) {
-        finishSearch("Email search complete", 
-          `Found emails for all ${companiesNeedingEmails.length} companies`);
+        finishSearch();
         return;
       }
       
@@ -882,27 +877,8 @@ export default function Home() {
         3 // Batch size of 3 for Apollo (can be larger since it's faster than AeroLeads)
       );
       
-      // Final summary
-      const finalCompaniesWithEmails = currentResults.filter(company => 
-        company.contacts?.some(contact => contact.email && contact.email.length > 5)
-      );
-      
-      // Calculate the correct count for the toast notification
-      const companiesWithEmails = finalCompaniesWithEmails.length;
-      const totalCompanies = currentResults.length;
-      
-      // Check if we actually found emails and ensure the messaging is consistent
-      if (companiesWithEmails > 0) {
-        finishSearch(
-          "Email search complete",
-          `Found emails for ${companiesWithEmails} of ${totalCompanies} companies`
-        );
-      } else {
-        finishSearch(
-          "Email search complete",
-          `No emails found for any of the ${totalCompanies} companies`
-        );
-      }
+      // Final summary - no toast needed
+      finishSearch();
       
     } catch (error) {
       console.error("Consolidated email search error:", error);
