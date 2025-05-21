@@ -887,10 +887,22 @@ export default function Home() {
         company.contacts?.some(contact => contact.email && contact.email.length > 5)
       );
       
-      finishSearch(
-        "Email search complete",
-        `Found emails for ${finalCompaniesWithEmails.length} of ${currentResults.length} companies`
-      );
+      // Calculate the correct count for the toast notification
+      const companiesWithEmails = finalCompaniesWithEmails.length;
+      const totalCompanies = currentResults.length;
+      
+      // Check if we actually found emails and ensure the messaging is consistent
+      if (companiesWithEmails > 0) {
+        finishSearch(
+          "Email search complete",
+          `Found emails for ${companiesWithEmails} of ${totalCompanies} companies`
+        );
+      } else {
+        finishSearch(
+          "Email search complete",
+          `No emails found for any of the ${totalCompanies} companies`
+        );
+      }
       
     } catch (error) {
       console.error("Consolidated email search error:", error);
