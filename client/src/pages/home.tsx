@@ -1110,11 +1110,11 @@ export default function Home() {
                           disabled={isConsolidatedSearching}
                         >
                           <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
-                          <span>{isConsolidatedSearching ? "Searching..." : "Search Emails"}</span>
+                          <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
-                        <p className="text-xs">Run core search to acquire at least five emails from different companies</p>
+                        <p className="text-xs">Run specialized search for 1-2 decision-maker's emails per company</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
