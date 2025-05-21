@@ -10,6 +10,7 @@ import { SearchStrategyProvider } from "@/lib/search-strategy-context";
 import { useEffect } from "react";
 import { initGA } from "./lib/analytics";
 import { useAnalytics } from "./hooks/use-analytics";
+import { SEOHead } from "@/components/ui/seo-head";
 import Auth from "@/pages/auth";
 import Home from "@/pages/home";
 import LandingPage from "@/pages/landing";
@@ -159,6 +160,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <SearchStrategyProvider>
+          {/* Default SEO tags for the entire site */}
+          <SEOHead />
           <Router />
           <Toaster />
         </SearchStrategyProvider>
