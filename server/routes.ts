@@ -93,7 +93,79 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
   next();
 }
 
+// Generate sitemap XML
+async function generateSitemap(req: express.Request, res: express.Response) {
+  try {
+    // Use actual domain from request or set a default
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers.host || 'localhost:5000';
+    const baseUrl = `${protocol}://${host}`;
+    
+    // Define static public pages
+    const staticRoutes = [
+      '',                 // Homepage
+      '/app',             // Main application page
+      '/pricing',         // Pricing page
+      '/blog',            // Blog listing
+      '/levels',          // Levels page
+      '/contact',         // Contact page
+      '/privacy',         // Privacy policy
+      '/terms'            // Terms of service
+    ];
+    
+    // Generate static page entries
+    const staticPages = staticRoutes.map(route => `
+  <url>
+    <loc>${baseUrl}${route}</loc>
+    <changefreq>${route === '/blog' ? 'weekly' : 'monthly'}</changefreq>
+    <priority>${route === '' ? '1.0' : route === '/app' ? '0.9' : '0.8'}</priority>
+  </url>`);
+    
+    // Fetch blog posts from database
+    let blogPages: string[] = [];
+    try {
+      const blogPosts = await db.query(`
+        SELECT slug, updated_at 
+        FROM blog_posts 
+        WHERE published = true
+        ORDER BY created_at DESC
+      `);
+      
+      // Generate blog post entries
+      blogPages = blogPosts.rows.map(post => `
+  <url>
+    <loc>${baseUrl}/blog/${post.slug}</loc>
+    <lastmod>${new Date(post.updated_at || Date.now()).toISOString().split('T')[0]}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`);
+    } catch (err) {
+      console.error('Error fetching blog posts for sitemap:', err);
+      // Continue without blog posts if there's an error
+    }
+    
+    // Combine all pages
+    const allPages = [...staticPages, ...blogPages];
+    
+    // Generate XML
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allPages.join('')}
+</urlset>`;
+
+    // Set headers and send response
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    res.status(500).send('Error generating sitemap');
+  }
+}
+
 export function registerRoutes(app: Express) {
+  // Sitemap route
+  app.get('/sitemap.xml', generateSitemap);
+  
   // Gmail authorization routes
   app.get('/api/gmail/auth', requireAuth, (req, res) => {
     try {
