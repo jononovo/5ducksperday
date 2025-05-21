@@ -196,7 +196,7 @@ export default function PromptEditor({
       
       toast({
         title: "Companies Found",
-        description: `Found ${data.companies.length} companies. Click "Search Emails" to find the emails of decision-makers.`,
+        description: `Found ${data.companies.length} companies. Loading contacts...`,
       });
       
       // Start the full search with contacts
