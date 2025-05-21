@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Footer } from "@/components/footer";
 import { Logo } from "@/components/logo";
+import { SEOHead } from "@/components/ui/seo-head";
 
 // Example search prompts
 const EXAMPLE_PROMPTS = [
@@ -47,6 +48,13 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950">
+      {/* SEO tags for landing page */}
+      <SEOHead 
+        title="5Ducks - Sell to 5 new people every day"
+        description="5Ducks helps you find and contact potential clients with AI-powered contact discovery. Save 22 hours per month and build your sales pipeline."
+        type="website"
+        twitterCard="summary_large_image"
+      />
       {/* Header */}
       <header className="container mx-auto py-4 px-4 flex justify-between items-center">
         <Logo size="lg" asLink={false} />

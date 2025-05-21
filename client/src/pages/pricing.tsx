@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { Layout } from "@/components/layout";
+import { SEOHead } from "@/components/ui/seo-head";
+import { trackEvent } from "@/lib/analytics";
 
 const tiers = [
   {
@@ -54,6 +56,11 @@ const tiers = [
 export default function Pricing() {
   return (
     <Layout>
+      <SEOHead 
+        title="Pricing Plans - 5Ducks Sales Prospecting"
+        description="Choose from our flexible pricing plans starting at $29/month. Get AI-powered contact discovery, email finding, and sales automation tools for your business."
+        canonicalUrl="https://5ducks.ai/pricing"
+      />
       <div className="container mx-auto py-12 flex-1">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Transparent Pricing</h1>
@@ -91,7 +98,11 @@ export default function Pricing() {
                     </li>
                   ))}
                 </ul>
-                <Button className="w-full mt-6" variant={tier.highlighted ? "default" : "outline"}>
+                <Button 
+                  className="w-full mt-6" 
+                  variant={tier.highlighted ? "default" : "outline"}
+                  onClick={() => trackEvent('select_plan', 'pricing', tier.name)}
+                >
                   {tier.buttonText}
                 </Button>
               </CardContent>
@@ -105,7 +116,11 @@ export default function Pricing() {
             Need a custom solution? Our enterprise plan includes advanced features,
             dedicated support, and flexible terms. Contact our sales team to learn more.
           </p>
-          <Button variant="outline" className="mt-6">
+          <Button 
+            variant="outline" 
+            className="mt-6"
+            onClick={() => trackEvent('contact_enterprise', 'pricing', 'enterprise_inquiry')}
+          >
             Contact Enterprise Sales
           </Button>
         </div>
