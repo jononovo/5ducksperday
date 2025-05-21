@@ -1127,6 +1127,24 @@ export default function Home() {
                           size="sm" 
                           className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
                         >
+                          <Rocket className="h-4 w-4" />
+                          <span>Start Selling</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-xs">Begin contacting decision-makers at these companies</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                        >
                           <Plus className="h-4 w-4" />
                           <span>5 More</span>
                         </Button>
