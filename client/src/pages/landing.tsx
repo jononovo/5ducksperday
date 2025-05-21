@@ -17,11 +17,11 @@ import { Logo } from "@/components/logo";
 
 // Example search prompts
 const EXAMPLE_PROMPTS = [
-  "High-rated Greek restaurants in Toronto",
-  "Horse cleaning accessories manufacturers in the US",
-  "Mid-sized roofing companies in Atlanta",
+  "Highly-rated Greek restaurants in Midtown NYC",
+  "Wolf-of-wallstreet-esque trading companies",
+  "Real-estate lawyers in Salt Lake City",
   "Stationary suppliers in Scranton",
-  "Health-tech SaaS in NYC",
+  "Health-tech SaaS in Brooklyn",
 ];
 
 export default function LandingPage() {
