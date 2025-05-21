@@ -93,60 +93,65 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
   next();
 }
 
-// Generate sitemap XML
-async function generateSitemap(req: express.Request, res: express.Response) {
+// Generate static sitemap XML
+function generateSitemap(req: express.Request, res: express.Response) {
   try {
-    // Use actual domain from request or set a default
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-    const host = req.headers.host || 'localhost:5000';
-    const baseUrl = `${protocol}://${host}`;
+    // Use the production base URL for 5Ducks
+    const baseUrl = 'https://5ducks.ai';
     
-    // Define static public pages
-    const staticRoutes = [
-      '',                 // Homepage
-      '/app',             // Main application page
-      '/pricing',         // Pricing page
-      '/blog',            // Blog listing
-      '/levels',          // Levels page
-      '/contact',         // Contact page
-      '/privacy',         // Privacy policy
-      '/terms'            // Terms of service
-    ];
-    
-    // Generate static page entries
-    const staticPages = staticRoutes.map(route => `
-  <url>
-    <loc>${baseUrl}${route}</loc>
-    <changefreq>${route === '/blog' ? 'weekly' : 'monthly'}</changefreq>
-    <priority>${route === '' ? '1.0' : route === '/app' ? '0.9' : '0.8'}</priority>
-  </url>`);
-    
-    // Fetch blog posts from database
-    let blogPages: string[] = [];
-    try {
-      // Get blog posts from the database using the proper method for the drizzle ORM
-      const blogPosts = await storage.listBlogPosts();
-      
-      // Generate blog post entries
-      blogPages = blogPosts.map(post => `
-  <url>
-    <loc>${baseUrl}/blog/${post.slug}</loc>
-    <lastmod>${new Date(post.updatedAt || Date.now()).toISOString().split('T')[0]}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>`);
-    } catch (err) {
-      console.error('Error fetching blog posts for sitemap:', err);
-      // Continue without blog posts if there's an error
-    }
-    
-    // Combine all pages
-    const allPages = [...staticPages, ...blogPages];
-    
-    // Generate XML
+    // Create a static sitemap with all known pages
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allPages.join('')}
+  <url>
+    <loc>${baseUrl}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/app</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/pricing</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/blog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/levels</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/privacy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/terms</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/companies</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/contacts</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>`;
 
     // Set headers and send response
