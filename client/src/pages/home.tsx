@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
@@ -35,7 +36,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocation } from "wouter";
 import { EggAnimation } from "@/components/egg-animation";
 import {
   Table,
@@ -165,6 +165,50 @@ export default function Home() {
       });
     },
   });
+  
+  // Mutation for saving and navigating to outreach
+  const saveAndNavigateMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentQuery || !currentResults) return null;
+      const res = await apiRequest("POST", "/api/lists", {
+        companies: currentResults,
+        prompt: currentQuery
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
+      toast({
+        title: "List Saved",
+        description: "Starting outreach process with your search results.",
+      });
+      setIsSaved(true);
+      
+      // Navigate to outreach page with the new list ID
+      if (data && data.listId) {
+        const outreachState = {
+          selectedListId: data.listId.toString(),
+          selectedContactId: null,
+          emailPrompt: "",
+          emailContent: "",
+          toEmail: "",
+          emailSubject: "",
+          currentCompanyIndex: 0
+        };
+        localStorage.setItem('outreachState', JSON.stringify(outreachState));
+        
+        // Navigate to the outreach page
+        setLocation("/outreach");
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Save Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleAnalysisComplete = () => {
     setIsAnalyzing(false);
@@ -208,6 +252,44 @@ export default function Home() {
       return;
     }
     saveMutation.mutate();
+  };
+  
+  // Handler for Start Selling button
+  const handleStartSelling = () => {
+    if (!currentResults || !currentQuery) {
+      toast({
+        title: "Cannot Start Selling",
+        description: "Please perform a search first to find companies and contacts.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // If email search summary is visible, we know an email search has run
+    if (summaryVisible) {
+      // Proceed with saving and navigating
+      saveAndNavigateMutation.mutate();
+      return;
+    }
+    
+    // Otherwise, check if we have 5+ emails already
+    const emailCount = currentResults.reduce((count, company) => {
+      return count + (company.contacts?.filter(contact => 
+        contact.email && contact.email.length > 5
+      ).length || 0);
+    }, 0);
+    
+    if (emailCount >= 5) {
+      // We have enough emails, proceed
+      saveAndNavigateMutation.mutate();
+    } else {
+      // Not enough emails
+      toast({
+        title: "Action Required",
+        description: "Search for 5 emails before moving to Outreach.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Get top prospects from all companies
@@ -1151,6 +1233,7 @@ export default function Home() {
                               ? 'email-button-highlight' 
                               : 'opacity-45 hover:opacity-100 hover:bg-white'
                           } transition-all`}
+                          onClick={handleStartSelling}
                         >
                           <Rocket className="h-4 w-4" />
                           <span>Start Selling</span>
