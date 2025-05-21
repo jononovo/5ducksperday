@@ -668,6 +668,18 @@ export default function Home() {
     total: 0
   });
   const [summaryVisible, setSummaryVisible] = useState(false);
+  
+  // Effect to highlight Start Selling button when email search completes
+  useEffect(() => {
+    // If the consolidated search just finished (summary is visible and not searching)
+    if (summaryVisible && !isConsolidatedSearching) {
+      // The search has completed and results are available, highlight the Start Selling button
+      setHighlightStartSellingButton(true);
+      setTimeout(() => {
+        setHighlightStartSellingButton(false);
+      }, 25000);
+    }
+  }, [summaryVisible, isConsolidatedSearching]);
 
   // Helper to get current companies without emails
   const getCurrentCompaniesWithoutEmails = () => {
