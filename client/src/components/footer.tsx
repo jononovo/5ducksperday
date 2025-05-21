@@ -81,6 +81,14 @@ export function Footer() {
           <div className="text-sm text-slate-600 dark:text-slate-400">
             © {new Date().getFullYear()} 5Ducks. All rights reserved.
           </div>
+          <div className="flex items-center">
+            <Link 
+              href="/blog/privacy" 
+              className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm"
+            >
+              Privacy Policy
+            </Link>
+          </div>
           <div className="flex items-center space-x-4">
             <a
               href="https://www.linkedin.com/company/5ducks/"
