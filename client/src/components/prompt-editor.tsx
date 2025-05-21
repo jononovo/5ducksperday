@@ -415,7 +415,7 @@ export default function PromptEditor({
               ) : (
                 <>
                   <Search className="h-4 w-4" />
-                  <span>Search</span>
+                  <span>1. Search</span>
                 </>
               )}
             </Button>

@@ -1110,7 +1110,7 @@ export default function Home() {
                           disabled={isConsolidatedSearching}
                         >
                           <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
-                          <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
+                          <span>{isConsolidatedSearching ? "Searching..." : "2. Find Key Emails"}</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
