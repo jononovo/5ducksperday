@@ -96,7 +96,7 @@
 /* Email search button highlight effect */
 .email-button-highlight {
   animation: racingLight 3.5s ease-in-out;
-  animation-iteration-count: 4;
+  animation-iteration-count: 5;
   opacity: 1 !important;
   background: white;
   border-color: rgba(59, 130, 246, 0.35);

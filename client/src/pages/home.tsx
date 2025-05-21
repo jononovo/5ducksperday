@@ -1033,11 +1033,11 @@ export default function Home() {
               lastExecutedQuery={lastExecutedQuery}
               onInputChange={(newValue) => setInputHasChanged(newValue !== lastExecutedQuery)}
               onSearchSuccess={() => {
-                // Highlight the email search button for 20 seconds
+                // Highlight the email search button for 25 seconds
                 setHighlightEmailButton(true);
                 setTimeout(() => {
                   setHighlightEmailButton(false);
-                }, 20000);
+                }, 25000);
               }}
             />
           </div>
