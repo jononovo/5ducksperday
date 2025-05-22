@@ -22,7 +22,8 @@ import {
   ThumbsUp,
   ThumbsDown,
   Menu,
-  Tag
+  Tag,
+  Brain
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -420,10 +421,10 @@ export default function CompanyTable({
                               >
                                 {pendingContactIds?.has(contact.id) ? (
                                   <div className="animate-spin h-3.5 w-3.5">
-                                    <Mail className="h-3.5 w-3.5" />
+                                    <Brain className="h-3.5 w-3.5" />
                                   </div>
                                 ) : (
-                                  <Mail className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('contact_enrichment') && contact.email ? "text-green-500" : ""}`} />
+                                  <Brain className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('contact_enrichment') && contact.email ? "text-green-500" : ""}`} />
                                 )}
                               </Button>
                             </TooltipTrigger>
