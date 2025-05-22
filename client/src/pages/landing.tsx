@@ -10,8 +10,15 @@ import {
   User, 
   PlayCircle, 
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Menu
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Footer } from "@/components/footer";
 import { Logo } from "@/components/logo";
 import { SEOHead } from "@/components/ui/seo-head";
@@ -79,12 +86,46 @@ export default function LandingPage() {
       />
       {/* Header */}
       <header className="container mx-auto py-4 px-4 flex justify-between items-center">
-        <Logo size="lg" asLink={false} />
-        <Link href="/auth">
-          <Button variant="outline">
-            Login
-          </Button>
-        </Link>
+        <div className="flex items-center space-x-6">
+          <Logo size="lg" asLink={false} />
+          <div className="hidden md:flex space-x-6">
+            <Link 
+              href="/pricing" 
+              onClick={() => trackEvent('view_pricing', 'navigation', 'header_link')}
+            >
+              <span className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium">
+                Pricing
+              </span>
+            </Link>
+            {/* Future links would go here */}
+          </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <Link href="/pricing">
+                  <DropdownMenuItem
+                    onClick={() => trackEvent('view_pricing', 'navigation', 'mobile_menu')}
+                  >
+                    Pricing
+                  </DropdownMenuItem>
+                </Link>
+                {/* Additional mobile menu items would go here */}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <Link href="/auth">
+            <Button variant="outline">
+              Login
+            </Button>
+          </Link>
+        </div>
       </header>
 
       {/* Main Hero Section */}
