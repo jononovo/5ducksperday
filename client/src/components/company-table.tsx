@@ -528,7 +528,13 @@ export default function CompanyTable({
                               }}
                               disabled={pendingContactIds?.has(contact.id) || contact.completedSearches?.includes('contact_enrichment')}
                             >
-                              <Sparkles className="mr-2 h-5 w-5 text-gray-700" />
+                              {pendingContactIds?.has(contact.id) ? (
+                                <div className="animate-spin mr-2 h-5 w-5">
+                                  <Sparkles className="h-5 w-5 text-gray-700" />
+                                </div>
+                              ) : (
+                                <Sparkles className={`mr-2 h-5 w-5 ${contact.completedSearches?.includes('contact_enrichment') && contact.email ? "text-green-500" : "text-gray-700"}`} />
+                              )}
                               AI-powered Search
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -537,7 +543,13 @@ export default function CompanyTable({
                               }}
                               disabled={pendingHunterIds?.has(contact.id) || contact.completedSearches?.includes('hunter')}
                             >
-                              <Target className="mr-2 h-5 w-5 text-gray-700" />
+                              {pendingHunterIds?.has(contact.id) ? (
+                                <div className="animate-spin mr-2 h-5 w-5">
+                                  <Target className="h-5 w-5 text-gray-700" />
+                                </div>
+                              ) : (
+                                <Target className={`mr-2 h-5 w-5 ${contact.completedSearches?.includes('hunter') && contact.email ? "text-green-500" : "text-gray-700"}`} />
+                              )}
                               Hunter Search
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -546,7 +558,13 @@ export default function CompanyTable({
                               }}
                               disabled={pendingAeroLeadsIds?.has(contact.id) || contact.completedSearches?.includes('aeroleads')}
                             >
-                              <Gem className="mr-2 h-5 w-5 text-gray-700" />
+                              {pendingAeroLeadsIds?.has(contact.id) ? (
+                                <div className="animate-spin mr-2 h-5 w-5">
+                                  <Gem className="h-5 w-5 text-gray-700" />
+                                </div>
+                              ) : (
+                                <Gem className={`mr-2 h-5 w-5 ${contact.completedSearches?.includes('aeroleads') && contact.email ? "text-yellow-500" : "text-gray-700"}`} />
+                              )}
                               AeroLeads Search
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -555,7 +573,13 @@ export default function CompanyTable({
                               }}
                               disabled={pendingApolloIds?.has(contact.id) || contact.completedSearches?.includes('apollo_search')}
                             >
-                              <Rocket className="mr-2 h-5 w-5 text-gray-700" />
+                              {pendingApolloIds?.has(contact.id) ? (
+                                <div className="animate-spin mr-2 h-5 w-5">
+                                  <Rocket className="h-5 w-5 text-gray-700" />
+                                </div>
+                              ) : (
+                                <Rocket className={`mr-2 h-5 w-5 ${contact.completedSearches?.includes('apollo_search') && contact.email ? "text-purple-500" : "text-gray-700"}`} />
+                              )}
                               Apollo.io Search
                             </DropdownMenuItem>
                           </DropdownMenuContent>
