@@ -56,6 +56,22 @@ export function Footer() {
           </div>
           
           <div>
+            <h3 className="text-lg font-semibold mb-4">Legal</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="/blog/privacy" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog/tos" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                  Terms of Service
+                </Link>
+              </li>
+            </ul>
+          </div>
+          
+          <div>
             <h3 className="text-lg font-semibold mb-4">Stay Connected</h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -67,11 +83,6 @@ export function Footer() {
                 >
                   Newsletter
                 </a>
-              </li>
-              <li>
-                <Link href="/blog/tos" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
-                  Terms of Service
-                </Link>
               </li>
             </ul>
           </div>
