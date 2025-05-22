@@ -16,36 +16,28 @@
     </script>
     
     <style>
-      /* Loading area styles */
-      #loading-area {
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+      /* Make sure the root container can grow to full size */
+      html, body, #root {
+        height: 100%;
+        margin: 0;
+        padding: 0;
       }
       
-      /* Static footer styles */
+      /* Static footer styles - using absolute positioning instead of fixed */
       #static-footer {
-        position: fixed;
+        position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
         border-top: 1px solid #e2e8f0;
         padding: 2rem 0;
         background-color: #f8fafc;
-        z-index: 100;
-      }
-      
-      /* Hide the static footer once React loads */
-      .react-loaded #static-footer {
-        display: none;
+        z-index: 50; /* Lower z-index to ensure React UI can overlay when needed */
       }
     </style>
   </head>
   <body>
-    <!-- Loading area (blank space) -->
-    <div id="loading-area"></div>
-    
+    <!-- Root div for React app -->
     <div id="root"></div>
     
     <!-- Static footer that stays at the bottom -->
@@ -115,21 +107,39 @@
     
     <!-- Script to hide static footer once React is loaded -->
     <script>
-      // Mark the body as React-loaded once the app mounts
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          if (document.querySelector('.footer, footer:not(#static-footer)')) {
-            document.body.classList.add('react-loaded');
+      // Hide the static footer when the React app is fully loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        // Check if the app is loaded every 500ms
+        const checkInterval = setInterval(function() {
+          // Look for React-generated content
+          if (document.querySelector('#root > *')) {
+            // App is loaded, hide the static footer
+            const staticFooter = document.getElementById('static-footer');
+            if (staticFooter) {
+              staticFooter.style.display = 'none';
+            }
+            clearInterval(checkInterval);
           }
-        }, 1000);
+        }, 500);
+        
+        // Fallback - if after 10 seconds we still haven't hidden it, hide it anyway
+        setTimeout(function() {
+          const staticFooter = document.getElementById('static-footer');
+          if (staticFooter) {
+            staticFooter.style.display = 'none';
+          }
+          clearInterval(checkInterval);
+        }, 10000);
       });
     </script>
     
-    <!-- Show footer if JavaScript is disabled -->
+    <!-- Show proper footer styling if JavaScript is disabled -->
     <noscript>
       <style>
-        #loading-area { display: none; }
-        #static-footer { position: relative; }
+        #static-footer { 
+          position: relative !important;
+          bottom: auto !important;
+        }
       </style>
     </noscript>
     
