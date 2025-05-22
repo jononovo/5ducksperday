@@ -327,7 +327,21 @@ export default function CompanyTable({
                         {contact.role || "N/A"}
                       </div>
                       <div className="md:hidden text-xs text-muted-foreground leading-tight mt-0.5">
-                        {contact.email || "Email not available"}
+                        {contact.email || (
+                          <TooltipProvider delayDuration={300}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="flex items-center text-muted-foreground">
+                                  <Mail className="h-3 w-3 mr-1 text-blue-400" />
+                                  <span>Find email</span>
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs">
+                                <p>Use "Action" icons to search for this contact's email</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                         {Array.isArray(contact.alternativeEmails) && contact.alternativeEmails.length > 0 && (
                           <div className="text-xs opacity-75 mt-0.5 italic">
                             {contact.alternativeEmails.map((altEmail, index) => (
@@ -341,7 +355,21 @@ export default function CompanyTable({
                     </TableCell>
                     <TableCell className="py-1 hidden md:table-cell">
                       <div className="text-xs text-muted-foreground">
-                        {contact.email || "Email not available"}
+                        {contact.email || (
+                          <TooltipProvider delayDuration={300}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="flex items-center text-muted-foreground">
+                                  <Mail className="h-3 w-3 mr-1 text-blue-400" />
+                                  <span>Find email</span>
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs">
+                                <p>Use "Action" icons to search for this contact's email</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </div>
                       {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
                         <div className="text-xs text-muted-foreground opacity-75 mt-1">
