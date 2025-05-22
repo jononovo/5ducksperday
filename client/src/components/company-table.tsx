@@ -537,7 +537,7 @@ export default function CompanyTable({
                               }}
                               disabled={pendingHunterIds?.has(contact.id) || contact.completedSearches?.includes('hunter')}
                             >
-                              <Target className="mr-2 h-4 w-4" />
+                              <Target className="mr-2 h-4 w-4 text-gray-700" />
                               Hunter Search
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -546,7 +546,7 @@ export default function CompanyTable({
                               }}
                               disabled={pendingAeroLeadsIds?.has(contact.id) || contact.completedSearches?.includes('aeroleads')}
                             >
-                              <Gem className="mr-2 h-4 w-4" />
+                              <Gem className="mr-2 h-4 w-4 text-gray-700" />
                               AeroLeads Search
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -555,7 +555,7 @@ export default function CompanyTable({
                               }}
                               disabled={pendingApolloIds?.has(contact.id) || contact.completedSearches?.includes('apollo_search')}
                             >
-                              <Rocket className="mr-2 h-4 w-4" />
+                              <Rocket className="mr-2 h-4 w-4 text-gray-700" />
                               Apollo.io Search
                             </DropdownMenuItem>
                           </DropdownMenuContent>
