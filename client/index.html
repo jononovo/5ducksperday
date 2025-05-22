@@ -18,8 +18,8 @@
   <body>
     <div id="root"></div>
     
-    <!-- Static footer for SEO and crawler visibility -->
-    <footer id="static-footer" style="border-top: 1px solid #e2e8f0; padding: 2rem 0; background-color: #f8fafc;">
+    <!-- Static footer for SEO and crawler visibility (hidden for users, visible for search engines) -->
+    <footer id="static-footer" style="display: none; border-top: 1px solid #e2e8f0; padding: 2rem 0; background-color: #f8fafc;">
       <div style="max-width: 1200px; margin: 0 auto; padding: 0 1rem;">
         <div style="display: flex; flex-wrap: wrap; gap: 2rem; margin-bottom: 2rem;">
           <div style="flex: 1; min-width: 200px;">
@@ -83,16 +83,15 @@
       </div>
     </footer>
     
-    <script>
-      // Hide the static footer once React is loaded and rendered
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          if (document.querySelector('.footer, footer')) {
-            document.getElementById('static-footer').style.display = 'none';
-          }
-        }, 1000); // Give React time to render
-      });
-    </script>
+    <!-- We don't need the script to hide the footer since it's already hidden with CSS -->
+    <!-- However, let's add a noscript tag to show the footer if JavaScript is disabled -->
+    <noscript>
+      <style>
+        #static-footer { 
+          display: block !important; 
+        }
+      </style>
+    </noscript>
     
     <script type="module" src="/src/main.tsx"></script>
   </body>
