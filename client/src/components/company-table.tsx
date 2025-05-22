@@ -23,7 +23,7 @@ import {
   ThumbsDown,
   Menu,
   Tag,
-  Brain
+  Sparkles
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -421,10 +421,10 @@ export default function CompanyTable({
                               >
                                 {pendingContactIds?.has(contact.id) ? (
                                   <div className="animate-spin h-3.5 w-3.5">
-                                    <Brain className="h-3.5 w-3.5" />
+                                    <Sparkles className="h-3.5 w-3.5 text-gray-700" />
                                   </div>
                                 ) : (
-                                  <Brain className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('contact_enrichment') && contact.email ? "text-green-500" : ""}`} />
+                                  <Sparkles className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('contact_enrichment') && contact.email ? "text-green-500" : "text-gray-700"}`} />
                                 )}
                               </Button>
                             </TooltipTrigger>
@@ -447,10 +447,10 @@ export default function CompanyTable({
                               >
                                 {pendingHunterIds?.has(contact.id) ? (
                                   <div className="animate-spin h-3.5 w-3.5">
-                                    <Target className="h-3.5 w-3.5" />
+                                    <Target className="h-3.5 w-3.5 text-gray-700" />
                                   </div>
                                 ) : (
-                                  <Target className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('hunter') && contact.email ? "text-green-500" : ""}`} />
+                                  <Target className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('hunter') && contact.email ? "text-green-500" : "text-gray-700"}`} />
                                 )}
                               </Button>
                             </TooltipTrigger>
@@ -473,10 +473,10 @@ export default function CompanyTable({
                               >
                                 {pendingAeroLeadsIds?.has(contact.id) ? (
                                   <div className="animate-spin h-3.5 w-3.5">
-                                    <Gem className="h-3.5 w-3.5" />
+                                    <Gem className="h-3.5 w-3.5 text-gray-700" />
                                   </div>
                                 ) : (
-                                  <Gem className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('aeroleads') && contact.email ? "text-yellow-500" : ""}`} />
+                                  <Gem className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('aeroleads') && contact.email ? "text-yellow-500" : "text-gray-700"}`} />
                                 )}
                               </Button>
                             </TooltipTrigger>
@@ -499,10 +499,10 @@ export default function CompanyTable({
                               >
                                 {pendingApolloIds?.has(contact.id) ? (
                                   <div className="animate-spin h-3.5 w-3.5">
-                                    <Rocket className="h-3.5 w-3.5" />
+                                    <Rocket className="h-3.5 w-3.5 text-gray-700" />
                                   </div>
                                 ) : (
-                                  <Rocket className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('apollo_search') && contact.email ? "text-purple-500" : ""}`} />
+                                  <Rocket className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('apollo_search') && contact.email ? "text-purple-500" : "text-gray-700"}`} />
                                 )}
                               </Button>
                             </TooltipTrigger>
@@ -528,7 +528,7 @@ export default function CompanyTable({
                               }}
                               disabled={pendingContactIds?.has(contact.id) || contact.completedSearches?.includes('contact_enrichment')}
                             >
-                              <Brain className="mr-2 h-4 w-4" />
+                              <Sparkles className="mr-2 h-4 w-4 text-gray-700" />
                               AI-powered Search
                             </DropdownMenuItem>
                             <DropdownMenuItem
