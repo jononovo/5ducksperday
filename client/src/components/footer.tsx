@@ -70,22 +70,6 @@ export function Footer() {
               </li>
             </ul>
           </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Stay Connected</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a 
-                  href="https://newsletter.5ducks.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
-                >
-                  Newsletter
-                </a>
-              </li>
-            </ul>
-          </div>
         </div>
         
         <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
