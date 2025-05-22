@@ -93,7 +93,7 @@ export default function LandingPage() {
               href="/pricing" 
               onClick={() => trackEvent('view_pricing', 'navigation', 'header_link')}
             >
-              <span className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300 relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-purple-500 hover:after:w-full after:transition-all after:duration-300">
                 Pricing
               </span>
             </Link>
@@ -108,10 +108,11 @@ export default function LandingPage() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="p-2 min-w-[160px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-slate-200 dark:border-slate-800">
                 <Link href="/pricing">
                   <DropdownMenuItem
                     onClick={() => trackEvent('view_pricing', 'navigation', 'mobile_menu')}
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-purple-500 dark:hover:text-purple-400 transition-colors"
                   >
                     Pricing
                   </DropdownMenuItem>
