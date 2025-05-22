@@ -333,7 +333,7 @@ export default function CompanyTable({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span className="text-muted-foreground">
-                                  <Mail className="h-3 w-3 text-gray-400" />
+                                  <Mail className="h-4 w-4 text-gray-400" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="text-xs">
@@ -360,7 +360,7 @@ export default function CompanyTable({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span className="text-muted-foreground">
-                                  <Mail className="h-3 w-3 text-gray-400" />
+                                  <Mail className="h-4 w-4 text-gray-400" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="text-xs">
@@ -420,11 +420,11 @@ export default function CompanyTable({
                                 }}
                               >
                                 {pendingContactIds?.has(contact.id) ? (
-                                  <div className="animate-spin h-3.5 w-3.5">
-                                    <Sparkles className="h-3.5 w-3.5 text-gray-700" />
+                                  <div className="animate-spin h-4 w-4">
+                                    <Sparkles className="h-4 w-4 text-gray-700" />
                                   </div>
                                 ) : (
-                                  <Sparkles className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('contact_enrichment') && contact.email ? "text-green-500" : "text-gray-700"}`} />
+                                  <Sparkles className={`h-4 w-4 ${contact.completedSearches?.includes('contact_enrichment') && contact.email ? "text-green-500" : "text-gray-700"}`} />
                                 )}
                               </Button>
                             </TooltipTrigger>
@@ -446,11 +446,11 @@ export default function CompanyTable({
                                 }}
                               >
                                 {pendingHunterIds?.has(contact.id) ? (
-                                  <div className="animate-spin h-3.5 w-3.5">
-                                    <Target className="h-3.5 w-3.5 text-gray-700" />
+                                  <div className="animate-spin h-4 w-4">
+                                    <Target className="h-4 w-4 text-gray-700" />
                                   </div>
                                 ) : (
-                                  <Target className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('hunter') && contact.email ? "text-green-500" : "text-gray-700"}`} />
+                                  <Target className={`h-4 w-4 ${contact.completedSearches?.includes('hunter') && contact.email ? "text-green-500" : "text-gray-700"}`} />
                                 )}
                               </Button>
                             </TooltipTrigger>
@@ -472,11 +472,11 @@ export default function CompanyTable({
                                 }}
                               >
                                 {pendingAeroLeadsIds?.has(contact.id) ? (
-                                  <div className="animate-spin h-3.5 w-3.5">
-                                    <Gem className="h-3.5 w-3.5 text-gray-700" />
+                                  <div className="animate-spin h-4 w-4">
+                                    <Gem className="h-4 w-4 text-gray-700" />
                                   </div>
                                 ) : (
-                                  <Gem className={`h-3.5 w-3.5 ${contact.completedSearches?.includes('aeroleads') && contact.email ? "text-yellow-500" : "text-gray-700"}`} />
+                                  <Gem className={`h-4 w-4 ${contact.completedSearches?.includes('aeroleads') && contact.email ? "text-yellow-500" : "text-gray-700"}`} />
                                 )}
                               </Button>
                             </TooltipTrigger>
