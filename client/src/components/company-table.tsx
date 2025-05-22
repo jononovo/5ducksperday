@@ -332,7 +332,7 @@ export default function CompanyTable({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span className="text-muted-foreground">
-                                  <Mail className="h-3 w-3 text-blue-400" />
+                                  <Mail className="h-3 w-3 text-gray-400" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="text-xs">
@@ -359,7 +359,7 @@ export default function CompanyTable({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span className="text-muted-foreground">
-                                  <Mail className="h-3 w-3 text-blue-400" />
+                                  <Mail className="h-3 w-3 text-gray-400" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="text-xs">
