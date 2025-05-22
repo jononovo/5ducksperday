@@ -85,47 +85,54 @@ export default function LandingPage() {
         }}
       />
       {/* Header */}
-      <header className="container mx-auto py-4 px-4 flex justify-between items-center">
-        <div className="flex items-center space-x-6">
+      <header className="container mx-auto py-4 px-4">
+        <div className="flex justify-between items-center">
           <Logo size="lg" asLink={false} />
-          <div className="hidden md:flex space-x-6">
-            <Link 
-              href="/pricing" 
-              onClick={() => trackEvent('view_pricing', 'navigation', 'header_link')}
-            >
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-300 relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-purple-500 hover:after:w-full after:transition-all after:duration-300">
-                Pricing
-              </span>
-            </Link>
-            {/* Future links would go here */}
-          </div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <div className="md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="p-2 min-w-[160px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-slate-200 dark:border-slate-800">
-                <Link href="/pricing">
-                  <DropdownMenuItem
-                    onClick={() => trackEvent('view_pricing', 'navigation', 'mobile_menu')}
-                    className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-purple-500 dark:hover:text-purple-400 transition-colors"
+          
+          <div className="flex-1 flex justify-center">
+            <nav className="hidden md:block">
+              <ul className="flex space-x-8">
+                <li>
+                  <Link 
+                    href="/pricing" 
+                    onClick={() => trackEvent('view_pricing', 'navigation', 'header_link')}
                   >
-                    Pricing
-                  </DropdownMenuItem>
-                </Link>
-                {/* Additional mobile menu items would go here */}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary py-1">
+                      Pricing
+                    </span>
+                  </Link>
+                </li>
+                {/* Future links would go here as additional <li> elements */}
+              </ul>
+            </nav>
           </div>
-          <Link href="/auth">
-            <Button variant="outline">
-              Login
-            </Button>
-          </Link>
+          
+          <div className="flex items-center space-x-3">
+            <div className="md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <Link href="/pricing">
+                    <DropdownMenuItem
+                      onClick={() => trackEvent('view_pricing', 'navigation', 'mobile_menu')}
+                    >
+                      Pricing
+                    </DropdownMenuItem>
+                  </Link>
+                  {/* Additional mobile menu items would go here */}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <Link href="/auth">
+              <Button variant="outline">
+                Login
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
