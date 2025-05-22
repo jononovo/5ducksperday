@@ -16,32 +16,58 @@
     </script>
     
     <style>
-      /* Make sure the root container can grow to full size */
-      html, body, #root {
+      /* Reset and base styles */
+      html, body {
         height: 100%;
         margin: 0;
         padding: 0;
       }
       
-      /* Static footer styles - using absolute positioning instead of fixed */
+      /* Page structure */
+      .page-container {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      /* Content area - will take at least full viewport height minus footer */
+      .content-area {
+        flex: 1;
+        min-height: 100vh; /* Ensures content pushes footer below viewport */
+      }
+      
+      /* Root container for React */
+      #root {
+        height: 100%;
+      }
+      
+      /* Static footer - now part of normal document flow */
       #static-footer {
-        position: absolute;
-        bottom: 0;
-        left: 0;
         width: 100%;
         border-top: 1px solid #e2e8f0;
         padding: 2rem 0;
         background-color: #f8fafc;
-        z-index: 50; /* Lower z-index to ensure React UI can overlay when needed */
+      }
+      
+      /* Hide the static structure once React is loaded */
+      body.react-loaded .static-elements {
+        display: none;
       }
     </style>
   </head>
   <body>
-    <!-- Root div for React app -->
+    <!-- Root div for React app must be at the top level -->
     <div id="root"></div>
     
-    <!-- Static footer that stays at the bottom -->
-    <footer id="static-footer" style="border-top: 1px solid #e2e8f0; padding: 2rem 0; background-color: #f8fafc;">
+    <!-- Page container for static content -->
+    <div class="page-container static-elements">
+      <!-- Content area to push footer down -->
+      <div class="content-area">
+        <!-- Empty placeholder -->
+      </div>
+      
+      <!-- Static footer -->
+      <footer id="static-footer" style="border-top: 1px solid #e2e8f0; padding: 2rem 0; background-color: #f8fafc;">
       <div style="max-width: 1200px; margin: 0 auto; padding: 0 1rem;">
         <div style="display: flex; flex-wrap: wrap; gap: 2rem; margin-bottom: 2rem;">
           <div style="flex: 1; min-width: 200px;">
@@ -107,27 +133,21 @@
     
     <!-- Script to hide static footer once React is loaded -->
     <script>
-      // Hide the static footer when the React app is fully loaded
+      // Hide the static structure when the React app is fully loaded
       document.addEventListener('DOMContentLoaded', function() {
         // Check if the app is loaded every 500ms
         const checkInterval = setInterval(function() {
           // Look for React-generated content
           if (document.querySelector('#root > *')) {
-            // App is loaded, hide the static footer
-            const staticFooter = document.getElementById('static-footer');
-            if (staticFooter) {
-              staticFooter.style.display = 'none';
-            }
+            // App is loaded, hide the static elements
+            document.body.classList.add('react-loaded');
             clearInterval(checkInterval);
           }
         }, 500);
         
         // Fallback - if after 10 seconds we still haven't hidden it, hide it anyway
         setTimeout(function() {
-          const staticFooter = document.getElementById('static-footer');
-          if (staticFooter) {
-            staticFooter.style.display = 'none';
-          }
+          document.body.classList.add('react-loaded');
           clearInterval(checkInterval);
         }, 10000);
       });
