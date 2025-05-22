@@ -331,13 +331,12 @@ export default function CompanyTable({
                           <TooltipProvider delayDuration={300}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span className="flex items-center text-muted-foreground">
-                                  <Mail className="h-3 w-3 mr-1 text-blue-400" />
-                                  <span>Find email</span>
+                                <span className="text-muted-foreground">
+                                  <Mail className="h-3 w-3 text-blue-400" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="text-xs">
-                                <p>Use "Action" icons to search for this contact's email</p>
+                                <p>Use "Action" icons on this row to find this email. 👉🏼</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -359,13 +358,12 @@ export default function CompanyTable({
                           <TooltipProvider delayDuration={300}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span className="flex items-center text-muted-foreground">
-                                  <Mail className="h-3 w-3 mr-1 text-blue-400" />
-                                  <span>Find email</span>
+                                <span className="text-muted-foreground">
+                                  <Mail className="h-3 w-3 text-blue-400" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="text-xs">
-                                <p>Use "Action" icons to search for this contact's email</p>
+                                <p>Use "Action" icons on this row to find this email. 👉🏼</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
