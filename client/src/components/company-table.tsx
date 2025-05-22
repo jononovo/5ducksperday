@@ -429,7 +429,7 @@ export default function CompanyTable({
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Find email</p>
+                              <p>AI-powered email search</p>
                             </TooltipContent>
                           </Tooltip>
                           
@@ -528,8 +528,8 @@ export default function CompanyTable({
                               }}
                               disabled={pendingContactIds?.has(contact.id) || contact.completedSearches?.includes('contact_enrichment')}
                             >
-                              <Mail className="mr-2 h-4 w-4" />
-                              Find Email
+                              <Brain className="mr-2 h-4 w-4" />
+                              AI-powered Search
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={(e) => {
