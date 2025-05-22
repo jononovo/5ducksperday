@@ -69,11 +69,6 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <Link href="/privacy" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
                 <Link href="/blog/tos" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
                   Terms of Service
                 </Link>
@@ -87,12 +82,7 @@ export function Footer() {
             © {new Date().getFullYear()} 5Ducks. All rights reserved.
           </div>
           <div className="flex items-center">
-            <Link 
-              href="/blog/privacy" 
-              className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm"
-            >
-              Privacy Policy
-            </Link>
+            {/* Privacy policy link removed from bottom section */}
           </div>
           <div className="flex items-center space-x-4">
             <a
