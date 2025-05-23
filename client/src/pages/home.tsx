@@ -1258,7 +1258,7 @@ export default function Home() {
                           className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
                           onClick={() => {
                             if (!auth.user) {
-                              loginPrompt.showLoginPrompt();
+                              registrationModal.openModal();
                               return;
                             }
                             // If user is logged in, the actual functionality would go here
