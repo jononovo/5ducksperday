@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Mail, ChevronRight, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { getAuth, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { motion, AnimatePresence } from "framer-motion";
 
 type RegistrationPage = "main" | "email" | "login" | "forgotPassword";
@@ -135,23 +135,37 @@ export function RegistrationModal() {
   };
 
   const handleSubmit = async () => {
-    if (currentPage === "email" && validateEmail(email) && password.length >= 8) {
+    if (!validateEmail(email) || password.length < 8) return;
+
+    const auth = getAuth();
+    
+    if (currentPage === "email") {
       try {
-        // This would be where we integrate with Firebase auth
-        console.log("Registration submitted with:", { name, email, password });
-        // For now, just simulate success and close the modal
+        // Create a new user account with Firebase
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // If the user provided a name, update their profile
+        if (name && userCredential.user) {
+          await updateProfile(userCredential.user, { 
+            displayName: name 
+          });
+        }
+        
+        console.log("Registration successful:", userCredential.user);
         closeModal();
-      } catch (error) {
+      } catch (error: any) {
         console.error("Registration error:", error);
+        alert(`Registration failed: ${error.message || "Please try again."}`);
       }
-    } else if (currentPage === "login" && validateEmail(email) && password.length >= 8) {
+    } else if (currentPage === "login") {
       try {
-        // This would be where we integrate with Firebase auth
-        console.log("Login submitted with:", { email, password });
-        // For now, just simulate success and close the modal
+        // Sign in with existing credentials
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        console.log("Login successful:", userCredential.user);
         closeModal();
-      } catch (error) {
+      } catch (error: any) {
         console.error("Login error:", error);
+        alert(`Login failed: ${error.message || "Invalid email or password."}`);
       }
     }
   };
