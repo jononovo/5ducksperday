@@ -351,9 +351,10 @@ export default function LandingPage() {
               <h3 className="text-2xl font-semibold mb-6 text-center">Why Sign-up?</h3>
               <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
                 <ol className="list-decimal pl-6 space-y-4">
-                  <li>Because <strong>consistency beats motivation</strong> Every. Single. Time.</li>
-                  <li>If you have not sold anything* in 90 days will <strong>reimburse you the full 3 months</strong> subscription (and will gently encourage you to find a better product to sell.)</li>
-                  <li>Because "Hakuna Matata" means "No worries" and we allow you to <strong>sell without analysis-paralysis</strong> (which is primary cause of bankruptcy.)</li>
+                  <li>Because consistency beats motivation Every. Single. Time.</li>
+                  <li>If you have not sold anything* in 90 days we will reimburse you the full 3 months subscription (and will gently encourage you to find a better product to sell.)</li>
+                  <li>We keep things SUPER SIMPLE and allow you to sell without analysis-paralysis, which triples your productivity.</li>
+                  <li>We find the best email addresses. Why? Because we pull from the top 3 global databases PLUS our <strong>real-time proprietary AI</strong> deep online search.</li>
                 </ol>
               </div>
             </div>
