@@ -370,6 +370,19 @@ export default function LandingPage() {
                   <li>We keep things SUPER SIMPLE and allow you to <strong>sell without analysis-paralysis</strong>, which triples your productivity.</li>
                 </ol>
               </div>
+              
+              <div className="text-center mt-8">
+                <Button 
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-6"
+                  onClick={() => {
+                    trackEvent('cta_click', 'landing_page', 'give_it_a_try');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                >
+                  <span className="mr-2">Give it a try</span>
+                  <ChevronRight size={16} />
+                </Button>
+              </div>
             </div>
             
             
