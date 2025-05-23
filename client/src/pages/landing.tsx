@@ -150,8 +150,8 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
-              <span className="font-normal">What type of business would you like to sell to? And where? <br />
-              What are you waiting for? 🤷🏼‍♀️</span>
+              <span className="font-normal">💼 What type of business would you like to sell to? 🤔<br />
+              And where? 🌍</span>
             </p>
 
             {/* Search Input */}
