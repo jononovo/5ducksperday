@@ -170,11 +170,20 @@ export function RegistrationModal() {
             </button>
           </div>
           
-          {/* Main content */}
-          <div className="text-center text-white mb-12 mt-16">
-            <h2 className="text-3xl font-bold mb-3">Join 5Ducks</h2>
-            <p className="text-gray-200 text-lg">Access powerful sales tools and features</p>
-          </div>
+          {/* Main content - only show when not displaying Google auth info */}
+          <AnimatePresence>
+            {!showGoogleAuthInfo && (
+              <motion.div 
+                key="main-title"
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-center text-white mb-12 mt-16"
+              >
+                <h2 className="text-3xl font-bold mb-3">Join 5Ducks</h2>
+                <p className="text-gray-200 text-lg">Access powerful sales tools and features</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Registration options */}
           <div className="space-y-4 max-w-sm mx-auto px-4">
