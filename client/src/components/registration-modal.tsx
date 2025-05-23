@@ -4,8 +4,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { Mail, ChevronRight, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
+import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 
-type RegistrationPage = "main" | "email" | "login";
+type RegistrationPage = "main" | "email" | "login" | "forgotPassword";
 
 export function RegistrationModal() {
   const [currentPage, setCurrentPage] = useState<RegistrationPage>("main");
@@ -13,9 +14,11 @@ export function RegistrationModal() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailValid, setEmailValid] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const loginEmailRef = useRef<HTMLInputElement>(null);
+  const forgotPasswordEmailRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { closeModal } = useRegistrationModal();
 
@@ -58,6 +61,11 @@ export function RegistrationModal() {
     } else if (currentPage === "login") {
       // Focus the email input field on the login page
       setTimeout(() => loginEmailRef.current?.focus(), 100);
+    } else if (currentPage === "forgotPassword") {
+      // Focus the email input field on the forgot password page
+      setTimeout(() => forgotPasswordEmailRef.current?.focus(), 100);
+      // Reset the email sent flag when navigating to this page
+      setResetEmailSent(false);
     }
   }, [currentPage]);
 
@@ -68,8 +76,10 @@ export function RegistrationModal() {
   };
 
   const handleForgotPassword = () => {
-    // Implement forgot password logic later
-    console.log("Forgot password clicked");
+    setCurrentPage("forgotPassword");
+    // Reset email field for a fresh start
+    setEmail("");
+    setEmailValid(false);
   };
 
   const handleReturnToMain = () => {
@@ -79,6 +89,24 @@ export function RegistrationModal() {
     setEmail("");
     setPassword("");
     setEmailValid(false);
+  };
+
+  const handleForgotPasswordSubmit = async () => {
+    if (validateEmail(email)) {
+      try {
+        const auth = getAuth();
+        await sendPasswordResetEmail(auth, email);
+        console.log("Password reset email sent to:", email);
+        setResetEmailSent(true);
+        
+        // After 3 seconds, return to login page
+        setTimeout(() => {
+          setCurrentPage("login");
+        }, 3000);
+      } catch (error) {
+        console.error("Password reset error:", error);
+      }
+    }
   };
 
   const handleSubmit = async () => {
@@ -310,6 +338,61 @@ export function RegistrationModal() {
                 Forgot password
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {currentPage === "forgotPassword" && (
+        <div className="w-full max-w-md mx-auto relative">
+          {/* Back button in upper left corner */}
+          <div className="absolute top-0 left-0 mt-6 ml-6 z-10">
+            <button 
+              onClick={() => setCurrentPage("login")}
+              className="text-sm text-white hover:text-blue-300 transition-colors flex items-center gap-1"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </button>
+          </div>
+          
+          {/* Main content */}
+          <div className="text-center text-white mb-8 mt-16">
+            <h2 className="text-3xl font-bold mb-3">Reset Password</h2>
+            <p className="text-gray-200 text-lg">Enter your email to receive reset instructions</p>
+          </div>
+
+          {/* Forgot password form */}
+          <div className="space-y-4 max-w-sm mx-auto px-4">
+            {resetEmailSent ? (
+              <div className="text-center p-4 bg-green-500/20 border border-green-500/30 rounded-md text-white">
+                <p>Password reset email sent!</p>
+                <p className="text-sm mt-1">Please check your inbox for instructions.</p>
+                <p className="text-xs mt-3">Returning to login page in a moment...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <input
+                  ref={forgotPasswordEmailRef}
+                  type="email"
+                  placeholder="Email Address"
+                  className={`w-full p-4 bg-white/10 border ${
+                    email.length > 0 ? (emailValid ? 'border-green-400' : 'border-red-400') : 'border-white/20'
+                  } rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300`}
+                  value={email}
+                  onChange={handleEmailChange}
+                />
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-center relative bg-white/10 text-white border-white/20 hover:bg-white/20"
+                  onClick={handleForgotPasswordSubmit}
+                  disabled={!emailValid}
+                >
+                  Send Reset Email
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
