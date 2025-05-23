@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { Mail, ChevronRight } from "lucide-react";
+import { Mail, ChevronRight, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 
@@ -155,6 +155,17 @@ export function RegistrationModal() {
 
       {currentPage === "email" && (
         <div className="w-full max-w-md mx-auto relative">
+          {/* Back button in upper left corner */}
+          <div className="absolute top-0 left-0 mt-6 ml-6 z-10">
+            <button 
+              onClick={handleReturnToMain}
+              className="text-sm text-white hover:text-blue-300 transition-colors flex items-center gap-1"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </button>
+          </div>
+          
           {/* Login link in upper right corner */}
           <div className="absolute top-0 right-0 mt-6 mr-6 z-10">
             <button 
@@ -230,7 +241,18 @@ export function RegistrationModal() {
       )}
 
       {currentPage === "login" && (
-        <div className="w-full max-w-md mx-auto relative">          
+        <div className="w-full max-w-md mx-auto relative">
+          {/* Back button in upper left corner */}
+          <div className="absolute top-0 left-0 mt-6 ml-6 z-10">
+            <button 
+              onClick={handleReturnToMain}
+              className="text-sm text-white hover:text-blue-300 transition-colors flex items-center gap-1"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </button>
+          </div>
+          
           {/* Main content */}
           <div className="text-center text-white mb-8 mt-16">
             <h2 className="text-3xl font-bold mb-3">Welcome Back</h2>
