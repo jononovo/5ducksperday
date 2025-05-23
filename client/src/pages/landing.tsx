@@ -368,7 +368,6 @@ export default function LandingPage() {
                   <li>Because <strong>consistency beats motivation</strong> Every. Single. Time.</li>
                   <li>If you have not sold anything* in 90 days we will <strong>reimburse the full 3 months</strong> subscription (and will gently encourage you to find a better product to sell.)</li>
                   <li>We keep things SUPER SIMPLE and allow you to <strong>sell without analysis-paralysis</strong>, which triples your productivity.</li>
-                  <li>We find the best email addresses. Why? Because we pull from the top 3 global databases PLUS our <strong>real-time proprietary AI</strong> deep online search.</li>
                 </ol>
               </div>
             </div>
