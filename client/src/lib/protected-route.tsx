@@ -1,6 +1,8 @@
 import { useAuth } from "@/hooks/use-auth";
+import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { Loader2 } from "lucide-react";
-import { Redirect, Route } from "wouter";
+import { Route } from "wouter";
+import { useEffect } from "react";
 
 export function ProtectedRoute({
   path,
@@ -10,6 +12,14 @@ export function ProtectedRoute({
   component: () => React.JSX.Element;
 }) {
   const { user, isLoading } = useAuth();
+  const { openForProtectedRoute } = useRegistrationModal();
+
+  // Show modal when user tries to access protected route
+  useEffect(() => {
+    if (!isLoading && !user) {
+      openForProtectedRoute();
+    }
+  }, [user, isLoading, openForProtectedRoute]);
 
   if (isLoading) {
     return (
@@ -24,7 +34,12 @@ export function ProtectedRoute({
   if (!user) {
     return (
       <Route path={path}>
-        <Redirect to="/auth" />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Access Restricted</h2>
+            <p className="text-gray-600">Please log in to access this feature.</p>
+          </div>
+        </div>
       </Route>
     );
   }

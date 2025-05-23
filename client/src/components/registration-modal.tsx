@@ -23,7 +23,7 @@ export function RegistrationModal() {
   const loginEmailRef = useRef<HTMLInputElement>(null);
   const forgotPasswordEmailRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
-  const { closeModal } = useRegistrationModal();
+  const { closeModal, isOpenedFromProtectedRoute } = useRegistrationModal();
 
   // If user is already logged in, we'll close the modal
   // but we don't return early to avoid React hooks errors
@@ -219,8 +219,14 @@ export function RegistrationModal() {
                 exit={{ opacity: 0 }}
                 className="text-center text-white mb-12 mt-16"
               >
-                <h2 className="text-3xl font-bold mb-3">Join 5Ducks</h2>
-                <p className="text-gray-200 text-lg">Access powerful sales tools and features</p>
+                <h2 className="text-3xl font-bold mb-3">
+                  {isOpenedFromProtectedRoute ? "Sign In Required" : "Join 5Ducks"}
+                </h2>
+                <p className="text-gray-200 text-lg">
+                  {isOpenedFromProtectedRoute 
+                    ? "Please sign in to access this feature" 
+                    : "Access powerful sales tools and features"}
+                </p>
               </motion.div>
             )}
           </AnimatePresence>

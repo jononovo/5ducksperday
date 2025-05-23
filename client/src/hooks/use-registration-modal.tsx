@@ -32,10 +32,23 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
   const [isOpen, setIsOpen] = useState(false);
   const [shouldShowForFirstTimeUsers, setShouldShowForFirstTimeUsers] = useState(true);
   const [hasChecked, setHasChecked] = useState(false);
+  const [isOpenedFromProtectedRoute, setIsOpenedFromProtectedRoute] = useState(false);
   const { user } = useAuth();
 
-  const openModal = () => setIsOpen(true);
-  const closeModal = () => setIsOpen(false);
+  const openModal = () => {
+    setIsOpenedFromProtectedRoute(false);
+    setIsOpen(true);
+  };
+
+  const openForProtectedRoute = () => {
+    setIsOpenedFromProtectedRoute(true);
+    setIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsOpen(false);
+    setIsOpenedFromProtectedRoute(false);
+  };
 
   // Check if user is a first-time visitor
   useEffect(() => {
@@ -60,7 +73,9 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
         openModal, 
         closeModal,
         shouldShowForFirstTimeUsers,
-        setShouldShowForFirstTimeUsers
+        setShouldShowForFirstTimeUsers,
+        openForProtectedRoute,
+        isOpenedFromProtectedRoute
       }}
     >
       {children}
