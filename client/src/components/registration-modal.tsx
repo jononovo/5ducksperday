@@ -141,12 +141,18 @@ export function RegistrationModal() {
     // Different validation rules for registration vs login
     if (!validateEmail(email)) return;
     
-    // For registration, enforce 8+ character password
-    if (currentPage === "email" && password.length < 8) return;
+    // For registration, enforce 8+ character password only if email includes @
+    // This allows users to proceed if they haven't reached the password field yet
+    if (currentPage === "email" && email.includes('@') && password.length < 8) {
+      alert("Password must be at least 8 characters");
+      return;
+    }
     
     if (currentPage === "email") {
       try {
         // Register user with local authentication
+        console.log("Attempting registration with:", { email, name });
+        
         const response = await localAuth.register({
           email,
           password,
@@ -162,6 +168,8 @@ export function RegistrationModal() {
     } else if (currentPage === "login") {
       try {
         // Sign in with local authentication
+        console.log("Attempting login with:", { email });
+        
         const response = await localAuth.login({
           email,
           password
@@ -365,7 +373,7 @@ export function RegistrationModal() {
               variant="outline" 
               className="w-full justify-center relative bg-white/10 text-white border-white/20 hover:bg-white/20"
               onClick={handleSubmit}
-              disabled={!emailValid || password.length < 8}
+              disabled={!emailValid || (email.includes('@') && password.length < 8)}
             >
               Go
               <ChevronRight className="h-4 w-4 ml-2" />
