@@ -221,6 +221,7 @@ export function RegistrationModal() {
                       Register with Gmail
                     </div>
                     <div className="flex items-center">
+                      <Badge variant="outline" className="mr-2 text-white border-white/50">Coming Soon</Badge>
                       <ChevronRight className="h-4 w-4" />
                     </div>
                   </Button>
@@ -409,7 +410,6 @@ export function RegistrationModal() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
-                <p className="text-xs text-gray-400 mt-1">Minimum 8 characters</p>
               </div>
             </div>
             
