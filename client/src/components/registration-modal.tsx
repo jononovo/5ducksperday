@@ -4,8 +4,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { Mail, ChevronRight, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { getAuth, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { getAuth, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { motion, AnimatePresence } from "framer-motion";
+import { localAuth } from "@/lib/local-auth";
 
 type RegistrationPage = "main" | "email" | "login" | "forgotPassword";
 
@@ -111,12 +112,12 @@ export function RegistrationModal() {
   const handleForgotPasswordSubmit = async () => {
     if (validateEmail(email)) {
       try {
-        // Using Firebase's built-in password reset functionality
+        // For now, we'll still use Firebase's password reset functionality for Gmail login
+        // In a fully local auth setup, you would implement a server endpoint for password reset
         const auth = getAuth();
         await sendPasswordResetEmail(auth, email, {
-          // Custom settings for the password reset email
-          url: window.location.origin, // Redirect back to our app after reset
-          handleCodeInApp: false // Let Firebase handle the reset flow
+          url: window.location.origin, 
+          handleCodeInApp: false
         });
         
         console.log("Password reset email sent to:", email);
@@ -127,7 +128,7 @@ export function RegistrationModal() {
           setCurrentPage("login");
         }, 3000);
       } catch (error: any) {
-        // Handle specific Firebase errors
+        // Handle errors
         console.error("Password reset error:", error);
         alert(`Error sending reset email: ${error.message || "Please try again later."}`);
       }
@@ -141,21 +142,16 @@ export function RegistrationModal() {
     // For registration, enforce 8+ character password
     if (currentPage === "email" && password.length < 8) return;
     
-    const auth = getAuth();
-    
     if (currentPage === "email") {
       try {
-        // Create a new user account with Firebase
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // Register user with local authentication
+        const response = await localAuth.register({
+          email,
+          password,
+          name
+        });
         
-        // If the user provided a name, update their profile
-        if (name && userCredential.user) {
-          await updateProfile(userCredential.user, { 
-            displayName: name 
-          });
-        }
-        
-        console.log("Registration successful:", userCredential.user);
+        console.log("Registration successful:", response);
         closeModal();
       } catch (error: any) {
         console.error("Registration error:", error);
@@ -163,9 +159,12 @@ export function RegistrationModal() {
       }
     } else if (currentPage === "login") {
       try {
-        // Sign in with existing credentials
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log("Login successful:", userCredential.user);
+        // Sign in with local authentication
+        const response = await localAuth.login({
+          email,
+          password
+        });
+        console.log("Login successful:", response);
         closeModal();
       } catch (error: any) {
         console.error("Login error:", error);
