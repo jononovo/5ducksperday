@@ -142,7 +142,7 @@ export default function LandingPage() {
           <div className="container mx-auto max-w-4xl text-center">
             <div className="mb-4 inline-flex items-center px-4 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
               <Sparkles size={16} className="mr-2" />
-              <span className="text-sm font-medium">AI-Powered Contact Discovery</span>
+              <span className="text-sm font-medium">AI-Powered B2B Sales</span>
             </div>
             
             <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 leading-tight">
