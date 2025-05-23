@@ -181,6 +181,11 @@ export default function LandingPage() {
               </div>
             </div>
 
+            {/* Suggestion Text */}
+            <div className="text-center mt-4 mb-2">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Or select one of the suggestions below:</p>
+            </div>
+
             {/* Example Search Prompts */}
             <div className="flex flex-wrap justify-center gap-2 mb-16">
               {EXAMPLE_PROMPTS.map((prompt) => (
