@@ -97,7 +97,7 @@ export default function LandingPage() {
                     href="/pricing" 
                     onClick={() => trackEvent('view_pricing', 'navigation', 'header_link')}
                   >
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border-b-2 border-transparent hover:border-slate-900 dark:hover:border-white py-1">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border-b border-transparent hover:border-slate-400 dark:hover:border-slate-600 py-1 shadow-sm hover:shadow-md">
                       Pricing
                     </span>
                   </Link>
