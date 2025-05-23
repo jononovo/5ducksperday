@@ -69,7 +69,13 @@ interface SavedSearchState {
   currentResults: CompanyWithContacts[] | null;
 }
 
-export default function Home() {
+export default function Home({ 
+  semiProtectedAction, 
+  isAuthenticated 
+}: { 
+  semiProtectedAction?: () => void; 
+  isAuthenticated?: boolean; 
+} = {}) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentQuery, setCurrentQuery] = useState<string | null>(null);
   const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
