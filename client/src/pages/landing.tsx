@@ -351,11 +351,11 @@ export default function LandingPage() {
               <h3 className="text-2xl font-semibold mb-6 text-center">What We Do</h3>
               <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
                 <ol className="list-decimal pl-6 space-y-4">
-                  <li>The new companies & <strong>contacts surfaced in seconds</strong> (Not dozens of filters and millions of contacts to choose from.)</li>
-                  <li>We find the best email addresses. Why? Because we pull from the top 3 global databases PLUS our <strong>real-time proprietary AI</strong> deep online search.</li>
+                  <li><strong>New companies & contacts</strong> surfaced in seconds (Not dozens of filters and millions of contacts to choose from.)</li>
+                  <li>Find the <strong>best email addresses</strong>. How? We pull from the <strong>top 3 global databases</strong> PLUS our real-time proprietary AI deep online search.</li>
                   <li><strong>Auto-suggest a message PER person</strong> in your style, all you do is edit and/or click "Send".</li>
-                  <li><strong>Track positive responses</strong>, without distracting you from new outreach everyday.</li>
-                  <li>Analyse and match positive responses with the types of businesses & <strong>recommend new searches</strong>.</li>
+                  <li><strong>Track positive responses</strong> without distracting you from new outreach everyday.</li>
+                  <li>Analyze and match positive responses with the types of businesses & <strong>recommend new searches</strong>.</li>
                 </ol>
               </div>
             </div>
