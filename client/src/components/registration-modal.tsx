@@ -94,8 +94,14 @@ export function RegistrationModal() {
   const handleForgotPasswordSubmit = async () => {
     if (validateEmail(email)) {
       try {
+        // Using Firebase's built-in password reset functionality
         const auth = getAuth();
-        await sendPasswordResetEmail(auth, email);
+        await sendPasswordResetEmail(auth, email, {
+          // Custom settings for the password reset email
+          url: window.location.origin, // Redirect back to our app after reset
+          handleCodeInApp: false // Let Firebase handle the reset flow
+        });
+        
         console.log("Password reset email sent to:", email);
         setResetEmailSent(true);
         
@@ -103,8 +109,10 @@ export function RegistrationModal() {
         setTimeout(() => {
           setCurrentPage("login");
         }, 3000);
-      } catch (error) {
+      } catch (error: any) {
+        // Handle specific Firebase errors
         console.error("Password reset error:", error);
+        alert(`Error sending reset email: ${error.message || "Please try again later."}`);
       }
     }
   };
