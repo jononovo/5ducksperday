@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Company, Contact } from "@shared/schema";
 import { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
+import { ContactActionColumn } from "@/components/contact-action-column";
 
 interface CompanyTableProps {
   companies: Array<Company & { contacts?: ContactWithCompanyInfo[] }>;
@@ -388,204 +389,22 @@ export default function CompanyTable({
                         {contact.probability || 0}
                       </Badge>
                     </TableCell>
-                    <TableCell className="py-1 text-center">
-                      {/* Desktop action buttons */}
-                      <div className="hidden md:flex items-center justify-center gap-1">
-                        <TooltipProvider delayDuration={500}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                              >
-                                <ExternalLink className="h-3.5 w-3.5" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Open contact page</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                disabled={pendingContactIds?.has(contact.id) || contact.completedSearches?.includes('contact_enrichment')}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEnrichContact?.(contact.id);
-                                }}
-                              >
-                                {pendingContactIds?.has(contact.id) ? (
-                                  <div className="animate-spin h-4 w-4">
-                                    <Sparkles className="h-4 w-4 text-gray-700" />
-                                  </div>
-                                ) : (
-                                  <Sparkles className={`h-4 w-4 ${contact.completedSearches?.includes('contact_enrichment') && contact.email ? "text-green-500" : "text-gray-700"}`} />
-                                )}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>AI-powered email search</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                disabled={pendingHunterIds?.has(contact.id) || contact.completedSearches?.includes('hunter')}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleHunterSearch?.(contact.id);
-                                }}
-                              >
-                                {pendingHunterIds?.has(contact.id) ? (
-                                  <div className="animate-spin h-4 w-4">
-                                    <Target className="h-4 w-4 text-gray-700" />
-                                  </div>
-                                ) : (
-                                  <Target className={`h-4 w-4 ${contact.completedSearches?.includes('hunter') && contact.email ? "text-green-500" : "text-gray-700"}`} />
-                                )}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Hunter search</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                disabled={pendingAeroLeadsIds?.has(contact.id) || contact.completedSearches?.includes('aeroleads')}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAeroLeadsSearch?.(contact.id)
-                                }}
-                              >
-                                {pendingAeroLeadsIds?.has(contact.id) ? (
-                                  <div className="animate-spin h-4 w-4">
-                                    <Gem className="h-4 w-4 text-gray-700" />
-                                  </div>
-                                ) : (
-                                  <Gem className={`h-4 w-4 ${contact.completedSearches?.includes('aeroleads') && contact.email ? "text-yellow-500" : "text-gray-700"}`} />
-                                )}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>AeroLeads search</p>
-                            </TooltipContent>
-                          </Tooltip>
-
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                disabled={pendingApolloIds?.has(contact.id) || contact.completedSearches?.includes('apollo_search')}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleApolloSearch?.(contact.id)
-                                }}
-                              >
-                                {pendingApolloIds?.has(contact.id) ? (
-                                  <div className="animate-spin h-4 w-4">
-                                    <Rocket className="h-4 w-4 text-gray-700" />
-                                  </div>
-                                ) : (
-                                  <Rocket className={`h-4 w-4 ${contact.completedSearches?.includes('apollo_search') && contact.email ? "text-purple-500" : "text-gray-700"}`} />
-                                )}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Apollo.io search</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                      
-                      {/* Mobile action dropdown */}
-                      <div className="md:hidden">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                              <Menu className="h-3.5 w-3.5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                handleEnrichContact?.(contact.id);
-                              }}
-                              disabled={pendingContactIds?.has(contact.id) || contact.completedSearches?.includes('contact_enrichment')}
-                            >
-                              {pendingContactIds?.has(contact.id) ? (
-                                <div className="animate-spin mr-2 h-5 w-5">
-                                  <Sparkles className="h-5 w-5 text-gray-700" />
-                                </div>
-                              ) : (
-                                <Sparkles className={`mr-2 h-5 w-5 ${contact.completedSearches?.includes('contact_enrichment') && contact.email ? "text-green-500" : "text-gray-700"}`} />
-                              )}
-                              AI-powered Search
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                handleHunterSearch?.(contact.id);
-                              }}
-                              disabled={pendingHunterIds?.has(contact.id) || contact.completedSearches?.includes('hunter')}
-                            >
-                              {pendingHunterIds?.has(contact.id) ? (
-                                <div className="animate-spin mr-2 h-5 w-5">
-                                  <Target className="h-5 w-5 text-gray-700" />
-                                </div>
-                              ) : (
-                                <Target className={`mr-2 h-5 w-5 ${contact.completedSearches?.includes('hunter') && contact.email ? "text-green-500" : "text-gray-700"}`} />
-                              )}
-                              Hunter Search
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                handleAeroLeadsSearch?.(contact.id);
-                              }}
-                              disabled={pendingAeroLeadsIds?.has(contact.id) || contact.completedSearches?.includes('aeroleads')}
-                            >
-                              {pendingAeroLeadsIds?.has(contact.id) ? (
-                                <div className="animate-spin mr-2 h-5 w-5">
-                                  <Gem className="h-5 w-5 text-gray-700" />
-                                </div>
-                              ) : (
-                                <Gem className={`mr-2 h-5 w-5 ${contact.completedSearches?.includes('aeroleads') && contact.email ? "text-yellow-500" : "text-gray-700"}`} />
-                              )}
-                              AeroLeads Search
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                handleApolloSearch?.(contact.id);
-                              }}
-                              disabled={pendingApolloIds?.has(contact.id) || contact.completedSearches?.includes('apollo_search')}
-                            >
-                              {pendingApolloIds?.has(contact.id) ? (
-                                <div className="animate-spin mr-2 h-5 w-5">
-                                  <Rocket className="h-5 w-5 text-gray-700" />
-                                </div>
-                              ) : (
-                                <Rocket className={`mr-2 h-5 w-5 ${contact.completedSearches?.includes('apollo_search') && contact.email ? "text-purple-500" : "text-gray-700"}`} />
-                              )}
-                              Apollo.io Search
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
+                    <ContactActionColumn
+                      contact={contact}
+                      handleContactView={(id) => {
+                        console.log("View contact", id);
+                        // Add contact view handler if needed
+                      }}
+                      handleEnrichContact={handleEnrichContact}
+                      handleHunterSearch={handleHunterSearch}
+                      handleAeroLeadsSearch={handleAeroLeadsSearch}
+                      handleApolloSearch={handleApolloSearch}
+                      pendingContactIds={pendingContactIds}
+                      pendingHunterIds={pendingHunterIds}
+                      pendingAeroLeadsIds={pendingAeroLeadsIds}
+                      pendingApolloIds={pendingApolloIds}
+                      className="py-1"
+                    />
                   </TableRow>
                 ))}
               </React.Fragment>
