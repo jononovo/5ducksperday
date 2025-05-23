@@ -24,7 +24,8 @@ interface RegistrationModalProviderProps {
 }
 
 export const RegistrationModalProvider = ({ children }: RegistrationModalProviderProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  // Set isOpen to true initially for testing purposes
+  const [isOpen, setIsOpen] = useState(true);
   const [shouldShowForFirstTimeUsers, setShouldShowForFirstTimeUsers] = useState(true);
   const [hasChecked, setHasChecked] = useState(false);
   const { user } = useAuth();

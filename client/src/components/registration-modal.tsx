@@ -3,15 +3,18 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { Mail, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useRegistrationModal } from "@/hooks/use-registration-modal";
 
 type RegistrationPage = "main" | "email" | "verify" | "profile";
 
 export function RegistrationModal() {
   const [currentPage, setCurrentPage] = useState<RegistrationPage>("main");
   const { user } = useAuth();
+  const { closeModal } = useRegistrationModal();
 
   // If user is already logged in, don't show the modal
   if (user) {
+    closeModal();
     return null;
   }
 
@@ -37,25 +40,28 @@ export function RegistrationModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       {currentPage === "main" && (
-        <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
-          <div className="flex justify-end">
+        <div className="w-full max-w-md mx-auto relative">
+          {/* Login link in upper right corner */}
+          <div className="absolute top-0 right-0 mt-6 mr-6 z-10">
             <button 
               onClick={handleLoginClick}
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-white hover:text-blue-300 transition-colors"
             >
               Login
             </button>
           </div>
           
-          <div className="text-center mb-8 mt-4">
-            <h2 className="text-2xl font-bold mb-2">Join 5Ducks</h2>
-            <p className="text-gray-600">Access powerful sales tools and features</p>
+          {/* Main content */}
+          <div className="text-center text-white mb-12 mt-16">
+            <h2 className="text-3xl font-bold mb-3">Join 5Ducks</h2>
+            <p className="text-gray-200 text-lg">Access powerful sales tools and features</p>
           </div>
 
-          <div className="space-y-4">
+          {/* Registration options */}
+          <div className="space-y-4 max-w-sm mx-auto px-4">
             <Button 
               variant="outline" 
-              className="w-full justify-between relative"
+              className="w-full justify-between relative bg-white/10 text-white border-white/20 hover:bg-white/20"
               onClick={handleGmailClick}
             >
               <div className="flex items-center">
@@ -63,14 +69,14 @@ export function RegistrationModal() {
                 Register with Gmail
               </div>
               <div className="flex items-center">
-                <Badge variant="outline" className="mr-2">Coming Soon</Badge>
+                <Badge variant="outline" className="mr-2 text-white border-white/50">Coming Soon</Badge>
                 <ChevronRight className="h-4 w-4" />
               </div>
             </Button>
 
             <Button 
               variant="outline" 
-              className="w-full justify-between relative"
+              className="w-full justify-between relative bg-white/10 text-white border-white/20 hover:bg-white/20"
               onClick={handleOutlookClick}
             >
               <div className="flex items-center">
@@ -78,15 +84,15 @@ export function RegistrationModal() {
                 Register with Outlook
               </div>
               <div className="flex items-center">
-                <Badge variant="outline" className="mr-2">Coming Soon</Badge>
+                <Badge variant="outline" className="mr-2 text-white border-white/50">Coming Soon</Badge>
                 <ChevronRight className="h-4 w-4" />
               </div>
             </Button>
 
-            <div className="text-center mt-2">
+            <div className="text-center mt-4">
               <button 
                 onClick={handleOtherEmailClick}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-white hover:text-blue-300 transition-colors"
               >
                 Other Email
               </button>
