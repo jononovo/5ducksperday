@@ -8,6 +8,8 @@ import PromptEditor from "@/components/prompt-editor";
 import { EmailSearchProgress } from "@/components/email-search-progress";
 import { EmailSearchSummary } from "@/components/email-search-summary";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { useLoginPrompt } from "@/lib/semi-protected-route";
 import {
   ListPlus,
   Search,
@@ -1252,6 +1254,16 @@ export default function Home() {
                           variant="outline" 
                           size="sm" 
                           className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                          onClick={() => {
+                            const loginPrompt = useLoginPrompt();
+                            const auth = useAuth();
+                            if (!auth.user) {
+                              loginPrompt.showLoginPrompt();
+                              return;
+                            }
+                            // If user is logged in, the actual functionality would go here
+                            console.log("5 More button clicked by authenticated user");
+                          }}
                         >
                           <Plus className="h-4 w-4" />
                           <span>5 More</span>
