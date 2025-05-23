@@ -4,7 +4,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { Mail, ChevronRight, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { getAuth, sendPasswordResetEmail } from "firebase/auth";
+import { getAuth, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { motion, AnimatePresence } from "framer-motion";
 
 type RegistrationPage = "main" | "email" | "login" | "forgotPassword";
 
@@ -15,6 +16,7 @@ export function RegistrationModal() {
   const [password, setPassword] = useState("");
   const [emailValid, setEmailValid] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [showGoogleAuthInfo, setShowGoogleAuthInfo] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const loginEmailRef = useRef<HTMLInputElement>(null);
@@ -33,8 +35,23 @@ export function RegistrationModal() {
   };
 
   const handleGmailClick = () => {
-    // Gmail registration will be implemented later
-    console.log("Gmail registration clicked");
+    // Show Google auth info instead of navigating to a new page
+    setShowGoogleAuthInfo(true);
+  };
+  
+  const handleGoogleSignIn = async () => {
+    try {
+      const auth = getAuth();
+      const provider = new GoogleAuthProvider();
+      // Request additional scopes for email sending permissions
+      provider.addScope('https://www.googleapis.com/auth/gmail.send');
+      
+      const result = await signInWithPopup(auth, provider);
+      console.log("Google sign-in successful:", result);
+      closeModal();
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+    }
   };
 
   const handleOutlookClick = () => {
@@ -161,44 +178,87 @@ export function RegistrationModal() {
 
           {/* Registration options */}
           <div className="space-y-4 max-w-sm mx-auto px-4">
-            <Button 
-              variant="outline" 
-              className="w-full justify-between relative bg-white/10 text-white border-white/20 hover:bg-white/20"
-              onClick={handleGmailClick}
-            >
-              <div className="flex items-center">
-                <Mail className="h-5 w-5 mr-2" />
-                Register with Gmail
-              </div>
-              <div className="flex items-center">
-                <Badge variant="outline" className="mr-2 text-white border-white/50">Coming Soon</Badge>
-                <ChevronRight className="h-4 w-4" />
-              </div>
-            </Button>
+            <AnimatePresence mode="wait">
+              {!showGoogleAuthInfo ? (
+                <motion.div 
+                  key="registration-options"
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-4"
+                >
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-between relative bg-white/10 text-white border-white/20 hover:bg-white/20"
+                    onClick={handleGmailClick}
+                  >
+                    <div className="flex items-center">
+                      <Mail className="h-5 w-5 mr-2" />
+                      Register with Gmail
+                    </div>
+                    <div className="flex items-center">
+                      <ChevronRight className="h-4 w-4" />
+                    </div>
+                  </Button>
 
-            <Button 
-              variant="outline" 
-              className="w-full justify-between relative bg-white/10 text-white border-white/20 hover:bg-white/20"
-              onClick={handleOutlookClick}
-            >
-              <div className="flex items-center">
-                <Mail className="h-5 w-5 mr-2" />
-                Register with Outlook
-              </div>
-              <div className="flex items-center">
-                <Badge variant="outline" className="mr-2 text-white border-white/50">Coming Soon</Badge>
-                <ChevronRight className="h-4 w-4" />
-              </div>
-            </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-between relative bg-white/10 text-white border-white/20 hover:bg-white/20"
+                    onClick={handleOutlookClick}
+                  >
+                    <div className="flex items-center">
+                      <Mail className="h-5 w-5 mr-2" />
+                      Register with Outlook
+                    </div>
+                    <div className="flex items-center">
+                      <Badge variant="outline" className="mr-2 text-white border-white/50">Coming Soon</Badge>
+                      <ChevronRight className="h-4 w-4" />
+                    </div>
+                  </Button>
 
-            <div className="text-center mt-4">
-              <button 
-                onClick={handleOtherEmailClick}
-                className="text-sm text-white hover:text-blue-300 transition-colors"
-              >
-                Other Email
-              </button>
-            </div>
+                  <div className="text-center mt-4">
+                    <button 
+                      onClick={handleOtherEmailClick}
+                      className="text-sm text-white hover:text-blue-300 transition-colors"
+                    >
+                      Other Email
+                    </button>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="google-auth-info"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-4"
+                >
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-md p-4 text-white mb-4">
+                    <h3 className="font-bold mb-2">Sending Permissions</h3>
+                    <p className="text-sm">We will curate key contacts and help you craft a compelling message. Then you will be able to send emails from within this application. So you will need to approve additional permissions to send email via your account.</p>
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-center relative bg-white/10 text-white border-white/20 hover:bg-white/20"
+                    onClick={handleGoogleSignIn}
+                  >
+                    <Mail className="h-5 w-5 mr-2" />
+                    Continue with Google
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                  
+                  <div className="text-center mt-2">
+                    <button 
+                      onClick={() => setShowGoogleAuthInfo(false)}
+                      className="text-sm text-white hover:text-blue-300 transition-colors flex items-center justify-center gap-1 mx-auto"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Back to options
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       )}
