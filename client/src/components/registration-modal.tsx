@@ -227,15 +227,6 @@ export function RegistrationModal() {
               Go
               <ChevronRight className="h-4 w-4 ml-2" />
             </Button>
-            
-            <div className="text-center mt-2">
-              <button 
-                onClick={handleForgotPassword}
-                className="text-sm text-white hover:text-blue-300 transition-colors"
-              >
-                Forgot password
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -294,19 +285,12 @@ export function RegistrationModal() {
               <ChevronRight className="h-4 w-4 ml-2" />
             </Button>
             
-            <div className="flex justify-between mt-2">
+            <div className="text-center mt-2">
               <button 
                 onClick={handleForgotPassword}
                 className="text-sm text-white hover:text-blue-300 transition-colors"
               >
                 Forgot password
-              </button>
-              
-              <button 
-                onClick={handleReturnToMain}
-                className="text-sm text-white hover:text-blue-300 transition-colors"
-              >
-                Create account
               </button>
             </div>
           </div>
