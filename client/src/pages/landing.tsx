@@ -175,7 +175,7 @@ export default function LandingPage() {
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-5 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                   onClick={() => handleSearch()}
                 >
-                  <span className="mr-2">Search</span>
+                  <span className="mr-2">Quack</span>
                   <ArrowRight size={16} />
                 </Button>
               </div>
