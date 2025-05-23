@@ -15,6 +15,7 @@ export function RegistrationModal() {
   const [emailValid, setEmailValid] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const loginEmailRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { closeModal } = useRegistrationModal();
 
@@ -56,7 +57,7 @@ export function RegistrationModal() {
       setTimeout(() => nameInputRef.current?.focus(), 100);
     } else if (currentPage === "login") {
       // Focus the email input field on the login page
-      setTimeout(() => emailInputRef.current?.focus(), 100);
+      setTimeout(() => loginEmailRef.current?.focus(), 100);
     }
   }, [currentPage]);
 
@@ -208,6 +209,7 @@ export function RegistrationModal() {
               />
               
               <input
+                ref={emailInputRef}
                 type="email"
                 placeholder="Email Address"
                 className={`w-full p-4 bg-white/10 border ${
@@ -268,6 +270,7 @@ export function RegistrationModal() {
           <div className="space-y-4 max-w-sm mx-auto px-4">
             <div className="space-y-4">
               <input
+                ref={loginEmailRef}
                 type="email"
                 placeholder="Email Address"
                 className={`w-full p-4 bg-white/10 border ${
