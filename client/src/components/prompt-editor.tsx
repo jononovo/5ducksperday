@@ -308,11 +308,11 @@ export default function PromptEditor({
     // Use quickSearchMutation to first get companies without waiting for contact enrichment
     quickSearchMutation.mutate(query);
     
-    // Semi-protected logic: Show registration modal after 3 seconds if not authenticated
+    // Semi-protected logic: Show registration modal after 5 seconds if not authenticated
     if (!user) {
       setTimeout(() => {
         openForProtectedRoute();
-      }, 3000);
+      }, 5000);
     }
   };
 
