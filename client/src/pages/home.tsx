@@ -95,6 +95,8 @@ export default function Home() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const loginPrompt = useLoginPrompt();
+  const auth = useAuth();
 
   // Load state from localStorage on component mount
   useEffect(() => {
@@ -1255,8 +1257,6 @@ export default function Home() {
                           size="sm" 
                           className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
                           onClick={() => {
-                            const loginPrompt = useLoginPrompt();
-                            const auth = useAuth();
                             if (!auth.user) {
                               loginPrompt.showLoginPrompt();
                               return;
