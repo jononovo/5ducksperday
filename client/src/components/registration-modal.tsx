@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { Mail, ChevronRight, ArrowLeft } from "lucide-react";
@@ -13,6 +13,8 @@ export function RegistrationModal() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailValid, setEmailValid] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { closeModal } = useRegistrationModal();
 
@@ -46,6 +48,17 @@ export function RegistrationModal() {
     setEmailValid(isValid);
     return isValid;
   };
+  
+  // Focus the appropriate input field when the page changes
+  useEffect(() => {
+    if (currentPage === "email") {
+      // Focus the name input field on the email registration page
+      setTimeout(() => nameInputRef.current?.focus(), 100);
+    } else if (currentPage === "login") {
+      // Focus the email input field on the login page
+      setTimeout(() => emailInputRef.current?.focus(), 100);
+    }
+  }, [currentPage]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -186,6 +199,7 @@ export function RegistrationModal() {
           <div className="space-y-4 max-w-sm mx-auto px-4">
             <div className="space-y-4">
               <input
+                ref={nameInputRef}
                 type="text"
                 placeholder="Your Name"
                 className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
