@@ -7,6 +7,8 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import { SemiProtectedRoute } from "@/lib/semi-protected-route";
 import { Layout, AppLayout } from "@/components/layout";
 import { SearchStrategyProvider } from "@/lib/search-strategy-context";
+import { RegistrationModalProvider } from "@/hooks/use-registration-modal";
+import { RegistrationModalContainer } from "@/components/registration-modal-container";
 import { useEffect } from "react";
 import { initGA } from "./lib/analytics";
 import { useAnalytics } from "./hooks/use-analytics";
@@ -159,12 +161,15 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <SearchStrategyProvider>
-          {/* Default SEO tags for the entire site */}
-          <SEOHead />
-          <Router />
-          <Toaster />
-        </SearchStrategyProvider>
+        <RegistrationModalProvider>
+          <SearchStrategyProvider>
+            {/* Default SEO tags for the entire site */}
+            <SEOHead />
+            <Router />
+            <RegistrationModalContainer />
+            <Toaster />
+          </SearchStrategyProvider>
+        </RegistrationModalProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
