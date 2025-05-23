@@ -421,7 +421,7 @@ export function RegistrationModal() {
               variant="outline" 
               className="w-full justify-center relative bg-white/10 text-white border-white/20 hover:bg-white/20"
               onClick={handleSubmit}
-              disabled={!emailValid || password.length < 8}
+              disabled={!emailValid}
             >
               Go
               <ChevronRight className="h-4 w-4 ml-2" />
