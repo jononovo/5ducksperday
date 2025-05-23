@@ -160,7 +160,7 @@ export default function LandingPage() {
               <div className="relative bg-white dark:bg-slate-900 rounded-full">
                 <Input
                   type="text"
-                  placeholder="Who do you sell to?"
+                  placeholder="Adventure service providers in Maine"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-12 pr-36 py-7 text-lg rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500"
