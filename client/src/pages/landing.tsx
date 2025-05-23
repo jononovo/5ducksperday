@@ -299,7 +299,7 @@ export default function LandingPage() {
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-6"
                 onClick={() => {
                   trackEvent('cta_click', 'landing_page', 'try_free_5min');
-                  handleSearch("Software companies in New York");
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               >
                 <span className="mr-2">Try it for free (for 5 Minutes)</span>
