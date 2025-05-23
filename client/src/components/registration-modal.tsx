@@ -135,8 +135,12 @@ export function RegistrationModal() {
   };
 
   const handleSubmit = async () => {
-    if (!validateEmail(email) || password.length < 8) return;
-
+    // Different validation rules for registration vs login
+    if (!validateEmail(email)) return;
+    
+    // For registration, enforce 8+ character password
+    if (currentPage === "email" && password.length < 8) return;
+    
     const auth = getAuth();
     
     if (currentPage === "email") {
