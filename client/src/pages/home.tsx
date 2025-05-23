@@ -9,7 +9,7 @@ import { EmailSearchProgress } from "@/components/email-search-progress";
 import { EmailSearchSummary } from "@/components/email-search-summary";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { useLoginPrompt } from "@/lib/semi-protected-route";
+import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import {
   ListPlus,
   Search,
@@ -95,7 +95,7 @@ export default function Home() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  const loginPrompt = useLoginPrompt();
+  const registrationModal = useRegistrationModal();
   const auth = useAuth();
 
   // Load state from localStorage on component mount
