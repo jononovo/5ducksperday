@@ -42,6 +42,8 @@ export function RegistrationModal() {
   
   const handleGoogleSignIn = async () => {
     try {
+      // This will be used in the future when Gmail registration is implemented
+      // Currently this button has "Coming Soon" badge
       const auth = getAuth();
       const provider = new GoogleAuthProvider();
       // Request additional scopes for email sending permissions
