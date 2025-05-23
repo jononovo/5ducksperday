@@ -160,6 +160,10 @@ export function RegistrationModal() {
         });
         
         console.log("Registration successful:", response);
+        
+        // We don't need to manually update auth state here as localAuth now handles it
+        // This ensures protected routes will recognize the authenticated user
+        
         closeModal();
       } catch (error: any) {
         console.error("Registration error:", error);
@@ -174,7 +178,12 @@ export function RegistrationModal() {
           email,
           password
         });
+        
         console.log("Login successful:", response);
+        
+        // The localAuth service now updates the React Query cache
+        // which automatically updates protected routes' authentication state
+        
         closeModal();
       } catch (error: any) {
         console.error("Login error:", error);

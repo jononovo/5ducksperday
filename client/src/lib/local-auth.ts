@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { queryClient } from '@/lib/queryClient';
 
 export interface LoginCredentials {
   email: string;
@@ -25,6 +26,10 @@ export const localAuth = {
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
     try {
       const response = await axios.post('/api/register', credentials);
+      
+      // Update auth state in React Query to trigger UI updates
+      queryClient.setQueryData(["/api/user"], response.data);
+      
       return response.data;
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -38,6 +43,10 @@ export const localAuth = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       const response = await axios.post('/api/login', credentials);
+      
+      // Update auth state in React Query to trigger UI updates
+      queryClient.setQueryData(["/api/user"], response.data);
+      
       return response.data;
     } catch (error: any) {
       console.error('Login error:', error);
@@ -51,6 +60,10 @@ export const localAuth = {
   async logout(): Promise<void> {
     try {
       await axios.post('/api/logout');
+      
+      // Clear auth state in React Query
+      queryClient.setQueryData(["/api/user"], null);
+      
     } catch (error) {
       console.error('Logout error:', error);
       throw error;
@@ -63,6 +76,12 @@ export const localAuth = {
   async checkAuth(): Promise<AuthResponse | null> {
     try {
       const response = await axios.get('/api/user');
+      
+      // If successful, update the auth state
+      if (response.data) {
+        queryClient.setQueryData(["/api/user"], response.data);
+      }
+      
       return response.data;
     } catch (error) {
       return null;
