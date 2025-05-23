@@ -57,6 +57,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { filterTopProspects, ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ContactActionColumn } from "@/components/contact-action-column";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -1441,100 +1442,29 @@ export default function Home() {
                           </TableCell>
                           
                           <TableCell>
-                            {/* Desktop view */}
-                            <div className="hidden md:flex gap-2">
+                            <div className="flex items-center">
+                              {/* Contact actions (first 5 icons) */}
+                              <ContactActionColumn
+                                contact={contact}
+                                handleContactView={handleContactView}
+                                handleEnrichContact={handleEnrichContact}
+                                handleHunterSearch={handleHunterSearch}
+                                handleAeroLeadsSearch={handleAeroLeadsSearch}
+                                handleApolloSearch={handleApolloSearch}
+                                pendingContactIds={pendingContactIds}
+                                pendingHunterIds={pendingHunterIds}
+                                pendingAeroLeadsIds={pendingAeroLeadsIds}
+                                pendingApolloIds={pendingApolloIds}
+                                standalone={true}
+                              />
+                              
+                              {/* Feedback button - both desktop and mobile */}
                               <TooltipProvider delayDuration={500}>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleContactView(contact.id)}
-                                    >
-                                      <Eye className="h-4 w-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Open this contact page</p>
-                                  </TooltipContent>
-                                </Tooltip>
-
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleEnrichContact(contact.id)}
-                                      disabled={isContactPending(contact.id) || isContactEnriched(contact)}
-                                      className={getEnrichButtonClass(contact)}
-                                    >
-                                      <Mail className={`w-4 h-4 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Find this contact's email</p>
-                                  </TooltipContent>
-                                </Tooltip>
-
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleAeroLeadsSearch(contact.id)}
-                                      disabled={isAeroLeadsPending(contact.id) || isAeroLeadsSearchComplete(contact)}
-                                      className={getAeroLeadsButtonClass(contact)}
-                                    >
-                                      <Gem className={`w-4 h-4 ${isAeroLeadsPending(contact.id) ? "animate-spin" : ""}`} />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Search AeroLeads for email</p>
-                                  </TooltipContent>
-                                </Tooltip>
-
-                                {/* Hunter.io search button */}
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleHunterSearch(contact.id)}
-                                      disabled={isHunterPending(contact.id) || isHunterSearchComplete(contact)}
-                                      className={getHunterButtonClass(contact)}
-                                    >
-                                      <Target className={`w-4 h-4 ${isHunterPending(contact.id) ? "animate-spin" : ""}`} />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Search Hunter.io for email</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                                
-                                {/* Apollo API button */}
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleApolloSearch(contact.id)}
-                                      disabled={isApolloPending(contact.id) || isApolloSearchComplete(contact)}
-                                      className={getApolloButtonClass(contact)}
-                                    >
-                                      <Rocket className={`w-4 h-4 ${isApolloPending(contact.id) ? "animate-spin" : ""}`} />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Search Apollo.io for contact details</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                                
-                                {/* Feedback moved to Actions column */}
                                 <Tooltip>
                                   <DropdownMenu>
                                     <TooltipTrigger asChild>
                                       <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="sm">
+                                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1">
                                           <MessageSquare className="h-4 w-4 text-muted-foreground" />
                                         </Button>
                                       </DropdownMenuTrigger>
@@ -1559,57 +1489,6 @@ export default function Home() {
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
-                            </div>
-                            
-                            {/* Mobile view - actions dropdown */}
-                            <div className="md:hidden">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm">
-                                    <Menu className="h-4 w-4" />
-                                    <span className="sr-only">Actions</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleContactView(contact.id)}>
-                                    <Eye className="h-4 w-4 mr-2" />
-                                    View
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    onClick={() => handleEnrichContact(contact.id)}
-                                    disabled={isContactPending(contact.id) || isContactEnriched(contact)}
-                                  >
-                                    <Banknote className={`h-4 w-4 mr-2 ${isContactPending(contact.id) ? "animate-spin" : ""}`} />
-                                    Enrich
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    onClick={() => handleAeroLeadsSearch(contact.id)}
-                                    disabled={isAeroLeadsPending(contact.id) || isAeroLeadsSearchComplete(contact)}
-                                  >
-                                    <Gem className={`h-4 w-4 mr-2 ${isAeroLeadsPending(contact.id) ? "animate-spin" : ""}`} />
-                                    AeroLeads Email
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    onClick={() => handleHunterSearch(contact.id)}
-                                    disabled={isHunterPending(contact.id) || isHunterSearchComplete(contact)}
-                                  >
-                                    <Target className={`h-4 w-4 mr-2 ${isHunterPending(contact.id) ? "animate-spin" : ""}`} />
-                                    Hunter.io Email
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "excellent")}>
-                                    <Star className="h-4 w-4 mr-2 text-yellow-500" />
-                                    Excellent Match
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "ok")}>
-                                    <ThumbsUp className="h-4 w-4 mr-2 text-blue-500" />
-                                    OK Match
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "terrible")}>
-                                    <ThumbsDown className="h-4 w-4 mr-2 text-red-500" />
-                                    Not a Match
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
                             </div>
                           </TableCell>
                         </TableRow>
