@@ -160,15 +160,17 @@ export function RegistrationModal() {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       {currentPage === "main" && (
         <div className="w-full max-w-md mx-auto relative">
-          {/* Login link in upper right corner */}
-          <div className="absolute top-0 right-0 mt-6 mr-6 z-10">
-            <button 
-              onClick={handleLoginClick}
-              className="text-sm text-white hover:text-blue-300 transition-colors"
-            >
-              Login
-            </button>
-          </div>
+          {/* Login link in upper right corner - only show when not displaying Google auth info */}
+          {!showGoogleAuthInfo && (
+            <div className="absolute top-0 right-0 mt-6 mr-6 z-10">
+              <button 
+                onClick={handleLoginClick}
+                className="text-sm text-white hover:text-blue-300 transition-colors"
+              >
+                Login
+              </button>
+            </div>
+          )}
           
           {/* Main content - only show when not displaying Google auth info */}
           <AnimatePresence>
@@ -243,7 +245,7 @@ export function RegistrationModal() {
                 >
                   <div className="bg-blue-500/10 border border-blue-500/30 rounded-md p-4 text-white mb-4">
                     <h3 className="font-bold mb-2">Sending Permissions</h3>
-                    <p className="text-sm">We curate email addresses of key contacts and help you send a compelling message. Please approve the additional permissions for sending email.</p>
+                    <p className="text-sm">We curate email addresses of key contacts and help you send a compelling message.<br /><br />Please approve the additional permissions for sending email.</p>
                   </div>
                   
                   <Button 
