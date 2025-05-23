@@ -7,6 +7,8 @@ type RegistrationModalContextType = {
   closeModal: () => void;
   shouldShowForFirstTimeUsers: boolean;
   setShouldShowForFirstTimeUsers: (value: boolean) => void;
+  openForProtectedRoute: () => void;
+  isOpenedFromProtectedRoute: boolean;
 };
 
 const RegistrationModalContext = createContext<RegistrationModalContextType>({
@@ -15,6 +17,8 @@ const RegistrationModalContext = createContext<RegistrationModalContextType>({
   closeModal: () => {},
   shouldShowForFirstTimeUsers: true,
   setShouldShowForFirstTimeUsers: () => {},
+  openForProtectedRoute: () => {},
+  isOpenedFromProtectedRoute: false,
 });
 
 export const useRegistrationModal = () => useContext(RegistrationModalContext);
