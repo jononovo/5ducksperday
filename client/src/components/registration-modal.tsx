@@ -245,7 +245,7 @@ export function RegistrationModal() {
                 >
                   <div className="bg-blue-500/10 border border-blue-500/30 rounded-md p-4 text-white mb-4">
                     <h3 className="font-bold mb-2">Sending Permissions</h3>
-                    <p className="text-sm">We curate email addresses of key contacts and help you send a compelling message.<br /><br />Please approve the additional permissions for sending email.</p>
+                    <p className="text-sm">We help you send a compelling message.<br /><br />Please approve the additional permissions for sending email.</p>
                   </div>
                   
                   <Button 
