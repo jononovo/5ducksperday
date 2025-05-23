@@ -25,11 +25,13 @@ export function RegistrationModal() {
   const { user } = useAuth();
   const { closeModal } = useRegistrationModal();
 
-  // If user is already logged in, don't show the modal
-  if (user) {
-    closeModal();
-    return null;
-  }
+  // If user is already logged in, we'll close the modal
+  // but we don't return early to avoid React hooks errors
+  useEffect(() => {
+    if (user) {
+      closeModal();
+    }
+  }, [user, closeModal]);
 
   const handleLoginClick = () => {
     setCurrentPage("login");
