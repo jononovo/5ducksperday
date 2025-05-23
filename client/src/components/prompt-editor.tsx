@@ -11,6 +11,8 @@ import { useConfetti } from "@/hooks/use-confetti";
 import { useSearchStrategy } from "@/lib/search-strategy-context";
 import SearchSettingsDrawer from "./search-settings-drawer";
 import SearchProgressIndicator from "./search-progress-indicator";
+import { useAuth } from "@/hooks/use-auth";
+import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import {
   Tooltip,
   TooltipContent,
@@ -49,6 +51,10 @@ export default function PromptEditor({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { triggerConfetti } = useConfetti();
+  
+  // Add auth hooks for semi-protected functionality
+  const { user } = useAuth();
+  const { openForProtectedRoute } = useRegistrationModal();
   
   // Track if input has changed from last executed query
   const [inputHasChanged, setInputHasChanged] = useState(false);
@@ -301,6 +307,13 @@ export default function PromptEditor({
     onAnalyze();
     // Use quickSearchMutation to first get companies without waiting for contact enrichment
     quickSearchMutation.mutate(query);
+    
+    // Semi-protected logic: Show registration modal after 3 seconds if not authenticated
+    if (!user) {
+      setTimeout(() => {
+        openForProtectedRoute();
+      }, 3000);
+    }
   };
 
   // State for custom workflow configuration with localStorage persistence

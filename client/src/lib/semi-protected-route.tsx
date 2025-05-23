@@ -1,8 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Route } from "wouter";
-import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { cloneElement } from "react";
 
 // Semi-protected route that allows access but can prompt for login
 export function SemiProtectedRoute({
@@ -13,7 +11,6 @@ export function SemiProtectedRoute({
   component: () => React.JSX.Element;
 }) {
   const { user, isLoading } = useAuth();
-  const { openForProtectedRoute } = useRegistrationModal();
 
   if (isLoading) {
     return (
@@ -24,15 +21,6 @@ export function SemiProtectedRoute({
       </Route>
     );
   }
-
-  // Semi-protected action handler - shows modal after delay
-  const handleSemiProtectedAction = () => {
-    if (!user) {
-      setTimeout(() => {
-        openForProtectedRoute();
-      }, 3000);
-    }
-  };
 
   return (
     <Route path={path}>
