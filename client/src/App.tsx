@@ -37,6 +37,7 @@ import Contact from "@/pages/contact";
 import Support from "@/pages/support";
 import Levels from "@/pages/levels";
 import Privacy from "@/pages/privacy";
+import Changelog from "@/pages/changelog";
 
 function Router() {
   // Track page views when routes change
@@ -110,6 +111,14 @@ function Router() {
             <MainNav />
             <div className="flex-1">
               <Privacy />
+            </div>
+          </Layout>
+        </Route>
+        <Route path="/changelog">
+          <Layout>
+            <MainNav />
+            <div className="flex-1">
+              <Changelog />
             </div>
           </Layout>
         </Route>
