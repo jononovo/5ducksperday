@@ -4,9 +4,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { Mail, ChevronRight, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { firebaseAuth, firebaseGoogleProvider } from "@/lib/firebase";
+import { firebaseAuth } from "@/lib/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 type RegistrationPage = "main" | "email" | "login" | "forgotPassword";
 
@@ -22,8 +23,11 @@ export function RegistrationModal() {
   const emailInputRef = useRef<HTMLInputElement>(null);
   const loginEmailRef = useRef<HTMLInputElement>(null);
   const forgotPasswordEmailRef = useRef<HTMLInputElement>(null);
-  const { user } = useAuth();
+  
+  // Use the auth hook
+  const { user, signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
   const { closeModal, isOpenedFromProtectedRoute } = useRegistrationModal();
+  const { toast } = useToast();
 
   // If user is already logged in, we'll close the modal
   // but we don't return early to avoid React hooks errors
@@ -42,14 +46,17 @@ export function RegistrationModal() {
     setShowGoogleAuthInfo(true);
   };
   
-  const { signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
-  
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
       closeModal();
     } catch (error) {
       console.error("Google sign-in error:", error);
+      toast({
+        title: "Sign-in failed",
+        description: "Could not sign in with Google. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -130,7 +137,11 @@ export function RegistrationModal() {
       } catch (error: any) {
         // Handle errors
         console.error("Password reset error:", error);
-        alert(`Error sending reset email: ${error.message || "Please try again later."}`);
+        toast({
+          title: "Password Reset Failed",
+          description: error.message || "Please try again later.",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -142,7 +153,11 @@ export function RegistrationModal() {
     // For registration, enforce 8+ character password only if email includes @
     // This allows users to proceed if they haven't reached the password field yet
     if (currentPage === "email" && email.includes('@') && password.length < 8) {
-      alert("Password must be at least 8 characters");
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 8 characters",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -157,7 +172,11 @@ export function RegistrationModal() {
         closeModal();
       } catch (error: any) {
         console.error("Registration error:", error);
-        alert(`Registration failed: ${error.message || "Please try again."}`);
+        toast({
+          title: "Registration Failed",
+          description: error.message || "Please try again.",
+          variant: "destructive",
+        });
       }
     } else if (currentPage === "login") {
       try {
@@ -170,7 +189,11 @@ export function RegistrationModal() {
         closeModal();
       } catch (error: any) {
         console.error("Login error:", error);
-        alert(`Login failed: ${error.message || "Invalid email or password."}`);
+        toast({
+          title: "Login Failed",
+          description: error.message || "Invalid email or password.",
+          variant: "destructive",
+        });
       }
     }
   };
