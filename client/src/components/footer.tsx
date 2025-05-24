@@ -82,7 +82,9 @@ export function Footer() {
             © {new Date().getFullYear()} 5Ducks. All rights reserved.
           </div>
           <div className="flex items-center">
-            {/* Privacy policy link removed from bottom section */}
+            <span className="text-sm text-slate-600 dark:text-slate-400 italic">
+              Soli Deo Gloria
+            </span>
           </div>
           <div className="flex items-center space-x-4">
             <a
