@@ -10,7 +10,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { firebaseAuth, firebaseGoogleProvider } from "@/lib/firebase";
 
 // Helper function remains unchanged
@@ -31,7 +32,11 @@ function getFirebaseErrorMessage(): string {
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
-  const { user, loginMutation, registerMutation, signInWithGoogle } = useAuth();
+  const { user, signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
+  const [isRegisterSubmitting, setIsRegisterSubmitting] = useState(false);
 
   const loginForm = useForm<Pick<InsertUser, "email" | "password">>({
     resolver: zodResolver(userSchema.omit({ username: true })),
@@ -55,25 +60,49 @@ export default function AuthPage() {
     }
   }, [user, setLocation]);
 
-  const { signInWithEmail, registerWithEmail } = useAuth();
-
   const onLogin = loginForm.handleSubmit(async (data) => {
+    setLoginError(null);
+    setIsLoginSubmitting(true);
     try {
       await signInWithEmail(data.email, data.password);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      // Form errors are handled by React Hook Form
+      
+      // Handle specific Firebase errors
+      if (error.code === 'auth/operation-not-allowed') {
+        setLoginError("Email/Password login is not enabled in Firebase settings");
+      } else if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        setLoginError("Invalid email or password");
+      } else {
+        setLoginError(error.message || "Login failed. Please try again.");
+      }
+    } finally {
+      setIsLoginSubmitting(false);
     }
   });
 
   const onRegister = registerForm.handleSubmit(async (data) => {
+    setRegisterError(null);
+    setIsRegisterSubmitting(true);
     try {
       // Add a default username based on email
       const username = data.email.split('@')[0];
       await registerWithEmail(data.email, data.password, username);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error);
-      // Form errors are handled by React Hook Form
+      
+      // Handle specific Firebase errors
+      if (error.code === 'auth/operation-not-allowed') {
+        setRegisterError("Email/Password registration is not enabled in Firebase settings");
+      } else if (error.code === 'auth/email-already-in-use') {
+        setRegisterError("This email is already in use");
+      } else if (error.code === 'auth/weak-password') {
+        setRegisterError("Password is too weak. Please use a stronger password");
+      } else {
+        setRegisterError(error.message || "Registration failed. Please try again.");
+      }
+    } finally {
+      setIsRegisterSubmitting(false);
     }
   });
 
@@ -174,12 +203,17 @@ export default function AuthPage() {
                           </FormItem>
                         )}
                       />
+                      {loginError && (
+                        <Alert variant="destructive" className="mb-4">
+                          <AlertDescription>{loginError}</AlertDescription>
+                        </Alert>
+                      )}
                       <Button
                         type="submit"
                         className="w-full"
-                        disabled={loginMutation.isPending}
+                        disabled={isLoginSubmitting}
                       >
-                        {loginMutation.isPending && (
+                        {isLoginSubmitting && (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         )}
                         Login
@@ -217,12 +251,17 @@ export default function AuthPage() {
                           </FormItem>
                         )}
                       />
+                      {registerError && (
+                        <Alert variant="destructive" className="mb-4">
+                          <AlertDescription>{registerError}</AlertDescription>
+                        </Alert>
+                      )}
                       <Button
                         type="submit"
                         className="w-full"
-                        disabled={registerMutation.isPending}
+                        disabled={isRegisterSubmitting}
                       >
-                        {registerMutation.isPending && (
+                        {isRegisterSubmitting && (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         )}
                         Register
