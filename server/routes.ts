@@ -7,41 +7,57 @@ import { parseCompanyData } from "./lib/results-analysis/company-parser";
 import { queryPerplexity } from "./lib/api/perplexity-client";
 import { searchContactDetails } from "./lib/api-interactions";
 import { google } from "googleapis";
-import { getEmailProvider } from "./services/emailService";
-import { insertCompanySchema, insertContactSchema, insertSearchApproachSchema, insertListSchema, insertCampaignSchema } from "@shared/schema";
-import { insertEmailTemplateSchema, insertSearchTestResultSchema, insertEmailThreadSchema, insertEmailMessageSchema } from "@shared/schema";
+import { 
+  insertCompanySchema, 
+  insertContactSchema, 
+  insertSearchApproachSchema, 
+  insertListSchema, 
+  insertCampaignSchema,
+  insertEmailTemplateSchema, 
+  insertSearchTestResultSchema, 
+  insertEmailThreadSchema, 
+  insertEmailMessageSchema
+} from "@shared/schema";
 import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
 import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
 import { findKeyDecisionMakers } from "./lib/search-logic/contact-discovery/enhanced-contact-finder";
-import { google } from 'googleapis';
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow-service";
 import { logIncomingWebhook } from "./lib/webhook-logger";
-
-// Import email service providers
 import { getEmailProvider } from "./services/emailService";
 
 // Helper function to safely get user ID from request
-function getUserId(req: express.Request): number {
+function getUserId(req: express.Request): number | null {
   try {
+    // First check if user is authenticated through session
     if (req.isAuthenticated && req.isAuthenticated() && req.user && (req.user as any).id) {
       return (req.user as any).id;
+    }
+    
+    // Then check for Firebase authentication
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      // Firebase token is verified in the middleware and user is attached to req
+      if ((req as any).firebaseUser && (req as any).firebaseUser.id) {
+        return (req as any).firebaseUser.id;
+      }
     }
   } catch (error) {
     console.error('Error accessing user ID:', error);
   }
   
-  // For testing only - using default user ID
-  console.log('Using default user ID - authentication issue', {
+  console.log('No authenticated user found', {
     isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
     hasUser: !!req.user,
+    hasFirebaseUser: !!(req as any).firebaseUser,
     path: req.path,
     timestamp: new Date().toISOString()
   });
-  return 1;
+  
+  // Return null to indicate no authenticated user found
+  return null;
 }
 
 // Helper functions for improved search test scoring and AI agent support
@@ -79,17 +95,33 @@ function calculateImprovement(results: any[]): string | null {
 
 // Authentication middleware
 function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
-  // Always continue in testing/development mode for better UX
-  // In production, this would be properly locked down
   console.log('Auth check:', {
     isAuthenticated: req.isAuthenticated(),
     hasUser: !!req.user,
+    hasFirebaseUser: !!(req as any).firebaseUser,
     path: req.path,
     method: req.method,
     timestamp: new Date().toISOString()
   });
   
-  // Allow the request to proceed even if not authenticated
+  // In a production environment, we would require authentication
+  // For now, we'll still allow access but flag it for easier development
+  
+  // If we have either a session user or Firebase user, set proper user context
+  if (req.isAuthenticated() && req.user) {
+    // Already authenticated via session
+    next();
+    return;
+  }
+  
+  // Firebase token verification would have happened in middleware
+  if ((req as any).firebaseUser) {
+    // User authenticated via Firebase token
+    next();
+    return;
+  }
+  
+  // For development only - we'll still allow the request
   next();
 }
 
