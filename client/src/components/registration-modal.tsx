@@ -172,11 +172,21 @@ export function RegistrationModal() {
         closeModal();
       } catch (error: any) {
         console.error("Registration error:", error);
-        toast({
-          title: "Registration Failed",
-          description: error.message || "Please try again.",
-          variant: "destructive",
-        });
+        
+        // Special handling for operation-not-allowed error
+        if (error.code === 'auth/operation-not-allowed') {
+          toast({
+            title: "Email/Password Sign-up Not Enabled",
+            description: "Email/Password authentication needs to be enabled in the Firebase Console.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Registration Failed",
+            description: error.message || "Please try again.",
+            variant: "destructive",
+          });
+        }
       }
     } else if (currentPage === "login") {
       try {
@@ -189,11 +199,21 @@ export function RegistrationModal() {
         closeModal();
       } catch (error: any) {
         console.error("Login error:", error);
-        toast({
-          title: "Login Failed",
-          description: error.message || "Invalid email or password.",
-          variant: "destructive",
-        });
+        
+        // Special handling for operation-not-allowed error
+        if (error.code === 'auth/operation-not-allowed') {
+          toast({
+            title: "Email/Password Login Not Enabled",
+            description: "Email/Password authentication needs to be enabled in the Firebase Console.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Login Failed",
+            description: error.message || "Invalid email or password.",
+            variant: "destructive",
+          });
+        }
       }
     }
   };
