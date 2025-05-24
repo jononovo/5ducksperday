@@ -55,17 +55,26 @@ export default function AuthPage() {
     }
   }, [user, setLocation]);
 
-  const onLogin = loginForm.handleSubmit((data) => {
-    loginMutation.mutate(data);
+  const { signInWithEmail, registerWithEmail } = useAuth();
+
+  const onLogin = loginForm.handleSubmit(async (data) => {
+    try {
+      await signInWithEmail(data.email, data.password);
+    } catch (error) {
+      console.error("Login error:", error);
+      // Form errors are handled by React Hook Form
+    }
   });
 
-  const onRegister = registerForm.handleSubmit((data) => {
-    // Add a default username based on email
-    const registerData = {
-      ...data,
-      username: data.email.split('@')[0]
-    };
-    registerMutation.mutate(registerData);
+  const onRegister = registerForm.handleSubmit(async (data) => {
+    try {
+      // Add a default username based on email
+      const username = data.email.split('@')[0];
+      await registerWithEmail(data.email, data.password, username);
+    } catch (error) {
+      console.error("Registration error:", error);
+      // Form errors are handled by React Hook Form
+    }
   });
 
   if (user) {
