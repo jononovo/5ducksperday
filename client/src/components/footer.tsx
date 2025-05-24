@@ -48,6 +48,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/changelog" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                  Changelog
+                </Link>
+              </li>
+              <li>
                 <a href="/sitemap.xml" className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
                   Sitemap
                 </a>
