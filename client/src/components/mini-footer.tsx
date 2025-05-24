@@ -8,6 +8,9 @@ export function MiniFooter() {
           <div className="text-sm text-slate-600 dark:text-slate-400">
             © {new Date().getFullYear()} 5Ducks. All rights reserved.
           </div>
+          <span className="text-sm text-slate-600 dark:text-slate-400 italic">
+            Soli Deo Gloria
+          </span>
           <a
             href="https://www.linkedin.com/company/5ducks/"
             target="_blank"
