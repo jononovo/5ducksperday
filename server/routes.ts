@@ -48,6 +48,21 @@ function getUserId(req: express.Request): number {
     console.error('Error accessing user ID:', error);
   }
   
+  // For routes that handle list/company data, we need to determine if this is:
+  // 1. A new user who should see demo data (return 1)
+  // 2. A user who just logged out and needs a clean state (don't return user 1's data)
+  
+  // Check for recent logout by looking at the logout timestamp in the session
+  const recentlyLoggedOut = (req.session as any)?.logoutTime && 
+    (Date.now() - (req.session as any).logoutTime < 60000); // Within last minute
+  
+  if (recentlyLoggedOut) {
+    // For recently logged out users, return a non-existent user ID
+    // This ensures they don't see the previous user's data
+    console.log('Recently logged out user - returning non-existent user ID');
+    return -1; // This ID won't match any real user, preventing data leakage
+  }
+  
   console.log('No authenticated user found - using demo user ID for compatibility', {
     isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
     hasUser: !!req.user,
@@ -57,9 +72,7 @@ function getUserId(req: express.Request): number {
     timestamp: new Date().toISOString()
   });
   
-  // We'll use a special demo user ID for unauthenticated users
-  // Using the default demo user (ID 1) allows unregistered users to see demo data
-  // In a production environment, we would return an error for unauthenticated requests
+  // For regular unauthenticated users, return demo user ID
   return 1;
 }
 

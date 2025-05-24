@@ -304,6 +304,13 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
+    // Store the logout time in the session before logout
+    // This will help us prevent showing previous user data to a new user
+    if (req.session) {
+      (req.session as any).logoutTime = Date.now();
+      console.log('Set logout timestamp:', { time: new Date().toISOString() });
+    }
+    
     req.logout((err) => {
       if (err) return next(err);
       res.sendStatus(200);
