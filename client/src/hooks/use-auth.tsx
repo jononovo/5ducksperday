@@ -4,23 +4,27 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
-import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
+import { User as SelectUser } from "@shared/schema";
+import { getQueryFn, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { firebaseAuth, firebaseGoogleProvider } from "@/lib/firebase";
-import { signInWithPopup, signOut, type User as FirebaseUser } from "firebase/auth";
+import { 
+  signInWithPopup, 
+  signOut, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  type User as FirebaseUser 
+} from "firebase/auth";
 
 type AuthContextType = {
   user: SelectUser | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  registerWithEmail: (email: string, password: string, username?: string) => Promise<void>;
 };
-
-type LoginData = Pick<InsertUser, "email" | "password">;
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -35,82 +39,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
-  const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginData) => {
-      const res = await apiRequest("POST", "/api/login", credentials);
-      try {
-        return await res.json();
-      } catch (error) {
-        console.error('Login JSON parsing error:', error);
-        throw new Error(`Login failed: ${error instanceof Error ? error.message : 'Could not parse server response'}`);
-      }
-    },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Login failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const registerMutation = useMutation({
-    mutationFn: async (credentials: InsertUser) => {
-      try {
-        console.log('Submitting registration:', {
-          email: credentials.email,
-          hasPassword: !!credentials.password,
-          timestamp: new Date().toISOString()
-        });
-        
-        const res = await apiRequest("POST", "/api/register", credentials);
-        
-        try {
-          return await res.json();
-        } catch (parseError) {
-          console.error('Registration JSON parsing error:', {
-            error: parseError,
-            status: res.status,
-            statusText: res.statusText
-          });
-          
-          // Get raw text for debugging
-          const text = await res.clone().text();
-          console.error('Raw response text that failed to parse:', {
-            text: text.substring(0, 500) // Limit to 500 chars
-          });
-          
-          throw new Error(`Registration failed: Could not parse server response`);
-        }
-      } catch (error) {
-        console.error('Registration error:', error);
-        throw error;
-      }
-    },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Registration failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/logout");
       if (firebaseAuth) {
         try {
           await signOut(firebaseAuth);
         } catch (error) {
           console.error("Firebase sign out error:", error);
-          // Continue with local logout even if Firebase fails
+          throw error;
         }
       }
     },
@@ -125,6 +61,98 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     },
   });
+
+  const signInWithEmail = async (email: string, password: string) => {
+    try {
+      if (!firebaseAuth) {
+        console.error('Firebase auth not initialized');
+        throw new Error("Authentication service is not properly configured");
+      }
+
+      console.log('Starting email sign-in process', {
+        email: email.split('@')[0] + '@...',
+        timestamp: new Date().toISOString()
+      });
+
+      const result = await signInWithEmailAndPassword(firebaseAuth, email, password);
+
+      if (!result.user?.email) {
+        throw new Error("No email available after sign-in");
+      }
+
+      console.log('Email sign-in successful, syncing with backend');
+      await syncWithBackend(result.user);
+
+    } catch (error: any) {
+      console.error("Email sign-in error:", {
+        error: error.message,
+        code: error.code
+      });
+
+      // Show user-friendly error messages
+      let errorMessage = "Please try again";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        errorMessage = "Invalid email or password";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many attempts. Please try again later";
+      }
+
+      toast({
+        title: "Sign-in failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
+      throw error;
+    }
+  };
+
+  const registerWithEmail = async (email: string, password: string, username?: string) => {
+    try {
+      if (!firebaseAuth) {
+        console.error('Firebase auth not initialized');
+        throw new Error("Authentication service is not properly configured");
+      }
+
+      console.log('Starting email registration process', {
+        email: email.split('@')[0] + '@...',
+        timestamp: new Date().toISOString()
+      });
+
+      const result = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+
+      if (!result.user?.email) {
+        throw new Error("No email available after registration");
+      }
+
+      console.log('Email registration successful, syncing with backend');
+      await syncWithBackend(result.user);
+
+    } catch (error: any) {
+      console.error("Email registration error:", {
+        error: error.message,
+        code: error.code
+      });
+
+      // Show user-friendly error messages
+      let errorMessage = "Please try again";
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "Email already in use. Try signing in instead";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "Password is too weak. Please use a stronger password";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email address";
+      }
+
+      toast({
+        title: "Registration failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
+      throw error;
+    }
+  };
 
   const signInWithGoogle = async () => {
     try {
@@ -338,10 +366,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: user ?? null,
         isLoading,
         error,
-        loginMutation,
         logoutMutation,
-        registerMutation,
         signInWithGoogle,
+        signInWithEmail,
+        registerWithEmail,
       }}
     >
       {children}
