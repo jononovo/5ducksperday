@@ -41,9 +41,20 @@ export async function apiRequest(
       timestamp: new Date().toISOString()
     });
     
+    // Get Firebase token from localStorage if available
+    const authToken = localStorage.getItem('authToken');
+    
+    // Prepare headers
+    const headers: HeadersInit = data ? { "Content-Type": "application/json" } : {};
+    
+    // Add auth token if available
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
     const res = await fetch(url, {
       method: method,
-      headers: data ? { "Content-Type": "application/json" } : {},
+      headers,
       body: data ? JSON.stringify(data) : undefined,
       credentials: "include",
     });
@@ -66,8 +77,18 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     try {
+      // Get Firebase token from localStorage if available
+      const authToken = localStorage.getItem('authToken');
+      
+      // Set up headers with auth token if available
+      const headers: HeadersInit = {};
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+      
       const res = await fetch(queryKey[0] as string, {
         credentials: "include",
+        headers
       });
 
       if (unauthorizedBehavior === "returnNull" && res.status === 401) {
