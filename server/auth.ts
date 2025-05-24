@@ -213,8 +213,17 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) {
       const firebaseUser = await verifyFirebaseToken(req);
       if (firebaseUser) {
+        // Attach the Firebase user to the request for other middleware to access
+        (req as any).firebaseUser = firebaseUser;
+        
+        // Also log the user in to create a session
         req.login(firebaseUser, (err) => {
           if (err) return next(err);
+          console.log('Firebase user logged in:', {
+            id: firebaseUser.id,
+            email: firebaseUser.email?.split('@')[0] + '@...',
+            timestamp: new Date().toISOString()
+          });
           next();
         });
         return;

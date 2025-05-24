@@ -712,18 +712,45 @@ export function registerRoutes(app: Express) {
   });
 
   app.get("/api/lists/:listId", requireAuth, async (req, res) => {
-    const userId = getUserId(req);
-    const list = await storage.getList(parseInt(req.params.listId), userId);
+    const isAuthenticated = req.isAuthenticated && req.isAuthenticated() && req.user;
+    const listId = parseInt(req.params.listId);
+    
+    let list = null;
+    
+    // First try to find the list for the authenticated user
+    if (isAuthenticated) {
+      list = await storage.getList(listId, req.user!.id);
+    }
+    
+    // If not found or not authenticated, check if it's a demo list
+    if (!list) {
+      list = await storage.getList(listId, 1); // Check demo user (ID 1)
+    }
+    
     if (!list) {
       res.status(404).json({ message: "List not found" });
       return;
     }
+    
     res.json(list);
   });
 
   app.get("/api/lists/:listId/companies", requireAuth, async (req, res) => {
-    const userId = getUserId(req);
-    const companies = await storage.listCompaniesByList(parseInt(req.params.listId), userId);
+    const isAuthenticated = req.isAuthenticated && req.isAuthenticated() && req.user;
+    const listId = parseInt(req.params.listId);
+    
+    let companies = [];
+    
+    // First try to find companies for the authenticated user's list
+    if (isAuthenticated) {
+      companies = await storage.listCompaniesByList(listId, req.user!.id);
+    }
+    
+    // If none found or not authenticated, check for demo list companies
+    if (companies.length === 0) {
+      companies = await storage.listCompaniesByList(listId, 1); // Check demo user (ID 1)
+    }
+    
     res.json(companies);
   });
 
