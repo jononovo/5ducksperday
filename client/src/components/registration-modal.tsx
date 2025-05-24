@@ -4,9 +4,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { Mail, ChevronRight, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { getAuth, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { firebaseAuth, firebaseGoogleProvider } from "@/lib/firebase";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { localAuth } from "@/lib/local-auth";
 
 type RegistrationPage = "main" | "email" | "login" | "forgotPassword";
 
@@ -42,17 +42,11 @@ export function RegistrationModal() {
     setShowGoogleAuthInfo(true);
   };
   
+  const { signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
+  
   const handleGoogleSignIn = async () => {
     try {
-      // This will be used in the future when Gmail registration is implemented
-      // Currently this button has "Coming Soon" badge
-      const auth = getAuth();
-      const provider = new GoogleAuthProvider();
-      // Request additional scopes for email sending permissions
-      provider.addScope('https://www.googleapis.com/auth/gmail.send');
-      
-      const result = await signInWithPopup(auth, provider);
-      console.log("Google sign-in successful:", result);
+      await signInWithGoogle();
       closeModal();
     } catch (error) {
       console.error("Google sign-in error:", error);
@@ -116,10 +110,12 @@ export function RegistrationModal() {
   const handleForgotPasswordSubmit = async () => {
     if (validateEmail(email)) {
       try {
-        // For now, we'll still use Firebase's password reset functionality for Gmail login
-        // In a fully local auth setup, you would implement a server endpoint for password reset
-        const auth = getAuth();
-        await sendPasswordResetEmail(auth, email, {
+        // Use Firebase's password reset functionality
+        if (!firebaseAuth) {
+          throw new Error("Authentication service is not initialized");
+        }
+        
+        await sendPasswordResetEmail(firebaseAuth, email, {
           url: window.location.origin, 
           handleCodeInApp: false
         });
@@ -152,20 +148,12 @@ export function RegistrationModal() {
     
     if (currentPage === "email") {
       try {
-        // Register user with local authentication
+        // Register user with Firebase authentication
         console.log("Attempting registration with:", { email, name });
         
-        const response = await localAuth.register({
-          email,
-          password,
-          name
-        });
+        await registerWithEmail(email, password, name);
         
-        console.log("Registration successful:", response);
-        
-        // We don't need to manually update auth state here as localAuth now handles it
-        // This ensures protected routes will recognize the authenticated user
-        
+        console.log("Registration successful with Firebase");
         closeModal();
       } catch (error: any) {
         console.error("Registration error:", error);
@@ -173,19 +161,12 @@ export function RegistrationModal() {
       }
     } else if (currentPage === "login") {
       try {
-        // Sign in with local authentication
+        // Sign in with Firebase authentication
         console.log("Attempting login with:", { email });
         
-        const response = await localAuth.login({
-          email,
-          password
-        });
+        await signInWithEmail(email, password);
         
-        console.log("Login successful:", response);
-        
-        // The localAuth service now updates the React Query cache
-        // which automatically updates protected routes' authentication state
-        
+        console.log("Login successful with Firebase");
         closeModal();
       } catch (error: any) {
         console.error("Login error:", error);

@@ -13,6 +13,7 @@ import {
   signOut, 
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  updateProfile,
   type User as FirebaseUser 
 } from "firebase/auth";
 
@@ -123,6 +124,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!result.user?.email) {
         throw new Error("No email available after registration");
+      }
+
+      // Set display name if username is provided
+      if (username && result.user) {
+        await updateProfile(result.user, {
+          displayName: username
+        });
       }
 
       console.log('Email registration successful, syncing with backend');
