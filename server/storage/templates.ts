@@ -1,5 +1,5 @@
 import { PgDatabase } from 'drizzle-orm/pg-core';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
 import {
   type EmailTemplate,
   type InsertEmailTemplate,
@@ -20,6 +20,22 @@ export class TemplateStorage {
 
   async listEmailTemplates(userId: number): Promise<EmailTemplate[]> {
     console.log('TemplateStorage.listEmailTemplates called for userId:', userId);
+    
+    // If this is not userId=1, get both the default templates and the user's templates
+    if (userId !== 1) {
+      console.log(`Fetching both default templates (userId=1) and user templates (userId=${userId})`);
+      return this.db
+        .select()
+        .from(emailTemplates)
+        .where(or(
+          eq(emailTemplates.userId, 1),  // Default templates (userId=1)
+          eq(emailTemplates.userId, userId)  // User's personal templates
+        ))
+        .orderBy(emailTemplates.createdAt);
+    }
+    
+    // If it is userId=1, just return their templates (which are the defaults)
+    console.log('Fetching only templates for userId=1 (defaults)');
     return this.db
       .select()
       .from(emailTemplates)

@@ -14,7 +14,7 @@ import {
   type EmailMessage, type InsertEmailMessage
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, or, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User Auth
@@ -354,7 +354,27 @@ class DatabaseStorage implements IStorage {
   // Email Templates
   async listEmailTemplates(userId: number): Promise<EmailTemplate[]> {
     console.log('DatabaseStorage.listEmailTemplates called for userId:', userId);
-    return db.select().from(emailTemplates).where(eq(emailTemplates.userId, userId));
+    
+    // If this is not userId=1, get both the default templates and the user's templates
+    if (userId !== 1) {
+      console.log(`Fetching both default templates (userId=1) and user templates (userId=${userId})`);
+      return db
+        .select()
+        .from(emailTemplates)
+        .where(or(
+          eq(emailTemplates.userId, 1),  // Default templates (userId=1)
+          eq(emailTemplates.userId, userId)  // User's personal templates
+        ))
+        .orderBy(emailTemplates.createdAt);
+    }
+    
+    // If it is userId=1, just return their templates (which are the defaults)
+    console.log('Fetching only templates for userId=1 (defaults)');
+    return db
+      .select()
+      .from(emailTemplates)
+      .where(eq(emailTemplates.userId, userId))
+      .orderBy(emailTemplates.createdAt);
   }
 
   async getEmailTemplate(id: number, userId: number): Promise<EmailTemplate | undefined> {
