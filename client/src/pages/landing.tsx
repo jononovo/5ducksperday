@@ -14,7 +14,10 @@ import {
   Menu,
   MessageSquare,
   Users,
-  Mail
+  Mail,
+  Clock,
+  UserCheck,
+  Star
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -372,7 +375,7 @@ export default function LandingPage() {
                 <div className="grid md:grid-cols-3 gap-8">
                   <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                     <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
-                      <Search className="text-blue-600 dark:text-blue-400" />
+                      <Clock className="text-blue-600 dark:text-blue-400" />
                     </div>
                     <h3 className="text-xl font-semibold mb-2">You're already wasting time</h3>
                     <p className="text-slate-600 dark:text-slate-400">You should be sending simple emails to amazing people about how you are solving their problem.</p>
@@ -380,7 +383,7 @@ export default function LandingPage() {
                   
                   <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                     <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mb-4">
-                      <User className="text-purple-600 dark:text-purple-400" />
+                      <UserCheck className="text-purple-600 dark:text-purple-400" />
                     </div>
                     <h3 className="text-xl font-semibold mb-2">We limit you to 10 Emails per Day</h3>
                     <p className="text-slate-600 dark:text-slate-400">So that you never have to feel intimidated about doing outreach.</p>
@@ -388,7 +391,7 @@ export default function LandingPage() {
                   
                   <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                     <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center mb-4">
-                      <Sparkles className="text-pink-600 dark:text-pink-400" />
+                      <Star className="text-pink-600 dark:text-pink-400" />
                     </div>
                     <h3 className="text-xl font-semibold mb-2">You'll be done in 5 Mins (or less)</h3>
                     <p className="text-slate-600 dark:text-slate-400">And you won't even be distracted by your inbox, because we don't include that here.</p>
