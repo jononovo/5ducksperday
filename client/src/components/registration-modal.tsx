@@ -267,14 +267,14 @@ export function RegistrationModal() {
                 >
                   <Button 
                     variant="outline"
-                    className="w-full justify-between relative bg-blue-500/20 hover:bg-blue-500/20 text-blue-400 border-2 border-blue-400 hover:border-blue-300 hover:text-blue-300 hover:font-semibold shadow-sm cursor-pointer"
+                    className="group w-full justify-between relative bg-blue-500/20 hover:bg-black/50 text-blue-400 border-2 border-blue-400 hover:border-blue-300 group-hover:text-blue-300 group-hover:font-semibold shadow-sm cursor-pointer"
                     onClick={handleOtherEmailClick}
                   >
-                    <div className="flex items-center text-blue-400 hover:text-blue-300">
-                      <Mail className="h-5 w-5 mr-2 text-blue-400 hover:text-blue-300" />
+                    <div className="flex items-center text-blue-400 group-hover:text-blue-300">
+                      <Mail className="h-5 w-5 mr-2 text-blue-400 group-hover:text-blue-300" />
                       Email & Password
                     </div>
-                    <ChevronRight className="h-4 w-4 text-blue-400 hover:text-blue-300" />
+                    <ChevronRight className="h-4 w-4 text-blue-400 group-hover:text-blue-300" />
                   </Button>
 
                   <Button 
