@@ -306,7 +306,7 @@ export default function LandingPage() {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               >
-                <span className="mr-2">Try it for free (for 5 Minutes)</span>
+                <span className="mr-2">Try it for free</span>
                 <ChevronRight size={16} />
               </Button>
             </div>
