@@ -291,7 +291,7 @@ export default function LandingPage() {
               
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                 <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center mb-4">
-                  <Mail className="text-pink-600 dark:text-pink-400" />
+                  <Sparkles className="text-pink-600 dark:text-pink-400" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Find all decision-maker's email</h3>
                 <p className="text-slate-600 dark:text-slate-400">with a single click or drill-down and only find those you want.</p>
