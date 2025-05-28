@@ -272,7 +272,7 @@ export default function LandingPage() {
             <div className="grid md:grid-cols-3 gap-8">
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
-                  <Search className="text-blue-600 dark:text-blue-400" />
+                  <MessageSquare className="text-blue-600 dark:text-blue-400" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Simply prompt type of company</h3>
                 <p className="text-slate-600 dark:text-slate-400">Adapt your prompt until you are getting the companies you want.</p>
@@ -280,7 +280,7 @@ export default function LandingPage() {
               
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                 <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mb-4">
-                  <User className="text-purple-600 dark:text-purple-400" />
+                  <Users className="text-purple-600 dark:text-purple-400" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Then click "Find Key Contacts"</h3>
                 <p className="text-slate-600 dark:text-slate-400">Which identifies the top 3 decision-makers in the each company.</p>
@@ -288,7 +288,7 @@ export default function LandingPage() {
               
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                 <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center mb-4">
-                  <Sparkles className="text-pink-600 dark:text-pink-400" />
+                  <Mail className="text-pink-600 dark:text-pink-400" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Find all decision-maker's email</h3>
                 <p className="text-slate-600 dark:text-slate-400">with a single click or drill-down and only find those you want.</p>
