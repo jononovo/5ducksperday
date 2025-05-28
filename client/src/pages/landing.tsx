@@ -11,7 +11,10 @@ import {
   PlayCircle, 
   ChevronRight,
   Sparkles,
-  Menu
+  Menu,
+  MessageSquare,
+  Users,
+  Mail
 } from "lucide-react";
 import {
   DropdownMenu,

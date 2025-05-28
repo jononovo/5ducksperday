@@ -1,0 +1,39 @@
+[vite] connecting...
+[vite] connected.
+Starting Firebase initialization... 
+Object {timestamp: "2025-05-28T19:36:03.727Z", domain: "fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev"}
+Raw environment variables: 
+Object {apiKey: "....aDbuzU", projectId: "fire-5-ducks", appId: "....b133e8", mode: "development", dev: true, …}
+Firebase Configuration: 
+Object {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: "fire-5-ducks.firebaseapp.com", environment: "development", …}
+Firebase initialized successfully: 
+Object {domain: "fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev", isAuth: true, isProvider: true, authDomain: "fire-5-ducks.firebaseapp.com", timestamp: "2025-05-28T19:36:03.728Z"}
+MessageSquare is not defined
+MessageSquare is not defined
+The above error occurred in the <LandingPage> component:
+
+    at LandingPage (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/src/pages/landing.tsx?t=1748460845609:52:27)
+    at Route (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3acb9a4d:323:16)
+    at Switch (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=3acb9a4d:379:17)
+    at Router (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/src/App.tsx?t=1748460845609&v=t-KXBSjxPzYj-dYaxK2e5:58:3)
+    at SearchStrategyProvider (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/src/lib/search-strategy-context.tsx:24:42)
+    at RegistrationModalProvider (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/src/hooks/use-registration-modal.tsx?t=1748460670379:38:45)
+    at AuthProvider (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/src/hooks/use-auth.tsx?t=1748460670379:34:32)
+    at QueryClientProvider (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=3acb9a4d:2805:3)
+    at App (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/src/App.tsx?t=1748460845609&v=t-KXBSjxPzYj-dYaxK2e5:426:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+MessageSquare is not defined
+at LandingPage (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/src/pages/landing.tsx?t=1748460845609:519:183)
+at renderWithHooks (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=3acb9a4d:11548:26)
+at mountIndeterminateComponent (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=3acb9a4d:14926:21)
+at beginWork (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=3acb9a4d:15914:22)
+at beginWork$1 (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=3acb9a4d:19753:22)
+at performUnitOfWork (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=3acb9a4d:19198:20)
+at workLoopSync (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=3acb9a4d:19137:13)
+at renderRootSync (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=3acb9a4d:19116:15)
+at recoverFromConcurrentError (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=3acb9a4d:18736:28)
+at performConcurrentWorkOnRoot (https://fe0ebc9b-c2f7-4fba-ac04-d9a104cb0654-00-1ny87re55l1vr.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=3acb9a4d:18684:30)
+User signed out, removed auth token
+Firebase persistence set to LOCAL
