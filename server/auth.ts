@@ -213,8 +213,17 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) {
       const firebaseUser = await verifyFirebaseToken(req);
       if (firebaseUser) {
+        // Attach the Firebase user to the request for other middleware to access
+        (req as any).firebaseUser = firebaseUser;
+        
+        // Also log the user in to create a session
         req.login(firebaseUser, (err) => {
           if (err) return next(err);
+          console.log('Firebase user logged in:', {
+            id: firebaseUser.id,
+            email: firebaseUser.email?.split('@')[0] + '@...',
+            timestamp: new Date().toISOString()
+          });
           next();
         });
         return;
@@ -295,6 +304,13 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
+    // Store the logout time in the session before logout
+    // This will help us prevent showing previous user data to a new user
+    if (req.session) {
+      (req.session as any).logoutTime = Date.now();
+      console.log('Set logout timestamp:', { time: new Date().toISOString() });
+    }
+    
     req.logout((err) => {
       if (err) return next(err);
       res.sendStatus(200);

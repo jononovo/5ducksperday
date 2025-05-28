@@ -266,31 +266,32 @@ export default function LandingPage() {
         {/* Features Section */}
         <section className="py-16 px-4 bg-blue-50 dark:bg-blue-950/30">
           <div className="container mx-auto max-w-6xl">
-            <h2 className="text-3xl font-bold mb-12 text-center">No-distraction Selling for Busy <span className="text-gray-400">(or easily-distractable)</span> People</h2>
+            <h2 className="text-3xl font-bold mb-4 text-center">Find Ultra Niche Contacts</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-12 text-center">or companies that would be impossible to filter in any other GTM or Lead-gen platform.</p>
             
             <div className="grid md:grid-cols-3 gap-8">
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
                   <Search className="text-blue-600 dark:text-blue-400" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">You're already wasting time</h3>
-                <p className="text-slate-600 dark:text-slate-400">You should be sending simple emails to amazing people about how you are solving their problem.</p>
+                <h3 className="text-xl font-semibold mb-2">Simply prompt type of company</h3>
+                <p className="text-slate-600 dark:text-slate-400">Adapt your prompt until you are getting the companies you want.</p>
               </div>
               
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                 <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mb-4">
                   <User className="text-purple-600 dark:text-purple-400" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">We limit you to 10 Emails per Day</h3>
-                <p className="text-slate-600 dark:text-slate-400">So that you never have to feel intimidated about doing outreach.</p>
+                <h3 className="text-xl font-semibold mb-2">Then click "Find Key Contacts"</h3>
+                <p className="text-slate-600 dark:text-slate-400">Which identifies the top 3 decision-makers in the each company.</p>
               </div>
               
               <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                 <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center mb-4">
                   <Sparkles className="text-pink-600 dark:text-pink-400" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">You'll be done in 5 Mins (or less)</h3>
-                <p className="text-slate-600 dark:text-slate-400">And you won't even be distracted by your inbox, because we don't include that here.</p>
+                <h3 className="text-xl font-semibold mb-2">Find all decision-maker's email</h3>
+                <p className="text-slate-600 dark:text-slate-400">with a single click or drill-down and only find those you want.</p>
               </div>
             </div>
             
@@ -359,6 +360,52 @@ export default function LandingPage() {
                 </ol>
               </div>
             </div>
+            
+            {/* Features Section - Duplicate */}
+            <section className="py-16 px-4 bg-blue-50 dark:bg-blue-950/30">
+              <div className="container mx-auto max-w-6xl">
+                <h2 className="text-3xl font-bold mb-12 text-center">No-distraction Selling for Busy <span className="text-gray-400">(or easily-distractable)</span> People</h2>
+                
+                <div className="grid md:grid-cols-3 gap-8">
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
+                      <Search className="text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">You're already wasting time</h3>
+                    <p className="text-slate-600 dark:text-slate-400">You should be sending simple emails to amazing people about how you are solving their problem.</p>
+                  </div>
+                  
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
+                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mb-4">
+                      <User className="text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">We limit you to 10 Emails per Day</h3>
+                    <p className="text-slate-600 dark:text-slate-400">So that you never have to feel intimidated about doing outreach.</p>
+                  </div>
+                  
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
+                    <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center mb-4">
+                      <Sparkles className="text-pink-600 dark:text-pink-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">You'll be done in 5 Mins (or less)</h3>
+                    <p className="text-slate-600 dark:text-slate-400">And you won't even be distracted by your inbox, because we don't include that here.</p>
+                  </div>
+                </div>
+                
+                <div className="text-center mt-12">
+                  <Button 
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-6"
+                    onClick={() => {
+                      trackEvent('cta_click', 'landing_page', 'try_free_5min');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  >
+                    <span className="mr-2">Try it for free (for 5 Minutes)</span>
+                    <ChevronRight size={16} />
+                  </Button>
+                </div>
+              </div>
+            </section>
             
             {/* Why Sign-up Section */}
             <div className="mt-20 max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg">
