@@ -145,50 +145,11 @@ class DatabaseStorage implements IStorage {
   }
 
   async initializeUserPreferences(userId: number): Promise<UserPreferences> {
-    console.log('DatabaseStorage.initializeUserPreferences - Creating preferences and default templates for userId:', userId);
+    console.log('DatabaseStorage.initializeUserPreferences - Creating preferences for userId:', userId);
     const [prefs] = await db
       .insert(userPreferences)
       .values({ userId, hasSeenTour: false })
       .returning();
-
-    // Initialize default email templates
-    const defaultTemplates = [
-      {
-        name: "Professional Introduction",
-        subject: "Exploring Partnership Opportunities with [Company]",
-        content: "Dear [Name],\n\nI hope this email finds you well. I came across [Company] and was impressed by your work in [Industry]. I believe there might be some interesting opportunities for collaboration between our organizations.\n\nWould you be open to a brief conversation to explore potential synergies?\n\nBest regards,\n[Your Name]",
-        description: "A professional first contact template",
-        category: "outreach",
-        userId
-      },
-      {
-        name: "Follow-up",
-        subject: "Following up on our previous conversation",
-        content: "Hi [Name],\n\nI wanted to follow up on our previous conversation about [Topic]. Have you had a chance to review the information I shared?\n\nI'm happy to provide any additional details or address any questions you might have.\n\nBest regards,\n[Your Name]",
-        description: "A gentle follow-up template",
-        category: "follow-up",
-        userId
-      },
-      {
-        name: "Product Demo Request",
-        subject: "Quick demo of our solution for [Company]",
-        content: "Hello [Name],\n\nI'd love to show you how our solution could help [Company] with [specific pain point]. Would you be available for a 15-minute demo this week?\n\nI can be flexible with timing to accommodate your schedule.\n\nBest regards,\n[Your Name]",
-        description: "Template for requesting a product demo",
-        category: "sales",
-        userId
-      }
-    ];
-
-    try {
-      console.log('Creating default email templates...');
-      for (const template of defaultTemplates) {
-        await this.createEmailTemplate(template);
-      }
-      console.log('Default email templates created successfully');
-    } catch (error) {
-      console.error('Error creating default templates:', error);
-      // Don't throw error here as preferences were already created
-    }
 
     return prefs;
   }

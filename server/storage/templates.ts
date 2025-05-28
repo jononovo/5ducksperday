@@ -74,43 +74,5 @@ export class TemplateStorage {
       .where(and(eq(emailTemplates.id, id), eq(emailTemplates.userId, userId)));
   }
 
-  async initializeDefaultEmailTemplates(userId: number) {
-    console.log('TemplateStorage.initializeDefaultEmailTemplates for userId:', userId);
-    const existing = await this.listEmailTemplates(userId);
-    if (existing.length === 0) {
-      const defaultTemplates = [
-        {
-          name: "Professional Introduction",
-          subject: "Exploring Partnership Opportunities with [Company]",
-          content:
-            "Dear [Name],\n\nI hope this email finds you well. I came across [Company] and was impressed by your work in [Industry]. I believe there might be some interesting opportunities for collaboration between our organizations.\n\nWould you be open to a brief conversation to explore potential synergies?\n\nBest regards,\n[Your Name]",
-          description: "A professional first contact template",
-          category: "outreach",
-          userId: userId,
-        },
-        {
-          name: "Follow-up",
-          subject: "Following up on our previous conversation",
-          content:
-            "Hi [Name],\n\nI wanted to follow up on our previous conversation about [Topic]. Have you had a chance to review the information I shared?\n\nI'm happy to provide any additional details or address any questions you might have.\n\nBest regards,\n[Your Name]",
-          description: "A gentle follow-up template",
-          category: "follow-up",
-          userId: userId,
-        },
-        {
-          name: "Product Demo Request",
-          subject: "Quick demo of our solution for [Company]",
-          content:
-            "Hello [Name],\n\nI'd love to show you how our solution could help [Company] with [specific pain point]. Would you be available for a 15-minute demo this week?\n\nI can be flexible with timing to accommodate your schedule.\n\nBest regards,\n[Your Name]",
-          description: "Template for requesting a product demo",
-          category: "sales",
-          userId: userId,
-        },
-      ];
 
-      for (const template of defaultTemplates) {
-        await this.createEmailTemplate(template);
-      }
-    }
-  }
 }
