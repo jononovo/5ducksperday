@@ -266,6 +266,17 @@ export function RegistrationModal() {
                   className="space-y-4"
                 >
                   <Button 
+                    className="w-full justify-between relative bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-2 border-blue-500 shadow-lg"
+                    onClick={handleOtherEmailClick}
+                  >
+                    <div className="flex items-center">
+                      <Mail className="h-5 w-5 mr-2" />
+                      Email & Password
+                    </div>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+
+                  <Button 
                     variant="outline" 
                     className="w-full justify-between relative bg-white/10 text-white border-white/20 hover:bg-white/20"
                     onClick={handleGmailClick}
@@ -294,15 +305,6 @@ export function RegistrationModal() {
                       <ChevronRight className="h-4 w-4" />
                     </div>
                   </Button>
-
-                  <div className="text-center mt-4">
-                    <button 
-                      onClick={handleOtherEmailClick}
-                      className="text-sm text-white hover:text-blue-300 transition-colors"
-                    >
-                      Other Email
-                    </button>
-                  </div>
                 </motion.div>
               ) : (
                 <motion.div 
