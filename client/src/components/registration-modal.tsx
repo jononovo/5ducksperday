@@ -266,7 +266,8 @@ export function RegistrationModal() {
                   className="space-y-4"
                 >
                   <Button 
-                    className="w-full justify-between relative bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-2 border-blue-500 shadow-lg"
+                    variant="outline"
+                    className="w-full justify-between relative bg-white/10 text-white border-2 border-blue-400 hover:bg-white/20 hover:border-blue-300 shadow-sm"
                     onClick={handleOtherEmailClick}
                   >
                     <div className="flex items-center">
