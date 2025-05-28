@@ -267,7 +267,7 @@ export function RegistrationModal() {
                 >
                   <Button 
                     variant="outline"
-                    className="group w-full justify-between relative bg-blue-500/20 hover:bg-black/50 text-blue-400 border-2 border-blue-400 hover:border-blue-300 group-hover:text-blue-300 group-hover:font-semibold shadow-sm cursor-pointer"
+                    className="group w-full justify-between relative bg-white/10 hover:bg-black/50 text-blue-400 border-2 border-blue-400 hover:border-blue-300 group-hover:text-blue-300 group-hover:font-semibold shadow-sm cursor-pointer"
                     onClick={handleOtherEmailClick}
                   >
                     <div className="flex items-center text-blue-400 group-hover:text-blue-300">
