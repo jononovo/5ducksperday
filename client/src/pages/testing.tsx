@@ -209,6 +209,8 @@ export default function Testing() {
         const subTests = Object.entries(result.tests).map(([key, test]: [string, any]) => ({
           name: key === 'perplexity' ? 'Perplexity API' : 
                 key === 'aeroleads' ? 'AeroLeads API' : 
+                key === 'apollo' ? 'Apollo API' :
+                key === 'hunter' ? 'Hunter API' :
                 'Gmail API',
           status: test.status === 'passed' ? 'passed' as const : 
                   test.status === 'warning' ? 'passed' as const : 'failed' as const,

@@ -2123,6 +2123,20 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         message: aeroLeadsKey ? 'AeroLeads API key configured' : 'AeroLeads API key missing'
       };
 
+      // Test Apollo API
+      const apolloKey = process.env.APOLLO_API_KEY;
+      tests.apollo = {
+        status: apolloKey ? 'passed' : 'failed',
+        message: apolloKey ? 'Apollo API key configured' : 'Apollo API key missing'
+      };
+
+      // Test Hunter API
+      const hunterKey = process.env.HUNTER_API_KEY;
+      tests.hunter = {
+        status: hunterKey ? 'passed' : 'failed',
+        message: hunterKey ? 'Hunter API key configured' : 'Hunter API key missing'
+      };
+
       // Test Gmail API
       try {
         const emailProvider = getEmailProvider();
