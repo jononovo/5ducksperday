@@ -130,9 +130,9 @@ export default function Testing() {
       
       const subTests = [
         {
-          name: 'PostgreSQL Connection',
+          name: 'Replit DB Connection',
           status: (companiesResponse.status === 200 || companiesResponse.status === 401) ? 'passed' as const : 'failed' as const,
-          message: (companiesResponse.status === 200 || companiesResponse.status === 401) ? 'Neon PostgreSQL connection active' : `Database error: ${companiesResponse.status}`
+          message: (companiesResponse.status === 200 || companiesResponse.status === 401) ? 'Replit Database connection active' : `Database error: ${companiesResponse.status}`
         },
         {
           name: 'Data Retrieval Test',
@@ -173,24 +173,24 @@ export default function Testing() {
       const modulesResponse = await fetch('/api/search-modules');
       const modulesData = modulesResponse.ok ? await modulesResponse.json() : null;
       
-      const strategiesResponse = await fetch('/api/search-strategies');
-      const strategiesData = strategiesResponse.ok ? await strategiesResponse.json() : null;
+      const approachesResponse = await fetch('/api/search-approaches');
+      const approachesData = approachesResponse.ok ? await approachesResponse.json() : null;
       
       const subTests = [
         {
-          name: 'Search Modules Loading',
+          name: 'Company Overview Search',
           status: Array.isArray(modulesData) ? 'passed' as const : 'failed' as const,
           message: Array.isArray(modulesData) ? `${modulesData.length} search modules loaded` : 'Search modules failed to load'
         },
         {
-          name: 'Search Strategies',
-          status: Array.isArray(strategiesData) ? 'passed' as const : 'failed' as const,
-          message: Array.isArray(strategiesData) ? `${strategiesData.length} strategies available` : 'Search strategies unavailable'
+          name: 'Decision Maker Search',
+          status: Array.isArray(approachesData) ? 'passed' as const : 'failed' as const,
+          message: Array.isArray(approachesData) ? `${approachesData.length} approaches available` : 'Search approaches unavailable'
         },
         {
-          name: 'Search System Integration',
-          status: (modulesResponse.status === 200 && strategiesResponse.status === 200) ? 'passed' as const : 'failed' as const,
-          message: (modulesResponse.status === 200 && strategiesResponse.status === 200) ? 'Search system fully integrated' : 'Search system integration issues'
+          name: 'Email Discovery Search',
+          status: (modulesResponse.status === 200 && approachesResponse.status === 200) ? 'passed' as const : 'failed' as const,
+          message: (modulesResponse.status === 200 && approachesResponse.status === 200) ? 'Search system fully integrated' : 'Search system integration issues'
         }
       ];
       
