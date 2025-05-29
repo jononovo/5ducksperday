@@ -65,30 +65,47 @@ export default function Testing() {
     ));
   };
 
+  const updateSubTestResults = (testIndex: number, subTests: TestResult[]) => {
+    setTestResults(prev => prev.map((test, i) => 
+      i === testIndex ? { ...test, subTests } : test
+    ));
+  };
+
   const runAuthTest = async (index: number): Promise<void> => {
     updateTestResult(index, { status: 'running', message: "Testing authentication..." });
     const startTime = Date.now();
     
     try {
-      // Test if user is authenticated
-      if (user) {
+      const response = await fetch('/api/test/auth', { 
+        method: 'POST',
+        headers: {
+          'Authorization': localStorage.getItem('authToken') ? `Bearer ${localStorage.getItem('authToken')}` : '',
+          'Content-Type': 'application/json'
+        }
+      });
+      const result = await response.json();
+      
+      if (response.ok && result.tests) {
+        // Convert backend test results to frontend format
+        const subTests = Object.entries(result.tests).map(([key, test]: [string, any]) => ({
+          name: key === 'firebase' ? 'Firebase Authentication' : 
+                key === 'tokenVerification' ? 'Backend Token Verification' : 
+                'User Session Sync',
+          status: test.status === 'passed' ? 'passed' as const : 'failed' as const,
+          message: test.message,
+          error: test.error
+        }));
+        
+        updateSubTestResults(index, subTests);
+        
+        const allPassed = subTests.every(test => test.status === 'passed');
         updateTestResult(index, {
-          status: 'passed',
-          message: `Authenticated as ${user.email}`,
+          status: allPassed ? 'passed' : 'failed',
+          message: result.message,
           duration: Date.now() - startTime
         });
       } else {
-        // Test API endpoint
-        const response = await fetch('/api/user');
-        if (response.status === 401) {
-          updateTestResult(index, {
-            status: 'passed',
-            message: "Authentication system working (no user logged in)",
-            duration: Date.now() - startTime
-          });
-        } else {
-          throw new Error(`Unexpected response: ${response.status}`);
-        }
+        throw new Error(result.error || 'Auth test failed');
       }
     } catch (error) {
       updateTestResult(index, {
@@ -108,10 +125,21 @@ export default function Testing() {
       const response = await fetch('/api/test/database', { method: 'POST' });
       const result = await response.json();
       
-      if (response.ok) {
+      if (response.ok && result.tests) {
+        // Convert backend test results to frontend format
+        const subTests = Object.entries(result.tests).map(([key, test]: [string, any]) => ({
+          name: key === 'postgresql' ? 'PostgreSQL Connection' : 'Demo Data Access',
+          status: test.status === 'passed' ? 'passed' as const : 'failed' as const,
+          message: test.message,
+          error: test.error
+        }));
+        
+        updateSubTestResults(index, subTests);
+        
+        const allPassed = subTests.every(test => test.status === 'passed');
         updateTestResult(index, {
-          status: 'passed',
-          message: result.message || "Database connection successful",
+          status: allPassed ? 'passed' : 'failed',
+          message: result.message,
           duration: Date.now() - startTime
         });
       } else {
@@ -135,10 +163,24 @@ export default function Testing() {
       const response = await fetch('/api/test/search', { method: 'POST' });
       const result = await response.json();
       
-      if (response.ok) {
+      if (response.ok && result.tests) {
+        // Convert backend test results to frontend format
+        const subTests = Object.entries(result.tests).map(([key, test]: [string, any]) => ({
+          name: key === 'companyOverview' ? 'Company Overview Search' : 
+                key === 'decisionMaker' ? 'Decision Maker Search' : 
+                'Email Discovery',
+          status: test.status === 'passed' ? 'passed' as const : 
+                  test.status === 'warning' ? 'passed' as const : 'failed' as const,
+          message: test.message,
+          error: test.error
+        }));
+        
+        updateSubTestResults(index, subTests);
+        
+        const allPassed = subTests.every(test => test.status === 'passed');
         updateTestResult(index, {
-          status: 'passed',
-          message: result.message || "Search functionality working",
+          status: allPassed ? 'passed' : 'failed',
+          message: result.message,
           duration: Date.now() - startTime
         });
       } else {
@@ -162,10 +204,24 @@ export default function Testing() {
       const response = await fetch('/api/test/health', { method: 'POST' });
       const result = await response.json();
       
-      if (response.ok) {
+      if (response.ok && result.tests) {
+        // Convert backend test results to frontend format
+        const subTests = Object.entries(result.tests).map(([key, test]: [string, any]) => ({
+          name: key === 'perplexity' ? 'Perplexity API' : 
+                key === 'aeroleads' ? 'AeroLeads API' : 
+                'Gmail API',
+          status: test.status === 'passed' ? 'passed' as const : 
+                  test.status === 'warning' ? 'passed' as const : 'failed' as const,
+          message: test.message,
+          error: test.error
+        }));
+        
+        updateSubTestResults(index, subTests);
+        
+        const allPassed = subTests.every(test => test.status === 'passed');
         updateTestResult(index, {
-          status: 'passed',
-          message: result.message || "All APIs responding",
+          status: allPassed ? 'passed' : 'failed',
+          message: result.message,
           duration: Date.now() - startTime
         });
       } else {
