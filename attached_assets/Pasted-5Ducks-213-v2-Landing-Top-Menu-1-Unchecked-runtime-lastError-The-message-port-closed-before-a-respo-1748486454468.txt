@@ -1,0 +1,106 @@
+5Ducks-213-v2-Landing-Top-Menu:1 Unchecked runtime.lastError: The message port closed before a response was received.
+5Ducks-213-v2-Landing-Top-Menu:1 Unchecked runtime.lastError: The message port closed before a response was received.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+gravatar.com/avatar/9f014f28a25511833cb83b9804227544?d=404:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+gravatar.com/avatar/9f014f28a25511833cb83b9804227544?d=404:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+gravatar.com/avatar/9f014f28a25511833cb83b9804227544?d=404:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()
+_app-a8188b692eaeaf52.js:38 Uncaught TypeError: Cannot read properties of undefined (reading 'dimensions')
+    at get dimensions (1c7fb644.1a0c61c4aaeeaa59.js:3:88240)
+    at Object.syncScrollArea (1c7fb644.1a0c61c4aaeeaa59.js:3:30815)
+    at 1c7fb644.1a0c61c4aaeeaa59.js:3:29461
+    at r (_app-a8188b692eaeaf52.js:38:2959)
+inject.bundle.js:63 Error: Extension context invalidated.
+    at S.render (node_modules_lodash_debounce_index_js-assets_app_components_voice_ParallelDialer_constants_ts-f60b94.chunk.js:1:13233)
+    at i_ (inject.bundle.js:63:75773)
+    at iM (inject.bundle.js:63:75571)
+    at l (inject.bundle.js:63:120366)
+    at sk (inject.bundle.js:63:99041)
+    at inject.bundle.js:63:98907
+    at sj (inject.bundle.js:63:98915)
+    at sL (inject.bundle.js:63:96000)
+    at o4 (inject.bundle.js:63:44830)
+    at sN (inject.bundle.js:63:96315)
+r6 @ inject.bundle.js:63
+inject.bundle.js:63 Uncaught Error: Extension context invalidated.
+    at S.render (node_modules_lodash_debounce_index_js-assets_app_components_voice_ParallelDialer_constants_ts-f60b94.chunk.js:1:13233)
+    at i_ (inject.bundle.js:63:75773)
+    at iM (inject.bundle.js:63:75571)
+    at l (inject.bundle.js:63:120366)
+    at sk (inject.bundle.js:63:99041)
+    at inject.bundle.js:63:98907
+    at sj (inject.bundle.js:63:98915)
+    at sL (inject.bundle.js:63:96000)
+    at o4 (inject.bundle.js:63:44830)
+    at sN (inject.bundle.js:63:96315)
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3A923ded60&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=337fb66a-9d35-4748-8ba9-8fefd212cde5:1 
+            
+            
+           Failed to load resource: net::ERR_QUIC_PROTOCOL_ERROR.QUIC_NETWORK_IDLE_TIMEOUT
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3A923ded60&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=bf8cb4bc-6b4d-4773-989d-916d95afd6ec:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+/data/repls/9482c81a-ee85-48ff-ad09-c1a82683321b/get_connection_metadata:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3A923ded60%2Cretry_count%3A1%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=60d3bf35-8984-493a-989b-ea4f233ec9a6:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3A923ded60%2Cretry_count%3A1%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=8cce4d63-2bfc-4ddf-80dc-5f48cbc35efc:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3A923ded60%2Cretry_count%3A2%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=9840b8e4-84d4-4229-ba84-a980c06c80f6:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3A923ded60%2Cretry_count%3A2%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=c39359ef-8594-4754-8ffb-94b102d81d08:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3A923ded60%2Cretry_count%3A3%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=5e4ea61d-b28d-4362-89bb-15f877a7ef41:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3A923ded60%2Cretry_count%3A3%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=23e6d0ca-c532-4a49-a9fe-b9119b51d4fe:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3A923ded60%2Cretry_count%3A4%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=6be55b97-5347-4a11-ba5d-e3f9c4a3dfd5:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3A923ded60%2Cretry_count%3A4%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=39cb383e-371a-4752-8b85-663b61094661:1 
+            
+            
+           Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+_app-a8188b692eaeaf52.js:9 WebSocket connection to 'wss://replit.com/graphql_subscriptions' failed: 
+(anonymous) @ _app-a8188b692eaeaf52.js:9
+_app-a8188b692eaeaf52.js:9 WebSocket connection to 'wss://replit.com/graphql_subscriptions' failed: 
+(anonymous) @ _app-a8188b692eaeaf52.js:9
+9482c81a-ee85-48ff-ad09-c1a82683321b-00-oxdu1bqgwrnp.janeway.replit.dev/api/user:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 (Unauthorized)
+9482c81a-ee85-48ff-ad09-c1a82683321b-00-oxdu1bqgwrnp.janeway.replit.dev/api/user:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 (Unauthorized)
