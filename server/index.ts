@@ -80,7 +80,13 @@ app.get('/api/health', (_req, res) => {
 
     const server = registerRoutes(app);
 
-    // Global error handler
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
+
+    // Global error handler - place after Vite setup
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       console.error('Server error:', err);
       const status = err.status || err.statusCode || 500;
@@ -93,12 +99,6 @@ app.get('/api/health', (_req, res) => {
         timestamp: new Date().toISOString()
       });
     });
-
-    if (app.get("env") === "development") {
-      await setupVite(app, server);
-    } else {
-      serveStatic(app);
-    }
 
     const PORT = parseInt(process.env.PORT || "5000", 10);
     server.listen(PORT, () => {

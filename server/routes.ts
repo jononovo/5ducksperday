@@ -1945,6 +1945,8 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
   // Testing API endpoints for system health checks
   app.post("/api/test/auth", async (req, res) => {
+    console.log('Auth test endpoint hit - sending JSON response');
+    res.setHeader('Content-Type', 'application/json');
     try {
       const tests: any = {};
 
