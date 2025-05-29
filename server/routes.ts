@@ -1,7 +1,12 @@
 import express, { type Express } from "express";
 import { createServer } from "http";
 import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 import { storage } from "./storage";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 import { searchCompanies, analyzeCompany } from "./lib/search-logic";
 import { extractContacts } from "./lib/perplexity";
 import { parseCompanyData } from "./lib/results-analysis/company-parser";
@@ -221,11 +226,7 @@ export function registerRoutes(app: Express) {
     res.sendFile(path.join(__dirname, '../static/landing.html'));
   });
   
-  // Route authenticated users to React app
-  app.get('/app*', (req, res, next) => {
-    // Let Vite handle the React app routes
-    next();
-  });
+
   
   // Sitemap route
   app.get('/sitemap.xml', generateSitemap);
