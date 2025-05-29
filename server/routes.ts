@@ -2039,6 +2039,38 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
+  // Unified test runner endpoint - serves both frontend and programmatic access
+  app.post("/api/test/run-all", async (req, res) => {
+    try {
+      const { TestRunner } = await import("./lib/test-runner");
+      const testRunner = new TestRunner();
+      const results = await testRunner.runAllTests();
+      
+      // Log full report for AI/developer visibility
+      console.log('=== TEST SUITE REPORT ===');
+      console.log(`Timestamp: ${results.timestamp}`);
+      console.log(`Duration: ${results.duration}ms`);
+      console.log(`Overall Status: ${results.overallStatus}`);
+      console.log(`Summary: ${results.summary.passed}/${results.summary.total} passed, ${results.summary.failed} failed, ${results.summary.warnings} warnings`);
+      console.log('Individual Tests:');
+      results.tests.forEach(test => {
+        console.log(`  ${test.name}: ${test.status} (${test.duration}ms)`);
+        test.subTests.forEach(subTest => {
+          console.log(`    - ${subTest.name}: ${subTest.status} - ${subTest.message}`);
+        });
+      });
+      console.log('=== END TEST REPORT ===');
+      
+      res.json(results);
+    } catch (error) {
+      console.error('Test runner error:', error);
+      res.status(500).json({
+        error: "Test runner failed",
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   app.post("/api/test/search", async (req, res) => {
     try {
       const tests: any = {};

@@ -118,47 +118,29 @@ export default function Testing() {
 
   const runDatabaseTest = async (index: number): Promise<void> => {
     updateTestResult(index, { status: 'running', message: "Testing database connection..." });
-    const startTime = Date.now();
     
     try {
-      // Test actual database functionality
-      const companiesResponse = await fetch('/api/companies');
-      const companiesData = companiesResponse.ok ? await companiesResponse.json() : null;
+      const response = await fetch('/api/test/run-all', { method: 'POST' });
+      const results = await response.json();
       
-      const listsResponse = await fetch('/api/lists');
-      const listsData = listsResponse.ok ? await listsResponse.json() : null;
+      // Find database test from results
+      const databaseTest = results.tests.find((test: any) => test.name === 'Database Connectivity');
       
-      const subTests = [
-        {
-          name: 'Replit DB Connection',
-          status: (companiesResponse.status === 200 || companiesResponse.status === 401) ? 'passed' as const : 'failed' as const,
-          message: (companiesResponse.status === 200 || companiesResponse.status === 401) ? 'Replit Database connection active' : `Database error: ${companiesResponse.status}`
-        },
-        {
-          name: 'Data Retrieval Test',
-          status: Array.isArray(companiesData) ? 'passed' as const : 'failed' as const,
-          message: Array.isArray(companiesData) ? `Retrieved ${companiesData.length} companies` : 'Data retrieval failed'
-        },
-        {
-          name: 'Schema Integrity',
-          status: Array.isArray(listsData) ? 'passed' as const : 'failed' as const,
-          message: Array.isArray(listsData) ? 'Database schema operational' : 'Schema validation failed'
-        }
-      ];
-      
-      updateSubTestResults(index, subTests);
-      
-      const allPassed = subTests.every(test => test.status === 'passed');
-      updateTestResult(index, {
-        status: allPassed ? 'passed' : 'failed',
-        message: allPassed ? "PostgreSQL database fully operational" : "Database issues detected",
-        duration: Date.now() - startTime
-      });
+      if (databaseTest) {
+        updateSubTestResults(index, databaseTest.subTests);
+        updateTestResult(index, {
+          status: databaseTest.status,
+          message: databaseTest.message,
+          duration: databaseTest.duration
+        });
+      } else {
+        throw new Error('Database test not found in results');
+      }
     } catch (error) {
       updateTestResult(index, {
         status: 'failed',
-        message: "Database connection failed",
-        duration: Date.now() - startTime,
+        message: "Database test failed",
+        duration: 0,
         error: error instanceof Error ? error.message : String(error)
       });
     }
@@ -166,47 +148,29 @@ export default function Testing() {
 
   const runSearchTest = async (index: number): Promise<void> => {
     updateTestResult(index, { status: 'running', message: "Testing search functionality..." });
-    const startTime = Date.now();
     
     try {
-      // Test actual search functionality
-      const modulesResponse = await fetch('/api/search-modules');
-      const modulesData = modulesResponse.ok ? await modulesResponse.json() : null;
+      const response = await fetch('/api/test/run-all', { method: 'POST' });
+      const results = await response.json();
       
-      const approachesResponse = await fetch('/api/search-approaches');
-      const approachesData = approachesResponse.ok ? await approachesResponse.json() : null;
+      // Find search test from results
+      const searchTest = results.tests.find((test: any) => test.name === 'Search Functionality');
       
-      const subTests = [
-        {
-          name: 'Company Overview Search',
-          status: Array.isArray(modulesData) ? 'passed' as const : 'failed' as const,
-          message: Array.isArray(modulesData) ? `${modulesData.length} search modules loaded` : 'Search modules failed to load'
-        },
-        {
-          name: 'Decision Maker Search',
-          status: Array.isArray(approachesData) ? 'passed' as const : 'failed' as const,
-          message: Array.isArray(approachesData) ? `${approachesData.length} approaches available` : 'Search approaches unavailable'
-        },
-        {
-          name: 'Email Discovery Search',
-          status: (modulesResponse.status === 200 && approachesResponse.status === 200) ? 'passed' as const : 'failed' as const,
-          message: (modulesResponse.status === 200 && approachesResponse.status === 200) ? 'Search system fully integrated' : 'Search system integration issues'
-        }
-      ];
-      
-      updateSubTestResults(index, subTests);
-      
-      const allPassed = subTests.every(test => test.status === 'passed');
-      updateTestResult(index, {
-        status: allPassed ? 'passed' : 'failed',
-        message: allPassed ? "Search functionality fully operational" : "Search system issues detected",
-        duration: Date.now() - startTime
-      });
+      if (searchTest) {
+        updateSubTestResults(index, searchTest.subTests);
+        updateTestResult(index, {
+          status: searchTest.status,
+          message: searchTest.message,
+          duration: searchTest.duration
+        });
+      } else {
+        throw new Error('Search test not found in results');
+      }
     } catch (error) {
       updateTestResult(index, {
         status: 'failed',
         message: "Search test failed",
-        duration: Date.now() - startTime,
+        duration: 0,
         error: error instanceof Error ? error.message : String(error)
       });
     }
@@ -214,44 +178,29 @@ export default function Testing() {
 
   const runApiHealthTest = async (index: number): Promise<void> => {
     updateTestResult(index, { status: 'running', message: "Testing API health..." });
-    const startTime = Date.now();
     
     try {
-      // Test API health using existing /api/health endpoint
-      const response = await fetch('/api/health');
-      const isWorking = response.status === 200;
+      const response = await fetch('/api/test/run-all', { method: 'POST' });
+      const results = await response.json();
       
-      const subTests = [
-        {
-          name: 'Perplexity API',
-          status: 'passed' as const,
-          message: 'API integration ready'
-        },
-        {
-          name: 'AeroLeads API',
-          status: 'passed' as const,
-          message: 'Contact discovery service ready'
-        },
-        {
-          name: 'Server Health',
-          status: isWorking ? 'passed' as const : 'failed' as const,
-          message: isWorking ? 'Backend services operational' : 'Server health check failed'
-        }
-      ];
+      // Find health test from results
+      const healthTest = results.tests.find((test: any) => test.name === 'API Health');
       
-      updateSubTestResults(index, subTests);
-      
-      const allPassed = subTests.every(test => test.status === 'passed');
-      updateTestResult(index, {
-        status: allPassed ? 'passed' : 'failed',
-        message: allPassed ? "API health tests passed" : "API health issues detected",
-        duration: Date.now() - startTime
-      });
+      if (healthTest) {
+        updateSubTestResults(index, healthTest.subTests);
+        updateTestResult(index, {
+          status: healthTest.status,
+          message: healthTest.message,
+          duration: healthTest.duration
+        });
+      } else {
+        throw new Error('API health test not found in results');
+      }
     } catch (error) {
       updateTestResult(index, {
         status: 'failed',
-        message: "API health check failed",
-        duration: Date.now() - startTime,
+        message: "API health test failed",
+        duration: 0,
         error: error instanceof Error ? error.message : String(error)
       });
     }
