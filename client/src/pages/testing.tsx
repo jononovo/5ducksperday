@@ -76,24 +76,25 @@ export default function Testing() {
     const startTime = Date.now();
     
     try {
-      // Test authentication using existing /api/user endpoint
-      const response = await fetch('/api/user');
+      // Test actual user authentication
+      const userResponse = await fetch('/api/user');
+      const userData = userResponse.ok ? await userResponse.json() : null;
       
       const subTests = [
         {
           name: 'Firebase Authentication',
-          status: 'passed' as const,
-          message: 'Firebase authentication operational'
+          status: user ? 'passed' as const : 'failed' as const,
+          message: user ? `Authenticated as ${user.email}` : 'Not authenticated with Firebase'
         },
         {
-          name: 'Backend Token Verification', 
-          status: user ? 'passed' as const : 'failed' as const,
-          message: user ? 'Token verification successful' : 'No valid token found'
+          name: 'Backend Token Verification',
+          status: (userData && userData.id) ? 'passed' as const : 'failed' as const,
+          message: (userData && userData.id) ? `Backend user verified (ID: ${userData.id})` : 'Backend authentication failed'
         },
         {
           name: 'User Session Sync',
-          status: 'passed' as const,
-          message: 'Session sync operational'
+          status: (user && userData && user.email === userData.email) ? 'passed' as const : 'failed' as const,
+          message: (user && userData && user.email === userData.email) ? 'Frontend and backend sessions match' : 'Session sync mismatch'
         }
       ];
       
@@ -102,7 +103,7 @@ export default function Testing() {
       const allPassed = subTests.every(test => test.status === 'passed');
       updateTestResult(index, {
         status: allPassed ? 'passed' : 'failed',
-        message: allPassed ? "All auth tests passed" : "Some auth tests failed",
+        message: allPassed ? "Authentication fully operational" : "Authentication issues detected",
         duration: Date.now() - startTime
       });
     } catch (error) {
@@ -120,20 +121,28 @@ export default function Testing() {
     const startTime = Date.now();
     
     try {
-      // Test database using existing /api/companies endpoint
-      const response = await fetch('/api/companies');
-      const isWorking = response.status !== 500;
+      // Test actual database functionality
+      const companiesResponse = await fetch('/api/companies');
+      const companiesData = companiesResponse.ok ? await companiesResponse.json() : null;
+      
+      const listsResponse = await fetch('/api/lists');
+      const listsData = listsResponse.ok ? await listsResponse.json() : null;
       
       const subTests = [
         {
           name: 'PostgreSQL Connection',
-          status: isWorking ? 'passed' as const : 'failed' as const,
-          message: isWorking ? 'Database connection established' : 'Connection failed'
+          status: (companiesResponse.status === 200 || companiesResponse.status === 401) ? 'passed' as const : 'failed' as const,
+          message: (companiesResponse.status === 200 || companiesResponse.status === 401) ? 'Neon PostgreSQL connection active' : `Database error: ${companiesResponse.status}`
         },
         {
-          name: 'Data Access Test',
-          status: isWorking ? 'passed' as const : 'failed' as const,
-          message: isWorking ? 'Data queries working' : 'Query failed'
+          name: 'Data Retrieval Test',
+          status: Array.isArray(companiesData) ? 'passed' as const : 'failed' as const,
+          message: Array.isArray(companiesData) ? `Retrieved ${companiesData.length} companies` : 'Data retrieval failed'
+        },
+        {
+          name: 'Schema Integrity',
+          status: Array.isArray(listsData) ? 'passed' as const : 'failed' as const,
+          message: Array.isArray(listsData) ? 'Database schema operational' : 'Schema validation failed'
         }
       ];
       
@@ -142,7 +151,7 @@ export default function Testing() {
       const allPassed = subTests.every(test => test.status === 'passed');
       updateTestResult(index, {
         status: allPassed ? 'passed' : 'failed',
-        message: allPassed ? "Database tests passed" : "Database connection issues detected",
+        message: allPassed ? "PostgreSQL database fully operational" : "Database issues detected",
         duration: Date.now() - startTime
       });
     } catch (error) {
@@ -160,25 +169,28 @@ export default function Testing() {
     const startTime = Date.now();
     
     try {
-      // Test search using existing /api/search-modules endpoint
-      const response = await fetch('/api/search-modules');
-      const isWorking = response.status !== 500;
+      // Test actual search functionality
+      const modulesResponse = await fetch('/api/search-modules');
+      const modulesData = modulesResponse.ok ? await modulesResponse.json() : null;
+      
+      const strategiesResponse = await fetch('/api/search-strategies');
+      const strategiesData = strategiesResponse.ok ? await strategiesResponse.json() : null;
       
       const subTests = [
         {
-          name: 'Company Overview Search',
-          status: isWorking ? 'passed' as const : 'failed' as const,
-          message: isWorking ? 'Search modules loaded successfully' : 'Search modules failed to load'
+          name: 'Search Modules Loading',
+          status: Array.isArray(modulesData) ? 'passed' as const : 'failed' as const,
+          message: Array.isArray(modulesData) ? `${modulesData.length} search modules loaded` : 'Search modules failed to load'
         },
         {
-          name: 'Decision Maker Search',
-          status: 'passed' as const,
-          message: 'Search algorithms operational'
+          name: 'Search Strategies',
+          status: Array.isArray(strategiesData) ? 'passed' as const : 'failed' as const,
+          message: Array.isArray(strategiesData) ? `${strategiesData.length} strategies available` : 'Search strategies unavailable'
         },
         {
-          name: 'Email Discovery',
-          status: 'passed' as const,
-          message: 'Contact discovery ready'
+          name: 'Search System Integration',
+          status: (modulesResponse.status === 200 && strategiesResponse.status === 200) ? 'passed' as const : 'failed' as const,
+          message: (modulesResponse.status === 200 && strategiesResponse.status === 200) ? 'Search system fully integrated' : 'Search system integration issues'
         }
       ];
       
@@ -187,7 +199,7 @@ export default function Testing() {
       const allPassed = subTests.every(test => test.status === 'passed');
       updateTestResult(index, {
         status: allPassed ? 'passed' : 'failed',
-        message: allPassed ? "Search tests passed" : "Search functionality issues detected",
+        message: allPassed ? "Search functionality fully operational" : "Search system issues detected",
         duration: Date.now() - startTime
       });
     } catch (error) {
