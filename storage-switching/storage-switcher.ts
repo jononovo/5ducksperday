@@ -6,7 +6,7 @@ import { storage as replitStorage } from './simplified-storage-replit';
 import { IStorage } from '../server/storage/index';
 
 // Set to true to use Replit DB, false to use PostgreSQL
-const USE_REPLIT_DB = false;
+const USE_REPLIT_DB = true;
 
 // Export the selected storage implementation
 export const storage: IStorage = USE_REPLIT_DB ? replitStorage : pgStorage;
