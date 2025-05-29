@@ -7,6 +7,9 @@ import { isPlaceholderName } from "./name-filters";
 // Note: Common business email formats and email related functions are now imported from email-analysis.ts
 // Domain extraction is also imported from email-analysis.ts
 
+// Re-export functions that other modules expect from this file
+export { generatePossibleEmails, extractDomainFromContext } from "./email-analysis";
+
 export async function extractContacts(
   analysisResults: string[],
   companyName?: string,
