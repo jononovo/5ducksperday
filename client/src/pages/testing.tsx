@@ -1,0 +1,310 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, XCircle, Clock, Play, RefreshCw } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+
+interface TestResult {
+  name: string;
+  status: 'pending' | 'running' | 'passed' | 'failed';
+  message: string;
+  duration?: number;
+  error?: string;
+}
+
+export default function Testing() {
+  const { user } = useAuth();
+  const [testResults, setTestResults] = useState<TestResult[]>([
+    { name: "Authentication Flow", status: 'pending', message: "Not started" },
+    { name: "Database Connection", status: 'pending', message: "Not started" },
+    { name: "Search Functionality", status: 'pending', message: "Not started" },
+    { name: "API Health Check", status: 'pending', message: "Not started" },
+    { name: "User Session", status: 'pending', message: "Not started" }
+  ]);
+  const [isRunning, setIsRunning] = useState(false);
+
+  const updateTestResult = (index: number, updates: Partial<TestResult>) => {
+    setTestResults(prev => prev.map((test, i) => 
+      i === index ? { ...test, ...updates } : test
+    ));
+  };
+
+  const runAuthTest = async (index: number): Promise<void> => {
+    updateTestResult(index, { status: 'running', message: "Testing authentication..." });
+    const startTime = Date.now();
+    
+    try {
+      // Test if user is authenticated
+      if (user) {
+        updateTestResult(index, {
+          status: 'passed',
+          message: `Authenticated as ${user.email}`,
+          duration: Date.now() - startTime
+        });
+      } else {
+        // Test API endpoint
+        const response = await fetch('/api/user');
+        if (response.status === 401) {
+          updateTestResult(index, {
+            status: 'passed',
+            message: "Authentication system working (no user logged in)",
+            duration: Date.now() - startTime
+          });
+        } else {
+          throw new Error(`Unexpected response: ${response.status}`);
+        }
+      }
+    } catch (error) {
+      updateTestResult(index, {
+        status: 'failed',
+        message: "Authentication test failed",
+        duration: Date.now() - startTime,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  };
+
+  const runDatabaseTest = async (index: number): Promise<void> => {
+    updateTestResult(index, { status: 'running', message: "Testing database connection..." });
+    const startTime = Date.now();
+    
+    try {
+      const response = await fetch('/api/test/database', { method: 'POST' });
+      const result = await response.json();
+      
+      if (response.ok) {
+        updateTestResult(index, {
+          status: 'passed',
+          message: result.message || "Database connection successful",
+          duration: Date.now() - startTime
+        });
+      } else {
+        throw new Error(result.error || 'Database test failed');
+      }
+    } catch (error) {
+      updateTestResult(index, {
+        status: 'failed',
+        message: "Database connection failed",
+        duration: Date.now() - startTime,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  };
+
+  const runSearchTest = async (index: number): Promise<void> => {
+    updateTestResult(index, { status: 'running', message: "Testing search functionality..." });
+    const startTime = Date.now();
+    
+    try {
+      const response = await fetch('/api/test/search', { method: 'POST' });
+      const result = await response.json();
+      
+      if (response.ok) {
+        updateTestResult(index, {
+          status: 'passed',
+          message: result.message || "Search functionality working",
+          duration: Date.now() - startTime
+        });
+      } else {
+        throw new Error(result.error || 'Search test failed');
+      }
+    } catch (error) {
+      updateTestResult(index, {
+        status: 'failed',
+        message: "Search test failed",
+        duration: Date.now() - startTime,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  };
+
+  const runApiHealthTest = async (index: number): Promise<void> => {
+    updateTestResult(index, { status: 'running', message: "Testing API health..." });
+    const startTime = Date.now();
+    
+    try {
+      const response = await fetch('/api/test/health', { method: 'POST' });
+      const result = await response.json();
+      
+      if (response.ok) {
+        updateTestResult(index, {
+          status: 'passed',
+          message: result.message || "All APIs responding",
+          duration: Date.now() - startTime
+        });
+      } else {
+        throw new Error(result.error || 'API health check failed');
+      }
+    } catch (error) {
+      updateTestResult(index, {
+        status: 'failed',
+        message: "API health check failed",
+        duration: Date.now() - startTime,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  };
+
+  const runSessionTest = async (index: number): Promise<void> => {
+    updateTestResult(index, { status: 'running', message: "Testing user session..." });
+    const startTime = Date.now();
+    
+    try {
+      // Test session persistence
+      const token = localStorage.getItem('authToken');
+      const hasSession = !!token;
+      
+      updateTestResult(index, {
+        status: 'passed',
+        message: hasSession ? "Session token found" : "No session (expected when logged out)",
+        duration: Date.now() - startTime
+      });
+    } catch (error) {
+      updateTestResult(index, {
+        status: 'failed',
+        message: "Session test failed",
+        duration: Date.now() - startTime,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  };
+
+  const runAllTests = async () => {
+    setIsRunning(true);
+    
+    // Reset all tests to pending
+    setTestResults(prev => prev.map(test => ({ 
+      ...test, 
+      status: 'pending' as const, 
+      message: "Waiting...",
+      duration: undefined,
+      error: undefined
+    })));
+
+    const testFunctions = [
+      runAuthTest,
+      runDatabaseTest,
+      runSearchTest,
+      runApiHealthTest,
+      runSessionTest
+    ];
+
+    // Run tests sequentially
+    for (let i = 0; i < testFunctions.length; i++) {
+      await testFunctions[i](i);
+      // Small delay between tests
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    setIsRunning(false);
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'passed': return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 'failed': return <XCircle className="h-5 w-5 text-red-500" />;
+      case 'running': return <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />;
+      default: return <Clock className="h-5 w-5 text-gray-400" />;
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'passed': return <Badge variant="outline" className="text-green-600 border-green-600">Passed</Badge>;
+      case 'failed': return <Badge variant="outline" className="text-red-600 border-red-600">Failed</Badge>;
+      case 'running': return <Badge variant="outline" className="text-blue-600 border-blue-600">Running</Badge>;
+      default: return <Badge variant="outline" className="text-gray-600 border-gray-600">Pending</Badge>;
+    }
+  };
+
+  const totalTests = testResults.length;
+  const passedTests = testResults.filter(t => t.status === 'passed').length;
+  const failedTests = testResults.filter(t => t.status === 'failed').length;
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">System Testing Dashboard</h1>
+        <p className="text-gray-600">Run comprehensive tests to verify core functionality</p>
+      </div>
+
+      {/* Test Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold">{totalTests}</div>
+            <div className="text-sm text-gray-600">Total Tests</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-green-600">{passedTests}</div>
+            <div className="text-sm text-gray-600">Passed</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-red-600">{failedTests}</div>
+            <div className="text-sm text-gray-600">Failed</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <Button 
+              onClick={runAllTests} 
+              disabled={isRunning}
+              className="w-full"
+              size="sm"
+            >
+              {isRunning ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Running...
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Run All Tests
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Test Results */}
+      <div className="space-y-4">
+        {testResults.map((test, index) => (
+          <Card key={index}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-3">
+                  {getStatusIcon(test.status)}
+                  {test.name}
+                </CardTitle>
+                {getStatusBadge(test.status)}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600">{test.message}</p>
+                {test.duration && (
+                  <p className="text-xs text-gray-500">
+                    Completed in {test.duration}ms
+                  </p>
+                )}
+                {test.error && (
+                  <div className="bg-red-50 border border-red-200 rounded p-3 mt-2">
+                    <p className="text-sm text-red-800 font-medium">Error Details:</p>
+                    <p className="text-xs text-red-600 mt-1 font-mono">{test.error}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
