@@ -1,5 +1,6 @@
 import express, { type Express } from "express";
 import { createServer } from "http";
+import path from "path";
 import { storage } from "./storage";
 import { searchCompanies, analyzeCompany } from "./lib/search-logic";
 import { extractContacts } from "./lib/perplexity";
@@ -212,6 +213,20 @@ function generateSitemap(req: express.Request, res: express.Response) {
 }
 
 export function registerRoutes(app: Express) {
+  // Serve static files from the static directory
+  app.use('/static', express.static(path.join(__dirname, '../static')));
+  
+  // Serve the static landing page at root route
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../static/landing.html'));
+  });
+  
+  // Route authenticated users to React app
+  app.get('/app*', (req, res, next) => {
+    // Let Vite handle the React app routes
+    next();
+  });
+  
   // Sitemap route
   app.get('/sitemap.xml', generateSitemap);
   
