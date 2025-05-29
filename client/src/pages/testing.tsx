@@ -11,16 +11,51 @@ interface TestResult {
   message: string;
   duration?: number;
   error?: string;
+  subTests?: TestResult[];
 }
 
 export default function Testing() {
   const { user } = useAuth();
   const [testResults, setTestResults] = useState<TestResult[]>([
-    { name: "Authentication Flow", status: 'pending', message: "Not started" },
-    { name: "Database Connection", status: 'pending', message: "Not started" },
-    { name: "Search Functionality", status: 'pending', message: "Not started" },
-    { name: "API Health Check", status: 'pending', message: "Not started" },
-    { name: "User Session", status: 'pending', message: "Not started" }
+    { 
+      name: "Authentication Flow", 
+      status: 'pending', 
+      message: "Not started",
+      subTests: [
+        { name: "Firebase Authentication", status: 'pending', message: "Not started" },
+        { name: "Backend Token Verification", status: 'pending', message: "Not started" },
+        { name: "User Session Sync", status: 'pending', message: "Not started" }
+      ]
+    },
+    { 
+      name: "Database Connection", 
+      status: 'pending', 
+      message: "Not started",
+      subTests: [
+        { name: "PostgreSQL Connection", status: 'pending', message: "Not started" },
+        { name: "Demo Data Access", status: 'pending', message: "Not started" }
+      ]
+    },
+    { 
+      name: "Search Functionality", 
+      status: 'pending', 
+      message: "Not started",
+      subTests: [
+        { name: "Company Overview Search", status: 'pending', message: "Not started" },
+        { name: "Decision Maker Search", status: 'pending', message: "Not started" },
+        { name: "Email Discovery Search", status: 'pending', message: "Not started" }
+      ]
+    },
+    { 
+      name: "API Health Check", 
+      status: 'pending', 
+      message: "Not started",
+      subTests: [
+        { name: "Perplexity API Connection", status: 'pending', message: "Not started" },
+        { name: "AeroLeads API Connection", status: 'pending', message: "Not started" },
+        { name: "Gmail API Connection", status: 'pending', message: "Not started" }
+      ]
+    }
   ]);
   const [isRunning, setIsRunning] = useState(false);
 
