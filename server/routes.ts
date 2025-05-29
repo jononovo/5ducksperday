@@ -1943,6 +1943,89 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
+  // Testing API endpoints for system health checks
+  app.post("/api/test/database", async (req, res) => {
+    try {
+      // Simple database connection test
+      const testQuery = await storage.listCompanies(1); // Demo user
+      res.json({
+        message: `Database connection successful - found ${testQuery.length} demo companies`,
+        status: "healthy"
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: "Database connection failed",
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  app.post("/api/test/search", async (req, res) => {
+    try {
+      // Test basic search functionality
+      const testResult = await searchCompanies("Apple");
+      if (testResult && testResult.length > 0) {
+        res.json({
+          message: `Search working - found ${testResult.length} results for "Apple"`,
+          status: "healthy"
+        });
+      } else {
+        res.json({
+          message: "Search function responded but no results found",
+          status: "warning"
+        });
+      }
+    } catch (error) {
+      res.status(500).json({
+        error: "Search functionality failed",
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  app.post("/api/test/health", async (req, res) => {
+    try {
+      const checks = {
+        server: true,
+        timestamp: new Date().toISOString()
+      };
+
+      // Test Perplexity API if available
+      try {
+        await queryPerplexity([{
+          role: "user",
+          content: "Test message - please respond with 'OK'"
+        }]);
+        checks.perplexity = true;
+      } catch (error) {
+        checks.perplexity = false;
+        checks.perplexityError = error instanceof Error ? error.message : String(error);
+      }
+
+      // Test email service if available
+      try {
+        const emailProvider = getEmailProvider();
+        checks.emailService = !!emailProvider;
+      } catch (error) {
+        checks.emailService = false;
+        checks.emailError = error instanceof Error ? error.message : String(error);
+      }
+
+      const allHealthy = checks.server && checks.perplexity && checks.emailService;
+      
+      res.json({
+        message: allHealthy ? "All services healthy" : "Some services have issues",
+        status: allHealthy ? "healthy" : "warning",
+        checks
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: "Health check failed",
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Search Quality Testing Endpoint
   app.post("/api/search-test", requireAuth, async (req, res) => {
     try {

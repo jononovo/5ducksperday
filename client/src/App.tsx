@@ -25,6 +25,7 @@ import Outreach from "@/pages/outreach";
 import Replies from "@/pages/replies";
 import CompanyDetails from "@/pages/company-details";
 import ContactDetails from "@/pages/contact-details";
+import Testing from "@/pages/testing";
 
 import NotFound from "@/pages/not-found";
 import { MainNav } from "@/components/main-nav";
@@ -144,6 +145,7 @@ function Router() {
                 <ProtectedRoute path="/outreach" component={() => <Outreach />} />
                 <ProtectedRoute path="/replies" component={() => <Replies />} />
                 <ProtectedRoute path="/contacts/:id" component={() => <ContactDetails />} />
+                <ProtectedRoute path="/testing" component={() => <Testing />} />
                 
                 {/* 404 Page */}
                 <Route component={() => <NotFound />} />
