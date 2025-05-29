@@ -385,6 +385,25 @@ export default function Testing() {
                     Completed in {test.duration}ms
                   </p>
                 )}
+                
+                {/* Sub-tests display */}
+                {test.subTests && test.subTests.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700">Test Details:</h4>
+                    {test.subTests.map((subTest, subIndex) => (
+                      <div key={subIndex} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(subTest.status)}
+                          <span className="text-sm">{subTest.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(subTest.status)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
                 {test.error && (
                   <div className="bg-red-50 border border-red-200 rounded p-3 mt-2">
                     <p className="text-sm text-red-800 font-medium">Error Details:</p>
