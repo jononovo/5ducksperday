@@ -230,12 +230,8 @@ export default function PromptEditor({
       // Start the full search with contacts
       fullContactSearchMutation.mutate(data.query);
       
-      // Show company analysis notification
+      // Update progress to analyzing companies phase
       setTimeout(() => {
-        toast({
-          title: "Company Analysis",
-          description: "Analyzing company profiles and gathering business intelligence...",
-        });
         setSearchProgress(prev => ({ ...prev, phase: "Analyzing Companies", completed: 2 }));
       }, 2000);
       
@@ -264,12 +260,8 @@ export default function PromptEditor({
         });
       }, 11000);
       
-      // Show contact validation notification
+      // Update progress to scoring contacts phase
       setTimeout(() => {
-        toast({
-          title: "Contact Validation",
-          description: "Validating and scoring contact information...",
-        });
         setSearchProgress(prev => ({ ...prev, phase: "Scoring Contacts", completed: 4 }));
       }, 14000);
     },
