@@ -317,10 +317,7 @@ export default function PromptEditor({
       // Send full results with contacts to parent component
       onSearchResults(data.query, data.companies);
       
-      toast({
-        title: "Search Complete",
-        description: `Found ${totalContacts} contacts across ${data.companies.length} companies.`,
-      });
+
       
       // Calculate search duration and show summary
       const searchDuration = Math.round((Date.now() - searchMetrics.startTime) / 1000);
