@@ -902,17 +902,6 @@ export function registerRoutes(app: Express) {
         });
       }
       
-      // Cache the search results for use in full search (5 minute TTL)
-      const cacheKey = `search_${Buffer.from(query).toString('base64')}_companies`;
-      global.searchCache = global.searchCache || new Map();
-      global.searchCache.set(cacheKey, {
-        results: companyResults,
-        timestamp: Date.now(),
-        ttl: 5 * 60 * 1000 // 5 minutes
-      });
-      
-      console.log(`[Quick Search] Cached ${companyResults.length} company results for reuse`);
-      
       // Prepare companies with minimal processing for quick display
       const companies = await Promise.all(
         companyResults.map(async (company) => {
@@ -939,6 +928,18 @@ export function registerRoutes(app: Express) {
           return createdCompany;
         })
       );
+
+      // Cache both API results and created company records for full search reuse
+      const cacheKey = `search_${Buffer.from(query).toString('base64')}_companies`;
+      global.searchCache = global.searchCache || new Map();
+      global.searchCache.set(cacheKey, {
+        apiResults: companyResults,
+        companyRecords: companies,
+        timestamp: Date.now(),
+        ttl: 5 * 60 * 1000 // 5 minutes
+      });
+      
+      console.log(`[Quick Search] Cached ${companyResults.length} company API results and ${companies.length} database records for reuse`);
       
       // Return the quick company data
       res.json({
@@ -976,11 +977,13 @@ export function registerRoutes(app: Express) {
       global.searchCache = global.searchCache || new Map();
       
       let companyResults;
+      let cachedCompanies = null;
       const cached = global.searchCache.get(cacheKey);
       
       if (cached && (Date.now() - cached.timestamp) < cached.ttl) {
-        console.log(`[Full Search] Using cached company results for query: ${query}`);
-        companyResults = cached.results;
+        console.log(`[Full Search] Using cached company data for query: ${query}`);
+        companyResults = cached.apiResults;
+        cachedCompanies = cached.companyRecords;
       } else {
         console.log(`[Full Search] Cache miss - fetching fresh company results for query: ${query}`);
         companyResults = await searchCompanies(query);
@@ -1046,7 +1049,212 @@ export function registerRoutes(app: Express) {
         return;
       }
 
-      // Analyze each company using technical prompts and response structures
+      // If we have cached companies, reuse them and enrich with contacts
+      if (cachedCompanies) {
+        console.log(`[Full Search] Reusing ${cachedCompanies.length} cached company records - enriching with contacts`);
+        
+        // Enrich existing companies with contacts instead of creating new ones
+        const enrichedCompanies = await Promise.all(
+          cachedCompanies.map(async (existingCompany) => {
+            const companyName = existingCompany.name;
+            const companyWebsite = existingCompany.website;
+            const companyDescription = existingCompany.description;
+            
+            // Build context-aware prompt using company data
+            const contextPrompt = `
+Based on initial company search for "${query}", we found:
+Company: ${companyName}
+Website: ${companyWebsite || 'Not available'}
+Description: ${companyDescription || 'Not available'}
+
+${companyOverview.prompt}
+
+Use the search context and company details above to inform your analysis.
+`;
+
+            // Run Company Overview analysis with enhanced context
+            const overviewResult = await analyzeCompany(
+              companyName,
+              contextPrompt,
+              companyOverview.technicalPrompt,
+              companyOverview.responseStructure
+            );
+            const analysisResults = [overviewResult];
+
+            // If Decision-maker Analysis is active, run it with enhanced context
+            if (decisionMakerAnalysis?.active) {
+              const decisionMakerContextPrompt = `
+Based on initial company search for "${query}", we found:
+Company: ${companyName}
+Website: ${companyWebsite || 'Not available'}
+Description: ${companyDescription || 'Not available'}
+
+${decisionMakerAnalysis.prompt}
+
+Use the search context and company details above to find the most relevant decision makers.
+`;
+
+              const decisionMakerResult = await analyzeCompany(
+                companyName,
+                decisionMakerContextPrompt,
+                decisionMakerAnalysis.technicalPrompt,
+                decisionMakerAnalysis.responseStructure
+              );
+              analysisResults.push(decisionMakerResult);
+            }
+
+            // Parse results and update company
+            const companyData = parseCompanyData(analysisResults);
+            
+            // Update the existing company with enriched data
+            const updatedCompany = await storage.updateCompany(existingCompany.id, {
+              ...companyData,
+              userId: userId
+            });
+
+            // Determine industry and extract contacts (same logic as before)
+            let industry: string | undefined = undefined;
+            
+            if (companyData.services && companyData.services.length > 0) {
+              const industryKeywords: Record<string, string> = {
+                'software': 'technology',
+                'tech': 'technology',
+                'development': 'technology',
+                'it': 'technology',
+                'programming': 'technology',
+                'cloud': 'technology',
+                'healthcare': 'healthcare',
+                'medical': 'healthcare',
+                'hospital': 'healthcare',
+                'doctor': 'healthcare',
+                'finance': 'financial',
+                'banking': 'financial',
+                'investment': 'financial',
+                'construction': 'construction',
+                'building': 'construction',
+                'real estate': 'construction',
+                'legal': 'legal',
+                'law': 'legal',
+                'attorney': 'legal',
+                'retail': 'retail',
+                'shop': 'retail',
+                'store': 'retail',
+                'education': 'education',
+                'school': 'education',
+                'university': 'education',
+                'manufacturing': 'manufacturing',
+                'factory': 'manufacturing',
+                'production': 'manufacturing',
+                'consulting': 'consulting',
+                'advisor': 'consulting'
+              };
+              
+              for (const service of companyData.services) {
+                const serviceLower = service.toLowerCase();
+                for (const [keyword, industryValue] of Object.entries(industryKeywords)) {
+                  if (serviceLower.includes(keyword)) {
+                    industry = industryValue;
+                    break;
+                  }
+                }
+                if (industry) break;
+              }
+            }
+            
+            if (!industry && companyName) {
+              const nameLower = companyName.toLowerCase();
+              if (nameLower.includes('tech') || nameLower.includes('software')) {
+                industry = 'technology';
+              } else if (nameLower.includes('health') || nameLower.includes('medical')) {
+                industry = 'healthcare';
+              } else if (nameLower.includes('financ') || nameLower.includes('bank')) {
+                industry = 'financial';
+              } else if (nameLower.includes('consult')) {
+                industry = 'consulting';
+              }
+            }
+            
+            console.log(`Detected industry for ${companyName}: ${industry || 'unknown'}`);
+            
+            // Extract contacts using both methods
+            const standardContacts = await extractContacts(
+              analysisResults,
+              companyName,
+              {
+                useLocalValidation: true,
+                localValidationWeight: 0.3,
+                minimumScore: 20,
+                companyNamePenalty: 20,
+                industry: industry
+              }
+            );
+            
+            console.log(`Found ${standardContacts.length} contacts using standard extraction`);
+            
+            const enhancedContacts = await findKeyDecisionMakers(companyName, {
+              industry: industry,
+              minimumConfidence: 30,
+              maxContacts: 15,
+              includeMiddleManagement: true,
+              prioritizeLeadership: true,
+              useMultipleQueries: true
+            });
+            
+            console.log(`Found ${enhancedContacts.length} additional contacts using enhanced contact finder`);
+            
+            // Combine and deduplicate contacts
+            const combinedContacts = [...standardContacts, ...enhancedContacts];
+            const uniqueContacts = combinedContacts.filter((contact, index, self) =>
+              index === self.findIndex(c => 
+                c.name && contact.name && c.name.toLowerCase() === contact.name.toLowerCase()
+              )
+            );
+            
+            console.log(`Combined results: ${uniqueContacts.length} unique contacts`);
+            
+            const contacts = uniqueContacts.filter(contact => 
+              (!contact.probability || contact.probability >= 35)
+            );
+
+            // Create contact records
+            const createdContacts = await Promise.all(
+              contacts.map(contact =>
+                storage.createContact({
+                  companyId: existingCompany.id,
+                  name: contact.name!,
+                  role: contact.role ?? null,
+                  email: contact.email ?? null,
+                  probability: contact.probability ?? null,
+                  linkedinUrl: null,
+                  twitterHandle: null,
+                  phoneNumber: null,
+                  department: null,
+                  location: null,
+                  verificationSource: 'Decision-maker Analysis',
+                  nameConfidenceScore: contact.nameConfidenceScore ?? null,
+                  userFeedbackScore: null,
+                  feedbackCount: 0,
+                  userId: userId
+                })
+              )
+            );
+
+            return { ...updatedCompany || existingCompany, contacts: createdContacts };
+          })
+        );
+        
+        // Return enriched companies using existing records
+        res.json({
+          companies: enrichedCompanies,
+          query,
+          strategyId: selectedStrategy ? selectedStrategy.id : null,
+          strategyName: selectedStrategy ? selectedStrategy.name : "Default Flow",
+        });
+        
+        return; // Early return to skip the new company creation logic
+      }
+
+      // If no cached companies, create new ones (fallback logic)
       const companies = await Promise.all(
         companyResults.map(async (company) => {
           // Extract company name, website and description (if available)
