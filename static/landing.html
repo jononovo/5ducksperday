@@ -80,6 +80,7 @@
       -moz-osx-font-smoothing: grayscale;
       background-color: transparent;
       border: 1px solid transparent;
+      height: 3.5rem;
       display: flex;
       align-items: center;
     }
@@ -96,6 +97,8 @@
     /* Button styling to match shadcn Button component */
     #search-btn {
       border-radius: 9999px;
+      font-weight: normal;
+      height: 2.75rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -104,7 +107,8 @@
     
     /* Focus visible styles */
     #search-input:focus-visible {
-      box-shadow: 0 0 0 2px rgb(59 130 246);
+      outline: 1px solid rgb(59 130 246);
+      outline-offset: 1px;
     }
     
     #search-btn:focus-visible {
@@ -185,15 +189,19 @@
               type="text"
               placeholder="Adventure service providers in Maine"
               id="search-input"
-              class="pl-12 pr-36 py-7 text-lg rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500"
+              class="w-full pl-12 pr-36 py-7 text-lg rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none box-border"
             />
-            <span class="absolute left-5 top-1/2 transform -translate-y-1/2 text-blue-500 text-xl">🔍</span>
+            <svg class="absolute left-5 top-1/2 transform -translate-y-1/2 text-blue-500 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+            </svg>
             <button
               id="search-btn"
-              class="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-5 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              class="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-5 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors"
             >
               <span class="mr-2">Quack</span>
-              <span class="text-sm">→</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7 7 7-7 7"/>
+              </svg>
             </button>
           </div>
         </div>
