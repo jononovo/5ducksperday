@@ -377,12 +377,21 @@ export default function Home() {
         return newSet;
       });
       
-      toast({
-        title: "Email Search Complete",
-        description: `${data.name}: ${data.email 
-          ? "Successfully found email address."
-          : "No email found for this contact."}`,
-      });
+      // Only show notifications if we're not in a consolidated search
+      if (!isConsolidatedSearching) {
+        toast({
+          title: "Email Search Complete",
+          description: `${data.name}: ${data.email 
+            ? "Successfully found email address."
+            : "No email found for this contact."}`,
+        });
+      } else if (isConsolidatedSearching && data.email) {
+        // During consolidated search, only show when we find an email
+        toast({
+          title: "Email Search Complete",
+          description: `${data.name}: Successfully found email address.`,
+        });
+      }
     },
     onError: (error, variables) => {
       const contactId = variables; // This will be the contactId that was passed to mutate
