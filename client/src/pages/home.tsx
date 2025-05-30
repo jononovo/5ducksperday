@@ -1257,7 +1257,7 @@ export default function Home() {
               {currentResults && currentResults.length > 0 && (
                 <div className="px-6 pb-3 flex items-center gap-2">
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip open={isFromLandingPage && currentResults && currentResults.length > 0 && !summaryVisible ? true : undefined}>
                       <TooltipTrigger asChild>
                         <Button 
                           variant="outline" 
@@ -1267,15 +1267,24 @@ export default function Home() {
                               ? 'email-button-highlight' 
                               : 'opacity-45 hover:opacity-100 hover:bg-white'
                           } transition-all`}
-                          onClick={runConsolidatedEmailSearch}
+                          onClick={() => {
+                            if (isFromLandingPage) {
+                              setIsFromLandingPage(false);
+                            }
+                            runConsolidatedEmailSearch();
+                          }}
                           disabled={isConsolidatedSearching}
                         >
                           <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
                           <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="text-xs">Run email search for 1-2 decision-makers per company</p>
+                      <TooltipContent side="top" className={isFromLandingPage && currentResults && currentResults.length > 0 && !summaryVisible ? "bg-blue-500 text-white border-blue-500" : ""}>
+                        <p className="text-xs">
+                          {isFromLandingPage && currentResults && currentResults.length > 0 && !summaryVisible 
+                            ? "Click here to find Egg-cellent emails of wonderful people." 
+                            : "Run email search for 1-2 decision-makers per company"}
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
