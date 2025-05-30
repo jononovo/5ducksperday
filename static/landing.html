@@ -11,6 +11,28 @@
   <meta property="og:description" content="Easy Selling for Small Businesses - Sell to 5 new people every day.">
   <meta property="og:type" content="website">
   
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "5Ducks",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "29.00",
+      "priceCurrency": "USD"
+    },
+    "description": "Easy Selling for Small Businesses - Sell to 5 new people every day.",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "57"
+    }
+  }
+  </script>
+  
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -65,7 +87,7 @@
     }
     
     #search-input::placeholder {
-      color: rgb(148 163 184);
+      color: rgb(107 114 128);
     }
     
     #search-input:focus {
@@ -171,16 +193,16 @@
               type="text"
               placeholder="Adventure service providers in Maine"
               id="search-input"
-              class="w-full pl-12 pr-36 py-7 text-lg rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none box-border"
-              style="line-height: 1.25; font-size: 1.125rem;"
+              class="w-full pl-12 pr-36 py-3 text-base rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none box-border"
+              style="height: 3rem; line-height: 1.5;"
             />
             <svg class="absolute left-5 top-1/2 transform -translate-y-1/2 text-blue-500 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
             </svg>
             <button
               id="search-btn"
-              class="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-5 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-              style="height: auto; min-height: 2.5rem;"
+              class="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors"
+              style="height: 2.5rem;"
             >
               <span class="mr-2">Quack</span>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
