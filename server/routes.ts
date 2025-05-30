@@ -940,6 +940,7 @@ export function registerRoutes(app: Express) {
       });
       
       console.log(`[Quick Search] Cached ${companyResults.length} company API results and ${companies.length} database records for reuse`);
+      console.log(`[Quick Search] Cache key: ${cacheKey}`);
       
       // Return the quick company data
       res.json({
@@ -980,11 +981,18 @@ export function registerRoutes(app: Express) {
       let cachedCompanies = null;
       const cached = global.searchCache.get(cacheKey);
       
+      console.log(`[Full Search] Cache key: ${cacheKey}`);
+      console.log(`[Full Search] Cache has ${global.searchCache.size} entries`);
+      console.log(`[Full Search] Cache entry exists: ${!!cached}`);
+      
       if (cached && (Date.now() - cached.timestamp) < cached.ttl) {
         console.log(`[Full Search] Using cached company data for query: ${query}`);
         companyResults = cached.apiResults;
         cachedCompanies = cached.companyRecords;
       } else {
+        if (cached) {
+          console.log(`[Full Search] Cache expired - age: ${Date.now() - cached.timestamp}ms, TTL: ${cached.ttl}ms`);
+        }
         console.log(`[Full Search] Cache miss - fetching fresh company results for query: ${query}`);
         companyResults = await searchCompanies(query);
       }
