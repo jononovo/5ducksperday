@@ -948,16 +948,47 @@ export default function Home() {
         return;
       }
       
-      // Phase 2: Hunter search - using parallel processing (swapped with AeroLeads for better performance)
+      // Phase 2: Apollo search - faster and higher quality primary search
       setSearchProgress({ 
-        phase: "Hunter Search", 
+        phase: "Apollo Search", 
         completed: 0, 
         total: companiesStillNeedingEmails.length 
       });
       
+      // Collect best contacts for Apollo
+      const apolloContacts: Contact[] = [];
+      companiesStillNeedingEmails.forEach(company => {
+        const bestContact = getBestContact(company);
+        if (bestContact && (!bestContact.email || bestContact.email.length <= 5)) {
+          apolloContacts.push(bestContact);
+        }
+      });
+      
+      // Process Apollo searches in parallel batches (3 at a time)
+      await processContactsBatch(
+        apolloContacts, 
+        (contactId) => apolloMutation.mutateAsync({ contactId, searchContext: 'automated' }),
+        3 // Batch size of 3 for Apollo
+      );
+      
+      // Check which companies still need emails
+      const companiesNeedingFinalSearch = getCurrentCompaniesWithoutEmails();
+      
+      if (companiesNeedingFinalSearch.length === 0) {
+        finishSearch();
+        return;
+      }
+      
+      // Phase 3: Hunter search - specialized email-focused fallback
+      setSearchProgress({ 
+        phase: "Hunter Search", 
+        completed: 0, 
+        total: companiesNeedingFinalSearch.length 
+      });
+      
       // Collect best contacts for Hunter
       const hunterContacts: Contact[] = [];
-      companiesStillNeedingEmails.forEach(company => {
+      companiesNeedingFinalSearch.forEach(company => {
         const bestContact = getBestContact(company);
         if (bestContact && (!bestContact.email || bestContact.email.length <= 5)) {
           hunterContacts.push(bestContact);
@@ -969,37 +1000,6 @@ export default function Home() {
         hunterContacts, 
         (contactId) => hunterMutation.mutateAsync({ contactId, searchContext: 'automated' }),
         3 // Batch size of 3 for Hunter
-      );
-      
-      // Check which companies still need emails
-      const companiesNeedingFinalSearch = getCurrentCompaniesWithoutEmails();
-      
-      if (companiesNeedingFinalSearch.length === 0) {
-        finishSearch();
-        return;
-      }
-      
-      // Phase 3: Apollo search - faster and higher quality alternative to AeroLeads
-      setSearchProgress({ 
-        phase: "Apollo Search", 
-        completed: 0, 
-        total: companiesNeedingFinalSearch.length 
-      });
-      
-      // Collect best contacts for Apollo
-      const apolloContacts: Contact[] = [];
-      companiesNeedingFinalSearch.forEach(company => {
-        const bestContact = getBestContact(company);
-        if (bestContact && (!bestContact.email || bestContact.email.length <= 5)) {
-          apolloContacts.push(bestContact);
-        }
-      });
-      
-      // Process Apollo searches in parallel batches (3 at a time)
-      await processContactsBatch(
-        apolloContacts, 
-        (contactId) => apolloMutation.mutateAsync({ contactId, searchContext: 'automated' }),
-        3 // Batch size of 3 for Apollo (can be larger since it's faster than AeroLeads)
       );
       
       // Final summary - no toast needed
