@@ -7,6 +7,7 @@ import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
 import { SearchProgress } from "@/components/search-progress";
 import { EmailSearchSummary } from "@/components/email-search-summary";
+import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
@@ -791,6 +792,7 @@ export default function Home() {
     total: 0
   });
   const [summaryVisible, setSummaryVisible] = useState(false);
+  const [contactReportVisible, setContactReportVisible] = useState(false);
   
   // Effect to highlight Start Selling button when email search completes
   useEffect(() => {
@@ -1198,6 +1200,19 @@ export default function Home() {
                 )}
               </CardHeader>
               
+              {/* Contact Discovery Report - with reduced padding */}
+              {contactReportVisible && (
+                <div className="px-4 pt-1 pb-0">
+                  <ContactDiscoveryReport 
+                    companiesWithContacts={currentResults?.filter(company => 
+                      company.contacts && company.contacts.length > 0).length || 0}
+                    totalCompanies={currentResults?.length || 0}
+                    onClose={() => setContactReportVisible(false)}
+                    isVisible={contactReportVisible}
+                  />
+                </div>
+              )}
+
               {/* Email Search Summary - with reduced padding */}
               {summaryVisible && (
                 <div className="px-4 pt-1 pb-0">
