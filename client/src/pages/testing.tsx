@@ -247,9 +247,14 @@ export default function Testing() {
       const response = await fetch('/api/test/run-all', { method: 'POST' });
       const results = await response.json();
       
+      console.log('Backend test results:', results.tests.map((t: any) => ({ name: t.name, subTests: t.subTests.map((s: any) => s.name) })));
+      console.log('Frontend test structure:', testResults.map(t => ({ name: t.name, subTests: t.subTests?.map(s => s.name) })));
+      
       // Update each test with its actual results
       setTestResults(prev => prev.map(test => {
         const backendTest = results.tests.find((t: any) => t.name === test.name);
+        console.log(`Mapping frontend test "${test.name}" to backend test:`, backendTest ? backendTest.name : 'NOT FOUND');
+        
         if (backendTest) {
           return {
             ...test,
