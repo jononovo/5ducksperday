@@ -356,6 +356,9 @@ export default function PromptEditor({
     // Reset input changed state
     setInputHasChanged(false);
     
+    // Reset and initialize progress
+    setSearchProgress({ phase: "Starting Search", completed: 0, total: 4 });
+    
     console.log("Analyzing search query...");
     console.log("Preparing to search for companies and contacts...");
     onAnalyze();
@@ -434,6 +437,15 @@ export default function PromptEditor({
   return (
     <div className="pl-0 pr-1 pt-1 pb-1 shadow-none"> {/* Container with no padding */}
       <div className="flex flex-col gap-2">
+        {/* Progress Bar */}
+        {(quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (
+          <SearchProgress 
+            phase={searchProgress.phase}
+            completed={searchProgress.completed}
+            total={searchProgress.total}
+            isVisible={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+          />
+        )}
         <div className="flex flex-col md:flex-row gap-2 pl-0">
           <Input
             value={query}
