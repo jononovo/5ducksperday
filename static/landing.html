@@ -80,7 +80,7 @@
       -moz-osx-font-smoothing: grayscale;
       background-color: transparent;
       border: 1px solid transparent;
-      height: 2.75rem;
+      height: 3.5rem;
       display: flex;
       align-items: center;
     }
@@ -98,7 +98,7 @@
     #search-btn {
       border-radius: 9999px;
       font-weight: 500;
-      height: 2.25rem;
+      height: 2.75rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -143,21 +143,21 @@
       </div>
       
       <div class="flex items-center space-x-3">
-        <div class="md:hidden">
+        <a href="/outreach" class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+          Login
+        </a>
+        <div class="md:hidden relative">
           <button id="mobile-menu-btn" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
           </button>
-          <div id="mobile-menu" class="hidden absolute right-0 top-16 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-50">
-            <a href="/pricing" class="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
+          <div id="mobile-menu" class="hidden absolute right-0 top-12 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-50">
+            <a href="/pricing" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
               Pricing
             </a>
           </div>
         </div>
-        <a href="/outreach" class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-          Login
-        </a>
       </div>
     </div>
   </header>
@@ -190,14 +190,14 @@
               type="text"
               placeholder="Adventure service providers in Maine"
               id="search-input"
-              class="w-full pl-12 pr-32 py-3 text-base rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none box-border"
+              class="w-full pl-12 pr-32 py-4 text-base rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none box-border"
             />
             <svg class="absolute left-5 top-1/2 transform -translate-y-1/2 text-blue-500 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
             </svg>
             <button
               id="search-btn"
-              class="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors"
+              class="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-4 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors"
             >
               <span class="mr-2">Quack</span>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
