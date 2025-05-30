@@ -1259,35 +1259,20 @@ export default function Home() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="relative">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className={`flex items-center gap-1 h-8 ${
-                              highlightEmailButton 
-                                ? 'email-button-highlight' 
-                                : 'opacity-45 hover:opacity-100 hover:bg-white'
-                            } transition-all`}
-                            onClick={runConsolidatedEmailSearch}
-                            disabled={isConsolidatedSearching}
-                          >
-                            <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
-                            <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
-                          </Button>
-                          
-                          {/* Second tooltip for landing page users */}
-                          {isFromLandingPage && highlightEmailButton && (
-                            <div className="absolute md:-top-24 md:left-1/3 md:transform md:-translate-x-1/3 -top-32 left-[55%] transform -translate-x-1/2
-                                 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 
-                                 p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 
-                                 animate-fade-in max-w-xs text-center">
-                              <div className="tooltip-arrow"></div>
-                              <p className="font-medium text-blue-800 dark:text-blue-200">
-                                Click here to find Egg-cellent emails of wonderful people.
-                              </p>
-                            </div>
-                          )}
-                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className={`flex items-center gap-1 h-8 ${
+                            highlightEmailButton 
+                              ? 'email-button-highlight' 
+                              : 'opacity-45 hover:opacity-100 hover:bg-white'
+                          } transition-all`}
+                          onClick={runConsolidatedEmailSearch}
+                          disabled={isConsolidatedSearching}
+                        >
+                          <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
+                          <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
+                        </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
                         <p className="text-xs">Run email search for 1-2 decision-makers per company</p>
