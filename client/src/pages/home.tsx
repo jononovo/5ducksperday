@@ -882,16 +882,8 @@ export default function Home() {
       // Small delay between batches to avoid overwhelming APIs
       await delay(200);
       
-      // Check if any of these contacts now have emails
-      const anyFoundEmails = batch.some(contact => {
-        const updatedContact = getCurrentContact(contact.id);
-        return updatedContact?.email && updatedContact.email.length > 5;
-      });
-      
-      // Stop processing this company if we found an email
-      if (anyFoundEmails) {
-        break;
-      }
+      // Continue processing all contacts in Perplexity phase to find multiple emails per company
+      // (Early termination removed to allow finding 2+ contacts per company)
     }
   };
   
@@ -940,7 +932,7 @@ export default function Home() {
         7 // Batch size of 7 for Perplexity (one per company for optimal speed)
       );
       
-      // Check which companies still need emails
+      // Check which companies still need emails (where Perplexity found zero emails)
       const companiesStillNeedingEmails = getCurrentCompaniesWithoutEmails();
       
       if (companiesStillNeedingEmails.length === 0) {
