@@ -2054,7 +2054,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       console.log(`Summary: ${results.summary.passed}/${results.summary.total} passed, ${results.summary.failed} failed, ${results.summary.warnings} warnings`);
       console.log('Individual Tests:');
       results.tests.forEach(test => {
-        console.log(`  ${test.name}: ${test.status} (${test.duration}ms)`);
+        console.log(`  ${test.name}: ${test.status}`);
         if (test.subTests && Array.isArray(test.subTests)) {
           test.subTests.forEach(subTest => {
             console.log(`    - ${subTest.name}: ${subTest.status} - ${subTest.message}`);

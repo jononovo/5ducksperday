@@ -178,11 +178,6 @@ export default function Testing() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {test.duration && (
-                          <span className="text-xs text-muted-foreground">
-                            {test.duration}ms
-                          </span>
-                        )}
                         {getStatusBadge(test.status)}
                       </div>
                     </div>
