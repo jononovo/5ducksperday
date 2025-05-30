@@ -13,6 +13,7 @@ import SearchSettingsDrawer from "./search-settings-drawer";
 import SearchProgressIndicator from "./search-progress-indicator";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
+import { SearchProgress } from "./search-progress";
 import {
   Tooltip,
   TooltipContent,
@@ -212,6 +213,8 @@ export default function PromptEditor({
         description: `Found ${data.companies.length} companies. Loading contacts...`,
       });
       
+      setSearchProgress(prev => ({ ...prev, phase: "Companies Found", completed: 1 }));
+      
       // Start the full search with contacts
       fullContactSearchMutation.mutate(data.query);
       
@@ -221,6 +224,7 @@ export default function PromptEditor({
           title: "Company Analysis",
           description: "Analyzing company profiles and gathering business intelligence...",
         });
+        setSearchProgress(prev => ({ ...prev, phase: "Analyzing Companies", completed: 2 }));
       }, 2000);
       
       // Show core leadership search notification
@@ -229,6 +233,7 @@ export default function PromptEditor({
           title: "Leadership Search",
           description: "Searching for C-level executives and founders...",
         });
+        setSearchProgress(prev => ({ ...prev, phase: "Contact Discovery", completed: 3 }));
       }, 5000);
       
       // Show department heads search notification
@@ -253,6 +258,7 @@ export default function PromptEditor({
           title: "Contact Validation",
           description: "Validating and scoring contact information...",
         });
+        setSearchProgress(prev => ({ ...prev, phase: "Scoring Contacts", completed: 4 }));
       }, 14000);
     },
     onError: (error: Error) => {
