@@ -168,7 +168,7 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
             ? 'text-blue-700' 
             : logMessages[currentIndex]?.includes('Error:') 
               ? 'text-red-800' 
-              : 'text-indigo-600'
+              : 'text-gray-600'
         }`}>
           {completionMessage || logMessages[currentIndex]}
         </div>
