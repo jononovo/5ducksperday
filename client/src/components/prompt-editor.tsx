@@ -52,6 +52,13 @@ export default function PromptEditor({
   const queryClient = useQueryClient();
   const { triggerConfetti } = useConfetti();
   
+  // Progress tracking state
+  const [searchProgress, setSearchProgress] = useState({
+    phase: "",
+    completed: 0,
+    total: 4 // Total phases: Companies Found, Analyzing, Contact Discovery, Scoring
+  });
+  
   // Add auth hooks for semi-protected functionality
   const { user } = useAuth();
   const { openForProtectedRoute } = useRegistrationModal();

@@ -1,18 +1,18 @@
 import { Progress } from "@/components/ui/progress";
 
-interface EmailSearchProgressProps {
+interface SearchProgressProps {
   phase: string; 
   completed: number;
   total: number;
   isVisible: boolean;
 }
 
-export function EmailSearchProgress({ 
+export function SearchProgress({ 
   phase, 
   completed, 
   total,
   isVisible
-}: EmailSearchProgressProps) {
+}: SearchProgressProps) {
   if (!isVisible) return null;
   
   const percentComplete = total > 0 ? Math.round((completed / total) * 100) : 0;

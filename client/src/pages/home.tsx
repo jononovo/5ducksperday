@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompanyTable from "@/components/company-table";
 import PromptEditor from "@/components/prompt-editor";
-import { EmailSearchProgress } from "@/components/email-search-progress";
+import { SearchProgress } from "@/components/search-progress";
 import { EmailSearchSummary } from "@/components/email-search-summary";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -1214,7 +1214,7 @@ export default function Home() {
               {/* Email Search Progress - with reduced padding */}
               {isConsolidatedSearching && (
                 <div className="px-4 pt-1 pb-0">
-                  <EmailSearchProgress 
+                  <SearchProgress 
                     phase={searchProgress.phase}
                     completed={searchProgress.completed}
                     total={searchProgress.total}
