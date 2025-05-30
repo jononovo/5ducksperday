@@ -880,7 +880,7 @@ export default function Home() {
       }));
       
       // Small delay between batches to avoid overwhelming APIs
-      await delay(100);
+      await delay(200);
       
       // Check if any of these contacts now have emails
       const anyFoundEmails = batch.some(contact => {
