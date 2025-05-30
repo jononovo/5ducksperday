@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -378,7 +378,7 @@ export default function Home() {
       });
       
       // Only show notifications if we're not in a consolidated search
-      if (!isConsolidatedSearching) {
+      if (!isConsolidatedSearching && !isAutomatedSearchRef.current) {
         toast({
           title: "Email Search Complete",
           description: `${data.name}: ${data.email 
@@ -784,6 +784,7 @@ export default function Home() {
   
   // Consolidated Email Search functionality
   const [isConsolidatedSearching, setIsConsolidatedSearching] = useState(false);
+  const isAutomatedSearchRef = useRef(false);
   const [searchProgress, setSearchProgress] = useState({
     phase: "",
     completed: 0,
@@ -847,6 +848,7 @@ export default function Home() {
   // Helper function to finish search (no longer shows toast)
   const finishSearch = () => {
     setIsConsolidatedSearching(false);
+    isAutomatedSearchRef.current = false;
     setSummaryVisible(true);
   };
 
@@ -898,6 +900,7 @@ export default function Home() {
     if (!currentResults || currentResults.length === 0) return;
     
     setIsConsolidatedSearching(true);
+    isAutomatedSearchRef.current = true;
     setSummaryVisible(false);
     setSearchProgress({ phase: "Preparing", completed: 0, total: currentResults.length });
     
@@ -1010,6 +1013,7 @@ export default function Home() {
         variant: "destructive"
       });
       setIsConsolidatedSearching(false);
+      isAutomatedSearchRef.current = false;
     }
   };
 
