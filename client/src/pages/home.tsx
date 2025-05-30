@@ -378,12 +378,6 @@ export default function Home() {
       });
       
       // Only show notifications if we're not in a consolidated search
-      console.log("enrichContactMutation success:", { 
-        contactName: data.name, 
-        hasEmail: !!data.email, 
-        isConsolidatedSearching 
-      });
-      
       if (!isConsolidatedSearching) {
         toast({
           title: "Email Search Complete",
@@ -833,34 +827,13 @@ export default function Home() {
     return null;
   };
 
-  // Helper to get top N contacts from a company based on role importance
+  // Helper to get top N contacts from a company based on probability score (same as UI display)
   const getTopContacts = (company: any, count: number) => {
     if (!company.contacts || company.contacts.length === 0) return [];
     
-    // Sort contacts by role importance
+    // Sort by probability score (same as UI display)
     const sorted = [...company.contacts].sort((a, b) => {
-      const roleA = a.role?.toLowerCase() || "";
-      const roleB = b.role?.toLowerCase() || "";
-      
-      // Prioritize executive roles
-      const execA = roleA.includes("ceo") || roleA.includes("chief") || 
-                    roleA.includes("president") || roleA.includes("founder") ||
-                    roleA.includes("director") || roleA.includes("vp");
-      const execB = roleB.includes("ceo") || roleB.includes("chief") || 
-                    roleB.includes("president") || roleB.includes("founder") ||
-                    roleB.includes("director") || roleB.includes("vp");
-      
-      if (execA && !execB) return -1;
-      if (!execA && execB) return 1;
-      
-      // Secondary priority to managers
-      const managerA = roleA.includes("manager") || roleA.includes("head");
-      const managerB = roleB.includes("manager") || roleB.includes("head");
-      
-      if (managerA && !managerB) return -1;
-      if (!managerA && managerB) return 1;
-      
-      return 0;
+      return (b.probability || 0) - (a.probability || 0);
     });
     
     return sorted.slice(0, count);
