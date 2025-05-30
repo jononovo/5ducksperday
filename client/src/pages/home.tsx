@@ -810,10 +810,10 @@ export default function Home() {
     }
   }, [summaryVisible, isConsolidatedSearching]);
 
-  // Helper to get current companies without emails
+  // Helper to get current companies without emails (only check top 3 contacts)
   const getCurrentCompaniesWithoutEmails = () => {
     return currentResults?.filter(company => 
-      !company.contacts?.some(contact => contact.email && contact.email.length > 5)
+      !getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)
     ) || [];
   };
 
@@ -905,9 +905,9 @@ export default function Home() {
     setSearchProgress({ phase: "Preparing", completed: 0, total: currentResults.length });
     
     try {
-      // Get companies without emails
+      // Get companies without emails (only check top 3 contacts)
       const companiesNeedingEmails = currentResults.filter(company => 
-        !company.contacts?.some(contact => contact.email && contact.email.length > 5)
+        !getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)
       );
       
       if (companiesNeedingEmails.length === 0) {
@@ -1211,7 +1211,7 @@ export default function Home() {
                 <div className="px-4 pt-1 pb-0">
                   <EmailSearchSummary 
                     companiesWithEmails={currentResults?.filter(company => 
-                      company.contacts?.some(contact => contact.email && contact.email.length > 5)).length || 0}
+                      getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)).length || 0}
                     totalCompanies={currentResults?.length || 0}
                     onClose={() => setSummaryVisible(false)}
                     isVisible={summaryVisible}
