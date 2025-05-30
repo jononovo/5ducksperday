@@ -208,11 +208,13 @@ export default function PromptEditor({
       // Start the full search with contacts
       fullContactSearchMutation.mutate(data.query);
       
-      // Show contact search notification
-      toast({
-        title: "Contact Search Started",
-        description: "Starting search for key contacts in each company.",
-      });
+      // Show additional contact search notification
+      setTimeout(() => {
+        toast({
+          title: "Contact Search Started",
+          description: "Starting search for key contacts in each company.",
+        });
+      }, 1000);
     },
     onError: (error: Error) => {
       toast({
