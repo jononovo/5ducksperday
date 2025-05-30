@@ -160,15 +160,15 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
         {isComplete ? (
           <CheckCircle2 className="mr-2 h-5 w-5 text-blue-500" />
         ) : (
-          <Loader2 className="mr-2 h-5 w-5 animate-spin text-blue-500" />
+          <Loader2 className="mr-2 h-5 w-5 animate-spin text-gray-400" />
         )}
         
-        <div className={`flex-1 truncate font-medium ${
+        <div className={`flex-1 truncate font-normal text-xs ${
           completionMessage 
             ? 'text-blue-700' 
             : logMessages[currentIndex]?.includes('Error:') 
               ? 'text-red-800' 
-              : 'text-gray-600'
+              : 'text-gray-400'
         }`}>
           {completionMessage || logMessages[currentIndex]}
         </div>
