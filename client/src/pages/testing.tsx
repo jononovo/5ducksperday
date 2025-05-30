@@ -242,19 +242,38 @@ export default function Testing() {
       error: undefined
     })));
 
-    const testFunctions = [
-      runAuthTest,
-      runDatabaseTest,
-      runSearchTest,
-      runApiHealthTest,
-      runSessionTest
-    ];
-
-    // Run tests sequentially
-    for (let i = 0; i < testFunctions.length; i++) {
-      await testFunctions[i](i);
-      // Small delay between tests
-      await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      // Run all tests at once through the backend
+      const response = await fetch('/api/test/run-all', { method: 'POST' });
+      const results = await response.json();
+      
+      // Update each test with its actual results
+      setTestResults(prev => prev.map(test => {
+        const backendTest = results.tests.find((t: any) => t.name === test.name);
+        if (backendTest) {
+          return {
+            ...test,
+            status: backendTest.status,
+            message: backendTest.message,
+            duration: backendTest.duration,
+            subTests: backendTest.subTests.map((sub: any) => ({
+              name: sub.name,
+              status: sub.status,
+              message: sub.message
+            }))
+          };
+        }
+        return test;
+      }));
+    } catch (error) {
+      console.error('Failed to run tests:', error);
+      // Mark all tests as failed if the backend call fails
+      setTestResults(prev => prev.map(test => ({
+        ...test,
+        status: 'failed' as const,
+        message: 'Test execution failed',
+        error: error instanceof Error ? error.message : String(error)
+      })));
     }
     
     setIsRunning(false);
