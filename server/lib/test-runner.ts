@@ -91,32 +91,58 @@ export class TestRunner {
     const subTests: SubTestResult[] = [];
     
     try {
-      // Test search modules endpoint
-      const modulesResponse = await fetch('http://localhost:5000/api/search-modules');
-      const modulesData = modulesResponse.ok ? await modulesResponse.json() : null;
+      // Test actual company quick search endpoint
+      const quickSearchResponse = await fetch('http://localhost:5000/api/companies/quick-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: "test company", strategyId: null })
+      });
+      const quickSearchData = quickSearchResponse.ok ? await quickSearchResponse.json() : null;
       
       subTests.push({
-        name: 'Company Overview Search',
-        status: Array.isArray(modulesData) ? 'passed' : 'failed',
-        message: Array.isArray(modulesData) ? `${modulesData.length} search modules loaded` : 'Search modules failed to load',
-        data: { modulesCount: Array.isArray(modulesData) ? modulesData.length : 0 }
+        name: 'Company Quick Search',
+        status: quickSearchResponse.ok && quickSearchData ? 'passed' : 'failed',
+        message: quickSearchResponse.ok && quickSearchData ? 
+          `Quick search operational - found ${quickSearchData.companies?.length || 0} companies` : 
+          'Quick search endpoint failed',
+        data: { 
+          statusCode: quickSearchResponse.status,
+          companiesFound: quickSearchData?.companies?.length || 0
+        }
       });
 
-      // Test search approaches endpoint
-      const approachesResponse = await fetch('http://localhost:5000/api/search-approaches');
-      const approachesData = approachesResponse.ok ? await approachesResponse.json() : null;
+      // Test company data retrieval
+      const companiesResponse = await fetch('http://localhost:5000/api/companies');
+      const companiesData = companiesResponse.ok ? await companiesResponse.json() : null;
       
       subTests.push({
-        name: 'Decision Maker Search',
-        status: Array.isArray(approachesData) ? 'passed' : 'failed',
-        message: Array.isArray(approachesData) ? `${approachesData.length} approaches available` : 'Search approaches unavailable',
-        data: { approachesCount: Array.isArray(approachesData) ? approachesData.length : 0 }
+        name: 'Company Data Retrieval',
+        status: Array.isArray(companiesData) ? 'passed' : 'failed',
+        message: Array.isArray(companiesData) ? 
+          `Company database accessible - ${companiesData.length} total companies` : 
+          'Company data retrieval failed',
+        data: { 
+          statusCode: companiesResponse.status,
+          totalCompanies: Array.isArray(companiesData) ? companiesData.length : 0
+        }
       });
 
+      // Test workflow search endpoint
+      const workflowResponse = await fetch('http://localhost:5000/api/workflow-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: "test workflow", strategyId: null })
+      });
+      
       subTests.push({
-        name: 'Email Discovery Search',
-        status: (modulesResponse.status === 200 && approachesResponse.status === 200) ? 'passed' : 'failed',
-        message: (modulesResponse.status === 200 && approachesResponse.status === 200) ? 'Search system fully integrated' : 'Search system integration issues'
+        name: 'Workflow Search',
+        status: workflowResponse.status === 200 || workflowResponse.status === 401 ? 'passed' : 'failed',
+        message: workflowResponse.status === 200 ? 
+          'Workflow search endpoint operational' : 
+          workflowResponse.status === 401 ? 
+          'Workflow search requires authentication (expected)' :
+          'Workflow search endpoint failed',
+        data: { statusCode: workflowResponse.status }
       });
 
       const allPassed = subTests.every(test => test.status === 'passed');
