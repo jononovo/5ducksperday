@@ -880,7 +880,7 @@ export default function Home() {
       }));
       
       // Small delay between batches to avoid overwhelming APIs
-      await delay(500);
+      await delay(100);
       
       // Check if any of these contacts now have emails
       const anyFoundEmails = batch.some(contact => {
@@ -933,11 +933,11 @@ export default function Home() {
         perplexityContacts.push(...topContacts);
       });
       
-      // Process Perplexity searches in parallel batches (3 at a time)
+      // Process Perplexity searches in parallel batches (7 at a time for faster processing)
       await processContactsBatch(
         perplexityContacts, 
         (contactId) => enrichContactMutation.mutateAsync(contactId),
-        3 // Batch size of 3 for Perplexity
+        7 // Batch size of 7 for Perplexity (one per company for optimal speed)
       );
       
       // Check which companies still need emails
