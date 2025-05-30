@@ -1220,6 +1220,8 @@ export default function Home() {
                     companiesWithContacts={currentResults?.filter(company => 
                       company.contacts && company.contacts.length > 0).length || 0}
                     totalCompanies={currentResults?.length || 0}
+                    totalContacts={currentResults?.reduce((sum, company) => 
+                      sum + (company.contacts?.length || 0), 0) || 0}
                     onClose={() => setContactReportVisible(false)}
                     isVisible={contactReportVisible}
                   />

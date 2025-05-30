@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 interface ContactDiscoveryReportProps {
   companiesWithContacts: number;
   totalCompanies: number;
+  totalContacts: number;
   onClose: () => void;
   isVisible: boolean;
 }
@@ -13,6 +14,7 @@ interface ContactDiscoveryReportProps {
 export function ContactDiscoveryReport({
   companiesWithContacts,
   totalCompanies,
+  totalContacts,
   onClose,
   isVisible
 }: ContactDiscoveryReportProps) {
@@ -56,7 +58,7 @@ export function ContactDiscoveryReport({
         </Button>
       </div>
       <div className="text-sm mt-1">
-        <p>Found contacts for {companiesWithContacts} of {totalCompanies} companies</p>
+        <p>Found {totalContacts} contacts for {companiesWithContacts} of {totalCompanies} companies</p>
         <p className="text-muted-foreground text-xs mt-0.5">
           {getSuccessMessage()}
         </p>
