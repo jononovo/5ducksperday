@@ -208,6 +208,22 @@ export class TestRunner {
         message: aeroLeadsKey ? 'Contact discovery service ready' : 'AeroLeads API key missing'
       });
 
+      // Test Hunter API key
+      const hunterKey = process.env.HUNTER_API_KEY;
+      subTests.push({
+        name: 'Hunter API',
+        status: hunterKey ? 'passed' : 'failed',
+        message: hunterKey ? 'Hunter email discovery ready' : 'Hunter API key missing'
+      });
+
+      // Test Apollo API key
+      const apolloKey = process.env.APOLLO_API_KEY;
+      subTests.push({
+        name: 'Apollo API',
+        status: apolloKey ? 'passed' : 'failed',
+        message: apolloKey ? 'Apollo contact enrichment ready' : 'Apollo API key missing'
+      });
+
       // Test server health
       const response = await fetch('http://localhost:5000/api/health');
       const isWorking = response.status === 200;

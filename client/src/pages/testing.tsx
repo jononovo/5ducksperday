@@ -53,6 +53,8 @@ export default function Testing() {
       subTests: [
         { name: "Perplexity API Connection", status: 'pending', message: "Not started" },
         { name: "AeroLeads API Connection", status: 'pending', message: "Not started" },
+        { name: "Hunter API Connection", status: 'pending', message: "Not started" },
+        { name: "Apollo API Connection", status: 'pending', message: "Not started" },
         { name: "Gmail API Connection", status: 'pending', message: "Not started" }
       ]
     }
