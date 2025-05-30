@@ -273,10 +273,13 @@ export default function PromptEditor({
       // Send full results with contacts to parent component
       onSearchResults(data.query, data.companies);
       
-      toast({
-        title: "Search Complete",
-        description: "Contact discovery has been completed successfully.",
-      });
+      // Delay the final notification slightly
+      setTimeout(() => {
+        toast({
+          title: "Search Complete",
+          description: "Contact discovery has been completed successfully.",
+        });
+      }, 500);
       
       console.log("Search process completed!");
       
