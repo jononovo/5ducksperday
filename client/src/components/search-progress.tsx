@@ -18,7 +18,7 @@ export function SearchProgress({
   const percentComplete = total > 0 ? Math.round((completed / total) * 100) : 0;
   
   return (
-    <div className="mb-2 w-full">
+    <div className="mt-3 mb-1 w-full">
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs font-medium">
           {phase} ({completed + 1} of {total})
