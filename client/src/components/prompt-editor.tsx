@@ -208,13 +208,45 @@ export default function PromptEditor({
       // Start the full search with contacts
       fullContactSearchMutation.mutate(data.query);
       
-      // Show additional contact search notification
+      // Show company analysis notification
       setTimeout(() => {
         toast({
-          title: "Contact Search Started",
-          description: "Starting search for key contacts in each company.",
+          title: "Company Analysis",
+          description: "Analyzing company profiles and gathering business intelligence...",
         });
-      }, 1000);
+      }, 2000);
+      
+      // Show core leadership search notification
+      setTimeout(() => {
+        toast({
+          title: "Leadership Search",
+          description: "Searching for C-level executives and founders...",
+        });
+      }, 5000);
+      
+      // Show department heads search notification
+      setTimeout(() => {
+        toast({
+          title: "Department Search",
+          description: "Identifying department leaders and key managers...",
+        });
+      }, 8000);
+      
+      // Show middle management search notification
+      setTimeout(() => {
+        toast({
+          title: "Senior Staff Search",
+          description: "Finding senior staff and decision makers...",
+        });
+      }, 11000);
+      
+      // Show contact validation notification
+      setTimeout(() => {
+        toast({
+          title: "Contact Validation",
+          description: "Validating and scoring contact information...",
+        });
+      }, 14000);
     },
     onError: (error: Error) => {
       toast({
@@ -263,32 +295,15 @@ export default function PromptEditor({
       console.log("Contact discovery completed successfully");
       console.log(`Found ${totalContacts} contacts across ${data.companies.length} companies`);
       
-      // Show key contacts found notification
-      toast({
-        title: "Key Contacts Found",
-        description: `Found ${totalContacts} contacts across ${data.companies.length} companies.`,
-      });
-      
       console.log("Processing and organizing results...");
-      
-      // Show scoring notification
-      setTimeout(() => {
-        toast({
-          title: "Analyzing Results",
-          description: "Scoring contacts based on affinity to target responsibility in the company.",
-        });
-      }, 800);
       
       // Send full results with contacts to parent component
       onSearchResults(data.query, data.companies);
       
-      // Delay the final notification slightly
-      setTimeout(() => {
-        toast({
-          title: "Search Complete",
-          description: "Contact discovery has been completed successfully.",
-        });
-      }, 500);
+      toast({
+        title: "Search Complete",
+        description: `Found ${totalContacts} contacts across ${data.companies.length} companies.`,
+      });
       
       console.log("Search process completed!");
       
