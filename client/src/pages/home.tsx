@@ -242,6 +242,19 @@ export default function Home() {
     setContactsLoaded(true);
     setLastExecutedQuery(query); // Store the last executed query
     setInputHasChanged(false); // Reset the input changed flag
+    
+    // Show contact discovery report for any search with companies
+    const companiesWithContacts = results.filter(company => 
+      company.contacts && company.contacts.length > 0
+    ).length;
+    
+    console.log("Companies with contacts:", companiesWithContacts, "of", results.length);
+    
+    // Always show the report if we have companies (even if 0 have contacts)
+    if (results.length > 0) {
+      setContactReportVisible(true);
+    }
+    
     // Dismiss the landing page tooltip after search
     if (isFromLandingPage) {
       setIsFromLandingPage(false);
