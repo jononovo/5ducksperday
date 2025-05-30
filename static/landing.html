@@ -3,190 +3,230 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>5 Ducks - Find Ultra Niche Contacts</title>
+  <title>5Ducks - Sell to 5 new people every day</title>
   
   <!-- SEO Meta Tags -->
-  <meta name="description" content="Advanced contact outreach platform for efficient lead generation. Find decision-makers and manage outreach without distraction.">
-  <meta property="og:title" content="5 Ducks - Contact Outreach Platform">
-  <meta property="og:description" content="Streamlined email communication tools for efficient lead generation and user engagement.">
+  <meta name="description" content="Easy Selling for Small Businesses - Sell to 5 new people every day.">
+  <meta property="og:title" content="5Ducks - Sell to 5 new people every day">
+  <meta property="og:description" content="Easy Selling for Small Businesses - Sell to 5 new people every day.">
   <meta property="og:type" content="website">
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Custom styles -->
-  <style>
-    /* Custom gradient background */
-    .hero-gradient {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    /* Animations */
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {}
       }
     }
-    
-    .animate-fade-in-up {
-      animation: fadeInUp 0.6s ease-out forwards;
-    }
-    
-    /* Button hover effects */
-    .btn-primary {
-      @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200;
-    }
-    
-    .btn-secondary {
-      @apply bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/30 font-semibold py-3 px-6 rounded-lg transition-all duration-200;
-    }
-  </style>
+  </script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
-  <!-- Hero Section -->
-  <div class="hero-gradient min-h-screen flex flex-col">
-    <!-- Navigation -->
-    <nav class="p-6">
-      <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-          <img src="/attached_assets/5Ducks-logo-square-lrg.png" alt="5 Ducks Logo" class="h-10 w-10">
-          <span class="text-2xl font-bold">5 Ducks</span>
-        </div>
-        <button id="try-now-btn" class="btn-primary cursor-pointer">
-          Try Now
+<body class="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950">
+  <!-- Header -->
+  <header class="container mx-auto py-4 px-4">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <img src="/attached_assets/5Ducks-logo-square-lrg.png" alt="5 Ducks Logo" class="h-10 w-10">
+        <span class="text-2xl font-bold text-slate-900 dark:text-white">5 Ducks</span>
+      </div>
+      
+      <div class="flex-1 flex justify-center">
+        <nav class="hidden md:block">
+          <ul class="flex space-x-8">
+            <li>
+              <a href="/pricing" class="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border-b border-transparent hover:border-slate-400 dark:hover:border-slate-600 py-1">
+                Pricing
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      
+      <div class="flex items-center space-x-3">
+        <button id="login-btn" class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+          Login
         </button>
       </div>
-    </nav>
+    </div>
+  </header>
 
-    <!-- Hero Content -->
-    <div class="flex-1 flex items-center justify-center px-6">
-      <div class="max-w-4xl mx-auto text-center animate-fade-in-up">
-        <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-          Find Ultra Niche Contacts
+  <!-- Main Hero Section -->
+  <main class="flex-1">
+    <section class="py-16 md:py-24 px-4">
+      <div class="container mx-auto max-w-4xl text-center">
+        <div class="mb-4 inline-flex items-center px-4 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+          </svg>
+          <span class="text-sm font-medium">AI-Powered B2B Sales</span>
+        </div>
+        
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 leading-tight">
+          Sell to 5 new people every day.
         </h1>
-        <p class="text-xl md:text-2xl mb-8 text-white/90 max-w-2xl mx-auto">
-          Advanced contact outreach platform for efficient lead generation. Connect with decision-makers and manage outreach without distraction.
+        
+        <p class="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
+          <span class="font-normal">What type of business 💼 would you like to sell to? 🤷🏼‍♀️<br />
+          And where?</span>
         </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <button id="get-started-btn" class="btn-primary cursor-pointer text-lg">
-            Get Started
-          </button>
-          <button class="btn-secondary cursor-pointer text-lg">
-            Learn More
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Features Section -->
-  <section class="py-20 bg-gray-800">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold mb-4">Find Ultra Niche Contacts</h2>
-        <p class="text-xl text-gray-300">Powerful tools to connect with the right people</p>
-      </div>
-      
-      <div class="grid md:grid-cols-3 gap-8">
-        <div class="text-center p-6">
-          <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+        <!-- Search Input -->
+        <div class="relative max-w-2xl mx-auto mb-10">
+          <div class="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full opacity-70 blur"></div>
+          <div class="relative bg-white dark:bg-slate-900 rounded-full">
+            <input
+              type="text"
+              placeholder="Adventure service providers in Maine"
+              id="search-input"
+              class="w-full pl-12 pr-36 py-7 text-lg rounded-full border-transparent shadow-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+            <svg class="absolute left-5 top-1/2 transform -translate-y-1/2 text-blue-500 w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
             </svg>
+            <button
+              id="search-btn"
+              class="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-5 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white cursor-pointer"
+            >
+              <span class="mr-2">Quack</span>
+              <svg class="w-4 h-4 inline" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>
+              </svg>
+            </button>
           </div>
-          <h3 class="text-xl font-semibold mb-2">Smart Messaging</h3>
-          <p class="text-gray-400">Craft personalized outreach messages that get responses</p>
         </div>
-        
-        <div class="text-center p-6">
-          <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="m22 21-3-3m0 0-3-3m3 3 3-3m-3 3-3 3"/>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2">Contact Discovery</h3>
-          <p class="text-gray-400">Find decision-makers in your target companies</p>
-        </div>
-        
-        <div class="text-center p-6">
-          <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2">AI Enhancement</h3>
-          <p class="text-gray-400">Leverage AI to improve your outreach success rate</p>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- Second Features Section -->
-  <section class="py-20 bg-gray-900">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold mb-4">No-distraction Selling for Busy People</h2>
-        <p class="text-xl text-gray-300">Focus on what matters most</p>
-      </div>
-      
-      <div class="grid md:grid-cols-3 gap-8">
-        <div class="text-center p-6">
-          <div class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12,6 12,12 16,14"/>
-            </svg>
-          </div>
-          <h3 class="text-xl font-semibold mb-2">Time Focused</h3>
-          <p class="text-gray-400">Streamlined workflows that respect your time</p>
+        <!-- Suggestion Text -->
+        <div class="text-center mt-4 mb-2">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Or select one of the suggestions below:</p>
+        </div>
+
+        <!-- Example Search Prompts -->
+        <div class="flex flex-wrap justify-center gap-2 mb-16">
+          <button class="example-prompt text-sm bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all px-3 py-2 rounded-md cursor-pointer" data-prompt="Highly-rated Greek restaurants in Midtown NYC">
+            Highly-rated Greek restaurants in Midtown NYC
+          </button>
+          <button class="example-prompt text-sm bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all px-3 py-2 rounded-md cursor-pointer" data-prompt="Real-estate lawyers in Salt Lake City">
+            Real-estate lawyers in Salt Lake City
+          </button>
+          <button class="example-prompt text-sm bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all px-3 py-2 rounded-md cursor-pointer" data-prompt="Stationary suppliers in Scranton">
+            Stationary suppliers in Scranton
+          </button>
+          <button class="example-prompt text-sm bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all px-3 py-2 rounded-md cursor-pointer" data-prompt="Health-tech SaaS in Brooklyn">
+            Health-tech SaaS in Brooklyn
+          </button>
+          <button class="example-prompt text-sm bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all px-3 py-2 rounded-md cursor-pointer" data-prompt="Wolf-of-wallstreet-esque trading companies">
+            Wolf-of-wallstreet-esque trading companies
+          </button>
         </div>
         
-        <div class="text-center p-6">
-          <div class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="m22 11 2 2v3h-3m-1 0h-2l-1-1v-1a3 3 0 0 1 3-3h1"/>
-            </svg>
+        <div class="flex flex-wrap justify-center space-x-2 md:space-x-8 my-10">
+          <div class="text-center p-3 md:p-4">
+            <div class="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">22 Hours</div>
+            <div class="text-sm text-slate-500 dark:text-slate-400">Saved per Month</div>
           </div>
-          <h3 class="text-xl font-semibold mb-2">Quality Leads</h3>
-          <p class="text-gray-400">Connect with qualified prospects who matter</p>
-        </div>
-        
-        <div class="text-center p-6">
-          <div class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-              <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-            </svg>
+          <div class="text-center p-3 md:p-4">
+            <div class="text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">225 Targets </div>
+            <div class="text-sm text-slate-500 dark:text-slate-400">Sweet-talked to per Month</div>
           </div>
-          <h3 class="text-xl font-semibold mb-2">Results Driven</h3>
-          <p class="text-gray-400">Track and optimize your outreach performance</p>
+          <div class="text-center p-3 md:p-4">
+            <div class="text-3xl md:text-4xl font-bold text-pink-600 dark:text-pink-400 mb-2">Avg $70k</div>
+            <div class="text-sm text-slate-500 dark:text-slate-400">New Revenue Pipeline*</div>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- Video Section -->
+    <section class="py-20 px-4 bg-white dark:bg-slate-900">
+      <div class="container mx-auto max-w-5xl">
+        <h2 class="text-3xl font-bold mb-8 text-center">See How It Works</h2>
+        
+        <div class="relative aspect-video bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden w-[60%] mx-auto cursor-pointer" id="video-container">
+          <div class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-transparent to-slate-900/60 text-white">
+            <svg class="w-16 h-16 mb-4 text-white opacity-90" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <p class="font-medium">Click to watch demo</p>
+          </div>
+          <img src="https://placehold.co/1920x1080/2563eb/FFFFFF?text=5+Ducks+Demo+Video" alt="Video thumbnail" class="w-full h-full object-cover" />
+        </div>
+      </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="py-16 px-4 bg-blue-50 dark:bg-blue-950/30">
+      <div class="container mx-auto max-w-6xl">
+        <h2 class="text-3xl font-bold mb-4 text-center">Find Ultra Niche Contacts</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300 mb-12 text-center">or companies that would be impossible to filter in any other GTM or Lead-gen platform.</p>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
+            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
+              <svg class="text-blue-600 dark:text-blue-400 w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Simply prompt type of company</h3>
+            <p class="text-slate-600 dark:text-slate-400">Adapt your prompt until you are getting the companies you want.</p>
+          </div>
+          
+          <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
+            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mb-4">
+              <svg class="text-purple-600 dark:text-purple-400 w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="m22 21-3-3m0 0-3-3m3 3 3-3m-3 3-3 3"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Then click "Find Key Contacts"</h3>
+            <p class="text-slate-600 dark:text-slate-400">Which identifies the top 3 decision-makers in the each company.</p>
+          </div>
+          
+          <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
+            <div class="w-12 h-12 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center mb-4">
+              <svg class="text-pink-600 dark:text-pink-400 w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Find all decision-maker's email</h3>
+            <p class="text-slate-600 dark:text-slate-400">with a single click or drill-down and only find those you want.</p>
+          </div>
+        </div>
+        
+        <div class="text-center mt-12">
+          <button id="try-free-btn" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-6 cursor-pointer">
+            <span class="mr-2">Try it for free</span>
+            <svg class="w-4 h-4 inline" fill="currentColor" viewBox="0 0 24 24">
+              <path d="m9 18 6-6-6-6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
 
   <!-- Footer -->
-  <footer class="bg-gray-800 py-8">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center">
+  <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 py-12">
+      <div class="text-center mb-8">
         <div class="flex items-center justify-center space-x-3 mb-4">
           <img src="/attached_assets/5Ducks-logo-square-lrg.png" alt="5 Ducks Logo" class="h-8 w-8">
-          <span class="text-xl font-bold">5 Ducks</span>
+          <span class="text-xl font-bold text-slate-900 dark:text-white">5 Ducks</span>
         </div>
-        <p class="text-gray-400 mb-4">Advanced contact outreach platform</p>
-        <div class="flex justify-center space-x-6 text-gray-400">
-          <a href="#" class="hover:text-white transition-colors">Privacy</a>
-          <a href="#" class="hover:text-white transition-colors">Terms</a>
-          <a href="#" class="hover:text-white transition-colors">Contact</a>
-          <span>Soli Deo Gloria</span>
+        <p class="text-slate-600 dark:text-slate-400">Easy Selling for Small Businesses</p>
+      </div>
+      
+      <div class="border-t border-slate-200 dark:border-slate-700 pt-8">
+        <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <div class="flex space-x-6 text-sm text-slate-600 dark:text-slate-400">
+            <a href="#" class="hover:text-slate-900 dark:hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" class="hover:text-slate-900 dark:hover:text-white transition-colors">Terms of Service</a>
+            <a href="#" class="hover:text-slate-900 dark:hover:text-white transition-colors">Contact</a>
+          </div>
+          <div class="text-center text-sm text-slate-600 dark:text-slate-400">
+            <span>Soli Deo Gloria</span>
+          </div>
         </div>
       </div>
     </div>
