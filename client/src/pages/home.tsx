@@ -1215,7 +1215,7 @@ export default function Home() {
               
               {/* Contact Discovery Report - with reduced padding */}
               {contactReportVisible && (
-                <div className="px-4 pt-1 pb-0">
+                <div className="px-4 pt-0 pb-2">
                   <ContactDiscoveryReport 
                     companiesWithContacts={currentResults?.filter(company => 
                       company.contacts && company.contacts.length > 0).length || 0}
