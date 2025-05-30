@@ -7,10 +7,12 @@ import { useAuth } from "@/hooks/use-auth";
 
 interface TestResult {
   name: string;
-  status: 'pending' | 'running' | 'passed' | 'failed';
+  status: 'pending' | 'running' | 'passed' | 'failed' | 'warning';
   message: string;
   duration?: number;
   error?: string;
+  category?: string;
+  data?: any;
   subTests?: TestResult[];
 }
 

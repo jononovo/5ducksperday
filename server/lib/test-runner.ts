@@ -5,7 +5,9 @@ export interface SubTestResult {
   name: string;
   status: 'passed' | 'failed' | 'warning';
   message: string;
+  duration?: number;
   data?: any;
+  error?: string;
 }
 
 export interface TestResult {
@@ -13,7 +15,9 @@ export interface TestResult {
   status: 'passed' | 'failed' | 'warning';
   message: string;
   duration: number;
-  subTests: SubTestResult[];
+  category?: string;
+  subTests?: SubTestResult[];
+  data?: any;
   error?: string;
 }
 
@@ -265,14 +269,75 @@ export class TestRunner {
       this.runAuthTest()
     ]);
 
-    const tests = [databaseTest, searchTest, healthTest, authTest];
+    // Flatten all sub-tests into individual tests with category metadata
+    const allTests: TestResult[] = [];
     
-    // Calculate summary
+    // Add database tests
+    if (databaseTest.subTests) {
+      databaseTest.subTests.forEach(subTest => {
+        allTests.push({
+          name: subTest.name,
+          status: subTest.status,
+          message: subTest.message,
+          duration: subTest.duration || 0,
+          category: 'Database Connectivity',
+          data: subTest.data,
+          error: subTest.error
+        });
+      });
+    }
+    
+    // Add search tests  
+    if (searchTest.subTests) {
+      searchTest.subTests.forEach(subTest => {
+        allTests.push({
+          name: subTest.name,
+          status: subTest.status,
+          message: subTest.message,
+          duration: subTest.duration || 0,
+          category: 'Search Functionality',
+          data: subTest.data,
+          error: subTest.error
+        });
+      });
+    }
+    
+    // Add API health tests
+    if (healthTest.subTests) {
+      healthTest.subTests.forEach(subTest => {
+        allTests.push({
+          name: subTest.name,
+          status: subTest.status,
+          message: subTest.message,
+          duration: subTest.duration || 0,
+          category: 'API Health',
+          data: subTest.data,
+          error: subTest.error
+        });
+      });
+    }
+    
+    // Add authentication tests
+    if (authTest.subTests) {
+      authTest.subTests.forEach(subTest => {
+        allTests.push({
+          name: subTest.name,
+          status: subTest.status,
+          message: subTest.message,
+          duration: subTest.duration || 0,
+          category: 'Authentication System',
+          data: subTest.data,
+          error: subTest.error
+        });
+      });
+    }
+    
+    // Calculate summary based on individual tests
     const summary = {
-      total: tests.length,
-      passed: tests.filter(t => t.status === 'passed').length,
-      failed: tests.filter(t => t.status === 'failed').length,
-      warnings: tests.filter(t => t.status === 'warning').length
+      total: allTests.length,
+      passed: allTests.filter(t => t.status === 'passed').length,
+      failed: allTests.filter(t => t.status === 'failed').length,
+      warnings: allTests.filter(t => t.status === 'warning').length
     };
 
     // Determine overall status
@@ -288,7 +353,7 @@ export class TestRunner {
       duration: Date.now() - startTime,
       overallStatus,
       summary,
-      tests
+      tests: allTests
     };
   }
 
