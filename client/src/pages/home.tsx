@@ -378,6 +378,12 @@ export default function Home() {
       });
       
       // Only show notifications if we're not in a consolidated search
+      console.log("enrichContactMutation success:", { 
+        contactName: data.name, 
+        hasEmail: !!data.email, 
+        isConsolidatedSearching 
+      });
+      
       if (!isConsolidatedSearching) {
         toast({
           title: "Email Search Complete",
