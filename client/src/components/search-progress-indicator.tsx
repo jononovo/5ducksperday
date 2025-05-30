@@ -157,10 +157,8 @@ export default function SearchProgressIndicator({ isSearching }: SearchProgressI
   return (
     <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm transition-all duration-300">
       <div className="flex items-center">
-        {isComplete ? (
+        {isComplete && (
           <CheckCircle2 className="mr-2 h-5 w-5 text-blue-500" />
-        ) : (
-          <Loader2 className="mr-2 h-5 w-5 animate-spin text-gray-400" />
         )}
         
         <div className={`flex-1 truncate font-normal text-xs ${
