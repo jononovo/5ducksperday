@@ -1007,7 +1007,7 @@ export default function Home() {
       // Process Apollo searches in parallel batches (3 at a time)
       await processContactsBatch(
         apolloContacts, 
-        (contactId) => apolloMutation.mutateAsync(contactId),
+        (contactId) => apolloMutation.mutateAsync({ contactId, searchContext: 'automated' }),
         3 // Batch size of 3 for Apollo (can be larger since it's faster than AeroLeads)
       );
       
@@ -1034,7 +1034,7 @@ export default function Home() {
   
   // Apollo.io mutation
   const apolloMutation = useMutation({
-    mutationFn: async (contactId: number) => {
+    mutationFn: async ({ contactId, searchContext = 'manual' }: { contactId: number; searchContext?: 'manual' | 'automated' }) => {
       // Add this contact ID to the set of pending searches
       setPendingApolloIds(prev => {
         const newSet = new Set(prev);
@@ -1042,10 +1042,10 @@ export default function Home() {
         return newSet;
       });
       const response = await apiRequest("POST", `/api/contacts/${contactId}/apollo`);
-      return {data: await response.json(), contactId};
+      return {data: await response.json(), contactId, searchContext};
     },
     onSuccess: (result) => {
-      const {data, contactId} = result;
+      const {data, contactId, searchContext} = result;
       
       // Update the contact in the results
       setCurrentResults(prev => {
@@ -1073,36 +1073,49 @@ export default function Home() {
         return newSet;
       });
       
-      toast({
-        title: "Apollo.io Search Complete",
-        description: `${data.name}: ${data.email 
-          ? `Found email with ${data.nameConfidenceScore || 'unknown'} confidence.`
-          : "No email found for this contact."}`,
-      });
+      // Only show toast notifications based on context
+      if (searchContext === 'manual') {
+        // Manual searches: show all results (success and no email found)
+        toast({
+          title: "Apollo.io Search Complete",
+          description: `${data.name}: ${data.email 
+            ? `Found email with ${data.nameConfidenceScore || 'unknown'} confidence.`
+            : "No email found for this contact."}`,
+        });
+      } else if (searchContext === 'automated' && data.email) {
+        // Automated searches: only show when email is found
+        toast({
+          title: "Email Search Complete",
+          description: `${data.name}: Successfully found email address.`,
+        });
+      }
     },
     onError: (error, variables) => {
-      const contactId = variables;
+      const { contactId, searchContext } = variables;
       
       // Remove this contact ID from the set of pending searches
       setPendingApolloIds(prev => {
         const newSet = new Set(prev);
-        newSet.delete(contactId as number);
+        newSet.delete(contactId);
         return newSet;
       });
       
-      toast({
-        title: "Apollo.io Search Failed",
-        description: error instanceof Error ? error.message : "Failed to find contact email",
-        variant: "destructive",
-      });
+      // Only show error notifications for manual searches
+      if (searchContext === 'manual') {
+        toast({
+          title: "Apollo.io Search Failed",
+          description: error instanceof Error ? error.message : "Failed to find contact email",
+          variant: "destructive",
+        });
+      }
     },
   });
   
   // Handler for Apollo.io search
-  const handleApolloSearch = (contactId: number) => {
+  const handleApolloSearch = (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
     // Allow multiple searches to run in parallel
     if (pendingApolloIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
-    apolloMutation.mutate(contactId);
+    apolloMutation.mutate({ contactId, searchContext });
   };
   
   // Functions for checkbox selection
