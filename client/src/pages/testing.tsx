@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,50 +16,48 @@ interface TestResult {
 
 export default function Testing() {
   const { user } = useAuth();
-  const [testResults, setTestResults] = useState<TestResult[]>([
-    { 
-      name: "Authentication Flow", 
-      status: 'pending', 
-      message: "Not started",
-      subTests: [
-        { name: "Firebase Authentication", status: 'pending', message: "Not started" },
-        { name: "Backend Token Verification", status: 'pending', message: "Not started" },
-        { name: "User Session Sync", status: 'pending', message: "Not started" }
-      ]
-    },
-    { 
-      name: "Database Connection", 
-      status: 'pending', 
-      message: "Not started",
-      subTests: [
-        { name: "PostgreSQL Connection", status: 'pending', message: "Not started" },
-        { name: "Demo Data Access", status: 'pending', message: "Not started" }
-      ]
-    },
-    { 
-      name: "Search Functionality", 
-      status: 'pending', 
-      message: "Not started",
-      subTests: [
-        { name: "Company Overview Search", status: 'pending', message: "Not started" },
-        { name: "Decision Maker Search", status: 'pending', message: "Not started" },
-        { name: "Email Discovery Search", status: 'pending', message: "Not started" }
-      ]
-    },
-    { 
-      name: "API Health Check", 
-      status: 'pending', 
-      message: "Not started",
-      subTests: [
-        { name: "Perplexity API", status: 'pending', message: "Not started" },
-        { name: "AeroLeads API", status: 'pending', message: "Not started" },
-        { name: "Hunter API", status: 'pending', message: "Not started" },
-        { name: "Apollo API", status: 'pending', message: "Not started" },
-        { name: "Server Health", status: 'pending', message: "Not started" }
-      ]
-    }
-  ]);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize test structure from backend
+  useEffect(() => {
+    const initializeTests = async () => {
+      try {
+        // Get a template test structure by running the tests once
+        const response = await fetch('/api/test/run-all', { method: 'POST' });
+        const results = await response.json();
+        
+        // Convert backend test results to initial frontend structure
+        const initialTests: TestResult[] = results.tests.map((test: any) => ({
+          name: test.name,
+          status: 'pending',
+          message: "Not started",
+          subTests: test.subTests.map((subTest: any) => ({
+            name: subTest.name,
+            status: 'pending',
+            message: "Not started"
+          }))
+        }));
+        
+        setTestResults(initialTests);
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Failed to initialize test structure:', error);
+        // Fallback to minimal structure if backend fails
+        setTestResults([
+          { name: "Database Connectivity", status: 'pending', message: "Not started", subTests: [] },
+          { name: "Search Functionality", status: 'pending', message: "Not started", subTests: [] },
+          { name: "API Health", status: 'pending', message: "Not started", subTests: [] }
+        ]);
+        setIsInitialized(true);
+      }
+    };
+
+    if (!isInitialized) {
+      initializeTests();
+    }
+  }, [isInitialized]);
 
   const updateTestResult = (index: number, updates: Partial<TestResult>) => {
     setTestResults(prev => prev.map((test, i) => 
