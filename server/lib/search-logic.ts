@@ -14,6 +14,9 @@ import { findKeyDecisionMakers } from "./search-logic/contact-discovery/enhanced
 
 // Core search functions
 export async function searchCompanies(query: string): Promise<Array<{name: string, website: string | null, description: string | null}>> {
+  console.log(`[PERPLEXITY API CALL] searchCompanies called with query: "${query}"`);
+  console.log(`[PERPLEXITY API CALL] Timestamp: ${new Date().toISOString()}`);
+  
   const messages: PerplexityMessage[] = [
     {
       role: "system",
@@ -31,8 +34,10 @@ Please output a JSON array containing 7 objects, where each object has exactly t
 
   try {
     // Get response from Perplexity API
+    console.log(`[PERPLEXITY API CALL] Making external API request to Perplexity`);
     const response = await queryPerplexity(messages);
     console.log('Raw Perplexity response:', response);
+    console.log(`[PERPLEXITY API CALL] Successfully received response from Perplexity`);
     
     // Clean the response to handle any unexpected formatting
     const cleanedResponse = response.trim().replace(/```(?:json)?\s*|\s*```/g, '');
