@@ -262,13 +262,22 @@ export default function PromptEditor({
       
       console.log("Contact discovery completed successfully");
       console.log(`Found ${totalContacts} contacts across ${data.companies.length} companies`);
+      
+      // Show key contacts found notification
+      toast({
+        title: "Key Contacts Found",
+        description: `Found ${totalContacts} contacts across ${data.companies.length} companies.`,
+      });
+      
       console.log("Processing and organizing results...");
       
       // Show scoring notification
-      toast({
-        title: "Analyzing Results",
-        description: "Scoring contacts based on affinity to target responsibility in the company.",
-      });
+      setTimeout(() => {
+        toast({
+          title: "Analyzing Results",
+          description: "Scoring contacts based on affinity to target responsibility in the company.",
+        });
+      }, 800);
       
       // Send full results with contacts to parent component
       onSearchResults(data.query, data.companies);
