@@ -14,6 +14,7 @@ import SearchProgressIndicator from "./search-progress-indicator";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { SearchProgress } from "./search-progress";
+import { MainSearchSummary } from "./main-search-summary";
 import {
   Tooltip,
   TooltipContent,
@@ -58,6 +59,17 @@ export default function PromptEditor({
     phase: "",
     completed: 0,
     total: 4 // Total phases: Companies Found, Analyzing, Contact Discovery, Scoring
+  });
+  
+  // Summary state
+  const [summaryVisible, setSummaryVisible] = useState(false);
+  const [searchMetrics, setSearchMetrics] = useState({
+    query: "",
+    totalCompanies: 0,
+    totalContacts: 0,
+    searchDuration: 0,
+    startTime: 0,
+    companies: [] as any[]
   });
   
   // Add auth hooks for semi-protected functionality
@@ -318,6 +330,25 @@ export default function PromptEditor({
         description: `Found ${totalContacts} contacts across ${data.companies.length} companies.`,
       });
       
+      // Calculate search duration and show summary
+      const searchDuration = Math.round((Date.now() - searchMetrics.startTime) / 1000);
+      setSearchMetrics(prev => ({
+        ...prev,
+        totalCompanies: data.companies.length,
+        totalContacts: totalContacts,
+        searchDuration: searchDuration,
+        companies: data.companies
+      }));
+      
+      // Show summary after a brief delay
+      setTimeout(() => {
+        setSummaryVisible(true);
+        // Auto-hide summary after 8 seconds
+        setTimeout(() => {
+          setSummaryVisible(false);
+        }, 8000);
+      }, 1000);
+      
       console.log("Search process completed!");
       
       // Trigger confetti animation on successful search
@@ -358,6 +389,16 @@ export default function PromptEditor({
     
     // Reset and initialize progress
     setSearchProgress({ phase: "Starting Search", completed: 0, total: 4 });
+    
+    // Initialize search metrics
+    setSearchMetrics({
+      query: query,
+      totalCompanies: 0,
+      totalContacts: 0,
+      searchDuration: 0,
+      startTime: Date.now(),
+      companies: []
+    });
     
     console.log("Analyzing search query...");
     console.log("Preparing to search for companies and contacts...");
@@ -446,6 +487,18 @@ export default function PromptEditor({
             isVisible={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
           />
         )}
+        
+        {/* Main Search Summary */}
+        <MainSearchSummary
+          query={searchMetrics.query}
+          totalCompanies={searchMetrics.totalCompanies}
+          totalContacts={searchMetrics.totalContacts}
+          searchDuration={searchMetrics.searchDuration}
+          isVisible={summaryVisible}
+          onClose={() => setSummaryVisible(false)}
+          companies={searchMetrics.companies}
+        />
+        
         <div className="flex flex-col md:flex-row gap-2 pl-0">
           <Input
             value={query}
