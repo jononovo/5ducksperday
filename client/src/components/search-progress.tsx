@@ -21,7 +21,7 @@ export function SearchProgress({
     <div className="mb-2 w-full">
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs font-medium">
-          {phase} ({completed}/{total})
+          {phase} ({completed + 1} of {total})
         </span>
         <span className="text-xs text-muted-foreground">{percentComplete}%</span>
       </div>

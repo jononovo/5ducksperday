@@ -58,7 +58,7 @@ export default function PromptEditor({
   const [searchProgress, setSearchProgress] = useState({
     phase: "",
     completed: 0,
-    total: 4 // Total phases: Companies Found, Analyzing, Contact Discovery, Scoring
+    total: 5 // Total phases: Starting-up, Companies Found, Analyzing, Contact Discovery, Scoring
   });
   
   // Summary state
@@ -388,7 +388,7 @@ export default function PromptEditor({
     setInputHasChanged(false);
     
     // Reset and initialize progress
-    setSearchProgress({ phase: "Starting Search", completed: 0, total: 4 });
+    setSearchProgress({ phase: "Starting-up Search Requests", completed: 0, total: 5 });
     
     // Initialize search metrics
     setSearchMetrics({
