@@ -207,6 +207,12 @@ export default function PromptEditor({
       
       // Start the full search with contacts
       fullContactSearchMutation.mutate(data.query);
+      
+      // Show contact search notification
+      toast({
+        title: "Contact Search Started",
+        description: "Starting search for key contacts in each company.",
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -221,12 +227,6 @@ export default function PromptEditor({
   // Full search mutation - gets contacts after companies are displayed
   const fullContactSearchMutation = useMutation({
     mutationFn: async (searchQuery: string) => {
-      // Show notification when contact search starts
-      toast({
-        title: "Contact Search Started",
-        description: "Starting search for key contacts in each company.",
-      });
-      
       console.log("Starting contact discovery process...");
       console.log("Searching for key decision makers and contacts...");
       
@@ -261,6 +261,12 @@ export default function PromptEditor({
       console.log("Contact discovery completed successfully");
       console.log(`Found ${totalContacts} contacts across ${data.companies.length} companies`);
       console.log("Processing and organizing results...");
+      
+      // Show scoring notification
+      toast({
+        title: "Analyzing Results",
+        description: "Scoring contacts based on affinity to target responsibility in the company.",
+      });
       
       // Send full results with contacts to parent component
       onSearchResults(data.query, data.companies);
