@@ -221,6 +221,12 @@ export default function PromptEditor({
   // Full search mutation - gets contacts after companies are displayed
   const fullContactSearchMutation = useMutation({
     mutationFn: async (searchQuery: string) => {
+      // Show notification when contact search starts
+      toast({
+        title: "Contact Search Started",
+        description: "Starting search for key contacts in each company.",
+      });
+      
       console.log("Starting contact discovery process...");
       console.log("Searching for key decision makers and contacts...");
       
