@@ -63,7 +63,7 @@ export function Logo({
   // If logo should be a link, wrap in Link component
   if (asLink) {
     return (
-      <Link href="/" className="group hover:opacity-90 transition-opacity">
+      <Link href="/app" className="group hover:opacity-90 transition-opacity">
         {LogoContent}
       </Link>
     );
