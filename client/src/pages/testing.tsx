@@ -51,11 +51,11 @@ export default function Testing() {
       status: 'pending', 
       message: "Not started",
       subTests: [
-        { name: "Perplexity API Connection", status: 'pending', message: "Not started" },
-        { name: "AeroLeads API Connection", status: 'pending', message: "Not started" },
-        { name: "Hunter API Connection", status: 'pending', message: "Not started" },
-        { name: "Apollo API Connection", status: 'pending', message: "Not started" },
-        { name: "Gmail API Connection", status: 'pending', message: "Not started" }
+        { name: "Perplexity API", status: 'pending', message: "Not started" },
+        { name: "AeroLeads API", status: 'pending', message: "Not started" },
+        { name: "Hunter API", status: 'pending', message: "Not started" },
+        { name: "Apollo API", status: 'pending', message: "Not started" },
+        { name: "Server Health", status: 'pending', message: "Not started" }
       ]
     }
   ]);
