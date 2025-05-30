@@ -255,10 +255,8 @@ export default function Home() {
       setContactReportVisible(true);
     }
     
-    // Dismiss the landing page tooltip after search
-    if (isFromLandingPage) {
-      setIsFromLandingPage(false);
-    }
+    // Keep isFromLandingPage true until email button is clicked
+    // (removed automatic reset to allow email tooltip to show)
   };
 
   const handleSaveList = () => {
