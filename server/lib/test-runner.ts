@@ -97,7 +97,11 @@ export class TestRunner {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: "test company", strategyId: null })
       });
-      const quickSearchData = quickSearchResponse.ok ? await quickSearchResponse.json() : null;
+      
+      let quickSearchData = null;
+      if (quickSearchResponse.ok) {
+        quickSearchData = await quickSearchResponse.json();
+      }
       
       subTests.push({
         name: 'Company Quick Search',
@@ -113,7 +117,10 @@ export class TestRunner {
 
       // Test company data retrieval
       const companiesResponse = await fetch('http://localhost:5000/api/companies');
-      const companiesData = companiesResponse.ok ? await companiesResponse.json() : null;
+      let companiesData = null;
+      if (companiesResponse.ok) {
+        companiesData = await companiesResponse.json();
+      }
       
       subTests.push({
         name: 'Company Data Retrieval',
@@ -127,22 +134,23 @@ export class TestRunner {
         }
       });
 
-      // Test workflow search endpoint
-      const workflowResponse = await fetch('http://localhost:5000/api/workflow-search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: "test workflow", strategyId: null })
-      });
+      // Test search approaches endpoint (configuration data)  
+      const approachesResponse = await fetch('http://localhost:5000/api/search-approaches');
+      let approachesData = null;
+      if (approachesResponse.ok) {
+        approachesData = await approachesResponse.json();
+      }
       
       subTests.push({
-        name: 'Workflow Search',
-        status: workflowResponse.status === 200 || workflowResponse.status === 401 ? 'passed' : 'failed',
-        message: workflowResponse.status === 200 ? 
-          'Workflow search endpoint operational' : 
-          workflowResponse.status === 401 ? 
-          'Workflow search requires authentication (expected)' :
-          'Workflow search endpoint failed',
-        data: { statusCode: workflowResponse.status }
+        name: 'Search Configuration',
+        status: Array.isArray(approachesData) ? 'passed' : 'failed',
+        message: Array.isArray(approachesData) ? 
+          `Search approaches loaded - ${approachesData.length} strategies available` : 
+          'Search configuration endpoint failed',
+        data: { 
+          statusCode: approachesResponse.status,
+          strategiesCount: Array.isArray(approachesData) ? approachesData.length : 0
+        }
       });
 
       const allPassed = subTests.every(test => test.status === 'passed');
@@ -155,6 +163,7 @@ export class TestRunner {
         subTests
       };
     } catch (error) {
+      console.error('Search test error details:', error);
       return {
         name: 'Search Functionality',
         status: 'failed',
