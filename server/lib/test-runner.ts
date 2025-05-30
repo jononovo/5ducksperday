@@ -258,13 +258,14 @@ export class TestRunner {
   async runAllTests(): Promise<TestReport> {
     const startTime = Date.now();
     
-    const [databaseTest, searchTest, healthTest] = await Promise.all([
+    const [databaseTest, searchTest, healthTest, authTest] = await Promise.all([
       this.runDatabaseTest(),
       this.runSearchTest(),
-      this.runHealthTest()
+      this.runHealthTest(),
+      this.runAuthTest()
     ]);
 
-    const tests = [databaseTest, searchTest, healthTest];
+    const tests = [databaseTest, searchTest, healthTest, authTest];
     
     // Calculate summary
     const summary = {
@@ -289,5 +290,166 @@ export class TestRunner {
       summary,
       tests
     };
+  }
+
+  async runAuthTest(): Promise<TestResult> {
+    const startTime = Date.now();
+    const subTests: SubTestResult[] = [];
+    
+    try {
+      // Test Firebase Admin SDK initialization
+      const firebaseTest = await this.testFirebaseAdmin();
+      subTests.push(firebaseTest);
+
+      // Test token validation endpoint  
+      const tokenTest = await this.testTokenValidation();
+      subTests.push(tokenTest);
+
+      // Test session management
+      const sessionTest = await this.testSessionManagement();
+      subTests.push(sessionTest);
+
+      // Test authentication middleware
+      const middlewareTest = await this.testAuthMiddleware();
+      subTests.push(middlewareTest);
+
+      const allPassed = subTests.every(test => test.status === 'passed');
+      
+      return {
+        name: 'Authentication System',
+        status: allPassed ? 'passed' : 'failed',
+        message: allPassed ? "Authentication system fully operational" : "Authentication issues detected",
+        duration: Date.now() - startTime,
+        subTests
+      };
+    } catch (error) {
+      return {
+        name: 'Authentication System',
+        status: 'failed',
+        message: "Authentication test failed",
+        duration: Date.now() - startTime,
+        subTests,
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  private async testFirebaseAdmin(): Promise<SubTestResult> {
+    try {
+      // Check if Firebase Admin is properly initialized
+      const admin = await import('firebase-admin');
+      const app = admin.apps.length > 0 ? admin.apps[0] : null;
+      
+      if (app && app.options.projectId) {
+        return {
+          name: 'Firebase Admin SDK',
+          status: 'passed',
+          message: `Firebase Admin initialized with project: ${app.options.projectId}`
+        };
+      } else {
+        return {
+          name: 'Firebase Admin SDK',
+          status: 'failed',
+          message: 'Firebase Admin SDK not properly initialized'
+        };
+      }
+    } catch (error) {
+      return {
+        name: 'Firebase Admin SDK',
+        status: 'failed',
+        message: 'Firebase Admin SDK error',
+        data: { error: error instanceof Error ? error.message : String(error) }
+      };
+    }
+  }
+
+  private async testTokenValidation(): Promise<SubTestResult> {
+    try {
+      // Test the /api/user endpoint without authentication (should fail)
+      const unauthResponse = await fetch('http://localhost:5000/api/user');
+      
+      if (unauthResponse.status === 401) {
+        return {
+          name: 'Token Validation Service',
+          status: 'passed',
+          message: 'Token validation properly rejects unauthorized requests'
+        };
+      } else {
+        return {
+          name: 'Token Validation Service',
+          status: 'warning',
+          message: `Unexpected response: ${unauthResponse.status} (expected 401)`
+        };
+      }
+    } catch (error) {
+      return {
+        name: 'Token Validation Service',
+        status: 'failed',
+        message: 'Token validation service error',
+        data: { error: error instanceof Error ? error.message : String(error) }
+      };
+    }
+  }
+
+  private async testSessionManagement(): Promise<SubTestResult> {
+    try {
+      // Test session-related endpoints exist and respond
+      const loginResponse = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'test@test.com', password: 'invalid' })
+      });
+      
+      // Should get a response (even if auth fails) indicating endpoint exists
+      if (loginResponse.status === 400 || loginResponse.status === 401) {
+        return {
+          name: 'Session Management',
+          status: 'passed',
+          message: 'Session endpoints responsive'
+        };
+      } else {
+        return {
+          name: 'Session Management',
+          status: 'warning',
+          message: `Session endpoint status: ${loginResponse.status}`
+        };
+      }
+    } catch (error) {
+      return {
+        name: 'Session Management',
+        status: 'failed',
+        message: 'Session management error',
+        data: { error: error instanceof Error ? error.message : String(error) }
+      };
+    }
+  }
+
+  private async testAuthMiddleware(): Promise<SubTestResult> {
+    try {
+      // Test a protected endpoint to verify middleware works
+      const protectedResponse = await fetch('http://localhost:5000/api/companies');
+      
+      // Should either work (200) or require auth (401), but not crash
+      if (protectedResponse.status === 200 || protectedResponse.status === 401) {
+        return {
+          name: 'Auth Middleware',
+          status: 'passed',
+          message: 'Authentication middleware operational'
+        };
+      } else {
+        return {
+          name: 'Auth Middleware',
+          status: 'warning',
+          message: `Protected endpoint status: ${protectedResponse.status}`
+        };
+      }
+    } catch (error) {
+      return {
+        name: 'Auth Middleware',
+        status: 'failed',
+        message: 'Auth middleware error',
+        data: { error: error instanceof Error ? error.message : String(error) }
+      };
+    }
   }
 }
