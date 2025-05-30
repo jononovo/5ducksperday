@@ -902,6 +902,17 @@ export function registerRoutes(app: Express) {
         });
       }
       
+      // Cache the search results for use in full search (5 minute TTL)
+      const cacheKey = `search_${Buffer.from(query).toString('base64')}_companies`;
+      global.searchCache = global.searchCache || new Map();
+      global.searchCache.set(cacheKey, {
+        results: companyResults,
+        timestamp: Date.now(),
+        ttl: 5 * 60 * 1000 // 5 minutes
+      });
+      
+      console.log(`[Quick Search] Cached ${companyResults.length} company results for reuse`);
+      
       // Prepare companies with minimal processing for quick display
       const companies = await Promise.all(
         companyResults.map(async (company) => {
@@ -960,8 +971,20 @@ export function registerRoutes(app: Express) {
     }
 
     try {
-      // Search for matching companies
-      const companyResults = await searchCompanies(query);
+      // Check cache first to avoid duplicate API calls
+      const cacheKey = `search_${Buffer.from(query).toString('base64')}_companies`;
+      global.searchCache = global.searchCache || new Map();
+      
+      let companyResults;
+      const cached = global.searchCache.get(cacheKey);
+      
+      if (cached && (Date.now() - cached.timestamp) < cached.ttl) {
+        console.log(`[Full Search] Using cached company results for query: ${query}`);
+        companyResults = cached.results;
+      } else {
+        console.log(`[Full Search] Cache miss - fetching fresh company results for query: ${query}`);
+        companyResults = await searchCompanies(query);
+      }
 
       // Get search approaches for analysis
       const approaches = await storage.listSearchApproaches();
@@ -1033,20 +1056,44 @@ export function registerRoutes(app: Express) {
           
           console.log(`Processing company: ${companyName}, Website: ${companyWebsite || 'Not available'}`);
           
-          // Run Company Overview analysis with technical prompt
+          // Build context-aware prompt using cached company data
+          
+          const contextPrompt = `
+Based on initial company search for "${query}", we found:
+Company: ${companyName}
+Website: ${companyWebsite || 'Not available'}
+Description: ${companyDescription || 'Not available'}
+
+${companyOverview.prompt}
+
+Use the search context and company details above to inform your analysis.
+`;
+
+          // Run Company Overview analysis with enhanced context
           const overviewResult = await analyzeCompany(
             companyName,
-            companyOverview.prompt,
+            contextPrompt,
             companyOverview.technicalPrompt,
             companyOverview.responseStructure
           );
           const analysisResults = [overviewResult];
 
-          // If Decision-maker Analysis is active, run it with technical prompt
+          // If Decision-maker Analysis is active, run it with enhanced context
           if (decisionMakerAnalysis?.active) {
+            const decisionMakerContextPrompt = `
+Based on initial company search for "${query}", we found:
+Company: ${companyName}
+Website: ${companyWebsite || 'Not available'}
+Description: ${companyDescription || 'Not available'}
+
+${decisionMakerAnalysis.prompt}
+
+Use the search context and company details above to find the most relevant decision makers.
+`;
+
             const decisionMakerResult = await analyzeCompany(
               companyName,
-              decisionMakerAnalysis.prompt,
+              decisionMakerContextPrompt,
               decisionMakerAnalysis.technicalPrompt,
               decisionMakerAnalysis.responseStructure
             );
