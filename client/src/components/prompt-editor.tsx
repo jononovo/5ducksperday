@@ -478,16 +478,6 @@ export default function PromptEditor({
   return (
     <div className="pl-0 pr-1 pt-1 pb-1 shadow-none"> {/* Container with no padding */}
       <div className="flex flex-col gap-2">
-        {/* Progress Bar */}
-        {(quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (
-          <SearchProgress 
-            phase={searchProgress.phase}
-            completed={searchProgress.completed}
-            total={searchProgress.total}
-            isVisible={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-          />
-        )}
-        
         {/* Main Search Summary */}
         <MainSearchSummary
           query={searchMetrics.query}
@@ -566,6 +556,16 @@ export default function PromptEditor({
             />
           </div>
         </div>
+        
+        {/* Progress Bar - moved below search input/button */}
+        {(quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (
+          <SearchProgress 
+            phase={searchProgress.phase}
+            completed={searchProgress.completed}
+            total={searchProgress.total}
+            isVisible={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+          />
+        )}
         
         {/* Search Progress Indicator */}
         <SearchProgressIndicator isSearching={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending} />
