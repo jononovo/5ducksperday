@@ -621,33 +621,36 @@ export default function Home() {
       }
     },
     onError: (error, variables) => {
-      const contactId = variables;
+      const { contactId, searchContext } = variables;
       
       // Remove this contact ID from the set of pending searches
       setPendingHunterIds(prev => {
         const newSet = new Set(prev);
-        newSet.delete(contactId as number);
+        newSet.delete(contactId);
         return newSet;
       });
       
-      toast({
-        title: "Hunter.io Search Failed",
-        description: error instanceof Error ? error.message : "Failed to find contact email",
-        variant: "destructive",
-      });
+      // Only show error notifications for manual searches
+      if (searchContext === 'manual') {
+        toast({
+          title: "Hunter.io Search Failed",
+          description: error instanceof Error ? error.message : "Failed to find contact email",
+          variant: "destructive",
+        });
+      }
     },
   });
   
   // Handler for Hunter.io search
-  const handleHunterSearch = (contactId: number) => {
+  const handleHunterSearch = (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
     // Allow multiple searches to run in parallel
     if (pendingHunterIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
-    hunterMutation.mutate(contactId);
+    hunterMutation.mutate({ contactId, searchContext });
   };
   
   // Add AeroLeads mutation with Set-based state management
   const aeroLeadsMutation = useMutation({
-    mutationFn: async (contactId: number) => {
+    mutationFn: async ({ contactId, searchContext = 'manual' }: { contactId: number; searchContext?: 'manual' | 'automated' }) => {
       // Add this contact ID to the set of pending searches
       setPendingAeroLeadsIds(prev => {
         const newSet = new Set(prev);
@@ -655,10 +658,10 @@ export default function Home() {
         return newSet;
       });
       const response = await apiRequest("POST", `/api/contacts/${contactId}/aeroleads`);
-      return {data: await response.json(), contactId};
+      return {data: await response.json(), contactId, searchContext};
     },
     onSuccess: (result) => {
-      const {data, contactId} = result;
+      const {data, contactId, searchContext} = result;
       
       // Update the contact in the results
       setCurrentResults(prev => {
@@ -686,35 +689,48 @@ export default function Home() {
         return newSet;
       });
       
-      toast({
-        title: "Email Search Complete",
-        description: `${data.name}: ${data.email 
-          ? "Successfully found email address."
-          : "No email found for this contact."}`,
-      });
+      // Only show toast notifications based on context
+      if (searchContext === 'manual') {
+        // Manual searches: show all results (success and no email found)
+        toast({
+          title: "Email Search Complete",
+          description: `${data.name}: ${data.email 
+            ? "Successfully found email address."
+            : "No email found for this contact."}`,
+        });
+      } else if (searchContext === 'automated' && data.email) {
+        // Automated searches: only show when email is found
+        toast({
+          title: "Email Search Complete",
+          description: `${data.name}: Successfully found email address.`,
+        });
+      }
     },
     onError: (error, variables) => {
-      const contactId = variables;
+      const { contactId, searchContext } = variables;
       
       // Remove this contact ID from the set of pending searches
       setPendingAeroLeadsIds(prev => {
         const newSet = new Set(prev);
-        newSet.delete(contactId as number);
+        newSet.delete(contactId);
         return newSet;
       });
       
-      toast({
-        title: "AeroLeads Search Failed",
-        description: error instanceof Error ? error.message : "Failed to find contact email",
-        variant: "destructive",
-      });
+      // Only show error notifications for manual searches
+      if (searchContext === 'manual') {
+        toast({
+          title: "AeroLeads Search Failed",
+          description: error instanceof Error ? error.message : "Failed to find contact email",
+          variant: "destructive",
+        });
+      }
     },
   });
 
-  const handleAeroLeadsSearch = (contactId: number) => {
+  const handleAeroLeadsSearch = (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
     // Allow multiple searches to run in parallel
     if (pendingAeroLeadsIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
-    aeroLeadsMutation.mutate(contactId);
+    aeroLeadsMutation.mutate({ contactId, searchContext });
   };
 
   const isAeroLeadsSearchComplete = (contact: Contact) => {
@@ -960,7 +976,7 @@ export default function Home() {
       // Process Hunter searches in parallel batches (3 at a time)
       await processContactsBatch(
         hunterContacts, 
-        (contactId) => hunterMutation.mutateAsync(contactId),
+        (contactId) => hunterMutation.mutateAsync({ contactId, searchContext: 'automated' }),
         3 // Batch size of 3 for Hunter
       );
       
