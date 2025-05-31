@@ -1255,7 +1255,7 @@ export default function Home() {
               {currentResults && currentResults.length > 0 && (
                 <div className="px-6 pb-3 flex items-center gap-2">
                   <TooltipProvider>
-                    <Tooltip open={isFromLandingPage && currentResults && currentResults.length > 0 && !summaryVisible ? true : undefined}>
+                    <Tooltip open={true}>
                       <TooltipTrigger asChild>
                         <Button 
                           variant="outline" 
@@ -1277,12 +1277,8 @@ export default function Home() {
                           <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="top" className={isFromLandingPage && currentResults && currentResults.length > 0 && !summaryVisible ? "bg-blue-500 text-white border-blue-500" : ""}>
-                        <p className="text-xs">
-                          {isFromLandingPage && currentResults && currentResults.length > 0 && !summaryVisible 
-                            ? "Click here to find Egg-cellent emails of wonderful people." 
-                            : "Run email search for 1-2 decision-makers per company"}
-                        </p>
+                      <TooltipContent side="top" className="bg-blue-500 text-white border-blue-500">
+                        <p className="text-xs">Click here to find Egg-cellent emails of wonderful people.</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
