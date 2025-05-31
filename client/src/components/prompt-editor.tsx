@@ -509,7 +509,7 @@ export default function PromptEditor({
             {/* Component tooltip version for comparison */}
             <LandingPageTooltip
               message="If you are happy with this prompt, click search."
-              visible={isFromLandingPage && !isAnalyzing}
+              visible={isFromLandingPage && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)}
               position="custom"
               offsetX={-200}
               offsetY={-30}
