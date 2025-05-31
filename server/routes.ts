@@ -879,7 +879,7 @@ export function registerRoutes(app: Express) {
     // This temporary fix uses a default user ID if authentication fails
     const userId = req.isAuthenticated() && req.user ? (req.user as any).id : 1;
     
-    const { query, strategyId } = req.body;
+    const { query, strategyId, contactSearchConfig } = req.body;
 
     if (!query || typeof query !== 'string') {
       res.status(400).json({
@@ -963,7 +963,7 @@ export function registerRoutes(app: Express) {
     // This temporary fix uses a default user ID if authentication fails
     const userId = req.isAuthenticated() && req.user ? (req.user as any).id : 1;
     
-    const { query, strategyId, includeContacts = true } = req.body;
+    const { query, strategyId, includeContacts = true, contactSearchConfig } = req.body;
 
     if (!query || typeof query !== 'string') {
       res.status(400).json({
@@ -1205,7 +1205,13 @@ Use the search context and company details above to find the most relevant decis
               maxContacts: 15,
               includeMiddleManagement: true,
               prioritizeLeadership: true,
-              useMultipleQueries: true
+              useMultipleQueries: true,
+              // Use contact search configuration from frontend
+              enableCoreLeadership: contactSearchConfig?.enableCoreLeadership ?? true,
+              enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads ?? true,
+              enableMiddleManagement: contactSearchConfig?.enableMiddleManagement ?? true,
+              enableCustomSearch: contactSearchConfig?.enableCustomSearch ?? false,
+              customSearchTarget: contactSearchConfig?.customSearchTarget ?? ""
             });
             
             console.log(`Found ${enhancedContacts.length} additional contacts using enhanced contact finder`);
@@ -1420,7 +1426,13 @@ Use the search context and company details above to find the most relevant decis
             maxContacts: 15,
             includeMiddleManagement: true,
             prioritizeLeadership: true,
-            useMultipleQueries: true
+            useMultipleQueries: true,
+            // Use contact search configuration from frontend
+            enableCoreLeadership: contactSearchConfig?.enableCoreLeadership ?? true,
+            enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads ?? true,
+            enableMiddleManagement: contactSearchConfig?.enableMiddleManagement ?? true,
+            enableCustomSearch: contactSearchConfig?.enableCustomSearch ?? false,
+            customSearchTarget: contactSearchConfig?.customSearchTarget ?? ""
           });
           
           console.log(`Found ${enhancedContacts.length} additional contacts using enhanced contact finder`);
