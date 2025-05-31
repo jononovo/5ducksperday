@@ -105,7 +105,7 @@ export default function PromptEditor({
         // Reset after 6 seconds or when the user changes the input
         const timer = setTimeout(() => {
           setShowGradientText(false);
-        }, 6000);
+        }, 3000);
         
         return () => clearTimeout(timer);
       }
