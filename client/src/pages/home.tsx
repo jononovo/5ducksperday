@@ -833,7 +833,7 @@ export default function Home() {
         setShowEmailTooltip(true);
         setTimeout(() => {
           setShowEmailTooltip(false);
-        }, 30000);
+        }, 5000);
       }, 5000);
       
       return () => clearTimeout(timer);
@@ -1296,7 +1296,7 @@ export default function Home() {
                       message="Click here to find Egg-cellent emails of wonderful people."
                       visible={showEmailTooltip && !(isAnalyzing || isConsolidatedSearching)}
                       position="custom"
-                      offsetX={200}
+                      offsetX={0}
                     />
                   </div>
                   
