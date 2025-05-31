@@ -1277,8 +1277,8 @@ export default function Home() {
                           <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="top" className="bg-blue-500 text-white border-blue-500">
-                        <p className="text-xs">Click here to find Egg-cellent emails of wonderful people.</p>
+                      <TooltipContent side="top" className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 animate-fade-in max-w-xs text-center">
+                        <p className="font-medium text-blue-800 dark:text-blue-200">Click here to find Egg-cellent emails of wonderful people.</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
