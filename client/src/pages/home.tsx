@@ -8,6 +8,7 @@ import PromptEditor from "@/components/prompt-editor";
 import { SearchProgress } from "@/components/search-progress";
 import { EmailSearchSummary } from "@/components/email-search-summary";
 import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
+import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
@@ -1275,7 +1276,7 @@ export default function Home() {
                       <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
                     </Button>
                     
-                    {/* Email button tooltip - matching search button design */}
+                    {/* Original inline tooltip */}
                     <div className="absolute -top-20 left-1/2 transform -translate-x-1/2
                        bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 
                        p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 
@@ -1285,6 +1286,14 @@ export default function Home() {
                         Click here to find Egg-cellent emails of wonderful people.
                       </p>
                     </div>
+                    
+                    {/* New component tooltip - 200px to the left for comparison */}
+                    <LandingPageTooltip
+                      message="Click here to find Egg-cellent emails of wonderful people."
+                      visible={true}
+                      position="custom"
+                      offsetX={-200}
+                    />
                   </div>
                   
                   <TooltipProvider>
