@@ -493,18 +493,7 @@ export default function PromptEditor({
             className={`flex-1 text-base md:text-lg text-gray-700 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
           />
           <div className="flex items-center justify-end md:justify-start relative">
-            {/* Improved landing page tooltip with nicer design */}
-            {isFromLandingPage && !isAnalyzing && (
-              <div className="absolute md:-top-24 md:left-1/3 md:transform md:-translate-x-1/3 -top-32 left-[55%] transform -translate-x-1/2
-                   bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 
-                   p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 
-                   animate-fade-in max-w-xs text-center">
-                <div className="tooltip-arrow"></div>
-                <p className="font-medium text-blue-800 dark:text-blue-200">
-                  If you are happy with this prompt, click search.
-                </p>
-              </div>
-            )}
+
             
             {/* Component tooltip version for comparison */}
             <LandingPageTooltip
