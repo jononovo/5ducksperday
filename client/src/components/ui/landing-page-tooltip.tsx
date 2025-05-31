@@ -3,6 +3,7 @@ interface LandingPageTooltipProps {
   visible: boolean;
   position?: 'above-button' | 'custom';
   offsetX?: number;
+  offsetY?: number;
   className?: string;
 }
 
@@ -11,6 +12,7 @@ export function LandingPageTooltip({
   visible,
   position = 'above-button',
   offsetX = 0,
+  offsetY = 0,
   className = ''
 }: LandingPageTooltipProps) {
   // Temporarily removing visibility check for comparison
@@ -19,7 +21,10 @@ export function LandingPageTooltip({
     ? 'absolute -top-20 left-1/2 transform -translate-x-1/2' 
     : 'absolute -top-20 transform -translate-x-1/2';
 
-  const offsetStyle = offsetX !== 0 ? { left: `calc(50% + ${offsetX}px)` } : {};
+  const offsetStyle = offsetX !== 0 || offsetY !== 0 ? { 
+    left: offsetX !== 0 ? `calc(50% + ${offsetX}px)` : undefined,
+    top: offsetY !== 0 ? `${-80 + offsetY}px` : undefined
+  } : {};
 
   return (
     <div 

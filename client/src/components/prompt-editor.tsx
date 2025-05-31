@@ -512,6 +512,7 @@ export default function PromptEditor({
               visible={isFromLandingPage && !isAnalyzing}
               position="custom"
               offsetX={-200}
+              offsetY={-30}
             />
             
             {/* Enhanced search button with dynamic styling based on state */}
