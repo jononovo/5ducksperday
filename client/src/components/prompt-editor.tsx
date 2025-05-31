@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { SearchProgress } from "./search-progress";
 import { MainSearchSummary } from "./main-search-summary";
+import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import {
   Tooltip,
   TooltipContent,
@@ -504,6 +505,14 @@ export default function PromptEditor({
                 </p>
               </div>
             )}
+            
+            {/* Component tooltip version for comparison */}
+            <LandingPageTooltip
+              message="If you are happy with this prompt, click search."
+              visible={true}
+              position="custom"
+              offsetX={200}
+            />
             
             {/* Enhanced search button with dynamic styling based on state */}
             <Button 
