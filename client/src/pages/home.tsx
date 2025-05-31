@@ -1289,10 +1289,11 @@ export default function Home() {
                     
                     {/* New component tooltip - 200px to the left for comparison */}
                     <LandingPageTooltip
-                      message="Click here to find Egg-cellent emails of wonderful people."
+                      message="COMPONENT VERSION - Click here to find Egg-cellent emails of wonderful people."
                       visible={true}
                       position="custom"
                       offsetX={-200}
+                      className="bg-red-100 border-2 border-red-500"
                     />
                   </div>
                   
