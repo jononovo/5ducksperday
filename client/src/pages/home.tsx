@@ -1254,34 +1254,38 @@ export default function Home() {
               {/* Mini Search Menu */}
               {currentResults && currentResults.length > 0 && (
                 <div className="px-6 pb-3 flex items-center gap-2">
-                  <TooltipProvider>
-                    <Tooltip open={true}>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className={`flex items-center gap-1 h-8 ${
-                            highlightEmailButton 
-                              ? 'email-button-highlight' 
-                              : 'opacity-45 hover:opacity-100 hover:bg-white'
-                          } transition-all`}
-                          onClick={() => {
-                            if (isFromLandingPage) {
-                              setIsFromLandingPage(false);
-                            }
-                            runConsolidatedEmailSearch();
-                          }}
-                          disabled={isConsolidatedSearching}
-                        >
-                          <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
-                          <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 animate-fade-in max-w-xs text-center">
-                        <p className="font-medium text-blue-800 dark:text-blue-200">Click here to find Egg-cellent emails of wonderful people.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <div className="relative">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className={`flex items-center gap-1 h-8 ${
+                        highlightEmailButton 
+                          ? 'email-button-highlight' 
+                          : 'opacity-45 hover:opacity-100 hover:bg-white'
+                      } transition-all`}
+                      onClick={() => {
+                        if (isFromLandingPage) {
+                          setIsFromLandingPage(false);
+                        }
+                        runConsolidatedEmailSearch();
+                      }}
+                      disabled={isConsolidatedSearching}
+                    >
+                      <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
+                      <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
+                    </Button>
+                    
+                    {/* Email button tooltip - matching search button design */}
+                    <div className="absolute -top-16 left-1/2 transform -translate-x-1/2
+                       bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 
+                       p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 
+                       animate-fade-in max-w-xs text-center">
+                      <div className="tooltip-arrow"></div>
+                      <p className="font-medium text-blue-800 dark:text-blue-200">
+                        Click here to find Egg-cellent emails of wonderful people.
+                      </p>
+                    </div>
+                  </div>
                   
                   <TooltipProvider>
                     <Tooltip>
