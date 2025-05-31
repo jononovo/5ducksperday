@@ -91,6 +91,7 @@ export default function Home() {
   // Track when to highlight the email search button and start selling button
   const [highlightEmailButton, setHighlightEmailButton] = useState(false);
   const [highlightStartSellingButton, setHighlightStartSellingButton] = useState(false);
+  const [showEmailTooltip, setShowEmailTooltip] = useState(false);
   // Tour modal has been removed
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
@@ -824,6 +825,21 @@ export default function Home() {
     }
   }, [summaryVisible, isConsolidatedSearching]);
 
+  // Email tooltip timing effect
+  useEffect(() => {
+    // Show email tooltip 5 seconds after first search completes, only for landing page users
+    if (currentResults && currentResults.length > 0 && isFromLandingPage && !isAnalyzing) {
+      const timer = setTimeout(() => {
+        setShowEmailTooltip(true);
+        setTimeout(() => {
+          setShowEmailTooltip(false);
+        }, 30000);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [currentResults, isFromLandingPage, isAnalyzing]);
+
   // Helper to get current companies without emails (only check top 3 contacts)
   const getCurrentCompaniesWithoutEmails = () => {
     return currentResults?.filter(company => 
@@ -1276,23 +1292,11 @@ export default function Home() {
                       <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
                     </Button>
                     
-                    {/* Original inline tooltip */}
-                    <div className="absolute -top-20 left-1/2 transform -translate-x-1/2
-                       bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 
-                       p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 
-                       animate-fade-in max-w-xs text-center">
-                      <div className="tooltip-arrow"></div>
-                      <p className="font-medium text-blue-800 dark:text-blue-200">
-                        Click here to find Egg-cellent emails of wonderful people.
-                      </p>
-                    </div>
-                    
-                    {/* New component tooltip - 200px to the right for comparison */}
                     <LandingPageTooltip
                       message="Click here to find Egg-cellent emails of wonderful people."
-                      visible={true}
+                      visible={showEmailTooltip && isFromLandingPage && !(isAnalyzing || isConsolidatedSearching)}
                       position="custom"
-                      offsetX={200}
+                      offsetX={0}
                     />
                   </div>
                   
