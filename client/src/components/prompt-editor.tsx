@@ -512,7 +512,7 @@ export default function PromptEditor({
               visible={isFromLandingPage && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)}
               position="custom"
               offsetX={-200}
-              offsetY={-30}
+              offsetY={-15}
             />
             
             {/* Enhanced search button with dynamic styling based on state */}
