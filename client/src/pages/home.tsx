@@ -827,8 +827,8 @@ export default function Home() {
 
   // Email tooltip timing effect
   useEffect(() => {
-    // Show email tooltip 5 seconds after first search completes, only for landing page users
-    if (currentResults && currentResults.length > 0 && isFromLandingPage && !isAnalyzing) {
+    // Show email tooltip 5 seconds after first search completes
+    if (currentResults && currentResults.length > 0 && !isAnalyzing) {
       const timer = setTimeout(() => {
         setShowEmailTooltip(true);
         setTimeout(() => {
@@ -838,7 +838,7 @@ export default function Home() {
       
       return () => clearTimeout(timer);
     }
-  }, [currentResults, isFromLandingPage, isAnalyzing]);
+  }, [currentResults, isAnalyzing]);
 
   // Helper to get current companies without emails (only check top 3 contacts)
   const getCurrentCompaniesWithoutEmails = () => {
@@ -1294,7 +1294,7 @@ export default function Home() {
                     
                     <LandingPageTooltip
                       message="Click here to find Egg-cellent emails of wonderful people."
-                      visible={showEmailTooltip && isFromLandingPage && !(isAnalyzing || isConsolidatedSearching)}
+                      visible={showEmailTooltip && !(isAnalyzing || isConsolidatedSearching)}
                       position="custom"
                       offsetX={200}
                     />
