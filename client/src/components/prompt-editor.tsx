@@ -509,9 +509,9 @@ export default function PromptEditor({
             {/* Component tooltip version for comparison */}
             <LandingPageTooltip
               message="If you are happy with this prompt, click search."
-              visible={true}
+              visible={isFromLandingPage && !isAnalyzing}
               position="custom"
-              offsetX={200}
+              offsetX={-200}
             />
             
             {/* Enhanced search button with dynamic styling based on state */}
