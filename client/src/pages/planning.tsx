@@ -100,7 +100,7 @@ To get started, please tell me about your ${type}. What exactly are you offering
 
     try {
       // Call the AI service to get response
-      const response = await apiRequest("/api/onboarding/chat", "POST", {
+      const response: any = await apiRequest("/api/onboarding/chat", "POST", {
         message: inputMessage,
         businessType,
         currentStep,
@@ -120,7 +120,7 @@ To get started, please tell me about your ${type}. What exactly are you offering
 
       // Update profile data and step if provided
       if (response.profileUpdate) {
-        setProfileData(prev => ({ ...prev, ...response.profileUpdate }));
+        setProfileData((prev: any) => ({ ...prev, ...response.profileUpdate }));
       }
 
       if (response.nextStep) {

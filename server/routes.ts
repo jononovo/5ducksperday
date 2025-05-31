@@ -3212,6 +3212,190 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
+  // Strategic Onboarding Chat Endpoint
+  app.post("/api/onboarding/chat", async (req, res) => {
+    try {
+      const { message, businessType, currentStep, profileData, conversationHistory } = req.body;
+
+      if (!message || !businessType) {
+        res.status(400).json({ message: "Missing required parameters" });
+        return;
+      }
+
+      // Define the conversation flow steps
+      const stepFlow = {
+        business_description: {
+          next: "unique_attributes",
+          systemPrompt: "You are a strategic sales consultant helping a user define their business. Ask follow-up questions to understand their product/service better.",
+          userPrompt: (type: string) => `The user is selling a ${type}. They said: "${message}". Ask 2-3 specific follow-up questions about what makes their ${type} unique, their target market, and their key differentiators. Keep it conversational and encouraging.`
+        },
+        unique_attributes: {
+          next: "target_customers", 
+          systemPrompt: "You are helping identify what makes this business unique. Focus on competitive advantages and value propositions.",
+          userPrompt: () => `Based on the conversation so far, the user is describing their unique attributes. Ask about their target customers - who specifically do they sell to? What type of businesses or individuals are their ideal customers?`
+        },
+        target_customers: {
+          next: "market_positioning",
+          systemPrompt: "You are helping identify target customers and market positioning.",
+          userPrompt: () => `The user has described their target customers. Now ask about their market approach - do they serve a specific niche or have a broader market approach? Ask about geographic focus and company size preferences.`
+        },
+        market_positioning: {
+          next: "strategic_plan",
+          systemPrompt: "You are creating a strategic sales plan based on all the information gathered.",
+          userPrompt: () => `Based on everything discussed, summarize their business strategy and ask if they want to proceed to generate their personalized search prompts for finding prospects. Highlight their key strengths and target market.`
+        },
+        strategic_plan: {
+          next: "complete",
+          systemPrompt: "You are finalizing the strategic plan and preparing to generate search prompts.",
+          userPrompt: () => `Perfect! Based on our conversation, I'll now create your strategic profile and generate targeted search prompts. Your profile will help us find the right prospects for your business.`
+        }
+      };
+
+      const currentStepConfig = stepFlow[currentStep as keyof typeof stepFlow];
+      if (!currentStepConfig) {
+        res.status(400).json({ message: "Invalid step" });
+        return;
+      }
+
+      // Prepare messages for AI
+      const messages: PerplexityMessage[] = [
+        {
+          role: "system",
+          content: currentStepConfig.systemPrompt
+        },
+        {
+          role: "user", 
+          content: currentStepConfig.userPrompt(businessType)
+        }
+      ];
+
+      // Get AI response
+      const aiResponse = await queryPerplexity(messages);
+
+      // Process the response and update profile data
+      let profileUpdate: any = {};
+      let nextStep = currentStep;
+      let completed = false;
+
+      // Extract information based on current step
+      switch (currentStep) {
+        case "business_description":
+          profileUpdate.businessDescription = message;
+          nextStep = currentStepConfig.next;
+          break;
+        case "unique_attributes":
+          profileUpdate.uniqueAttributes = extractAttributes(message);
+          nextStep = currentStepConfig.next;
+          break;
+        case "target_customers":
+          profileUpdate.targetCustomers = message;
+          nextStep = currentStepConfig.next;
+          break;
+        case "market_positioning":
+          profileUpdate.marketNiche = extractMarketNiche(message);
+          nextStep = currentStepConfig.next;
+          break;
+        case "strategic_plan":
+          completed = true;
+          profileUpdate.status = "completed";
+          profileUpdate.searchPrompts = generateSearchPrompts(profileData, businessType);
+          break;
+      }
+
+      // If user is authenticated, save profile to database
+      if (req.user) {
+        try {
+          const userId = getUserId(req);
+          
+          // Create or update strategic profile
+          const existingProfiles = await storage.getStrategicProfiles?.(userId) || [];
+          
+          if (existingProfiles.length > 0) {
+            // Update existing profile
+            await storage.updateStrategicProfile?.(existingProfiles[0].id, {
+              ...profileData,
+              ...profileUpdate,
+              businessType,
+              updatedAt: new Date()
+            });
+          } else {
+            // Create new profile
+            await storage.createStrategicProfile?.({
+              userId,
+              businessType,
+              businessDescription: profileUpdate.businessDescription || profileData.businessDescription || "",
+              targetCustomers: profileUpdate.targetCustomers || profileData.targetCustomers || "",
+              ...profileUpdate
+            });
+          }
+        } catch (error) {
+          console.error("Error saving strategic profile:", error);
+          // Continue without failing - user can still use the interface
+        }
+      }
+
+      res.json({
+        aiResponse,
+        profileUpdate,
+        nextStep,
+        completed
+      });
+
+    } catch (error) {
+      console.error("Onboarding chat error:", error);
+      res.status(500).json({
+        message: "Failed to process chat message. Please check your AI service configuration."
+      });
+    }
+  });
+
+  // Helper functions for data extraction
+  function extractAttributes(message: string): string[] {
+    // Simple keyword extraction - in production, this could use NLP
+    const keywords = message.toLowerCase()
+      .split(/[,.\n]/)
+      .map(s => s.trim())
+      .filter(s => s.length > 3)
+      .slice(0, 5);
+    return keywords;
+  }
+
+  function extractMarketNiche(message: string): "niche" | "broad" {
+    const nicheKeywords = ["niche", "specific", "specialized", "targeted", "focused"];
+    const broadKeywords = ["broad", "general", "wide", "diverse", "various"];
+    
+    const lowerMessage = message.toLowerCase();
+    const hasNiche = nicheKeywords.some(keyword => lowerMessage.includes(keyword));
+    const hasBroad = broadKeywords.some(keyword => lowerMessage.includes(keyword));
+    
+    return hasNiche && !hasBroad ? "niche" : "broad";
+  }
+
+  function generateSearchPrompts(profileData: any, businessType: string): string[] {
+    const prompts: string[] = [];
+    
+    // Generate prompts based on profile data
+    if (profileData.targetCustomers) {
+      prompts.push(`${profileData.targetCustomers} who need ${businessType} solutions`);
+    }
+    
+    if (profileData.businessDescription) {
+      prompts.push(`Companies that would benefit from ${profileData.businessDescription}`);
+    }
+    
+    if (profileData.uniqueAttributes && profileData.uniqueAttributes.length > 0) {
+      prompts.push(`Businesses looking for ${profileData.uniqueAttributes[0]} ${businessType} providers`);
+    }
+    
+    // Add default prompts if none generated
+    if (prompts.length === 0) {
+      prompts.push(`Small to medium businesses needing ${businessType} solutions`);
+      prompts.push(`Companies in need of reliable ${businessType} providers`);
+    }
+    
+    return prompts.slice(0, 3); // Limit to 3 prompts
+  }
+
   // All N8N Workflow Management Endpoints and proxies have been removed
 
   const httpServer = createServer(app);
