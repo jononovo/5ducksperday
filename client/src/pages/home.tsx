@@ -1296,7 +1296,7 @@ export default function Home() {
                       message="Click here to find Egg-cellent emails of wonderful people."
                       visible={showEmailTooltip && !(isAnalyzing || isConsolidatedSearching)}
                       position="custom"
-                      offsetX={200}
+                      offsetX={-200}
                     />
                   </div>
                   
