@@ -3257,20 +3257,57 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         return;
       }
 
-      // Prepare messages for AI
-      const messages: PerplexityMessage[] = [
+      // Prepare messages for OpenAI with conversation history
+      const openaiMessages = [
         {
-          role: "system",
+          role: "system" as const,
           content: currentStepConfig.systemPrompt
-        },
-        {
-          role: "user", 
-          content: currentStepConfig.userPrompt(businessType)
         }
       ];
 
-      // Get AI response
-      const aiResponse = await queryPerplexity(messages);
+      // Add conversation history if this is a follow-up in the same step
+      if (existingChat && existingChat.messages.length > 0) {
+        // Add previous messages from this conversation
+        const previousMessages = existingChat.messages;
+        for (const msg of previousMessages) {
+          if (msg.role === 'assistant') {
+            openaiMessages.push({
+              role: "assistant" as const,
+              content: msg.content
+            });
+          } else if (msg.role === 'user') {
+            openaiMessages.push({
+              role: "user" as const,
+              content: msg.content
+            });
+          }
+        }
+        
+        // Add the new user message
+        openaiMessages.push({
+          role: "user" as const,
+          content: message
+        });
+      } else {
+        // First message - use the step's initial prompt
+        openaiMessages.push({
+          role: "user" as const, 
+          content: currentStepConfig.userPrompt(businessType)
+        });
+      }
+
+      // Get AI response from OpenAI
+      const { OpenAI } = await import('openai');
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: openaiMessages,
+        max_tokens: 500,
+        temperature: 0.7
+      });
+
+      const aiResponse = completion.choices[0].message.content || "I apologize, but I'm having trouble generating a response. Please try again.";
 
       // Process the response and update profile data
       let profileUpdate: any = {};
