@@ -1276,7 +1276,7 @@ export default function Home() {
                     </Button>
                     
                     {/* Email button tooltip - matching search button design */}
-                    <div className="absolute -top-16 left-1/2 transform -translate-x-1/2
+                    <div className="absolute -top-20 left-1/2 transform -translate-x-1/2
                        bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 
                        p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 
                        animate-fade-in max-w-xs text-center">
