@@ -1287,12 +1287,12 @@ export default function Home() {
                       </p>
                     </div>
                     
-                    {/* New component tooltip - 200px to the left for comparison */}
+                    {/* New component tooltip - 200px to the right for comparison */}
                     <LandingPageTooltip
                       message="Click here to find Egg-cellent emails of wonderful people."
                       visible={true}
                       position="custom"
-                      offsetX={-200}
+                      offsetX={200}
                     />
                   </div>
                   
