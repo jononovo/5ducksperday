@@ -13,7 +13,7 @@ export function LandingPageTooltip({
   offsetX = 0,
   className = ''
 }: LandingPageTooltipProps) {
-  if (!visible) return null;
+  // Temporarily removing visibility check for comparison
 
   const positionClasses = position === 'above-button' 
     ? 'absolute -top-20 left-1/2 transform -translate-x-1/2' 
