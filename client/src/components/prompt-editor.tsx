@@ -219,7 +219,8 @@ export default function PromptEditor({
       const res = await apiRequest("POST", "/api/companies/quick-search", { 
         query: searchQuery,
         flows: activeFlows,
-        strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined
+        strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
+        contactSearchConfig: contactSearchConfig
       });
       return res.json();
     },
@@ -311,7 +312,8 @@ export default function PromptEditor({
         query: searchQuery,
         flows: activeFlows,
         strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
-        includeContacts: true
+        includeContacts: true,
+        contactSearchConfig: contactSearchConfig
       });
       return res.json();
     },

@@ -17,6 +17,12 @@ export interface EnhancedContactFinderOptions {
   includeEmailPredictions?: boolean;
   useMultipleQueries?: boolean;
   industry?: string;
+  // New configuration options from frontend
+  enableCoreLeadership?: boolean;
+  enableDepartmentHeads?: boolean;
+  enableMiddleManagement?: boolean;
+  enableCustomSearch?: boolean;
+  customSearchTarget?: string;
 }
 
 const DEFAULT_OPTIONS: EnhancedContactFinderOptions = {
@@ -25,7 +31,12 @@ const DEFAULT_OPTIONS: EnhancedContactFinderOptions = {
   includeMiddleManagement: true,
   prioritizeLeadership: true,
   includeEmailPredictions: true,
-  useMultipleQueries: true
+  useMultipleQueries: true,
+  enableCoreLeadership: true,
+  enableDepartmentHeads: true,
+  enableMiddleManagement: true,
+  enableCustomSearch: false,
+  customSearchTarget: ""
 };
 
 /**
@@ -50,20 +61,32 @@ export async function findKeyDecisionMakers(
     const industry = mergedOptions.industry || detectIndustry(companyName);
     console.log(`Detected industry context: ${industry || "unknown"}`);
     
-    // 1. Core leadership search (always run)
-    const coreLeadership = await searchCoreLeadership(companyName, industry);
-    allContacts.push(...coreLeadership);
+    // 1. Core leadership search - only if enabled
+    if (mergedOptions.enableCoreLeadership) {
+      console.log(`Running core leadership search for ${companyName}`);
+      const coreLeadership = await searchCoreLeadership(companyName, industry);
+      allContacts.push(...coreLeadership);
+    }
     
-    // 2. Role-specific search when enabled
-    if (mergedOptions.useMultipleQueries) {
+    // 2. Department heads search - only if enabled
+    if (mergedOptions.enableDepartmentHeads) {
+      console.log(`Running department heads search for ${companyName}`);
       const departmentHeads = await searchDepartmentHeads(companyName, industry);
       allContacts.push(...departmentHeads);
-      
-      // 3. Include middle management when requested
-      if (mergedOptions.includeMiddleManagement) {
-        const middleManagement = await searchMiddleManagement(companyName, industry);
-        allContacts.push(...middleManagement);
-      }
+    }
+    
+    // 3. Middle management search - only if enabled
+    if (mergedOptions.enableMiddleManagement) {
+      console.log(`Running middle management search for ${companyName}`);
+      const middleManagement = await searchMiddleManagement(companyName, industry);
+      allContacts.push(...middleManagement);
+    }
+    
+    // 4. Custom search - only if enabled and target is provided
+    if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
+      console.log(`Running custom search for "${mergedOptions.customSearchTarget}" at ${companyName}`);
+      const customContacts = await searchCustomTarget(companyName, mergedOptions.customSearchTarget, industry);
+      allContacts.push(...customContacts);
     }
     
     // Deduplicate contacts based on name
@@ -219,6 +242,8 @@ IMPORTANT: If you cannot find data, return an empty array. Do NOT make up data.`
   }
 }
 
+
+
 /**
  * Search for middle management and key technical staff
  */
@@ -268,6 +293,53 @@ ${industryRoles.join("\n")}`;
 }
 
 /**
+ * Search for custom target roles specified by the user
+ */
+async function searchCustomTarget(
+  companyName: string,
+  targetRole: string,
+  industry?: string
+): Promise<Partial<Contact>[]> {
+  const systemPrompt = `You are an expert in identifying specific professionals at companies.
+Your task is to find people with the specific role or position requested at the specified company.`;
+
+  let userPrompt = `Find people at ${companyName} who have roles related to: ${targetRole}
+
+Look for variations and similar positions, such as:
+- Direct matches to "${targetRole}"
+- Related roles and titles
+- People who might handle responsibilities related to ${targetRole}
+
+For each person, provide their:
+- Full name (first and last name)
+- Current role/position
+
+IMPORTANT: If you cannot find data, return an empty array. Do NOT make up data.`;
+
+  // Add industry context if available
+  if (industry) {
+    userPrompt += `\nThis company is in the ${industry} industry. Consider industry-specific variations of this role.`;
+  }
+
+  const responseFormat = `{ 
+  "targetContacts": [
+    {
+      "name": "John Smith", 
+      "role": "${targetRole} or related position"
+    }
+  ]
+}`;
+
+  try {
+    const result = await analyzeWithPerplexity(userPrompt, systemPrompt, responseFormat);
+    return parseContactsFromResponse(result, 'custom_target', companyName);
+  } catch (error) {
+    console.error(`Error in searchCustomTarget:`, error);
+    return [];
+  }
+}
+
+/**
  * Parse contacts from Perplexity API response
  */
 function parseContactsFromResponse(
@@ -296,6 +368,8 @@ function parseContactsFromResponse(
       people = json.departmentLeaders;
     } else if (json.managers) {
       people = json.managers;
+    } else if (json.targetContacts) {
+      people = json.targetContacts;
     } else {
       // Try to find any array in the response
       for (const key in json) {
