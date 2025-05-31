@@ -1243,7 +1243,7 @@ export default function Home() {
               
               {/* Email Search Progress - with reduced padding */}
               {isConsolidatedSearching && (
-                <div className="px-4 pt-1 pb-3">
+                <div className="px-4 pt-0 pb-3">
                   <SearchProgress 
                     phase={searchProgress.phase}
                     completed={searchProgress.completed}

@@ -29,23 +29,20 @@ export function EmailSearchSummary({
   return (
     <div className="bg-white dark:bg-gray-900 border rounded-md mb-2 px-4 py-3 shadow-sm">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">
-          Email Search Results
-        </h3>
+        <div className="text-sm">
+          <p>Found emails for {companiesWithEmails} of {totalCompanies} companies</p>
+          <p className="text-muted-foreground text-xs mt-0.5">
+            {companiesWithEmails >= 5 
+              ? "Target achieved! At least 5 companies have email addresses."
+              : "Some companies still need email addresses."}
+          </p>
+        </div>
         <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => {
           setShow(false);
           onClose();
         }}>
           <X className="h-4 w-4" />
         </Button>
-      </div>
-      <div className="text-sm mt-1">
-        <p>Found emails for {companiesWithEmails} of {totalCompanies} companies</p>
-        <p className="text-muted-foreground text-xs mt-0.5">
-          {companiesWithEmails >= 5 
-            ? "Target achieved! At least 5 companies have email addresses."
-            : "Some companies still need email addresses."}
-        </p>
       </div>
     </div>
   );
