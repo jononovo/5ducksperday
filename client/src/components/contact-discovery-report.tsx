@@ -47,21 +47,18 @@ export function ContactDiscoveryReport({
   return (
     <div className="bg-white dark:bg-gray-900 border rounded-md mb-2 px-4 py-3 shadow-sm">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">
-          Contact Discovery Results
-        </h3>
+        <div className="text-sm">
+          <p>Found {totalContacts} contacts for {companiesWithContacts} of {totalCompanies} companies</p>
+          <p className="text-muted-foreground text-xs mt-0.5">
+            {getSuccessMessage()}
+          </p>
+        </div>
         <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => {
           setShow(false);
           onClose();
         }}>
           <X className="h-4 w-4" />
         </Button>
-      </div>
-      <div className="text-sm mt-1">
-        <p>Found {totalContacts} contacts for {companiesWithContacts} of {totalCompanies} companies</p>
-        <p className="text-muted-foreground text-xs mt-0.5">
-          {getSuccessMessage()}
-        </p>
       </div>
     </div>
   );
