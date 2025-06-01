@@ -100,7 +100,7 @@ To get started, please tell me about your ${type}. What exactly are you offering
 
     try {
       // Call the AI service to get response
-      const response: any = await apiRequest("/api/onboarding/chat", "POST", {
+      const response: any = await apiRequest("POST", "/api/onboarding/chat", {
         message: inputMessage,
         businessType,
         currentStep,
