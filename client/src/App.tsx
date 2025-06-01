@@ -51,6 +51,9 @@ function Router() {
         {/* Public Landing Page (no layout or nav) */}
         <Route path="/" component={LandingPage} />
         
+        {/* Temporary React Landing Page for comparison */}
+        <Route path="/react-landing" component={LandingPage} />
+        
         {/* Strategic Planning Page (no nav) */}
         <Route path="/planning" component={Planning} />
         
