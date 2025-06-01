@@ -177,14 +177,47 @@
           Sell to 5 new people every day.
         </h1>
         
-        <p class="text-xl text-slate-700 dark:text-slate-300 mb-12 max-w-2xl mx-auto">
-          <span class="font-normal">Find niche contacts 🎯 and make selling to them a fun habit<br />— Do outreach 👋🏼 instead of spam. 🫤</span>
+        <p class="text-xl text-slate-700 dark:text-slate-300 mb-8 max-w-2xl mx-auto">
+          <span class="font-normal">Let's create your strategic sales plan.<br />
+          What are you selling?</span>
         </p>
 
-        <!-- Search Input -->
-        <div class="relative max-w-2xl mx-auto mb-10">
-          <div class="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full opacity-70 blur"></div>
-          <div class="relative bg-white dark:bg-slate-900 rounded-full">
+        <!-- Strategic Onboarding Section -->
+        <div class="max-w-2xl mx-auto mb-12">
+          <div class="grid grid-cols-2 gap-4 mb-8">
+            <button
+              onclick="handleOnboardingStart('product')"
+              class="h-24 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl flex flex-col items-center justify-center space-y-2 cursor-pointer transition-all duration-300 border-none outline-none"
+            >
+              <div class="text-2xl">📦</div>
+              <span class="font-semibold">Product</span>
+            </button>
+            <button
+              onclick="handleOnboardingStart('service')"
+              class="h-24 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl flex flex-col items-center justify-center space-y-2 cursor-pointer transition-all duration-300 border-none outline-none"
+            >
+              <div class="text-2xl">🛠️</div>
+              <span class="font-semibold">Service</span>
+            </button>
+          </div>
+          
+          <div class="text-center mb-8">
+            <div class="relative">
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-slate-300 dark:border-slate-600"></div>
+              </div>
+              <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950 text-slate-500 dark:text-slate-400">
+                  or search directly
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search Input -->
+          <div class="relative mb-10">
+            <div class="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full opacity-70 blur"></div>
+            <div class="relative bg-white dark:bg-slate-900 rounded-full">
             <input
               type="text"
               placeholder="Adventure service providers in Maine"

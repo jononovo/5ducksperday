@@ -23,6 +23,13 @@ document.addEventListener('DOMContentLoaded', function() {
     window.location.href = '/app';
   }
   
+  // Handle onboarding start
+  window.handleOnboardingStart = function(type) {
+    console.log('Onboarding start tracked:', type);
+    // Navigate to planning page with type parameter
+    window.location.href = `/planning?type=${type}`;
+  }
+  
   // Search button click
   if (searchBtn) {
     searchBtn.addEventListener('click', () => handleSearch());
