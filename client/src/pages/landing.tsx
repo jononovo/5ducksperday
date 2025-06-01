@@ -263,6 +263,43 @@ export default function LandingPage() {
                 <div className="text-sm text-slate-500 dark:text-slate-400">New Revenue Pipeline*</div>
               </div>
             </div>
+
+            {/* Strategic Onboarding Section */}
+            <div className="max-w-2xl mx-auto mb-12">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-2">Get Your Personalized Sales Strategy</h3>
+                <p className="text-gray-600 dark:text-gray-300">Tell us about your business and we'll create a custom prospecting plan</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <Button
+                  className="h-24 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl flex flex-col items-center justify-center space-y-2"
+                  onClick={() => {
+                    trackEvent('onboarding_start', 'landing_page', 'product');
+                    setLocation("/planning?type=product");
+                  }}
+                >
+                  <div className="text-2xl">📦</div>
+                  <span className="font-semibold">Product</span>
+                </Button>
+                <Button
+                  className="h-24 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl flex flex-col items-center justify-center space-y-2"
+                  onClick={() => {
+                    trackEvent('onboarding_start', 'landing_page', 'service');
+                    setLocation("/planning?type=service");
+                  }}
+                >
+                  <div className="text-2xl">🛠️</div>
+                  <span className="font-semibold">Service</span>
+                </Button>
+              </div>
+              
+              <div className="text-center">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Get a 5-step guided conversation to build your sales strategy
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
