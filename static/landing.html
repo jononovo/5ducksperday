@@ -186,14 +186,14 @@
         <div class="max-w-2xl mx-auto mb-12">
           <div class="grid grid-cols-2 gap-4 mb-8">
             <button
-              onclick="handleOnboardingStart('product')"
+              onclick="openChat('product')"
               class="h-24 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl flex flex-col items-center justify-center space-y-2 cursor-pointer transition-all duration-300 border-none outline-none"
             >
               <div class="text-2xl">📦</div>
               <span class="font-semibold">Product</span>
             </button>
             <button
-              onclick="handleOnboardingStart('service')"
+              onclick="openChat('service')"
               class="h-24 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl flex flex-col items-center justify-center space-y-2 cursor-pointer transition-all duration-300 border-none outline-none"
             >
               <div class="text-2xl">🛠️</div>
@@ -616,5 +616,8 @@
   
   <!-- Landing Page Interactions -->
   <script src="/static/js/landing.js"></script>
+  
+  <!-- Chat Overlay -->
+  <script src="/static/js/chat-overlay.js"></script>
 </body>
 </html>
