@@ -26,6 +26,7 @@ import Replies from "@/pages/replies";
 import CompanyDetails from "@/pages/company-details";
 import ContactDetails from "@/pages/contact-details";
 import Testing from "@/pages/testing";
+import Planning from "@/pages/planning";
 
 import NotFound from "@/pages/not-found";
 import { MainNav } from "@/components/main-nav";
@@ -49,6 +50,9 @@ function Router() {
       <Switch>
         {/* Public Landing Page (no layout or nav) */}
         <Route path="/" component={LandingPage} />
+        
+        {/* Strategic Planning Page (no nav) */}
+        <Route path="/planning" component={Planning} />
         
         {/* Marketing pages with full footer */}
         <Route path="/terms">
