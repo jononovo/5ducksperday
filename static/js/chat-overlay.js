@@ -36,6 +36,27 @@ class ChatOverlay {
         z-index: 1000;
       }
       
+      .chat-overlay-form {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      
+      .form-modal {
+        background: white;
+        border-radius: 16px;
+        max-width: 500px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+      }
+      
       .chat-overlay-minimized .chat-icon {
         width: 56px;
         height: 56px;
@@ -255,6 +276,131 @@ class ChatOverlay {
         0%, 60%, 100% { transform: translateY(0); }
         30% { transform: translateY(-10px); }
       }
+      
+      .form-header {
+        padding: 24px;
+        text-align: center;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      
+      .form-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 8px 0;
+      }
+      
+      .form-subtitle {
+        font-size: 14px;
+        color: #64748b;
+        margin: 0;
+      }
+      
+      .form-progress {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      
+      .progress-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        transition: background 0.3s;
+      }
+      
+      .progress-dot.active {
+        background: #2563eb;
+      }
+      
+      .form-content {
+        padding: 32px 24px;
+      }
+      
+      .form-question {
+        font-size: 16px;
+        font-weight: 500;
+        color: #1e293b;
+        margin-bottom: 16px;
+        line-height: 1.5;
+      }
+      
+      .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+      }
+      
+      .form-input:focus {
+        border-color: #2563eb;
+      }
+      
+      .form-textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+        margin-bottom: 20px;
+        min-height: 80px;
+        resize: vertical;
+        font-family: inherit;
+        box-sizing: border-box;
+      }
+      
+      .form-textarea:focus {
+        border-color: #2563eb;
+      }
+      
+      .form-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      
+      .form-btn {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+      }
+      
+      .form-btn-secondary {
+        background: #f1f5f9;
+        color: #64748b;
+      }
+      
+      .form-btn-secondary:hover {
+        background: #e2e8f0;
+      }
+      
+      .form-btn-primary {
+        background: linear-gradient(135deg, #2563eb, #9333ea);
+        color: white;
+        flex: 1;
+      }
+      
+      .form-btn-primary:hover:not(:disabled) {
+        opacity: 0.9;
+      }
+      
+      .form-btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -277,14 +423,14 @@ class ChatOverlay {
 
   initializeChat(type) {
     this.businessType = type;
-    this.messages = [{
-      id: Date.now().toString(),
-      content: `Hi! I love that you're selling a ${type}! Let's create your strategic sales plan together.\n\nTo get started, please tell me about your ${type}. What exactly are you offering, and what makes it special?`,
-      sender: 'ai',
-      timestamp: new Date()
-    }];
+    this.currentStep = 1;
+    this.formData = {
+      productService: '',
+      customerFeedback: '',
+      website: ''
+    };
     
-    this.setState(this.isMobile ? 'fullscreen' : 'fullscreen');
+    this.setState('form');
   }
 
   render() {
@@ -299,6 +445,11 @@ class ChatOverlay {
           💬
         </button>
       `;
+      return;
+    }
+
+    if (this.state === 'form') {
+      this.renderForm();
       return;
     }
 
@@ -469,6 +620,153 @@ class ChatOverlay {
     } finally {
       this.isLoading = false;
       this.render();
+    }
+  }
+
+  renderForm() {
+    const questions = [
+      {
+        title: "What is the product/service you sell?",
+        subtitle: "Describe it in 1 sentence",
+        field: "productService",
+        type: "textarea",
+        placeholder: "Example: We sell premium coffee machines for small offices..."
+      },
+      {
+        title: "What do customers say they like?",
+        subtitle: "What is one thing customers like about your product or the way you sell it?",
+        field: "customerFeedback",
+        type: "textarea",
+        placeholder: "Example: They love our fast delivery and easy setup..."
+      },
+      {
+        title: "Where can we learn more?",
+        subtitle: "Do you have a website, or any page online (Etsy, FB, or any link) that explains your product/service?",
+        field: "website",
+        type: "input",
+        placeholder: "Example: https://mycompany.com or https://etsy.com/shop/mystore"
+      }
+    ];
+
+    const currentQuestion = questions[this.currentStep - 1];
+    const currentValue = this.formData[currentQuestion.field];
+    const isValid = currentValue && currentValue.trim().length > 0;
+
+    this.container.innerHTML = `
+      <div class="form-modal">
+        <div class="form-header">
+          <h2 class="form-title">Let's get to know your business</h2>
+          <p class="form-subtitle">Just 3 quick questions to create your strategy</p>
+          <div class="form-progress">
+            ${[1, 2, 3].map(step => `
+              <div class="progress-dot ${step <= this.currentStep ? 'active' : ''}"></div>
+            `).join('')}
+          </div>
+        </div>
+        
+        <div class="form-content">
+          <div class="form-question">${currentQuestion.title}</div>
+          <p style="color: #64748b; margin-bottom: 20px; font-size: 14px;">${currentQuestion.subtitle}</p>
+          
+          ${currentQuestion.type === 'textarea' ? `
+            <textarea 
+              class="form-textarea" 
+              placeholder="${currentQuestion.placeholder}"
+              id="form-input"
+            >${currentValue || ''}</textarea>
+          ` : `
+            <input 
+              type="text" 
+              class="form-input" 
+              placeholder="${currentQuestion.placeholder}"
+              id="form-input"
+              value="${currentValue || ''}"
+            />
+          `}
+          
+          <div class="form-actions">
+            ${this.currentStep > 1 ? `
+              <button class="form-btn form-btn-secondary" onclick="chatOverlay.previousStep()">
+                Back
+              </button>
+            ` : `
+              <button class="form-btn form-btn-secondary" onclick="chatOverlay.setState('hidden')">
+                Cancel
+              </button>
+            `}
+            
+            <button 
+              class="form-btn form-btn-primary" 
+              onclick="chatOverlay.nextStep()"
+              ${!isValid ? 'disabled' : ''}
+            >
+              ${this.currentStep === 3 ? 'Start Chat' : 'Next'}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Add event listener for real-time validation
+    const input = document.getElementById('form-input');
+    if (input) {
+      input.addEventListener('input', () => {
+        this.formData[currentQuestion.field] = input.value;
+        this.updateFormButton();
+      });
+    }
+  }
+
+  updateFormButton() {
+    const questions = [
+      { field: "productService" },
+      { field: "customerFeedback" },
+      { field: "website" }
+    ];
+    
+    const currentQuestion = questions[this.currentStep - 1];
+    const currentValue = this.formData[currentQuestion.field];
+    const isValid = currentValue && currentValue.trim().length > 0;
+    
+    const button = document.querySelector('.form-btn-primary');
+    if (button) {
+      button.disabled = !isValid;
+    }
+  }
+
+  nextStep() {
+    const input = document.getElementById('form-input');
+    if (input) {
+      const questions = [
+        { field: "productService" },
+        { field: "customerFeedback" },
+        { field: "website" }
+      ];
+      
+      const currentQuestion = questions[this.currentStep - 1];
+      this.formData[currentQuestion.field] = input.value;
+    }
+
+    if (this.currentStep === 3) {
+      // Transition to chat with initial message
+      this.messages = [{
+        id: Date.now().toString(),
+        content: `Hey, that's awesome!\n\nI'm just doing research into the market and getting to know your product better.\n\nIn the meantime, could you tell me, what is an example of a customer of yours?\n\nFor example, a specific hotel, company, department, or profession.\nExample: Four Seasons in Midtown New York uses our leased coffee machines.\nUX Design Freelancers use our invoicing SaaS platform.\n\nI'm trying to get a clearer snapshot of who really needs or appreciates what you are selling.`,
+        sender: 'ai',
+        timestamp: new Date()
+      }];
+      
+      this.setState(this.isMobile ? 'fullscreen' : 'fullscreen');
+    } else {
+      this.currentStep++;
+      this.renderForm();
+    }
+  }
+
+  previousStep() {
+    if (this.currentStep > 1) {
+      this.currentStep--;
+      this.renderForm();
     }
   }
 }
