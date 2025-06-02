@@ -3265,36 +3265,30 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         }
       ];
 
-      // Add conversation history if this is a follow-up in the same step
-      if (existingChat && existingChat.messages.length > 0) {
-        // Add previous messages from this conversation
-        const previousMessages = existingChat.messages;
+      // Add conversation history from the current session
+      if (conversationHistory && conversationHistory.length > 0) {
+        // Add previous messages from this conversation (skip the current message)
+        const previousMessages = conversationHistory.slice(0, -1);
         for (const msg of previousMessages) {
-          if (msg.role === 'assistant') {
+          if (msg.sender === 'ai') {
             openaiMessages.push({
               role: "assistant" as const,
               content: msg.content
             });
-          } else if (msg.role === 'user') {
+          } else if (msg.sender === 'user') {
             openaiMessages.push({
               role: "user" as const,
               content: msg.content
             });
           }
         }
-        
-        // Add the new user message
-        openaiMessages.push({
-          role: "user" as const,
-          content: message
-        });
-      } else {
-        // First message - use the step's initial prompt
-        openaiMessages.push({
-          role: "user" as const, 
-          content: currentStepConfig.userPrompt(businessType)
-        });
       }
+        
+      // Add the new user message
+      openaiMessages.push({
+        role: "user" as const,
+        content: message
+      });
 
       // Get AI response from OpenAI
       const { OpenAI } = await import('openai');
