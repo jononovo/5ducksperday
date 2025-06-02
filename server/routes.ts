@@ -3226,28 +3226,28 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const stepFlow = {
         business_description: {
           next: "unique_attributes",
-          systemPrompt: "You are a strategic sales consultant helping a user define their business. Ask follow-up questions to understand their product/service better.",
-          userPrompt: (type: string) => `The user is selling a ${type}. They said: "${message}". Ask 2-3 specific follow-up questions about what makes their ${type} unique, their target market, and their key differentiators. Keep it conversational and encouraging.`
+          systemPrompt: "You are a strategic sales consultant. Keep responses very short - 1-2 sentences max. Ask one specific question.",
+          userPrompt: (type: string) => `The user is selling a ${type}. They said: "${message}". Ask one specific question about what makes their ${type} unique or different.`
         },
         unique_attributes: {
           next: "target_customers", 
-          systemPrompt: "You are helping identify what makes this business unique. Focus on competitive advantages and value propositions.",
-          userPrompt: () => `Based on the conversation so far, the user is describing their unique attributes. Ask about their target customers - who specifically do they sell to? What type of businesses or individuals are their ideal customers?`
+          systemPrompt: "Keep responses very short - 1-2 sentences max. Ask one specific question about target customers.",
+          userPrompt: () => `Ask one specific question about who their ideal customers are - what type of businesses or people they sell to.`
         },
         target_customers: {
           next: "market_positioning",
-          systemPrompt: "You are helping identify target customers and market positioning.",
-          userPrompt: () => `The user has described their target customers. Now ask about their market approach - do they serve a specific niche or have a broader market approach? Ask about geographic focus and company size preferences.`
+          systemPrompt: "Keep responses very short - 1-2 sentences max. Ask one specific question about market approach.",
+          userPrompt: () => `Ask one question about their market focus - geographic area, company size, or industry niche.`
         },
         market_positioning: {
           next: "strategic_plan",
-          systemPrompt: "You are creating a strategic sales plan based on all the information gathered.",
-          userPrompt: () => `Based on everything discussed, summarize their business strategy and ask if they want to proceed to generate their personalized search prompts for finding prospects. Highlight their key strengths and target market.`
+          systemPrompt: "Keep responses very short - 1-2 sentences max. Summarize briefly and ask for confirmation.",
+          userPrompt: () => `Briefly summarize their business in 1-2 sentences and ask if they want to generate search prompts.`
         },
         strategic_plan: {
           next: "complete",
-          systemPrompt: "You are finalizing the strategic plan and preparing to generate search prompts.",
-          userPrompt: () => `Perfect! Based on our conversation, I'll now create your strategic profile and generate targeted search prompts. Your profile will help us find the right prospects for your business.`
+          systemPrompt: "Keep responses very short - 1-2 sentences max. Confirm completion.",
+          userPrompt: () => `Great! I'll create your strategic profile and generate targeted search prompts now.`
         }
       };
 
