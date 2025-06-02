@@ -582,7 +582,8 @@ class ChatOverlay {
           businessType: this.businessType,
           currentStep: this.currentStep,
           profileData: this.profileData,
-          conversationHistory: this.messages
+          conversationHistory: this.messages,
+          researchResults: this.researchResults
         })
       });
 
@@ -748,6 +749,9 @@ class ChatOverlay {
     }
 
     if (this.currentStep === 3) {
+      // Trigger background research with form data
+      this.triggerBackgroundResearch();
+      
       // Transition to chat with initial message
       this.messages = [{
         id: Date.now().toString(),
@@ -767,6 +771,34 @@ class ChatOverlay {
     if (this.currentStep > 1) {
       this.currentStep--;
       this.renderForm();
+    }
+  }
+
+  async triggerBackgroundResearch() {
+    try {
+      console.log('Starting background research with form data:', this.formData);
+      
+      // Send research request to backend
+      const response = await fetch('/api/onboarding/research', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          businessType: this.businessType,
+          formData: this.formData
+        })
+      });
+
+      if (response.ok) {
+        const researchData = await response.json();
+        console.log('Background research completed:', researchData);
+        this.researchResults = researchData;
+      } else {
+        console.warn('Background research failed:', response.status);
+      }
+    } catch (error) {
+      console.error('Background research error:', error);
     }
   }
 }

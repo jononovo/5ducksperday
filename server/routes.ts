@@ -3215,7 +3215,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
   // Strategic Onboarding Chat Endpoint
   app.post("/api/onboarding/chat", async (req, res) => {
     try {
-      const { message, businessType, currentStep, profileData, conversationHistory } = req.body;
+      const { message, businessType, currentStep, profileData, conversationHistory, researchResults } = req.body;
 
       if (!message || !businessType) {
         res.status(400).json({ message: "Missing required parameters" });
@@ -3289,6 +3289,11 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         role: "user" as const,
         content: message
       });
+
+      // If we have background research results, add them to the system context
+      if (researchResults && researchResults.research) {
+        openaiMessages[0].content += `\n\nBACKGROUND RESEARCH COMPLETED:\n${researchResults.research}\n\nUse this research to provide informed, strategic insights in your response.`;
+      }
 
       // Get AI response from Perplexity for real-time market research
       const perplexityMessages: PerplexityMessage[] = openaiMessages.map(msg => ({
@@ -3371,6 +3376,65 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       console.error("Onboarding chat error:", error);
       res.status(500).json({
         message: "Failed to process chat message. Please check your AI service configuration."
+      });
+    }
+  });
+
+  // Background Research Endpoint
+  app.post("/api/onboarding/research", async (req, res) => {
+    try {
+      const { businessType, formData } = req.body;
+
+      if (!businessType || !formData) {
+        res.status(400).json({ message: "Missing required parameters" });
+        return;
+      }
+
+      console.log(`Starting background research for ${businessType}:`, formData);
+
+      // Construct research prompt based on the 3 form answers
+      const researchPrompt = `Conduct market research for this ${businessType} business:
+
+Product/Service: ${formData.productService}
+Customer Feedback: ${formData.customerFeedback}
+Website/Link: ${formData.website || 'Not provided'}
+
+Please research and provide:
+1. Industry overview and current market trends
+2. Key competitors and their positioning
+3. Target market analysis and opportunities
+4. Strategic recommendations based on their unique value proposition
+
+Keep the analysis focused and actionable for strategic planning.`;
+
+      const researchMessages: PerplexityMessage[] = [
+        {
+          role: "system",
+          content: "You are a market research analyst with access to current market data. Provide comprehensive, up-to-date market intelligence and strategic insights."
+        },
+        {
+          role: "user", 
+          content: researchPrompt
+        }
+      ];
+
+      // Get research from Perplexity
+      const researchResults = await queryPerplexity(researchMessages);
+
+      console.log('Background research completed successfully');
+
+      res.json({
+        businessType,
+        formData,
+        research: researchResults,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error("Background research error:", error);
+      res.status(500).json({
+        message: "Failed to complete background research",
+        error: error.message
       });
     }
   });
