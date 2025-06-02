@@ -3226,28 +3226,28 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const stepFlow = {
         business_description: {
           next: "unique_attributes",
-          systemPrompt: "You are a strategic sales consultant. Keep responses very short - 1-2 sentences max. Ask one specific question.",
-          userPrompt: (type: string) => `The user is selling a ${type}. They said: "${message}". Ask one specific question about what makes their ${type} unique or different.`
+          systemPrompt: "You are a strategic sales consultant with real-time market research capabilities. Keep responses very short - 1-2 sentences max. Research the user's industry when mentioned. Ask one specific question.",
+          userPrompt: (type: string) => `The user is selling a ${type}. They said: "${message}". Research this industry briefly and ask one specific question about what makes their ${type} unique or different from competitors.`
         },
         unique_attributes: {
           next: "target_customers", 
-          systemPrompt: "Keep responses very short - 1-2 sentences max. Ask one specific question about target customers.",
-          userPrompt: () => `Ask one specific question about who their ideal customers are - what type of businesses or people they sell to.`
+          systemPrompt: "Keep responses very short - 1-2 sentences max. Use market research to understand their competitive landscape. Ask one specific question about target customers.",
+          userPrompt: () => `Based on their business description, research their market and ask one specific question about who their ideal customers are - what type of businesses or people they sell to.`
         },
         target_customers: {
           next: "market_positioning",
-          systemPrompt: "Keep responses very short - 1-2 sentences max. Ask one specific question about market approach.",
-          userPrompt: () => `Ask one question about their market focus - geographic area, company size, or industry niche.`
+          systemPrompt: "Keep responses very short - 1-2 sentences max. Research market trends for their target customer segment. Ask one specific question about market approach.",
+          userPrompt: () => `Research current trends for their target market and ask one question about their market focus - geographic area, company size, or industry niche.`
         },
         market_positioning: {
           next: "strategic_plan",
-          systemPrompt: "Keep responses very short - 1-2 sentences max. Summarize briefly and ask for confirmation.",
-          userPrompt: () => `Briefly summarize their business in 1-2 sentences and ask if they want to generate search prompts.`
+          systemPrompt: "Keep responses very short - 1-2 sentences max. Research their competitive positioning. Summarize briefly and ask for confirmation.",
+          userPrompt: () => `Research their market position and briefly summarize their business strategy in 1-2 sentences. Ask if they want to generate research-backed search prompts.`
         },
         strategic_plan: {
           next: "complete",
-          systemPrompt: "Keep responses very short - 1-2 sentences max. Confirm completion.",
-          userPrompt: () => `Great! I'll create your strategic profile and generate targeted search prompts now.`
+          systemPrompt: "Keep responses very short - 1-2 sentences max. Provide market-informed strategic insights.",
+          userPrompt: () => `Based on market research, I'll create your strategic profile and generate targeted search prompts that leverage current market opportunities.`
         }
       };
 
@@ -3290,18 +3290,13 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         content: message
       });
 
-      // Get AI response from OpenAI
-      const { OpenAI } = await import('openai');
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      // Get AI response from Perplexity for real-time market research
+      const perplexityMessages: PerplexityMessage[] = openaiMessages.map(msg => ({
+        role: msg.role as "system" | "user" | "assistant",
+        content: msg.content
+      }));
       
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: openaiMessages,
-        max_tokens: 500,
-        temperature: 0.7
-      });
-
-      const aiResponse = completion.choices[0].message.content || "I apologize, but I'm having trouble generating a response. Please try again.";
+      const aiResponse = await queryPerplexity(perplexityMessages);
 
       // Process the response and update profile data
       let profileUpdate: any = {};
