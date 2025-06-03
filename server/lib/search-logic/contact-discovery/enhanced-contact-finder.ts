@@ -6,6 +6,7 @@ import { extractDomainFromContext } from "../../results-analysis/email-analysis"
 import { INDUSTRY_PROFESSIONAL_TITLES } from "../../results-analysis/name-filters";
 import { applyCustomRoleAffinityScoring } from "../../results-analysis/custom-role-affinity-scorer";
 import { SmartFallbackManager } from "./smart-fallback-manager";
+import { SearchPerformanceLogger } from "./search-performance-logger";
 
 /**
  * Enhanced contact finder that uses industry-specific prompts
@@ -53,6 +54,9 @@ export async function findKeyDecisionMakers(
     // Merge with default options
     const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
     
+    // Start performance logging session
+    const sessionId = SearchPerformanceLogger.startSession(companyName, mergedOptions);
+    
     // Initialize empty contacts array
     const allContacts: Partial<Contact>[] = [];
     
@@ -63,32 +67,161 @@ export async function findKeyDecisionMakers(
     const industry = mergedOptions.industry || detectIndustry(companyName);
     console.log(`Detected industry context: ${industry || "unknown"}`);
     
-    // 1. Core leadership search - only if enabled
+    // 1. Core leadership search - only if enabled, with threshold checking
+    const coreStartTime = Date.now();
     if (mergedOptions.enableCoreLeadership) {
       console.log(`Running core leadership search for ${companyName}`);
       const coreLeadership = await searchCoreLeadership(companyName, industry);
       allContacts.push(...coreLeadership);
+      
+      SearchPerformanceLogger.logSearchPhase(
+        sessionId, 
+        'Core Leadership', 
+        true, 
+        true, 
+        coreLeadership, 
+        Date.now() - coreStartTime
+      );
+      
+      // Add rate limiting delay
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Check if we should continue searching
+      if (!SmartFallbackManager.shouldContinueSearching(allContacts, 'department heads')) {
+        console.log(`Early termination: Sufficient contacts found after core leadership search`);
+      }
+    } else {
+      SearchPerformanceLogger.logSearchPhase(
+        sessionId, 
+        'Core Leadership', 
+        false, 
+        false, 
+        [], 
+        0, 
+        'disabled'
+      );
     }
     
-    // 2. Department heads search - only if enabled
-    if (mergedOptions.enableDepartmentHeads) {
+    // 2. Department heads search - only if enabled and we should continue
+    const deptStartTime = Date.now();
+    if (mergedOptions.enableDepartmentHeads && SmartFallbackManager.shouldContinueSearching(allContacts, 'department heads')) {
       console.log(`Running department heads search for ${companyName}`);
       const departmentHeads = await searchDepartmentHeads(companyName, industry);
       allContacts.push(...departmentHeads);
+      
+      SearchPerformanceLogger.logSearchPhase(
+        sessionId, 
+        'Department Heads', 
+        true, 
+        true, 
+        departmentHeads, 
+        Date.now() - deptStartTime
+      );
+      
+      // Add rate limiting delay
+      await new Promise(resolve => setTimeout(resolve, 200));
+    } else if (mergedOptions.enableDepartmentHeads) {
+      SearchPerformanceLogger.logSearchPhase(
+        sessionId, 
+        'Department Heads', 
+        true, 
+        false, 
+        [], 
+        0, 
+        'sufficient contacts found'
+      );
+    } else {
+      SearchPerformanceLogger.logSearchPhase(
+        sessionId, 
+        'Department Heads', 
+        false, 
+        false, 
+        [], 
+        0, 
+        'disabled'
+      );
     }
     
-    // 3. Middle management search - only if enabled
-    if (mergedOptions.enableMiddleManagement) {
+    // 3. Middle management search - only if enabled and we should continue
+    const middleStartTime = Date.now();
+    if (mergedOptions.enableMiddleManagement && SmartFallbackManager.shouldContinueSearching(allContacts, 'middle management')) {
       console.log(`Running middle management search for ${companyName}`);
       const middleManagement = await searchMiddleManagement(companyName, industry);
       allContacts.push(...middleManagement);
+      
+      SearchPerformanceLogger.logSearchPhase(
+        sessionId, 
+        'Middle Management', 
+        true, 
+        true, 
+        middleManagement, 
+        Date.now() - middleStartTime
+      );
+      
+      // Add rate limiting delay
+      await new Promise(resolve => setTimeout(resolve, 200));
+    } else if (mergedOptions.enableMiddleManagement) {
+      SearchPerformanceLogger.logSearchPhase(
+        sessionId, 
+        'Middle Management', 
+        true, 
+        false, 
+        [], 
+        0, 
+        'sufficient contacts found'
+      );
+    } else {
+      SearchPerformanceLogger.logSearchPhase(
+        sessionId, 
+        'Middle Management', 
+        false, 
+        false, 
+        [], 
+        0, 
+        'disabled'
+      );
     }
     
-    // 4. Custom search - only if enabled and target is provided
-    if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
+    // 4. Custom search - only if enabled, target provided, and we should continue
+    const customStartTime = Date.now();
+    if (mergedOptions.enableCustomSearch && 
+        mergedOptions.customSearchTarget?.trim() && 
+        SmartFallbackManager.shouldContinueSearching(allContacts, 'custom search')) {
       console.log(`Running custom search for "${mergedOptions.customSearchTarget}" at ${companyName}`);
       const customContacts = await searchCustomTarget(companyName, mergedOptions.customSearchTarget, industry);
       allContacts.push(...customContacts);
+      
+      SearchPerformanceLogger.logSearchPhase(
+        sessionId, 
+        'Custom Search', 
+        true, 
+        true, 
+        customContacts, 
+        Date.now() - customStartTime
+      );
+      
+      // Add rate limiting delay
+      await new Promise(resolve => setTimeout(resolve, 200));
+    } else if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
+      SearchPerformanceLogger.logSearchPhase(
+        sessionId, 
+        'Custom Search', 
+        true, 
+        false, 
+        [], 
+        0, 
+        'sufficient contacts found'
+      );
+    } else {
+      SearchPerformanceLogger.logSearchPhase(
+        sessionId, 
+        'Custom Search', 
+        false, 
+        false, 
+        [], 
+        0, 
+        'disabled or no target specified'
+      );
     }
     
     // Deduplicate contacts based on name
@@ -104,22 +237,98 @@ export async function findKeyDecisionMakers(
       .sort((a, b) => (b.probability || 0) - (a.probability || 0))
       .slice(0, mergedOptions.maxContacts || 10);
     
-    // Apply custom role affinity scoring if enabled
+    // Apply smart fallback logic if we don't have enough contacts
+    const fallbackAnalysis = SmartFallbackManager.analyzeFallbackNeeds(sortedContacts, mergedOptions);
+    
+    if (fallbackAnalysis.shouldTriggerFallback) {
+      console.log(`Smart fallback triggered: ${fallbackAnalysis.reasoning}`);
+      console.log(`Executing fallbacks: ${fallbackAnalysis.recommendedFallbacks.join(', ')}`);
+      
+      const fallbackStartTime = Date.now();
+      const fallbackContacts = await SmartFallbackManager.executeFallbackSearches(
+        companyName,
+        fallbackAnalysis.recommendedFallbacks,
+        industry,
+        {
+          searchCoreLeadership,
+          searchDepartmentHeads
+        }
+      );
+      
+      // Log fallback performance
+      SearchPerformanceLogger.logFallback(
+        sessionId,
+        true,
+        fallbackAnalysis.reasoning,
+        fallbackAnalysis.recommendedFallbacks,
+        fallbackContacts.length,
+        Date.now() - fallbackStartTime
+      );
+      
+      // Apply validation to fallback contacts
+      const validatedFallbacks = fallbackContacts.filter(contact => 
+        (contact.probability || 0) >= (mergedOptions.minimumConfidence || 30)
+      );
+      
+      // Combine and optimize all contacts
+      const optimizedContacts = SmartFallbackManager.optimizeContactResults(
+        sortedContacts,
+        validatedFallbacks,
+        mergedOptions.maxContacts || 10
+      );
+      
+      // Apply custom role affinity scoring if enabled
+      if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
+        const customScoredContacts = applyCustomRoleAffinityScoring(optimizedContacts, {
+          customSearchTarget: mergedOptions.customSearchTarget,
+          enableCustomScoring: true
+        });
+        
+        const finalContacts = customScoredContacts
+          .sort((a, b) => (b.probability || 0) - (a.probability || 0))
+          .slice(0, mergedOptions.maxContacts || 10);
+        
+        // End session and return
+        SearchPerformanceLogger.endSession(sessionId, finalContacts);
+        console.log(`Smart fallback + custom scoring complete: ${sortedContacts.length} → ${finalContacts.length} contacts for ${companyName}`);
+        return finalContacts;
+      }
+      
+      // End session and return
+      SearchPerformanceLogger.endSession(sessionId, optimizedContacts);
+      console.log(`Smart fallback complete: ${sortedContacts.length} → ${optimizedContacts.length} contacts for ${companyName}`);
+      return optimizedContacts;
+    } else {
+      // Log that no fallback was needed
+      SearchPerformanceLogger.logFallback(
+        sessionId,
+        false,
+        'Sufficient contacts found - no fallback needed',
+        [],
+        0,
+        0
+      );
+    }
+    
+    // No fallback needed - apply custom role affinity scoring if enabled
     if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
       const customScoredContacts = applyCustomRoleAffinityScoring(sortedContacts, {
         customSearchTarget: mergedOptions.customSearchTarget,
         enableCustomScoring: true
       });
       
-      // Re-sort after custom scoring and return
       const finalContacts = customScoredContacts
         .sort((a, b) => (b.probability || 0) - (a.probability || 0))
         .slice(0, mergedOptions.maxContacts || 10);
       
+      // End session and return
+      SearchPerformanceLogger.endSession(sessionId, finalContacts);
       console.log(`Found ${finalContacts.length} validated contacts for ${companyName} with custom role affinity scoring`);
       return finalContacts;
     }
     
+    // End session and return
+    SearchPerformanceLogger.endSession(sessionId, sortedContacts);
     console.log(`Found ${sortedContacts.length} validated contacts for ${companyName}`);
     return sortedContacts;
   } catch (error) {
