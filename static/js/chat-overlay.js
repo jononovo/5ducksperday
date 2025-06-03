@@ -764,9 +764,6 @@ class ChatOverlay {
     }
 
     if (this.currentStep === 3) {
-      // Trigger background research with form data
-      this.triggerBackgroundResearch();
-      
       // Create personalized initial message based on form inputs
       const productService = this.formData.productService?.trim() || 'your offering';
       const customerFeedback = this.formData.customerFeedback?.trim() || 'positive feedback';
@@ -774,17 +771,9 @@ class ChatOverlay {
       
       const personalizedMessage = `Perfect! So you're selling ${productService}, customers say ${customerFeedback}, and ${website !== 'no website provided' ? `I can learn more at ${website}` : 'no website was provided'}.
 
-I'm now researching your market, competitors, and opportunities in the background.
+Let me research your market, competitors, and opportunities right now.`;
 
-While I do that research, could you tell me what's an example of a typical customer?
-
-For example, a specific hotel, company, department, or profession.
-Example: Four Seasons in Midtown New York uses our leased coffee machines.
-UX Design Freelancers use our invoicing SaaS platform.
-
-I'm trying to get a clearer snapshot of who really needs or appreciates what you are selling.`;
-
-      // Transition to chat with personalized initial message
+      // Add personalized message and set loading state
       this.messages = [{
         id: Date.now().toString(),
         content: personalizedMessage,
@@ -792,7 +781,12 @@ I'm trying to get a clearer snapshot of who really needs or appreciates what you
         timestamp: new Date()
       }];
       
+      // Show loading for research
+      this.isLoading = true;
       this.setState(this.isMobile ? 'fullscreen' : 'fullscreen');
+      
+      // Trigger background research with form data
+      this.triggerBackgroundResearch();
     } else {
       this.currentStep++;
       this.renderForm();
@@ -826,12 +820,46 @@ I'm trying to get a clearer snapshot of who really needs or appreciates what you
         const researchData = await response.json();
         console.log('Background research completed:', researchData);
         this.researchResults = researchData;
+        
+        // Stop loading and display research report
+        this.isLoading = false;
+        this.displayResearchReport(researchData.research);
+        
       } else {
         console.warn('Background research failed:', response.status);
+        this.isLoading = false;
+        this.render();
       }
     } catch (error) {
       console.error('Background research error:', error);
+      this.isLoading = false;
+      this.render();
     }
+  }
+
+  displayResearchReport(researchData) {
+    // Format research into conversational summary
+    const researchSummary = `Based on my research into your market, here's what I found:
+
+${researchData}
+
+Now that I understand your market landscape, could you tell me what's an example of a typical customer?
+
+For example, a specific hotel, company, department, or profession.
+Example: Four Seasons in Midtown New York uses our leased coffee machines.
+UX Design Freelancers use our invoicing SaaS platform.
+
+I'm trying to get a clearer snapshot of who really needs or appreciates what you are selling.`;
+
+    // Add research report message
+    this.messages.push({
+      id: (Date.now() + 1).toString(),
+      content: researchSummary,
+      sender: 'ai',
+      timestamp: new Date()
+    });
+
+    this.render();
   }
 }
 
