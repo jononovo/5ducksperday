@@ -3272,19 +3272,32 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
       // Add conversation history from the current session
       if (conversationHistory && conversationHistory.length > 0) {
-        // Add previous messages from this conversation (skip the current message)
+        // Skip the initial personalized message to avoid role alternation issues
+        // Start from the first user message (customer example)
         const previousMessages = conversationHistory.slice(0, -1);
+        const userMessages = previousMessages.filter(msg => msg.sender === 'user');
+        const aiMessages = previousMessages.filter(msg => msg.sender === 'ai' && !msg.content.includes("Perfect! So you're selling"));
+        
+        // Only include alternating messages starting with user messages
+        let lastRole = 'system';
         for (const msg of previousMessages) {
-          if (msg.sender === 'ai') {
+          // Skip the initial personalized message
+          if (msg.sender === 'ai' && msg.content.includes("Perfect! So you're selling")) {
+            continue;
+          }
+          
+          if (msg.sender === 'ai' && lastRole !== 'assistant') {
             openaiMessages.push({
               role: "assistant" as const,
               content: msg.content
             });
-          } else if (msg.sender === 'user') {
+            lastRole = 'assistant';
+          } else if (msg.sender === 'user' && lastRole !== 'user') {
             openaiMessages.push({
               role: "user" as const,
               content: msg.content
             });
+            lastRole = 'user';
           }
         }
       }
