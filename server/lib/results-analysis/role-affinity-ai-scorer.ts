@@ -1,5 +1,6 @@
 import { queryPerplexity } from "../api/perplexity-client";
 import type { PerplexityMessage } from "../types/perplexity";
+import { parseCleanedJSON } from "../utils";
 
 export async function validateRoleAffinity(
   contactRoles: string[],
@@ -41,7 +42,7 @@ export async function validateRoleAffinity(
 
   try {
     const response = await queryPerplexity(messages);
-    const scores = JSON.parse(response);
+    const scores = parseCleanedJSON<Record<string, number>>(response);
     console.log(`AI role affinity validation complete for target "${targetRole}"`);
     return scores;
   } catch (error) {
