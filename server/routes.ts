@@ -3410,20 +3410,28 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
       console.log(`Starting background research for ${businessType}:`, formData);
 
-      // Construct research prompt based on the 3 form answers
-      const researchPrompt = `Conduct market research for this ${businessType} business:
+      // Construct enhanced research prompt based on comprehensive product profile
+      const researchPrompt = `Conduct comprehensive market research for this ${businessType} business:
 
+**Business Profile:**
 Product/Service: ${formData.productService}
+Location: ${formData.businessLocation || 'Not specified'}
+Target Customers: ${formData.primaryCustomerType || 'Not specified'}
 Customer Feedback: ${formData.customerFeedback}
+Current Sales Channel: ${formData.primarySalesChannel || 'Not specified'}
+Primary Business Goal: ${formData.primaryBusinessGoal || 'Not specified'}
 Website/Link: ${formData.website || 'Not provided'}
 
 Please research and provide:
-1. Industry overview and current market trends
-2. Key competitors and their positioning
-3. Target market analysis and opportunities
-4. Strategic recommendations based on their unique value proposition
+1. **Industry Overview & Market Trends** - Current state and growth opportunities in their industry
+2. **Local Market Analysis** - Specific insights for their geographic location and market dynamics
+3. **Competitive Landscape** - Key competitors, their positioning, and market gaps
+4. **Target Customer Analysis** - Deep dive into their customer segment, needs, and purchasing behavior
+5. **Sales Channel Optimization** - Analysis of their current approach and better alternatives
+6. **Strategic Opportunities** - Specific recommendations aligned with their business goal
+7. **90-Day Action Plan** - Tactical steps they can take immediately
 
-Keep the analysis focused and actionable for strategic planning.`;
+Focus on actionable insights that directly support their stated business goal and customer segment.`;
 
       const researchMessages: PerplexityMessage[] = [
         {

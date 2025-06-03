@@ -700,9 +700,9 @@ class ChatOverlay {
       <div class="form-modal">
         <div class="form-header">
           <h2 class="form-title">Let's get to know your business</h2>
-          <p class="form-subtitle">Just 3 quick questions to create your strategy</p>
+          <p class="form-subtitle">${this.currentStep <= 3 ? 'Just 7 quick questions to create your strategy' : 'Super excited to build your 90-day sales strategy!'}</p>
           <div class="form-progress">
-            ${[1, 2, 3].map(step => `
+            ${[1, 2, 3, 4, 5, 6, 7].map(step => `
               <div class="progress-dot ${step <= this.currentStep ? 'active' : ''}"></div>
             `).join('')}
           </div>
@@ -744,7 +744,7 @@ class ChatOverlay {
               onclick="chatOverlay.nextStep()"
               ${!isValid ? 'disabled' : ''}
             >
-              ${this.currentStep === 3 ? 'Start Chat' : 'Next'}
+              ${this.currentStep === 7 ? 'Generate Strategy' : 'Next'}
             </button>
           </div>
         </div>
@@ -765,7 +765,11 @@ class ChatOverlay {
     const questions = [
       { field: "productService" },
       { field: "customerFeedback" },
-      { field: "website" }
+      { field: "website" },
+      { field: "businessLocation" },
+      { field: "primaryCustomerType" },
+      { field: "primarySalesChannel" },
+      { field: "primaryBusinessGoal" }
     ];
     
     const currentQuestion = questions[this.currentStep - 1];
@@ -784,22 +788,38 @@ class ChatOverlay {
       const questions = [
         { field: "productService" },
         { field: "customerFeedback" },
-        { field: "website" }
+        { field: "website" },
+        { field: "businessLocation" },
+        { field: "primaryCustomerType" },
+        { field: "primarySalesChannel" },
+        { field: "primaryBusinessGoal" }
       ];
       
       const currentQuestion = questions[this.currentStep - 1];
       this.formData[currentQuestion.field] = input.value;
     }
 
-    if (this.currentStep === 3) {
-      // Create personalized initial message based on form inputs
+    if (this.currentStep === 7) {
+      // Create personalized initial message based on enhanced form inputs
       const productService = this.formData.productService?.trim() || 'your offering';
       const customerFeedback = this.formData.customerFeedback?.trim() || 'positive feedback';
       const website = this.formData.website?.trim() || 'no website provided';
+      const location = this.formData.businessLocation?.trim() || 'your location';
+      const customers = this.formData.primaryCustomerType?.trim() || 'your customers';
+      const salesChannel = this.formData.primarySalesChannel?.trim() || 'your current methods';
+      const goal = this.formData.primaryBusinessGoal?.trim() || 'growing your business';
       
-      const personalizedMessage = `Perfect! So you're selling ${productService}, customers say ${customerFeedback}, and ${website !== 'no website provided' ? `I can learn more at ${website}` : 'no website was provided'}.
+      const personalizedMessage = `Amazing! I now have a complete picture of your business:
 
-Let me research your market, competitors, and opportunities right now.`;
+🎯 **Product/Service:** ${productService}
+📍 **Location:** ${location}
+👥 **Target Customers:** ${customers}
+💡 **Customer Feedback:** ${customerFeedback}
+🚀 **Sales Channel:** ${salesChannel}
+🎯 **Main Goal:** ${goal}
+${website !== 'no website provided' ? `🌐 **Website:** ${website}` : ''}
+
+Super excited to build your 90-day sales strategy! Let me research your market, competitors, and opportunities right now.`;
 
       // Add personalized message and set loading state
       this.messages = [{
