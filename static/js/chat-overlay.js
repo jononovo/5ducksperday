@@ -601,8 +601,32 @@ class ChatOverlay {
         // Save business goal response
         this.formData.primaryBusinessGoal = message;
         
-        // Now save complete profile and trigger research
-        await this.saveProfileAndTriggerResearch();
+        // Ask for target market information
+        const targetQuestion = `Perfect! Last question: what type of business do you sell to? 
+
+I need to create daily search queries for finding contacts. The more specific, the better!
+
+Examples: "family-friendly hotels in coastal Florida" or "mid-size logistics companies in tri-state area"`;
+        
+        this.messages.push({
+          id: (Date.now() + 1).toString(),
+          content: targetQuestion,
+          sender: 'ai',
+          timestamp: new Date()
+        });
+        
+        this.chatStep = 'target_collection';
+        this.isLoading = false;
+        this.render();
+        return;
+      }
+      
+      if (this.chatStep === 'target_collection') {
+        // Save target description and process strategy
+        this.formData.targetDescription = message;
+        
+        // Process strategy and trigger research
+        await this.processStrategyAndTriggerResearch();
         return;
       }
 
@@ -867,33 +891,60 @@ How do you currently find most of your customers? (referrals, social media, ads,
     }
   }
 
-  async saveProfileAndTriggerResearch() {
+  async processStrategyAndTriggerResearch() {
     try {
-      // Show enthusiastic message about starting research
-      const researchMessage = `Perfect! I now have everything I need:
+      // Show processing message
+      const processingMessage = `Perfect! I now have everything I need:
 
 🎯 **Product/Service:** ${this.formData.productService}
 💡 **Customer Feedback:** ${this.formData.customerFeedback}
 🌐 **Website:** ${this.formData.website || 'Not provided'}
 🚀 **Sales Channel:** ${this.formData.primarySalesChannel}
 🎯 **Business Goal:** ${this.formData.primaryBusinessGoal}
+🎯 **Target Market:** ${this.formData.targetDescription}
 
-Let me research your market, competitors, and opportunities right now!`;
+Let me process your strategy and research your market right now!`;
 
       this.messages.push({
         id: (Date.now() + 1).toString(),
-        content: researchMessage,
+        content: processingMessage,
         sender: 'ai',
         timestamp: new Date()
       });
 
       this.render();
       
-      // Trigger background research with complete profile data
-      await this.triggerBackgroundResearch();
+      // Process strategy with Perplexity API
+      console.log('Processing strategy with form data:', this.formData);
+      
+      const strategyResponse = await fetch('/api/onboarding/process-strategy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          businessType: this.businessType,
+          formData: this.formData
+        })
+      });
+
+      if (strategyResponse.ok) {
+        const strategyData = await strategyResponse.json();
+        console.log('Strategy processing completed:', strategyData);
+        
+        // Save strategy data to form
+        this.formData = { ...this.formData, ...strategyData };
+        
+        // Now trigger background research with enhanced profile data
+        await this.triggerBackgroundResearch();
+      } else {
+        console.warn('Strategy processing failed:', strategyResponse.status);
+        // Fallback to direct research without strategy processing
+        await this.triggerBackgroundResearch();
+      }
       
     } catch (error) {
-      console.error('Error saving profile and triggering research:', error);
+      console.error('Error processing strategy and triggering research:', error);
       this.isLoading = false;
       this.render();
     }

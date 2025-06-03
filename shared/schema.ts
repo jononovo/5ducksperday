@@ -399,6 +399,12 @@ export const strategicProfiles = pgTable("strategic_profiles", {
   primaryCustomerType: text("primary_customer_type"), // Who they sell to
   primarySalesChannel: text("primary_sales_channel"), // How they find customers
   primaryBusinessGoal: text("primary_business_goal"), // Main business objective
+  // Strategy fields for cold email outreach
+  strategyHighLevelBoundary: text("strategy_high_level_boundary"), // "3-4 star family-friendly hotels in coastal SE US"
+  exampleSprintPlanningPrompt: text("example_sprint_planning_prompt"), // "family-friendly hotels on space coast, florida"
+  exampleDailySearchQuery: text("example_daily_search_query"), // "family-friendly hotels in cocoa beach"
+  reportSalesContextGuidance: text("report_sales_context_guidance"), // AI-generated context for cold email approach
+  reportSalesTargetingGuidance: text("report_sales_targeting_guidance"), // AI-generated targeting recommendations
   strategicPlan: jsonb("strategic_plan").default({}),
   searchPrompts: text("search_prompts").array(),
   status: text("status").default("in_progress"), // "in_progress", "completed"
@@ -483,6 +489,12 @@ export const strategicProfileSchema = z.object({
   primaryCustomerType: z.string().optional(),
   primarySalesChannel: z.string().optional(),
   primaryBusinessGoal: z.string().optional(),
+  // Strategy fields for cold email outreach
+  strategyHighLevelBoundary: z.string().optional(),
+  exampleSprintPlanningPrompt: z.string().optional(),
+  exampleDailySearchQuery: z.string().optional(),
+  reportSalesContextGuidance: z.string().optional(),
+  reportSalesTargetingGuidance: z.string().optional(),
   strategicPlan: z.record(z.unknown()).optional(),
   searchPrompts: z.array(z.string()).optional(),
   status: z.enum(["in_progress", "completed"]).default("in_progress")
