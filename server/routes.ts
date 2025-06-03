@@ -965,6 +965,16 @@ export function registerRoutes(app: Express) {
     
     const { query, strategyId, includeContacts = true, contactSearchConfig } = req.body;
 
+    // Debug: Log contact search configuration at batch level
+    console.log(`[BATCH CONFIG] Contact search configuration:`, {
+      enableCoreLeadership: contactSearchConfig?.enableCoreLeadership,
+      enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads, 
+      enableMiddleManagement: contactSearchConfig?.enableMiddleManagement,
+      enableCustomSearch: contactSearchConfig?.enableCustomSearch,
+      customSearchTarget: contactSearchConfig?.customSearchTarget,
+      query: query
+    });
+
     if (!query || typeof query !== 'string') {
       res.status(400).json({
         message: "Invalid request: query must be a non-empty string"
@@ -1199,6 +1209,12 @@ Use the search context and company details above to find the most relevant decis
             
             console.log(`Found ${standardContacts.length} contacts using standard extraction`);
             
+            // Debug: Log company-level configuration before enhanced contact finder
+            console.log(`[COMPANY CONFIG] ${companyName} - Custom search config:`, {
+              enableCustomSearch: contactSearchConfig?.enableCustomSearch,
+              customSearchTarget: contactSearchConfig?.customSearchTarget
+            });
+            
             const enhancedContacts = await findKeyDecisionMakers(companyName, {
               industry: industry,
               minimumConfidence: 30,
@@ -1417,6 +1433,12 @@ Use the search context and company details above to find the most relevant decis
           );
           
           console.log(`Found ${standardContacts.length} contacts using standard extraction`);
+          
+          // Debug: Log company-level configuration before enhanced contact finder
+          console.log(`[COMPANY CONFIG] ${companyName} - Custom search config:`, {
+            enableCustomSearch: contactSearchConfig?.enableCustomSearch,
+            customSearchTarget: contactSearchConfig?.customSearchTarget
+          });
           
           // Then use our enhanced contact finder with thorough decision maker search
           console.log(`Starting enhanced decision maker search for ${companyName}`);
