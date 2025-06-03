@@ -3465,6 +3465,97 @@ Focus on actionable insights that directly support their stated business goal an
     }
   });
 
+  // Strategy Processing Endpoint for Cold Email Outreach
+  app.post("/api/onboarding/process-strategy", async (req, res) => {
+    try {
+      const { businessType, formData } = req.body;
+
+      if (!businessType || !formData || !formData.targetDescription) {
+        res.status(400).json({ message: "Missing required parameters" });
+        return;
+      }
+
+      console.log(`Processing strategy for ${businessType}:`, formData);
+
+      // Construct strategy processing prompt for Perplexity API
+      const strategyPrompt = `Analyze this ${businessType} business profile and target market description to create a cold email outreach strategy:
+
+**Business Profile:**
+Product/Service: ${formData.productService}
+Customer Feedback: ${formData.customerFeedback}
+Website: ${formData.website || 'Not provided'}
+Sales Channel: ${formData.primarySalesChannel}
+Business Goal: ${formData.primaryBusinessGoal}
+Target Market Description: ${formData.targetDescription}
+
+**Required Analysis:**
+Extract and provide the following strategy components for cold email outreach:
+
+1. **Strategy High-Level Boundary** - A precise target market definition (e.g., "3-4 star family-friendly hotels in coastal towns in southeast US")
+
+2. **Example Sprint Planning Prompt** - A medium-level search prompt for weekly planning (e.g., "family-friendly hotels on space coast, florida")
+
+3. **Example Daily Search Query** - A specific daily search query for finding 15-20 contacts (e.g., "family-friendly hotels in cocoa beach")
+
+4. **Sales Context Guidance** - Strategic advice for cold email approach specific to this target market
+
+5. **Sales Targeting Guidance** - Specific recommendations for identifying and reaching decision makers in this market
+
+Respond in this exact JSON format:
+{
+  "strategyHighLevelBoundary": "precise target market definition",
+  "exampleSprintPlanningPrompt": "medium-level search prompt",
+  "exampleDailySearchQuery": "specific daily search query",
+  "reportSalesContextGuidance": "strategic cold email advice",
+  "reportSalesTargetingGuidance": "decision maker targeting recommendations"
+}`;
+
+      const strategyMessages: PerplexityMessage[] = [
+        {
+          role: "system",
+          content: "You are a cold email outreach strategist. Analyze business profiles and create precise targeting strategies for B2B cold email campaigns. Always respond with valid JSON in the exact format requested."
+        },
+        {
+          role: "user", 
+          content: strategyPrompt
+        }
+      ];
+
+      // Get strategy analysis from Perplexity
+      const strategyResponse = await queryPerplexity(strategyMessages);
+
+      // Parse JSON response
+      let strategyData;
+      try {
+        // Extract JSON from response if it contains other text
+        const jsonMatch = strategyResponse.match(/\{[\s\S]*\}/);
+        const jsonStr = jsonMatch ? jsonMatch[0] : strategyResponse;
+        strategyData = JSON.parse(jsonStr);
+      } catch (parseError) {
+        console.error("Failed to parse strategy JSON:", parseError);
+        // Fallback to basic strategy data
+        strategyData = {
+          strategyHighLevelBoundary: formData.targetDescription,
+          exampleSprintPlanningPrompt: `${formData.targetDescription} in specific regions`,
+          exampleDailySearchQuery: `${formData.targetDescription} in [city name]`,
+          reportSalesContextGuidance: `Focus on cold email outreach to ${formData.targetDescription} emphasizing ${formData.customerFeedback}`,
+          reportSalesTargetingGuidance: `Target decision makers at ${formData.targetDescription} using ${formData.primarySalesChannel} insights`
+        };
+      }
+
+      console.log('Strategy processing completed successfully');
+
+      res.json(strategyData);
+
+    } catch (error) {
+      console.error("Strategy processing error:", error);
+      res.status(500).json({
+        message: "Failed to process strategy",
+        error: error.message
+      });
+    }
+  });
+
   // Helper functions for data extraction
   function extractAttributes(message: string): string[] {
     // Simple keyword extraction - in production, this could use NLP
