@@ -5,6 +5,7 @@ import { validateName } from "../../results-analysis/contact-name-validation";
 import { extractDomainFromContext } from "../../results-analysis/email-analysis";
 import { INDUSTRY_PROFESSIONAL_TITLES } from "../../results-analysis/name-filters";
 import { applyCustomRoleAffinityScoring } from "../../results-analysis/custom-role-affinity-scorer";
+import { SmartFallbackManager } from "./smart-fallback-manager";
 
 /**
  * Enhanced contact finder that uses industry-specific prompts

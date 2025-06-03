@@ -1222,10 +1222,10 @@ Use the search context and company details above to find the most relevant decis
               includeMiddleManagement: true,
               prioritizeLeadership: true,
               useMultipleQueries: true,
-              // Use contact search configuration from frontend
-              enableCoreLeadership: contactSearchConfig?.enableCoreLeadership ?? true,
-              enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads ?? true,
-              enableMiddleManagement: contactSearchConfig?.enableMiddleManagement ?? true,
+              // Respect explicit user configuration
+              enableCoreLeadership: contactSearchConfig?.enableCoreLeadership ?? false,
+              enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads ?? false,
+              enableMiddleManagement: contactSearchConfig?.enableMiddleManagement ?? false,
               enableCustomSearch: contactSearchConfig?.enableCustomSearch ?? false,
               customSearchTarget: contactSearchConfig?.customSearchTarget ?? ""
             });
@@ -1449,10 +1449,10 @@ Use the search context and company details above to find the most relevant decis
             includeMiddleManagement: true,
             prioritizeLeadership: true,
             useMultipleQueries: true,
-            // Use contact search configuration from frontend
-            enableCoreLeadership: contactSearchConfig?.enableCoreLeadership ?? true,
-            enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads ?? true,
-            enableMiddleManagement: contactSearchConfig?.enableMiddleManagement ?? true,
+            // Respect explicit user configuration
+            enableCoreLeadership: contactSearchConfig?.enableCoreLeadership ?? false,
+            enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads ?? false,
+            enableMiddleManagement: contactSearchConfig?.enableMiddleManagement ?? false,
             enableCustomSearch: contactSearchConfig?.enableCustomSearch ?? false,
             customSearchTarget: contactSearchConfig?.customSearchTarget ?? ""
           });
