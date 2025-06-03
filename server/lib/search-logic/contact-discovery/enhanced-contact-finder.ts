@@ -4,6 +4,7 @@ import { isPlaceholderName } from "../../results-analysis/name-filters";
 import { validateName } from "../../results-analysis/contact-name-validation";
 import { extractDomainFromContext } from "../../results-analysis/email-analysis";
 import { INDUSTRY_PROFESSIONAL_TITLES } from "../../results-analysis/name-filters";
+import { applyCustomRoleAffinityScoring } from "../../results-analysis/custom-role-affinity-scorer";
 
 /**
  * Enhanced contact finder that uses industry-specific prompts
@@ -101,6 +102,22 @@ export async function findKeyDecisionMakers(
     const sortedContacts = filteredContacts
       .sort((a, b) => (b.probability || 0) - (a.probability || 0))
       .slice(0, mergedOptions.maxContacts || 10);
+    
+    // Apply custom role affinity scoring if enabled
+    if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
+      const customScoredContacts = applyCustomRoleAffinityScoring(sortedContacts, {
+        customSearchTarget: mergedOptions.customSearchTarget,
+        enableCustomScoring: true
+      });
+      
+      // Re-sort after custom scoring and return
+      const finalContacts = customScoredContacts
+        .sort((a, b) => (b.probability || 0) - (a.probability || 0))
+        .slice(0, mergedOptions.maxContacts || 10);
+      
+      console.log(`Found ${finalContacts.length} validated contacts for ${companyName} with custom role affinity scoring`);
+      return finalContacts;
+    }
     
     console.log(`Found ${sortedContacts.length} validated contacts for ${companyName}`);
     return sortedContacts;
