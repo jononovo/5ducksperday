@@ -867,6 +867,38 @@ How do you currently find most of your customers? (referrals, social media, ads,
     }
   }
 
+  async saveProfileAndTriggerResearch() {
+    try {
+      // Show enthusiastic message about starting research
+      const researchMessage = `Perfect! I now have everything I need:
+
+🎯 **Product/Service:** ${this.formData.productService}
+💡 **Customer Feedback:** ${this.formData.customerFeedback}
+🌐 **Website:** ${this.formData.website || 'Not provided'}
+🚀 **Sales Channel:** ${this.formData.primarySalesChannel}
+🎯 **Business Goal:** ${this.formData.primaryBusinessGoal}
+
+Let me research your market, competitors, and opportunities right now!`;
+
+      this.messages.push({
+        id: (Date.now() + 1).toString(),
+        content: researchMessage,
+        sender: 'ai',
+        timestamp: new Date()
+      });
+
+      this.render();
+      
+      // Trigger background research with complete profile data
+      await this.triggerBackgroundResearch();
+      
+    } catch (error) {
+      console.error('Error saving profile and triggering research:', error);
+      this.isLoading = false;
+      this.render();
+    }
+  }
+
   displayResearchReport(researchData) {
     // Format research into conversational summary
     const researchSummary = `Based on my research into your market, here's what I found:
