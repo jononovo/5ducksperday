@@ -270,31 +270,34 @@ export async function findKeyDecisionMakers(
         (contact.probability || 0) >= (mergedOptions.minimumConfidence || 30)
       );
       
-      // Apply custom role affinity scoring ONLY to original custom search results (not fallback contacts)
-      let scoredCustomContacts = sortedContacts;
-      if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
-        scoredCustomContacts = applyCustomRoleAffinityScoring(sortedContacts, {
-          customSearchTarget: mergedOptions.customSearchTarget,
-          enableCustomScoring: true
-        });
-        console.log(`Applied custom scoring to ${scoredCustomContacts.length} custom search results only`);
-      }
-      
-      // Combine scored custom contacts with unmodified fallback contacts
+      // Combine and optimize all contacts
       const optimizedContacts = SmartFallbackManager.optimizeContactResults(
-        scoredCustomContacts,
+        sortedContacts,
         validatedFallbacks,
         mergedOptions.maxContacts || 10
       );
       
-      const finalContacts = optimizedContacts
-        .sort((a, b) => (b.probability || 0) - (a.probability || 0))
-        .slice(0, mergedOptions.maxContacts || 10);
+      // Apply custom role affinity scoring if enabled
+      if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
+        const customScoredContacts = applyCustomRoleAffinityScoring(optimizedContacts, {
+          customSearchTarget: mergedOptions.customSearchTarget,
+          enableCustomScoring: true
+        });
+        
+        const finalContacts = customScoredContacts
+          .sort((a, b) => (b.probability || 0) - (a.probability || 0))
+          .slice(0, mergedOptions.maxContacts || 10);
+        
+        // End session and return
+        SearchPerformanceLogger.endSession(sessionId, finalContacts);
+        console.log(`Smart fallback + custom scoring complete: ${sortedContacts.length} → ${finalContacts.length} contacts for ${companyName}`);
+        return finalContacts;
+      }
       
       // End session and return
-      SearchPerformanceLogger.endSession(sessionId, finalContacts);
-      console.log(`Smart fallback + selective custom scoring complete: ${sortedContacts.length} custom + ${validatedFallbacks.length} fallback → ${finalContacts.length} contacts for ${companyName}`);
-      return finalContacts;
+      SearchPerformanceLogger.endSession(sessionId, optimizedContacts);
+      console.log(`Smart fallback complete: ${sortedContacts.length} → ${optimizedContacts.length} contacts for ${companyName}`);
+      return optimizedContacts;
     } else {
       // Log that no fallback was needed
       SearchPerformanceLogger.logFallback(

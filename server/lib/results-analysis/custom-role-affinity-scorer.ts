@@ -32,17 +32,22 @@ export function applyCustomRoleAffinityScoring(
 
   return contacts.map(contact => {
     const originalScore = contact.probability || 0;
-    
-    // Apply baseline adjustment to all contacts
-    let adjustedScore = originalScore + BASELINE_ADJUSTMENT;
+    let adjustedScore = originalScore;
     
     // Calculate role affinity if contact has a role
     let affinityTier: 1 | 2 | 3 | null = null;
     if (contact.role) {
       affinityTier = calculateRoleAffinity(contact.role, options.customSearchTarget);
       if (affinityTier) {
+        // Matching contacts: Keep original score + bonus
         adjustedScore += TIER_BONUSES[affinityTier];
+      } else {
+        // Non-matching contacts: Apply small penalty to deprioritize
+        adjustedScore += BASELINE_ADJUSTMENT;
       }
+    } else {
+      // Contacts with no role: Apply penalty
+      adjustedScore += BASELINE_ADJUSTMENT;
     }
     
     // Ensure score stays within valid range
