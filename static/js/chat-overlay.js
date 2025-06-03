@@ -576,6 +576,37 @@ class ChatOverlay {
     this.render();
 
     try {
+      // Handle strategic chat questions
+      if (this.chatStep === 'sales_channel') {
+        // Save sales channel response
+        this.formData.primarySalesChannel = message;
+        
+        // Ask for business goal
+        const goalQuestion = `Great! And what's your main business goal right now? (more customers, higher revenue, automation, etc. - if you're not sure, just say "not sure" and I can suggest something)`;
+        
+        this.messages.push({
+          id: (Date.now() + 1).toString(),
+          content: goalQuestion,
+          sender: 'ai',
+          timestamp: new Date()
+        });
+        
+        this.chatStep = 'business_goal';
+        this.isLoading = false;
+        this.render();
+        return;
+      }
+      
+      if (this.chatStep === 'business_goal') {
+        // Save business goal response
+        this.formData.primaryBusinessGoal = message;
+        
+        // Now save complete profile and trigger research
+        await this.saveProfileAndTriggerResearch();
+        return;
+      }
+
+      // Regular chat flow (after research is complete)
       console.log('Making API call to /api/onboarding/chat');
       console.log('Request data:', {
         message: message,
@@ -661,34 +692,6 @@ class ChatOverlay {
         field: "website",
         type: "input",
         placeholder: "Example: https://mycompany.com or https://etsy.com/shop/mystore"
-      },
-      {
-        title: "Where is your business located?",
-        subtitle: "This helps me understand your local market. If you serve multiple areas, just tell me your main location.",
-        field: "businessLocation",
-        type: "input",
-        placeholder: "Example: Austin, Texas or London, UK"
-      },
-      {
-        title: "Who do you mainly sell to?",
-        subtitle: "For example: small businesses, homeowners, restaurants, etc. If you're not sure, that's fine - I can suggest some options!",
-        field: "primaryCustomerType",
-        type: "input",
-        placeholder: "Example: Small restaurants, busy professionals, tech startups..."
-      },
-      {
-        title: "How do you currently find most of your customers?",
-        subtitle: "Like word of mouth, online ads, trade shows, etc. Don't worry if it's mixed - just your main way.",
-        field: "primarySalesChannel",
-        type: "input",
-        placeholder: "Example: Instagram ads, referrals, local networking..."
-      },
-      {
-        title: "What's your biggest business goal right now?",
-        subtitle: "Could be more customers, higher revenue, automation, new markets, etc. If you're not sure that's fine - I can suggest something.",
-        field: "primaryBusinessGoal",
-        type: "input",
-        placeholder: "Example: Double sales, automate processes, expand to new cities..."
       }
     ];
 
@@ -700,9 +703,9 @@ class ChatOverlay {
       <div class="form-modal">
         <div class="form-header">
           <h2 class="form-title">Let's get to know your business</h2>
-          <p class="form-subtitle">${this.currentStep <= 3 ? 'Just 7 quick questions to create your strategy' : 'Super excited to build your 90-day sales strategy!'}</p>
+          <p class="form-subtitle">Just 3 quick questions to create your strategy</p>
           <div class="form-progress">
-            ${[1, 2, 3, 4, 5, 6, 7].map(step => `
+            ${[1, 2, 3].map(step => `
               <div class="progress-dot ${step <= this.currentStep ? 'active' : ''}"></div>
             `).join('')}
           </div>
@@ -744,7 +747,7 @@ class ChatOverlay {
               onclick="chatOverlay.nextStep()"
               ${!isValid ? 'disabled' : ''}
             >
-              ${this.currentStep === 7 ? 'Generate Strategy' : 'Next'}
+              ${this.currentStep === 3 ? 'Start Chat' : 'Next'}
             </button>
           </div>
         </div>
@@ -765,11 +768,7 @@ class ChatOverlay {
     const questions = [
       { field: "productService" },
       { field: "customerFeedback" },
-      { field: "website" },
-      { field: "businessLocation" },
-      { field: "primaryCustomerType" },
-      { field: "primarySalesChannel" },
-      { field: "primaryBusinessGoal" }
+      { field: "website" }
     ];
     
     const currentQuestion = questions[this.currentStep - 1];
@@ -788,40 +787,26 @@ class ChatOverlay {
       const questions = [
         { field: "productService" },
         { field: "customerFeedback" },
-        { field: "website" },
-        { field: "businessLocation" },
-        { field: "primaryCustomerType" },
-        { field: "primarySalesChannel" },
-        { field: "primaryBusinessGoal" }
+        { field: "website" }
       ];
       
       const currentQuestion = questions[this.currentStep - 1];
       this.formData[currentQuestion.field] = input.value;
     }
 
-    if (this.currentStep === 7) {
-      // Create personalized initial message based on enhanced form inputs
+    if (this.currentStep === 3) {
+      // Create personalized initial message and start strategic chat questions
       const productService = this.formData.productService?.trim() || 'your offering';
       const customerFeedback = this.formData.customerFeedback?.trim() || 'positive feedback';
       const website = this.formData.website?.trim() || 'no website provided';
-      const location = this.formData.businessLocation?.trim() || 'your location';
-      const customers = this.formData.primaryCustomerType?.trim() || 'your customers';
-      const salesChannel = this.formData.primarySalesChannel?.trim() || 'your current methods';
-      const goal = this.formData.primaryBusinessGoal?.trim() || 'growing your business';
       
-      const personalizedMessage = `Amazing! I now have a complete picture of your business:
+      const personalizedMessage = `Perfect! So you're selling ${productService}, customers say ${customerFeedback}, and ${website !== 'no website provided' ? `I can learn more at ${website}` : 'no website was provided'}.
 
-🎯 **Product/Service:** ${productService}
-📍 **Location:** ${location}
-👥 **Target Customers:** ${customers}
-💡 **Customer Feedback:** ${customerFeedback}
-🚀 **Sales Channel:** ${salesChannel}
-🎯 **Main Goal:** ${goal}
-${website !== 'no website provided' ? `🌐 **Website:** ${website}` : ''}
+Super excited to build your 90-day sales strategy! Just need 2 more quick details:
 
-Super excited to build your 90-day sales strategy! Let me research your market, competitors, and opportunities right now.`;
+How do you currently find most of your customers? (referrals, social media, ads, etc.)`;
 
-      // Add personalized message and set loading state
+      // Add personalized message and start strategic chat
       this.messages = [{
         id: Date.now().toString(),
         content: personalizedMessage,
@@ -829,12 +814,9 @@ Super excited to build your 90-day sales strategy! Let me research your market, 
         timestamp: new Date()
       }];
       
-      // Show loading for research
-      this.isLoading = true;
+      // Set chat state for strategic questions
+      this.chatStep = 'sales_channel'; // Track which strategic question we're on
       this.setState(this.isMobile ? 'fullscreen' : 'fullscreen');
-      
-      // Trigger background research with form data
-      this.triggerBackgroundResearch();
     } else {
       this.currentStep++;
       this.renderForm();
