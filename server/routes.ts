@@ -1194,28 +1194,17 @@ Use the search context and company details above to find the most relevant decis
             
             console.log(`Detected industry for ${companyName}: ${industry || 'unknown'}`);
             
-            // Extract contacts using both methods
-            const standardContacts = await extractContacts(
-              analysisResults,
-              companyName,
-              {
-                useLocalValidation: true,
-                localValidationWeight: 0.3,
-                minimumScore: 20,
-                companyNamePenalty: 20,
-                industry: industry
-              }
-            );
-            
-            console.log(`Found ${standardContacts.length} contacts using standard extraction`);
-            
             // Debug: Log company-level configuration before enhanced contact finder
-            console.log(`[COMPANY CONFIG] ${companyName} - Custom search config:`, {
+            console.log(`[COMPANY CONFIG] ${companyName} - Search config:`, {
+              enableCoreLeadership: contactSearchConfig?.enableCoreLeadership,
+              enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads,
+              enableMiddleManagement: contactSearchConfig?.enableMiddleManagement,
               enableCustomSearch: contactSearchConfig?.enableCustomSearch,
               customSearchTarget: contactSearchConfig?.customSearchTarget
             });
             
-            const enhancedContacts = await findKeyDecisionMakers(companyName, {
+            // Use enhanced contact finder with user configuration
+            const contacts = await findKeyDecisionMakers(companyName, {
               industry: industry,
               minimumConfidence: 30,
               maxContacts: 15,
@@ -1230,21 +1219,7 @@ Use the search context and company details above to find the most relevant decis
               customSearchTarget: contactSearchConfig?.customSearchTarget ?? ""
             });
             
-            console.log(`Found ${enhancedContacts.length} additional contacts using enhanced contact finder`);
-            
-            // Combine and deduplicate contacts
-            const combinedContacts = [...standardContacts, ...enhancedContacts];
-            const uniqueContacts = combinedContacts.filter((contact, index, self) =>
-              index === self.findIndex(c => 
-                c.name && contact.name && c.name.toLowerCase() === contact.name.toLowerCase()
-              )
-            );
-            
-            console.log(`Combined results: ${uniqueContacts.length} unique contacts`);
-            
-            const contacts = uniqueContacts.filter(contact => 
-              (!contact.probability || contact.probability >= 35)
-            );
+            console.log(`Found ${contacts.length} contacts using enhanced contact finder`);
 
             // Create contact records
             const createdContacts = await Promise.all(
@@ -1419,30 +1394,17 @@ Use the search context and company details above to find the most relevant decis
           
           console.log(`Detected industry for ${companyName}: ${industry || 'unknown'}`);
           
-          // First use the standard extraction method
-          const standardContacts = await extractContacts(
-            analysisResults,
-            companyName,
-            {
-              useLocalValidation: true,
-              localValidationWeight: 0.3,
-              minimumScore: 20,
-              companyNamePenalty: 20,
-              industry: industry // Pass industry context to validation
-            }
-          );
-          
-          console.log(`Found ${standardContacts.length} contacts using standard extraction`);
-          
           // Debug: Log company-level configuration before enhanced contact finder
-          console.log(`[COMPANY CONFIG] ${companyName} - Custom search config:`, {
+          console.log(`[COMPANY CONFIG] ${companyName} - Search config:`, {
+            enableCoreLeadership: contactSearchConfig?.enableCoreLeadership,
+            enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads,
+            enableMiddleManagement: contactSearchConfig?.enableMiddleManagement,
             enableCustomSearch: contactSearchConfig?.enableCustomSearch,
             customSearchTarget: contactSearchConfig?.customSearchTarget
           });
           
-          // Then use our enhanced contact finder with thorough decision maker search
-          console.log(`Starting enhanced decision maker search for ${companyName}`);
-          const enhancedContacts = await findKeyDecisionMakers(companyName, {
+          // Use enhanced contact finder with user configuration
+          const contacts = await findKeyDecisionMakers(companyName, {
             industry: industry,
             minimumConfidence: 30,
             maxContacts: 15,
@@ -1457,24 +1419,7 @@ Use the search context and company details above to find the most relevant decis
             customSearchTarget: contactSearchConfig?.customSearchTarget ?? ""
           });
           
-          console.log(`Found ${enhancedContacts.length} additional contacts using enhanced contact finder`);
-          
-          // Combine the results from both methods
-          const combinedContacts = [...standardContacts, ...enhancedContacts];
-          
-          // Deduplicate based on name
-          const uniqueContacts = combinedContacts.filter((contact, index, self) =>
-            index === self.findIndex(c => 
-              c.name && contact.name && c.name.toLowerCase() === contact.name.toLowerCase()
-            )
-          );
-          
-          console.log(`Combined results: ${uniqueContacts.length} unique contacts`);
-          
-          // Filter contacts by confidence score
-          const contacts = uniqueContacts.filter(contact => 
-            (!contact.probability || contact.probability >= 35) // Slightly lower threshold for filtering
-          );
+          console.log(`Found ${contacts.length} contacts using enhanced contact finder`);
 
           // Create contact records with basic information
           const createdContacts = await Promise.all(
@@ -1616,17 +1561,22 @@ Use the search context and company details above to find the most relevant decis
         }
         console.log(`Detected industry for contact enrichment: ${industry || 'unknown'}`);
         
-        // Pass industry context to contact extraction
-        const newContacts = await extractContacts(
-          [analysisResult], 
-          company.name, 
-          { 
-            useLocalValidation: true,
-            minimumScore: 20,
-            industry: industry // Include industry context for validation
-          }
-        );
-        console.log('Extracted contacts:', newContacts);
+        // Use enhanced contact finder for enrichment with default settings
+        const newContacts = await findKeyDecisionMakers(company.name, {
+          industry: industry,
+          minimumConfidence: 30,
+          maxContacts: 10,
+          includeMiddleManagement: true,
+          prioritizeLeadership: true,
+          useMultipleQueries: true,
+          // Enable all search types for enrichment
+          enableCoreLeadership: true,
+          enableDepartmentHeads: true,
+          enableMiddleManagement: true,
+          enableCustomSearch: false,
+          customSearchTarget: ""
+        });
+        console.log('Enhanced contact finder results:', newContacts);
 
         // Remove existing contacts
         await storage.deleteContactsByCompany(companyId, req.user!.id);
