@@ -553,10 +553,15 @@ class ChatOverlay {
   }
 
   async sendMessage() {
+    console.log('sendMessage called');
     const input = document.getElementById('chat-input');
     const message = input.value.trim();
+    console.log('Message to send:', message);
     
-    if (!message || this.isLoading) return;
+    if (!message || this.isLoading) {
+      console.log('Message blocked:', { empty: !message, loading: this.isLoading });
+      return;
+    }
 
     // Add user message
     this.messages.push({
@@ -571,6 +576,16 @@ class ChatOverlay {
     this.render();
 
     try {
+      console.log('Making API call to /api/onboarding/chat');
+      console.log('Request data:', {
+        message: message,
+        businessType: this.businessType,
+        currentStep: 'customer_example',
+        profileData: this.profileData,
+        conversationHistory: this.messages,
+        researchResults: this.researchResults
+      });
+      
       // Call API
       const response = await fetch('/api/onboarding/chat', {
         method: 'POST',
