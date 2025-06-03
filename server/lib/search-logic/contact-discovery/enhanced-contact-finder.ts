@@ -279,7 +279,7 @@ export async function findKeyDecisionMakers(
       
       // Apply custom role affinity scoring if enabled
       if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
-        const customScoredContacts = applyCustomRoleAffinityScoring(optimizedContacts, {
+        const customScoredContacts = await applyCustomRoleAffinityScoring(optimizedContacts, {
           customSearchTarget: mergedOptions.customSearchTarget,
           enableCustomScoring: true
         });
@@ -312,7 +312,7 @@ export async function findKeyDecisionMakers(
     
     // No fallback needed - apply custom role affinity scoring if enabled
     if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
-      const customScoredContacts = applyCustomRoleAffinityScoring(sortedContacts, {
+      const customScoredContacts = await applyCustomRoleAffinityScoring(sortedContacts, {
         customSearchTarget: mergedOptions.customSearchTarget,
         enableCustomScoring: true
       });

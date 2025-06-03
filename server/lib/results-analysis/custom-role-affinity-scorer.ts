@@ -1,143 +1,92 @@
 import type { Contact } from "@shared/schema";
+import { validateRoleAffinity } from "./role-affinity-ai-scorer";
 
 export interface CustomRoleAffinityOptions {
   customSearchTarget: string;
   enableCustomScoring: boolean;
 }
 
-export interface RoleAffinityResult {
-  contactId: string;
-  originalScore: number;
-  affinityTier: 1 | 2 | 3 | null;
-  bonusPoints: number;
-  adjustedScore: number;
-}
-
-const BASELINE_ADJUSTMENT = -5;
 const TIER_BONUSES = {
-  1: 15, // Exact/very close match
-  2: 10, // Close match  
-  3: 5   // Indirect affinity
+  1: 10, // Indirect affinity
+  2: 15, // Close match  
+  3: 20  // Exact/very close match
 };
 
-export function applyCustomRoleAffinityScoring(
+const DOWNGRADE_SCALE = [
+  { min: 71, max: 75, downgradeTo: 71 },
+  { min: 76, max: 80, downgradeTo: 72 },
+  { min: 81, max: 85, downgradeTo: 73 },
+  { min: 86, max: 90, downgradeTo: 74 }
+];
+
+const AFFINITY_THRESHOLD_MINIMUM = 70;
+
+export async function applyCustomRoleAffinityScoring(
   contacts: Contact[],
   options: CustomRoleAffinityOptions
-): Contact[] {
+): Promise<Contact[]> {
+  
   if (!options.enableCustomScoring || !options.customSearchTarget) {
-    return contacts; // No changes if custom scoring disabled
+    return contacts;
   }
 
-  console.log(`Applying custom role affinity scoring for target: "${options.customSearchTarget}"`);
+  console.log(`Applying AI-based custom role affinity scoring for target: "${options.customSearchTarget}"`);
+
+  // Extract unique roles for bulk AI validation
+  const contactsWithRoles = contacts.filter(c => c.role);
+  const uniqueRoles = Array.from(new Set(contactsWithRoles.map(c => c.role!)));
+  
+  if (uniqueRoles.length === 0) {
+    console.log('No contacts with roles found, skipping custom scoring');
+    return contacts;
+  }
+
+  // Get AI tier scores
+  const aiTierScores = await validateRoleAffinity(
+    uniqueRoles,
+    options.customSearchTarget
+  );
 
   return contacts.map(contact => {
     const originalScore = contact.probability || 0;
     let adjustedScore = originalScore;
     
-    // Calculate role affinity if contact has a role
-    let affinityTier: 1 | 2 | 3 | null = null;
-    if (contact.role) {
-      affinityTier = calculateRoleAffinity(contact.role, options.customSearchTarget);
-      if (affinityTier) {
-        // Matching contacts: Keep original score + bonus
-        adjustedScore += TIER_BONUSES[affinityTier];
-      } else {
-        // Non-matching contacts: Apply small penalty to deprioritize
-        adjustedScore += BASELINE_ADJUSTMENT;
+    // Apply downgrade scale first
+    adjustedScore = applyDowngradeScale(adjustedScore);
+    
+    // Apply role affinity if contact has role
+    const tier = contact.role ? aiTierScores[contact.role] || 0 : 0;
+    
+    if (tier > 0) {
+      // Apply threshold minimum for mid-range contacts with affinity
+      if (originalScore >= 50 && originalScore < 70) {
+        adjustedScore = AFFINITY_THRESHOLD_MINIMUM;
       }
-    } else {
-      // Contacts with no role: Apply penalty
-      adjustedScore += BASELINE_ADJUSTMENT;
-    }
-    
-    // Ensure score stays within valid range
-    adjustedScore = Math.max(0, Math.min(100, adjustedScore));
-    
-    // Debug logging for custom scoring
-    if (affinityTier) {
-      console.log(`${contact.name}: ${originalScore} → ${adjustedScore} (Tier ${affinityTier}, Role: ${contact.role})`);
+      
+      // Add tier bonus
+      adjustedScore += TIER_BONUSES[tier as 1 | 2 | 3];
+      
+      console.log(`${contact.name}: ${originalScore} → ${adjustedScore} (Tier ${tier}, Role: ${contact.role})`);
     }
     
     return {
       ...contact,
-      probability: adjustedScore,
-      // Add metadata for debugging
+      probability: Math.min(adjustedScore, 100),
       customScoring: {
         originalScore,
-        affinityTier,
-        adjustedScore
+        tier,
+        adjustedScore: Math.min(adjustedScore, 100)
       }
     };
   });
 }
 
-function calculateRoleAffinity(contactRole: string, targetRole: string): 1 | 2 | 3 | null {
-  const normalizedContact = contactRole.toLowerCase().trim();
-  const normalizedTarget = targetRole.toLowerCase().trim();
-  
-  // Tier 1: Exact or very close match
-  if (normalizedContact.includes(normalizedTarget) || normalizedTarget.includes(normalizedContact)) {
-    return 1;
-  }
-  
-  // Extract key terms for comparison
-  const targetKeywords = extractRoleKeywords(normalizedTarget);
-  const contactKeywords = extractRoleKeywords(normalizedContact);
-  
-  // Tier 2: Close match (same domain/function)
-  const strongMatches = targetKeywords.filter(keyword => 
-    contactKeywords.some(ck => ck.includes(keyword) || keyword.includes(ck))
-  );
-  
-  if (strongMatches.length >= 1) {
-    return 2;
-  }
-  
-  // Tier 3: Indirect affinity (related responsibilities)
-  const indirectMatches = checkIndirectAffinity(normalizedContact, normalizedTarget);
-  if (indirectMatches) {
-    return 3;
-  }
-  
-  return null; // No affinity
-}
-
-function extractRoleKeywords(role: string): string[] {
-  // Remove common role level words and extract key function words
-  const cleanRole = role
-    .toLowerCase()
-    .replace(/\b(senior|junior|lead|principal|head|chief|vice|assistant|associate|director|manager|supervisor|coordinator|specialist|analyst|executive|officer)\b/g, '')
-    .trim();
-  
-  // Split and filter meaningful keywords
-  return cleanRole
-    .split(/[\s\-_\/]+/)
-    .filter(word => word.length > 2)
-    .filter(word => !['and', 'the', 'of', 'for', 'in', 'at', 'to', 'on'].includes(word));
-}
-
-function checkIndirectAffinity(contactRole: string, targetRole: string): boolean {
-  // Define role affinity groups for indirect matching
-  const roleGroups = {
-    marketing: ['marketing', 'brand', 'advertising', 'communications', 'pr', 'digital', 'content', 'social'],
-    engineering: ['engineering', 'software', 'development', 'technical', 'technology', 'architect', 'programmer'],
-    sales: ['sales', 'business development', 'account', 'revenue', 'commercial', 'partnership'],
-    operations: ['operations', 'logistics', 'supply chain', 'procurement', 'fulfillment', 'manufacturing'],
-    finance: ['finance', 'accounting', 'financial', 'treasury', 'budget', 'controller', 'audit'],
-    hr: ['human resources', 'hr', 'people', 'talent', 'recruiting', 'organizational'],
-    product: ['product', 'innovation', 'strategy', 'planning', 'roadmap'],
-    legal: ['legal', 'compliance', 'regulatory', 'counsel', 'risk', 'governance']
-  };
-  
-  // Check if both roles belong to the same functional group
-  for (const [group, keywords] of Object.entries(roleGroups)) {
-    const contactInGroup = keywords.some(keyword => contactRole.includes(keyword));
-    const targetInGroup = keywords.some(keyword => targetRole.includes(keyword));
-    
-    if (contactInGroup && targetInGroup) {
-      return true;
+function applyDowngradeScale(score: number): number {
+  for (const range of DOWNGRADE_SCALE) {
+    if (score >= range.min && score <= range.max) {
+      return range.downgradeTo;
     }
   }
-  
-  return false;
+  return score; // No downgrade needed
 }
+
