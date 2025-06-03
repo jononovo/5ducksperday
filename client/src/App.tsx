@@ -16,6 +16,7 @@ import { SEOHead } from "@/components/ui/seo-head";
 import Auth from "@/pages/auth";
 import Home from "@/pages/home";
 import LandingPage from "@/pages/landing";
+import Landing2Page from "@/pages/landing2";
 import Build from "@/pages/build";
 import Lists from "@/pages/lists";
 import ListDetails from "@/pages/list-details";
@@ -49,6 +50,9 @@ function Router() {
       <Switch>
         {/* Public Landing Page (no layout or nav) */}
         <Route path="/" component={LandingPage} />
+        
+        {/* Landing2 Page Clone */}
+        <Route path="/landing2" component={Landing2Page} />
         
         {/* Marketing pages with full footer */}
         <Route path="/terms">
