@@ -576,58 +576,32 @@ class ChatOverlay {
     this.render();
 
     try {
-      // Handle strategic chat questions
-      if (this.chatStep === 'sales_channel') {
-        // Save sales channel response
-        this.formData.primarySalesChannel = message;
-        
-        // Ask for business goal
-        const goalQuestion = `Great! And what's your main business goal right now? (more customers, higher revenue, automation, etc. - if you're not sure, just say "not sure" and I can suggest something)`;
-        
-        this.messages.push({
-          id: (Date.now() + 1).toString(),
-          content: goalQuestion,
-          sender: 'ai',
-          timestamp: new Date()
-        });
-        
-        this.chatStep = 'business_goal';
-        this.isLoading = false;
-        this.render();
-        return;
-      }
-      
-      if (this.chatStep === 'business_goal') {
-        // Save business goal response
-        this.formData.primaryBusinessGoal = message;
-        
-        // Ask for target market information
-        const targetQuestion = `Perfect! Last question: what type of business do you sell to? 
-
-I need to create daily search queries for finding contacts. The more specific, the better!
-
-Examples: "family-friendly hotels in coastal Florida" or "mid-size logistics companies in tri-state area"`;
-        
-        this.messages.push({
-          id: (Date.now() + 1).toString(),
-          content: targetQuestion,
-          sender: 'ai',
-          timestamp: new Date()
-        });
-        
-        this.chatStep = 'target_collection';
-        this.isLoading = false;
-        this.render();
-        return;
-      }
-      
+      // Handle target market collection with AI-guided refinement
       if (this.chatStep === 'target_collection') {
-        // Save target description and process strategy
-        this.formData.targetDescription = message;
+        // Use Perplexity API to guide target market refinement
+        const refinementResponse = await this.refineTargetMarket(message);
         
-        // Process strategy and trigger research
-        await this.processStrategyAndTriggerResearch();
-        return;
+        // Check if AI determined target is ready for strategy
+        if (refinementResponse.includes('READY_FOR_STRATEGY:')) {
+          const finalTarget = refinementResponse.split('READY_FOR_STRATEGY:')[1].trim();
+          this.formData.targetDescription = finalTarget;
+          
+          // Process strategy and trigger research
+          await this.processStrategyAndTriggerResearch();
+          return;
+        } else {
+          // Continue refinement conversation
+          this.messages.push({
+            id: (Date.now() + 1).toString(),
+            content: refinementResponse,
+            sender: 'ai',
+            timestamp: new Date()
+          });
+          
+          this.isLoading = false;
+          this.render();
+          return;
+        }
       }
 
       // Regular chat flow (after research is complete)
@@ -819,18 +793,20 @@ Examples: "family-friendly hotels in coastal Florida" or "mid-size logistics com
     }
 
     if (this.currentStep === 3) {
-      // Create personalized initial message and start strategic chat questions
+      // Create personalized initial message and start target market conversation
       const productService = this.formData.productService?.trim() || 'your offering';
       const customerFeedback = this.formData.customerFeedback?.trim() || 'positive feedback';
       const website = this.formData.website?.trim() || 'no website provided';
       
       const personalizedMessage = `Perfect! So you're selling ${productService}, customers say ${customerFeedback}, and ${website !== 'no website provided' ? `I can learn more at ${website}` : 'no website was provided'}.
 
-Super excited to build your 90-day sales strategy! Just need 2 more quick details:
+Now let's build your 90-day cold email strategy! 
 
-How do you currently find most of your customers? (referrals, social media, ads, etc.)`;
+What type of business do you sell to? I need to create daily search queries for finding contacts. The more specific, the better!
 
-      // Add personalized message and start strategic chat
+Examples: "family-friendly hotels in coastal Florida" or "mid-size logistics companies in tri-state area"`;
+
+      // Add personalized message and start target market refinement
       this.messages = [{
         id: Date.now().toString(),
         content: personalizedMessage,
@@ -838,8 +814,8 @@ How do you currently find most of your customers? (referrals, social media, ads,
         timestamp: new Date()
       }];
       
-      // Set chat state for strategic questions
-      this.chatStep = 'sales_channel'; // Track which strategic question we're on
+      // Set chat state for target market collection
+      this.chatStep = 'target_collection';
       this.setState(this.isMobile ? 'fullscreen' : 'fullscreen');
     } else {
       this.currentStep++;
@@ -891,6 +867,39 @@ How do you currently find most of your customers? (referrals, social media, ads,
     }
   }
 
+  async refineTargetMarket(userInput) {
+    try {
+      console.log('Refining target market with input:', userInput);
+      
+      const response = await fetch('/api/onboarding/refine-target', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userInput: userInput,
+          productContext: {
+            productService: this.formData.productService,
+            customerFeedback: this.formData.customerFeedback,
+            website: this.formData.website
+          },
+          conversationHistory: this.messages.slice(-3)
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.response;
+      } else {
+        console.warn('Target refinement failed:', response.status);
+        return "Great start! Can you be more specific? For example: 'K-12 edtech startups' or 'corporate training platforms for Fortune 500 companies'?";
+      }
+    } catch (error) {
+      console.error('Error refining target market:', error);
+      return "Great start! Can you be more specific? For example: 'K-12 edtech startups' or 'corporate training platforms for Fortune 500 companies'?";
+    }
+  }
+
   async processStrategyAndTriggerResearch() {
     try {
       // Show processing message
@@ -899,8 +908,6 @@ How do you currently find most of your customers? (referrals, social media, ads,
 🎯 **Product/Service:** ${this.formData.productService}
 💡 **Customer Feedback:** ${this.formData.customerFeedback}
 🌐 **Website:** ${this.formData.website || 'Not provided'}
-🚀 **Sales Channel:** ${this.formData.primarySalesChannel}
-🎯 **Business Goal:** ${this.formData.primaryBusinessGoal}
 🎯 **Target Market:** ${this.formData.targetDescription}
 
 Let me process your strategy and research your market right now!`;

@@ -3465,6 +3465,84 @@ Focus on actionable insights that directly support their stated business goal an
     }
   });
 
+  // Target Market Refinement Endpoint
+  app.post("/api/onboarding/refine-target", async (req, res) => {
+    try {
+      const { userInput, productContext, conversationHistory } = req.body;
+
+      if (!userInput || !productContext) {
+        res.status(400).json({ message: "Missing required parameters" });
+        return;
+      }
+
+      console.log('Refining target market with input:', userInput);
+
+      // Extended AI prompt for target market refinement
+      const refinementPrompt = `System Prompt: Guide the user to suggest a specific example of search query prompt that can be used as an anchor to suggest a high-level strategy. Which we will then diffuse into lower level steps and again into a sequence of daily prompts similar to the first, but which will be part of a larger strategy. You should analyze the specificity of the prompt after EACH response from the user and should decide how many more niches it would like to drill-down to.
+
+# The Starting point:
+1. You will receive product information as your starting point.
+2. You will engage the user in an upbeat and friendly manner to encourage them to think about who would be their most likely best customer.
+
+# Details:
+Example of a great daily search query if dissected semantically:
+Niche + Type of business + second niche (is often municipal geographical boundary, but can be other attribute.)
+
+A two-niche example: "mid-sized plumbers in Manhattan"
+
+An example of a prompt that needs two additional niches: "Insurance brokers in Florida"
+Niche 1: Recommend adding "real-estate" or "commercial real-estate" to the prompt.
+Niche 2: Recommend swapping "Florida" with "Orlando" or "Tampa Bay"
+
+And should always offer suggestions like, "Could we sharpen this by adding [specific/niche] or [specific/niche] to [industry/sector/profession]?"
+
+A third niche is often helpful if the industry sector is very broad or the geographical boundary is larger than a town or city section.
+
+The agent should expect to have to coax at least once or twice or even thrice as this is the most critical element of the strategy.
+
+A hyper-specific prompt like: "horse-brush manufacturers" could be acceptable on a state or even country-level as it is a tiny sub-set of horse accessories manufacturers, which is already a very niche industry.
+
+Ideally, don't push the user too far. On the final attempt, offer something like: "Can we sharpen this even further with [other options], or are you happy with this as it is?"
+
+PRODUCT CONTEXT:
+Product/Service: ${productContext.productService}
+Customer Feedback: ${productContext.customerFeedback}
+Website: ${productContext.website || 'Not provided'}
+
+Current user input: "${userInput}"
+
+Analyze specificity and determine if we need more niches or if this is sufficient for strategy creation.
+
+If sufficient (contains 2-3 specific niches), respond with: "READY_FOR_STRATEGY: [confirmed target description]"
+If needs refinement, provide conversational guidance as outlined above. Keep response under 50 words. Be encouraging but direct.`;
+
+      const refinementMessages: PerplexityMessage[] = [
+        {
+          role: "system",
+          content: "You are a cold email strategist helping extract precise target market information for B2B prospecting. Follow the guidance system exactly as specified."
+        },
+        {
+          role: "user", 
+          content: refinementPrompt
+        }
+      ];
+
+      // Get refinement guidance from Perplexity
+      const refinementResponse = await queryPerplexity(refinementMessages);
+
+      console.log('Target refinement completed successfully');
+
+      res.json({ response: refinementResponse });
+
+    } catch (error) {
+      console.error("Target refinement error:", error);
+      res.status(500).json({
+        message: "Failed to refine target market",
+        error: error.message
+      });
+    }
+  });
+
   // Strategy Processing Endpoint for Cold Email Outreach
   app.post("/api/onboarding/process-strategy", async (req, res) => {
     try {
@@ -3484,8 +3562,6 @@ Focus on actionable insights that directly support their stated business goal an
 Product/Service: ${formData.productService}
 Customer Feedback: ${formData.customerFeedback}
 Website: ${formData.website || 'Not provided'}
-Sales Channel: ${formData.primarySalesChannel}
-Business Goal: ${formData.primaryBusinessGoal}
 Target Market Description: ${formData.targetDescription}
 
 **Required Analysis:**
