@@ -391,6 +391,14 @@ export const strategicProfiles = pgTable("strategic_profiles", {
   uniqueAttributes: text("unique_attributes").array(),
   targetCustomers: text("target_customers").notNull(),
   marketNiche: text("market_niche"), // "niche" or "broad"
+  // Enhanced product profile fields
+  productService: text("product_service"), // What they sell
+  customerFeedback: text("customer_feedback"), // What customers say
+  website: text("website"), // Company website
+  businessLocation: text("business_location"), // Where they're located
+  primaryCustomerType: text("primary_customer_type"), // Who they sell to
+  primarySalesChannel: text("primary_sales_channel"), // How they find customers
+  primaryBusinessGoal: text("primary_business_goal"), // Main business objective
   strategicPlan: jsonb("strategic_plan").default({}),
   searchPrompts: text("search_prompts").array(),
   status: text("status").default("in_progress"), // "in_progress", "completed"
@@ -467,6 +475,14 @@ export const strategicProfileSchema = z.object({
   uniqueAttributes: z.array(z.string()).optional(),
   targetCustomers: z.string().min(1, "Target customers description is required"),
   marketNiche: z.enum(["niche", "broad"]).optional(),
+  // Enhanced product profile fields
+  productService: z.string().optional(),
+  customerFeedback: z.string().optional(),
+  website: z.string().optional(),
+  businessLocation: z.string().optional(),
+  primaryCustomerType: z.string().optional(),
+  primarySalesChannel: z.string().optional(),
+  primaryBusinessGoal: z.string().optional(),
   strategicPlan: z.record(z.unknown()).optional(),
   searchPrompts: z.array(z.string()).optional(),
   status: z.enum(["in_progress", "completed"]).default("in_progress")

@@ -661,6 +661,34 @@ class ChatOverlay {
         field: "website",
         type: "input",
         placeholder: "Example: https://mycompany.com or https://etsy.com/shop/mystore"
+      },
+      {
+        title: "Where is your business located?",
+        subtitle: "This helps me understand your local market. If you serve multiple areas, just tell me your main location.",
+        field: "businessLocation",
+        type: "input",
+        placeholder: "Example: Austin, Texas or London, UK"
+      },
+      {
+        title: "Who do you mainly sell to?",
+        subtitle: "For example: small businesses, homeowners, restaurants, etc. If you're not sure, that's fine - I can suggest some options!",
+        field: "primaryCustomerType",
+        type: "input",
+        placeholder: "Example: Small restaurants, busy professionals, tech startups..."
+      },
+      {
+        title: "How do you currently find most of your customers?",
+        subtitle: "Like word of mouth, online ads, trade shows, etc. Don't worry if it's mixed - just your main way.",
+        field: "primarySalesChannel",
+        type: "input",
+        placeholder: "Example: Instagram ads, referrals, local networking..."
+      },
+      {
+        title: "What's your biggest business goal right now?",
+        subtitle: "Could be more customers, higher revenue, automation, new markets, etc. If you're not sure that's fine - I can suggest something.",
+        field: "primaryBusinessGoal",
+        type: "input",
+        placeholder: "Example: Double sales, automate processes, expand to new cities..."
       }
     ];
 
