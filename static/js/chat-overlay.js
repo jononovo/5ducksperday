@@ -580,7 +580,7 @@ class ChatOverlay {
         body: JSON.stringify({
           message: message,
           businessType: this.businessType,
-          currentStep: this.currentStep,
+          currentStep: 'customer_example',
           profileData: this.profileData,
           conversationHistory: this.messages,
           researchResults: this.researchResults
@@ -752,10 +752,27 @@ class ChatOverlay {
       // Trigger background research with form data
       this.triggerBackgroundResearch();
       
-      // Transition to chat with initial message
+      // Create personalized initial message based on form inputs
+      const productService = this.formData.productService?.trim() || 'your offering';
+      const customerFeedback = this.formData.customerFeedback?.trim() || 'positive feedback';
+      const website = this.formData.website?.trim() || 'no website provided';
+      
+      const personalizedMessage = `Perfect! So you're selling ${productService}, customers say ${customerFeedback}, and ${website !== 'no website provided' ? `I can learn more at ${website}` : 'no website was provided'}.
+
+I'm now researching your market, competitors, and opportunities in the background.
+
+While I do that research, could you tell me what's an example of a typical customer?
+
+For example, a specific hotel, company, department, or profession.
+Example: Four Seasons in Midtown New York uses our leased coffee machines.
+UX Design Freelancers use our invoicing SaaS platform.
+
+I'm trying to get a clearer snapshot of who really needs or appreciates what you are selling.`;
+
+      // Transition to chat with personalized initial message
       this.messages = [{
         id: Date.now().toString(),
-        content: `Hey, that's awesome!\n\nI'm just doing research into the market and getting to know your product better.\n\nIn the meantime, could you tell me, what is an example of a customer of yours?\n\nFor example, a specific hotel, company, department, or profession.\nExample: Four Seasons in Midtown New York uses our leased coffee machines.\nUX Design Freelancers use our invoicing SaaS platform.\n\nI'm trying to get a clearer snapshot of who really needs or appreciates what you are selling.`,
+        content: personalizedMessage,
         sender: 'ai',
         timestamp: new Date()
       }];

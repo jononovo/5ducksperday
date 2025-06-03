@@ -3224,6 +3224,11 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
       // Define the conversation flow steps
       const stepFlow = {
+        customer_example: {
+          next: "unique_attributes",
+          systemPrompt: "You are a strategic sales consultant with real-time market research capabilities. Keep responses very short - 1-2 sentences max. Research the user's industry when mentioned. Ask one specific question.",
+          userPrompt: (type: string) => `The user is providing an example of their customer. They said: "${message}". Ask one specific follow-up question about their customer base or market segment.`
+        },
         business_description: {
           next: "unique_attributes",
           systemPrompt: "You are a strategic sales consultant with real-time market research capabilities. Keep responses very short - 1-2 sentences max. Research the user's industry when mentioned. Ask one specific question.",
