@@ -33,10 +33,13 @@ Please output a JSON array containing 7 objects, where each object has exactly t
     }
   ];
 
+  // Declare response variable in outer scope for error handling
+  let response = '';
+  
   try {
     // Get response from Perplexity API
     console.log(`[PERPLEXITY API CALL] Making external API request to Perplexity`);
-    const response = await queryPerplexity(messages);
+    response = await queryPerplexity(messages);
     console.log('Raw Perplexity response:', response);
     console.log(`[PERPLEXITY API CALL] Successfully received response from Perplexity`);
     
@@ -114,9 +117,9 @@ Please output a JSON array containing 7 objects, where each object has exactly t
     // Try to extract company names from the JSON-like structure even if parsing failed
     try {
       const companyLines = response.split('\n')
-        .filter(line => line.trim() && !line.includes('```') && !line.includes('[') && !line.includes(']'))
-        .filter(line => line.includes('"name":'))
-        .map(line => {
+        .filter((line: string) => line.trim() && !line.includes('```') && !line.includes('[') && !line.includes(']'))
+        .filter((line: string) => line.includes('"name":'))
+        .map((line: string) => {
           const nameMatch = line.match(/"name":\s*"([^"]+)"/);
           // Try to find a website in the same line
           const websiteMatch = line.match(/"website":\s*"([^"]*)"/);
@@ -124,7 +127,8 @@ Please output a JSON array containing 7 objects, where each object has exactly t
           
           return {
             name: nameMatch ? nameMatch[1] : line,
-            website: website
+            website: website,
+            description: null
           };
         })
         .slice(0, 5);
@@ -139,9 +143,9 @@ Please output a JSON array containing 7 objects, where each object has exactly t
     
     // Last resort fallback to original parsing method
     const companies = response.split('\n')
-      .filter(line => line.trim())
+      .filter((line: string) => line.trim())
       .slice(0, 5)
-      .map(name => ({ name, website: null }));
+      .map((name: string) => ({ name, website: null, description: null }));
       
     console.log('Fallback company data after JSON parse error:', companies);
     return companies;
