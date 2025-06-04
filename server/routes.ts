@@ -3478,10 +3478,19 @@ Focus on actionable insights that directly support their stated business goal an
 
       console.log('Processing strategy chat with input:', userInput);
 
-      // Determine conversation phase
-      const hasProductSummary = conversationHistory?.some(msg => msg.type === 'product_summary') || false;
-      const hasEmailStrategy = conversationHistory?.some(msg => msg.type === 'email_strategy') || false;
-      const hasSalesApproach = conversationHistory?.some(msg => msg.type === 'sales_approach') || false;
+      // Determine conversation phase based on conversation content
+      const hasProductSummary = conversationHistory?.some(msg => 
+        msg.sender === 'ai' && 
+        (msg.content?.includes('Product Analysis Summary') || msg.content?.includes('Here\'s your product analysis'))
+      ) || false;
+      const hasEmailStrategy = conversationHistory?.some(msg => 
+        msg.sender === 'ai' && 
+        (msg.content?.includes('90-day email sales strategy') || msg.content?.includes('EMAIL STRATEGY'))
+      ) || false;
+      const hasSalesApproach = conversationHistory?.some(msg => 
+        msg.sender === 'ai' && 
+        msg.content?.includes('Sales Approach Strategy')
+      ) || false;
       
       // Track target market collection phases
       const targetMessages = conversationHistory?.filter(msg => 
@@ -3585,11 +3594,9 @@ PHASE-SPECIFIC INSTRUCTIONS:
               productAnalysisSummary: JSON.stringify(result.data) 
             });
           } else if (result.type === 'email_strategy') {
+            // Legacy email strategy - database updates handled by progressive endpoints
             await storage.updateStrategicProfile?.(userId, { 
-              reportSalesTargetingGuidance: JSON.stringify(result.data),
-              strategyHighLevelBoundary: result.data.boundary,
-              exampleSprintPlanningPrompt: result.data.sprintPrompt,
-              dailySearchQueries: JSON.stringify(result.data.dailyQueries)
+              reportSalesTargetingGuidance: JSON.stringify(result.data)
             });
           } else if (result.type === 'sales_approach') {
             await storage.updateStrategicProfile?.(userId, { 
