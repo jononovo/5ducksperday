@@ -1379,6 +1379,7 @@ Let me process your strategy and research your market right now!`;
     try {
       const { initialTarget, refinedTarget, productContext } = this.boundarySelectionContext;
       let sprintData = null;
+      let queriesData = null;
 
       // Step 2: Generate Sprint Prompt
       this.addLoadingMessage("Creating sprint strategy...");
@@ -1414,9 +1415,17 @@ Let me process your strategy and research your market right now!`;
       });
 
       if (queriesResponse.ok) {
-        const queriesData = await queriesResponse.json();
+        queriesData = await queriesResponse.json();
         this.displayStrategyStep(queriesData);
-        this.displayStrategyComplete();
+        
+        // Compile complete strategy data for final display
+        const completeStrategyData = {
+          boundary: confirmedBoundary,
+          sprintPrompt: sprintData?.content || '',
+          dailyQueries: queriesData?.content ? queriesData.content.split('\n').filter(q => q.trim()) : []
+        };
+        
+        this.displayStrategyComplete(completeStrategyData);
       } else {
         throw new Error('Queries generation failed');
       }
