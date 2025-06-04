@@ -811,7 +811,11 @@ class ChatOverlay {
       const customerFeedback = this.formData.customerFeedback?.trim() || 'positive feedback';
       const website = this.formData.website?.trim() || 'no website provided';
       
-      const personalizedMessage = `Perfect! So you're selling ${productService}, customers say ${customerFeedback}, and ${website !== 'no website provided' ? `I can learn more at ${website}` : 'no website was provided'}.
+      const personalizedMessage = `Perfect!
+
+**Your product is:** ${productService}
+**Customers like:** ${customerFeedback}
+**And I can learn more at:** ${website !== 'no website provided' ? `${website}` : 'no website was provided'}
 
 Give me 5 seconds. I'm building a product summary so I can understand what you're selling.`;
 
