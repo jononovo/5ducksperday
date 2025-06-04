@@ -3481,7 +3481,10 @@ Focus on actionable insights that directly support their stated business goal an
       // Determine conversation phase based on conversation content
       const hasProductSummary = conversationHistory?.some(msg => 
         msg.sender === 'ai' && 
-        (msg.content?.includes('Product Analysis Summary') || msg.content?.includes('Here\'s your product analysis'))
+        (msg.content?.includes('Product Analysis Summary') || 
+         msg.content?.includes('Here\'s your product analysis') ||
+         msg.content?.includes('Here is your product analysis') ||
+         msg.content?.includes('product analysis summary'))
       ) || false;
       const hasEmailStrategy = conversationHistory?.some(msg => 
         msg.sender === 'ai' && 
@@ -3511,6 +3514,16 @@ Focus on actionable insights that directly support their stated business goal an
       if (hasProductSummary && hasRefinedTarget && !hasEmailStrategy) currentPhase = 'EMAIL_STRATEGY';
       if (hasEmailStrategy && !hasSalesApproach) currentPhase = 'SALES_APPROACH';
       if (hasSalesApproach) currentPhase = 'COMPLETE';
+
+      console.log('Phase detection:', {
+        hasProductSummary,
+        hasInitialTarget,
+        hasRefinedTarget,
+        hasEmailStrategy,
+        hasSalesApproach,
+        currentPhase,
+        targetMessagesCount: targetMessages.length
+      });
 
       // Build conversation messages for OpenAI
       const messages = [
