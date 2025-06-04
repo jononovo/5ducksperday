@@ -59,7 +59,7 @@ Example Refined Target: ${refinedTarget}
 
 Format exactly as:
 ## 1. TARGET BOUNDARY
-Based on product and example targets, create a 90-day search boundary ( ~700 companies) statement that we can build 6 search sprints ( 2 weeks each) within. 
+Based on product and example targets, create a 90-day search boundary ( ~700 companies) statement that we can build 6 search sprints ( 8 mini search queries each) within. 
 Boundary can be niches and/or geographic areas.
 Max 10 words.
 
