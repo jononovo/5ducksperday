@@ -3554,18 +3554,20 @@ PHASE-SPECIFIC INSTRUCTIONS:
         content: userInput
       } as any);
 
-      // Special handling for EMAIL_STRATEGY phase - automatically trigger when we have both targets
+      // Special handling for EMAIL_STRATEGY phase - trigger progressive generation flag
       let result;
       if (currentPhase === 'EMAIL_STRATEGY' && hasRefinedTarget) {
         const initialTarget = targetMessages[0]?.content || '';
         const refinedTarget = targetMessages[1]?.content || '';
         
-        console.log('Auto-generating email strategy with targets:', { initialTarget, refinedTarget });
+        console.log('Triggering progressive email strategy with targets:', { initialTarget, refinedTarget });
         
         result = {
-          type: 'email_strategy',
-          message: "Here's your 90-day email sales strategy:",
-          data: await generateEmailStrategy({ initialTarget, refinedTarget }, productContext)
+          type: 'progressive_strategy',
+          message: "Perfect! Now I'll create your strategic sales plan step by step.",
+          initialTarget,
+          refinedTarget,
+          needsProgressiveGeneration: true
         };
       } else {
         result = await queryOpenAI(messages, productContext);

@@ -936,6 +936,21 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
         // Handle report types
         if (data.type === 'product_summary' || data.type === 'email_strategy' || data.type === 'sales_approach') {
           this.displayReport(data);
+        } else if (data.type === 'progressive_strategy') {
+          // Handle progressive strategy generation
+          this.messages.push({
+            id: Date.now().toString(),
+            content: data.message,
+            sender: 'ai',
+            timestamp: new Date()
+          });
+          this.render();
+          
+          // Trigger progressive strategy generation
+          setTimeout(async () => {
+            await this.generateProgressiveStrategy(data.initialTarget, data.refinedTarget);
+          }, 500);
+          
         } else if (data.type === 'conversation') {
           // Handle conversation messages (like refinement requests)
           this.messages.push({
