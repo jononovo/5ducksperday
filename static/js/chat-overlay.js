@@ -822,9 +822,10 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
       // Add personalized message and start target market refinement
       this.messages = [{
         id: Date.now().toString(),
-        content: personalizedMessage,
+        content: this.renderMarkdown(personalizedMessage),
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(),
+        isHTML: true
       }];
       
       // Set chat state for target market collection

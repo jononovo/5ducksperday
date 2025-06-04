@@ -54,12 +54,12 @@ export async function generateEmailStrategy(params: any, productContext: any): P
   
   const perplexityPrompt = `
 Create a 90-day email sales strategy for ${productContext.productService}:
-Example Target: ${initialTarget}
-Example Refined Target: ${refinedTarget}
+Example Daily Search Query: ${initialTarget}
+Example of Refined Daily Search Query: ${refinedTarget}
 
 Format exactly as:
 ## 1. TARGET BOUNDARY
-Based on product and example targets, create a 90-day search boundary ( ~700 companies) statement that we can build 6 search sprints ( 8 mini search queries each) within. 
+Based on product and example daily search queries, expand the scope and create a 90-day search boundary ( ~700 companies) statement that we can build 6 search sprints ( 8 mini search queries each) within. 
 Boundary can be niches and/or geographic areas.
 Max 10 words.
 
@@ -166,7 +166,7 @@ export async function queryOpenAI(
           type: "function",
           function: {
             name: "generateEmailStrategy",
-            description: "Generate 90-day email sales strategy after collecting both initial target and refinement",
+            description: "Generate 90-day email sales strategy after collecting both initial target and refinement of target companies",
             parameters: {
               type: "object",
               properties: {
