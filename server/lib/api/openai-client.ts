@@ -88,12 +88,12 @@ Examples: FinTech companies in India
 Return only the boundary statement, no additional text.`
   ];
 
-  const systemMessage = { role: "system", content: "You are a market strategy expert. Create focused, strategic boundaries for sales campaigns." };
+  const systemMessage: PerplexityMessage = { role: "system", content: "You are a market strategy expert. Create focused, strategic boundaries for sales campaigns." };
   
   // Generate all 3 options
   const results = await Promise.all(
     prompts.map(prompt => 
-      queryPerplexity([systemMessage, { role: "user", content: prompt }])
+      queryPerplexity([systemMessage, { role: "user", content: prompt } as PerplexityMessage])
     )
   );
 

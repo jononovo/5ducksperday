@@ -11,7 +11,7 @@ import { searchCompanies, analyzeCompany } from "./lib/search-logic";
 import { extractContacts } from "./lib/perplexity";
 import { parseCompanyData } from "./lib/results-analysis/company-parser";
 import { queryPerplexity } from "./lib/api/perplexity-client";
-import { queryOpenAI, generateEmailStrategy, generateBoundary, generateSprintPrompt, generateDailyQueries } from "./lib/api/openai-client";
+import { queryOpenAI, generateEmailStrategy, generateBoundary, generateBoundaryOptions, generateSprintPrompt, generateDailyQueries } from "./lib/api/openai-client";
 import { searchContactDetails } from "./lib/api-interactions";
 import { google } from "googleapis";
 import { 
@@ -3667,14 +3667,70 @@ PHASE-SPECIFIC INSTRUCTIONS:
         return;
       }
 
-      const boundary = await generateBoundary({ initialTarget, refinedTarget }, productContext);
+      const boundaryOptions = await generateBoundaryOptions({ initialTarget, refinedTarget }, productContext);
       
+      res.json({
+        type: 'boundary_options',
+        title: 'Target Boundary Options',
+        content: boundaryOptions,
+        step: 1,
+        totalSteps: 3,
+        needsSelection: true,
+        description: "This will target ~700 companies across 6 sprints. Please choose your preferred approach:"
+      });
+
+    } catch (error) {
+      console.error("Boundary generation error:", error);
+      res.status(500).json({
+        message: "Failed to generate target boundary options"
+      });
+    }
+  });
+
+  app.post("/api/strategy/boundary/confirm", async (req, res) => {
+    try {
+      const { selectedOption, customBoundary, productContext } = req.body;
+
+      if (!productContext) {
+        res.status(400).json({ message: "Product context is required" });
+        return;
+      }
+
+      if (!selectedOption && !customBoundary) {
+        res.status(400).json({ message: "Either selectedOption or customBoundary must be provided" });
+        return;
+      }
+
+      let finalBoundary = customBoundary || selectedOption;
+
+      // If user provided custom boundary, validate it with AI
+      if (customBoundary) {
+        const validationPrompt = `
+Analyze this user-provided boundary for ${productContext.productService}: "${customBoundary}"
+
+Validate if this boundary can realistically target ~700 companies across 6 sprints. If it needs improvement, suggest a refined version. If it's good as-is, return it unchanged.
+
+Max 10 words for the final boundary.
+Return only the final boundary statement, no additional text.`;
+
+        try {
+          const refinedBoundary = await queryPerplexity([
+            { role: "system", content: "You are a market strategy expert. Validate and refine target boundaries for sales campaigns." } as PerplexityMessage,
+            { role: "user", content: validationPrompt } as PerplexityMessage
+          ]);
+          finalBoundary = refinedBoundary.trim();
+        } catch (error) {
+          console.warn('Failed to validate custom boundary, using as-is:', error);
+          finalBoundary = customBoundary;
+        }
+      }
+
       // Save boundary to database if user is authenticated
       if (req.user) {
         try {
           const userId = getUserId(req);
           await storage.updateStrategicProfile?.(userId, { 
-            strategyHighLevelBoundary: boundary
+            strategyHighLevelBoundary: finalBoundary
           });
         } catch (dbError) {
           console.warn('Failed to save boundary to database:', dbError);
@@ -3682,17 +3738,18 @@ PHASE-SPECIFIC INSTRUCTIONS:
       }
 
       res.json({
-        type: 'boundary',
-        title: 'Target Boundary',
-        content: boundary,
+        type: 'boundary_confirmed',
+        title: 'Target Boundary Confirmed',
+        content: finalBoundary,
         step: 1,
-        totalSteps: 3
+        totalSteps: 3,
+        isConfirmed: true
       });
 
     } catch (error) {
-      console.error("Boundary generation error:", error);
+      console.error("Boundary confirmation error:", error);
       res.status(500).json({
-        message: "Failed to generate target boundary"
+        message: "Failed to confirm target boundary"
       });
     }
   });

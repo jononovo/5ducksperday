@@ -45,6 +45,13 @@ export default function Planning() {
   const [currentStep, setCurrentStep] = useState("business_description");
   const [profileData, setProfileData] = useState<any>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Boundary selection states
+  const [boundarySelectionMode, setBoundarySelectionMode] = useState(false);
+  const [boundaryOptions, setBoundaryOptions] = useState<string[]>([]);
+  const [selectedBoundaryIndex, setSelectedBoundaryIndex] = useState<number | null>(null);
+  const [customBoundaryInput, setCustomBoundaryInput] = useState("");
+  const [boundaryProductContext, setBoundaryProductContext] = useState<any>(null);
 
   const steps: OnboardingStep[] = [
     { id: "business_description", title: "Business Description", completed: false },
@@ -95,20 +102,87 @@ To get started, please tell me about your ${type}. What exactly are you offering
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputMessage;
     setInputMessage("");
     setIsLoading(true);
 
     try {
-      // Call the AI service to get response
+      // Handle boundary selection mode
+      if (boundarySelectionMode) {
+        const trimmedInput = currentInput.trim();
+        
+        // Check if user entered a number (1, 2, or 3)
+        const selectedNumber = parseInt(trimmedInput);
+        if (selectedNumber >= 1 && selectedNumber <= 3 && selectedNumber <= boundaryOptions.length) {
+          const selectedBoundary = boundaryOptions[selectedNumber - 1];
+          
+          // Call boundary confirmation API
+          const confirmResponse = await apiRequest("POST", "/api/strategy/boundary/confirm", {
+            selectedOption: selectedBoundary,
+            productContext: boundaryProductContext
+          });
+          
+          const confirmMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            content: `Perfect! I've confirmed your target boundary: "${confirmResponse.content}"`,
+            sender: "ai",
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, confirmMessage]);
+          
+          // Reset boundary selection mode
+          setBoundarySelectionMode(false);
+          setBoundaryOptions([]);
+          setSelectedBoundaryIndex(null);
+          
+        } else {
+          // User provided custom boundary
+          const confirmResponse = await apiRequest("POST", "/api/strategy/boundary/confirm", {
+            customBoundary: trimmedInput,
+            productContext: boundaryProductContext
+          });
+          
+          const confirmMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            content: `Great! I've refined your custom boundary to: "${confirmResponse.content}"`,
+            sender: "ai",
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, confirmMessage]);
+          
+          // Reset boundary selection mode
+          setBoundarySelectionMode(false);
+          setBoundaryOptions([]);
+          setCustomBoundaryInput("");
+        }
+        
+        setIsLoading(false);
+        return;
+      }
+
+      // Regular onboarding chat flow
       const response: any = await apiRequest("POST", "/api/onboarding/chat", {
-        message: inputMessage,
+        message: currentInput,
         businessType,
         currentStep,
         profileData,
         conversationHistory: messages
       });
 
-      if (response.aiResponse) {
+      // Handle boundary options response
+      if (response.type === 'boundary_options') {
+        setBoundaryOptions(response.content);
+        setBoundaryProductContext(response.productContext || profileData);
+        setBoundarySelectionMode(true);
+        
+        const optionsMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: `${response.description}\n\n${response.content.map((option: string, index: number) => `${index + 1}. ${option}`).join('\n\n')}\n\nPlease type the number of the one you prefer, or just write your own below and we can use that.`,
+          sender: "ai",
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, optionsMessage]);
+      } else if (response.aiResponse) {
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           content: response.aiResponse,
