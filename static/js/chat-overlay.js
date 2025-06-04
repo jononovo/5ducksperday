@@ -1089,6 +1089,18 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
         // Mark strategy as complete
         this.displayStrategyComplete(strategyData);
         console.log('Progressive strategy generation completed successfully');
+        
+        // Add completion message with app link
+        setTimeout(() => {
+          const currentDomain = window.location.origin;
+          this.messages.push({
+            id: Date.now().toString(),
+            content: `Awesome! We're done here.\n\nNow go to ${currentDomain}/app to see your strategy and begin selling`,
+            sender: 'ai',
+            timestamp: new Date()
+          });
+          this.render();
+        }, 1000);
       } else {
         console.error('Queries API failed:', queriesResponse.status, await queriesResponse.text());
         throw new Error(`Queries generation failed: ${queriesResponse.status}`);
@@ -1150,7 +1162,7 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
   displayStrategyComplete(strategyData) {
     const completeHtml = `
       <div class="strategy-complete mt-6 p-6 bg-blue-50 border border-blue-200 rounded-lg">
-        <h3 class="text-xl font-bold text-blue-900 mb-4">🎯 Your Complete Sales Strategy</h3>
+        <h3 class="text-xl font-bold text-blue-900 mb-4">🎯 90-Day Target Search Strategy</h3>
         <div class="space-y-4">
           <div>
             <h4 class="font-semibold text-blue-800">Target Boundary:</h4>
