@@ -49,31 +49,61 @@ Focus on differentiation and value. Maximum 200 words.`;
 }
 
 // Sequential strategy generation functions
-export async function generateBoundary(params: any, productContext: any): Promise<string> {
+export async function generateBoundaryOptions(params: any, productContext: any): Promise<string[]> {
   const { initialTarget, refinedTarget } = params;
   
-  const perplexityPrompt = `
-Create a 90-day target boundary for ${productContext.productService}:
+  // Create 3 different strategic approaches
+  const prompts = [
+    // Geographic-focused approach
+    `Create a 90-day target boundary for ${productContext.productService}:
 Example Daily Search Query: ${initialTarget}
 Example of Refined Daily Search Query: ${refinedTarget}
 
-Based on these examples, expand the scope and create a 90-day search boundary (~700 companies) statement that we can build 6 search sprints (8 mini search queries each) within. 
-Boundary can be niches and/or geographic areas.
+Focus on GEOGRAPHIC expansion. Create a boundary that emphasizes location-based targeting to reach ~700 companies across 6 sprints.
 Max 10 words.
 
-Examples:
-mid-level rated, irish bars in NY state
-franchising educational tutoring companies in South America
-FinTech companies in India
+Examples: mid-level rated, irish bars in NY state
+Return only the boundary statement, no additional text.`,
 
-Return only the boundary statement, no additional text.`;
+    // Niche-focused approach  
+    `Create a 90-day target boundary for ${productContext.productService}:
+Example Daily Search Query: ${initialTarget}
+Example of Refined Daily Search Query: ${refinedTarget}
 
-  const result = await queryPerplexity([
-    { role: "system", content: "You are a market strategy expert. Create focused, strategic boundaries for sales campaigns." },
-    { role: "user", content: perplexityPrompt }
-  ]);
+Focus on NICHE specialization. Create a boundary that emphasizes industry/type-based targeting to reach ~700 companies across 6 sprints.
+Max 10 words.
 
-  return result.trim();
+Examples: franchising educational tutoring companies in South America
+Return only the boundary statement, no additional text.`,
+
+    // Hybrid approach
+    `Create a 90-day target boundary for ${productContext.productService}:
+Example Daily Search Query: ${initialTarget}
+Example of Refined Daily Search Query: ${refinedTarget}
+
+Focus on BALANCED approach. Create a boundary combining geography and niche targeting to reach ~700 companies across 6 sprints.
+Max 10 words.
+
+Examples: FinTech companies in India
+Return only the boundary statement, no additional text.`
+  ];
+
+  const systemMessage = { role: "system", content: "You are a market strategy expert. Create focused, strategic boundaries for sales campaigns." };
+  
+  // Generate all 3 options
+  const results = await Promise.all(
+    prompts.map(prompt => 
+      queryPerplexity([systemMessage, { role: "user", content: prompt }])
+    )
+  );
+
+  return results.map(result => result.trim());
+}
+
+// Keep original function for backwards compatibility
+export async function generateBoundary(params: any, productContext: any): Promise<string> {
+  const options = await generateBoundaryOptions(params, productContext);
+  return options[0]; // Return first option as default
 }
 
 export async function generateSprintPrompt(boundary: string, params: any, productContext: any): Promise<string> {
