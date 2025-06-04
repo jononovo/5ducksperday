@@ -702,7 +702,7 @@ class ChatOverlay {
         subtitle: "Describe it in 1 sentence",
         field: "productService",
         type: "textarea",
-        placeholder: "Example: We sell premium coffee machines for small offices..."
+        placeholder: "Premium coffee machines for small offices…"
       },
       {
         title: "What do customers say they like?",
