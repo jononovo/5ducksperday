@@ -975,15 +975,46 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
 
   async generateProgressiveStrategy(initialTarget, refinedTarget) {
     try {
+      // Debug logging for parameter validation
+      console.log('Progressive strategy called with:', { 
+        initialTarget, 
+        refinedTarget, 
+        formDataExists: !!this.formData,
+        formData: this.formData 
+      });
+
       const productContext = {
-        productService: this.formData.productService,
-        customerFeedback: this.formData.customerFeedback,
-        website: this.formData.website
+        productService: this.formData?.productService,
+        customerFeedback: this.formData?.customerFeedback,
+        website: this.formData?.website
       };
+
+      // Validate all required parameters
+      if (!initialTarget || !refinedTarget || !productContext.productService || !productContext.customerFeedback || !productContext.website) {
+        console.error('Missing required parameters for progressive strategy:', {
+          initialTarget: !!initialTarget,
+          refinedTarget: !!refinedTarget,
+          productService: !!productContext.productService,
+          customerFeedback: !!productContext.customerFeedback,
+          website: !!productContext.website
+        });
+        
+        this.messages.push({
+          id: Date.now().toString(),
+          content: "I need your product information to create the strategy. Let me restart the process.",
+          sender: 'ai',
+          timestamp: new Date()
+        });
+        this.render();
+        return;
+      }
+
       let strategyData = {};
 
       // Step 1: Generate Boundary
       this.addLoadingMessage("Analyzing your market scope...");
+      
+      console.log('Calling boundary API with:', { initialTarget, refinedTarget, productContext });
       
       const boundaryResponse = await fetch('/api/strategy/boundary', {
         method: 'POST',
@@ -995,10 +1026,20 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
         const boundaryData = await boundaryResponse.json();
         strategyData.boundary = boundaryData.content;
         this.displayStrategyStep(boundaryData);
+        console.log('Boundary step completed:', boundaryData);
+      } else {
+        console.error('Boundary API failed:', boundaryResponse.status, await boundaryResponse.text());
+        throw new Error(`Boundary generation failed: ${boundaryResponse.status}`);
       }
 
       // Step 2: Generate Sprint Prompt
       this.addLoadingMessage("Creating sprint strategy...");
+      
+      console.log('Calling sprint API with:', { 
+        boundary: strategyData.boundary, 
+        refinedTarget, 
+        productContext 
+      });
       
       const sprintResponse = await fetch('/api/strategy/sprint', {
         method: 'POST',
@@ -1014,10 +1055,20 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
         const sprintData = await sprintResponse.json();
         strategyData.sprintPrompt = sprintData.content;
         this.displayStrategyStep(sprintData);
+        console.log('Sprint step completed:', sprintData);
+      } else {
+        console.error('Sprint API failed:', sprintResponse.status, await sprintResponse.text());
+        throw new Error(`Sprint generation failed: ${sprintResponse.status}`);
       }
 
       // Step 3: Generate Daily Queries
       this.addLoadingMessage("Generating daily queries...");
+      
+      console.log('Calling queries API with:', { 
+        boundary: strategyData.boundary,
+        sprintPrompt: strategyData.sprintPrompt,
+        productContext 
+      });
       
       const queriesResponse = await fetch('/api/strategy/queries', {
         method: 'POST',
@@ -1033,9 +1084,14 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
         const queriesData = await queriesResponse.json();
         strategyData.dailyQueries = queriesData.content;
         this.displayStrategyStep(queriesData);
+        console.log('Queries step completed:', queriesData);
         
         // Mark strategy as complete
         this.displayStrategyComplete(strategyData);
+        console.log('Progressive strategy generation completed successfully');
+      } else {
+        console.error('Queries API failed:', queriesResponse.status, await queriesResponse.text());
+        throw new Error(`Queries generation failed: ${queriesResponse.status}`);
       }
 
       return { type: 'email_strategy', data: strategyData };
