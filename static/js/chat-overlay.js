@@ -907,10 +907,11 @@ Examples: "family-friendly hotels in coastal Florida" or "mid-size logistics com
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Strategy chat response:', data);
         return data;
       } else {
         console.warn('Strategy chat failed:', response.status);
-        return { type: 'conversation', response: "Let's work with what you have. Could you be a bit more specific about your target market?" };
+        return { type: 'conversation', response: "Let me help you create your sales strategy. Could you be more specific about your target market?" };
       }
     } catch (error) {
       console.error('Error in strategy chat:', error);
