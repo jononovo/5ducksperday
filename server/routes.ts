@@ -3520,14 +3520,32 @@ Respond with valid JSON:`;
 
       console.log('Strategy chat completed successfully');
 
-      // Parse AI response
+      // Parse AI response - handle Perplexity response format
       let aiData;
       try {
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
-        aiData = JSON.parse(jsonMatch ? jsonMatch[0] : response);
+        // First try to parse as direct JSON (in case response is already parsed)
+        if (typeof response === 'string') {
+          // Extract JSON from Perplexity response content
+          const jsonMatch = response.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            aiData = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error('No JSON found in response');
+          }
+        } else {
+          // Response is already an object, extract from choices
+          aiData = JSON.parse(response.choices[0].message.content);
+        }
+        
+        console.log('Successfully parsed AI response:', aiData.action);
+        
       } catch (parseError) {
-        console.warn('Failed to parse AI response, continuing conversation');
-        res.json({ type: 'conversation', response: "Let's work with what you have. Could you be more specific about your target market?" });
+        console.warn('Failed to parse AI response:', parseError.message);
+        console.log('Raw response:', typeof response === 'string' ? response.substring(0, 200) : JSON.stringify(response).substring(0, 200));
+        res.json({ 
+          type: 'conversation', 
+          response: "I'm having some problems building my report. Let's come back to this later. Why don't you go to the search page for now."
+        });
         return;
       }
       
