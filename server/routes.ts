@@ -3466,7 +3466,7 @@ Focus on actionable insights that directly support their stated business goal an
     }
   });
 
-  // Enhanced Strategy Chat with Phase Management
+  // Three-Report Strategy Chat with OpenAI + Perplexity
   app.post("/api/onboarding/strategy-chat", async (req, res) => {
     try {
       const { userInput, productContext, conversationHistory } = req.body;
@@ -3478,69 +3478,53 @@ Focus on actionable insights that directly support their stated business goal an
 
       console.log('Processing strategy chat with input:', userInput);
 
-      const conversationContext = conversationHistory?.map(msg => `${msg.sender}: ${msg.content}`).join('\n') || '';
-      const conversationExchanges = conversationHistory?.length || 0;
-      const shouldGenerateProfile = conversationExchanges >= 4;
+      // Determine conversation phase
+      const hasProductSummary = conversationHistory?.some(msg => msg.type === 'product_summary') || false;
+      const hasEmailStrategy = conversationHistory?.some(msg => msg.type === 'email_strategy') || false;
+      const hasSalesApproach = conversationHistory?.some(msg => msg.type === 'sales_approach') || false;
 
-      const enhancedPrompt = `You are a cold email strategist managing a 2-phase consultation.
+      let currentPhase = 'PRODUCT_SUMMARY';
+      if (hasProductSummary && !hasEmailStrategy) currentPhase = 'EMAIL_STRATEGY';
+      if (hasEmailStrategy && !hasSalesApproach) currentPhase = 'SALES_APPROACH';
+      if (hasSalesApproach) currentPhase = 'COMPLETE';
 
-PRODUCT CONTEXT:
-Product/Service: ${productContext.productService}
-Customer Feedback: ${productContext.customerFeedback}
-Website: ${productContext.website || 'Not provided'}
-
-CONVERSATION HISTORY:
-${conversationContext}
-
-CURRENT USER INPUT: "${userInput}"
-
-PHASE MANAGEMENT:
-Phase 1: Target Market Refinement → Generate Product Profile
-Phase 2: Product Profile Complete → Generate Lead Strategy
-
-RESPONSE FORMAT:
-For conversation: {"action": "continue", "content": "your response"}
-For profile generation: {"action": "profile", "message": "OK I'm building a short sales profile around your product.", "profile": {"title": "State of ${productContext.productService} Sales", "markdown": "## Key Features\\n\\n- **Efficiency**: Brief description\\n- **Quality**: Brief description\\n\\n### Selling Approaches\\n1. **Standard**: Description\\n2. **Innovation 1**: Description\\n3. **Innovation 2**: Description\\n4. **Innovation 3**: Description", "data": {"approaches": ["Standard approach", "Innovation 1", "Innovation 2", "Innovation 3"]}}}
-For strategy generation: {"action": "strategy", "message": "Now I am building a 90-Day Email Sales Strategy to get you in touch with the right people.", "strategy": {"boundary": "precise target definition", "sprintPrompt": "weekly planning prompt", "dailyQueries": ["8 specific daily search prompts"]}}
-
-RULES:
-- If conversation has ${conversationExchanges} exchanges and is 4+, immediately generate profile regardless of specificity
-- Otherwise encourage user to be more specific (max 2 times)
-- Generate strategy immediately after profile is complete
-- Keep conversation responses under 20 words
-
-CONVERSATION LENGTH: ${conversationExchanges} exchanges
-TRIGGER PROFILE: ${shouldGenerateProfile ? 'YES - Generate profile now' : 'NO - Continue conversation'}
-
-Respond with valid JSON:`;
-
-      // Build conversation history for OpenAI
+      // Build conversation messages for OpenAI
       const messages = [
         {
           role: "system",
-          content: `You are an expert cold email strategist helping users create personalized sales strategies.
+          content: `You are a strategic onboarding assistant managing a 3-report generation process.
 
 PRODUCT CONTEXT:
 - Product/Service: ${productContext.productService}
 - Customer Feedback: ${productContext.customerFeedback}
 - Website: ${productContext.website || 'Not provided'}
 
-Your goal is to:
-1. Gather information about their product and target market through natural conversation
-2. When you have sufficient context, call generateProfile() to create a sales profile
-3. After the profile is created, call generateStrategy() to create their 90-day email strategy
+REPORT SEQUENCE:
+1. Product Summary (immediate) → Ask "Is this correct?"
+2. Email Strategy (after confirmation) → Ask "Does this align with your ideal customer?"  
+3. Sales Approach (final) → State "All information available in dashboard"
 
-Be conversational and helpful. Ask clarifying questions to understand their target market better. When you feel you have enough information about their product features and target audience, generate the profile. After the profile, generate the strategy based on their specific target market.`
+CURRENT PHASE: ${currentPhase}
+
+RULES:
+- Call generateProductSummary() immediately when chat opens (if no previous summary)
+- After user confirms/refines product summary, call generateEmailStrategy()
+- After user confirms/refines email strategy, call generateSalesApproach()
+- After final report, direct user to dashboard for further updates
+- Keep responses under 15 words between reports
+- No endless refinement - one update per report maximum`
         }
       ];
 
       // Add conversation history
       if (conversationHistory && conversationHistory.length > 0) {
         conversationHistory.forEach(msg => {
-          messages.push({
-            role: msg.sender === 'user' ? 'user' : 'assistant',
-            content: msg.content
-          } as any);
+          if (msg.sender && msg.content) {
+            messages.push({
+              role: msg.sender === 'user' ? 'user' : 'assistant',
+              content: msg.content
+            } as any);
+          }
         });
       }
 
@@ -3553,51 +3537,42 @@ Be conversational and helpful. Ask clarifying questions to understand their targ
       const result = await queryOpenAI(messages, productContext);
       console.log('Strategy chat completed successfully, type:', result.type);
       
-      const aiData = {
-        action: result.type,
-        message: result.message,
-        content: result.message,
-        profile: result.type === 'profile' ? result.data : undefined,
-        strategy: result.type === 'strategy' ? result.data : undefined
-      };
-      
-      if (aiData.action === 'profile') {
-        // Save profile to database if user is authenticated
-        if (req.user) {
-          try {
-            const userId = getUserId(req);
-            await storage.updateUser?.(userId, { 
-              reportSalesContextGuidance: JSON.stringify(aiData.profile) 
+      // Save reports to database if user is authenticated
+      if (req.user) {
+        try {
+          const userId = getUserId(req);
+          
+          if (result.type === 'product_summary') {
+            await storage.updateStrategicProfile?.(userId, { 
+              productAnalysisSummary: JSON.stringify(result.data) 
             });
-          } catch (dbError) {
-            console.warn('Failed to save profile to database:', dbError);
-          }
-        }
-        res.json({ type: 'profile', message: aiData.message, data: aiData.profile });
-        
-      } else if (aiData.action === 'strategy') {
-        // Save strategy to database if user is authenticated
-        if (req.user) {
-          try {
-            const userId = getUserId(req);
-            await storage.updateUser?.(userId, { 
-              reportSalesTargetingGuidance: JSON.stringify(aiData.strategy) 
+          } else if (result.type === 'email_strategy') {
+            await storage.updateStrategicProfile?.(userId, { 
+              reportSalesTargetingGuidance: JSON.stringify(result.data) 
             });
-          } catch (dbError) {
-            console.warn('Failed to save strategy to database:', dbError);
+          } else if (result.type === 'sales_approach') {
+            await storage.updateStrategicProfile?.(userId, { 
+              reportSalesContextGuidance: JSON.stringify(result.data) 
+            });
           }
+        } catch (dbError) {
+          console.warn('Failed to save report to database:', dbError);
         }
-        res.json({ type: 'strategy', message: aiData.content, data: aiData.strategy });
-        
-      } else {
-        res.json({ type: 'conversation', response: aiData.content });
       }
+
+      // Return structured response
+      res.json({
+        type: result.type,
+        message: result.message,
+        data: result.data,
+        phase: currentPhase
+      });
 
     } catch (error) {
       console.error("Strategy chat error:", error);
       res.json({ 
         type: 'conversation', 
-        response: "Let's work with what you have. Could you be a bit more specific about your target market?"
+        response: "I apologize for the technical issue. Let me help you create your sales strategy."
       });
     }
   });

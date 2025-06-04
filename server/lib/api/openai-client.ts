@@ -13,6 +13,102 @@ interface FunctionCallResult {
   data?: any;
 }
 
+// Perplexity-powered report generation functions
+async function generateProductSummary(params: any): Promise<any> {
+  const productData = params.productData;
+  
+  const perplexityPrompt = `
+Analyze this product and create a concise summary (max 200 words, bullet points):
+
+Product: ${productData.productService}
+Customer Feedback: ${productData.customerFeedback}
+Website: ${productData.website || 'Not provided'}
+
+Required structure:
+• **What it is**: [Product description]
+• **Problem it solves**: [Customer pain point]  
+• **Competitive advantage**: [Why superior]
+• **Customer benefit**: [Selling approach advantage]
+
+Focus on differentiation and value. Maximum 200 words.`;
+
+  const result = await queryPerplexity([
+    { role: "system", content: "You are a product analyst. Create concise, bullet-pointed summaries focused on competitive advantage." },
+    { role: "user", content: perplexityPrompt }
+  ]);
+
+  return {
+    title: "Product Summary",
+    content: result,
+    wordCount: result.split(' ').length
+  };
+}
+
+async function generateEmailStrategy(params: any): Promise<any> {
+  const { targetMarket, productContext } = params;
+  
+  const perplexityPrompt = `
+Create a 90-day email sales strategy for ${productContext.productService} targeting ${targetMarket}.
+
+Research current market trends and create:
+1. TARGET BOUNDARY: Precise target market definition
+2. SPRINT PROMPT: Weekly planning focus question  
+3. DAILY QUERIES: 8 specific daily search prompts for lead generation
+
+Base on current industry practices and successful outreach patterns.
+
+Format as structured data with clear sections.`;
+
+  const result = await queryPerplexity([
+    { role: "system", content: "You are an email sales strategy expert. Research current best practices and provide structured output." },
+    { role: "user", content: perplexityPrompt }
+  ]);
+
+  return {
+    title: "90-Day Email Strategy", 
+    boundary: targetMarket,
+    sprintPrompt: `Weekly focus: Identify and engage with ${targetMarket} decision makers`,
+    content: result
+  };
+}
+
+async function generateSalesApproach(params: any): Promise<any> {
+  const { strategyContext, productContext } = params;
+  
+  const perplexityPrompt = `
+Create a strategic email approach guide (max 200 words) for ${productContext.productService}.
+
+Format exactly as:
+
+**RELATIONSHIP INITIATION APPROACHES:**
+• **Standard**: [Traditional approach]
+• **Innovation 1**: [Creative method]
+• **Innovation 2**: [Unique technique] 
+• **Innovation 3**: [Unconventional strategy]
+
+**SUBJECT LINE FORMATS:**
+• **Standard**: [Professional format]
+• **Innovation 1**: [Curiosity approach]
+• **Innovation 2**: [Value-focused technique]
+• **Innovation 3**: [Personalized format]
+
+High-level strategic guidance for email generation.`;
+
+  const result = await queryPerplexity([
+    { role: "system", content: "You are a sales strategy expert. Create structured, high-level email approach guidance." },
+    { role: "user", content: perplexityPrompt }
+  ]);
+
+  return {
+    title: "Sales Approach Strategy",
+    content: result,
+    sections: {
+      approaches: "4 relationship initiation methods",
+      subjectLines: "4 subject line formats"
+    }
+  };
+}
+
 export async function queryOpenAI(
   messages: ChatCompletionMessageParam[],
   productContext: any
@@ -94,25 +190,26 @@ export async function queryOpenAI(
       const functionName = toolCall.function.name;
       const functionArgs = JSON.parse(toolCall.function.arguments);
 
-      if (functionName === 'generateProfile') {
+      if (functionName === 'generateProductSummary') {
+        const summary = await generateProductSummary(functionArgs);
         return {
-          type: 'profile',
-          message: "I'm creating your sales profile now.",
-          data: {
-            title: `${functionArgs.productName} Sales Profile`,
-            markdown: generateProfileMarkdown(functionArgs),
-            data: functionArgs
-          }
+          type: 'product_summary',
+          message: "Here's your product analysis summary:",
+          data: summary
         };
-      } else if (functionName === 'generateStrategy') {
+      } else if (functionName === 'generateEmailStrategy') {
+        const strategy = await generateEmailStrategy(functionArgs);
         return {
-          type: 'strategy',
-          message: "Now I'm building your 90-day email sales strategy.",
-          data: {
-            boundary: functionArgs.targetBusiness,
-            sprintPrompt: `Weekly focus: Identify and engage with ${functionArgs.marketNiche} decision makers`,
-            dailyQueries: generateDailyQueries(functionArgs.targetBusiness, functionArgs.marketNiche)
-          }
+          type: 'email_strategy', 
+          message: "Here's your 90-day email sales strategy:",
+          data: strategy
+        };
+      } else if (functionName === 'generateSalesApproach') {
+        const approach = await generateSalesApproach(functionArgs);
+        return {
+          type: 'sales_approach',
+          message: "Here's your sales approach strategy:",
+          data: approach
         };
       }
     }
@@ -127,30 +224,4 @@ export async function queryOpenAI(
     console.error('OpenAI API error:', error);
     throw error;
   }
-}
-
-function generateProfileMarkdown(args: any): string {
-  return `## Key Features
-
-${args.keyFeatures.map((feature: string) => `- **${feature}**: Enhances customer value and competitive advantage`).join('\n')}
-
-### Selling Approaches
-
-1. **Standard**: Emphasize core product benefits and ROI
-2. **Innovation 1**: Highlight unique differentiators vs competitors  
-3. **Innovation 2**: Focus on specific industry pain points
-4. **Innovation 3**: Showcase measurable results and case studies`;
-}
-
-function generateDailyQueries(targetBusiness: string, marketNiche: string): string[] {
-  return [
-    `${targetBusiness} with 50-200 employees`,
-    `${marketNiche} companies expanding operations`,
-    `${targetBusiness} recently funded or growing`,
-    `${marketNiche} decision makers LinkedIn active`,
-    `${targetBusiness} attending industry conferences`,
-    `${marketNiche} companies hiring ${targetBusiness} roles`,
-    `${targetBusiness} with technology budget allocated`,
-    `${marketNiche} companies facing operational challenges`
-  ];
 }
