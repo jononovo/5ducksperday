@@ -608,13 +608,8 @@ class ChatOverlay {
           this.chatStep = 'complete';
           
         } else {
-          // Continue conversation
-          this.messages.push({
-            id: (Date.now() + 1).toString(),
-            content: strategyResponse.response,
-            sender: 'ai',
-            timestamp: new Date()
-          });
+          // Continue conversation - message already handled in handleStrategyChatMessage
+          // No need to add duplicate message here
         }
         
         this.isLoading = false;
