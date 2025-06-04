@@ -917,6 +917,15 @@ I'm building a product summary so that I can understand what you're selling bett
         // Handle report types
         if (data.type === 'product_summary' || data.type === 'email_strategy' || data.type === 'sales_approach') {
           this.displayReport(data);
+        } else if (data.type === 'conversation') {
+          // Handle conversation messages (like refinement requests)
+          this.messages.push({
+            id: Date.now().toString(),
+            content: data.message,
+            sender: 'ai',
+            timestamp: new Date()
+          });
+          this.render();
         }
         
         return data;
