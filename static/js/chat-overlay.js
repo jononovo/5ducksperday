@@ -818,11 +818,7 @@ class ChatOverlay {
       
       const personalizedMessage = `Perfect! So you're selling ${productService}, customers say ${customerFeedback}, and ${website !== 'no website provided' ? `I can learn more at ${website}` : 'no website was provided'}.
 
-Now let's build your 90-day cold email strategy! 
-
-What type of business do you sell to? I need to create daily search queries for finding contacts. The more specific, the better!
-
-Examples: "family-friendly hotels in coastal Florida" or "mid-size logistics companies in tri-state area"`;
+I'm building a product summary so that I can understand what you're selling better.`;
 
       // Add personalized message and start target market refinement
       this.messages = [{
@@ -908,6 +904,12 @@ Examples: "family-friendly hotels in coastal Florida" or "mid-size logistics com
       if (response.ok) {
         const data = await response.json();
         console.log('Strategy chat response:', data);
+        
+        // Handle report types
+        if (data.type === 'product_summary' || data.type === 'email_strategy' || data.type === 'sales_approach') {
+          this.displayReport(data);
+        }
+        
         return data;
       } else {
         console.warn('Strategy chat failed:', response.status);
@@ -987,6 +989,26 @@ Let me process your strategy and research your market right now!`;
       .replace(/^\- (.*$)/gim, '<li class="ml-4">$1</li>')
       .replace(/^(\d+)\. (.*$)/gim, '<li class="ml-4"><strong>$1.</strong> $2</li>')
       .replace(/\n/g, '<br>');
+  }
+
+  displayReport(reportData) {
+    const reportHtml = `
+      <div class="report-container bg-blue-50 border border-blue-200 rounded-lg p-4 my-3">
+        <h3 class="font-bold text-lg text-blue-800 mb-2">${reportData.message}</h3>
+        <div class="report-content text-gray-700">
+          ${this.renderMarkdown(reportData.data.content)}
+        </div>
+      </div>`;
+    
+    this.messages.push({
+      id: Date.now().toString(),
+      content: reportHtml,
+      sender: 'ai',
+      timestamp: new Date(),
+      isHtml: true
+    });
+    
+    this.render();
   }
 
   displayProductProfile(profileData) {
