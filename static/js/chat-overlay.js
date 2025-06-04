@@ -974,15 +974,26 @@ Let me process your strategy and research your market right now!`;
     }
   }
 
+  renderMarkdown(markdown) {
+    // Simple markdown to HTML conversion
+    return markdown
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-blue-700 mt-4 mb-2">$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-blue-800 mt-4 mb-3">$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-blue-900 mt-4 mb-4">$1</h1>')
+      .replace(/^\- (.*$)/gim, '<li class="ml-4">$1</li>')
+      .replace(/^(\d+)\. (.*$)/gim, '<li class="ml-4"><strong>$1.</strong> $2</li>')
+      .replace(/\n/g, '<br>');
+  }
+
   displayProductProfile(profileData) {
     const profileHtml = `
       <div class="profile-report bg-blue-50 border border-blue-200 rounded-lg p-4 my-3">
         <h3 class="font-bold text-lg text-blue-800 mb-2">${profileData.title}</h3>
-        <p class="text-gray-700 mb-3">${profileData.content}</p>
-        <h4 class="font-semibold text-blue-700 mb-2">Selling Approaches:</h4>
-        <ul class="list-disc list-inside text-gray-700 space-y-1">
-          ${profileData.approaches.map(approach => `<li>${approach}</li>`).join('')}
-        </ul>
+        <div class="markdown-content text-gray-700">
+          ${this.renderMarkdown(profileData.markdown)}
+        </div>
       </div>`;
     
     this.messages.push({

@@ -3499,8 +3499,8 @@ Phase 2: Product Profile Complete → Generate Lead Strategy
 
 RESPONSE FORMAT:
 For conversation: {"action": "continue", "content": "your response"}
-For profile generation: {"action": "profile", "content": "OK I'm building a short sales profile around your product.", "profile": {"title": "State of ${productContext.productService} Sales", "content": "200-word analysis with bullet points", "approaches": ["1 standard approach", "3 innovative approaches"]}}
-For strategy generation: {"action": "strategy", "content": "Now I am building a 90-Day Email Sales Strategy to get you in touch with the right people.", "strategy": {"boundary": "precise target definition", "sprintPrompt": "weekly planning prompt", "dailyQueries": ["8 specific daily search prompts"]}}
+For profile generation: {"action": "profile", "message": "OK I'm building a short sales profile around your product.", "profile": {"title": "State of ${productContext.productService} Sales", "markdown": "## Key Features\\n\\n- **Efficiency**: Brief description\\n- **Quality**: Brief description\\n\\n### Selling Approaches\\n1. **Standard**: Description\\n2. **Innovation 1**: Description\\n3. **Innovation 2**: Description\\n4. **Innovation 3**: Description", "data": {"approaches": ["Standard approach", "Innovation 1", "Innovation 2", "Innovation 3"]}}}
+For strategy generation: {"action": "strategy", "message": "Now I am building a 90-Day Email Sales Strategy to get you in touch with the right people.", "strategy": {"boundary": "precise target definition", "sprintPrompt": "weekly planning prompt", "dailyQueries": ["8 specific daily search prompts"]}}
 
 RULES:
 - If conversation has ${conversationExchanges} exchanges and is 4+, immediately generate profile regardless of specificity
@@ -3561,7 +3561,7 @@ Respond with valid JSON:`;
             console.warn('Failed to save profile to database:', dbError);
           }
         }
-        res.json({ type: 'profile', message: aiData.content, data: aiData.profile });
+        res.json({ type: 'profile', message: aiData.message, data: aiData.profile });
         
       } else if (aiData.action === 'strategy') {
         // Save strategy to database if user is authenticated
