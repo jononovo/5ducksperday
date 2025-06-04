@@ -1095,9 +1095,10 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
           const currentDomain = window.location.origin;
           this.messages.push({
             id: Date.now().toString(),
-            content: `Awesome! We're done here.\n\nNow go to ${currentDomain}/app to see your strategy and begin selling`,
+            content: `Awesome! We're done here.<br><br>Now go to <a href="${currentDomain}/app" target="_blank" style="color: #3b82f6; text-decoration: underline;">${currentDomain}/app</a> to see your strategy and begin selling`,
             sender: 'ai',
-            timestamp: new Date()
+            timestamp: new Date(),
+            isHTML: true
           });
           this.render();
         }, 1000);
