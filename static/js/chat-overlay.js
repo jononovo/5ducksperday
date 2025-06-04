@@ -786,6 +786,16 @@ class ChatOverlay {
         this.formData[currentQuestion.field] = input.value;
         this.updateFormButton();
       });
+      
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const currentValue = this.formData[currentQuestion.field];
+          const isValid = currentValue && currentValue.trim().length > 0;
+          if (isValid) {
+            this.nextStep();
+          }
+        }
+      });
     }
   }
 
