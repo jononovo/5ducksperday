@@ -533,7 +533,13 @@ class ChatOverlay {
     
     this.messages.forEach(message => {
       const time = message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const content = message.content || '';
+      let content = message.content || '';
+      
+      // Apply styling for the specific business example request message
+      if (content.includes('Perfect! Now please give me an example of a type of business you service or sell you')) {
+        content = this.styleBusinessExampleMessage(content);
+      }
+      
       html += `
         <div class="message ${message.sender}">
           <div class="message-content">
@@ -557,6 +563,35 @@ class ChatOverlay {
     }
 
     return html;
+  }
+
+  styleBusinessExampleMessage(content) {
+    // Style the business example message with proper formatting
+    let styledContent = content;
+    
+    // Bold the key phrase
+    styledContent = styledContent.replace(
+      'an example of a type of business you service or sell you',
+      '<strong>an example of a type of business you service or sell you</strong>'
+    );
+    
+    // Style the format instruction
+    styledContent = styledContent.replace(
+      'Like this "[type of business] in [city/niche]"',
+      '<div class="format-instruction">Like this "<em>[type of business] in [city/niche]</em>"</div>'
+    );
+    
+    // Style the examples section
+    styledContent = styledContent.replace(
+      'Examples:\nPopular cafes in Lower East Side, NYC\nReal-estate insurance brokers in Salt Lake City',
+      `<div class="examples-section">
+        <div class="examples-header"><strong>Examples:</strong></div>
+        <div class="example-item">• Popular cafes in Lower East Side, NYC</div>
+        <div class="example-item">• Real-estate insurance brokers in Salt Lake City</div>
+      </div>`
+    );
+    
+    return styledContent;
   }
 
   handleClose() {
