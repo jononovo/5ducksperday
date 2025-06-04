@@ -11,6 +11,7 @@ import { validateName } from "./results-analysis/contact-name-validation";
 import { extractContacts } from "./results-analysis/email-extraction-format";
 import { validateNames } from "./results-analysis/contact-ai-name-scorer";
 import { findKeyDecisionMakers } from "./search-logic/contact-discovery/enhanced-contact-finder";
+import { cleanPerplexityResponse } from "./utils";
 
 // Core search functions
 export async function searchCompanies(query: string): Promise<Array<{name: string, website: string | null, description: string | null}>> {
@@ -32,15 +33,18 @@ Please output a JSON array containing 7 objects, where each object has exactly t
     }
   ];
 
+  // Declare response variable in outer scope for error handling
+  let response = '';
+  
   try {
     // Get response from Perplexity API
     console.log(`[PERPLEXITY API CALL] Making external API request to Perplexity`);
-    const response = await queryPerplexity(messages);
+    response = await queryPerplexity(messages);
     console.log('Raw Perplexity response:', response);
     console.log(`[PERPLEXITY API CALL] Successfully received response from Perplexity`);
     
     // Clean the response to handle any unexpected formatting
-    const cleanedResponse = response.trim().replace(/```(?:json)?\s*|\s*```/g, '');
+    const cleanedResponse = cleanPerplexityResponse(response);
     
     // Extract a JSON array if present
     const jsonMatch = cleanedResponse.match(/(\[\s*\{[\s\S]*?\}\s*\])/);
@@ -113,9 +117,9 @@ Please output a JSON array containing 7 objects, where each object has exactly t
     // Try to extract company names from the JSON-like structure even if parsing failed
     try {
       const companyLines = response.split('\n')
-        .filter(line => line.trim() && !line.includes('```') && !line.includes('[') && !line.includes(']'))
-        .filter(line => line.includes('"name":'))
-        .map(line => {
+        .filter((line: string) => line.trim() && !line.includes('```') && !line.includes('[') && !line.includes(']'))
+        .filter((line: string) => line.includes('"name":'))
+        .map((line: string) => {
           const nameMatch = line.match(/"name":\s*"([^"]+)"/);
           // Try to find a website in the same line
           const websiteMatch = line.match(/"website":\s*"([^"]*)"/);
@@ -123,7 +127,8 @@ Please output a JSON array containing 7 objects, where each object has exactly t
           
           return {
             name: nameMatch ? nameMatch[1] : line,
-            website: website
+            website: website,
+            description: null
           };
         })
         .slice(0, 5);
@@ -138,9 +143,9 @@ Please output a JSON array containing 7 objects, where each object has exactly t
     
     // Last resort fallback to original parsing method
     const companies = response.split('\n')
-      .filter(line => line.trim())
+      .filter((line: string) => line.trim())
       .slice(0, 5)
-      .map(name => ({ name, website: null }));
+      .map((name: string) => ({ name, website: null, description: null }));
       
     console.log('Fallback company data after JSON parse error:', companies);
     return companies;

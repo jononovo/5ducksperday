@@ -16,6 +16,7 @@ import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { SearchProgress } from "./search-progress";
 import { MainSearchSummary } from "./main-search-summary";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
+import ContactSearchOptimizer, { ContactSearchConfig } from "./contact-search-optimizer";
 import {
   Tooltip,
   TooltipContent,
@@ -80,6 +81,15 @@ export default function PromptEditor({
   // Track if input has changed from last executed query
   const [inputHasChanged, setInputHasChanged] = useState(false);
   
+  // Contact search configuration state
+  const [contactSearchConfig, setContactSearchConfig] = useState<ContactSearchConfig>({
+    enableCoreLeadership: true,
+    enableDepartmentHeads: true,
+    enableMiddleManagement: true,
+    enableCustomSearch: false,
+    customSearchTarget: ""
+  });
+
   // Track input changes to update UI accordingly
   useEffect(() => {
     if (lastExecutedQuery !== null && query !== lastExecutedQuery) {
@@ -209,7 +219,8 @@ export default function PromptEditor({
       const res = await apiRequest("POST", "/api/companies/quick-search", { 
         query: searchQuery,
         flows: activeFlows,
-        strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined
+        strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
+        contactSearchConfig: contactSearchConfig
       });
       return res.json();
     },
@@ -301,7 +312,8 @@ export default function PromptEditor({
         query: searchQuery,
         flows: activeFlows,
         strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
-        includeContacts: true
+        includeContacts: true,
+        contactSearchConfig: contactSearchConfig
       });
       return res.json();
     },
@@ -544,6 +556,13 @@ export default function PromptEditor({
             />
           </div>
         </div>
+        
+        {/* Contact Search Optimizer - positioned below search input */}
+        <ContactSearchOptimizer
+          onConfigChange={setContactSearchConfig}
+          disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+          isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+        />
         
         {/* Progress Bar - moved below search input/button */}
         {(quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (
