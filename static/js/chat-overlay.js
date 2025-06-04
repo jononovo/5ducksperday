@@ -1033,7 +1033,7 @@ Let me process your strategy and research your market right now!`;
       setTimeout(() => {
         this.messages.push({
           id: (Date.now() + 1).toString(),
-          content: "Perfect! Now please give me an example of a type of business that buys from you.\nLike this \"[type of business] in [city/niche]\"\n\nExamples:\nHigh-volume cafes in Lower East Side, NYC\nReal-estate insurance brokers in Salt Lake City",
+          content: "Perfect! Now please give me an example of a type of business that buys from you.\nLike this \"[type of business] in [city/niche]\"\n\nExamples:\nPopular cafes in Lower East Side, NYC\nReal-estate insurance brokers in Salt Lake City",
           sender: 'ai',
           timestamp: new Date()
         });
