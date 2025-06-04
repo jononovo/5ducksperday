@@ -3584,7 +3584,10 @@ PHASE-SPECIFIC INSTRUCTIONS:
             });
           } else if (result.type === 'email_strategy') {
             await storage.updateStrategicProfile?.(userId, { 
-              reportSalesTargetingGuidance: JSON.stringify(result.data) 
+              reportSalesTargetingGuidance: JSON.stringify(result.data),
+              strategyHighLevelBoundary: result.data.boundary,
+              exampleSprintPlanningPrompt: result.data.sprintPrompt,
+              dailySearchQueries: JSON.stringify(result.data.dailyQueries)
             });
           } else if (result.type === 'sales_approach') {
             await storage.updateStrategicProfile?.(userId, { 

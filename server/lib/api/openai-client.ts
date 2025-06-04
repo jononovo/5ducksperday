@@ -92,10 +92,37 @@ Keep concise. No introductions or extra sections. List one per line without numb
 
   return {
     title: "90-Day Email Strategy", 
-    boundary: refinedTarget,
-    sprintPrompt: `Weekly focus: Identify and engage with ${refinedTarget} decision makers`,
+    boundary: extractBoundary(result),
+    sprintPrompt: extractSprintPrompt(result),
+    dailyQueries: extractDailyQueries(result),
     content: result
   };
+}
+
+// Parsing functions to extract structured components
+function extractBoundary(content: string): string {
+  const match = content.match(/## 1\. TARGET BOUNDARY\s*\n(.*?)(?=\n\n|\n##|$)/s);
+  return match ? match[1].trim() : '';
+}
+
+function extractSprintPrompt(content: string): string {
+  const match = content.match(/## 2\. SPRINT PROMPT\s*\n(.*?)(?=\n\n|\n##|$)/s);
+  return match ? match[1].trim() : '';
+}
+
+function extractDailyQueries(content: string): string[] {
+  const match = content.match(/## 3\. DAILY QUERIES\s*\n(.*?)$/s);
+  if (!match) return [];
+  
+  const queriesText = match[1].trim();
+  // Split by newlines and filter out empty lines
+  const queries = queriesText
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .filter(line => !line.startsWith('Keep concise'));
+  
+  return queries;
 }
 
 async function generateSalesApproach(params: any, productContext: any): Promise<any> {
