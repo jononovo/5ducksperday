@@ -709,7 +709,7 @@ class ChatOverlay {
         subtitle: "What is one thing customers like about your product or the way you sell it?",
         field: "customerFeedback",
         type: "textarea",
-        placeholder: "Example: They love our fast delivery and easy setup..."
+        placeholder: "Fast delivery and easy setup..."
       },
       {
         title: "Where can we learn more?",
