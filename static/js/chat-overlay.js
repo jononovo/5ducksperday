@@ -576,24 +576,24 @@ class ChatOverlay {
     this.render();
 
     try {
-      // Handle target market collection with AI-guided refinement
+      // Handle target market collection with simplified single endpoint
       if (this.chatStep === 'target_collection') {
-        // Use Perplexity API to guide target market refinement
-        const refinementResponse = await this.refineTargetMarket(message);
+        // Use unified strategy chat endpoint
+        const strategyResponse = await this.handleStrategyChatMessage(message);
         
-        // Check if AI determined target is ready for strategy
-        if (refinementResponse.includes('READY_FOR_STRATEGY:')) {
-          const finalTarget = refinementResponse.split('READY_FOR_STRATEGY:')[1].trim();
-          this.formData.targetDescription = finalTarget;
+        // Check if we received a complete strategy
+        if (strategyResponse.type === 'strategy') {
+          // Save strategy data and trigger research
+          this.formData.targetDescription = strategyResponse.data.targetDescription;
+          this.formData = { ...this.formData, ...strategyResponse.data };
           
-          // Process strategy and trigger research
-          await this.processStrategyAndTriggerResearch();
+          await this.triggerBackgroundResearch();
           return;
         } else {
-          // Continue refinement conversation
+          // Continue conversation
           this.messages.push({
             id: (Date.now() + 1).toString(),
-            content: refinementResponse,
+            content: strategyResponse.response,
             sender: 'ai',
             timestamp: new Date()
           });
@@ -867,11 +867,11 @@ Examples: "family-friendly hotels in coastal Florida" or "mid-size logistics com
     }
   }
 
-  async refineTargetMarket(userInput) {
+  async handleStrategyChatMessage(userInput) {
     try {
-      console.log('Refining target market with input:', userInput);
+      console.log('Processing strategy chat with input:', userInput);
       
-      const response = await fetch('/api/onboarding/refine-target', {
+      const response = await fetch('/api/onboarding/strategy-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -883,20 +883,20 @@ Examples: "family-friendly hotels in coastal Florida" or "mid-size logistics com
             customerFeedback: this.formData.customerFeedback,
             website: this.formData.website
           },
-          conversationHistory: this.messages.slice(-3)
+          conversationHistory: this.messages
         })
       });
 
       if (response.ok) {
         const data = await response.json();
-        return data.response;
+        return data;
       } else {
-        console.warn('Target refinement failed:', response.status);
-        return "Great start! Can you be more specific? For example: 'K-12 edtech startups' or 'corporate training platforms for Fortune 500 companies'?";
+        console.warn('Strategy chat failed:', response.status);
+        return { type: 'conversation', response: "Let's work with what you have. Could you be a bit more specific about your target market?" };
       }
     } catch (error) {
-      console.error('Error refining target market:', error);
-      return "Great start! Can you be more specific? For example: 'K-12 edtech startups' or 'corporate training platforms for Fortune 500 companies'?";
+      console.error('Error in strategy chat:', error);
+      return { type: 'conversation', response: "Let's work with what you have. Could you be a bit more specific about your target market?" };
     }
   }
 

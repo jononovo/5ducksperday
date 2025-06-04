@@ -3465,8 +3465,8 @@ Focus on actionable insights that directly support their stated business goal an
     }
   });
 
-  // Target Market Refinement Endpoint
-  app.post("/api/onboarding/refine-target", async (req, res) => {
+  // Strategic Target Collection and Strategy Generation
+  app.post("/api/onboarding/strategy-chat", async (req, res) => {
     try {
       const { userInput, productContext, conversationHistory } = req.body;
 
@@ -3475,70 +3475,92 @@ Focus on actionable insights that directly support their stated business goal an
         return;
       }
 
-      console.log('Refining target market with input:', userInput);
+      console.log('Processing strategy chat with input:', userInput);
 
-      // Extended AI prompt for target market refinement
-      const refinementPrompt = `System Prompt: Guide the user to suggest a specific example of search query prompt that can be used as an anchor to suggest a high-level strategy. Which we will then diffuse into lower level steps and again into a sequence of daily prompts similar to the first, but which will be part of a larger strategy. You should analyze the specificity of the prompt after EACH response from the user and should decide how many more niches it would like to drill-down to.
+      // Build conversation context
+      const conversationContext = conversationHistory && conversationHistory.length > 0 
+        ? conversationHistory.map(msg => `${msg.sender}: ${msg.content}`).join('\n')
+        : '';
 
-# The Starting point:
-1. You will receive product information as your starting point.
-2. You will engage the user in an upbeat and friendly manner to encourage them to think about who would be their most likely best customer.
-
-# Details:
-Example of a great daily search query if dissected semantically:
-Niche + Type of business + second niche (is often municipal geographical boundary, but can be other attribute.)
-
-A two-niche example: "mid-sized plumbers in Manhattan"
-
-An example of a prompt that needs two additional niches: "Insurance brokers in Florida"
-Niche 1: Recommend adding "real-estate" or "commercial real-estate" to the prompt.
-Niche 2: Recommend swapping "Florida" with "Orlando" or "Tampa Bay"
-
-And should always offer suggestions like, "Could we sharpen this by adding [specific/niche] or [specific/niche] to [industry/sector/profession]?"
-
-A third niche is often helpful if the industry sector is very broad or the geographical boundary is larger than a town or city section.
-
-The agent should expect to have to coax at least once or twice or even thrice as this is the most critical element of the strategy.
-
-A hyper-specific prompt like: "horse-brush manufacturers" could be acceptable on a state or even country-level as it is a tiny sub-set of horse accessories manufacturers, which is already a very niche industry.
-
-Ideally, don't push the user too far. On the final attempt, offer something like: "Can we sharpen this even further with [other options], or are you happy with this as it is?"
+      // Unified prompt that handles both refinement and strategy generation
+      const strategyPrompt = `You are a cold email strategist. Guide the user to refine their target market, then generate their strategy when ready.
 
 PRODUCT CONTEXT:
 Product/Service: ${productContext.productService}
 Customer Feedback: ${productContext.customerFeedback}
 Website: ${productContext.website || 'Not provided'}
 
-Current user input: "${userInput}"
+CONVERSATION SO FAR:
+${conversationContext}
 
-Analyze specificity and determine if we need more niches or if this is sufficient for strategy creation.
+CURRENT USER INPUT: "${userInput}"
 
-If sufficient (contains 2-3 specific niches), respond with: "READY_FOR_STRATEGY: [confirmed target description]"
-If needs refinement, provide conversational guidance as outlined above. Keep response under 50 words. Be encouraging but direct.`;
+# Your Role:
+1. If target needs refinement: Guide them to be more specific (business type + geography/niche)
+2. If target is sufficient: Generate complete strategy
 
-      const refinementMessages: PerplexityMessage[] = [
+# Target Examples:
+Good: "mid-sized plumbers in Manhattan", "family hotels in coastal Florida"
+Needs work: "hotels", "insurance brokers"
+
+# When to Generate Strategy:
+- User provides business type + geographic/demographic niche
+- User shows frustration or satisfaction with current specificity
+- After 2-3 refinement attempts
+
+# Strategy Output Format (when ready):
+STRATEGY_COMPLETE:
+{
+  "targetDescription": "final refined target",
+  "strategyHighLevelBoundary": "precise target market definition",
+  "exampleSprintPlanningPrompt": "medium-level search prompt", 
+  "exampleDailySearchQuery": "specific daily search query",
+  "reportSalesContextGuidance": "strategic cold email advice",
+  "reportSalesTargetingGuidance": "decision maker targeting recommendations"
+}
+
+# Refinement Response (when needed):
+Keep under 20 words. Be encouraging but direct. Suggest specific niches or geography.
+
+Respond now:`;
+
+      const messages: PerplexityMessage[] = [
         {
           role: "system",
-          content: "You are a cold email strategist helping extract precise target market information for B2B prospecting. Follow the guidance system exactly as specified."
+          content: "You are an expert cold email strategist. Follow the instructions exactly."
         },
         {
           role: "user", 
-          content: refinementPrompt
+          content: strategyPrompt
         }
       ];
 
-      // Get refinement guidance from Perplexity
-      const refinementResponse = await queryPerplexity(refinementMessages);
+      const response = await queryPerplexity(messages);
+      console.log('Strategy chat completed successfully');
 
-      console.log('Target refinement completed successfully');
+      // Check if response contains strategy or continues conversation
+      if (response.includes('STRATEGY_COMPLETE:')) {
+        const strategyMatch = response.match(/STRATEGY_COMPLETE:\s*(\{[\s\S]*\})/);
+        if (strategyMatch) {
+          try {
+            const strategyData = JSON.parse(strategyMatch[1]);
+            res.json({ type: 'strategy', data: strategyData });
+            return;
+          } catch (parseError) {
+            console.warn('Failed to parse strategy JSON, continuing conversation');
+          }
+        }
+      }
 
-      res.json({ response: refinementResponse });
+      // Continue conversation
+      res.json({ type: 'conversation', response: response });
 
     } catch (error) {
-      console.error("Target refinement error:", error);
-      res.status(500).json({
-        message: "Failed to refine target market",
-        error: error.message
+      console.error("Strategy chat error:", error);
+      // Graceful fallback - don't break the flow
+      res.json({ 
+        type: 'conversation', 
+        response: "Great! Let's work with what you have. Could you be a bit more specific about your target market?"
       });
     }
   });
@@ -3632,52 +3654,7 @@ Respond in this exact JSON format:
     }
   });
 
-  // Helper functions for data extraction
-  function extractAttributes(message: string): string[] {
-    // Simple keyword extraction - in production, this could use NLP
-    const keywords = message.toLowerCase()
-      .split(/[,.\n]/)
-      .map(s => s.trim())
-      .filter(s => s.length > 3)
-      .slice(0, 5);
-    return keywords;
-  }
 
-  function extractMarketNiche(message: string): "niche" | "broad" {
-    const nicheKeywords = ["niche", "specific", "specialized", "targeted", "focused"];
-    const broadKeywords = ["broad", "general", "wide", "diverse", "various"];
-    
-    const lowerMessage = message.toLowerCase();
-    const hasNiche = nicheKeywords.some(keyword => lowerMessage.includes(keyword));
-    const hasBroad = broadKeywords.some(keyword => lowerMessage.includes(keyword));
-    
-    return hasNiche && !hasBroad ? "niche" : "broad";
-  }
-
-  function generateSearchPrompts(profileData: any, businessType: string): string[] {
-    const prompts: string[] = [];
-    
-    // Generate prompts based on profile data
-    if (profileData.targetCustomers) {
-      prompts.push(`${profileData.targetCustomers} who need ${businessType} solutions`);
-    }
-    
-    if (profileData.businessDescription) {
-      prompts.push(`Companies that would benefit from ${profileData.businessDescription}`);
-    }
-    
-    if (profileData.uniqueAttributes && profileData.uniqueAttributes.length > 0) {
-      prompts.push(`Businesses looking for ${profileData.uniqueAttributes[0]} ${businessType} providers`);
-    }
-    
-    // Add default prompts if none generated
-    if (prompts.length === 0) {
-      prompts.push(`Small to medium businesses needing ${businessType} solutions`);
-      prompts.push(`Companies in need of reliable ${businessType} providers`);
-    }
-    
-    return prompts.slice(0, 3); // Limit to 3 prompts
-  }
 
   // All N8N Workflow Management Endpoints and proxies have been removed
 
