@@ -3501,8 +3501,8 @@ For profile generation: {"action": "profile", "content": "OK I'm building a shor
 For strategy generation: {"action": "strategy", "content": "Now I am building a 90-Day Email Sales Strategy to get you in touch with the right people.", "strategy": {"boundary": "precise target definition", "sprintPrompt": "weekly planning prompt", "dailyQueries": ["8 specific daily search prompts"]}}
 
 RULES:
-- Continue conversation until user provides business type + geographic/demographic niche
-- Generate profile when target is sufficiently specific
+- Encourage user twice to add more niches or be more specific about the search prompt. Then run the reports.
+- Generate profile when target includes business type + location OR after 2 encouragement attempts
 - Generate strategy immediately after profile is complete
 - Keep conversation responses under 20 words
 
