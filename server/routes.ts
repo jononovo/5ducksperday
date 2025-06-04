@@ -3465,7 +3465,7 @@ Focus on actionable insights that directly support their stated business goal an
     }
   });
 
-  // Strategic Target Collection and Strategy Generation
+  // Enhanced Strategy Chat with Phase Management
   app.post("/api/onboarding/strategy-chat", async (req, res) => {
     try {
       const { userInput, productContext, conversationHistory } = req.body;
@@ -3477,90 +3477,92 @@ Focus on actionable insights that directly support their stated business goal an
 
       console.log('Processing strategy chat with input:', userInput);
 
-      // Build conversation context
-      const conversationContext = conversationHistory && conversationHistory.length > 0 
-        ? conversationHistory.map(msg => `${msg.sender}: ${msg.content}`).join('\n')
-        : '';
+      const conversationContext = conversationHistory?.map(msg => `${msg.sender}: ${msg.content}`).join('\n') || '';
 
-      // Unified prompt that handles both refinement and strategy generation
-      const strategyPrompt = `You are a cold email strategist. Guide the user to refine their target market, then generate their strategy when ready.
+      const enhancedPrompt = `You are a cold email strategist managing a 2-phase consultation.
 
 PRODUCT CONTEXT:
 Product/Service: ${productContext.productService}
 Customer Feedback: ${productContext.customerFeedback}
 Website: ${productContext.website || 'Not provided'}
 
-CONVERSATION SO FAR:
+CONVERSATION HISTORY:
 ${conversationContext}
 
 CURRENT USER INPUT: "${userInput}"
 
-# Your Role:
-1. If target needs refinement: Guide them to be more specific (business type + geography/niche)
-2. If target is sufficient: Generate complete strategy
+PHASE MANAGEMENT:
+Phase 1: Target Market Refinement → Generate Product Profile
+Phase 2: Product Profile Complete → Generate Lead Strategy
 
-# Target Examples:
-Good: "mid-sized plumbers in Manhattan", "family hotels in coastal Florida"
-Needs work: "hotels", "insurance brokers"
+RESPONSE FORMAT:
+For conversation: {"action": "continue", "content": "your response"}
+For profile generation: {"action": "profile", "content": "OK I'm building a short sales profile around your product.", "profile": {"title": "State of ${productContext.productService} Sales", "content": "200-word analysis with bullet points", "approaches": ["1 standard approach", "3 innovative approaches"]}}
+For strategy generation: {"action": "strategy", "content": "Now I am building a 90-Day Email Sales Strategy to get you in touch with the right people.", "strategy": {"boundary": "precise target definition", "sprintPrompt": "weekly planning prompt", "dailyQueries": ["8 specific daily search prompts"]}}
 
-# When to Generate Strategy:
-- User provides business type + geographic/demographic niche
-- User shows frustration or satisfaction with current specificity
-- After 2-3 refinement attempts
+RULES:
+- Continue conversation until user provides business type + geographic/demographic niche
+- Generate profile when target is sufficiently specific
+- Generate strategy immediately after profile is complete
+- Keep conversation responses under 20 words
 
-# Strategy Output Format (when ready):
-STRATEGY_COMPLETE:
-{
-  "targetDescription": "final refined target",
-  "strategyHighLevelBoundary": "precise target market definition",
-  "exampleSprintPlanningPrompt": "medium-level search prompt", 
-  "exampleDailySearchQuery": "specific daily search query",
-  "reportSalesContextGuidance": "strategic cold email advice",
-  "reportSalesTargetingGuidance": "decision maker targeting recommendations"
-}
+Respond with valid JSON:`;
 
-# Refinement Response (when needed):
-Keep under 20 words. Be encouraging but direct. Suggest specific niches or geography.
+      const response = await queryPerplexity([
+        { role: "system", content: "You are an expert cold email strategist. Follow instructions exactly and respond with valid JSON only." },
+        { role: "user", content: enhancedPrompt }
+      ]);
 
-Respond now:`;
-
-      const messages: PerplexityMessage[] = [
-        {
-          role: "system",
-          content: "You are an expert cold email strategist. Follow the instructions exactly."
-        },
-        {
-          role: "user", 
-          content: strategyPrompt
-        }
-      ];
-
-      const response = await queryPerplexity(messages);
       console.log('Strategy chat completed successfully');
 
-      // Check if response contains strategy or continues conversation
-      if (response.includes('STRATEGY_COMPLETE:')) {
-        const strategyMatch = response.match(/STRATEGY_COMPLETE:\s*(\{[\s\S]*\})/);
-        if (strategyMatch) {
+      // Parse AI response
+      let aiData;
+      try {
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        aiData = JSON.parse(jsonMatch ? jsonMatch[0] : response);
+      } catch (parseError) {
+        console.warn('Failed to parse AI response, continuing conversation');
+        res.json({ type: 'conversation', response: "Let's work with what you have. Could you be more specific about your target market?" });
+        return;
+      }
+      
+      if (aiData.action === 'profile') {
+        // Save profile to database if user is authenticated
+        if (req.user) {
           try {
-            const strategyData = JSON.parse(strategyMatch[1]);
-            res.json({ type: 'strategy', data: strategyData });
-            return;
-          } catch (parseError) {
-            console.warn('Failed to parse strategy JSON, continuing conversation');
+            const userId = getUserId(req);
+            await storage.updateUser?.(userId, { 
+              reportSalesContextGuidance: JSON.stringify(aiData.profile) 
+            });
+          } catch (dbError) {
+            console.warn('Failed to save profile to database:', dbError);
           }
         }
+        res.json({ type: 'profile', message: aiData.content, data: aiData.profile });
+        
+      } else if (aiData.action === 'strategy') {
+        // Save strategy to database if user is authenticated
+        if (req.user) {
+          try {
+            const userId = getUserId(req);
+            await storage.updateUser?.(userId, { 
+              reportSalesTargetingGuidance: JSON.stringify(aiData.strategy) 
+            });
+          } catch (dbError) {
+            console.warn('Failed to save strategy to database:', dbError);
+          }
+        }
+        res.json({ type: 'strategy', message: aiData.content, data: aiData.strategy });
+        
+      } else {
+        res.json({ type: 'conversation', response: aiData.content });
       }
-
-      // Continue conversation
-      res.json({ type: 'conversation', response: response });
 
     } catch (error) {
       console.error("Strategy chat error:", error);
-      // Graceful fallback - don't break the flow
       res.json({ 
         type: 'conversation', 
-        response: "Great! Let's work with what you have. Could you be a bit more specific about your target market?"
+        response: "Let's work with what you have. Could you be a bit more specific about your target market?"
       });
     }
   });

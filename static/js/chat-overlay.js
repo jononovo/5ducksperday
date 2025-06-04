@@ -581,14 +581,31 @@ class ChatOverlay {
         // Use unified strategy chat endpoint
         const strategyResponse = await this.handleStrategyChatMessage(message);
         
-        // Check if we received a complete strategy
-        if (strategyResponse.type === 'strategy') {
-          // Save strategy data and trigger research
-          this.formData.targetDescription = strategyResponse.data.targetDescription;
-          this.formData = { ...this.formData, ...strategyResponse.data };
+        if (strategyResponse.type === 'profile') {
+          // Display profile generation message
+          this.messages.push({
+            id: (Date.now() + 1).toString(),
+            content: strategyResponse.message,
+            sender: 'ai',
+            timestamp: new Date()
+          });
           
-          await this.triggerBackgroundResearch();
-          return;
+          // Display profile content
+          this.displayProductProfile(strategyResponse.data);
+          
+        } else if (strategyResponse.type === 'strategy') {
+          // Display strategy generation message
+          this.messages.push({
+            id: (Date.now() + 1).toString(),
+            content: strategyResponse.message,
+            sender: 'ai',
+            timestamp: new Date()
+          });
+          
+          // Display strategy and complete onboarding
+          this.displayLeadStrategy(strategyResponse.data);
+          this.chatStep = 'complete';
+          
         } else {
           // Continue conversation
           this.messages.push({
@@ -597,11 +614,11 @@ class ChatOverlay {
             sender: 'ai',
             timestamp: new Date()
           });
-          
-          this.isLoading = false;
-          this.render();
-          return;
         }
+        
+        this.isLoading = false;
+        this.render();
+        return;
       }
 
       // Regular chat flow (after research is complete)
@@ -955,6 +972,77 @@ Let me process your strategy and research your market right now!`;
       this.isLoading = false;
       this.render();
     }
+  }
+
+  displayProductProfile(profileData) {
+    const profileHtml = `
+      <div class="profile-report bg-blue-50 border border-blue-200 rounded-lg p-4 my-3">
+        <h3 class="font-bold text-lg text-blue-800 mb-2">${profileData.title}</h3>
+        <p class="text-gray-700 mb-3">${profileData.content}</p>
+        <h4 class="font-semibold text-blue-700 mb-2">Selling Approaches:</h4>
+        <ul class="list-disc list-inside text-gray-700 space-y-1">
+          ${profileData.approaches.map(approach => `<li>${approach}</li>`).join('')}
+        </ul>
+      </div>`;
+    
+    this.messages.push({
+      id: (Date.now() + 2).toString(),
+      content: profileHtml,
+      sender: 'ai',
+      timestamp: new Date(),
+      isHTML: true
+    });
+    
+    this.render();
+  }
+
+  displayLeadStrategy(strategyData) {
+    const strategyHtml = `
+      <div class="strategy-report bg-green-50 border border-green-200 rounded-lg p-4 my-3">
+        <h3 class="font-bold text-lg text-green-800 mb-3">90-Day Email Sales Strategy</h3>
+        <div class="mb-3">
+          <h4 class="font-semibold text-green-700 mb-1">Target Boundary:</h4>
+          <p class="text-gray-700">${strategyData.boundary}</p>
+        </div>
+        <div class="mb-3">
+          <h4 class="font-semibold text-green-700 mb-1">Sprint Planning:</h4>
+          <p class="text-gray-700">${strategyData.sprintPrompt}</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-green-700 mb-2">Daily Search Queries:</h4>
+          <div class="bg-white rounded border border-green-100 overflow-hidden">
+            <table class="w-full">
+              <thead class="bg-green-100">
+                <tr>
+                  <th class="text-left p-2 font-medium text-green-800">Day</th>
+                  <th class="text-left p-2 font-medium text-green-800">Search Query</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${strategyData.dailyQueries.map((query, i) => `
+                  <tr class="border-t border-green-100">
+                    <td class="p-2 font-medium text-green-600">${i + 1}</td>
+                    <td class="p-2 text-gray-700">${query}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="completion-message bg-gray-50 border border-gray-200 rounded-lg p-4 my-3">
+        <p class="text-center text-gray-700 font-medium">✓ Strategic onboarding complete! You're ready to start your outreach.</p>
+      </div>`;
+    
+    this.messages.push({
+      id: (Date.now() + 3).toString(),
+      content: strategyHtml,
+      sender: 'ai',
+      timestamp: new Date(),
+      isHTML: true
+    });
+    
+    this.render();
   }
 
   displayResearchReport(researchData) {
