@@ -1021,7 +1021,7 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
 
       let strategyData = {};
 
-      // Step 1: Generate Boundary
+      // Step 1: Generate Boundary Options
       this.addLoadingMessage("Analyzing your market scope...");
       
       console.log('Calling boundary API with:', { initialTarget, refinedTarget, productContext });
@@ -1034,9 +1034,17 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
 
       if (boundaryResponse.ok) {
         const boundaryData = await boundaryResponse.json();
-        strategyData.boundary = boundaryData.content;
-        this.displayStrategyStep(boundaryData);
-        console.log('Boundary step completed:', boundaryData);
+        
+        if (boundaryData.type === 'boundary_options') {
+          // Display interactive boundary selection
+          this.displayBoundaryOptions(boundaryData, productContext, initialTarget, refinedTarget);
+          return; // Wait for user selection
+        } else {
+          // Legacy single boundary response
+          strategyData.boundary = boundaryData.content;
+          this.displayStrategyStep(boundaryData);
+          console.log('Boundary step completed:', boundaryData);
+        }
       } else {
         console.error('Boundary API failed:', boundaryResponse.status, await boundaryResponse.text());
         throw new Error(`Boundary generation failed: ${boundaryResponse.status}`);
@@ -1259,6 +1267,167 @@ Let me process your strategy and research your market right now!`;
     } catch (error) {
       console.error('Error processing strategy and triggering research:', error);
       this.isLoading = false;
+      this.render();
+    }
+  }
+
+  displayBoundaryOptions(boundaryData, productContext, initialTarget, refinedTarget) {
+    // Store context for selection handling
+    this.boundarySelectionContext = {
+      options: boundaryData.content,
+      productContext,
+      initialTarget,
+      refinedTarget
+    };
+    this.boundarySelectionMode = true;
+
+    const optionsHtml = `
+      <div class="boundary-options bg-blue-50 border border-blue-200 rounded-lg p-4 my-3">
+        <h3 class="font-bold text-lg text-blue-800 mb-2">${boundaryData.description}</h3>
+        <div class="options-list space-y-3 mb-4">
+          ${boundaryData.content.map((option, index) => `
+            <div class="option-item p-3 bg-white border border-gray-200 rounded cursor-pointer hover:border-blue-400 transition-colors" 
+                 onclick="chatOverlay.selectBoundaryOption(${index})">
+              <strong>${index + 1}.</strong> ${option}
+            </div>
+          `).join('')}
+        </div>
+        <div class="custom-input-section">
+          <p class="text-sm text-gray-600 mb-2">Or write your own boundary:</p>
+          <div class="flex gap-2">
+            <input type="text" id="customBoundaryInput" placeholder="Enter your custom boundary..." 
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+            <button onclick="chatOverlay.selectCustomBoundary()" 
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+              Use This
+            </button>
+          </div>
+        </div>
+      </div>`;
+
+    this.messages.push({
+      id: Date.now().toString(),
+      content: optionsHtml,
+      sender: 'ai',
+      timestamp: new Date(),
+      isHTML: true
+    });
+
+    this.render();
+  }
+
+  async selectBoundaryOption(optionIndex) {
+    if (!this.boundarySelectionContext || !this.boundarySelectionMode) return;
+
+    const selectedBoundary = this.boundarySelectionContext.options[optionIndex];
+    await this.confirmBoundarySelection(selectedBoundary, null);
+  }
+
+  async selectCustomBoundary() {
+    const customInput = document.getElementById('customBoundaryInput');
+    if (!customInput || !customInput.value.trim()) return;
+    
+    const customBoundary = customInput.value.trim();
+    await this.confirmBoundarySelection(null, customBoundary);
+  }
+
+  async confirmBoundarySelection(selectedOption, customBoundary) {
+    try {
+      this.boundarySelectionMode = false;
+      this.addLoadingMessage("Confirming your boundary selection...");
+
+      const confirmResponse = await fetch('/api/strategy/boundary/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          selectedOption,
+          customBoundary,
+          productContext: this.boundarySelectionContext.productContext
+        })
+      });
+
+      if (confirmResponse.ok) {
+        const confirmData = await confirmResponse.json();
+        
+        this.messages.push({
+          id: Date.now().toString(),
+          content: `Perfect! Your confirmed boundary: "${confirmData.content}"`,
+          sender: 'ai',
+          timestamp: new Date()
+        });
+
+        this.render();
+
+        // Continue with strategy generation using confirmed boundary
+        await this.continueStrategyGeneration(confirmData.content);
+      } else {
+        throw new Error('Failed to confirm boundary selection');
+      }
+    } catch (error) {
+      console.error('Error confirming boundary selection:', error);
+      this.messages.push({
+        id: Date.now().toString(),
+        content: "There was an error confirming your selection. Please try again.",
+        sender: 'ai',
+        timestamp: new Date()
+      });
+      this.render();
+    }
+  }
+
+  async continueStrategyGeneration(confirmedBoundary) {
+    try {
+      const { initialTarget, refinedTarget, productContext } = this.boundarySelectionContext;
+
+      // Step 2: Generate Sprint Prompt
+      this.addLoadingMessage("Creating sprint strategy...");
+      
+      const sprintResponse = await fetch('/api/strategy/sprint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          boundary: confirmedBoundary, 
+          refinedTarget, 
+          productContext 
+        })
+      });
+
+      if (sprintResponse.ok) {
+        const sprintData = await sprintResponse.json();
+        this.displayStrategyStep(sprintData);
+      } else {
+        throw new Error('Sprint generation failed');
+      }
+
+      // Step 3: Generate Daily Queries
+      this.addLoadingMessage("Generating daily search queries...");
+      
+      const queriesResponse = await fetch('/api/strategy/queries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          boundary: confirmedBoundary, 
+          sprintPrompt: sprintData?.content,
+          productContext 
+        })
+      });
+
+      if (queriesResponse.ok) {
+        const queriesData = await queriesResponse.json();
+        this.displayStrategyStep(queriesData);
+        this.displayStrategyComplete();
+      } else {
+        throw new Error('Queries generation failed');
+      }
+
+    } catch (error) {
+      console.error('Error continuing strategy generation:', error);
+      this.messages.push({
+        id: Date.now().toString(),
+        content: "There was an error generating your strategy. Please try again.",
+        sender: 'ai',
+        timestamp: new Date()
+      });
       this.render();
     }
   }
