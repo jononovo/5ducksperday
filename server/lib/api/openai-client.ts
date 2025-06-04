@@ -54,11 +54,12 @@ export async function generateEmailStrategy(params: any, productContext: any): P
   
   const perplexityPrompt = `
 Create a 90-day email sales strategy for ${productContext.productService}:
-Example Daily Search Query: ${initialTarget}
+Example Target: ${initialTarget}
+Example Refined Target: ${refinedTarget}
 
 Format exactly as:
 ## 1. TARGET BOUNDARY
-Based on product and example customers in ${initialTarget}, create a 90-day search boundary ( ~700 companies) statement that we can build 6 search sprints ( 2 weeks each) within. 
+Based on product and example targets, create a 90-day search boundary ( ~700 companies) statement that we can build 6 search sprints ( 2 weeks each) within. 
 Boundary can be niches and/or geographic areas.
 Max 10 words.
 
