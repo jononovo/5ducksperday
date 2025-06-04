@@ -3478,6 +3478,8 @@ Focus on actionable insights that directly support their stated business goal an
       console.log('Processing strategy chat with input:', userInput);
 
       const conversationContext = conversationHistory?.map(msg => `${msg.sender}: ${msg.content}`).join('\n') || '';
+      const conversationExchanges = conversationHistory?.length || 0;
+      const shouldGenerateProfile = conversationExchanges >= 4;
 
       const enhancedPrompt = `You are a cold email strategist managing a 2-phase consultation.
 
@@ -3501,10 +3503,13 @@ For profile generation: {"action": "profile", "content": "OK I'm building a shor
 For strategy generation: {"action": "strategy", "content": "Now I am building a 90-Day Email Sales Strategy to get you in touch with the right people.", "strategy": {"boundary": "precise target definition", "sprintPrompt": "weekly planning prompt", "dailyQueries": ["8 specific daily search prompts"]}}
 
 RULES:
-- Encourage user twice to add more niches or be more specific about the search prompt. Then run the reports.
-- Generate profile when target includes business type + location OR after 2 encouragement attempts
+- If conversation has ${conversationExchanges} exchanges and is 4+, immediately generate profile regardless of specificity
+- Otherwise encourage user to be more specific (max 2 times)
 - Generate strategy immediately after profile is complete
 - Keep conversation responses under 20 words
+
+CONVERSATION LENGTH: ${conversationExchanges} exchanges
+TRIGGER PROFILE: ${shouldGenerateProfile ? 'YES - Generate profile now' : 'NO - Continue conversation'}
 
 Respond with valid JSON:`;
 
