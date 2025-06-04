@@ -1349,11 +1349,20 @@ Let me process your strategy and research your market right now!`;
       if (confirmResponse.ok) {
         const confirmData = await confirmResponse.json();
         
+        const confirmationHtml = `
+          <div class="strategy-step mb-4 p-4 bg-green-50 border-l-4 border-green-400 rounded">
+            <h4 class="font-semibold text-green-800 mb-2">
+              Target Boundary Confirmed (Step 1/3)
+            </h4>
+            <div class="text-gray-700">${confirmData.content}</div>
+          </div>`;
+        
         this.messages.push({
           id: Date.now().toString(),
-          content: `Perfect! Your confirmed boundary: "${confirmData.content}"`,
+          content: confirmationHtml,
           sender: 'ai',
-          timestamp: new Date()
+          timestamp: new Date(),
+          isHTML: true
         });
 
         this.render();
