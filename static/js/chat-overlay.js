@@ -831,6 +831,12 @@ I'm building a product summary so that I can understand what you're selling bett
       // Set chat state for target market collection
       this.chatStep = 'target_collection';
       this.setState(this.isMobile ? 'fullscreen' : 'fullscreen');
+      
+      // Immediately trigger product summary generation
+      setTimeout(async () => {
+        const strategyResponse = await this.handleStrategyChatMessage('Generate product summary');
+        // The response will be handled by the existing displayReport logic
+      }, 100);
     } else {
       this.currentStep++;
       this.renderForm();
