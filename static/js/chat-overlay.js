@@ -1422,7 +1422,7 @@ Let me process your strategy and research your market right now!`;
         const completeStrategyData = {
           boundary: confirmedBoundary,
           sprintPrompt: sprintData?.content || '',
-          dailyQueries: queriesData?.content ? queriesData.content.split('\n').filter(q => q.trim()) : []
+          dailyQueries: queriesData?.content ? (Array.isArray(queriesData.content) ? queriesData.content : queriesData.content.split('\n').filter(q => q.trim())) : []
         };
         
         this.displayStrategyComplete(completeStrategyData);
