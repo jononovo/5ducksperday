@@ -3514,41 +3514,52 @@ TRIGGER PROFILE: ${shouldGenerateProfile ? 'YES - Generate profile now' : 'NO - 
 
 Respond with valid JSON:`;
 
-      const response = await queryPerplexity([
-        { role: "system", content: "You are an expert cold email strategist. Follow instructions exactly and respond with valid JSON only." },
-        { role: "user", content: enhancedPrompt }
-      ]);
+      // Build conversation history for OpenAI
+      const messages = [
+        {
+          role: "system",
+          content: `You are an expert cold email strategist helping users create personalized sales strategies.
 
-      console.log('Strategy chat completed successfully');
+PRODUCT CONTEXT:
+- Product/Service: ${productContext.productService}
+- Customer Feedback: ${productContext.customerFeedback}
+- Website: ${productContext.website || 'Not provided'}
 
-      // Parse AI response - handle Perplexity response format
-      let aiData;
-      try {
-        // First try to parse as direct JSON (in case response is already parsed)
-        if (typeof response === 'string') {
-          // Extract JSON from Perplexity response content
-          const jsonMatch = response.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            aiData = JSON.parse(jsonMatch[0]);
-          } else {
-            throw new Error('No JSON found in response');
-          }
-        } else {
-          // Response is already an object, extract from choices
-          aiData = JSON.parse(response.choices[0].message.content);
+Your goal is to:
+1. Gather information about their product and target market through natural conversation
+2. When you have sufficient context, call generateProfile() to create a sales profile
+3. After the profile is created, call generateStrategy() to create their 90-day email strategy
+
+Be conversational and helpful. Ask clarifying questions to understand their target market better. When you feel you have enough information about their product features and target audience, generate the profile. After the profile, generate the strategy based on their specific target market.`
         }
-        
-        console.log('Successfully parsed AI response:', aiData.action);
-        
-      } catch (parseError) {
-        console.warn('Failed to parse AI response:', parseError.message);
-        console.log('Raw response:', typeof response === 'string' ? response.substring(0, 200) : JSON.stringify(response).substring(0, 200));
-        res.json({ 
-          type: 'conversation', 
-          response: "I'm having some problems building my report. Let's come back to this later. Why don't you go to the search page for now."
+      ];
+
+      // Add conversation history
+      if (conversationHistory && conversationHistory.length > 0) {
+        conversationHistory.forEach(msg => {
+          messages.push({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.content
+          } as any);
         });
-        return;
       }
+
+      // Add current user input
+      messages.push({
+        role: "user",
+        content: userInput
+      } as any);
+
+      const result = await queryOpenAI(messages, productContext);
+      console.log('Strategy chat completed successfully, type:', result.type);
+      
+      const aiData = {
+        action: result.type,
+        message: result.message,
+        content: result.message,
+        profile: result.type === 'profile' ? result.data : undefined,
+        strategy: result.type === 'strategy' ? result.data : undefined
+      };
       
       if (aiData.action === 'profile') {
         // Save profile to database if user is authenticated

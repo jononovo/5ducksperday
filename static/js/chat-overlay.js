@@ -519,10 +519,11 @@ class ChatOverlay {
     
     this.messages.forEach(message => {
       const time = message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const content = message.content || '';
       html += `
         <div class="message ${message.sender}">
           <div class="message-content">
-            ${message.content.replace(/\n/g, '<br>')}
+            ${message.isHTML ? content : content.replace(/\n/g, '<br>')}
             <span class="message-time">${time}</span>
           </div>
         </div>
@@ -1005,41 +1006,6 @@ Let me process your strategy and research your market right now!`;
     });
     
     this.render();
-    
-    // Automatically trigger strategy generation after profile
-    setTimeout(() => {
-      this.triggerStrategyGeneration();
-    }, 1000);
-  }
-
-  async triggerStrategyGeneration() {
-    try {
-      const strategyResponse = await this.handleStrategyChatMessage('Generate the lead strategy now');
-      
-      if (strategyResponse.type === 'strategy') {
-        this.messages.push({
-          id: (Date.now() + 1).toString(),
-          content: strategyResponse.message,
-          sender: 'ai',
-          timestamp: new Date()
-        });
-        
-        this.displayLeadStrategy(strategyResponse.data);
-        this.chatStep = 'complete';
-      } else {
-        // Continue conversation if needed
-        this.messages.push({
-          id: (Date.now() + 1).toString(),
-          content: strategyResponse.response,
-          sender: 'ai',
-          timestamp: new Date()
-        });
-      }
-      
-      this.render();
-    } catch (error) {
-      console.warn('Failed to generate strategy:', error);
-    }
   }
 
   displayLeadStrategy(strategyData) {

@@ -1,13 +1,9 @@
 import OpenAI from 'openai';
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
-
-interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
 
 interface FunctionCallResult {
   type: 'conversation' | 'profile' | 'strategy';
@@ -16,7 +12,7 @@ interface FunctionCallResult {
 }
 
 export async function queryOpenAI(
-  messages: ChatMessage[],
+  messages: ChatCompletionMessageParam[],
   productContext: any
 ): Promise<FunctionCallResult> {
   try {
