@@ -1,12 +1,14 @@
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import { queryPerplexity } from './perplexity-client';
+import type { PerplexityMessage } from '../perplexity';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
 interface FunctionCallResult {
-  type: 'conversation' | 'profile' | 'strategy';
+  type: 'conversation' | 'product_summary' | 'email_strategy' | 'sales_approach';
   message: string;
   data?: any;
 }
@@ -23,47 +25,59 @@ export async function queryOpenAI(
         {
           type: "function",
           function: {
-            name: "generateProfile",
-            description: "Generate a comprehensive product sales profile when the user has provided sufficient context about their product/service and target market",
+            name: "generateProductSummary",
+            description: "Generate product analysis summary from form data - call immediately when chat opens",
             parameters: {
               type: "object",
               properties: {
-                productName: {
-                  type: "string",
-                  description: "Name or type of product/service being sold"
-                },
-                keyFeatures: {
-                  type: "array",
-                  items: { type: "string" },
-                  description: "Key features or benefits highlighted by user"
-                },
-                targetMarket: {
-                  type: "string",
-                  description: "Target market or customer type mentioned"
+                productData: {
+                  type: "object",
+                  description: "Product information from form inputs"
                 }
               },
-              required: ["productName", "keyFeatures", "targetMarket"]
+              required: ["productData"]
             }
           }
         },
         {
           type: "function",
           function: {
-            name: "generateStrategy",
-            description: "Generate a 90-day email sales strategy after the product profile has been created",
+            name: "generateEmailStrategy",
+            description: "Generate 90-day email sales strategy after product summary confirmation",
             parameters: {
               type: "object",
               properties: {
-                targetBusiness: {
+                targetMarket: {
                   type: "string",
-                  description: "Specific type of business to target (e.g., 'business hotels in Mumbai')"
+                  description: "Specific target market refined through conversation"
                 },
-                marketNiche: {
-                  type: "string",
-                  description: "Refined market niche for focused targeting"
+                productContext: {
+                  type: "object",
+                  description: "Product context from previous summary"
                 }
               },
-              required: ["targetBusiness", "marketNiche"]
+              required: ["targetMarket", "productContext"]
+            }
+          }
+        },
+        {
+          type: "function",
+          function: {
+            name: "generateSalesApproach",
+            description: "Generate sales approach strategy for email content - final report",
+            parameters: {
+              type: "object",
+              properties: {
+                strategyContext: {
+                  type: "object",
+                  description: "Context from email strategy"
+                },
+                productContext: {
+                  type: "object",
+                  description: "Product context"
+                }
+              },
+              required: ["strategyContext", "productContext"]
             }
           }
         }

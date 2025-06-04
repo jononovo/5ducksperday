@@ -403,6 +403,7 @@ export const strategicProfiles = pgTable("strategic_profiles", {
   strategyHighLevelBoundary: text("strategy_high_level_boundary"), // "3-4 star family-friendly hotels in coastal SE US"
   exampleSprintPlanningPrompt: text("example_sprint_planning_prompt"), // "family-friendly hotels on space coast, florida"
   exampleDailySearchQuery: text("example_daily_search_query"), // "family-friendly hotels in cocoa beach"
+  productAnalysisSummary: text("product_analysis_summary"), // AI-generated product profile summary
   reportSalesContextGuidance: text("report_sales_context_guidance"), // AI-generated context for cold email approach
   reportSalesTargetingGuidance: text("report_sales_targeting_guidance"), // AI-generated targeting recommendations
   strategicPlan: jsonb("strategic_plan").default({}),
@@ -493,6 +494,7 @@ export const strategicProfileSchema = z.object({
   strategyHighLevelBoundary: z.string().optional(),
   exampleSprintPlanningPrompt: z.string().optional(),
   exampleDailySearchQuery: z.string().optional(),
+  productAnalysisSummary: z.string().optional(),
   reportSalesContextGuidance: z.string().optional(),
   reportSalesTargetingGuidance: z.string().optional(),
   strategicPlan: z.record(z.unknown()).optional(),
