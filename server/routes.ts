@@ -3477,14 +3477,13 @@ Focus on actionable insights that directly support their stated business goal an
       }
 
       console.log('Processing strategy chat with input:', userInput);
+      console.log('Conversation history received:', JSON.stringify(conversationHistory, null, 2));
 
       // Determine conversation phase based on conversation content
       const hasProductSummary = conversationHistory?.some(msg => 
         msg.sender === 'ai' && 
-        (msg.content?.includes('Product Analysis Summary') || 
-         msg.content?.includes('Here\'s your product analysis') ||
-         msg.content?.includes('Here is your product analysis') ||
-         msg.content?.includes('product analysis summary'))
+        (msg.content?.toLowerCase().includes('product') && 
+         (msg.content?.toLowerCase().includes('summary') || msg.content?.toLowerCase().includes('analysis')))
       ) || false;
       const hasEmailStrategy = conversationHistory?.some(msg => 
         msg.sender === 'ai' && 
@@ -3499,10 +3498,11 @@ Focus on actionable insights that directly support their stated business goal an
       const targetMessages = conversationHistory?.filter(msg => 
         msg.sender === 'user' && 
         msg.content && 
-        !msg.content.includes('Generate product summary') &&
-        !msg.content.includes('yes please') &&
-        !msg.content.includes('correct') &&
-        msg.content.length > 5
+        !msg.content.toLowerCase().includes('generate product summary') &&
+        !msg.content.toLowerCase().includes('yes please') &&
+        !msg.content.toLowerCase().includes('correct') &&
+        !msg.content.toLowerCase().includes('ok') &&
+        msg.content.length > 3
       ) || [];
       
       const hasInitialTarget = targetMessages.length >= 1;
@@ -3515,14 +3515,14 @@ Focus on actionable insights that directly support their stated business goal an
       if (hasEmailStrategy && !hasSalesApproach) currentPhase = 'SALES_APPROACH';
       if (hasSalesApproach) currentPhase = 'COMPLETE';
 
-      console.log('Phase detection:', {
+      console.log('Phase detection debug:', {
         hasProductSummary,
         hasInitialTarget,
         hasRefinedTarget,
         hasEmailStrategy,
-        hasSalesApproach,
         currentPhase,
-        targetMessagesCount: targetMessages.length
+        targetMessagesCount: targetMessages.length,
+        conversationHistory: conversationHistory?.map(m => ({ sender: m.sender, contentStart: m.content?.substring(0, 50) }))
       });
 
       // Build conversation messages for OpenAI
