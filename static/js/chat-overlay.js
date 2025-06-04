@@ -146,6 +146,20 @@ class ChatOverlay {
         margin: 0;
       }
       
+      .loading-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #e5e5e5;
+        border-top: 2px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
       .chat-controls {
         display: flex;
         gap: 8px;
@@ -894,6 +908,11 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
     try {
       console.log('Processing strategy chat with input:', userInput);
       
+      // Check if this should trigger progressive strategy generation
+      if (this.needsEmailStrategy) {
+        return await this.generateProgressiveStrategy(this.initialTarget, userInput);
+      }
+      
       const response = await fetch('/api/onboarding/strategy-chat', {
         method: 'POST',
         headers: {
@@ -937,6 +956,160 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
       console.error('Error in strategy chat:', error);
       return { type: 'conversation', response: "Let's work with what you have. Could you be a bit more specific about your target market?" };
     }
+  }
+
+  async generateProgressiveStrategy(initialTarget, refinedTarget) {
+    try {
+      const productContext = {
+        productService: this.formData.productService,
+        customerFeedback: this.formData.customerFeedback,
+        website: this.formData.website
+      };
+      let strategyData = {};
+
+      // Step 1: Generate Boundary
+      this.addLoadingMessage("Analyzing your market scope...");
+      
+      const boundaryResponse = await fetch('/api/strategy/boundary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initialTarget, refinedTarget, productContext })
+      });
+
+      if (boundaryResponse.ok) {
+        const boundaryData = await boundaryResponse.json();
+        strategyData.boundary = boundaryData.content;
+        this.displayStrategyStep(boundaryData);
+      }
+
+      // Step 2: Generate Sprint Prompt
+      this.addLoadingMessage("Creating sprint strategy...");
+      
+      const sprintResponse = await fetch('/api/strategy/sprint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          boundary: strategyData.boundary, 
+          refinedTarget, 
+          productContext 
+        })
+      });
+
+      if (sprintResponse.ok) {
+        const sprintData = await sprintResponse.json();
+        strategyData.sprintPrompt = sprintData.content;
+        this.displayStrategyStep(sprintData);
+      }
+
+      // Step 3: Generate Daily Queries
+      this.addLoadingMessage("Generating daily queries...");
+      
+      const queriesResponse = await fetch('/api/strategy/queries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          boundary: strategyData.boundary,
+          sprintPrompt: strategyData.sprintPrompt,
+          productContext 
+        })
+      });
+
+      if (queriesResponse.ok) {
+        const queriesData = await queriesResponse.json();
+        strategyData.dailyQueries = queriesData.content;
+        this.displayStrategyStep(queriesData);
+        
+        // Mark strategy as complete
+        this.displayStrategyComplete(strategyData);
+      }
+
+      return { type: 'email_strategy', data: strategyData };
+
+    } catch (error) {
+      console.error('Progressive strategy error:', error);
+      this.messages.push({
+        id: Date.now().toString(),
+        content: "I encountered an issue generating your strategy. Let me try a different approach.",
+        sender: 'ai',
+        timestamp: new Date()
+      });
+      this.render();
+    }
+  }
+
+  addLoadingMessage(message) {
+    this.messages.push({
+      id: Date.now().toString(),
+      content: `<div class="flex items-center space-x-2"><div class="loading-spinner"></div><span>${message}</span></div>`,
+      sender: 'ai',
+      timestamp: new Date(),
+      isHTML: true,
+      isLoading: true
+    });
+    this.render();
+  }
+
+  displayStrategyStep(stepData) {
+    // Remove loading message
+    this.messages = this.messages.filter(msg => !msg.isLoading);
+    
+    const stepContent = Array.isArray(stepData.content) 
+      ? stepData.content.join('\n') 
+      : stepData.content;
+
+    const stepHtml = `
+      <div class="strategy-step mb-4 p-4 bg-green-50 border-l-4 border-green-400 rounded">
+        <h4 class="font-semibold text-green-800 mb-2">
+          ${stepData.title} (Step ${stepData.step}/${stepData.totalSteps})
+        </h4>
+        <div class="text-gray-700 whitespace-pre-line">${stepContent}</div>
+      </div>`;
+
+    this.messages.push({
+      id: Date.now().toString(),
+      content: stepHtml,
+      sender: 'ai',
+      timestamp: new Date(),
+      isHTML: true
+    });
+    
+    this.render();
+  }
+
+  displayStrategyComplete(strategyData) {
+    const completeHtml = `
+      <div class="strategy-complete mt-6 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+        <h3 class="text-xl font-bold text-blue-900 mb-4">🎯 Your Complete Sales Strategy</h3>
+        <div class="space-y-4">
+          <div>
+            <h4 class="font-semibold text-blue-800">Target Boundary:</h4>
+            <p class="text-gray-700">${strategyData.boundary}</p>
+          </div>
+          <div>
+            <h4 class="font-semibold text-blue-800">Sprint Focus:</h4>
+            <p class="text-gray-700">${strategyData.sprintPrompt}</p>
+          </div>
+          <div>
+            <h4 class="font-semibold text-blue-800">Daily Search Queries:</h4>
+            <ul class="list-disc ml-6 text-gray-700">
+              ${strategyData.dailyQueries.map(query => `<li>${query}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+        <div class="mt-6 text-center">
+          <p class="text-blue-800 font-medium">✓ Strategic onboarding complete! You're ready to start your outreach.</p>
+        </div>
+      </div>`;
+
+    this.messages.push({
+      id: Date.now().toString(),
+      content: completeHtml,
+      sender: 'ai',
+      timestamp: new Date(),
+      isHTML: true
+    });
+    
+    this.render();
   }
 
   async processStrategyAndTriggerResearch() {

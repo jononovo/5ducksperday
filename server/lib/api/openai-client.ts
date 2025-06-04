@@ -48,54 +48,107 @@ Focus on differentiation and value. Maximum 200 words.`;
   };
 }
 
-export async function generateEmailStrategy(params: any, productContext: any): Promise<any> {
+// Sequential strategy generation functions
+export async function generateBoundary(params: any, productContext: any): Promise<string> {
   const { initialTarget, refinedTarget } = params;
-  const productData = productContext;
   
   const perplexityPrompt = `
-Create a 90-day email sales strategy for ${productContext.productService}:
+Create a 90-day target boundary for ${productContext.productService}:
 Example Daily Search Query: ${initialTarget}
 Example of Refined Daily Search Query: ${refinedTarget}
 
-Format exactly as:
-## 1. TARGET BOUNDARY
-Based on product and example daily search queries, expand the scope and create a 90-day search boundary ( ~700 companies) statement that we can build 6 search sprints ( 8 mini search queries each) within. 
+Based on these examples, expand the scope and create a 90-day search boundary (~700 companies) statement that we can build 6 search sprints (8 mini search queries each) within. 
 Boundary can be niches and/or geographic areas.
 Max 10 words.
 
 Examples:
 mid-level rated, irish bars in NY state
-franchsing educational tutoring companies in South America.
+franchising educational tutoring companies in South America
 FinTech companies in India
 
-## 2. SPRINT PROMPT  
-Find 8-10 daily search prompts worth of ${refinedTarget} leads this week
-
-EXAMPLE SPRINT PROMPT: 
-Segments a part of the 90-Day target boundary, in order to generate a 8 "daily search queries" that will each result in 7-10 companies.
-
-## 3. DAILY QUERIES
-1. [specific search prompt]
-2. [specific search prompt]
-3. [specific search prompt]
-4. [specific search prompt]
-5. [specific search prompt]
-6. [specific search prompt]
-7. [specific search prompt]
-8. [specific search prompt]
-Keep concise. No introductions or extra sections. List one per line without numbers.`;
+Return only the boundary statement, no additional text.`;
 
   const result = await queryPerplexity([
-    { role: "system", content: "You are an email sales strategy expert. Research current best practices and provide structured output." },
+    { role: "system", content: "You are a market strategy expert. Create focused, strategic boundaries for sales campaigns." },
     { role: "user", content: perplexityPrompt }
   ]);
 
+  return result.trim();
+}
+
+export async function generateSprintPrompt(boundary: string, params: any, productContext: any): Promise<string> {
+  const { refinedTarget } = params;
+  
+  const perplexityPrompt = `
+Create a sprint planning prompt for ${productContext.productService}:
+90-Day Strategic Boundary: ${boundary}
+Current Refined Target: ${refinedTarget}
+
+Define an "exampleSprintPlanningPrompt" - a Sprint Search Statement that guides in defining 8-10 daily search prompts needed to source contacts every day for two weeks.
+
+Create this statement by defining a sub-set of, or niche within, the "${boundary}" and also using the ${refinedTarget} to stay relevant (even if in a different sector or geography).
+
+The sprint prompt should segment a part of the 90-Day target boundary, in order to generate 8 "daily search queries" that will each result in 7-10 companies.
+
+Return only the sprint prompt statement, no additional text.`;
+
+  const result = await queryPerplexity([
+    { role: "system", content: "You are a sales sprint planning expert. Create focused sprint strategies that segment broader market boundaries." },
+    { role: "user", content: perplexityPrompt }
+  ]);
+
+  return result.trim();
+}
+
+export async function generateDailyQueries(boundary: string, sprintPrompt: string, productContext: any): Promise<string[]> {
+  const perplexityPrompt = `
+Generate 8 daily search queries for ${productContext.productService}:
+90-Day Strategic Boundary: ${boundary}
+Sprint Focus: ${sprintPrompt}
+
+Create a list of hyper-specific search prompts that will generate 5-10 targeted results each. Usually one per day is generated. Usually either:
+- Hyper-geo-local (section of large city: Fintech in Brooklyn)
+- Hyper-niche (niche of a niche: horse-brush manufacturers)  
+- Medium-level combination of niche + local (real-estate lawyers in Miami)
+
+List one per line without numbers. Keep concise. No introductions or extra sections.`;
+
+  const result = await queryPerplexity([
+    { role: "system", content: "You are a lead generation expert. Create highly specific, actionable daily search queries." },
+    { role: "user", content: perplexityPrompt }
+  ]);
+
+  // Split by newlines and filter out empty lines
+  const queries = result
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+  
+  return queries;
+}
+
+export async function generateEmailStrategy(params: any, productContext: any): Promise<any> {
+  // Sequential generation with actual interdependence
+  const boundary = await generateBoundary(params, productContext);
+  const sprintPrompt = await generateSprintPrompt(boundary, params, productContext);
+  const dailyQueries = await generateDailyQueries(boundary, sprintPrompt, productContext);
+  
+  // Format full report
+  const content = `## 1. TARGET BOUNDARY
+${boundary}
+
+## 2. SPRINT PROMPT
+${sprintPrompt}
+
+## 3. DAILY QUERIES
+${dailyQueries.join('\n')}`;
+
   return {
-    title: "90-Day Email Strategy", 
-    boundary: extractBoundary(result),
-    sprintPrompt: extractSprintPrompt(result),
-    dailyQueries: extractDailyQueries(result),
-    content: result
+    title: "90-Day Email Strategy",
+    boundary,
+    sprintPrompt,
+    dailyQueries,
+    content
   };
 }
 

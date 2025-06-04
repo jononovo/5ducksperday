@@ -11,7 +11,7 @@ import { searchCompanies, analyzeCompany } from "./lib/search-logic";
 import { extractContacts } from "./lib/perplexity";
 import { parseCompanyData } from "./lib/results-analysis/company-parser";
 import { queryPerplexity } from "./lib/api/perplexity-client";
-import { queryOpenAI, generateEmailStrategy } from "./lib/api/openai-client";
+import { queryOpenAI, generateEmailStrategy, generateBoundary, generateSprintPrompt, generateDailyQueries } from "./lib/api/openai-client";
 import { searchContactDetails } from "./lib/api-interactions";
 import { google } from "googleapis";
 import { 
@@ -3612,6 +3612,136 @@ PHASE-SPECIFIC INSTRUCTIONS:
       res.json({ 
         type: 'conversation', 
         response: "I apologize for the technical issue. Let me help you create your sales strategy."
+      });
+    }
+  });
+
+  // Progressive Strategy Generation Endpoints
+  app.post("/api/strategy/boundary", async (req, res) => {
+    try {
+      const { initialTarget, refinedTarget, productContext } = req.body;
+
+      if (!initialTarget || !refinedTarget || !productContext) {
+        res.status(400).json({ message: "Missing required parameters" });
+        return;
+      }
+
+      const boundary = await generateBoundary({ initialTarget, refinedTarget }, productContext);
+      
+      // Save boundary to database if user is authenticated
+      if (req.user) {
+        try {
+          const userId = getUserId(req);
+          await storage.updateStrategicProfile?.(userId, { 
+            strategyHighLevelBoundary: boundary
+          });
+        } catch (dbError) {
+          console.warn('Failed to save boundary to database:', dbError);
+        }
+      }
+
+      res.json({
+        type: 'boundary',
+        title: 'Target Boundary',
+        content: boundary,
+        step: 1,
+        totalSteps: 3
+      });
+
+    } catch (error) {
+      console.error("Boundary generation error:", error);
+      res.status(500).json({
+        message: "Failed to generate target boundary"
+      });
+    }
+  });
+
+  app.post("/api/strategy/sprint", async (req, res) => {
+    try {
+      const { boundary, refinedTarget, productContext } = req.body;
+
+      if (!boundary || !refinedTarget || !productContext) {
+        res.status(400).json({ message: "Missing required parameters" });
+        return;
+      }
+
+      const sprintPrompt = await generateSprintPrompt(boundary, { refinedTarget }, productContext);
+      
+      // Save sprint prompt to database if user is authenticated
+      if (req.user) {
+        try {
+          const userId = getUserId(req);
+          await storage.updateStrategicProfile?.(userId, { 
+            exampleSprintPlanningPrompt: sprintPrompt
+          });
+        } catch (dbError) {
+          console.warn('Failed to save sprint prompt to database:', dbError);
+        }
+      }
+
+      res.json({
+        type: 'sprint',
+        title: 'Sprint Strategy',
+        content: sprintPrompt,
+        step: 2,
+        totalSteps: 3
+      });
+
+    } catch (error) {
+      console.error("Sprint generation error:", error);
+      res.status(500).json({
+        message: "Failed to generate sprint strategy"
+      });
+    }
+  });
+
+  app.post("/api/strategy/queries", async (req, res) => {
+    try {
+      const { boundary, sprintPrompt, productContext } = req.body;
+
+      if (!boundary || !sprintPrompt || !productContext) {
+        res.status(400).json({ message: "Missing required parameters" });
+        return;
+      }
+
+      const dailyQueries = await generateDailyQueries(boundary, sprintPrompt, productContext);
+      
+      // Save daily queries and complete strategy to database if user is authenticated
+      if (req.user) {
+        try {
+          const userId = getUserId(req);
+          
+          // Format complete strategy report
+          const fullStrategy = {
+            title: "90-Day Email Strategy",
+            boundary,
+            sprintPrompt,
+            dailyQueries,
+            content: `## 1. TARGET BOUNDARY\n${boundary}\n\n## 2. SPRINT PROMPT\n${sprintPrompt}\n\n## 3. DAILY QUERIES\n${dailyQueries.join('\n')}`
+          };
+          
+          await storage.updateStrategicProfile?.(userId, { 
+            dailySearchQueries: JSON.stringify(dailyQueries),
+            reportSalesTargetingGuidance: JSON.stringify(fullStrategy)
+          });
+        } catch (dbError) {
+          console.warn('Failed to save queries to database:', dbError);
+        }
+      }
+
+      res.json({
+        type: 'queries',
+        title: 'Daily Search Queries',
+        content: dailyQueries,
+        step: 3,
+        totalSteps: 3,
+        isComplete: true
+      });
+
+    } catch (error) {
+      console.error("Queries generation error:", error);
+      res.status(500).json({
+        message: "Failed to generate daily queries"
       });
     }
   });
