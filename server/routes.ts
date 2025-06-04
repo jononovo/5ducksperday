@@ -3482,8 +3482,12 @@ Focus on actionable insights that directly support their stated business goal an
       // Determine conversation phase based on conversation content
       const hasProductSummary = conversationHistory?.some(msg => 
         msg.sender === 'ai' && 
-        (msg.content?.toLowerCase().includes('product') && 
-         (msg.content?.toLowerCase().includes('summary') || msg.content?.toLowerCase().includes('analysis')))
+        msg.content && (
+          msg.content.toLowerCase().includes('product analysis summary') ||
+          msg.content.toLowerCase().includes('here\'s your product analysis') ||
+          msg.content.toLowerCase().includes('here is your product analysis') ||
+          (msg.content.toLowerCase().includes('product') && msg.content.toLowerCase().includes('summary'))
+        )
       ) || false;
       const hasEmailStrategy = conversationHistory?.some(msg => 
         msg.sender === 'ai' && 
@@ -3506,7 +3510,17 @@ Focus on actionable insights that directly support their stated business goal an
       ) || [];
       
       const hasInitialTarget = targetMessages.length >= 1;
-      const hasRefinedTarget = targetMessages.length >= 2;
+      
+      // Check if current input should count as refined target
+      const isCurrentInputTarget = userInput && 
+        !userInput.toLowerCase().includes('generate product summary') &&
+        !userInput.toLowerCase().includes('yes please') &&
+        !userInput.toLowerCase().includes('correct') &&
+        !userInput.toLowerCase().includes('ok') &&
+        userInput.length > 3;
+      
+      const hasRefinedTarget = targetMessages.length >= 2 || 
+        (targetMessages.length >= 1 && isCurrentInputTarget);
 
       let currentPhase = 'PRODUCT_SUMMARY';
       if (hasProductSummary && !hasInitialTarget) currentPhase = 'TARGET_COLLECTION';
@@ -3578,9 +3592,15 @@ PHASE-SPECIFIC INSTRUCTIONS:
 
       // Special handling for EMAIL_STRATEGY phase - trigger progressive generation flag
       let result;
+      console.log('Checking progressive strategy trigger:', { 
+        currentPhase, 
+        hasRefinedTarget, 
+        shouldTrigger: currentPhase === 'EMAIL_STRATEGY' && hasRefinedTarget 
+      });
+      
       if (currentPhase === 'EMAIL_STRATEGY' && hasRefinedTarget) {
         const initialTarget = targetMessages[0]?.content || '';
-        const refinedTarget = targetMessages[1]?.content || '';
+        const refinedTarget = isCurrentInputTarget ? userInput : (targetMessages[1]?.content || '');
         
         console.log('Triggering progressive email strategy with targets:', { initialTarget, refinedTarget });
         
