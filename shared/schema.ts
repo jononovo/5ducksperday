@@ -406,6 +406,7 @@ export const strategicProfiles = pgTable("strategic_profiles", {
   productAnalysisSummary: text("product_analysis_summary"), // AI-generated product profile summary
   reportSalesContextGuidance: text("report_sales_context_guidance"), // AI-generated context for cold email approach
   reportSalesTargetingGuidance: text("report_sales_targeting_guidance"), // AI-generated targeting recommendations
+  dailySearchQueries: text("daily_search_queries"), // JSON array of 8 daily search queries from strategy
   strategicPlan: jsonb("strategic_plan").default({}),
   searchPrompts: text("search_prompts").array(),
   status: text("status").default("in_progress"), // "in_progress", "completed"
@@ -497,6 +498,7 @@ export const strategicProfileSchema = z.object({
   productAnalysisSummary: z.string().optional(),
   reportSalesContextGuidance: z.string().optional(),
   reportSalesTargetingGuidance: z.string().optional(),
+  dailySearchQueries: z.string().optional(),
   strategicPlan: z.record(z.unknown()).optional(),
   searchPrompts: z.array(z.string()).optional(),
   status: z.enum(["in_progress", "completed"]).default("in_progress")

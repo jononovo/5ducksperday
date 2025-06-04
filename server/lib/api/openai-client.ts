@@ -83,7 +83,7 @@ Segments a part of the 90-Day target boundary, in order to generate a 8 "daily s
 6. [specific search prompt]
 7. [specific search prompt]
 8. [specific search prompt]
-Keep concise. No introductions or extra sections. no bullets.`;
+Keep concise. No introductions or extra sections. List one per line without numbers.`;
 
   const result = await queryPerplexity([
     { role: "system", content: "You are an email sales strategy expert. Research current best practices and provide structured output." },
