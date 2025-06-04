@@ -42,7 +42,7 @@ Focus on differentiation and value. Maximum 200 words.`;
   ]);
 
   return {
-    title: "Product Summary",
+    title: "Product Analysis Summary",
     content: result,
     wordCount: result.split(' ').length
   };

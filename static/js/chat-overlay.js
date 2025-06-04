@@ -832,9 +832,12 @@ I'm building a product summary so that I can understand what you're selling bett
       this.chatStep = 'target_collection';
       this.setState(this.isMobile ? 'fullscreen' : 'fullscreen');
       
-      // Immediately trigger product summary generation
+      // Show loading and trigger product summary generation
+      this.isLoading = true;
+      this.render();
       setTimeout(async () => {
         const strategyResponse = await this.handleStrategyChatMessage('Generate product summary');
+        this.isLoading = false;
         // The response will be handled by the existing displayReport logic
       }, 100);
     } else {
@@ -1015,6 +1018,19 @@ Let me process your strategy and research your market right now!`;
     });
     
     this.render();
+
+    // Add target business query after product summary
+    if (reportData.type === 'product_summary') {
+      setTimeout(() => {
+        this.messages.push({
+          id: (Date.now() + 1).toString(),
+          content: "Perfect! Now please give me an example of a type of business that buys from you.\nLike this \"[type of business] in [city/niche]\"\n\nExamples:\nHigh-volume cafes in Lower East Side, NYC\nReal-estate insurance brokers in Salt Lake City\n\nOr should I suggest some examples for you?",
+          sender: 'ai',
+          timestamp: new Date()
+        });
+        this.render();
+      }, 1000);
+    }
   }
 
   displayProductProfile(profileData) {
