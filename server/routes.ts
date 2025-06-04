@@ -3512,7 +3512,8 @@ RULES:
 - After user confirms/refines email strategy, call generateSalesApproach()
 - After final report, direct user to dashboard for further updates
 - Keep responses under 15 words between reports
-- No endless refinement - one update per report maximum`
+- No endless refinement - one update per report maximum
+- ALWAYS end initial response with: "I'm building a product summary so that I can understand what you're selling better."`
         }
       ];
 

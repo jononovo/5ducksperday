@@ -14,14 +14,18 @@ interface FunctionCallResult {
 }
 
 // Perplexity-powered report generation functions
-async function generateProductSummary(params: any): Promise<any> {
-  const productData = params.productData;
+async function generateProductSummary(params: any, productContext: any): Promise<any> {
+  const productData = params.productData || productContext;
+  
+  if (!productData || !productData.productService) {
+    throw new Error('Product data is required for summary generation');
+  }
   
   const perplexityPrompt = `
 Analyze this product and create a concise summary (max 200 words, bullet points):
 
 Product: ${productData.productService}
-Customer Feedback: ${productData.customerFeedback}
+Customer Feedback: ${productData.customerFeedback || 'Not provided'}
 Website: ${productData.website || 'Not provided'}
 
 Required structure:
@@ -44,8 +48,9 @@ Focus on differentiation and value. Maximum 200 words.`;
   };
 }
 
-async function generateEmailStrategy(params: any): Promise<any> {
-  const { targetMarket, productContext } = params;
+async function generateEmailStrategy(params: any, productContext: any): Promise<any> {
+  const { targetMarket } = params;
+  const productData = productContext;
   
   const perplexityPrompt = `
 Create a 90-day email sales strategy for ${productContext.productService} targeting ${targetMarket}.
@@ -72,8 +77,9 @@ Format as structured data with clear sections.`;
   };
 }
 
-async function generateSalesApproach(params: any): Promise<any> {
-  const { strategyContext, productContext } = params;
+async function generateSalesApproach(params: any, productContext: any): Promise<any> {
+  const { strategyContext } = params;
+  const productData = productContext;
   
   const perplexityPrompt = `
 Create a strategic email approach guide (max 200 words) for ${productContext.productService}.
@@ -191,21 +197,21 @@ export async function queryOpenAI(
       const functionArgs = JSON.parse(toolCall.function.arguments);
 
       if (functionName === 'generateProductSummary') {
-        const summary = await generateProductSummary(functionArgs);
+        const summary = await generateProductSummary(functionArgs, productContext);
         return {
           type: 'product_summary',
           message: "Here's your product analysis summary:",
           data: summary
         };
       } else if (functionName === 'generateEmailStrategy') {
-        const strategy = await generateEmailStrategy(functionArgs);
+        const strategy = await generateEmailStrategy(functionArgs, productContext);
         return {
           type: 'email_strategy', 
           message: "Here's your 90-day email sales strategy:",
           data: strategy
         };
       } else if (functionName === 'generateSalesApproach') {
-        const approach = await generateSalesApproach(functionArgs);
+        const approach = await generateSalesApproach(functionArgs, productContext);
         return {
           type: 'sales_approach',
           message: "Here's your sales approach strategy:",
