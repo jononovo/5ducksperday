@@ -1378,6 +1378,7 @@ Let me process your strategy and research your market right now!`;
   async continueStrategyGeneration(confirmedBoundary) {
     try {
       const { initialTarget, refinedTarget, productContext } = this.boundarySelectionContext;
+      let sprintData = null;
 
       // Step 2: Generate Sprint Prompt
       this.addLoadingMessage("Creating sprint strategy...");
@@ -1393,7 +1394,7 @@ Let me process your strategy and research your market right now!`;
       });
 
       if (sprintResponse.ok) {
-        const sprintData = await sprintResponse.json();
+        sprintData = await sprintResponse.json();
         this.displayStrategyStep(sprintData);
       } else {
         throw new Error('Sprint generation failed');
@@ -1407,7 +1408,7 @@ Let me process your strategy and research your market right now!`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           boundary: confirmedBoundary, 
-          sprintPrompt: sprintData?.content,
+          sprintPrompt: sprintData?.content || '',
           productContext 
         })
       });
