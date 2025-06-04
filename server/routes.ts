@@ -3482,9 +3482,24 @@ Focus on actionable insights that directly support their stated business goal an
       const hasProductSummary = conversationHistory?.some(msg => msg.type === 'product_summary') || false;
       const hasEmailStrategy = conversationHistory?.some(msg => msg.type === 'email_strategy') || false;
       const hasSalesApproach = conversationHistory?.some(msg => msg.type === 'sales_approach') || false;
+      
+      // Track target market collection phases
+      const targetMessages = conversationHistory?.filter(msg => 
+        msg.sender === 'user' && 
+        msg.content && 
+        !msg.content.includes('Generate product summary') &&
+        !msg.content.includes('yes please') &&
+        !msg.content.includes('correct') &&
+        msg.content.length > 5
+      ) || [];
+      
+      const hasInitialTarget = targetMessages.length >= 1;
+      const hasRefinedTarget = targetMessages.length >= 2;
 
       let currentPhase = 'PRODUCT_SUMMARY';
-      if (hasProductSummary && !hasEmailStrategy) currentPhase = 'EMAIL_STRATEGY';
+      if (hasProductSummary && !hasInitialTarget) currentPhase = 'TARGET_COLLECTION';
+      if (hasProductSummary && hasInitialTarget && !hasRefinedTarget) currentPhase = 'TARGET_REFINEMENT';
+      if (hasProductSummary && hasRefinedTarget && !hasEmailStrategy) currentPhase = 'EMAIL_STRATEGY';
       if (hasEmailStrategy && !hasSalesApproach) currentPhase = 'SALES_APPROACH';
       if (hasSalesApproach) currentPhase = 'COMPLETE';
 
@@ -3500,19 +3515,23 @@ PRODUCT CONTEXT:
 - Website: ${productContext.website || 'Not provided'}
 
 REPORT SEQUENCE:
-1. Product Summary (immediate) → Ask "Is this correct?"
-2. Email Strategy (after confirmation) → Ask "Does this align with your ideal customer?"  
-3. Sales Approach (final) → State "All information available in dashboard"
+1. Product Summary (immediate) → Ask for target business example
+2. Target Collection → Ask for refinement/specificity  
+3. Email Strategy (after both targets) → Ask "Does this align?"
+4. Sales Approach (final) → State "All information available in dashboard"
 
 CURRENT PHASE: ${currentPhase}
 
-RULES:
-- Call generateProductSummary() immediately when chat opens (if no previous summary)
-- After user confirms/refines product summary, call generateEmailStrategy()
-- After user confirms/refines email strategy, call generateSalesApproach()
-- After final report, direct user to dashboard for further updates
+TARGET COLLECTION PHASE RULES:
+- After Product Summary, ask for target business examples using: "[type of business] in [city/niche]"
+- After first target example, ask for refinement using template: "Is there an additional niche or another example that you think could improve your sales chances? Like, instead of 'family-friendly hotels in orlando' We could add '4-star' to make it '4-star family-friendly hotels in orlando'"
+- Only call generateEmailStrategy() after collecting BOTH initial target and refined target
+
+PHASE-SPECIFIC INSTRUCTIONS:
+- TARGET_COLLECTION: Ask for business type examples, provide format guidance
+- TARGET_REFINEMENT: Ask for specificity improvement using template above
+- EMAIL_STRATEGY: Call generateEmailStrategy with both initialTarget and refinedTarget
 - Keep responses under 15 words between reports
-- No endless refinement - one update per report maximum
 - ALWAYS end initial response with: "I'm building a product summary so that I can understand what you're selling better."`
         }
       ];
@@ -3535,7 +3554,23 @@ RULES:
         content: userInput
       } as any);
 
-      const result = await queryOpenAI(messages, productContext);
+      // Special handling for EMAIL_STRATEGY phase - automatically trigger when we have both targets
+      let result;
+      if (currentPhase === 'EMAIL_STRATEGY' && hasRefinedTarget) {
+        const initialTarget = targetMessages[0]?.content || '';
+        const refinedTarget = targetMessages[1]?.content || '';
+        
+        console.log('Auto-generating email strategy with targets:', { initialTarget, refinedTarget });
+        
+        result = {
+          type: 'email_strategy',
+          message: "Here's your 90-day email sales strategy:",
+          data: await generateEmailStrategy({ initialTarget, refinedTarget }, productContext)
+        };
+      } else {
+        result = await queryOpenAI(messages, productContext);
+      }
+      
       console.log('Strategy chat completed successfully, type:', result.type);
       
       // Save reports to database if user is authenticated

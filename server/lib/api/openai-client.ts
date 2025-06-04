@@ -49,18 +49,21 @@ Focus on differentiation and value. Maximum 200 words.`;
 }
 
 async function generateEmailStrategy(params: any, productContext: any): Promise<any> {
-  const { targetMarket } = params;
+  const { initialTarget, refinedTarget } = params;
   const productData = productContext;
   
   const perplexityPrompt = `
-Create a 90-day email sales strategy for ${productContext.productService} targeting ${targetMarket}.
+Create a 90-day email sales strategy for ${productContext.productService} targeting both broad and refined markets:
+
+Initial Target: ${initialTarget}
+Refined Target: ${refinedTarget}
 
 Research current market trends and create:
-1. TARGET BOUNDARY: Precise target market definition
+1. TARGET BOUNDARY: Precise target market definition (focus on the refined target)
 2. SPRINT PROMPT: Weekly planning focus question  
 3. DAILY QUERIES: 8 specific daily search prompts for lead generation
 
-Base on current industry practices and successful outreach patterns.
+Show how the refinement improves targeting precision. Base on current industry practices and successful outreach patterns.
 
 Format as structured data with clear sections.`;
 
@@ -71,8 +74,8 @@ Format as structured data with clear sections.`;
 
   return {
     title: "90-Day Email Strategy", 
-    boundary: targetMarket,
-    sprintPrompt: `Weekly focus: Identify and engage with ${targetMarket} decision makers`,
+    boundary: refinedTarget,
+    sprintPrompt: `Weekly focus: Identify and engage with ${refinedTarget} decision makers`,
     content: result
   };
 }
@@ -145,20 +148,24 @@ export async function queryOpenAI(
           type: "function",
           function: {
             name: "generateEmailStrategy",
-            description: "Generate 90-day email sales strategy after product summary confirmation",
+            description: "Generate 90-day email sales strategy after collecting both initial target and refinement",
             parameters: {
               type: "object",
               properties: {
-                targetMarket: {
+                initialTarget: {
                   type: "string",
-                  description: "Specific target market refined through conversation"
+                  description: "Initial target market example from user"
+                },
+                refinedTarget: {
+                  type: "string", 
+                  description: "Refined target market with additional specificity"
                 },
                 productContext: {
                   type: "object",
                   description: "Product context from previous summary"
                 }
               },
-              required: ["targetMarket", "productContext"]
+              required: ["initialTarget", "refinedTarget", "productContext"]
             }
           }
         },
