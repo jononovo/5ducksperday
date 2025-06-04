@@ -3611,6 +3611,8 @@ PHASE-SPECIFIC INSTRUCTIONS:
           refinedTarget,
           needsProgressiveGeneration: true
         };
+        
+        console.log('Progressive strategy result object:', result);
       } else {
         result = await queryOpenAI(messages, productContext);
       }
@@ -3642,12 +3644,25 @@ PHASE-SPECIFIC INSTRUCTIONS:
       }
 
       // Return structured response
-      res.json({
+      const response: any = {
         type: result.type,
         message: result.message,
-        data: result.data,
         phase: currentPhase
-      });
+      };
+      
+      // Include data if present
+      if (result.data) {
+        response.data = result.data;
+      }
+      
+      // Include additional properties for progressive strategy
+      if (result.type === 'progressive_strategy') {
+        response.initialTarget = result.initialTarget;
+        response.refinedTarget = result.refinedTarget;
+        response.needsProgressiveGeneration = result.needsProgressiveGeneration;
+      }
+      
+      res.json(response);
 
     } catch (error) {
       console.error("Strategy chat error:", error);
