@@ -11,7 +11,7 @@ import { searchCompanies, analyzeCompany } from "./lib/search-logic";
 import { extractContacts } from "./lib/perplexity";
 import { parseCompanyData } from "./lib/results-analysis/company-parser";
 import { queryPerplexity } from "./lib/api/perplexity-client";
-import { queryOpenAI } from "./lib/api/openai-client";
+import { queryOpenAI, generateEmailStrategy } from "./lib/api/openai-client";
 import { searchContactDetails } from "./lib/api-interactions";
 import { google } from "googleapis";
 import { 

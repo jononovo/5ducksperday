@@ -48,7 +48,7 @@ Focus on differentiation and value. Maximum 200 words.`;
   };
 }
 
-async function generateEmailStrategy(params: any, productContext: any): Promise<any> {
+export async function generateEmailStrategy(params: any, productContext: any): Promise<any> {
   const { initialTarget, refinedTarget } = params;
   const productData = productContext;
   
