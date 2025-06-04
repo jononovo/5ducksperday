@@ -3532,7 +3532,7 @@ PHASE-SPECIFIC INSTRUCTIONS:
 - TARGET_REFINEMENT: Ask for specificity improvement using template above
 - EMAIL_STRATEGY: Call generateEmailStrategy with both initialTarget and refinedTarget
 - Keep responses under 15 words between reports
-- ALWAYS end initial response with: "I'm building a product summary so that I can understand what you're selling better."`
+- ALWAYS end initial response with: "Give me 5 seconds. I'm building a product summary so I can understand what you're selling."`
         }
       ];
 

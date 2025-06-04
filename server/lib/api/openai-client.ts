@@ -53,19 +53,30 @@ export async function generateEmailStrategy(params: any, productContext: any): P
   const productData = productContext;
   
   const perplexityPrompt = `
-Create a 90-day email sales strategy for ${productContext.productService} targeting both broad and refined markets:
+Create a 90-day email sales strategy for ${productContext.productService}:
 
 Initial Target: ${initialTarget}
 Refined Target: ${refinedTarget}
 
-Research current market trends and create:
-1. TARGET BOUNDARY: Precise target market definition (focus on the refined target)
-2. SPRINT PROMPT: Weekly planning focus question  
-3. DAILY QUERIES: 8 specific daily search prompts for lead generation
+Format exactly as:
 
-Show how the refinement improves targeting precision. Base on current industry practices and successful outreach patterns.
+## 1. TARGET BOUNDARY
+${refinedTarget}
 
-Format as structured data with clear sections.`;
+## 2. SPRINT PROMPT  
+Find 8-10 daily search prompts worth of ${refinedTarget} leads this week
+
+## 3. DAILY QUERIES
+1. [specific search prompt]
+2. [specific search prompt]
+3. [specific search prompt]
+4. [specific search prompt]
+5. [specific search prompt]
+6. [specific search prompt]
+7. [specific search prompt]
+8. [specific search prompt]
+
+Keep concise. No introductions or extra sections.`;
 
   const result = await queryPerplexity([
     { role: "system", content: "You are an email sales strategy expert. Research current best practices and provide structured output." },

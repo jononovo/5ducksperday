@@ -813,7 +813,7 @@ class ChatOverlay {
       
       const personalizedMessage = `Perfect! So you're selling ${productService}, customers say ${customerFeedback}, and ${website !== 'no website provided' ? `I can learn more at ${website}` : 'no website was provided'}.
 
-I'm building a product summary so that I can understand what you're selling better.`;
+Give me 5 seconds. I'm building a product summary so I can understand what you're selling.`;
 
       // Add personalized message and start target market refinement
       this.messages = [{
