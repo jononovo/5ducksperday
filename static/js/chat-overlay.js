@@ -1111,8 +1111,9 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
         
         // Add sales approach prompt after strategy completion
         setTimeout(() => {
+          console.log('Displaying sales approach prompt...');
           this.displaySalesApproachPrompt(initialTarget, refinedTarget);
-        }, 1500);
+        }, 2000);
       } else {
         console.error('Queries API failed:', queriesResponse.status, await queriesResponse.text());
         throw new Error(`Queries generation failed: ${queriesResponse.status}`);
