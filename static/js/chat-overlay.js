@@ -841,7 +841,7 @@ class ChatOverlay {
 **Customers like:** ${customerFeedback}
 **And I can learn more at:** ${website !== 'no website provided' ? `${website}` : 'no website was provided'}
 
-Give me 5 seconds. I'm building a product summary so I can understand what you're selling.`;
+Give me 5 seconds. I'm **building a product summary** so I can understand what you're selling.`;
 
       // Add personalized message and start target market refinement
       this.messages = [{
