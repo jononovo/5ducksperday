@@ -58,7 +58,7 @@ export async function generateBoundaryOptions(params: any, productContext: any):
     `Create a 90-day lead-generation target segment boundary for SELLING this product: ${productContext.productService}. 
 Here are Target Customer Examples that the company sells to: ${initialTarget} or ${refinedTarget}.
 
-Focus on GEOGRAPHIC expansion. Create a boundary that emphasizes location-based targeting to reach ~700 companies across 6 sprints.
+Focus on BROADER GEOGRAPHIC expansion. Expand beyond the current location to include multiple cities, states, or regions to reach ~700 companies across 6 sprints.
 Max 10 words.
 
 Examples: mid-level rated, irish bars in NY state
@@ -68,7 +68,7 @@ Return only the boundary statement, no additional text.`,
     `Create a 90-day lead-generation target segment boundary for SELLING this product: ${productContext.productService}. 
 Here are Target Customer Examples that the company sells to: ${initialTarget} or ${refinedTarget}.
 
-Focus on NICHE specialization. Create a boundary that emphasizes industry/type-based targeting to reach ~700 companies across 6 sprints.
+Focus on DEEP NICHE specialization. Identify a specific industry subset or customer type that would highly value this product, staying within or near the current geographic area.
 Max 10 words.
 
 Examples: STEM tutoring companies in South America
@@ -78,7 +78,7 @@ Return only the boundary statement, no additional text.`,
     `Create a 90-day lead-generation target segment boundary for SELLING this product: ${productContext.productService}. 
 Here are Target Customer Examples that the company sells to: ${initialTarget} or ${refinedTarget}.
 
-Focus on BALANCED approach. Create a boundary combining geography and niche targeting to reach ~700 companies across 6 sprints.
+Focus on MARKET SIZE optimization. Balance geographic reach with niche targeting to efficiently reach exactly ~700 companies across 6 sprints.
 Max 10 words.
 
 Examples: FinTech companies in India
