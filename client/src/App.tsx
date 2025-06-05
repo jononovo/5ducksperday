@@ -9,38 +9,43 @@ import { Layout, AppLayout } from "@/components/layout";
 import { SearchStrategyProvider } from "@/lib/search-strategy-context";
 import { RegistrationModalProvider } from "@/hooks/use-registration-modal";
 import { RegistrationModalContainer } from "@/components/registration-modal-container";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { initGA } from "./lib/analytics";
 import { useAnalytics } from "./hooks/use-analytics";
 import { SEOHead } from "@/components/ui/seo-head";
-import Auth from "@/pages/auth";
-import Home from "@/pages/home";
+import { MainNav } from "@/components/main-nav";
+import { LoadingScreen } from "@/components/ui/loading-screen";
+
+// Immediate imports for landing pages and critical components
 import LandingPage from "@/pages/landing";
 import Landing2Page from "@/pages/landing2";
-import Build from "@/pages/build";
-import Lists from "@/pages/lists";
-import ListDetails from "@/pages/list-details";
-import Campaigns from "@/pages/campaigns";
-import CampaignDetails from "@/pages/campaign-details";
-import Outreach from "@/pages/outreach";
-import Replies from "@/pages/replies";
-import CompanyDetails from "@/pages/company-details";
-import ContactDetails from "@/pages/contact-details";
-import Testing from "@/pages/testing";
 import Planning from "@/pages/planning";
+import Auth from "@/pages/auth";
 
-import NotFound from "@/pages/not-found";
-import { MainNav } from "@/components/main-nav";
+// Lazy imports for app pages that can be loaded on demand
+const Home = lazy(() => import("@/pages/home"));
+const Build = lazy(() => import("@/pages/build"));
+const Lists = lazy(() => import("@/pages/lists"));
+const ListDetails = lazy(() => import("@/pages/list-details"));
+const Campaigns = lazy(() => import("@/pages/campaigns"));
+const CampaignDetails = lazy(() => import("@/pages/campaign-details"));
+const Outreach = lazy(() => import("@/pages/outreach"));
+const Replies = lazy(() => import("@/pages/replies"));
+const CompanyDetails = lazy(() => import("@/pages/company-details"));
+const ContactDetails = lazy(() => import("@/pages/contact-details"));
+const Testing = lazy(() => import("@/pages/testing"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
-import Terms from "@/pages/terms";
-import Pricing from "@/pages/pricing";
-import Blog from "@/pages/blog";
-import BlogPost from "@/pages/blog-post";
-import Contact from "@/pages/contact";
-import Support from "@/pages/support";
-import Levels from "@/pages/levels";
-import Privacy from "@/pages/privacy";
-import Changelog from "@/pages/changelog";
+// Lazy imports for marketing pages
+const Terms = lazy(() => import("@/pages/terms"));
+const Pricing = lazy(() => import("@/pages/pricing"));
+const Blog = lazy(() => import("@/pages/blog"));
+const BlogPost = lazy(() => import("@/pages/blog-post"));
+const Contact = lazy(() => import("@/pages/contact"));
+const Support = lazy(() => import("@/pages/support"));
+const Levels = lazy(() => import("@/pages/levels"));
+const Privacy = lazy(() => import("@/pages/privacy"));
+const Changelog = lazy(() => import("@/pages/changelog"));
 
 function Router() {
   // Track page views when routes change
@@ -66,7 +71,9 @@ function Router() {
           <Layout>
             <MainNav />
             <div className="flex-1">
-              <Terms />
+              <Suspense fallback={<LoadingScreen />}>
+                <Terms />
+              </Suspense>
             </div>
           </Layout>
         </Route>
@@ -74,7 +81,9 @@ function Router() {
           <Layout>
             <MainNav />
             <div className="flex-1">
-              <Pricing />
+              <Suspense fallback={<LoadingScreen />}>
+                <Pricing />
+              </Suspense>
             </div>
           </Layout>
         </Route>
@@ -82,7 +91,9 @@ function Router() {
           <Layout>
             <MainNav />
             <div className="flex-1">
-              <Blog />
+              <Suspense fallback={<LoadingScreen />}>
+                <Blog />
+              </Suspense>
             </div>
           </Layout>
         </Route>
@@ -90,7 +101,9 @@ function Router() {
           <Layout>
             <MainNav />
             <div className="flex-1">
-              <BlogPost />
+              <Suspense fallback={<LoadingScreen />}>
+                <BlogPost />
+              </Suspense>
             </div>
           </Layout>
         </Route>
@@ -98,7 +111,9 @@ function Router() {
           <Layout>
             <MainNav />
             <div className="flex-1">
-              <Levels />
+              <Suspense fallback={<LoadingScreen />}>
+                <Levels />
+              </Suspense>
             </div>
           </Layout>
         </Route>
@@ -106,7 +121,9 @@ function Router() {
           <Layout>
             <MainNav />
             <div className="flex-1">
-              <Contact />
+              <Suspense fallback={<LoadingScreen />}>
+                <Contact />
+              </Suspense>
             </div>
           </Layout>
         </Route>
@@ -114,7 +131,9 @@ function Router() {
           <Layout>
             <MainNav />
             <div className="flex-1">
-              <Support />
+              <Suspense fallback={<LoadingScreen />}>
+                <Support />
+              </Suspense>
             </div>
           </Layout>
         </Route>
@@ -122,7 +141,9 @@ function Router() {
           <Layout>
             <MainNav />
             <div className="flex-1">
-              <Privacy />
+              <Suspense fallback={<LoadingScreen />}>
+                <Privacy />
+              </Suspense>
             </div>
           </Layout>
         </Route>
@@ -130,7 +151,9 @@ function Router() {
           <Layout>
             <MainNav />
             <div className="flex-1">
-              <Changelog />
+              <Suspense fallback={<LoadingScreen />}>
+                <Changelog />
+              </Suspense>
             </div>
           </Layout>
         </Route>
@@ -144,22 +167,70 @@ function Router() {
                 <Route path="/auth" component={Auth} />
                 
                 {/* Semi-protected routes - allow initial access but prompt for login for certain actions */}
-                <SemiProtectedRoute path="/app" component={() => <Home />} />
-                <SemiProtectedRoute path="/companies/:id" component={() => <CompanyDetails />} />
+                <SemiProtectedRoute path="/app" component={() => 
+                  <Suspense fallback={<LoadingScreen message="Loading search interface..." />}>
+                    <Home />
+                  </Suspense>
+                } />
+                <SemiProtectedRoute path="/companies/:id" component={() => 
+                  <Suspense fallback={<LoadingScreen message="Loading company details..." />}>
+                    <CompanyDetails />
+                  </Suspense>
+                } />
                 
                 {/* Fully protected routes - require login */}
-                <ProtectedRoute path="/build" component={() => <Build />} />
-                <ProtectedRoute path="/lists" component={() => <Lists />} />
-                <ProtectedRoute path="/lists/:listId" component={() => <ListDetails />} />
-                <ProtectedRoute path="/campaigns" component={() => <Campaigns />} />
-                <ProtectedRoute path="/campaigns/:id" component={() => <CampaignDetails />} />
-                <ProtectedRoute path="/outreach" component={() => <Outreach />} />
-                <ProtectedRoute path="/replies" component={() => <Replies />} />
-                <ProtectedRoute path="/contacts/:id" component={() => <ContactDetails />} />
-                <ProtectedRoute path="/testing" component={() => <Testing />} />
+                <ProtectedRoute path="/build" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <Build />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/lists" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <Lists />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/lists/:listId" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <ListDetails />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/campaigns" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <Campaigns />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/campaigns/:id" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <CampaignDetails />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/outreach" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <Outreach />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/replies" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <Replies />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/contacts/:id" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <ContactDetails />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/testing" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <Testing />
+                  </Suspense>
+                } />
                 
                 {/* 404 Page */}
-                <Route component={() => <NotFound />} />
+                <Route component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <NotFound />
+                  </Suspense>
+                } />
               </Switch>
             </div>
           </AppLayout>
