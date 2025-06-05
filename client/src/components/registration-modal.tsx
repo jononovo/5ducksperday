@@ -296,6 +296,12 @@ export function RegistrationModal() {
                           className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleSubmit();
+                            }
+                          }}
                         />
                         <p className="text-xs text-gray-400 mt-1">Minimum 8 characters</p>
                       </div>
@@ -315,15 +321,17 @@ export function RegistrationModal() {
                     )}
                   </div>
 
-                  {/* Alternative registration options */}
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-white/20" />
+                  {/* Alternative registration options - only show when Create Account button is visible */}
+                  {emailValid && (
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-white/20" />
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-2 bg-black/70 text-gray-400">OR CONTINUE WITH</span>
+                      </div>
                     </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-black/70 text-gray-400">or</span>
-                    </div>
-                  </div>
+                  )}
 
                   <Button 
                     variant="outline" 
