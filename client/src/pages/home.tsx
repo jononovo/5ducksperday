@@ -1,14 +1,19 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import CompanyTable from "@/components/company-table";
-import PromptEditor from "@/components/prompt-editor";
 import { SearchProgress } from "@/components/search-progress";
+import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+
+// Lazy load heavy components
+const CompanyTable = lazy(() => import("@/components/company-table"));
+const PromptEditor = lazy(() => import("@/components/prompt-editor"));
+
+// Import components with named exports directly for now
 import { EmailSearchSummary } from "@/components/email-search-summary";
 import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
-import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
@@ -1182,25 +1187,27 @@ export default function Home() {
                 <EggAnimation />
               </div>
             </div>
-            <PromptEditor
-              onAnalyze={() => setIsAnalyzing(true)}
-              onComplete={handleAnalysisComplete}
-              onSearchResults={handleSearchResults}
-              onCompaniesReceived={handleCompaniesReceived}
-              isAnalyzing={isAnalyzing}
-              initialPrompt={currentQuery || ""}
-              isFromLandingPage={isFromLandingPage}
-              onDismissLandingHint={() => setIsFromLandingPage(false)}
-              lastExecutedQuery={lastExecutedQuery}
-              onInputChange={(newValue) => setInputHasChanged(newValue !== lastExecutedQuery)}
-              onSearchSuccess={() => {
-                // Highlight only the email search button for 25 seconds
+            <Suspense fallback={<div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>}>
+              <PromptEditor
+                onAnalyze={() => setIsAnalyzing(true)}
+                onComplete={handleAnalysisComplete}
+                onSearchResults={handleSearchResults}
+                onCompaniesReceived={handleCompaniesReceived}
+                isAnalyzing={isAnalyzing}
+                initialPrompt={currentQuery || ""}
+                isFromLandingPage={isFromLandingPage}
+                onDismissLandingHint={() => setIsFromLandingPage(false)}
+                lastExecutedQuery={lastExecutedQuery}
+                onInputChange={(newValue) => setInputHasChanged(newValue !== lastExecutedQuery)}
+                onSearchSuccess={() => {
+                  // Highlight only the email search button for 25 seconds
                 setHighlightEmailButton(true);
                 setTimeout(() => {
                   setHighlightEmailButton(false);
                 }, 25000);
               }}
             />
+            </Suspense>
           </div>
 
           {/* Companies Analysis Section - Moved to top */}
