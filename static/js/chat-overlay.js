@@ -1110,10 +1110,8 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
         console.log('Progressive strategy generation completed successfully');
         
         // Add sales approach prompt after strategy completion
-        setTimeout(() => {
-          console.log('Displaying sales approach prompt...');
-          this.displaySalesApproachPrompt(initialTarget, refinedTarget);
-        }, 2000);
+        console.log('Displaying sales approach prompt...');
+        this.displaySalesApproachPrompt(initialTarget, refinedTarget);
       } else {
         console.error('Queries API failed:', queriesResponse.status, await queriesResponse.text());
         throw new Error(`Queries generation failed: ${queriesResponse.status}`);

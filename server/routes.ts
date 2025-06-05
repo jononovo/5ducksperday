@@ -3503,8 +3503,7 @@ Focus on actionable insights that directly support their stated business goal an
         !userInput.toLowerCase().includes('ok') &&
         userInput.length > 3;
       
-      const hasRefinedTarget = targetMessages.length >= 2 || 
-        (targetMessages.length >= 1 && isCurrentInputTarget);
+      const hasRefinedTarget = targetMessages.length >= 2;
 
       let currentPhase = 'PRODUCT_SUMMARY';
       if (hasProductSummary && !hasInitialTarget) currentPhase = 'TARGET_COLLECTION';
