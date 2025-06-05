@@ -126,7 +126,7 @@ class ChatOverlay {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #f9a8d4, #fbbf24);
+        background: linear-gradient(45deg, #ec4899, #f59e0b, #10b981);
         display: flex;
         align-items: center;
         justify-content: center;
