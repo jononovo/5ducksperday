@@ -1109,18 +1109,10 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
         this.displayStrategyComplete(strategyData);
         console.log('Progressive strategy generation completed successfully');
         
-        // Add completion message with app link
+        // Add sales approach prompt after strategy completion
         setTimeout(() => {
-          const currentDomain = window.location.origin;
-          this.messages.push({
-            id: Date.now().toString(),
-            content: `Awesome! We're done here.<br><br>Now go to <a href="${currentDomain}/app" target="_blank" style="color: #3b82f6; text-decoration: underline;">${currentDomain}/app</a> to see your strategy and begin selling`,
-            sender: 'ai',
-            timestamp: new Date(),
-            isHTML: true
-          });
-          this.render();
-        }, 1000);
+          this.displaySalesApproachPrompt(initialTarget, refinedTarget);
+        }, 1500);
       } else {
         console.error('Queries API failed:', queriesResponse.status, await queriesResponse.text());
         throw new Error(`Queries generation failed: ${queriesResponse.status}`);
@@ -1213,6 +1205,72 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
     });
     
     this.render();
+  }
+
+  displaySalesApproachPrompt(initialTarget, refinedTarget) {
+    this.salesApproachContext = { initialTarget, refinedTarget };
+    
+    const promptHtml = `
+      <div class="boundary-options bg-blue-50 border border-blue-200 rounded-lg p-4 my-3">
+        <h3 class="font-bold text-lg text-blue-800 mb-1">Perfect! Your strategy is complete.</h3>
+        <p class="text-sm text-blue-600 mb-3">Now let's create your marketing context document to guide email campaign creation.</p>
+        <button onclick="chatOverlay.generateSalesApproach()" 
+                class="w-full px-4 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium">
+          Create My Marketing Context Document
+        </button>
+      </div>`;
+
+    this.messages.push({
+      id: Date.now().toString(),
+      content: promptHtml,
+      sender: 'ai',
+      timestamp: new Date(),
+      isHTML: true
+    });
+    this.render();
+  }
+
+  async generateSalesApproach() {
+    try {
+      this.addLoadingMessage("Creating your marketing context document...");
+      
+      const response = await fetch('/api/onboarding/strategy-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userInput: 'Generate sales approach',
+          productContext: {
+            productService: this.formData?.productService,
+            customerFeedback: this.formData?.customerFeedback,
+            website: this.formData?.website
+          },
+          conversationHistory: this.messages.map(m => ({
+            sender: m.sender,
+            content: m.content
+          }))
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.displayReport(data);
+        
+        // Final completion message
+        setTimeout(() => {
+          const currentDomain = window.location.origin;
+          this.messages.push({
+            id: Date.now().toString(),
+            content: `Excellent! Your complete sales strategy is ready.<br><br>Go to <a href="${currentDomain}/app" target="_blank" style="color: #3b82f6; text-decoration: underline;">${currentDomain}/app</a> to start prospecting`,
+            sender: 'ai',
+            timestamp: new Date(),
+            isHTML: true
+          });
+          this.render();
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Sales approach generation error:', error);
+    }
   }
 
   async processStrategyAndTriggerResearch() {
