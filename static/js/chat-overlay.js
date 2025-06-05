@@ -1284,7 +1284,7 @@ Let me process your strategy and research your market right now!`;
 
     const optionsHtml = `
       <div class="boundary-options bg-blue-50 border border-blue-200 rounded-lg p-4 my-3">
-        <h3 class="font-bold text-lg text-blue-800 mb-1">First we need to agree on a high level market segment.</h3>
+        <h3 class="font-bold text-lg text-blue-800 mb-1">First we need to agree on a high-level market segment.</h3>
         <p class="text-sm text-blue-600 mb-3">Within this we will target ~700 companies across 6 sprints. Please choose your preferred approach:</p>
         <div class="options-list space-y-3 mb-4">
           ${boundaryData.content.map((option, index) => `
