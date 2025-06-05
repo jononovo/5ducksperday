@@ -55,8 +55,8 @@ export async function generateBoundaryOptions(params: any, productContext: any):
   // Create 3 different strategic approaches
   const prompts = [
     // Geographic-focused approach
-    `Create a 90-day target boundary for SELLING ${productContext.productService} TO customers:
-Target Customer Examples: ${initialTarget}, ${refinedTarget}
+    `Create a 90-day lead-generation target segment boundary for SELLING this product: ${productContext.productService}. 
+Here are Target Customer Examples that the company sells to: ${initialTarget} or ${refinedTarget}.
 
 Focus on GEOGRAPHIC expansion. Create a boundary that emphasizes location-based targeting to reach ~700 companies across 6 sprints.
 Max 10 words.
@@ -65,8 +65,8 @@ Examples: mid-level rated, irish bars in NY state
 Return only the boundary statement, no additional text.`,
 
     // Niche-focused approach  
-    `Create a 90-day target boundary for SELLING ${productContext.productService} TO customers:
-Target Customer Examples: ${initialTarget}, ${refinedTarget}
+    `Create a 90-day lead-generation target segment boundary for SELLING this product: ${productContext.productService}. 
+Here are Target Customer Examples that the company sells to: ${initialTarget} or ${refinedTarget}.
 
 Focus on NICHE specialization. Create a boundary that emphasizes industry/type-based targeting to reach ~700 companies across 6 sprints.
 Max 10 words.
@@ -75,8 +75,8 @@ Examples: franchising educational tutoring companies in South America
 Return only the boundary statement, no additional text.`,
 
     // Hybrid approach
-    `Create a 90-day target boundary for SELLING ${productContext.productService} TO customers:
-Target Customer Examples: ${initialTarget}, ${refinedTarget}
+    `Create a 90-day lead-generation target segment boundary for SELLING this product: ${productContext.productService}. 
+Here are Target Customer Examples that the company sells to: ${initialTarget} or ${refinedTarget}.
 
 Focus on BALANCED approach. Create a boundary combining geography and niche targeting to reach ~700 companies across 6 sprints.
 Max 10 words.
