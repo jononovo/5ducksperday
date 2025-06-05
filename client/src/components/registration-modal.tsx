@@ -276,7 +276,11 @@ export function RegistrationModal() {
                   {/* Create Account button always visible */}
                   <Button 
                     variant="outline" 
-                    className="w-full justify-center bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50"
+                    className={`w-full justify-center transition-all duration-300 ${
+                      emailValid && (!email.includes('@') || password.length >= 8)
+                        ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white border-transparent shadow-lg'
+                        : 'bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50'
+                    }`}
                     onClick={handleSubmit}
                     disabled={!emailValid || (email.includes('@') && password.length < 8)}
                   >
@@ -377,7 +381,11 @@ export function RegistrationModal() {
                   
                   <Button 
                     variant="outline" 
-                    className="w-full justify-center bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50"
+                    className={`w-full justify-center transition-all duration-300 ${
+                      emailValid && password.length > 0
+                        ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white border-transparent shadow-lg'
+                        : 'bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50'
+                    }`}
                     onClick={handleSubmit}
                     disabled={!emailValid || password.length === 0}
                   >
@@ -462,7 +470,11 @@ export function RegistrationModal() {
                     
                     <Button 
                       variant="outline" 
-                      className="w-full justify-center bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50"
+                      className={`w-full justify-center transition-all duration-300 ${
+                        emailValid
+                          ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white border-transparent shadow-lg'
+                          : 'bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50'
+                      }`}
                       onClick={handleForgotPasswordSubmit}
                       disabled={!emailValid}
                     >
