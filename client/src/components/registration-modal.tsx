@@ -143,8 +143,24 @@ export function RegistrationModal() {
       } catch (error: any) {
         console.error("Registration error:", error);
         
-        // Special handling for operation-not-allowed error
-        if (error.code === 'auth/operation-not-allowed') {
+        // Check if email already exists - attempt login
+        if (error.code === 'auth/email-already-in-use') {
+          try {
+            console.log("Email exists, attempting login with:", { email });
+            await signInWithEmail(email, password);
+            toast({
+              title: "Account already exists - Logging you in",
+              variant: "default",
+            });
+            closeModal();
+          } catch (loginError: any) {
+            console.error("Login attempt failed:", loginError);
+            toast({
+              title: "Account already exists - Login or create new account",
+              variant: "destructive",
+            });
+          }
+        } else if (error.code === 'auth/operation-not-allowed') {
           toast({
             title: "Email/Password Sign-up Not Enabled",
             description: "Email/Password authentication needs to be enabled in the Firebase Console.",
