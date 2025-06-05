@@ -19,7 +19,7 @@ export function RegistrationModal() {
   const [emailValid, setEmailValid] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [showGoogleAuthInfo, setShowGoogleAuthInfo] = useState(false);
-  const [showEmailForm, setShowEmailForm] = useState(false);
+
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const loginEmailRef = useRef<HTMLInputElement>(null);
@@ -66,9 +66,7 @@ export function RegistrationModal() {
     console.log("Outlook registration clicked");
   };
 
-  const handleOtherEmailClick = () => {
-    setShowEmailForm(true);
-  };
+
   
   const validateEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -79,8 +77,8 @@ export function RegistrationModal() {
   
   // Focus the appropriate input field when the page changes
   useEffect(() => {
-    if (showEmailForm) {
-      // Focus the name input field when email form appears
+    if (currentPage === "main") {
+      // Focus the name input field on main page
       setTimeout(() => nameInputRef.current?.focus(), 100);
     } else if (currentPage === "login") {
       // Focus the email input field on the login page
@@ -91,7 +89,7 @@ export function RegistrationModal() {
       // Reset the email sent flag when navigating to this page
       setResetEmailSent(false);
     }
-  }, [currentPage, showEmailForm]);
+  }, [currentPage]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -108,7 +106,6 @@ export function RegistrationModal() {
 
   const handleReturnToMain = () => {
     setCurrentPage("main");
-    setShowEmailForm(false);
     setShowGoogleAuthInfo(false);
     // Reset form fields
     setName("");
@@ -153,9 +150,9 @@ export function RegistrationModal() {
     // Different validation rules for registration vs login
     if (!validateEmail(email)) return;
     
-    // For registration, enforce 8+ character password only if email includes @
+    // For registration on main page, enforce 8+ character password only if email includes @
     // This allows users to proceed if they haven't reached the password field yet
-    if (showEmailForm && email.includes('@') && password.length < 8) {
+    if (currentPage === "main" && email.includes('@') && password.length < 8) {
       toast({
         title: "Password Too Short",
         description: "Password must be at least 8 characters",
@@ -164,7 +161,7 @@ export function RegistrationModal() {
       return;
     }
     
-    if (showEmailForm) {
+    if (currentPage === "main") {
       try {
         // Register user with Firebase authentication
         console.log("Attempting registration with:", { email, name });
@@ -268,17 +265,65 @@ export function RegistrationModal() {
                   exit={{ opacity: 0, y: -20 }}
                   className="space-y-4"
                 >
-                  <Button 
-                    variant="outline"
-                    className="group w-full justify-between relative bg-blue-500/20 hover:bg-black/50 text-blue-400 border-2 border-blue-400 hover:border-blue-300 group-hover:text-blue-300 group-hover:font-semibold shadow-sm cursor-pointer"
-                    onClick={handleOtherEmailClick}
-                  >
-                    <div className="flex items-center text-blue-400 group-hover:text-blue-300">
-                      <Mail className="h-5 w-5 mr-2 text-blue-400 group-hover:text-blue-300" />
-                      Email & Password
+                  {/* Direct registration form fields */}
+                  <div className="space-y-4 mb-6">
+                    <input
+                      ref={nameInputRef}
+                      type="text"
+                      placeholder="Your Name"
+                      className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                    
+                    <input
+                      ref={emailInputRef}
+                      type="email"
+                      placeholder="Email Address"
+                      className={`w-full p-4 bg-white/10 border ${
+                        email.length > 0 ? (emailValid ? 'border-green-400' : 'border-red-400') : 'border-white/20'
+                      } rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300`}
+                      value={email}
+                      onChange={handleEmailChange}
+                    />
+                    
+                    {/* Password field only appears after @ is typed in email */}
+                    {email.includes('@') && (
+                      <div>
+                        <input
+                          type="password"
+                          placeholder="Password"
+                          className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Minimum 8 characters</p>
+                      </div>
+                    )}
+                    
+                    {/* Create Account button appears when form is valid */}
+                    {emailValid && (
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-center relative bg-blue-500/20 hover:bg-blue-600/30 text-blue-300 border-2 border-blue-400 hover:border-blue-300"
+                        onClick={handleSubmit}
+                        disabled={!emailValid || (email.includes('@') && password.length < 8)}
+                      >
+                        Create Account
+                        <ChevronRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Alternative registration options */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-white/20" />
                     </div>
-                    <ChevronRight className="h-4 w-4 text-blue-400 group-hover:text-blue-300" />
-                  </Button>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-black/70 text-gray-400">or</span>
+                    </div>
+                  </div>
 
                   <Button 
                     variant="outline" 
@@ -346,61 +391,7 @@ export function RegistrationModal() {
               )}
             </AnimatePresence>
             
-            {/* Email registration form - appears when Email & Password is clicked */}
-            {showEmailForm && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="mt-6 space-y-4"
-              >
-                <div className="space-y-4">
-                  <input
-                    ref={nameInputRef}
-                    type="text"
-                    placeholder="Your Name"
-                    className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                  
-                  <input
-                    ref={emailInputRef}
-                    type="email"
-                    placeholder="Email Address"
-                    className={`w-full p-4 bg-white/10 border ${
-                      email.length > 0 ? (emailValid ? 'border-green-400' : 'border-red-400') : 'border-white/20'
-                    } rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300`}
-                    value={email}
-                    onChange={handleEmailChange}
-                  />
-                  
-                  {/* Password field only appears after @ is typed in email */}
-                  {email.includes('@') && (
-                    <div>
-                      <input
-                        type="password"
-                        placeholder="Password"
-                        className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
-                      <p className="text-xs text-gray-400 mt-1">Minimum 8 characters</p>
-                    </div>
-                  )}
-                </div>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-center relative bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  onClick={handleSubmit}
-                  disabled={!emailValid || (email.includes('@') && password.length < 8)}
-                >
-                  Create Account
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
-              </motion.div>
-            )}
+
           </div>
         </div>
       )}
