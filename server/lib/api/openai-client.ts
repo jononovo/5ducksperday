@@ -68,7 +68,7 @@ Return only the boundary statement, no additional text.`,
     `Create a 90-day lead-generation target segment boundary for SELLING this product: ${productContext.productService}. 
 Here are Target Customer Examples that the company sells to: ${initialTarget} or ${refinedTarget}.
 
-Focus on DEEP NICHE specialization. Identify a specific industry subset or customer type that would highly value this product, staying within or near the current geographic area.
+Focus on DEEP NICHE specialization. Identify a specific industry subset or customer type that would highly value this product. If the niche is very specific, expand geography to reach ~700 companies across 6 sprints.
 Max 10 words.
 
 Examples: STEM tutoring companies in South America
