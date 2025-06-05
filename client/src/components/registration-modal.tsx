@@ -276,38 +276,11 @@ export function RegistrationModal() {
                   {/* Create Account button always visible */}
                   <Button 
                     variant="outline" 
-                    className="w-full justify-center relative bg-blue-500/20 hover:bg-blue-600/30 text-blue-300 border-2 border-blue-400 hover:border-blue-300"
+                    className="w-full justify-center bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50"
                     onClick={handleSubmit}
                     disabled={!emailValid || (email.includes('@') && password.length < 8)}
                   >
                     Create Account
-                  </Button>
-
-                  {/* Style Option 1: Clean Minimal */}
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-center bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 hover:border-gray-300"
-                    disabled
-                  >
-                    Option 1: Clean Minimal
-                  </Button>
-
-                  {/* Style Option 2: Subtle Accent */}
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-center bg-gray-900 hover:bg-gray-800 text-white border border-gray-700"
-                    disabled
-                  >
-                    Option 2: Subtle Accent
-                  </Button>
-
-                  {/* Style Option 3: Ghost/Outline */}
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-center bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50"
-                    disabled
-                  >
-                    Option 3: Ghost/Outline
                   </Button>
                 </div>
 
@@ -404,7 +377,7 @@ export function RegistrationModal() {
                   
                   <Button 
                     variant="outline" 
-                    className="w-full justify-center relative bg-blue-500/20 hover:bg-blue-600/30 text-blue-300 border-2 border-blue-400 hover:border-blue-300"
+                    className="w-full justify-center bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50"
                     onClick={handleSubmit}
                     disabled={!emailValid || password.length === 0}
                   >
@@ -489,7 +462,7 @@ export function RegistrationModal() {
                     
                     <Button 
                       variant="outline" 
-                      className="w-full justify-center relative bg-blue-500/20 hover:bg-blue-600/30 text-blue-300 border-2 border-blue-400 hover:border-blue-300"
+                      className="w-full justify-center bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50"
                       onClick={handleForgotPasswordSubmit}
                       disabled={!emailValid}
                     >
