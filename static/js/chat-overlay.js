@@ -131,6 +131,7 @@ class ChatOverlay {
         align-items: center;
         justify-content: center;
         color: white;
+        font-size: 18px;
       }
       
       .chat-title {
