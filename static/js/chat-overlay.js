@@ -1038,7 +1038,10 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
         
         if (boundaryData.type === 'boundary_options') {
           // Display interactive boundary selection
+          console.log('Boundary data received:', boundaryData);
+          console.log('About to display boundary options...');
           this.displayBoundaryOptions(boundaryData, productContext, initialTarget, refinedTarget);
+          console.log('Boundary options displayed, returning to wait for selection');
           return; // Wait for user selection
         } else {
           // Legacy single boundary response
