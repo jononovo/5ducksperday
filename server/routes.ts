@@ -3596,6 +3596,26 @@ PHASE-SPECIFIC INSTRUCTIONS:
         };
         
         console.log('Progressive strategy result object:', result);
+      } else if (userInput === 'Generate sales approach') {
+        // Handle sales approach generation specifically
+        console.log('Handling sales approach generation directly');
+        
+        try {
+          const { generateSalesApproach } = await import('./lib/api/openai-client.js');
+          const salesApproachData = await generateSalesApproach({}, productContext);
+          
+          result = {
+            type: 'sales_approach',
+            message: "Here's your marketing context document:",
+            data: salesApproachData
+          };
+        } catch (error) {
+          console.error('Sales approach generation error:', error);
+          result = {
+            type: 'conversation',
+            message: "I encountered an issue generating your marketing context document. Let me try a different approach."
+          };
+        }
       } else {
         result = await queryOpenAI(messages, productContext);
       }
