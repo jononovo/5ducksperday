@@ -1378,18 +1378,20 @@ export default function Home() {
               
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <CompanyTable
-                    companies={currentResults || []}
-                    handleCompanyView={handleCompanyView}
-                    handleHunterSearch={handleHunterSearch}
-                    handleAeroLeadsSearch={handleAeroLeadsSearch}
-                    handleApolloSearch={handleApolloSearch}
-                    handleEnrichContact={handleEnrichContact}
-                    pendingHunterIds={pendingHunterIds}
-                    pendingAeroLeadsIds={pendingAeroLeadsIds}
-                    pendingApolloIds={pendingApolloIds}
+                  <Suspense fallback={<TableSkeleton />}>
+                    <CompanyTable
+                      companies={currentResults || []}
+                      handleCompanyView={handleCompanyView}
+                      handleHunterSearch={handleHunterSearch}
+                      handleAeroLeadsSearch={handleAeroLeadsSearch}
+                      handleApolloSearch={handleApolloSearch}
+                      handleEnrichContact={handleEnrichContact}
+                      pendingHunterIds={pendingHunterIds}
+                      pendingAeroLeadsIds={pendingAeroLeadsIds}
+                      pendingApolloIds={pendingApolloIds}
                     pendingContactIds={pendingContactIds}
                   />
+                  </Suspense>
                 </div>
               </CardContent>
             </Card>
