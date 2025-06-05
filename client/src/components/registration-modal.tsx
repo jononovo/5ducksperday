@@ -2,11 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { Mail, ChevronRight, ArrowLeft } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { firebaseAuth } from "@/lib/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
 type RegistrationPage = "main" | "login" | "forgotPassword";
@@ -18,7 +17,6 @@ export function RegistrationModal() {
   const [password, setPassword] = useState("");
   const [emailValid, setEmailValid] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
-  const [showGoogleAuthInfo, setShowGoogleAuthInfo] = useState(false);
 
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -42,32 +40,16 @@ export function RegistrationModal() {
     setCurrentPage("login");
   };
 
-  const handleGmailClick = () => {
-    // Show Google auth info instead of navigating to a new page
-    setShowGoogleAuthInfo(true);
-  };
-  
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
       closeModal();
     } catch (error) {
-      console.error("Google sign-in error:", error);
-      toast({
-        title: "Sign-in failed",
-        description: "Could not sign in with Google. Please try again.",
-        variant: "destructive",
-      });
+      // Error handling is already done in the signInWithGoogle function
+      console.error("Google sign-in failed:", error);
     }
   };
 
-  const handleOutlookClick = () => {
-    // Outlook registration will be implemented later
-    console.log("Outlook registration clicked");
-  };
-
-
-  
   const validateEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValid = regex.test(email);
@@ -106,7 +88,6 @@ export function RegistrationModal() {
 
   const handleReturnToMain = () => {
     setCurrentPage("main");
-    setShowGoogleAuthInfo(false);
     // Reset form fields
     setName("");
     setEmail("");
@@ -117,29 +98,18 @@ export function RegistrationModal() {
   const handleForgotPasswordSubmit = async () => {
     if (validateEmail(email)) {
       try {
-        // Use Firebase's password reset functionality
         if (!firebaseAuth) {
-          throw new Error("Authentication service is not initialized");
+          throw new Error("Firebase not initialized");
         }
         
-        await sendPasswordResetEmail(firebaseAuth, email, {
-          url: window.location.origin, 
-          handleCodeInApp: false
-        });
-        
-        console.log("Password reset email sent to:", email);
+        await sendPasswordResetEmail(firebaseAuth, email);
         setResetEmailSent(true);
-        
-        // After 3 seconds, return to login page
-        setTimeout(() => {
-          setCurrentPage("login");
-        }, 3000);
-      } catch (error: any) {
-        // Handle errors
+      } catch (error) {
+        setCurrentPage("main");
         console.error("Password reset error:", error);
         toast({
           title: "Password Reset Failed",
-          description: error.message || "Please try again later.",
+          description: "Could not send reset email. Please try again.",
           variant: "destructive",
         });
       }
@@ -218,312 +188,304 @@ export function RegistrationModal() {
     }
   };
 
+  // Don't render the modal if user is already authenticated
+  if (user) {
+    return null;
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      {currentPage === "main" && (
-        <div className="w-full max-w-md mx-auto relative">
-          {/* Login link in upper right corner - only show when not displaying Google auth info */}
-          {!showGoogleAuthInfo && (
-            <div className="absolute top-0 right-0 mt-6 mr-6 z-10">
-              <button 
-                onClick={handleLoginClick}
-                className="text-sm text-white hover:text-blue-300 transition-colors"
-              >
-                Login
-              </button>
-            </div>
-          )}
-          
-          {/* Main content - only show when not displaying Google auth info */}
-          <AnimatePresence>
-            {!showGoogleAuthInfo && (
-              <motion.div 
-                key="main-title"
-                initial={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="text-center text-white mb-12 mt-16"
-              >
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-black/90 border border-white/10 rounded-lg w-full max-w-md mx-auto relative overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/5 to-pink-600/10"
+          style={{
+            backgroundImage: `
+              radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%)
+            `
+          }}
+        />
+        
+        <div className="relative p-8">
+          {currentPage === "main" && (
+            <div className="w-full max-w-md mx-auto">
+              <div className="text-center text-white mb-8">
                 <h2 className="text-3xl font-bold mb-3">
-                  {isOpenedFromProtectedRoute ? "Sign In Required" : "Join 5Ducks"}
+                  {isOpenedFromProtectedRoute ? "Join to Continue" : "Join 5Ducks"}
                 </h2>
                 <p className="text-gray-200 text-lg">
                   {isOpenedFromProtectedRoute 
-                    ? "Please sign in to access this feature" 
-                    : "Access powerful sales tools and features"}
+                    ? "Sign up or log in to access this feature" 
+                    : "Start prospecting with AI-powered sales tools"
+                  }
                 </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
 
-          {/* Registration options */}
-          <div className="space-y-4 max-w-sm mx-auto px-4">
-            <AnimatePresence mode="wait">
-              {!showGoogleAuthInfo ? (
-                <motion.div 
-                  key="registration-options"
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-4"
-                >
-                  {/* Direct registration form fields */}
-                  <div className="space-y-4 mb-6">
-                    <input
-                      ref={nameInputRef}
-                      type="text"
-                      placeholder="Your Name"
-                      className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                    
-                    <input
-                      ref={emailInputRef}
-                      type="email"
-                      placeholder="Email Address"
-                      className={`w-full p-4 bg-white/10 border ${
-                        email.length > 0 ? (emailValid ? 'border-green-400' : 'border-red-400') : 'border-white/20'
-                      } rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300`}
-                      value={email}
-                      onChange={handleEmailChange}
-                    />
-                    
-                    {/* Password field only appears after @ is typed in email */}
-                    {email.includes('@') && (
-                      <div>
-                        <input
-                          type="password"
-                          placeholder="Password"
-                          className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleSubmit();
-                            }
-                          }}
-                        />
-                        <p className="text-xs text-gray-400 mt-1">Minimum 8 characters</p>
-                      </div>
-                    )}
-                    
-                    {/* Create Account button appears when form is valid */}
-                    {emailValid && (
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-center relative bg-blue-500/20 hover:bg-blue-600/30 text-blue-300 border-2 border-blue-400 hover:border-blue-300"
-                        onClick={handleSubmit}
-                        disabled={!emailValid || (email.includes('@') && password.length < 8)}
-                      >
-                        Create Account
-                        <ChevronRight className="h-4 w-4 ml-2" />
-                      </Button>
-                    )}
-                  </div>
-
-                  {/* Alternative registration options - only show when Create Account button is visible */}
-                  {emailValid && (
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-white/20" />
-                      </div>
-                      <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-black/70 text-gray-400">OR CONTINUE WITH</span>
-                      </div>
+              <div className="space-y-4 max-w-sm mx-auto px-4">
+                {/* Registration form */}
+                <div className="space-y-4">
+                  <input
+                    ref={nameInputRef}
+                    type="text"
+                    placeholder="Full Name"
+                    className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  
+                  <input
+                    ref={emailInputRef}
+                    type="email"
+                    placeholder="Work Email"
+                    className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
+                    value={email}
+                    onChange={handleEmailChange}
+                  />
+                  
+                  {/* Password field only appears after @ is typed in email */}
+                  {email.includes('@') && (
+                    <div>
+                      <input
+                        type="password"
+                        placeholder="Password"
+                        className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleSubmit();
+                          }
+                        }}
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Minimum 8 characters</p>
                     </div>
                   )}
-
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-between relative bg-white/10 text-white border-white/20 hover:bg-white/20 cursor-pointer"
-                    onClick={handleGmailClick}
-                  >
-                    <div className="flex items-center">
-                      <Mail className="h-5 w-5 mr-2" />
-                      Register with Gmail
-                    </div>
-                    <div className="flex items-center">
-                      <Badge variant="outline" className="mr-2 text-white border-white/50">Coming Soon</Badge>
-                      <ChevronRight className="h-4 w-4" />
-                    </div>
-                  </Button>
-
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-between relative bg-white/10 text-white border-white/20 hover:bg-white/20 cursor-pointer"
-                    onClick={handleOutlookClick}
-                  >
-                    <div className="flex items-center">
-                      <Mail className="h-5 w-5 mr-2" />
-                      Register with Outlook
-                    </div>
-                    <div className="flex items-center">
-                      <Badge variant="outline" className="mr-2 text-white border-white/50">Coming Soon</Badge>
-                      <ChevronRight className="h-4 w-4" />
-                    </div>
-                  </Button>
-                </motion.div>
-              ) : (
-                <motion.div 
-                  key="google-auth-info"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-4"
-                >
-                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-md p-4 text-white mb-4">
-                    <h3 className="font-bold mb-2">Sending Permissions</h3>
-                    <p className="text-sm">We help you send a compelling message.<br /><br />Please approve the additional permissions for sending email.</p>
-                  </div>
                   
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-center relative bg-white/10 text-white border-white/20 hover:bg-white/20"
-                    onClick={handleGoogleSignIn}
-                  >
-                    <Mail className="h-5 w-5 mr-2" />
-                    Continue with Google
-                    <ChevronRight className="h-4 w-4 ml-2" />
-                  </Button>
-                  
-                  <div className="text-center mt-2">
-                    <button 
-                      onClick={() => setShowGoogleAuthInfo(false)}
-                      className="text-sm text-white hover:text-blue-300 transition-colors flex items-center justify-center gap-1 mx-auto"
+                  {/* Create Account button appears when form is valid */}
+                  {emailValid && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-center relative bg-blue-500/20 hover:bg-blue-600/30 text-blue-300 border-2 border-blue-400 hover:border-blue-300"
+                      onClick={handleSubmit}
+                      disabled={!emailValid || (email.includes('@') && password.length < 8)}
                     >
-                      <ArrowLeft className="h-4 w-4" />
-                      Back to options
-                    </button>
+                      Create Account
+                    </Button>
+                  )}
+                </div>
+
+                {/* Alternative registration options - only show when Create Account button is visible */}
+                {emailValid && (
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-white/20" />
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-black/70 text-gray-400">OR CONTINUE WITH</span>
+                    </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
+                )}
 
-          </div>
-        </div>
-      )}
+                {/* Google Sign-in Button */}
+                {emailValid && (
+                  <div className="space-y-2">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-center relative bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+                      onClick={handleGoogleSignIn}
+                    >
+                      <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      </svg>
+                      Continue with Google
+                    </Button>
+                    <p className="text-xs text-gray-400 text-center">
+                      Gmail permissions required for sending emails from this app
+                    </p>
+                  </div>
+                )}
 
-      {currentPage === "login" && (
-        <div className="w-full max-w-md mx-auto relative">
-          {/* Back button in upper left corner */}
-          <div className="absolute top-0 left-0 mt-6 ml-6 z-10">
-            <button 
-              onClick={handleReturnToMain}
-              className="text-sm text-white hover:text-blue-300 transition-colors flex items-center gap-1"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </button>
-          </div>
-          
-          {/* Main content */}
-          <div className="text-center text-white mb-8 mt-16">
-            <h2 className="text-3xl font-bold mb-3">Welcome Back</h2>
-            <p className="text-gray-200 text-lg">Log in to your account</p>
-          </div>
+                {/* Login link */}
+                <div className="text-center mt-6">
+                  <p className="text-gray-400 text-sm">
+                    Already have an account?{" "}
+                    <button 
+                      onClick={handleLoginClick}
+                      className="text-blue-300 hover:text-blue-200 transition-colors font-medium"
+                    >
+                      Sign In
+                    </button>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
-          {/* Login form */}
-          <div className="space-y-4 max-w-sm mx-auto px-4">
-            <div className="space-y-4">
-              <input
-                ref={loginEmailRef}
-                type="email"
-                placeholder="Email Address"
-                className={`w-full p-4 bg-white/10 border ${
-                  email.length > 0 ? (emailValid ? 'border-green-400' : 'border-red-400') : 'border-white/20'
-                } rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300`}
-                value={email}
-                onChange={handleEmailChange}
-              />
+          {currentPage === "login" && (
+            <div className="w-full max-w-md mx-auto relative">
+              {/* Back button in upper left corner */}
+              <div className="absolute top-0 left-0 mt-6 ml-6 z-10">
+                <button 
+                  onClick={handleReturnToMain}
+                  className="text-sm text-white hover:text-blue-300 transition-colors flex items-center gap-1"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </button>
+              </div>
               
-              <div>
-                <input
-                  type="password"
-                  placeholder="Password"
-                  className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+              {/* Main content */}
+              <div className="text-center text-white mb-8 mt-16">
+                <h2 className="text-3xl font-bold mb-3">Welcome Back</h2>
+                <p className="text-gray-200 text-lg">Log in to your account</p>
               </div>
-            </div>
-            
-            <Button 
-              variant="outline" 
-              className="w-full justify-center relative bg-white/10 text-white border-white/20 hover:bg-white/20"
-              onClick={handleSubmit}
-              disabled={!emailValid}
-            >
-              Go
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
-            
-            <div className="text-center mt-2">
-              <button 
-                onClick={handleForgotPassword}
-                className="text-sm text-white hover:text-blue-300 transition-colors"
-              >
-                Forgot password
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {currentPage === "forgotPassword" && (
-        <div className="w-full max-w-md mx-auto relative">
-          {/* Back button in upper left corner */}
-          <div className="absolute top-0 left-0 mt-6 ml-6 z-10">
-            <button 
-              onClick={() => setCurrentPage("login")}
-              className="text-sm text-white hover:text-blue-300 transition-colors flex items-center gap-1"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </button>
-          </div>
-          
-          {/* Main content */}
-          <div className="text-center text-white mb-8 mt-16">
-            <h2 className="text-3xl font-bold mb-3">Reset Password</h2>
-            <p className="text-gray-200 text-lg">Enter your email to receive reset instructions</p>
-          </div>
+              {/* Login form */}
+              <div className="space-y-4 max-w-sm mx-auto px-4">
+                <div className="space-y-4">
+                  <input
+                    ref={loginEmailRef}
+                    type="email"
+                    placeholder="Email"
+                    className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
+                    value={email}
+                    onChange={handleEmailChange}
+                  />
+                  
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleSubmit();
+                      }
+                    }}
+                  />
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-center relative bg-blue-500/20 hover:bg-blue-600/30 text-blue-300 border-2 border-blue-400 hover:border-blue-300"
+                    onClick={handleSubmit}
+                    disabled={!emailValid || password.length === 0}
+                  >
+                    Sign In
+                  </Button>
+                </div>
 
-          {/* Forgot password form */}
-          <div className="space-y-4 max-w-sm mx-auto px-4">
-            {resetEmailSent ? (
-              <div className="text-center p-4 bg-green-500/20 border border-green-500/30 rounded-md text-white">
-                <p>Password reset email sent!</p>
-                <p className="text-sm mt-1">Please check your inbox for instructions.</p>
-                <p className="text-xs mt-3">Returning to login page in a moment...</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <input
-                  ref={forgotPasswordEmailRef}
-                  type="email"
-                  placeholder="Email Address"
-                  className={`w-full p-4 bg-white/10 border ${
-                    email.length > 0 ? (emailValid ? 'border-green-400' : 'border-red-400') : 'border-white/20'
-                  } rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300`}
-                  value={email}
-                  onChange={handleEmailChange}
-                />
-                
+                {/* Forgot password link */}
+                <div className="text-center">
+                  <button 
+                    onClick={handleForgotPassword}
+                    className="text-sm text-blue-300 hover:text-blue-200 transition-colors"
+                  >
+                    Forgot your password?
+                  </button>
+                </div>
+
+                {/* Google Sign-in Button for login page */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/20" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-black/70 text-gray-400">OR</span>
+                  </div>
+                </div>
+
                 <Button 
                   variant="outline" 
-                  className="w-full justify-center relative bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  onClick={handleForgotPasswordSubmit}
-                  disabled={!emailValid}
+                  className="w-full justify-center relative bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+                  onClick={handleGoogleSignIn}
                 >
-                  Send Reset Email
-                  <ChevronRight className="h-4 w-4 ml-2" />
+                  <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  Continue with Google
                 </Button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {currentPage === "forgotPassword" && (
+            <div className="w-full max-w-md mx-auto relative">
+              {/* Back button in upper left corner */}
+              <div className="absolute top-0 left-0 mt-6 ml-6 z-10">
+                <button 
+                  onClick={handleReturnToMain}
+                  className="text-sm text-white hover:text-blue-300 transition-colors flex items-center gap-1"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </button>
+              </div>
+              
+              {/* Main content */}
+              <div className="text-center text-white mb-8 mt-16">
+                <h2 className="text-3xl font-bold mb-3">Reset Password</h2>
+                <p className="text-gray-200 text-lg">Enter your email to receive reset instructions</p>
+              </div>
+
+              {/* Reset form */}
+              <div className="space-y-4 max-w-sm mx-auto px-4">
+                {!resetEmailSent ? (
+                  <>
+                    <input
+                      ref={forgotPasswordEmailRef}
+                      type="email"
+                      placeholder="Email"
+                      className="w-full p-4 bg-white/10 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-300"
+                      value={email}
+                      onChange={handleEmailChange}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleForgotPasswordSubmit();
+                        }
+                      }}
+                    />
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-center relative bg-blue-500/20 hover:bg-blue-600/30 text-blue-300 border-2 border-blue-400 hover:border-blue-300"
+                      onClick={handleForgotPasswordSubmit}
+                      disabled={!emailValid}
+                    >
+                      Send Reset Email
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-center">
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-md p-4 text-white mb-4">
+                      <h3 className="font-bold mb-2">Email Sent!</h3>
+                      <p className="text-sm">Check your inbox for password reset instructions.</p>
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-center relative bg-blue-500/20 hover:bg-blue-600/30 text-blue-300 border-2 border-blue-400 hover:border-blue-300"
+                      onClick={handleReturnToMain}
+                    >
+                      Return to Sign In
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

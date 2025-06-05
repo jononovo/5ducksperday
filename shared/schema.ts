@@ -550,7 +550,6 @@ export type OnboardingChat = typeof onboardingChats.$inferSelect;
 export type InsertOnboardingChat = z.infer<typeof insertOnboardingChatSchema>;
 export type ProspectDelivery = typeof prospectDeliveries.$inferSelect;
 export type InsertProspectDelivery = z.infer<typeof insertProspectDeliverySchema>;
-export type InsertWebhookLog = z.infer<typeof insertWebhookLogSchema>;
 
 // Add User type
 export type User = typeof users.$inferSelect;
