@@ -1210,7 +1210,7 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
           const currentDomain = window.location.origin;
           this.messages.push({
             id: Date.now().toString(),
-            content: `Excellent! Your complete sales strategy is ready.<br><br>Go to <a href="${currentDomain}/app" target="_blank" style="color: #3b82f6; text-decoration: underline;">${currentDomain}/app</a> to start prospecting`,
+            content: `Excellent! Your complete sales strategy is ready.<br><br>Go to <a href="${currentDomain}/app" target="_blank" style="color: #3b82f6; text-decoration: underline;">${currentDomain}/app</a> to start prospecting or get the PDF version.`,
             sender: 'ai',
             timestamp: new Date(),
             isHTML: true
