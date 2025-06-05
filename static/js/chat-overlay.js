@@ -471,10 +471,10 @@ class ChatOverlay {
     this.container.innerHTML = `
       <div class="chat-header">
         <div class="chat-header-info">
-          <div class="chat-avatar">💬</div>
+          <div class="chat-avatar">🦆</div>
           <div>
-            <p class="chat-title">Strategic Planning Assistant</p>
-            <p class="chat-subtitle">${this.businessType ? `Creating your ${this.businessType} strategy` : 'Ready to help'}</p>
+            <p class="chat-title">Mama Duck - Strategic Planning</p>
+            <p class="chat-subtitle">Creating your email product strategy</p>
           </div>
         </div>
         <div class="chat-controls">
