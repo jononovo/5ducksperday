@@ -213,7 +213,7 @@ export function RegistrationModal() {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
       {/* Login link in upper right */}
       <div className="absolute top-6 right-6 z-10">
         <button 
