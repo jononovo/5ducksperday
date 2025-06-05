@@ -9,7 +9,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
-type RegistrationPage = "main" | "email" | "login" | "forgotPassword";
+type RegistrationPage = "main" | "login" | "forgotPassword";
 
 export function RegistrationModal() {
   const [currentPage, setCurrentPage] = useState<RegistrationPage>("main");
@@ -19,6 +19,7 @@ export function RegistrationModal() {
   const [emailValid, setEmailValid] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [showGoogleAuthInfo, setShowGoogleAuthInfo] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const loginEmailRef = useRef<HTMLInputElement>(null);
@@ -66,7 +67,7 @@ export function RegistrationModal() {
   };
 
   const handleOtherEmailClick = () => {
-    setCurrentPage("email");
+    setShowEmailForm(true);
   };
   
   const validateEmail = (email: string) => {
@@ -78,8 +79,8 @@ export function RegistrationModal() {
   
   // Focus the appropriate input field when the page changes
   useEffect(() => {
-    if (currentPage === "email") {
-      // Focus the name input field on the email registration page
+    if (showEmailForm) {
+      // Focus the name input field when email form appears
       setTimeout(() => nameInputRef.current?.focus(), 100);
     } else if (currentPage === "login") {
       // Focus the email input field on the login page
@@ -90,7 +91,7 @@ export function RegistrationModal() {
       // Reset the email sent flag when navigating to this page
       setResetEmailSent(false);
     }
-  }, [currentPage]);
+  }, [currentPage, showEmailForm]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -107,6 +108,8 @@ export function RegistrationModal() {
 
   const handleReturnToMain = () => {
     setCurrentPage("main");
+    setShowEmailForm(false);
+    setShowGoogleAuthInfo(false);
     // Reset form fields
     setName("");
     setEmail("");
@@ -152,7 +155,7 @@ export function RegistrationModal() {
     
     // For registration, enforce 8+ character password only if email includes @
     // This allows users to proceed if they haven't reached the password field yet
-    if (currentPage === "email" && email.includes('@') && password.length < 8) {
+    if (showEmailForm && email.includes('@') && password.length < 8) {
       toast({
         title: "Password Too Short",
         description: "Password must be at least 8 characters",
@@ -161,7 +164,7 @@ export function RegistrationModal() {
       return;
     }
     
-    if (currentPage === "email") {
+    if (showEmailForm) {
       try {
         // Register user with Firebase authentication
         console.log("Attempting registration with:", { email, name });
