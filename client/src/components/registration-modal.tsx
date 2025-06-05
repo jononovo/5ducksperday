@@ -276,15 +276,16 @@ export function RegistrationModal() {
                   {/* Create Account button always visible */}
                   <Button 
                     variant="outline" 
-                    className={`w-full justify-center transition-all duration-300 ${
+                    className={`w-full justify-center transition-all duration-300 group ${
                       emailValid && (!email.includes('@') || password.length >= 8)
-                        ? 'bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 hover:from-blue-800 hover:via-indigo-800 hover:to-purple-800 text-white hover:text-white border-0 shadow-lg'
+                        ? 'bg-gradient-to-r from-blue-800 via-indigo-800 to-purple-800 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white hover:text-white border-0 shadow-lg'
                         : 'bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50'
                     }`}
                     onClick={handleSubmit}
                     disabled={!emailValid || (email.includes('@') && password.length < 8)}
                   >
-                    Create Account
+                    <span className="group-hover:hidden">Create Account</span>
+                    <span className="hidden group-hover:inline">Let's Go 🚀</span>
                   </Button>
                 </div>
 
@@ -383,7 +384,7 @@ export function RegistrationModal() {
                     variant="outline" 
                     className={`w-full justify-center transition-all duration-300 ${
                       emailValid && password.length > 0
-                        ? 'bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 hover:from-blue-800 hover:via-indigo-800 hover:to-purple-800 text-white hover:text-white border-0 shadow-lg'
+                        ? 'bg-gradient-to-r from-blue-800 via-indigo-800 to-purple-800 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white hover:text-white border-0 shadow-lg'
                         : 'bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50'
                     }`}
                     onClick={handleSubmit}
@@ -472,7 +473,7 @@ export function RegistrationModal() {
                       variant="outline" 
                       className={`w-full justify-center transition-all duration-300 ${
                         emailValid
-                          ? 'bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 hover:from-blue-800 hover:via-indigo-800 hover:to-purple-800 text-white hover:text-white border-0 shadow-lg'
+                          ? 'bg-gradient-to-r from-blue-800 via-indigo-800 to-purple-800 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white hover:text-white border-0 shadow-lg'
                           : 'bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50'
                       }`}
                       onClick={handleForgotPasswordSubmit}
