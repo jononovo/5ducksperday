@@ -132,12 +132,12 @@ export async function generateDailyQueries(boundary: string, sprintPrompt: strin
 Generate 8 daily search queries for ${productContext.productService}:
 90-Day Strategic Boundary: ${boundary}
 Sprint Focus: ${sprintPrompt}
-
-Create a list of hyper-specific search prompts that will generate 5-10 targeted results each. Usually one per day is generated. Usually either:
-- Hyper-geo-local (section of large city: Fintech in Brooklyn)
-- Hyper-niche (niche of a niche: horse-brush manufacturers)  
+ 
+Create a list of specific search prompts (max 8 words each) that will generate 5-10 targeted results each. Usually one per day is generated. Usually either:
+- geo-local (section of large city: Fintech in Brooklyn)
+- niche (niche of a niche: horse-brush manufacturers)
 - Medium-level combination of niche + local (real-estate lawyers in Miami)
-
+ 
 List one per line without numbers. Keep concise. No introductions or extra sections.`;
 
   const result = await queryPerplexity([
