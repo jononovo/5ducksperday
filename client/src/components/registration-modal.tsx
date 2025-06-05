@@ -224,7 +224,7 @@ export function RegistrationModal() {
         </button>
       </div>
       
-      <div className="bg-black/90 border border-white/10 rounded-lg w-full max-w-[95vw] sm:max-w-md mx-auto relative overflow-hidden">
+      <div className="bg-black/90 border border-white/10 rounded-lg w-full max-w-full sm:max-w-md mx-auto relative overflow-hidden">
         <div 
           className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/5 to-pink-600/10"
           style={{
