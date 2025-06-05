@@ -1534,7 +1534,7 @@ Let me process your strategy and research your market right now!`;
       content: reportHtml,
       sender: 'ai',
       timestamp: new Date(),
-      isHtml: true
+      isHTML: true
     });
     
     this.render();
