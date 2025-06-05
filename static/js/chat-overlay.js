@@ -1115,7 +1115,9 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
         // Add sales approach prompt after strategy completion
         console.log('Displaying sales approach prompt...');
         setTimeout(() => {
+          console.log('setTimeout executing, calling displaySalesApproachPrompt with:', { initialTarget, refinedTarget });
           this.displaySalesApproachPrompt(initialTarget, refinedTarget);
+          console.log('displaySalesApproachPrompt call completed');
         }, 100);
       } else {
         console.error('Queries API failed:', queriesResponse.status, await queriesResponse.text());
