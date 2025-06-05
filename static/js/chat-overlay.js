@@ -1502,6 +1502,14 @@ Let me process your strategy and research your market right now!`;
         };
         
         this.displayStrategyComplete(completeStrategyData);
+
+        // Add sales approach prompt after strategy completion
+        console.log('Strategy completion in continueStrategyGeneration, displaying sales approach prompt...');
+        setTimeout(() => {
+          console.log('setTimeout executing in continueStrategyGeneration with:', { initialTarget, refinedTarget });
+          this.displaySalesApproachPrompt(initialTarget, refinedTarget);
+          console.log('Sales approach prompt displayed from continueStrategyGeneration');
+        }, 100);
       } else {
         throw new Error('Queries generation failed');
       }
