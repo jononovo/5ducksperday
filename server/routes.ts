@@ -3543,7 +3543,7 @@ CURRENT PHASE: ${currentPhase}
 
 TARGET COLLECTION PHASE RULES:
 - After Product Summary, ask for target business examples using: "[type of business] in [city/niche]"
-- After first target example, ask for refinement using template: "Is there an additional niche or another example that you think could improve your sales chances? Like, instead of 'family-friendly hotels in orlando' We could add '4-star' to make it '4-star family-friendly hotels in orlando'"
+- After first target example, analyze for Geographic (country → city/region) and Niche (industry → sub-industry) specificity gaps, then ask for refinement using template: "Is there an additional niche or another example that you think could improve your sales chances? Like, instead of 'family-friendly hotels in orlando' We could add '4-star' to make it '4-star family-friendly hotels in orlando'" or encourage to swap either state or country to city or large city section
 - Only call generateEmailStrategy() after collecting BOTH initial target and refined target
 
 PHASE-SPECIFIC INSTRUCTIONS:
