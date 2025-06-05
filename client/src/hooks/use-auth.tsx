@@ -157,21 +157,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         code: error.code
       });
 
-      // Show user-friendly error messages
-      let errorMessage = "Please try again";
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = "Email already in use. Try signing in instead";
-      } else if (error.code === 'auth/weak-password') {
-        errorMessage = "Password is too weak. Please use a stronger password";
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = "Invalid email address";
-      }
+      // Show user-friendly error messages, but skip toast for email-already-in-use
+      // (registration modal will handle this case with auto-login)
+      if (error.code !== 'auth/email-already-in-use') {
+        let errorMessage = "Please try again";
+        if (error.code === 'auth/weak-password') {
+          errorMessage = "Password is too weak. Please use a stronger password";
+        } else if (error.code === 'auth/invalid-email') {
+          errorMessage = "Invalid email address";
+        }
 
-      toast({
-        title: "Registration failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
+        toast({
+          title: "Registration failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
 
       throw error;
     }

@@ -149,14 +149,17 @@ export function RegistrationModal() {
             console.log("Email exists, attempting login with:", { email });
             await signInWithEmail(email, password);
             toast({
-              title: "Account already exists - Logging you in",
+              title: "Welcome back!",
+              description: "Account already exists - Logging you in",
               variant: "default",
+              duration: 4000,
             });
             closeModal();
           } catch (loginError: any) {
             console.error("Login attempt failed:", loginError);
             toast({
-              title: "Account already exists - Login or create new account",
+              title: "Account already exists",
+              description: "Please try logging in with the correct password",
               variant: "destructive",
             });
           }
