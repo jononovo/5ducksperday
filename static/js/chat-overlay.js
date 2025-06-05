@@ -1054,75 +1054,19 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
         throw new Error(`Boundary generation failed: ${boundaryResponse.status}`);
       }
 
-      // Step 2: Generate Sprint Prompt
-      this.addLoadingMessage("Creating sprint strategy...");
-      
-      console.log('Calling sprint API with:', { 
-        boundary: strategyData.boundary, 
+      // Execute sprint and queries using helper function
+      const { sprintData, queriesData } = await this._executeStrategySteps(
+        strategyData.boundary, 
         refinedTarget, 
-        productContext 
-      });
+        productContext
+      );
       
-      const sprintResponse = await fetch('/api/strategy/sprint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          boundary: strategyData.boundary, 
-          refinedTarget, 
-          productContext 
-        })
-      });
-
-      if (sprintResponse.ok) {
-        const sprintData = await sprintResponse.json();
-        strategyData.sprintPrompt = sprintData.content;
-        this.displayStrategyStep(sprintData);
-        console.log('Sprint step completed:', sprintData);
-      } else {
-        console.error('Sprint API failed:', sprintResponse.status, await sprintResponse.text());
-        throw new Error(`Sprint generation failed: ${sprintResponse.status}`);
-      }
-
-      // Step 3: Generate Daily Queries
-      this.addLoadingMessage("Generating daily queries...");
+      // Update strategy data
+      strategyData.sprintPrompt = sprintData.content;
+      strategyData.dailyQueries = queriesData.content;
       
-      console.log('Calling queries API with:', { 
-        boundary: strategyData.boundary,
-        sprintPrompt: strategyData.sprintPrompt,
-        productContext 
-      });
-      
-      const queriesResponse = await fetch('/api/strategy/queries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          boundary: strategyData.boundary,
-          sprintPrompt: strategyData.sprintPrompt,
-          productContext 
-        })
-      });
-
-      if (queriesResponse.ok) {
-        const queriesData = await queriesResponse.json();
-        strategyData.dailyQueries = queriesData.content;
-        this.displayStrategyStep(queriesData);
-        console.log('Queries step completed:', queriesData);
-        
-        // Mark strategy as complete
-        this.displayStrategyComplete(strategyData);
-        console.log('Progressive strategy generation completed successfully');
-        
-        // Add sales approach prompt after strategy completion
-        console.log('Displaying sales approach prompt...');
-        setTimeout(() => {
-          console.log('setTimeout executing, calling displaySalesApproachPrompt with:', { initialTarget, refinedTarget });
-          this.displaySalesApproachPrompt(initialTarget, refinedTarget);
-          console.log('displaySalesApproachPrompt call completed');
-        }, 100);
-      } else {
-        console.error('Queries API failed:', queriesResponse.status, await queriesResponse.text());
-        throw new Error(`Queries generation failed: ${queriesResponse.status}`);
-      }
+      // Complete strategy and show sales approach
+      await this._completeStrategyWithSalesApproach(strategyData, initialTarget, refinedTarget);
 
       return { type: 'email_strategy', data: strategyData };
 
@@ -1454,65 +1398,23 @@ Let me process your strategy and research your market right now!`;
   async continueStrategyGeneration(confirmedBoundary) {
     try {
       const { initialTarget, refinedTarget, productContext } = this.boundarySelectionContext;
-      let sprintData = null;
-      let queriesData = null;
 
-      // Step 2: Generate Sprint Prompt
-      this.addLoadingMessage("Creating sprint strategy...");
+      // Execute sprint and queries using helper function
+      const { sprintData, queriesData } = await this._executeStrategySteps(
+        confirmedBoundary, 
+        refinedTarget, 
+        productContext
+      );
       
-      const sprintResponse = await fetch('/api/strategy/sprint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          boundary: confirmedBoundary, 
-          refinedTarget, 
-          productContext 
-        })
-      });
-
-      if (sprintResponse.ok) {
-        sprintData = await sprintResponse.json();
-        this.displayStrategyStep(sprintData);
-      } else {
-        throw new Error('Sprint generation failed');
-      }
-
-      // Step 3: Generate Daily Queries
-      this.addLoadingMessage("Generating daily search queries...");
+      // Compile complete strategy data for final display
+      const completeStrategyData = {
+        boundary: confirmedBoundary,
+        sprintPrompt: sprintData?.content || '',
+        dailyQueries: queriesData?.content ? (Array.isArray(queriesData.content) ? queriesData.content : queriesData.content.split('\n').filter(q => q.trim())) : []
+      };
       
-      const queriesResponse = await fetch('/api/strategy/queries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          boundary: confirmedBoundary, 
-          sprintPrompt: sprintData?.content || '',
-          productContext 
-        })
-      });
-
-      if (queriesResponse.ok) {
-        queriesData = await queriesResponse.json();
-        this.displayStrategyStep(queriesData);
-        
-        // Compile complete strategy data for final display
-        const completeStrategyData = {
-          boundary: confirmedBoundary,
-          sprintPrompt: sprintData?.content || '',
-          dailyQueries: queriesData?.content ? (Array.isArray(queriesData.content) ? queriesData.content : queriesData.content.split('\n').filter(q => q.trim())) : []
-        };
-        
-        this.displayStrategyComplete(completeStrategyData);
-
-        // Add sales approach prompt after strategy completion
-        console.log('Strategy completion in continueStrategyGeneration, displaying sales approach prompt...');
-        setTimeout(() => {
-          console.log('setTimeout executing in continueStrategyGeneration with:', { initialTarget, refinedTarget });
-          this.displaySalesApproachPrompt(initialTarget, refinedTarget);
-          console.log('Sales approach prompt displayed from continueStrategyGeneration');
-        }, 100);
-      } else {
-        throw new Error('Queries generation failed');
-      }
+      // Complete strategy and show sales approach
+      await this._completeStrategyWithSalesApproach(completeStrategyData, initialTarget, refinedTarget);
 
     } catch (error) {
       console.error('Error continuing strategy generation:', error);
@@ -1524,6 +1426,84 @@ Let me process your strategy and research your market right now!`;
       });
       this.render();
     }
+  }
+
+  // Helper function: Execute sprint and queries API calls
+  async _executeStrategySteps(boundary, refinedTarget, productContext) {
+    let sprintData = null;
+    let queriesData = null;
+
+    // Step 1: Generate Sprint Prompt
+    this.addLoadingMessage("Creating sprint strategy...");
+    
+    console.log('Calling sprint API with:', { 
+      boundary, 
+      refinedTarget, 
+      productContext 
+    });
+    
+    const sprintResponse = await fetch('/api/strategy/sprint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        boundary, 
+        refinedTarget, 
+        productContext 
+      })
+    });
+
+    if (sprintResponse.ok) {
+      sprintData = await sprintResponse.json();
+      this.displayStrategyStep(sprintData);
+      console.log('Sprint step completed:', sprintData);
+    } else {
+      console.error('Sprint API failed:', sprintResponse.status, await sprintResponse.text());
+      throw new Error(`Sprint generation failed: ${sprintResponse.status}`);
+    }
+
+    // Step 2: Generate Daily Queries
+    this.addLoadingMessage("Generating daily queries...");
+    
+    console.log('Calling queries API with:', { 
+      boundary,
+      sprintPrompt: sprintData.content,
+      productContext 
+    });
+    
+    const queriesResponse = await fetch('/api/strategy/queries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        boundary,
+        sprintPrompt: sprintData.content,
+        productContext 
+      })
+    });
+
+    if (queriesResponse.ok) {
+      queriesData = await queriesResponse.json();
+      this.displayStrategyStep(queriesData);
+      console.log('Queries step completed:', queriesData);
+    } else {
+      console.error('Queries API failed:', queriesResponse.status, await queriesResponse.text());
+      throw new Error(`Queries generation failed: ${queriesResponse.status}`);
+    }
+
+    return { sprintData, queriesData };
+  }
+
+  // Helper function: Complete strategy and show sales approach
+  async _completeStrategyWithSalesApproach(strategyData, initialTarget, refinedTarget) {
+    this.displayStrategyComplete(strategyData);
+    console.log('Strategy generation completed successfully');
+    
+    // Always show sales approach prompt
+    console.log('Displaying sales approach prompt...');
+    setTimeout(() => {
+      console.log('setTimeout executing, calling displaySalesApproachPrompt with:', { initialTarget, refinedTarget });
+      this.displaySalesApproachPrompt(initialTarget, refinedTarget);
+      console.log('displaySalesApproachPrompt call completed');
+    }, 100);
   }
 
   renderMarkdown(markdown) {
