@@ -314,7 +314,7 @@ export function RegistrationModal() {
                     <div className="w-full border-t border-white/20" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-black/70 text-gray-400">OR CONTINUE WITH</span>
+                    <span className="px-2 bg-black/70 text-gray-400">OR</span>
                   </div>
                 </div>
 
