@@ -1294,9 +1294,9 @@ Let me process your strategy and research your market right now!`;
           `).join('')}
         </div>
         <div class="custom-input-section">
-          <p class="text-sm text-gray-600 mb-2">Or write your own boundary:</p>
+          <p class="text-sm text-gray-600 mb-2">Or add your own target segment:</p>
           <div class="flex gap-2">
-            <input type="text" id="customBoundaryInput" placeholder="Enter your custom boundary..." 
+            <input type="text" id="customBoundaryInput" placeholder="Your high-level target segment..." 
                    class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                    style="border: 1px solid #e5e7eb !important;">
             <button onclick="chatOverlay.selectCustomBoundary()" 
