@@ -1,0 +1,43 @@
+[vite] connecting...
+[vite] connected.
+Starting Firebase initialization... 
+Object {timestamp: "2025-06-05T19:40:23.717Z", domain: "9bd71d34-6b98-4b7f-a9bc-61c2fbd70db6-00-1j150w3xdjf7b.picard.replit.dev"}
+Raw environment variables: 
+Object {apiKey: "....aDbuzU", projectId: "fire-5-ducks", appId: "....b133e8", mode: "development", dev: true, …}
+Firebase Configuration: 
+Object {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: "fire-5-ducks.firebaseapp.com", environment: "development", …}
+Firebase initialized successfully: 
+Object {domain: "9bd71d34-6b98-4b7f-a9bc-61c2fbd70db6-00-1j150w3xdjf7b.picard.replit.dev", isAuth: true, isProvider: true, authDomain: "fire-5-ducks.firebaseapp.com", timestamp: "2025-06-05T19:40:23.718Z"}
+Setting up Firebase auth state listener
+Firebase auth state changed: undefined
+User signed out, removed auth token
+Firebase persistence set to LOCAL
+Attempting registration with: 
+Object {email: "test114@test.com", name: "Jon"}
+Starting email registration process 
+Object {email: "test114@...", timestamp: "2025-06-05T19:40:43.987Z"}
+Email registration error: 
+Object {error: "Firebase: Error (auth/email-already-in-use).", code: "auth/email-already-in-use"}
+
+Registration error: 
+_FirebaseError {code: "auth/email-already-in-use", customData: {…}, name: "FirebaseError"}
+
+Email exists, attempting login with: 
+Object {email: "test114@test.com"}
+Starting email sign-in process 
+Object {email: "test114@...", timestamp: "2025-06-05T19:40:44.144Z"}
+Email sign-in error: 
+Object {error: "Firebase: Error (auth/invalid-credential).", code: "auth/invalid-credential"}
+
+Login attempt failed: 
+_FirebaseError {code: "auth/invalid-credential", customData: {…}, name: "FirebaseError"}
+
+Attempting registration with: 
+Object {email: "test114@test.com", name: "Jon"}
+Starting email registration process 
+Object {email: "test114@...", timestamp: "2025-06-05T19:40:52.244Z"}
+Email registration error: 
+Object {error: "Firebase: Error (auth/email-already-in-use).", code: "auth/email-already-in-use"}
+
+Registration error: 
+_FirebaseError {code: "auth/email-already-in-use", customData: {…}, name: "FirebaseError"}

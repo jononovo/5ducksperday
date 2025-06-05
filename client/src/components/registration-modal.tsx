@@ -224,7 +224,7 @@ export function RegistrationModal() {
         </button>
       </div>
       
-      <div className="bg-black/90 border border-white/10 rounded-lg w-full max-w-md mx-auto relative overflow-hidden">
+      <div className="bg-black/90 border border-white/10 rounded-lg w-full max-w-[95vw] sm:max-w-md mx-auto relative overflow-hidden">
         <div 
           className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/5 to-pink-600/10"
           style={{
@@ -251,7 +251,7 @@ export function RegistrationModal() {
                 </p>
               </div>
 
-              <div className="space-y-4 max-w-sm mx-auto px-4">
+              <div className="space-y-4 max-w-sm mx-auto px-2 sm:px-4">
                 {/* Registration form */}
                 <div className="space-y-4">
                   <input
@@ -355,12 +355,12 @@ export function RegistrationModal() {
           )}
 
           {currentPage === "login" && (
-            <div className="w-full max-w-md mx-auto relative">
-              {/* Back button in upper left corner */}
-              <div className="absolute top-0 left-0 mt-6 ml-6 z-10">
+            <div className="w-full max-w-md mx-auto">
+              {/* Back button above title */}
+              <div className="flex justify-start mb-4 sm:mb-6 px-2 sm:px-4">
                 <button 
                   onClick={handleReturnToMain}
-                  className="text-sm text-white hover:text-blue-300 transition-colors flex items-center gap-1"
+                  className="text-sm text-white hover:text-blue-300 transition-colors flex items-center gap-1 p-2"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back
@@ -368,13 +368,13 @@ export function RegistrationModal() {
               </div>
               
               {/* Main content */}
-              <div className="text-center text-white mb-8 mt-16">
+              <div className="text-center text-white mb-8">
                 <h2 className="text-3xl font-bold mb-3">Welcome Back</h2>
                 <p className="text-gray-200 text-lg">Log in to your account</p>
               </div>
 
               {/* Login form */}
-              <div className="space-y-4 max-w-sm mx-auto px-4">
+              <div className="space-y-4 max-w-sm mx-auto px-2 sm:px-4">
                 <div className="space-y-4">
                   <input
                     ref={loginEmailRef}
