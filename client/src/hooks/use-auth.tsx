@@ -42,6 +42,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
+      // 1. Clear localStorage first (prevent auto-restore)
+      localStorage.removeItem('authToken');
+      
+      // 2. Clear axios headers
+      const axios = (await import('axios')).default;
+      delete axios.defaults.headers.common['Authorization'];
+      
+      // 3. Call backend logout (clear server session)
+      try {
+        await axios.post('/api/logout');
+      } catch (error) {
+        console.log('Backend logout failed, continuing with Firebase logout');
+      }
+      
+      // 4. Firebase signOut last
       if (firebaseAuth) {
         try {
           await signOut(firebaseAuth);
