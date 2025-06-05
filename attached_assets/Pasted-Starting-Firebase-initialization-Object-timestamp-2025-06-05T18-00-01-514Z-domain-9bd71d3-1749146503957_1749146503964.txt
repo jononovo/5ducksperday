@@ -1,0 +1,82 @@
+Starting Firebase initialization... 
+Object {timestamp: "2025-06-05T18:00:01.514Z", domain: "9bd71d34-6b98-4b7f-a9bc-61c2fbd70db6-00-1j150w3xdjf7b.picard.replit.dev"}
+Raw environment variables: 
+Object {apiKey: "....aDbuzU", projectId: "fire-5-ducks", appId: "....b133e8", mode: "development", dev: true, …}
+Firebase Configuration: 
+Object {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: "fire-5-ducks.firebaseapp.com", environment: "development", …}
+Firebase initialized successfully: 
+Object {domain: "9bd71d34-6b98-4b7f-a9bc-61c2fbd70db6-00-1j150w3xdjf7b.picard.replit.dev", isAuth: true, isProvider: true, authDomain: "fire-5-ducks.firebaseapp.com", timestamp: "2025-06-05T18:00:01.515Z"}
+Setting up Firebase auth state listener
+Firebase auth state changed: undefined
+Found pending search query: Real-estate lawyers in Salt Lake City
+Saving search state: 
+Object {query: null, resultsCount: undefined, companies: undefined}
+Saving search state: 
+Object {query: "Real-estate lawyers in Salt Lake City", resultsCount: undefined, companies: undefined}
+User signed out, removed auth token
+Firebase persistence set to LOCAL
+Attempting registration with: 
+Object {email: "test84@test.com", name: "Jon"}
+Starting email registration process 
+Object {email: "test84@...", timestamp: "2025-06-05T18:00:17.677Z"}
+Firebase auth state changed: test84@test.com
+Making backend sync request 
+Object {endpoint: "/api/google-auth", hasAccessToken: false, domain: "9bd71d34-6b98-4b7f-a9bc-61c2fbd70db6-00-1j150w3xdjf7b.picard.replit.dev"}
+Email registration successful, syncing with backend
+Making backend sync request 
+Object {endpoint: "/api/google-auth", hasAccessToken: false, domain: "9bd71d34-6b98-4b7f-a9bc-61c2fbd70db6-00-1j150w3xdjf7b.picard.replit.dev"}
+Auth token set successfully: 
+Object {uid: "1NNcujKYY0UD6yLbWk3ovtf51Lx2", email: "test84@...", timestamp: "2025-06-05T18:00:18.644Z"}
+Attempting registration with: 
+Object {email: "test84@test.com", name: "Jon"}
+Starting email registration process 
+Object {email: "test84@...", timestamp: "2025-06-05T18:00:18.964Z"}
+Email registration error: 
+Object {error: "Firebase: Error (auth/email-already-in-use).", code: "auth/email-already-in-use"}
+code: "auth/email-already-in-use"
+error: "Firebase: Error (auth/email-already-in-use)."
+[[Prototype]]: Object
+
+Registration error: 
+_FirebaseError {code: "auth/email-already-in-use", customData: {…}, name: "FirebaseError"}
+
+Attempting registration with: 
+Object {email: "test84@test.com", name: "Jon"}
+Starting email registration process 
+Object {email: "test84@...", timestamp: "2025-06-05T18:00:19.368Z"}
+Email registration error: 
+Object {error: "Firebase: Error (auth/email-already-in-use).", code: "auth/email-already-in-use"}
+
+Registration error: 
+_FirebaseError {code: "auth/email-already-in-use", customData: {…}, name: "FirebaseError"}
+
+Backend sync error response: 
+Object {status: 500, statusText: "Internal Server Error", responseText: "{"error":"Failed to create user account"}"}
+
+Error syncing with backend: 
+Object {error: Error, domain: "9bd71d34-6b98-4b7f-a9bc-61c2fbd70db6-00-1j150w3xdjf7b.picard.replit.dev", environment: "development"}
+
+Error during auth state sync: 
+Error {}
+
+Backend sync error response: 
+Object {status: 500, statusText: "Internal Server Error", responseText: "{"error":"Failed to create user account"}"}
+
+Error syncing with backend: 
+Object {error: Error, domain: "9bd71d34-6b98-4b7f-a9bc-61c2fbd70db6-00-1j150w3xdjf7b.picard.replit.dev", environment: "development"}
+
+Email registration error: 
+Object {error: "Failed to sync with backend: 500", code: undefined}
+
+Registration error: 
+Error {}
+
+Attempting registration with: 
+Object {email: "test84@test.com", name: "Jon"}
+Starting email registration process 
+Object {email: "test84@...", timestamp: "2025-06-05T18:00:20.782Z"}
+Email registration error: 
+Object {error: "Firebase: Error (auth/email-already-in-use).", code: "auth/email-already-in-use"}
+
+Registration error: 
+_FirebaseError {code: "auth/email-already-in-use", customData: {…}, name: "FirebaseError"}
