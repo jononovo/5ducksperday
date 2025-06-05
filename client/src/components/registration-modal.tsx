@@ -282,6 +282,33 @@ export function RegistrationModal() {
                   >
                     Create Account
                   </Button>
+
+                  {/* Style Option 1: Clean Minimal */}
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-center bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 hover:border-gray-300"
+                    disabled
+                  >
+                    Option 1: Clean Minimal
+                  </Button>
+
+                  {/* Style Option 2: Subtle Accent */}
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-center bg-gray-900 hover:bg-gray-800 text-white border border-gray-700"
+                    disabled
+                  >
+                    Option 2: Subtle Accent
+                  </Button>
+
+                  {/* Style Option 3: Ghost/Outline */}
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-center bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50"
+                    disabled
+                  >
+                    Option 3: Ghost/Outline
+                  </Button>
                 </div>
 
                 {/* Alternative registration options - always visible */}
