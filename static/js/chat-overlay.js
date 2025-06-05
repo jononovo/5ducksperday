@@ -1296,7 +1296,8 @@ Let me process your strategy and research your market right now!`;
           <p class="text-sm text-gray-600 mb-2">Or write your own boundary:</p>
           <div class="flex gap-2">
             <input type="text" id="customBoundaryInput" placeholder="Enter your custom boundary..." 
-                   class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                   style="border: 2px solid #9ca3af !important;">
             <button onclick="chatOverlay.selectCustomBoundary()" 
                     class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
               Use This
