@@ -3590,7 +3590,7 @@ PHASE-SPECIFIC INSTRUCTIONS:
         
         result = {
           type: 'progressive_strategy',
-          message: "Perfect! Now I'll create your strategic sales plan step by step.",
+          message: "Perfect! Now I'll create your **strategic sales plan** step by step.",
           initialTarget,
           refinedTarget,
           needsProgressiveGeneration: true

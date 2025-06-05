@@ -950,9 +950,10 @@ Give me 5 seconds. I'm building a product summary so I can understand what you'r
           // Handle progressive strategy generation
           this.messages.push({
             id: Date.now().toString(),
-            content: data.message,
+            content: this.renderMarkdown(data.message),
             sender: 'ai',
-            timestamp: new Date()
+            timestamp: new Date(),
+            isHTML: true
           });
           this.render();
           
