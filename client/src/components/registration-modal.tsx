@@ -284,8 +284,8 @@ export function RegistrationModal() {
                     onClick={handleSubmit}
                     disabled={!emailValid || (email.includes('@') && password.length < 8)}
                   >
-                    <span className="group-hover:hidden">Create Account</span>
-                    <span className="hidden group-hover:inline">Let's Go 🚀</span>
+                    <span className="transition-all duration-700 delay-200 group-hover:opacity-0 group-hover:scale-95">Create Account</span>
+                    <span className="absolute transition-all duration-700 delay-200 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100">Let's Go 🚀</span>
                   </Button>
                 </div>
 
