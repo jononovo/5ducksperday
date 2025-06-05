@@ -36,6 +36,14 @@ export function RegistrationModal() {
     }
   }, [user, closeModal]);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   const handleLoginClick = () => {
     setCurrentPage("login");
   };
