@@ -461,8 +461,8 @@ export default function LandingPage() {
                     <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mb-4">
                       <UserCheck className="text-purple-600 dark:text-purple-400" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">We email you with the 5 Contacts of the Day</h3>
-                    <p className="text-slate-600 dark:text-slate-400">You don't even have to login - Click open, review the personalized email and send.</p>
+                    <h3 className="text-xl font-semibold mb-2">Daily Master-plan via Email - No login necessary</h3>
+                    <p className="text-slate-600 dark:text-slate-400">Get all the details per contact  - Click to open edit each email body or subject line and voila!</p>
                   </div>
                   
                   <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
