@@ -71,7 +71,7 @@ Here are Target Customer Examples that the company sells to: ${initialTarget} or
 Focus on NICHE specialization. Create a boundary that emphasizes industry/type-based targeting to reach ~700 companies across 6 sprints.
 Max 10 words.
 
-Examples: franchising educational tutoring companies in South America
+Examples: STEM tutoring companies in South America
 Return only the boundary statement, no additional text.`,
 
     // Hybrid approach
