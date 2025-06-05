@@ -339,11 +339,13 @@ export async function queryOpenAI(
           data: summary
         };
       } else if (functionName === 'generateEmailStrategy') {
-        const strategy = await generateEmailStrategy(functionArgs, productContext);
+        // Redirect to progressive boundary selection flow instead of generating complete strategy
         return {
-          type: 'email_strategy', 
-          message: "Here's your 90-day email sales strategy:",
-          data: strategy
+          type: 'progressive_strategy',
+          message: "Perfect! Now I'll create your **strategic sales plan** step by step.",
+          initialTarget: functionArgs.initialTarget,
+          refinedTarget: functionArgs.refinedTarget,
+          needsProgressiveGeneration: true
         };
       } else if (functionName === 'generateSalesApproach') {
         const approach = await generateSalesApproach(functionArgs, productContext);
