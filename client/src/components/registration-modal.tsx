@@ -278,7 +278,7 @@ export function RegistrationModal() {
                     variant="outline" 
                     className={`w-full justify-center transition-all duration-300 ${
                       emailValid && (!email.includes('@') || password.length >= 8)
-                        ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white hover:text-white border-0 shadow-lg'
+                        ? 'bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 hover:from-blue-800 hover:via-indigo-800 hover:to-purple-800 text-white hover:text-white border-0 shadow-lg'
                         : 'bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50'
                     }`}
                     onClick={handleSubmit}
@@ -383,7 +383,7 @@ export function RegistrationModal() {
                     variant="outline" 
                     className={`w-full justify-center transition-all duration-300 ${
                       emailValid && password.length > 0
-                        ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white hover:text-white border-0 shadow-lg'
+                        ? 'bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 hover:from-blue-800 hover:via-indigo-800 hover:to-purple-800 text-white hover:text-white border-0 shadow-lg'
                         : 'bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50'
                     }`}
                     onClick={handleSubmit}
@@ -472,7 +472,7 @@ export function RegistrationModal() {
                       variant="outline" 
                       className={`w-full justify-center transition-all duration-300 ${
                         emailValid
-                          ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white hover:text-white border-0 shadow-lg'
+                          ? 'bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 hover:from-blue-800 hover:via-indigo-800 hover:to-purple-800 text-white hover:text-white border-0 shadow-lg'
                           : 'bg-transparent hover:bg-white/10 text-white border border-white/30 hover:border-white/50'
                       }`}
                       onClick={handleForgotPasswordSubmit}
