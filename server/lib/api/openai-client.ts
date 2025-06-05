@@ -55,9 +55,8 @@ export async function generateBoundaryOptions(params: any, productContext: any):
   // Create 3 different strategic approaches
   const prompts = [
     // Geographic-focused approach
-    `Create a 90-day target boundary for ${productContext.productService}:
-Example Daily Search Query: ${initialTarget}
-Example of Refined Daily Search Query: ${refinedTarget}
+    `Create a 90-day target boundary for SELLING ${productContext.productService} TO customers:
+Target Customer Examples: ${initialTarget}, ${refinedTarget}
 
 Focus on GEOGRAPHIC expansion. Create a boundary that emphasizes location-based targeting to reach ~700 companies across 6 sprints.
 Max 10 words.
@@ -66,9 +65,8 @@ Examples: mid-level rated, irish bars in NY state
 Return only the boundary statement, no additional text.`,
 
     // Niche-focused approach  
-    `Create a 90-day target boundary for ${productContext.productService}:
-Example Daily Search Query: ${initialTarget}
-Example of Refined Daily Search Query: ${refinedTarget}
+    `Create a 90-day target boundary for SELLING ${productContext.productService} TO customers:
+Target Customer Examples: ${initialTarget}, ${refinedTarget}
 
 Focus on NICHE specialization. Create a boundary that emphasizes industry/type-based targeting to reach ~700 companies across 6 sprints.
 Max 10 words.
@@ -77,9 +75,8 @@ Examples: franchising educational tutoring companies in South America
 Return only the boundary statement, no additional text.`,
 
     // Hybrid approach
-    `Create a 90-day target boundary for ${productContext.productService}:
-Example Daily Search Query: ${initialTarget}
-Example of Refined Daily Search Query: ${refinedTarget}
+    `Create a 90-day target boundary for SELLING ${productContext.productService} TO customers:
+Target Customer Examples: ${initialTarget}, ${refinedTarget}
 
 Focus on BALANCED approach. Create a boundary combining geography and niche targeting to reach ~700 companies across 6 sprints.
 Max 10 words.
