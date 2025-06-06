@@ -5,7 +5,7 @@ import { CampaignStorage } from './campaigns';
 import { TemplateStorage } from './templates';
 import { UserStorage } from './users';
 import { db } from '../db';
-import type { InsertUser, User, InsertSearchTestResult, SearchTestResult } from '@shared/schema';
+import type { InsertUser, User } from '@shared/schema';
 
 export class DatabaseStorage implements IStorage {
   private readonly companyStorage: CompanyStorage;
@@ -62,25 +62,7 @@ export class DatabaseStorage implements IStorage {
   listEmailTemplates = (userId: number): Promise<any[]> => this.templateStorage.listEmailTemplates(userId);
   createEmailTemplate = (template: any): Promise<any> => this.templateStorage.createEmailTemplate(template);
 
-  // Search Approaches
-  getSearchApproach = (id: number): Promise<any> => this.searchStorage.getSearchApproach(id);
-  listSearchApproaches = (): Promise<any[]> => this.searchStorage.listSearchApproaches();
-  updateSearchApproach = (id: number, updates: any): Promise<any> => this.searchStorage.updateSearchApproach(id, updates);
-  initializeDefaultSearchApproaches = (): Promise<void> => this.searchStorage.initializeDefaultSearchApproaches();
-  
-  // Search Test Results
-  getSearchTestResult = (id: number): Promise<SearchTestResult | undefined> => 
-    this.searchTestResultsStorage.getSearchTestResult(id);
-  listSearchTestResults = (userId: number): Promise<SearchTestResult[]> => 
-    this.searchTestResultsStorage.listSearchTestResults(userId);
-  getTestResultsByStrategy = (strategyId: number, userId: number): Promise<SearchTestResult[]> => 
-    this.searchTestResultsStorage.getTestResultsByStrategy(strategyId, userId);
-  createSearchTestResult = (result: InsertSearchTestResult): Promise<SearchTestResult> => 
-    this.searchTestResultsStorage.createSearchTestResult(result);
-  updateTestResultStatus = (id: number, status: 'completed' | 'running' | 'failed', metadata?: Record<string, unknown>): Promise<SearchTestResult> => 
-    this.searchTestResultsStorage.updateTestResultStatus(id, status, metadata);
-  getStrategyPerformanceHistory = (strategyId: number, userId: number): Promise<{ dates: string[], scores: number[] }> => 
-    this.searchTestResultsStorage.getStrategyPerformanceHistory(strategyId, userId);
+
 }
 
 // Create and export a single instance 
