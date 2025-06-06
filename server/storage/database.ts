@@ -1,31 +1,25 @@
 import { IStorage } from './index';
 import { CompanyStorage } from './companies';
 import { ContactStorage } from './contacts';
-import { SearchStorage } from './search';
 import { CampaignStorage } from './campaigns';
 import { TemplateStorage } from './templates';
 import { UserStorage } from './users';
-import { SearchTestResultsStorage } from './searchTestResults';
 import { db } from '../db';
 import type { InsertUser, User, InsertSearchTestResult, SearchTestResult } from '@shared/schema';
 
 export class DatabaseStorage implements IStorage {
   private readonly companyStorage: CompanyStorage;
   private readonly contactStorage: ContactStorage;
-  private readonly searchStorage: SearchStorage;
   private readonly campaignStorage: CampaignStorage;
   private readonly templateStorage: TemplateStorage;
   private readonly userStorage: UserStorage;
-  private readonly searchTestResultsStorage: SearchTestResultsStorage;
 
   constructor() {
     this.companyStorage = new CompanyStorage(db);
     this.contactStorage = new ContactStorage(db);
-    this.searchStorage = new SearchStorage(db);
     this.campaignStorage = new CampaignStorage(db);
     this.templateStorage = new TemplateStorage(db);
     this.userStorage = new UserStorage(db);
-    this.searchTestResultsStorage = new SearchTestResultsStorage(db);
   }
 
   // User operations
