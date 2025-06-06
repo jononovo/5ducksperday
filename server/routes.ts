@@ -1108,10 +1108,10 @@ export function registerRoutes(app: Express) {
               includeMiddleManagement: true,
               prioritizeLeadership: true,
               useMultipleQueries: true,
-              // Enable all search phases by default for better contact yield
-              enableCoreLeadership: contactSearchConfig?.enableCoreLeadership ?? true,
-              enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads ?? true,
-              enableMiddleManagement: contactSearchConfig?.enableMiddleManagement ?? true,
+              // Use frontend-configured search phases
+              enableCoreLeadership: contactSearchConfig?.enableCoreLeadership,
+              enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads,
+              enableMiddleManagement: contactSearchConfig?.enableMiddleManagement,
               enableCustomSearch: contactSearchConfig?.enableCustomSearch ?? false,
               customSearchTarget: contactSearchConfig?.customSearchTarget ?? ""
             });
