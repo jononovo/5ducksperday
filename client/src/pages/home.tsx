@@ -106,6 +106,38 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const registrationModal = useRegistrationModal();
   const auth = useAuth();
+  
+  // Track if component is mounted to prevent localStorage corruption during unmount
+  const isMountedRef = useRef(true);
+  const isInitializedRef = useRef(false);
+
+  // Helper function to load valid search state with fallback
+  const loadSearchState = (): SavedSearchState | null => {
+    try {
+      // Try localStorage first
+      const localState = localStorage.getItem('searchState');
+      if (localState) {
+        const parsed = JSON.parse(localState) as SavedSearchState;
+        // Validate the data - ensure we have meaningful content
+        if (parsed.currentQuery || (parsed.currentResults && parsed.currentResults.length > 0)) {
+          return parsed;
+        }
+      }
+      
+      // Fallback to sessionStorage if localStorage is corrupted
+      const sessionState = sessionStorage.getItem('searchState');
+      if (sessionState) {
+        const parsed = JSON.parse(sessionState) as SavedSearchState;
+        if (parsed.currentQuery || (parsed.currentResults && parsed.currentResults.length > 0)) {
+          console.log('Restored search state from sessionStorage backup');
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading search state:', error);
+    }
+    return null;
+  };
 
   // Load state from localStorage on component mount
   useEffect(() => {
@@ -119,32 +151,54 @@ export default function Home() {
       // No longer automatically triggering search - user must click the search button
     } else {
       // Load saved search state if no pending query
-      const savedState = localStorage.getItem('searchState');
+      const savedState = loadSearchState();
       if (savedState) {
-        const parsed = JSON.parse(savedState) as SavedSearchState;
         console.log('Loading saved search state:', {
-          query: parsed.currentQuery,
-          resultsCount: parsed.currentResults?.length,
-          companies: parsed.currentResults?.map(c => ({ id: c.id, name: c.name }))
+          query: savedState.currentQuery,
+          resultsCount: savedState.currentResults?.length,
+          companies: savedState.currentResults?.map(c => ({ id: c.id, name: c.name }))
         });
-        setCurrentQuery(parsed.currentQuery);
-        setCurrentResults(parsed.currentResults);
+        setCurrentQuery(savedState.currentQuery);
+        setCurrentResults(savedState.currentResults);
       }
     }
+    
+    // Mark component as initialized
+    isInitializedRef.current = true;
+    
+    // Cleanup function to prevent localStorage corruption during unmount
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
-  // Save state to localStorage whenever it changes
+  // Save state to localStorage whenever it changes (but prevent corruption during unmount)
   useEffect(() => {
-    const stateToSave: SavedSearchState = {
-      currentQuery,
-      currentResults
-    };
-    console.log('Saving search state:', {
-      query: currentQuery,
-      resultsCount: currentResults?.length,
-      companies: currentResults?.map(c => ({ id: c.id, name: c.name }))
-    });
-    localStorage.setItem('searchState', JSON.stringify(stateToSave));
+    // Only save if component is mounted and initialized (prevents corruption during unmount)
+    if (!isMountedRef.current || !isInitializedRef.current) {
+      console.log('Skipping localStorage save - component not ready or unmounting');
+      return;
+    }
+    
+    // Only save if we have meaningful data (prevents saving null states)
+    if (currentQuery || (currentResults && currentResults.length > 0)) {
+      const stateToSave: SavedSearchState = {
+        currentQuery,
+        currentResults
+      };
+      console.log('Saving search state:', {
+        query: currentQuery,
+        resultsCount: currentResults?.length,
+        companies: currentResults?.map(c => ({ id: c.id, name: c.name }))
+      });
+      
+      // Save to both localStorage and sessionStorage for redundancy
+      const stateString = JSON.stringify(stateToSave);
+      localStorage.setItem('searchState', stateString);
+      sessionStorage.setItem('searchState', stateString);
+    } else {
+      console.log('Skipping localStorage save - no meaningful data to save');
+    }
   }, [currentQuery, currentResults]);
 
 
