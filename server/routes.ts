@@ -1031,52 +1031,48 @@ export function registerRoutes(app: Express) {
             // Skip company update - use existing company data
             const updatedCompany = existingCompany;
 
-            // Determine industry and extract contacts (same logic as before)
+            // Determine industry from company name and description
             let industry: string | undefined = undefined;
             
-            if (companyData.services && companyData.services.length > 0) {
-              const industryKeywords: Record<string, string> = {
-                'software': 'technology',
-                'tech': 'technology',
-                'development': 'technology',
-                'it': 'technology',
-                'programming': 'technology',
-                'cloud': 'technology',
-                'healthcare': 'healthcare',
-                'medical': 'healthcare',
-                'hospital': 'healthcare',
-                'doctor': 'healthcare',
-                'finance': 'financial',
-                'banking': 'financial',
-                'investment': 'financial',
-                'construction': 'construction',
-                'building': 'construction',
-                'real estate': 'construction',
-                'legal': 'legal',
-                'law': 'legal',
-                'attorney': 'legal',
-                'retail': 'retail',
-                'shop': 'retail',
-                'store': 'retail',
-                'education': 'education',
-                'school': 'education',
-                'university': 'education',
-                'manufacturing': 'manufacturing',
-                'factory': 'manufacturing',
-                'production': 'manufacturing',
-                'consulting': 'consulting',
-                'advisor': 'consulting'
-              };
-              
-              for (const service of companyData.services) {
-                const serviceLower = service.toLowerCase();
-                for (const [keyword, industryValue] of Object.entries(industryKeywords)) {
-                  if (serviceLower.includes(keyword)) {
-                    industry = industryValue;
-                    break;
-                  }
-                }
-                if (industry) break;
+            // Simple industry detection using company name and description
+            const companyText = `${companyName} ${companyDescription || ''}`.toLowerCase();
+            const industryKeywords: Record<string, string> = {
+              'software': 'technology',
+              'tech': 'technology',
+              'development': 'technology',
+              'it': 'technology',
+              'programming': 'technology',
+              'cloud': 'technology',
+              'healthcare': 'healthcare',
+              'medical': 'healthcare',
+              'hospital': 'healthcare',
+              'doctor': 'healthcare',
+              'finance': 'financial',
+              'banking': 'financial',
+              'investment': 'financial',
+              'construction': 'construction',
+              'building': 'construction',
+              'real estate': 'construction',
+              'legal': 'legal',
+              'law': 'legal',
+              'attorney': 'legal',
+              'retail': 'retail',
+              'shop': 'retail',
+              'store': 'retail',
+              'education': 'education',
+              'school': 'education',
+              'university': 'education',
+              'manufacturing': 'manufacturing',
+              'factory': 'manufacturing',
+              'production': 'manufacturing',
+              'consulting': 'consulting',
+              'advisor': 'consulting'
+            };
+            
+            for (const [keyword, industryValue] of Object.entries(industryKeywords)) {
+              if (companyText.includes(keyword)) {
+                industry = industryValue;
+                break;
               }
             }
             
@@ -1214,24 +1210,19 @@ Use the search context and company details above to find the most relevant decis
             analysisResults.push(decisionMakerResult);
           }
 
-          // Parse results
-          const companyData = parseCompanyData(analysisResults);
-
           // Create the company record first
           const createdCompany = await storage.createCompany({
             name: companyName,
             website: companyWebsite, // Use website from API response
             description: companyDescription, // Include description from search results
-            ...companyData,
             userId: userId // Use the userId we defined at the top of the route
           });
 
-          // Determine industry from company data or search context
+          // Determine industry from company name and description
           let industry: string | undefined = undefined;
           
-          // Check company services for industry indicators
-          if (companyData.services && companyData.services.length > 0) {
-            // Check for industry keywords in services
+          // Simple industry detection using company name and description
+          const companyText = `${companyName} ${companyDescription || ''}`.toLowerCase();
             const industryKeywords: Record<string, string> = {
               'software': 'technology',
               'tech': 'technology',
@@ -1265,20 +1256,15 @@ Use the search context and company details above to find the most relevant decis
               'advisor': 'consulting'
             };
             
-            // Look for industry keywords in company services
-            for (const service of companyData.services) {
-              const serviceLower = service.toLowerCase();
-              for (const [keyword, industryValue] of Object.entries(industryKeywords)) {
-                if (serviceLower.includes(keyword)) {
-                  industry = industryValue;
-                  break;
-                }
+            // Look for industry keywords in company text
+            for (const [keyword, industryValue] of Object.entries(industryKeywords)) {
+              if (companyText.includes(keyword)) {
+                industry = industryValue;
+                break;
               }
-              if (industry) break; // Stop if we found an industry
             }
-          }
           
-          // If no industry detected from services, try from company name
+          // If no industry detected, try from company name
           if (!industry && companyName) {
             const nameLower = companyName.toLowerCase();
             // Simple industry detection from company name
@@ -1351,31 +1337,14 @@ Use the search context and company details above to find the most relevant decis
 
       // Return results immediately to complete the search
       res.json({
-        companies,
-        query,
-        strategyId: selectedStrategy ? selectedStrategy.id : null,
-        strategyName: selectedStrategy ? selectedStrategy.name : "Default Flow",
+        companies: enrichedCompanies,
+        query: query,
+        strategyId: null,
+        strategyName: "Direct Search Flow",
       });
 
-      // After sending response, start email enrichment if enabled
-      const emailEnrichmentModule = approaches.find(a =>
-        a.moduleType === 'email_enrichment' && a.active
-      );
-
-      if (emailEnrichmentModule?.active) {
-        const searchId = `search_${Date.now()}`;
-        console.log('Starting post-search email enrichment with searchId:', searchId);
-
-        // Process each company's contacts for enrichment asynchronously
-        for (const company of companies) {
-          try {
-            const enrichmentResults = await emailEnrichmentService.enrichTopProspects(company.id);
-            console.log(`Queued enrichment for ${enrichmentResults.length} contacts in ${company.name}`);
-          } catch (error) {
-            console.error(`Email enrichment error for ${company.name}:`, error);
-          }
-        }
-      }
+      // Contact discovery complete - return results immediately
+      console.log(`Search completed successfully with ${enrichedCompanies.length} companies`);
 
     } catch (error) {
       console.error('Company search error:', error);
