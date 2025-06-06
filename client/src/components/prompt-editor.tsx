@@ -90,6 +90,12 @@ export default function PromptEditor({
     customSearchTarget: ""
   });
 
+  // Handle contact search config changes
+  const handleContactSearchConfigChange = (config: ContactSearchConfig) => {
+    console.log('PromptEditor received config update:', config);
+    setContactSearchConfig(config);
+  };
+
   // Track input changes to update UI accordingly
   useEffect(() => {
     if (lastExecutedQuery !== null && query !== lastExecutedQuery) {
@@ -559,7 +565,7 @@ export default function PromptEditor({
         
         {/* Contact Search Optimizer - positioned below search input */}
         <ContactSearchOptimizer
-          onConfigChange={setContactSearchConfig}
+          onConfigChange={handleContactSearchConfigChange}
           disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
           isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
         />
