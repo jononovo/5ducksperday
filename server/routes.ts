@@ -1149,8 +1149,8 @@ export function registerRoutes(app: Express) {
         res.json({
           companies: enrichedCompanies,
           query,
-          strategyId: selectedStrategy ? selectedStrategy.id : null,
-          strategyName: selectedStrategy ? selectedStrategy.name : "Default Flow",
+          strategyId: null,
+          strategyName: "Direct Search Flow",
         });
         
         return; // Early return to skip the new company creation logic
@@ -1158,7 +1158,7 @@ export function registerRoutes(app: Express) {
 
       // If no cached companies, create new ones (fallback logic)
       const companies = await Promise.all(
-        companyResults.map(async (company) => {
+        companyResults.map(async (company: any) => {
           // Extract company name, website and description (if available)
           const companyName = typeof company === 'string' ? company : company.name;
           const companyWebsite = typeof company === 'string' ? null : (company.website || null);
@@ -1166,149 +1166,29 @@ export function registerRoutes(app: Express) {
           
           console.log(`Processing company: ${companyName}, Website: ${companyWebsite || 'Not available'}`);
           
-          // Build context-aware prompt using cached company data
-          
-          const contextPrompt = `
-Based on initial company search for "${query}", we found:
-Company: ${companyName}
-Website: ${companyWebsite || 'Not available'}
-Description: ${companyDescription || 'Not available'}
+          // Skip broken analysis and use direct contact search
+          console.log(`Processing contacts for new company: ${companyName}`);
 
-${companyOverview.prompt}
-
-Use the search context and company details above to inform your analysis.
-`;
-
-          // Run Company Overview analysis with enhanced context
-          const overviewResult = await analyzeCompany(
-            companyName,
-            contextPrompt,
-            companyOverview.technicalPrompt,
-            companyOverview.responseStructure
-          );
-          const analysisResults = [overviewResult];
-
-          // If Decision-maker Analysis is active, run it with enhanced context
-          if (decisionMakerAnalysis?.active) {
-            const decisionMakerContextPrompt = `
-Based on initial company search for "${query}", we found:
-Company: ${companyName}
-Website: ${companyWebsite || 'Not available'}
-Description: ${companyDescription || 'Not available'}
-
-${decisionMakerAnalysis.prompt}
-
-Use the search context and company details above to find the most relevant decision makers.
-`;
-
-            const decisionMakerResult = await analyzeCompany(
-              companyName,
-              decisionMakerContextPrompt,
-              decisionMakerAnalysis.technicalPrompt,
-              decisionMakerAnalysis.responseStructure
-            );
-            analysisResults.push(decisionMakerResult);
-          }
-
-          // Create the company record first
+          // Create the company record with minimal data
           const createdCompany = await storage.createCompany({
             name: companyName,
-            website: companyWebsite, // Use website from API response
-            description: companyDescription, // Include description from search results
-            userId: userId // Use the userId we defined at the top of the route
+            website: companyWebsite,
+            description: companyDescription,
           });
 
-          // Determine industry from company name and description
-          let industry: string | undefined = undefined;
-          
-          // Simple industry detection using company name and description
-          const companyText = `${companyName} ${companyDescription || ''}`.toLowerCase();
-            const industryKeywords: Record<string, string> = {
-              'software': 'technology',
-              'tech': 'technology',
-              'development': 'technology',
-              'it': 'technology',
-              'programming': 'technology',
-              'cloud': 'technology',
-              'healthcare': 'healthcare',
-              'medical': 'healthcare',
-              'hospital': 'healthcare',
-              'doctor': 'healthcare',
-              'finance': 'financial',
-              'banking': 'financial',
-              'investment': 'financial',
-              'construction': 'construction',
-              'building': 'construction',
-              'real estate': 'construction',
-              'legal': 'legal',
-              'law': 'legal',
-              'attorney': 'legal',
-              'retail': 'retail',
-              'shop': 'retail',
-              'store': 'retail',
-              'education': 'education',
-              'school': 'education',
-              'university': 'education',
-              'manufacturing': 'manufacturing',
-              'factory': 'manufacturing',
-              'production': 'manufacturing',
-              'consulting': 'consulting',
-              'advisor': 'consulting'
-            };
-            
-            // Look for industry keywords in company text
-            for (const [keyword, industryValue] of Object.entries(industryKeywords)) {
-              if (companyText.includes(keyword)) {
-                industry = industryValue;
-                break;
-              }
-            }
-          
-          // If no industry detected, try from company name
-          if (!industry && companyName) {
-            const nameLower = companyName.toLowerCase();
-            // Simple industry detection from company name
-            if (nameLower.includes('tech') || nameLower.includes('software')) {
-              industry = 'technology';
-            } else if (nameLower.includes('health') || nameLower.includes('medical')) {
-              industry = 'healthcare';
-            } else if (nameLower.includes('financ') || nameLower.includes('bank')) {
-              industry = 'financial';
-            } else if (nameLower.includes('consult')) {
-              industry = 'consulting';
-            }
-          }
-          
-          console.log(`Detected industry for ${companyName}: ${industry || 'unknown'}`);
-          
-          // Debug: Log company-level configuration before enhanced contact finder
-          console.log(`[COMPANY CONFIG] ${companyName} - Search config:`, {
-            enableCoreLeadership: contactSearchConfig?.enableCoreLeadership,
-            enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads,
-            enableMiddleManagement: contactSearchConfig?.enableMiddleManagement,
-            enableCustomSearch: contactSearchConfig?.enableCustomSearch,
-            customSearchTarget: contactSearchConfig?.customSearchTarget
-          });
-          
-          // Use enhanced contact finder with user configuration
+          // Use direct contact search without broken strategy dependencies
           const contacts = await findKeyDecisionMakers(companyName, {
-            industry: industry,
+            industry: 'unknown',
             minimumConfidence: 30,
             maxContacts: 15,
             includeMiddleManagement: true,
             prioritizeLeadership: true,
             useMultipleQueries: true,
-            // Respect explicit user configuration
-            enableCoreLeadership: contactSearchConfig?.enableCoreLeadership ?? false,
-            enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads ?? false,
-            enableMiddleManagement: contactSearchConfig?.enableMiddleManagement ?? false,
-            enableCustomSearch: contactSearchConfig?.enableCustomSearch ?? false,
-            customSearchTarget: contactSearchConfig?.customSearchTarget ?? ""
           });
           
-          console.log(`Found ${contacts.length} contacts using enhanced contact finder`);
+          console.log(`Found ${contacts.length} contacts for ${companyName}`);
 
-          // Create contact records with basic information
+          // Create contact records
           const createdContacts = await Promise.all(
             contacts.map(contact =>
               storage.createContact({
@@ -1322,11 +1202,10 @@ Use the search context and company details above to find the most relevant decis
                 phoneNumber: null,
                 department: null,
                 location: null,
-                verificationSource: 'Decision-maker Analysis',
+                verificationSource: 'Contact Search',
                 nameConfidenceScore: contact.nameConfidenceScore ?? null,
                 userFeedbackScore: null,
                 feedbackCount: 0,
-                userId: userId
               })
             )
           );
@@ -1337,14 +1216,14 @@ Use the search context and company details above to find the most relevant decis
 
       // Return results immediately to complete the search
       res.json({
-        companies: enrichedCompanies,
+        companies: companies,
         query: query,
         strategyId: null,
         strategyName: "Direct Search Flow",
       });
 
       // Contact discovery complete - return results immediately
-      console.log(`Search completed successfully with ${enrichedCompanies.length} companies`);
+      console.log(`Search completed successfully with ${companies.length} companies`);
 
     } catch (error) {
       console.error('Company search error:', error);
