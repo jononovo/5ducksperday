@@ -1003,20 +1003,10 @@ export function registerRoutes(app: Express) {
         companyResults = await searchCompanies(query);
       }
 
-      // Get search approaches for analysis
-      const approaches = await storage.listSearchApproaches();
-      
-      // Check if a specific strategy was requested
+      // Use direct search approach without strategy database dependency
       let selectedStrategy = null;
       if (strategyId) {
-        console.log(`Using selected strategy ID: ${strategyId}`);
-        selectedStrategy = await storage.getSearchApproach(strategyId);
-        
-        if (selectedStrategy) {
-          console.log(`Found selected strategy: ${selectedStrategy.name}`);
-        } else {
-          console.log(`Strategy with ID ${strategyId} not found, using default strategy flow`);
-        }
+        console.log(`Strategy ID ${strategyId} requested - using direct search flow`);
       }
 
       // If we have a selected strategy, use it as the primary analysis approach
@@ -3826,7 +3816,20 @@ Respond in this exact JSON format:
     }
   });
 
-
+  // Add missing search-approaches endpoint to fix frontend JSON parsing errors
+  app.get("/api/search-approaches", requireAuth, async (req, res) => {
+    try {
+      // Return empty array since search approaches have been removed
+      // This prevents frontend JSON parsing errors
+      res.json([]);
+    } catch (error) {
+      console.error('Search approaches endpoint error:', error);
+      res.status(500).json({ 
+        message: "Failed to fetch search approaches",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 
   // All N8N Workflow Management Endpoints and proxies have been removed
 
