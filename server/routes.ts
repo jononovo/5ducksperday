@@ -1817,44 +1817,7 @@ Use the search context and company details above to find the most relevant decis
   });
 
   // Leave the search approaches endpoints without auth since they are system-wide
-  app.get("/api/search-approaches", async (_req, res) => {
-    const approaches = await storage.listSearchApproaches();
-    res.json(approaches);
-  });
 
-  app.patch("/api/search-approaches/:id", async (req, res) => {
-    const result = insertSearchApproachSchema.partial().safeParse(req.body);
-    if (!result.success) {
-      res.status(400).json({ message: "Invalid request body" });
-      return;
-    }
-
-    const updated = await storage.updateSearchApproach(parseInt(req.params.id), result.data);
-    if (!updated) {
-      res.status(404).json({ message: "Search approach not found" });
-      return;
-    }
-
-    res.json(updated);
-  });
-
-  // Initialize search approaches
-  app.post("/api/search-approaches/initialize", async (_req, res) => {
-    try {
-      await storage.initializeDefaultSearchApproaches();
-      const approaches = await storage.listSearchApproaches();
-      res.json({ 
-        success: true, 
-        message: "Search approaches initialized successfully",
-        count: approaches.length
-      });
-    } catch (error) {
-      console.error('Error initializing search approaches:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred"
-      });
-    }
-  });
   
   // Search Test Results endpoints
   app.get("/api/search-test-results", requireAuth, async (req, res) => {

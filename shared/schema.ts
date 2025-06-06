@@ -458,11 +458,3 @@ export type InsertProspectDelivery = z.infer<typeof insertProspectDeliverySchema
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
-export type SearchModuleConfig = z.infer<typeof searchModuleConfigSchema>;
-export type SearchSequence = z.infer<typeof searchSequenceSchema>;
-export type SearchImplementation = {
-  execute: (context: any) => Promise<any>;
-  validate?: (result: any) => Promise<boolean>;
-  name: string;
-  description: string;
-};
