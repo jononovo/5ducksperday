@@ -17,11 +17,9 @@ import { google } from "googleapis";
 import { 
   insertCompanySchema, 
   insertContactSchema, 
-  insertSearchApproachSchema, 
   insertListSchema, 
   insertCampaignSchema,
   insertEmailTemplateSchema, 
-  insertSearchTestResultSchema, 
   insertEmailThreadSchema, 
   insertEmailMessageSchema
 } from "@shared/schema";

@@ -71,19 +71,7 @@ export interface IStorage {
   getEmailTemplate(id: number, userId: number): Promise<EmailTemplate | undefined>;
   createEmailTemplate(data: InsertEmailTemplate): Promise<EmailTemplate>;
 
-  // Search Approaches
-  getSearchApproach(id: number): Promise<SearchApproach | undefined>;
-  listSearchApproaches(): Promise<SearchApproach[]>;
-  updateSearchApproach(id: number, data: Partial<SearchApproach>): Promise<SearchApproach>;
-  initializeDefaultSearchApproaches(): Promise<void>;
 
-  // Search Test Results
-  getSearchTestResult(id: number): Promise<SearchTestResult | undefined>;
-  listSearchTestResults(userId: number): Promise<SearchTestResult[]>;
-  getTestResultsByStrategy(strategyId: number, userId: number): Promise<SearchTestResult[]>;
-  createSearchTestResult(result: InsertSearchTestResult): Promise<SearchTestResult>;
-  updateTestResultStatus(id: number, status: 'completed' | 'running' | 'failed', metadata?: Record<string, unknown>): Promise<SearchTestResult>;
-  getStrategyPerformanceHistory(strategyId: number, userId: number): Promise<{ dates: string[], scores: number[] }>;
 
   // Strategic Profiles
   getStrategicProfiles(userId: number): Promise<StrategicProfile[]>;
@@ -384,26 +372,7 @@ class DatabaseStorage implements IStorage {
     }
   }
 
-  // Search Approaches
-  async getSearchApproach(id: number): Promise<SearchApproach | undefined> {
-    const [approach] = await db
-      .select()
-      .from(searchApproaches)
-      .where(eq(searchApproaches.id, id));
-    return approach;
-  }
-  
-  async listSearchApproaches(): Promise<SearchApproach[]> {
-    return db.select().from(searchApproaches);
-  }
 
-  async updateSearchApproach(id: number, data: Partial<SearchApproach>): Promise<SearchApproach> {
-    const [updated] = await db.update(searchApproaches)
-      .set(data)
-      .where(eq(searchApproaches.id, id))
-      .returning();
-    return updated;
-  }
   
   // Search Test Results
   async getSearchTestResult(id: number): Promise<SearchTestResult | undefined> {

@@ -166,63 +166,9 @@ const contactFeedbackSchema = z.object({
   feedbackType: z.enum(['excellent', 'ok', 'terrible'])
 });
 
-export const searchModuleConfigSchema = z.object({
-  subsearches: z.record(z.boolean()).default({}),
-  searchOptions: z.object({
-    ignoreFranchises: z.boolean().default(false),
-    locallyHeadquartered: z.boolean().default(false)
-  }).default({}),
-  searchSections: z.record(z.object({
-    id: z.string(),
-    label: z.string(),
-    description: z.string().optional(),
-    subsectionRef: z.string().optional(),
-    searches: z.array(z.object({
-      id: z.string(),
-      label: z.string(),
-      description: z.string(),
-      implementation: z.string().optional(),
-      validationRules: z.record(z.unknown()).optional()
-    }))
-  })).default({}),
-  validationRules: z.object({
-    requiredFields: z.array(z.string()).default([]),
-    scoreThresholds: z.record(z.number()).default({}),
-    minimumConfidence: z.number().default(0)
-  }).default({})
-});
 
-export const searchSequenceSchema = z.object({
-  modules: z.array(z.enum([
-    'company_overview',
-    'decision_maker',
-    'email_discovery',
-    'email_enrichment',
-    'email_deepdive'
-  ])),
-  moduleConfigs: z.record(z.any()),
-  validationStrategy: z.enum(['strict', 'moderate', 'lenient']).default('moderate')
-});
 
-export const searchApproachSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  prompt: z.string().min(1, "Prompt is required"),
-  order: z.number().min(1),
-  active: z.boolean().nullable(),
-  config: searchModuleConfigSchema,
-  completedSearches: z.array(z.string()).optional(),
-  technicalPrompt: z.string().optional(),
-  responseStructure: z.string().optional(),
-  moduleType: z.enum([
-    'company_overview',
-    'decision_maker',
-    'email_discovery',
-    'email_enrichment',
-    'email_deepdive'
-  ]).default('company_overview'),
-  sequence: searchSequenceSchema.optional(),
-  validationRules: z.record(z.unknown()).default({})
-});
+
 
 const campaignSchema = z.object({
   campaignId: z.number().min(2001),
@@ -251,18 +197,7 @@ const userPreferencesSchema = z.object({
   // hasSeenTour field removed
 });
 
-const searchTestResultSchema = z.object({
-  userId: z.number(),
-  strategyId: z.number(),
-  testId: z.string().uuid(),
-  query: z.string(),
-  companyQuality: z.number().min(0).max(100),
-  contactQuality: z.number().min(0).max(100),
-  emailQuality: z.number().min(0).max(100),
-  overallScore: z.number().min(0).max(100),
-  status: z.enum(['completed', 'running', 'failed']).default('completed'),
-  metadata: z.record(z.unknown()).optional()
-});
+
 
 // N8N Workflow schemas have been removed
 
@@ -271,7 +206,6 @@ export const insertListSchema = listSchema.extend({
 });
 export const insertCompanySchema = companySchema;
 export const insertContactSchema = contactSchema;
-export const insertSearchApproachSchema = searchApproachSchema;
 export const insertCampaignSchema = campaignSchema.extend({
   userId: z.number()
 });
@@ -281,7 +215,6 @@ export const insertEmailTemplateSchema = emailTemplateSchema.extend({
 });
 export const insertContactFeedbackSchema = contactFeedbackSchema;
 export const insertUserPreferencesSchema = userPreferencesSchema;
-export const insertSearchTestResultSchema = searchTestResultSchema;
 
 export type List = typeof lists.$inferSelect;
 export type InsertList = z.infer<typeof insertListSchema>;
@@ -289,8 +222,6 @@ export type Company = typeof companies.$inferSelect;
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
 export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
-export type SearchApproach = typeof searchApproaches.$inferSelect;
-export type InsertSearchApproach = z.infer<typeof insertSearchApproachSchema>;
 export type Campaign = typeof campaigns.$inferSelect;
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 export type CampaignList = typeof campaignLists.$inferSelect;
@@ -301,8 +232,6 @@ export type ContactFeedback = typeof contactFeedback.$inferSelect;
 export type InsertContactFeedback = z.infer<typeof insertContactFeedbackSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
-export type SearchTestResult = typeof searchTestResults.$inferSelect;
-export type InsertSearchTestResult = z.infer<typeof insertSearchTestResultSchema>;
 
 // N8N workflow types have been removed
 
