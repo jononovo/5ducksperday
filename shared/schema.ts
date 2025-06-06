@@ -72,19 +72,7 @@ export const contactFeedback = pgTable("contact_feedback", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
-export const searchApproaches = pgTable("search_approaches", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  prompt: text("prompt").notNull(),
-  order: integer("order").notNull(),
-  active: boolean("active").default(true),
-  config: jsonb("config").default({}).notNull(),
-  completedSearches: text("completed_searches").array(),
-  technicalPrompt: text("technical_prompt"),
-  responseStructure: text("response_structure"),
-  moduleType: text("module_type").default('company_overview'),  
-  validationRules: jsonb("validation_rules").default({})  
-});
+
 
 export const campaigns = pgTable("campaigns", {
   id: serial("id").primaryKey(),
@@ -125,21 +113,7 @@ export const userPreferences = pgTable("user_preferences", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
-// New table for storing search test results
-export const searchTestResults = pgTable("search_test_results", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  strategyId: integer("strategy_id").notNull().references(() => searchApproaches.id),
-  testId: uuid("test_id").notNull(),
-  query: text("query").notNull(),
-  companyQuality: integer("company_quality").notNull(),
-  contactQuality: integer("contact_quality").notNull(),
-  emailQuality: integer("email_quality").notNull(),
-  overallScore: integer("overall_score").notNull(),
-  status: text("status").default("completed"),
-  metadata: jsonb("metadata").default({}),
-  createdAt: timestamp("created_at").defaultNow()
-});
+
 
 // N8N Workflow tables have been removed
 

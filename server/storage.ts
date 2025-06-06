@@ -1,5 +1,5 @@
 import { 
-  userPreferences, lists, companies, contacts, campaigns, emailTemplates, searchApproaches, users, searchTestResults,
+  userPreferences, lists, companies, contacts, campaigns, emailTemplates, users,
   emailThreads, emailMessages, strategicProfiles, onboardingChats,
   type UserPreferences, type InsertUserPreferences,
   type List, type InsertList,
@@ -7,9 +7,7 @@ import {
   type Contact, type InsertContact,
   type Campaign, type InsertCampaign,
   type EmailTemplate, type InsertEmailTemplate,
-  type SearchApproach, type InsertSearchApproach,
   type User, type InsertUser,
-  type SearchTestResult, type InsertSearchTestResult,
   type EmailThread, type InsertEmailThread,
   type EmailMessage, type InsertEmailMessage,
   type StrategicProfile, type InsertStrategicProfile,
