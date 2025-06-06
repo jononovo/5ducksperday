@@ -1009,49 +1009,10 @@ export function registerRoutes(app: Express) {
         console.log(`Strategy ID ${strategyId} requested - using direct search flow`);
       }
 
-      // If we have a selected strategy, use it as the primary analysis approach
-      // Otherwise fall back to default selection logic
-      let companyOverview;
-      let decisionMakerAnalysis;
+      // Process search using direct modules without strategy dependency
       
-      if (selectedStrategy && selectedStrategy.active) {
-        console.log(`Using selected strategy: ${selectedStrategy.name} (ID: ${selectedStrategy.id})`);
-        
-        // If the selected strategy is a decision maker module, assign it there and use Company Overview as base
-        if (selectedStrategy.moduleType === 'decision_maker') {
-          decisionMakerAnalysis = selectedStrategy;
-          
-          // Still need a company overview approach for base company data
-          companyOverview = approaches.find(a =>
-            a.name === "Company Overview" && a.active
-          );
-        } else {
-          // If it's any other type, use it as the company overview approach
-          companyOverview = selectedStrategy;
-          
-          // Optionally look for a decision maker approach if needed
-          decisionMakerAnalysis = approaches.find(a =>
-            (a.moduleType === 'decision_maker') && a.active
-          );
-        }
-      } else {
-        // Default selection logic (no specific strategy selected)
-        companyOverview = approaches.find(a =>
-          a.name === "Company Overview" && a.active
-        );
-
-        // Look for any active decision maker strategy with correct naming
-        decisionMakerAnalysis = approaches.find(a =>
-          (a.moduleType === 'decision_maker') && a.active
-        );
-      }
-
-      if (!companyOverview) {
-        res.status(400).json({
-          message: "Company Overview approach is not active. Please activate it to proceed."
-        });
-        return;
-      }
+      // Use direct search without strategy dependency
+      console.log('Processing company search with direct search approach');
 
       // If we have cached companies, reuse them and enrich with contacts
       if (cachedCompanies) {
@@ -1064,57 +1025,11 @@ export function registerRoutes(app: Express) {
             const companyWebsite = existingCompany.website;
             const companyDescription = existingCompany.description;
             
-            // Build context-aware prompt using company data
-            const contextPrompt = `
-Based on initial company search for "${query}", we found:
-Company: ${companyName}
-Website: ${companyWebsite || 'Not available'}
-Description: ${companyDescription || 'Not available'}
-
-${companyOverview.prompt}
-
-Use the search context and company details above to inform your analysis.
-`;
-
-            // Run Company Overview analysis with enhanced context
-            const overviewResult = await analyzeCompany(
-              companyName,
-              contextPrompt,
-              companyOverview.technicalPrompt,
-              companyOverview.responseStructure
-            );
-            const analysisResults = [overviewResult];
-
-            // If Decision-maker Analysis is active, run it with enhanced context
-            if (decisionMakerAnalysis?.active) {
-              const decisionMakerContextPrompt = `
-Based on initial company search for "${query}", we found:
-Company: ${companyName}
-Website: ${companyWebsite || 'Not available'}
-Description: ${companyDescription || 'Not available'}
-
-${decisionMakerAnalysis.prompt}
-
-Use the search context and company details above to find the most relevant decision makers.
-`;
-
-              const decisionMakerResult = await analyzeCompany(
-                companyName,
-                decisionMakerContextPrompt,
-                decisionMakerAnalysis.technicalPrompt,
-                decisionMakerAnalysis.responseStructure
-              );
-              analysisResults.push(decisionMakerResult);
-            }
-
-            // Parse results and update company
-            const companyData = parseCompanyData(analysisResults);
+            // Use direct contact search without strategy dependency
+            console.log(`Processing contacts for existing company: ${companyName}`);
             
-            // Update the existing company with enriched data
-            const updatedCompany = await storage.updateCompany(existingCompany.id, {
-              ...companyData,
-              userId: userId
-            });
+            // Skip company update - use existing company data
+            const updatedCompany = existingCompany;
 
             // Determine industry and extract contacts (same logic as before)
             let industry: string | undefined = undefined;
