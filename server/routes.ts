@@ -1104,14 +1104,14 @@ export function registerRoutes(app: Express) {
             const contacts = await findKeyDecisionMakers(companyName, {
               industry: industry,
               minimumConfidence: 30,
-              maxContacts: 15,
+              maxContacts: 20,
               includeMiddleManagement: true,
               prioritizeLeadership: true,
               useMultipleQueries: true,
-              // Respect explicit user configuration
-              enableCoreLeadership: contactSearchConfig?.enableCoreLeadership ?? false,
-              enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads ?? false,
-              enableMiddleManagement: contactSearchConfig?.enableMiddleManagement ?? false,
+              // Enable all search phases by default for better contact yield
+              enableCoreLeadership: contactSearchConfig?.enableCoreLeadership ?? true,
+              enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads ?? true,
+              enableMiddleManagement: contactSearchConfig?.enableMiddleManagement ?? true,
               enableCustomSearch: contactSearchConfig?.enableCustomSearch ?? false,
               customSearchTarget: contactSearchConfig?.customSearchTarget ?? ""
             });
