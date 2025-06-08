@@ -36,6 +36,7 @@ interface PromptEditorProps {
   lastExecutedQuery?: string | null; // Last executed search query
   onInputChange?: (newValue: string) => void; // Callback for input changes
   onSearchSuccess?: () => void; // Callback when search completes successfully
+  hasSearchResults?: boolean; // Flag to indicate if search results exist
 }
 
 export default function PromptEditor({ 
@@ -49,7 +50,8 @@ export default function PromptEditor({
   onDismissLandingHint,
   lastExecutedQuery = null,
   onInputChange,
-  onSearchSuccess
+  onSearchSuccess,
+  hasSearchResults = false
 }: PromptEditorProps) {
   const [query, setQuery] = useState(initialPrompt);
   const { toast } = useToast();
@@ -583,6 +585,7 @@ export default function PromptEditor({
           onConfigChange={handleContactSearchConfigChange}
           disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
           isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+          hasSearchResults={hasSearchResults}
         />
         
         {/* Progress Bar - moved below search input/button */}
