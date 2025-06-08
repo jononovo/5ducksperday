@@ -177,8 +177,8 @@ export default function ContactSearchChips({
           onClick={handleCustomInputExpand}
           disabled={disabled}
           className={`
-            flex items-center gap-2 px-3 py-2 rounded-full border border-dashed border-purple-300 
-            text-purple-600 hover:bg-purple-50 transition-all duration-200
+            flex items-center gap-2 px-3 py-2 rounded-full border border-dashed border-gray-300 
+            text-gray-600 hover:bg-gray-50 transition-all duration-200
             ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           `}
         >
