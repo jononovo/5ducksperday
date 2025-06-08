@@ -12,11 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import SearchFlowNew from "./search-flow-new";
-import type { SearchApproach } from "@shared/schema";
+
 
 interface SearchSettingsDrawerProps {
-  approaches: SearchApproach[];
   targetUrl?: string;
   setTargetUrl?: (url: string) => void;
   resultsUrl?: string;
@@ -24,7 +22,6 @@ interface SearchSettingsDrawerProps {
   customSelected?: boolean;
   isCustomLoading?: boolean;
   handleCustomWorkflowSearch?: () => void;
-
 }
 
 export default function SearchSettingsDrawer({ 
