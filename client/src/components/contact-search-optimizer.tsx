@@ -118,15 +118,18 @@ export default function ContactSearchOptimizer({
         {/* Expanded content */}
         {isExpanded && (
           <div className="mt-4 space-y-4">
-            {/* Standard search options */}
-            <div className="space-y-3">
+            {/* Standard search options - Desktop: 3 columns, Mobile: stacked */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Core Leadership */}
-              <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50/50">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between p-2 md:p-3 rounded-lg border border-slate-200 bg-slate-50/50">
+                <div className="flex items-center gap-2">
                   <Crown className="h-4 w-4 text-amber-500" />
-                  <div>
+                  <div className="hidden md:block">
                     <div className="font-medium text-sm text-slate-900">Core Leadership</div>
                     <div className="text-xs text-slate-500">CEO, CTO, Founders</div>
+                  </div>
+                  <div className="md:hidden">
+                    <div className="font-medium text-sm text-slate-900">Leadership</div>
                   </div>
                 </div>
                 <Switch
@@ -139,12 +142,15 @@ export default function ContactSearchOptimizer({
               </div>
 
               {/* Department Heads */}
-              <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50/50">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between p-2 md:p-3 rounded-lg border border-slate-200 bg-slate-50/50">
+                <div className="flex items-center gap-2">
                   <Building className="h-4 w-4 text-blue-500" />
-                  <div>
+                  <div className="hidden md:block">
                     <div className="font-medium text-sm text-slate-900">Department Heads</div>
                     <div className="text-xs text-slate-500">Sales, Marketing, IT</div>
+                  </div>
+                  <div className="md:hidden">
+                    <div className="font-medium text-sm text-slate-900">Departments</div>
                   </div>
                 </div>
                 <Switch
@@ -157,12 +163,15 @@ export default function ContactSearchOptimizer({
               </div>
 
               {/* Middle Management */}
-              <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50/50">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between p-2 md:p-3 rounded-lg border border-slate-200 bg-slate-50/50">
+                <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-green-500" />
-                  <div>
+                  <div className="hidden md:block">
                     <div className="font-medium text-sm text-slate-900">Middle Management</div>
                     <div className="text-xs text-slate-500">Team leads, Managers</div>
+                  </div>
+                  <div className="md:hidden">
+                    <div className="font-medium text-sm text-slate-900">Management</div>
                   </div>
                 </div>
                 <Switch
@@ -191,7 +200,7 @@ export default function ContactSearchOptimizer({
                 />
               </div>
               
-              {config.enableCustomSearch && (
+              {config.enableCustomSearch ? (
                 <div className="space-y-2">
                   <Input
                     placeholder="e.g., Marketing Manager, Chief Security Officer, Legal Director"
@@ -204,9 +213,7 @@ export default function ContactSearchOptimizer({
                     Boost scores for specific roles not covered above
                   </p>
                 </div>
-              )}
-              
-              {!config.enableCustomSearch && (
+              ) : (
                 <p className="text-xs text-slate-500">
                   Target specific roles for priority scoring
                 </p>
