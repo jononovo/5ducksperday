@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Settings2, Target, Users, Building, Crown, Check, Plus, X, Save } from "lucide-react";
+import { Settings2, Target, Users, Building, Crown, Check, Plus, X, Save, Edit2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -335,7 +335,7 @@ function ContactSearchChips({
                     }
                   }}
                 >
-                  <X className="h-3 w-3" />
+                  <Edit2 className="h-3 w-3" />
                 </span>
               </button>
             </TooltipTrigger>
@@ -451,7 +451,7 @@ function ContactSearchChips({
                     }
                   }}
                 >
-                  <X className="h-3 w-3" />
+                  <Edit2 className="h-3 w-3" />
                 </span>
               </button>
             </TooltipTrigger>
