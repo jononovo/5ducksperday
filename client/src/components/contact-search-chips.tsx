@@ -151,12 +151,12 @@ function ContactSearchChips({
               onClick={() => updateConfig({ enableCoreLeadership: !config.enableCoreLeadership })}
               disabled={disabled}
               className={`
-                flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200
+                flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
                 ${config.enableCoreLeadership 
                   ? (hasSearchResults && !inputHasChanged)
-                    ? 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                    : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
-                  : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                    ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                 }
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
               `}
@@ -180,12 +180,12 @@ function ContactSearchChips({
               onClick={() => updateConfig({ enableDepartmentHeads: !config.enableDepartmentHeads })}
               disabled={disabled}
               className={`
-                flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200
+                flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
                 ${config.enableDepartmentHeads 
                   ? (hasSearchResults && !inputHasChanged)
-                    ? 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                    : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
-                  : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                    ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                 }
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
               `}
@@ -209,12 +209,12 @@ function ContactSearchChips({
               onClick={() => updateConfig({ enableMiddleManagement: !config.enableMiddleManagement })}
               disabled={disabled}
               className={`
-                flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200
+                flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
                 ${config.enableMiddleManagement 
                   ? (hasSearchResults && !inputHasChanged)
-                    ? 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                    : 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
-                  : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                    ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    : 'bg-green-50 text-green-700 hover:bg-green-100'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                 }
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
               `}
@@ -306,12 +306,12 @@ function ContactSearchChips({
                 onClick={toggleCustomSearch}
                 disabled={disabled}
                 className={`
-                  flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200
+                  flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
                   ${config.enableCustomSearch 
                     ? (hasSearchResults && !inputHasChanged)
-                      ? 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                      : 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100'
-                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                      ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                      : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                   }
                   ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}
@@ -422,12 +422,12 @@ function ContactSearchChips({
                 onClick={toggleCustomSearch2}
                 disabled={disabled}
                 className={`
-                  flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200
+                  flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
                   ${config.enableCustomSearch2 
                     ? (hasSearchResults && !inputHasChanged)
-                      ? 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                      : 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100'
-                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                      ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                      : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                   }
                   ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}
