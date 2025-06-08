@@ -20,8 +20,8 @@ export function LandingPageTooltip({
   }
 
   const positionClasses = position === 'above-button' 
-    ? 'absolute top-2 sm:top-1 left-1/2 transform -translate-x-1/2' 
-    : 'absolute top-2 sm:top-1 transform -translate-x-1/2';
+    ? 'absolute top-0 sm:top-0 left-1/2 transform -translate-x-1/2' 
+    : 'absolute top-0 sm:top-0 transform -translate-x-1/2';
 
   const offsetStyle = offsetX !== 0 ? { 
     left: `calc(50% + ${offsetX}px)`
