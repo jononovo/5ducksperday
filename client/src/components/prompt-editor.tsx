@@ -497,7 +497,7 @@ export default function PromptEditor({
           companies={searchMetrics.companies}
         />
         
-        <div className="flex flex-col md:flex-row gap-2 pl-0">
+        <div className="flex flex-row gap-2 pl-0">
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -528,22 +528,23 @@ export default function PromptEditor({
               onClick={handleSearch} 
               disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
               className={`
-                transition-all duration-300 flex items-center gap-2
+                transition-all duration-300 flex items-center sm:gap-2
                 ${lastExecutedQuery && !inputHasChanged 
                   ? 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-400 dark:hover:bg-gray-500 shadow-md hover:shadow-lg' 
                   : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-md hover:shadow-lg'
                 }
               `}
+              aria-label="Search"
             >
               {(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending) ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Searching...</span>
+                  <span className="hidden sm:inline">Searching...</span>
                 </>
               ) : (
                 <>
                   <Search className="h-4 w-4" />
-                  <span>Search</span>
+                  <span className="hidden sm:inline">Search</span>
                 </>
               )}
             </Button>
