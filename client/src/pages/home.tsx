@@ -55,7 +55,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import type { Company, Contact, SearchApproach } from "@shared/schema";
+import type { Company, Contact } from "@shared/schema";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1260,7 +1260,7 @@ export default function Home() {
                   setHighlightEmailButton(false);
                 }, 25000);
                 }}
-                hasSearchResults={companies.length > 0}
+                hasSearchResults={currentResults ? currentResults.length > 0 : false}
             />
             </Suspense>
           </div>
