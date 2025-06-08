@@ -886,8 +886,8 @@ export default function Home() {
 
   // Email tooltip timing effect
   useEffect(() => {
-    // Show email tooltip 5 seconds after first search completes
-    if (currentResults && currentResults.length > 0 && !isAnalyzing) {
+    // Only show email tooltip for landing page users after their first search completes
+    if (isFromLandingPage && currentResults && currentResults.length > 0 && !isAnalyzing) {
       const timer = setTimeout(() => {
         setShowEmailTooltip(true);
         setTimeout(() => {
@@ -897,7 +897,7 @@ export default function Home() {
       
       return () => clearTimeout(timer);
     }
-  }, [currentResults, isAnalyzing]);
+  }, [isFromLandingPage, currentResults, isAnalyzing]);
 
   // Helper to get current companies without emails (only check top 3 contacts)
   const getCurrentCompaniesWithoutEmails = () => {
