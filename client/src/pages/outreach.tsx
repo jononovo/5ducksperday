@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; // Import Input component
 import { cn } from "@/lib/utils";
 import type { List, Company, Contact } from "@shared/schema";
+import { generateShortListDisplayName } from "@/lib/list-utils";
 import { useState, useEffect } from "react";
 import QuickTemplates from "@/components/quick-templates";
 import type { EmailTemplate } from "@shared/schema";
@@ -343,9 +344,9 @@ export default function Outreach() {
                   <SelectValue placeholder="Select a list" />
                 </SelectTrigger>
                 <SelectContent>
-                  {lists.map((list) => (
+                  {lists.map((list: List) => (
                     <SelectItem key={list.listId} value={list.listId.toString()}>
-                      List #{list.listId} ({list.resultCount} companies)
+                      {generateShortListDisplayName(list)} ({list.resultCount} companies)
                     </SelectItem>
                   ))}
                 </SelectContent>
