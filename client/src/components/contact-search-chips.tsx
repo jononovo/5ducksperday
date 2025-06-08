@@ -121,6 +121,10 @@ export default function ContactSearchChips({
   };
 
   const handleCustomInput2Expand = () => {
+    // First, save and close the first input if it's expanded
+    if (isCustomInputExpanded) {
+      handleCustomInputSave();
+    }
     setIsCustomInput2Expanded(true);
     setCustomInput2Value(config.customSearchTarget2);
   };
