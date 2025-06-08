@@ -37,6 +37,7 @@ function ContactSearchChips({
   const [isCustomInput2Expanded, setIsCustomInput2Expanded] = useState(false);
   const [customInputValue, setCustomInputValue] = useState("");
   const [customInput2Value, setCustomInput2Value] = useState("");
+  const [originalCustomTarget, setOriginalCustomTarget] = useState("");
   const [config, setConfig] = useState<ContactSearchConfig>({
     enableCoreLeadership: true,
     enableDepartmentHeads: true,
@@ -104,18 +105,13 @@ function ContactSearchChips({
 
   const toggleCustomSearch = () => {
     if (config.customSearchTarget.trim()) {
-      if (config.enableCustomSearch) {
+      if (config.enableCustomSearch && !config.enableCustomSearch2) {
         // Disable current custom search
         updateConfig({ enableCustomSearch: false });
       } else {
         // Enable this custom search, disable the other
-        // Restore original customSearchTarget if it was overwritten
-        const originalTarget = config.customSearchTarget2.trim() === config.customSearchTarget 
-          ? config.customSearchTarget // Keep current if it matches saved second target
-          : config.customSearchTarget; // Otherwise use the saved first target
         updateConfig({ 
           enableCustomSearch: true,
-          customSearchTarget: originalTarget,
           enableCustomSearch2: false
         });
       }
@@ -153,8 +149,7 @@ function ContactSearchChips({
         // Disable current custom search
         updateConfig({ 
           enableCustomSearch2: false,
-          enableCustomSearch: false,
-          customSearchTarget: ""
+          enableCustomSearch: false
         });
       } else {
         // Enable this custom search, disable the other
