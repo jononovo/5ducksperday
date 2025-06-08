@@ -226,12 +226,12 @@ export default function ContactSearchChips({
           onClick={handleCustomInputExpand}
           disabled={disabled}
           className={`
-            flex items-center justify-center w-8 h-8 rounded-full border border-dashed border-gray-300 
-            text-gray-600 hover:bg-gray-50 transition-all duration-200
+            flex items-center justify-center px-3 py-2 rounded-full border border-dashed border-gray-300 
+            text-gray-600 hover:bg-gray-50 transition-all duration-200 min-w-[40px]
             ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           `}
         >
-          <Plus className="h-3 w-3" />
+          <Plus className="h-4 w-4" />
         </button>
       )}
 
@@ -314,12 +314,12 @@ export default function ContactSearchChips({
           onClick={handleCustomInput2Expand}
           disabled={disabled}
           className={`
-            flex items-center justify-center w-8 h-8 rounded-full border border-dashed border-gray-300 
-            text-gray-600 hover:bg-gray-50 transition-all duration-200
+            flex items-center justify-center px-3 py-2 rounded-full border border-dashed border-gray-300 
+            text-gray-600 hover:bg-gray-50 transition-all duration-200 min-w-[40px]
             ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           `}
         >
-          <Plus className="h-3 w-3" />
+          <Plus className="h-4 w-4" />
         </button>
       )}
 
