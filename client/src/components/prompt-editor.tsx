@@ -256,7 +256,7 @@ export default function PromptEditor({
       // Reset input changed state since we have initial results
       setInputHasChanged(false);
       
-      onCompaniesReceived(data.query, data.companies);
+      onCompaniesReceived(query, data.companies);
       
       toast({
         title: "Companies Found",
@@ -357,7 +357,7 @@ export default function PromptEditor({
       setInputHasChanged(false);
       
       // Send full results with contacts to parent component
-      onSearchResults(data.query, data.companies);
+      onSearchResults(query, data.companies);
       
 
       
