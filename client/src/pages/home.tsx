@@ -1499,9 +1499,8 @@ export default function Home() {
                         </TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead className="hidden md:table-cell"><span className="text-xs">Company</span></TableHead>
-                        <TableHead className="hidden md:table-cell"><span className="text-xs">Role</span></TableHead>
-                        <TableHead>Score</TableHead>
                         <TableHead className="hidden md:table-cell"><span className="text-xs">Email</span></TableHead>
+                        <TableHead>Score</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1515,16 +1514,62 @@ export default function Home() {
                               aria-label={`Select ${contact.name}`}
                             />
                           </TableCell>
-                          <TableCell className="font-medium">{contact.name}</TableCell>
+                          <TableCell className="py-1 pl-1">
+                            <div className="font-medium leading-tight">{contact.name}</div>
+                            <div className="text-xs text-slate-500 leading-tight -mt-0.5 truncate max-w-[300px]" title={contact.role || "N/A"}>
+                              {contact.role || "N/A"}
+                            </div>
+                            <div className="md:hidden text-xs text-muted-foreground leading-tight mt-0.5">
+                              <div>{contact.companyName}</div>
+                              <div className="flex flex-col mt-1">
+                                <div>{contact.email || (
+                                  <Mail className="h-4 w-4 text-gray-400 inline" />
+                                )}</div>
+                                {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                                  <div className="flex flex-col gap-0.5 mt-1">
+                                    {contact.alternativeEmails.map((email, i) => (
+                                      <span key={i} className="italic opacity-70">
+                                        {email}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
                           
                           {/* Company name - hidden on mobile, shown as small text */}
                           <TableCell className="hidden md:table-cell">
                             <span className="text-xs text-muted-foreground">{contact.companyName}</span>
                           </TableCell>
                           
-                          {/* Role - hidden on mobile, shown as small text */}
-                          <TableCell className="hidden md:table-cell">
-                            <span className="text-xs text-muted-foreground">{contact.role || "N/A"}</span>
+                          {/* Email - hidden on mobile, shown as small text */}
+                          <TableCell className="py-1 hidden md:table-cell">
+                            <div className="text-xs text-muted-foreground">
+                              {contact.email || (
+                                <TooltipProvider delayDuration={300}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className="text-muted-foreground">
+                                        <Mail className="h-4 w-4 text-gray-400" />
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="text-xs">
+                                      <p>Use "Action" icons on this row to find this email. 👉🏼</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                            </div>
+                            {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                              <div className="text-xs text-muted-foreground opacity-75 mt-1">
+                                {contact.alternativeEmails.map((altEmail, index) => (
+                                  <div key={index} className="text-xs italic">
+                                    {altEmail}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </TableCell>
                           
                           <TableCell>
@@ -1539,42 +1584,6 @@ export default function Home() {
                             >
                               {contact.probability || 0}
                             </Badge>
-                          </TableCell>
-                          
-                          {/* Email - hidden on mobile, shown as small text */}
-                          <TableCell className="hidden md:table-cell">
-                            <div className="flex flex-col">
-                              <span className="text-xs text-muted-foreground">{contact.email || ""}</span>
-                              {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
-                                <div className="mt-1 flex flex-col gap-0.5">
-                                  {contact.alternativeEmails.map((email, i) => (
-                                    <span key={i} className="text-xs italic text-muted-foreground opacity-70">
-                                      {email}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          
-                          {/* Mobile view - visible elements */}
-                          <TableCell className="md:hidden">
-                            <div className="text-xs space-y-1">
-                              <div>{contact.companyName}</div>
-                              <div>{contact.role || "N/A"}</div>
-                              <div className="flex flex-col">
-                                <div>{contact.email || ""}</div>
-                                {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
-                                  <div className="flex flex-col gap-0.5 mt-1">
-                                    {contact.alternativeEmails.map((email, i) => (
-                                      <span key={i} className="italic opacity-70">
-                                        {email}
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
                           </TableCell>
                           
                           <TableCell>
