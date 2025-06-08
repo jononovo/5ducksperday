@@ -278,9 +278,11 @@ export default function CompanyTable({
                     )}
                   </TableCell>
                   <TableCell className={`hidden md:table-cell ${isExpanded ? 'py-0' : 'py-1'}`}>
-                    <Badge variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"} className="opacity-50">
-                      {company.totalScore ?? 'N/A'}
-                    </Badge>
+                    {company.totalScore && company.totalScore > 0 && (
+                      <Badge variant={company.totalScore > 70 ? "default" : "secondary"} className="opacity-50">
+                        {company.totalScore}
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell className={`text-center ${isExpanded ? 'py-0' : 'py-1'}`}>
                     <TooltipProvider delayDuration={500}>
