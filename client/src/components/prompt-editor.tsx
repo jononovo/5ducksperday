@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -96,10 +96,10 @@ export default function PromptEditor({
   });
 
   // Handle contact search config changes
-  const handleContactSearchConfigChange = (config: ContactSearchConfig) => {
+  const handleContactSearchConfigChange = useCallback((config: ContactSearchConfig) => {
     console.log('PromptEditor received config update:', config);
     setContactSearchConfig(config);
-  };
+  }, []);
 
   // Track input changes to update UI accordingly
   useEffect(() => {

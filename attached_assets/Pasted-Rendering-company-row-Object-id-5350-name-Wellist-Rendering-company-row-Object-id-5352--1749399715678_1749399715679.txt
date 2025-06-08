@@ -1,0 +1,76 @@
+Rendering company row: 
+Object {id: 5350, name: "Wellist"}
+Rendering company row: 
+Object {id: 5352, name: "Kyruus Health"}
+Rendering company row: 
+Object {id: 5351, name: "Videa Health"}
+Rendering company row: 
+Object {id: 5354, name: "Linus Health"}
+Rendering company row: 
+Object {id: 5355, name: "1upHealth"}
+Rendering company row: 
+Object {id: 5353, name: "PathAI"}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: false, enableCustomSearch: true, customSearchTarget: "Market Analyst", …}
+Rendering company row: 
+Object {id: 5349, name: "Cohere Health"}
+Rendering company row: 
+Object {id: 5350, name: "Wellist"}
+Rendering company row: 
+Object {id: 5352, name: "Kyruus Health"}
+Rendering company row: 
+Object {id: 5351, name: "Videa Health"}
+Rendering company row: 
+Object {id: 5354, name: "Linus Health"}
+Rendering company row: 
+Object {id: 5355, name: "1upHealth"}
+Rendering company row: 
+Object {id: 5353, name: "PathAI"}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: false, enableCustomSearch: true, customSearchTarget: "Market Analyst", …}
+Contact discovery completed successfully
+Found 45 contacts across 7 companies
+Processing and organizing results...
+Complete results received with contacts: 7
+Companies with contacts: 7 of 7
+Search process completed!
+Rendering company row: 
+Object {id: 5349, name: "Cohere Health"}
+Rendering company row: 
+Object {id: 5350, name: "Wellist"}
+Rendering company row: 
+Object {id: 5352, name: "Kyruus Health"}
+Rendering company row: 
+Object {id: 5351, name: "Videa Health"}
+Rendering company row: 
+Object {id: 5354, name: "Linus Health"}
+Rendering company row: 
+Object {id: 5355, name: "1upHealth"}
+Rendering company row: 
+Object {id: 5353, name: "PathAI"}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: false, enableCustomSearch: true, customSearchTarget: "Market Analyst", …}
+CompanyTable received companies: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Saving search state: 
+Object {query: "Health-tech SaaS in Boston", resultsCount: 7, companies: Array(7)}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: false, enableCustomSearch: true, customSearchTarget: "Market Analyst", …}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: false, enableCustomSearch: true, customSearchTarget: "Market Analyst", …}
+Rendering company row: 
+Object {id: 5349, name: "Cohere Health"}
+Rendering company row: 
+Object {id: 5350, name: "Wellist"}
+Rendering company row: 
+Object {id: 5352, name: "Kyruus Health"}
+Rendering company row: 
+Object {id: 5351, name: "Videa Health"}
+Rendering company row: 
+Object {id: 5354, name: "Linus Health"}
+Rendering company row: 
+Object {id: 5355, name: "1upHealth"}
+Rendering company row: 
+Object {id: 5353, name: "PathAI"}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: false, enableCustomSearch: true, customSearchTarget: "Market Analyst", …}

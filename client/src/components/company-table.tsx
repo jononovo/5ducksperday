@@ -219,7 +219,6 @@ export default function CompanyTable({
           </TableHeader>
           <TableBody>
           {companies.map((company) => {
-            console.log('Rendering company row:', { id: company.id, name: company.name });
             const isExpanded = isRowExpanded(company.id);
             const topContacts = getTopContacts(company);
             

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Settings2, Target, Users, Building, Crown, Check, Plus, X, Save } from "lucide-react";
 import {
@@ -26,7 +26,7 @@ interface ContactSearchChipsProps {
   inputHasChanged?: boolean;
 }
 
-export default function ContactSearchChips({ 
+function ContactSearchChips({ 
   onConfigChange, 
   disabled = false,
   isSearching = false,
@@ -412,3 +412,5 @@ export default function ContactSearchChips({
     </div>
   );
 }
+
+export default React.memo(ContactSearchChips);
