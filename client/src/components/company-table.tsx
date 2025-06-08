@@ -181,6 +181,25 @@ export default function CompanyTable({
   useEffect(() => {
     updateSelectAllStatus();
   }, [selectedCompanies, selectedContacts]);
+
+  // Auto-expand first company when new search results arrive
+  useEffect(() => {
+    // Only auto-expand if:
+    // 1. We have companies
+    // 2. No companies are currently expanded (fresh search)
+    // 3. First company has meaningful contacts
+    
+    if (companies.length > 0 && expandedRows.size === 0) {
+      const firstCompany = companies[0];
+      const topContacts = getTopContacts(firstCompany);
+      
+      // Only expand if first company has contacts to show
+      if (topContacts.length > 0) {
+        console.log('Auto-expanding first company to show contacts:', firstCompany.name);
+        setExpandedRows(new Set([firstCompany.id]));
+      }
+    }
+  }, [companies]); // Trigger when companies data changes
   
   // Get top contacts for a company (up to 3)
   const getTopContacts = (company: Company & { contacts?: ContactWithCompanyInfo[] }) => {
