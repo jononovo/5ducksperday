@@ -367,7 +367,7 @@ function ContactSearchChips({
       )}
 
       {/* Second Custom Search Chip - Empty State */}
-      {!isCustomInput2Expanded && !config.customSearchTarget2.trim() && (
+      {!isCustomInput2Expanded && !config.customSearchTarget2.trim() && config.customSearchTarget.trim() && (
         <button
           onClick={handleCustomInput2Expand}
           disabled={disabled}
