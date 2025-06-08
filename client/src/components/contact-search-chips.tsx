@@ -381,7 +381,7 @@ export default function ContactSearchChips({
                 className={`
                   flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200
                   ${config.enableCustomSearch2 
-                    ? hasSearchResults 
+                    ? (hasSearchResults && !inputHasChanged)
                       ? 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                       : 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100'
                     : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'

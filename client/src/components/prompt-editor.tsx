@@ -586,6 +586,7 @@ export default function PromptEditor({
           disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
           isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
           hasSearchResults={hasSearchResults}
+          inputHasChanged={inputHasChanged}
         />
         
         {/* Progress Bar - moved below search input/button */}
