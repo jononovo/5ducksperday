@@ -252,8 +252,8 @@ export default function ContactSearchChips({
               }
             }}
             onBlur={() => {
-              // Auto-save when clicking outside the input
-              handleCustomInputSave();
+              // Don't auto-save on blur, only save on Enter or explicit button click
+              // This prevents interference when clicking the second custom role button
             }}
             autoFocus
           />
@@ -305,8 +305,8 @@ export default function ContactSearchChips({
         </TooltipProvider>
       )}
 
-      {/* Second Custom Search Chip */}
-      {!isCustomInput2Expanded && !config.customSearchTarget2.trim() && (
+      {/* Second Custom Search Chip - Only show when first custom search exists AND is being edited */}
+      {!isCustomInput2Expanded && !config.customSearchTarget2.trim() && config.customSearchTarget.trim() && isCustomInputExpanded && (
         <button
           onClick={handleCustomInput2Expand}
           disabled={disabled}
@@ -341,8 +341,8 @@ export default function ContactSearchChips({
               }
             }}
             onBlur={() => {
-              // Auto-save when clicking outside the input
-              handleCustomInput2Save();
+              // Don't auto-save on blur, only save on Enter or explicit button click
+              // This prevents interference when switching between inputs
             }}
             autoFocus
           />
