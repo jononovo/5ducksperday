@@ -145,7 +145,7 @@ export default function PromptEditor({
     id: number;
     name: string;
     active: boolean;
-    config: SearchModuleConfig;
+    config: any;
     completedSearches: string[];
     moduleType: string;
   }>>({
