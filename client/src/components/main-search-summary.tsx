@@ -60,34 +60,38 @@ export function MainSearchSummary({
     return contactCount > maxContactCount ? company : max;
   }, { name: "N/A", contacts: [] });
 
-  // Count contact types from real data, including custom search results
-  const contactTypes = companies.reduce((acc, company) => {
-    if (!company.contacts) return acc;
-    
-    company.contacts.forEach((contact: any) => {
-      const role = contact.role?.toLowerCase() || "";
+  // Use actual search phase metrics instead of ineffective role filtering
+  const contactTypes = searchMetrics?.searchPhases ? 
+    searchMetrics.searchPhases.reduce((acc, phase) => {
+      const phaseName = phase.phaseName.toLowerCase();
       
-      // Check for custom search targets first (if they exist)
-      let isCustomMatch = false;
-      
-      if (customSearchTargets?.customSearchTarget) {
-        const customTarget = customSearchTargets.customSearchTarget.toLowerCase();
-        if (role.includes(customTarget)) {
-          acc.custom1++;
-          isCustomMatch = true;
-        }
+      if (phaseName.includes("core leadership")) {
+        acc.cLevel = phase.contactsFound;
+      } else if (phaseName.includes("department")) {
+        acc.management = phase.contactsFound;
+      } else if (phaseName.includes("middle management")) {
+        acc.staff = phase.contactsFound;
+      } else if (phaseName.includes("custom") && customSearchTargets?.customSearchTarget) {
+        acc.custom1 = phase.contactsFound;
+      } else if (phaseName.includes("custom") && customSearchTargets?.customSearchTarget2) {
+        acc.custom2 = phase.contactsFound;
       }
       
-      if (customSearchTargets?.customSearchTarget2 && !isCustomMatch) {
-        const customTarget2 = customSearchTargets.customSearchTarget2.toLowerCase();
-        if (role.includes(customTarget2)) {
-          acc.custom2++;
-          isCustomMatch = true;
-        }
-      }
+      return acc;
+    }, { 
+      cLevel: 0, 
+      management: 0, 
+      staff: 0, 
+      custom1: 0, 
+      custom2: 0 
+    })
+    : // Fallback to role filtering only if no search metrics available
+    companies.reduce((acc, company) => {
+      if (!company.contacts) return acc;
       
-      // Only categorize into standard categories if not a custom match
-      if (!isCustomMatch) {
+      company.contacts.forEach((contact: any) => {
+        const role = contact.role?.toLowerCase() || "";
+        
         if (role.includes("ceo") || role.includes("cto") || role.includes("cfo") || role.includes("founder") || role.includes("president")) {
           acc.cLevel++;
         } else if (role.includes("manager") || role.includes("director") || role.includes("head") || role.includes("lead")) {
@@ -95,17 +99,16 @@ export function MainSearchSummary({
         } else {
           acc.staff++;
         }
-      }
+      });
+      
+      return acc;
+    }, { 
+      cLevel: 0, 
+      management: 0, 
+      staff: 0, 
+      custom1: 0, 
+      custom2: 0 
     });
-    
-    return acc;
-  }, { 
-    cLevel: 0, 
-    management: 0, 
-    staff: 0, 
-    custom1: 0, 
-    custom2: 0 
-  });
 
   const formatDuration = (seconds: number) => {
     if (seconds < 60) return `${seconds}s`;
