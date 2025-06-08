@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search, HelpCircle } from "lucide-react";
-import type { SearchModuleConfig, SearchApproach } from "@shared/schema";
+// Types are defined inline since they're component-specific
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSearchStrategy } from "@/lib/search-strategy-context";
 import SearchSettingsDrawer from "./search-settings-drawer";
@@ -16,7 +16,7 @@ import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { SearchProgress } from "./search-progress";
 import { MainSearchSummary } from "./main-search-summary";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
-import ContactSearchOptimizer, { ContactSearchConfig } from "./contact-search-optimizer";
+import ContactSearchChips, { ContactSearchConfig } from "./contact-search-chips";
 import {
   Tooltip,
   TooltipContent,
@@ -563,7 +563,7 @@ export default function PromptEditor({
             
             {/* Settings drawer trigger with custom search props */}
             <SearchSettingsDrawer 
-              approaches={searchFlows as SearchApproach[]} 
+              approaches={searchFlows as any[]} 
               targetUrl={targetUrl}
               setTargetUrl={setTargetUrl}
               resultsUrl={resultsUrl}
@@ -576,8 +576,8 @@ export default function PromptEditor({
           </div>
         </div>
         
-        {/* Contact Search Optimizer - positioned below search input */}
-        <ContactSearchOptimizer
+        {/* Contact Search Chips - positioned below search input */}
+        <ContactSearchChips
           onConfigChange={handleContactSearchConfigChange}
           disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
           isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
