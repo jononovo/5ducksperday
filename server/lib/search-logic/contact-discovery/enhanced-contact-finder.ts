@@ -6,7 +6,15 @@ import { extractDomainFromContext } from "../../results-analysis/email-analysis"
 import { INDUSTRY_PROFESSIONAL_TITLES } from "../../results-analysis/name-filters";
 import { applyCustomRoleAffinityScoring } from "../../results-analysis/custom-role-affinity-scorer";
 import { SmartFallbackManager } from "./smart-fallback-manager";
-import { SearchPerformanceLogger } from "./search-performance-logger";
+import { SearchPerformanceLogger, SearchSessionMetrics } from "./search-performance-logger";
+
+/**
+ * Enhanced contact finder result including contacts and search metrics
+ */
+export interface EnhancedContactFinderResult {
+  contacts: Partial<Contact>[];
+  searchMetrics: SearchSessionMetrics | null;
+}
 
 /**
  * Enhanced contact finder that uses industry-specific prompts
@@ -53,7 +61,7 @@ const DEFAULT_OPTIONS: EnhancedContactFinderOptions = {
 export async function findKeyDecisionMakers(
   companyName: string,
   options: EnhancedContactFinderOptions = {}
-): Promise<Partial<Contact>[]> {
+): Promise<EnhancedContactFinderResult> {
   try {
     // Merge with default options
     const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
@@ -298,15 +306,15 @@ export async function findKeyDecisionMakers(
           .slice(0, mergedOptions.maxContacts || 10);
         
         // End session and return
-        SearchPerformanceLogger.endSession(sessionId, finalContacts);
+        const searchMetrics = SearchPerformanceLogger.endSession(sessionId, finalContacts);
         console.log(`Smart fallback + custom scoring complete: ${sortedContacts.length} → ${finalContacts.length} contacts for ${companyName}`);
-        return finalContacts;
+        return { contacts: finalContacts, searchMetrics };
       }
       
       // End session and return
-      SearchPerformanceLogger.endSession(sessionId, optimizedContacts);
+      const searchMetrics = SearchPerformanceLogger.endSession(sessionId, optimizedContacts);
       console.log(`Smart fallback complete: ${sortedContacts.length} → ${optimizedContacts.length} contacts for ${companyName}`);
-      return optimizedContacts;
+      return { contacts: optimizedContacts, searchMetrics };
     } else {
       // Log that no fallback was needed
       SearchPerformanceLogger.logFallback(
@@ -331,9 +339,9 @@ export async function findKeyDecisionMakers(
         .slice(0, mergedOptions.maxContacts || 10);
       
       // End session and return
-      SearchPerformanceLogger.endSession(sessionId, finalContacts);
+      const searchMetrics = SearchPerformanceLogger.endSession(sessionId, finalContacts);
       console.log(`Found ${finalContacts.length} validated contacts for ${companyName} with custom role affinity scoring`);
-      return finalContacts;
+      return { contacts: finalContacts, searchMetrics };
     }
     
     // End session and return
