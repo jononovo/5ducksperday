@@ -280,6 +280,20 @@ function ContactSearchChips({
           >
             <Save className="h-3 w-3" />
           </button>
+          <button
+            onClick={() => {
+              updateConfig({ 
+                customSearchTarget: "",
+                enableCustomSearch: false
+              });
+              setIsCustomInputExpanded(false);
+              setCustomInputValue("");
+            }}
+            disabled={disabled}
+            className="text-red-500 hover:text-red-700"
+          >
+            <X className="h-3 w-3" />
+          </button>
         </div>
       )}
 
@@ -381,6 +395,20 @@ function ContactSearchChips({
             className="text-purple-600 hover:text-purple-700"
           >
             <Save className="h-3 w-3" />
+          </button>
+          <button
+            onClick={() => {
+              updateConfig({ 
+                customSearchTarget2: "",
+                enableCustomSearch2: false
+              });
+              setIsCustomInput2Expanded(false);
+              setCustomInput2Value("");
+            }}
+            disabled={disabled}
+            className="text-red-500 hover:text-red-700"
+          >
+            <X className="h-3 w-3" />
           </button>
         </div>
       )}
