@@ -67,8 +67,11 @@ export default function ContactSearchChips({
       customSearchTarget: trimmedValue,
       enableCustomSearch: trimmedValue ? config.enableCustomSearch : false
     });
-    if (trimmedValue) {
-      setIsCustomInputExpanded(false);
+    // Always close the input after saving, whether empty or not
+    setIsCustomInputExpanded(false);
+    // If empty, reset the input value
+    if (!trimmedValue) {
+      setCustomInputValue("");
     }
   };
 
@@ -202,6 +205,10 @@ export default function ContactSearchChips({
                 setIsCustomInputExpanded(false);
                 setCustomInputValue(config.customSearchTarget);
               }
+            }}
+            onBlur={() => {
+              // Auto-save when clicking outside the input
+              handleCustomInputSave();
             }}
             autoFocus
           />
