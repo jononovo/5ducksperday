@@ -252,6 +252,10 @@ export default function PromptEditor({
       // Pass companies immediately to the parent component
       console.log("Processing company results...");
       console.log(`Found ${data.companies.length} companies matching your search`);
+      
+      // Reset input changed state since we have initial results
+      setInputHasChanged(false);
+      
       onCompaniesReceived(data.query, data.companies);
       
       toast({
@@ -349,6 +353,9 @@ export default function PromptEditor({
       
       console.log("Processing and organizing results...");
       
+      // Reset input changed state since search is complete
+      setInputHasChanged(false);
+      
       // Send full results with contacts to parent component
       onSearchResults(data.query, data.companies);
       
@@ -408,8 +415,7 @@ export default function PromptEditor({
       onDismissLandingHint();
     }
     
-    // Reset input changed state
-    setInputHasChanged(false);
+    // Don't reset inputHasChanged here - wait until search completes
     
     // Reset and initialize progress
     setSearchProgress({ phase: "Starting-up Search Requests", completed: 0, total: 5 });
