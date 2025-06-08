@@ -210,9 +210,22 @@ export default function Home() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!currentQuery || !currentResults) return;
+      
+      // Get current contact search config from localStorage
+      const savedConfig = localStorage.getItem('contactSearchConfig');
+      let contactSearchConfig = null;
+      if (savedConfig) {
+        try {
+          contactSearchConfig = JSON.parse(savedConfig);
+        } catch (error) {
+          console.error('Error parsing contact search config:', error);
+        }
+      }
+      
       const res = await apiRequest("POST", "/api/lists", {
         companies: currentResults,
-        prompt: currentQuery
+        prompt: currentQuery,
+        contactSearchConfig: contactSearchConfig
       });
       return res.json();
     },
@@ -237,9 +250,22 @@ export default function Home() {
   const saveAndNavigateMutation = useMutation({
     mutationFn: async () => {
       if (!currentQuery || !currentResults) return null;
+      
+      // Get current contact search config from localStorage
+      const savedConfig = localStorage.getItem('contactSearchConfig');
+      let contactSearchConfig = null;
+      if (savedConfig) {
+        try {
+          contactSearchConfig = JSON.parse(savedConfig);
+        } catch (error) {
+          console.error('Error parsing contact search config:', error);
+        }
+      }
+      
       const res = await apiRequest("POST", "/api/lists", {
         companies: currentResults,
-        prompt: currentQuery
+        prompt: currentQuery,
+        contactSearchConfig: contactSearchConfig
       });
       return res.json();
     },

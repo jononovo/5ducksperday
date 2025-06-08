@@ -10,9 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { List } from "@shared/schema";
+import { generateListDisplayName } from "@/lib/list-utils";
 
 export default function Lists() {
-  const { data: lists = [] } = useQuery({
+  const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
   });
   const [, navigate] = useLocation();
@@ -30,20 +32,20 @@ export default function Lists() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>List ID</TableHead>
-                <TableHead className="w-[50%]">Search Prompt</TableHead>
+                <TableHead className="w-[70%]">List Name</TableHead>
                 <TableHead>Results</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {lists.map((list) => (
+              {lists.map((list: List) => (
                 <TableRow 
                   key={list.id}
                   className="cursor-pointer hover:bg-muted"
                   onClick={() => navigate(`/lists/${list.listId}`)}
                 >
-                  <TableCell>{list.listId}</TableCell>
-                  <TableCell>{list.prompt}</TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {generateListDisplayName(list)}
+                  </TableCell>
                   <TableCell>{list.resultCount}</TableCell>
                 </TableRow>
               ))}

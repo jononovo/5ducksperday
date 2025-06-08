@@ -780,7 +780,7 @@ export function registerRoutes(app: Express) {
   });
 
   app.post("/api/lists", requireAuth, async (req, res) => {
-    const { companies, prompt } = req.body;
+    const { companies, prompt, contactSearchConfig } = req.body;
 
     if (!Array.isArray(companies) || !prompt || typeof prompt !== 'string') {
       res.status(400).json({ message: "Invalid request: companies must be an array and prompt must be a string" });
@@ -790,10 +790,23 @@ export function registerRoutes(app: Express) {
     try {
       const userId = getUserId(req);
       const listId = await storage.getNextListId();
+      
+      // Extract custom search targets from contactSearchConfig
+      const customSearchTargets: string[] = [];
+      if (contactSearchConfig) {
+        if (contactSearchConfig.enableCustomSearch && contactSearchConfig.customSearchTarget) {
+          customSearchTargets.push(contactSearchConfig.customSearchTarget);
+        }
+        if (contactSearchConfig.enableCustomSearch2 && contactSearchConfig.customSearchTarget2) {
+          customSearchTargets.push(contactSearchConfig.customSearchTarget2);
+        }
+      }
+      
       const list = await storage.createList({
         listId,
         prompt,
         resultCount: companies.length,
+        customSearchTargets: customSearchTargets.length > 0 ? customSearchTargets : null,
         userId: userId
       });
 
