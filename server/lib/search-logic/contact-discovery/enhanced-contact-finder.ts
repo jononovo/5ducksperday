@@ -26,6 +26,8 @@ export interface EnhancedContactFinderOptions {
   enableMiddleManagement?: boolean;
   enableCustomSearch?: boolean;
   customSearchTarget?: string;
+  enableCustomSearch2?: boolean;
+  customSearchTarget2?: string;
 }
 
 const DEFAULT_OPTIONS: EnhancedContactFinderOptions = {
