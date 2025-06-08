@@ -183,7 +183,7 @@ function ContactSearchChips({
             >
               {config.enableCoreLeadership && <Check className="h-3 w-3" />}
               <Crown className="h-3 w-3" />
-              <span className="text-sm font-medium">Core Leadership</span>
+              <span className="text-sm font-medium">Leadership</span>
             </button>
           </TooltipTrigger>
           <TooltipContent>
