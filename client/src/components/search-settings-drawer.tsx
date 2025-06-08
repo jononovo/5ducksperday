@@ -25,7 +25,6 @@ interface SearchSettingsDrawerProps {
 }
 
 export default function SearchSettingsDrawer({ 
-  approaches,
   targetUrl,
   setTargetUrl,
   resultsUrl,
@@ -33,7 +32,6 @@ export default function SearchSettingsDrawer({
   customSelected,
   isCustomLoading,
   handleCustomWorkflowSearch,
-
 }: SearchSettingsDrawerProps) {
   const [open, setOpen] = useState(false);
 
@@ -70,10 +68,6 @@ export default function SearchSettingsDrawer({
 
             <div className="flex-1 p-6 overflow-y-auto">
               <div className="space-y-8">
-                {/* Search Flow Settings Section */}
-                <div>
-                  <SearchFlowNew approaches={approaches} />
-                </div>
                 {/* External Search Configuration */}
                 {setTargetUrl && setResultsUrl && handleCustomWorkflowSearch && (
                   <div>
