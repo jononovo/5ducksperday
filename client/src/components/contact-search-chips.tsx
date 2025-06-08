@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Settings2, Target, Users, Building, Crown, Check, Plus, X } from "lucide-react";
+import { Settings2, Target, Users, Building, Crown, Check, Plus, X, Save } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -273,7 +273,7 @@ export default function ContactSearchChips({
             disabled={disabled}
             className="text-purple-600 hover:text-purple-700"
           >
-            <Plus className="h-3 w-3" />
+            <Save className="h-3 w-3" />
           </button>
         </div>
       )}
@@ -363,7 +363,7 @@ export default function ContactSearchChips({
             disabled={disabled}
             className="text-purple-600 hover:text-purple-700"
           >
-            <Plus className="h-3 w-3" />
+            <Save className="h-3 w-3" />
           </button>
         </div>
       )}

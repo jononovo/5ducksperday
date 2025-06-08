@@ -203,9 +203,7 @@ export default function Home() {
 
 
 
-  const { data: searchApproaches = [] } = useQuery<SearchApproach[]>({
-    queryKey: ["/api/search-approaches"],
-  });
+  // Search approaches functionality removed - replaced by contact search chips
 
   const saveMutation = useMutation({
     mutationFn: async () => {
