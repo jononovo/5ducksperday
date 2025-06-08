@@ -60,21 +60,27 @@ export function MainSearchSummary({
     return contactCount > maxContactCount ? company : max;
   }, { name: "N/A", contacts: [] });
 
-  // Use actual search phase metrics instead of ineffective role filtering
+  // Use actual search phase metrics - no fallback to role filtering
   const contactTypes = searchMetrics?.searchPhases ? 
     searchMetrics.searchPhases.reduce((acc, phase) => {
       const phaseName = phase.phaseName.toLowerCase();
       
-      if (phaseName.includes("core leadership")) {
-        acc.cLevel = phase.contactsFound;
+      // Debug logging
+      console.log(`Processing phase: "${phase.phaseName}" with ${phase.contactsFound} contacts`);
+      
+      if (phaseName.includes("core") && phaseName.includes("leadership")) {
+        acc.cLevel += phase.contactsFound;
       } else if (phaseName.includes("department")) {
-        acc.management = phase.contactsFound;
-      } else if (phaseName.includes("middle management")) {
-        acc.staff = phase.contactsFound;
-      } else if (phaseName.includes("custom") && customSearchTargets?.customSearchTarget) {
-        acc.custom1 = phase.contactsFound;
-      } else if (phaseName.includes("custom") && customSearchTargets?.customSearchTarget2) {
-        acc.custom2 = phase.contactsFound;
+        acc.management += phase.contactsFound;
+      } else if (phaseName.includes("middle") && phaseName.includes("management")) {
+        acc.staff += phase.contactsFound;
+      } else if (phaseName.includes("custom")) {
+        // Track custom searches by target name
+        if (customSearchTargets?.customSearchTarget && !acc.customTargets.some(t => t.name === customSearchTargets.customSearchTarget)) {
+          acc.customTargets.push({ name: customSearchTargets.customSearchTarget, count: phase.contactsFound });
+        } else if (customSearchTargets?.customSearchTarget2 && !acc.customTargets.some(t => t.name === customSearchTargets.customSearchTarget2)) {
+          acc.customTargets.push({ name: customSearchTargets.customSearchTarget2, count: phase.contactsFound });
+        }
       }
       
       return acc;
@@ -82,33 +88,14 @@ export function MainSearchSummary({
       cLevel: 0, 
       management: 0, 
       staff: 0, 
-      custom1: 0, 
-      custom2: 0 
+      customTargets: [] as Array<{name: string, count: number}>
     })
-    : // Fallback to role filtering only if no search metrics available
-    companies.reduce((acc, company) => {
-      if (!company.contacts) return acc;
-      
-      company.contacts.forEach((contact: any) => {
-        const role = contact.role?.toLowerCase() || "";
-        
-        if (role.includes("ceo") || role.includes("cto") || role.includes("cfo") || role.includes("founder") || role.includes("president")) {
-          acc.cLevel++;
-        } else if (role.includes("manager") || role.includes("director") || role.includes("head") || role.includes("lead")) {
-          acc.management++;
-        } else {
-          acc.staff++;
-        }
-      });
-      
-      return acc;
-    }, { 
+    : { 
       cLevel: 0, 
       management: 0, 
       staff: 0, 
-      custom1: 0, 
-      custom2: 0 
-    });
+      customTargets: [] as Array<{name: string, count: number}>
+    };
 
   const formatDuration = (seconds: number) => {
     if (seconds < 60) return `${seconds}s`;
@@ -168,12 +155,21 @@ export function MainSearchSummary({
               </div>
             )}
             <div className="text-xs text-gray-600">
-              <span className="font-medium">Contact Types:</span> C-level: {contactTypes.cLevel}, Management: {contactTypes.management}, Staff: {contactTypes.staff}
-              {contactTypes.custom1 > 0 && customSearchTargets?.customSearchTarget && (
-                <>, {customSearchTargets.customSearchTarget}: {contactTypes.custom1}</>
-              )}
-              {contactTypes.custom2 > 0 && customSearchTargets?.customSearchTarget2 && (
-                <>, {customSearchTargets.customSearchTarget2}: {contactTypes.custom2}</>
+              <span className="font-medium">Search Results:</span> 
+              {searchMetrics?.searchPhases ? (
+                <>
+                  {contactTypes.cLevel > 0 && <>Core Leadership: {contactTypes.cLevel}</>}
+                  {contactTypes.management > 0 && <>{contactTypes.cLevel > 0 ? ", " : ""}Department Heads: {contactTypes.management}</>}
+                  {contactTypes.staff > 0 && <>{(contactTypes.cLevel > 0 || contactTypes.management > 0) ? ", " : ""}Middle Management: {contactTypes.staff}</>}
+                  {contactTypes.customTargets.map((target, index) => (
+                    <span key={target.name}>
+                      {(contactTypes.cLevel > 0 || contactTypes.management > 0 || contactTypes.staff > 0 || index > 0) ? ", " : ""}
+                      {target.name}: {target.count}
+                    </span>
+                  ))}
+                </>
+              ) : (
+                "No search metrics available"
               )}
             </div>
           </div>
