@@ -322,8 +322,20 @@ export default function Home() {
   // Modified search results handler for the full data with contacts
   const handleSearchResults = (query: string, results: CompanyWithContacts[]) => {
     console.log('Complete results received with contacts:', results.length);
+    
+    // Sort companies by contact count (most contacts first)
+    const sortedResults = [...results].sort((a, b) => {
+      const contactsA = a.contacts?.length || 0;
+      const contactsB = b.contacts?.length || 0;
+      return contactsB - contactsA; // Descending order
+    });
+    
+    console.log('Companies reordered by contact count:', 
+      sortedResults.map(c => ({ name: c.name, contacts: c.contacts?.length || 0 }))
+    );
+    
     setCurrentQuery(query);
-    setCurrentResults(results);
+    setCurrentResults(sortedResults);
     setIsSaved(false);
     setIsLoadingContacts(false);
     setContactsLoaded(true);
