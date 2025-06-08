@@ -14,6 +14,8 @@ export interface ContactSearchConfig {
   enableMiddleManagement: boolean;
   enableCustomSearch: boolean;
   customSearchTarget: string;
+  enableCustomSearch2: boolean;
+  customSearchTarget2: string;
 }
 
 interface ContactSearchChipsProps {
@@ -28,13 +30,17 @@ export default function ContactSearchChips({
   isSearching = false
 }: ContactSearchChipsProps) {
   const [isCustomInputExpanded, setIsCustomInputExpanded] = useState(false);
+  const [isCustomInput2Expanded, setIsCustomInput2Expanded] = useState(false);
   const [customInputValue, setCustomInputValue] = useState("");
+  const [customInput2Value, setCustomInput2Value] = useState("");
   const [config, setConfig] = useState<ContactSearchConfig>({
     enableCoreLeadership: true,
     enableDepartmentHeads: true,
     enableMiddleManagement: true,
     enableCustomSearch: false,
-    customSearchTarget: ""
+    customSearchTarget: "",
+    enableCustomSearch2: false,
+    customSearchTarget2: ""
   });
 
   // Load saved config from localStorage
@@ -43,8 +49,20 @@ export default function ContactSearchChips({
     if (savedConfig) {
       try {
         const parsed = JSON.parse(savedConfig);
-        setConfig(parsed);
-        setCustomInputValue(parsed.customSearchTarget || "");
+        // Ensure all properties exist for backward compatibility
+        const fullConfig = {
+          enableCoreLeadership: true,
+          enableDepartmentHeads: true,
+          enableMiddleManagement: true,
+          enableCustomSearch: false,
+          customSearchTarget: "",
+          enableCustomSearch2: false,
+          customSearchTarget2: "",
+          ...parsed
+        };
+        setConfig(fullConfig);
+        setCustomInputValue(fullConfig.customSearchTarget || "");
+        setCustomInput2Value(fullConfig.customSearchTarget2 || "");
       } catch (error) {
         console.error('Error loading saved contact search config:', error);
       }
@@ -85,6 +103,33 @@ export default function ContactSearchChips({
       updateConfig({ enableCustomSearch: !config.enableCustomSearch });
     } else {
       setIsCustomInputExpanded(true);
+    }
+  };
+
+  const handleCustomInput2Save = () => {
+    const trimmedValue = customInput2Value.trim();
+    updateConfig({ 
+      customSearchTarget2: trimmedValue,
+      enableCustomSearch2: trimmedValue ? config.enableCustomSearch2 : false
+    });
+    // Always close the input after saving, whether empty or not
+    setIsCustomInput2Expanded(false);
+    // If empty, reset the input value
+    if (!trimmedValue) {
+      setCustomInput2Value("");
+    }
+  };
+
+  const handleCustomInput2Expand = () => {
+    setIsCustomInput2Expanded(true);
+    setCustomInput2Value(config.customSearchTarget2);
+  };
+
+  const toggleCustomSearch2 = () => {
+    if (config.customSearchTarget2.trim()) {
+      updateConfig({ enableCustomSearch2: !config.enableCustomSearch2 });
+    } else {
+      setIsCustomInput2Expanded(true);
     }
   };
 
@@ -255,6 +300,95 @@ export default function ContactSearchChips({
             </TooltipTrigger>
             <TooltipContent>
               <p>Boost scores for {config.customSearchTarget} roles</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+
+      {/* Second Custom Search Chip */}
+      {!isCustomInput2Expanded && !config.customSearchTarget2.trim() && (
+        <button
+          onClick={handleCustomInput2Expand}
+          disabled={disabled}
+          className={`
+            flex items-center gap-2 px-3 py-2 rounded-full border border-dashed border-gray-300 
+            text-gray-600 hover:bg-gray-50 transition-all duration-200
+            ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+          `}
+        >
+          <Plus className="h-3 w-3" />
+          <span className="text-sm font-medium">Custom Role</span>
+        </button>
+      )}
+
+      {/* Second Custom Input Expanded */}
+      {isCustomInput2Expanded && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-full border border-purple-300 bg-purple-50">
+          <input
+            type="text"
+            value={customInput2Value}
+            onChange={(e) => setCustomInput2Value(e.target.value)}
+            placeholder="e.g., Sales Director"
+            disabled={disabled}
+            className="h-6 text-sm border-none bg-transparent p-0 focus:ring-0 focus:outline-none min-w-[200px]"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleCustomInput2Save();
+              }
+              if (e.key === 'Escape') {
+                setIsCustomInput2Expanded(false);
+                setCustomInput2Value(config.customSearchTarget2);
+              }
+            }}
+            onBlur={() => {
+              // Auto-save when clicking outside the input
+              handleCustomInput2Save();
+            }}
+            autoFocus
+          />
+          <button
+            onClick={handleCustomInput2Save}
+            disabled={disabled}
+            className="text-purple-600 hover:text-purple-700"
+          >
+            <Plus className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+
+      {/* Saved Second Custom Search Chip */}
+      {config.customSearchTarget2.trim() && !isCustomInput2Expanded && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={toggleCustomSearch2}
+                disabled={disabled}
+                className={`
+                  flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200
+                  ${config.enableCustomSearch2 
+                    ? 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100' 
+                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                  }
+                  ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                `}
+              >
+                {config.enableCustomSearch2 && <Check className="h-3 w-3" />}
+                <Target className="h-3 w-3" />
+                <span className="text-sm font-medium">{config.customSearchTarget2}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCustomInput2Expand();
+                  }}
+                  className="ml-1 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Boost scores for {config.customSearchTarget2} roles</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

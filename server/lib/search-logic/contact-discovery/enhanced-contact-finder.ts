@@ -39,7 +39,9 @@ const DEFAULT_OPTIONS: EnhancedContactFinderOptions = {
   enableDepartmentHeads: true,
   enableMiddleManagement: true,
   enableCustomSearch: false,
-  customSearchTarget: ""
+  customSearchTarget: "",
+  enableCustomSearch2: false,
+  customSearchTarget2: ""
 };
 
 /**

@@ -87,7 +87,9 @@ export default function PromptEditor({
     enableDepartmentHeads: true,
     enableMiddleManagement: true,
     enableCustomSearch: false,
-    customSearchTarget: ""
+    customSearchTarget: "",
+    enableCustomSearch2: false,
+    customSearchTarget2: ""
   });
 
   // Handle contact search config changes
