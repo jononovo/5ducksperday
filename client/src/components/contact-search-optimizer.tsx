@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Settings2, Target, Users, Building, Crown, ChevronDown, ChevronUp, Zap } from "lucide-react";
+import { Settings2, Target, Users, Building, Crown, ChevronDown, ChevronUp, Zap, Check, Plus, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -31,6 +30,8 @@ export default function ContactSearchOptimizer({
   isSearching = false
 }: ContactSearchOptimizerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCustomInputExpanded, setIsCustomInputExpanded] = useState(false);
+  const [customInputValue, setCustomInputValue] = useState("");
   const [config, setConfig] = useState<ContactSearchConfig>({
     enableCoreLeadership: true,
     enableDepartmentHeads: true,
@@ -46,6 +47,7 @@ export default function ContactSearchOptimizer({
       try {
         const parsed = JSON.parse(savedConfig);
         setConfig(parsed);
+        setCustomInputValue(parsed.customSearchTarget || "");
       } catch (error) {
         console.error('Error loading saved contact search config:', error);
       }
@@ -62,13 +64,28 @@ export default function ContactSearchOptimizer({
     setConfig(prev => ({ ...prev, ...updates }));
   };
 
-  const handleSelectAll = () => {
-    const allSelected = config.enableCoreLeadership && config.enableDepartmentHeads && config.enableMiddleManagement;
-    updateConfig({
-      enableCoreLeadership: !allSelected,
-      enableDepartmentHeads: !allSelected,
-      enableMiddleManagement: !allSelected
+  const handleCustomInputSave = () => {
+    const trimmedValue = customInputValue.trim();
+    updateConfig({ 
+      customSearchTarget: trimmedValue,
+      enableCustomSearch: trimmedValue ? config.enableCustomSearch : false
     });
+    if (trimmedValue) {
+      setIsCustomInputExpanded(false);
+    }
+  };
+
+  const handleCustomInputExpand = () => {
+    setIsCustomInputExpanded(true);
+    setCustomInputValue(config.customSearchTarget);
+  };
+
+  const toggleCustomSearch = () => {
+    if (config.customSearchTarget.trim()) {
+      updateConfig({ enableCustomSearch: !config.enableCustomSearch });
+    } else {
+      setIsCustomInputExpanded(true);
+    }
   };
 
   const getSelectedCount = () => {
@@ -115,108 +132,175 @@ export default function ContactSearchOptimizer({
           )}
         </div>
 
-        {/* Expanded content */}
+        {/* Expanded content - Chip-based design */}
         {isExpanded && (
           <div className="mt-4 space-y-4">
-            {/* Standard search options - Desktop: 3 columns, Mobile: stacked */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {/* Core Leadership */}
-              <div className="flex items-center justify-between p-2 md:p-3 rounded-lg border border-slate-200 bg-slate-50/50">
-                <div className="flex items-center gap-2">
-                  <Crown className="h-4 w-4 text-amber-500" />
-                  <div className="hidden md:block">
-                    <div className="font-medium text-sm text-slate-900">Core Leadership</div>
-                    <div className="text-xs text-slate-500">CEO, CTO, Founders</div>
-                  </div>
-                  <div className="md:hidden">
-                    <div className="font-medium text-sm text-slate-900">Leadership</div>
-                  </div>
-                </div>
-                <Switch
-                  checked={config.enableCoreLeadership}
-                  onCheckedChange={(checked) => 
-                    updateConfig({ enableCoreLeadership: checked })
-                  }
-                  disabled={disabled}
-                />
-              </div>
+            {/* Search option chips */}
+            <div className="flex flex-wrap gap-2">
+              {/* Core Leadership Chip */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => updateConfig({ enableCoreLeadership: !config.enableCoreLeadership })}
+                      disabled={disabled}
+                      className={`
+                        flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200
+                        ${config.enableCoreLeadership 
+                          ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100' 
+                          : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                        }
+                        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                      `}
+                    >
+                      {config.enableCoreLeadership && <Check className="h-3 w-3" />}
+                      <Crown className="h-3 w-3" />
+                      <span className="text-sm font-medium">Core Leadership</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>CEO, CTO, Founders, C-level executives</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
-              {/* Department Heads */}
-              <div className="flex items-center justify-between p-2 md:p-3 rounded-lg border border-slate-200 bg-slate-50/50">
-                <div className="flex items-center gap-2">
-                  <Building className="h-4 w-4 text-blue-500" />
-                  <div className="hidden md:block">
-                    <div className="font-medium text-sm text-slate-900">Department Heads</div>
-                    <div className="text-xs text-slate-500">Sales, Marketing, IT</div>
-                  </div>
-                  <div className="md:hidden">
-                    <div className="font-medium text-sm text-slate-900">Departments</div>
-                  </div>
-                </div>
-                <Switch
-                  checked={config.enableDepartmentHeads}
-                  onCheckedChange={(checked) => 
-                    updateConfig({ enableDepartmentHeads: checked })
-                  }
-                  disabled={disabled}
-                />
-              </div>
+              {/* Department Heads Chip */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => updateConfig({ enableDepartmentHeads: !config.enableDepartmentHeads })}
+                      disabled={disabled}
+                      className={`
+                        flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200
+                        ${config.enableDepartmentHeads 
+                          ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100' 
+                          : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                        }
+                        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                      `}
+                    >
+                      {config.enableDepartmentHeads && <Check className="h-3 w-3" />}
+                      <Building className="h-3 w-3" />
+                      <span className="text-sm font-medium">Department Heads</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Sales, Marketing, IT, Finance department leaders</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
-              {/* Middle Management */}
-              <div className="flex items-center justify-between p-2 md:p-3 rounded-lg border border-slate-200 bg-slate-50/50">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-green-500" />
-                  <div className="hidden md:block">
-                    <div className="font-medium text-sm text-slate-900">Middle Management</div>
-                    <div className="text-xs text-slate-500">Team leads, Managers</div>
-                  </div>
-                  <div className="md:hidden">
-                    <div className="font-medium text-sm text-slate-900">Management</div>
-                  </div>
-                </div>
-                <Switch
-                  checked={config.enableMiddleManagement}
-                  onCheckedChange={(checked) => 
-                    updateConfig({ enableMiddleManagement: checked })
-                  }
-                  disabled={disabled}
-                />
-              </div>
-            </div>
+              {/* Middle Management Chip */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => updateConfig({ enableMiddleManagement: !config.enableMiddleManagement })}
+                      disabled={disabled}
+                      className={`
+                        flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200
+                        ${config.enableMiddleManagement 
+                          ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' 
+                          : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                        }
+                        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                      `}
+                    >
+                      {config.enableMiddleManagement && <Check className="h-3 w-3" />}
+                      <Users className="h-3 w-3" />
+                      <span className="text-sm font-medium">Middle Management</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Team leads, senior managers, project managers</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
-            {/* Custom search target */}
-            <div className="p-3 rounded-lg border border-dashed border-slate-300 bg-slate-50/30">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-purple-500" />
-                  <span className="font-medium text-sm text-slate-900">Custom Role Search</span>
-                </div>
-                <Switch
-                  checked={config.enableCustomSearch}
-                  onCheckedChange={(checked) => 
-                    updateConfig({ enableCustomSearch: checked })
-                  }
+              {/* Custom Search Chip */}
+              {!isCustomInputExpanded && !config.customSearchTarget.trim() && (
+                <button
+                  onClick={handleCustomInputExpand}
                   disabled={disabled}
-                />
-              </div>
-              
-              {config.enableCustomSearch ? (
-                <div className="space-y-2">
+                  className={`
+                    flex items-center gap-2 px-3 py-2 rounded-full border border-dashed border-purple-300 
+                    text-purple-600 hover:bg-purple-50 transition-all duration-200
+                    ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                  `}
+                >
+                  <Plus className="h-3 w-3" />
+                  <span className="text-sm font-medium">Custom Role</span>
+                </button>
+              )}
+
+              {/* Custom Input Expanded */}
+              {isCustomInputExpanded && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-full border border-purple-300 bg-purple-50">
+                  <Target className="h-3 w-3 text-purple-600" />
                   <Input
-                    placeholder="e.g., Marketing Manager, Chief Security Officer, Legal Director"
-                    value={config.customSearchTarget}
-                    onChange={(e) => updateConfig({ customSearchTarget: e.target.value })}
+                    value={customInputValue}
+                    onChange={(e) => setCustomInputValue(e.target.value)}
+                    placeholder="e.g., Marketing Manager"
                     disabled={disabled}
-                    className="text-sm border-slate-300 focus:border-purple-500"
+                    className="h-6 text-sm border-none bg-transparent p-0 focus:ring-0 focus:outline-none min-w-[200px]"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleCustomInputSave();
+                      }
+                      if (e.key === 'Escape') {
+                        setIsCustomInputExpanded(false);
+                        setCustomInputValue(config.customSearchTarget);
+                      }
+                    }}
+                    autoFocus
                   />
-                  <p className="text-xs text-slate-500">
-                    Boost scores for specific roles not covered above
-                  </p>
+                  <button
+                    onClick={handleCustomInputSave}
+                    disabled={disabled}
+                    className="text-purple-600 hover:text-purple-700"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
                 </div>
-              ) : (
-                <p className="text-xs text-slate-500">
-                  Target specific roles for priority scoring
-                </p>
+              )}
+
+              {/* Saved Custom Search Chip */}
+              {config.customSearchTarget.trim() && !isCustomInputExpanded && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={toggleCustomSearch}
+                        disabled={disabled}
+                        className={`
+                          flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200
+                          ${config.enableCustomSearch 
+                            ? 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100' 
+                            : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                          }
+                          ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                        `}
+                      >
+                        {config.enableCustomSearch && <Check className="h-3 w-3" />}
+                        <Target className="h-3 w-3" />
+                        <span className="text-sm font-medium">{config.customSearchTarget}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCustomInputExpand();
+                          }}
+                          className="ml-1 text-gray-400 hover:text-gray-600"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Boost scores for {config.customSearchTarget} roles</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
 
