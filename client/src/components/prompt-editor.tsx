@@ -512,6 +512,10 @@ export default function PromptEditor({
           isVisible={summaryVisible}
           onClose={() => setSummaryVisible(false)}
           companies={searchMetrics.companies}
+          customSearchTargets={{
+            customSearchTarget: contactSearchConfig.customSearchTarget,
+            customSearchTarget2: contactSearchConfig.customSearchTarget2
+          }}
         />
         
         <div className="flex flex-row gap-2 pl-0">

@@ -10,6 +10,10 @@ interface MainSearchSummaryProps {
   isVisible: boolean;
   onClose: () => void;
   companies: any[];
+  customSearchTargets?: {
+    customSearchTarget?: string;
+    customSearchTarget2?: string;
+  };
 }
 
 export function MainSearchSummary({
@@ -19,7 +23,8 @@ export function MainSearchSummary({
   searchDuration,
   isVisible,
   onClose,
-  companies
+  companies,
+  customSearchTargets
 }: MainSearchSummaryProps) {
   if (!isVisible) return null;
 
@@ -35,23 +40,52 @@ export function MainSearchSummary({
     return contactCount > maxContactCount ? company : max;
   }, { name: "N/A", contacts: [] });
 
-  // Count contact types from real data
+  // Count contact types from real data, including custom search results
   const contactTypes = companies.reduce((acc, company) => {
     if (!company.contacts) return acc;
     
     company.contacts.forEach((contact: any) => {
       const role = contact.role?.toLowerCase() || "";
-      if (role.includes("ceo") || role.includes("cto") || role.includes("cfo") || role.includes("founder") || role.includes("president")) {
-        acc.cLevel++;
-      } else if (role.includes("manager") || role.includes("director") || role.includes("head") || role.includes("lead")) {
-        acc.management++;
-      } else {
-        acc.staff++;
+      
+      // Check for custom search targets first (if they exist)
+      let isCustomMatch = false;
+      
+      if (customSearchTargets?.customSearchTarget) {
+        const customTarget = customSearchTargets.customSearchTarget.toLowerCase();
+        if (role.includes(customTarget)) {
+          acc.custom1++;
+          isCustomMatch = true;
+        }
+      }
+      
+      if (customSearchTargets?.customSearchTarget2 && !isCustomMatch) {
+        const customTarget2 = customSearchTargets.customSearchTarget2.toLowerCase();
+        if (role.includes(customTarget2)) {
+          acc.custom2++;
+          isCustomMatch = true;
+        }
+      }
+      
+      // Only categorize into standard categories if not a custom match
+      if (!isCustomMatch) {
+        if (role.includes("ceo") || role.includes("cto") || role.includes("cfo") || role.includes("founder") || role.includes("president")) {
+          acc.cLevel++;
+        } else if (role.includes("manager") || role.includes("director") || role.includes("head") || role.includes("lead")) {
+          acc.management++;
+        } else {
+          acc.staff++;
+        }
       }
     });
     
     return acc;
-  }, { cLevel: 0, management: 0, staff: 0 });
+  }, { 
+    cLevel: 0, 
+    management: 0, 
+    staff: 0, 
+    custom1: 0, 
+    custom2: 0 
+  });
 
   const formatDuration = (seconds: number) => {
     if (seconds < 60) return `${seconds}s`;
@@ -112,6 +146,12 @@ export function MainSearchSummary({
             )}
             <div className="text-xs text-gray-600">
               <span className="font-medium">Contact Types:</span> C-level: {contactTypes.cLevel}, Management: {contactTypes.management}, Staff: {contactTypes.staff}
+              {contactTypes.custom1 > 0 && customSearchTargets?.customSearchTarget && (
+                <>, {customSearchTargets.customSearchTarget}: {contactTypes.custom1}</>
+              )}
+              {contactTypes.custom2 > 0 && customSearchTargets?.customSearchTarget2 && (
+                <>, {customSearchTargets.customSearchTarget2}: {contactTypes.custom2}</>
+              )}
             </div>
           </div>
         </CardContent>
