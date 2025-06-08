@@ -265,8 +265,11 @@ function ContactSearchChips({
               }
             }}
             onBlur={() => {
-              // Don't auto-save on blur, only save on Enter or explicit button click
-              // This prevents interference when clicking the second custom role button
+              // If input is empty, close the edit mode and revert to previous state
+              if (!customInputValue.trim()) {
+                setIsCustomInputExpanded(false);
+                setCustomInputValue(config.customSearchTarget);
+              }
             }}
             autoFocus
           />
@@ -364,8 +367,11 @@ function ContactSearchChips({
               }
             }}
             onBlur={() => {
-              // Don't auto-save on blur, only save on Enter or explicit button click
-              // This prevents interference when switching between inputs
+              // If input is empty, close the edit mode and revert to previous state
+              if (!customInput2Value.trim()) {
+                setIsCustomInput2Expanded(false);
+                setCustomInput2Value(config.customSearchTarget2);
+              }
             }}
             autoFocus
           />
