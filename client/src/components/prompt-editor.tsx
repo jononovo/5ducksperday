@@ -11,7 +11,7 @@ import { Loader2, Search, HelpCircle } from "lucide-react";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSearchStrategy } from "@/lib/search-strategy-context";
 import SearchSettingsDrawer from "./search-settings-drawer";
-import SearchProgressIndicator from "./search-progress-indicator";
+
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { SearchProgress } from "./search-progress";
@@ -571,9 +571,7 @@ export default function PromptEditor({
             isVisible={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
           />
         )}
-        
-        {/* Search Progress Indicator */}
-        <SearchProgressIndicator isSearching={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending} />
+
       </div>
     </div>
   );
