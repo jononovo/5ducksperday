@@ -1,0 +1,39 @@
+[vite] connecting...
+[vite] connected.
+Starting Firebase initialization... 
+Object {timestamp: "2025-06-08T13:49:01.109Z", domain: "e3854944-8bc3-4ccb-95a3-554b84b1a661-00-19vbc0k4pm5a9.worf.replit.dev"}
+Raw environment variables: 
+Object {apiKey: "....aDbuzU", projectId: "fire-5-ducks", appId: "....b133e8", mode: "development", dev: true, …}
+Firebase Configuration: 
+Object {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: "fire-5-ducks.firebaseapp.com", environment: "development", …}
+Firebase initialized successfully: 
+Object {domain: "e3854944-8bc3-4ccb-95a3-554b84b1a661-00-19vbc0k4pm5a9.worf.replit.dev", isAuth: true, isProvider: true, authDomain: "fire-5-ducks.firebaseapp.com", timestamp: "2025-06-08T13:49:01.110Z"}
+Setting up Firebase auth state listener
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID
+Firebase auth state changed: test114@test.com
+Making backend sync request 
+Object {endpoint: "/api/google-auth", hasAccessToken: false, domain: "e3854944-8bc3-4ccb-95a3-554b84b1a661-00-19vbc0k4pm5a9.worf.replit.dev"}
+Firebase persistence set to LOCAL
+Auth token set successfully: 
+Object {uid: "9zZIndHJ7SMiCH10H9lwzeCW4SL2", email: "test114@...", timestamp: "2025-06-08T13:49:01.337Z"}
+Successfully synced with backend
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: true, enableCustomSearch: false, customSearchTarget: ""}
+Found pending search query: Real-estate lawyers in Salt Lake City
+Skipping localStorage save - no meaningful data to save
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: true, enableCustomSearch: false, customSearchTarget: ""}
+Saving search state: 
+Object {query: "Real-estate lawyers in Salt Lake City", resultsCount: undefined, companies: undefined}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: true, enableCustomSearch: false, customSearchTarget: ""}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: true, enableCustomSearch: false, customSearchTarget: ""}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: true, enableCustomSearch: false, customSearchTarget: ""}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: true, enableCustomSearch: false, customSearchTarget: ""}
+Analyzing search query...
+Preparing to search for companies and contacts...
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: true, enableCustomSearch: false, customSearchTarget: ""}

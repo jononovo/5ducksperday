@@ -55,7 +55,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import type { Company, Contact, SearchApproach } from "@shared/schema";
+import type { Company, Contact } from "@shared/schema";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -203,7 +203,7 @@ export default function Home() {
 
 
 
-  const { data: searchApproaches = [] } = useQuery<SearchApproach[]>({
+  const { data: searchApproaches = [] } = useQuery<any[]>({
     queryKey: ["/api/search-approaches"],
   });
 
