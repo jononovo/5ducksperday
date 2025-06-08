@@ -1544,7 +1544,7 @@ export default function Home() {
                           {/* Email - hidden on mobile, shown as small text */}
                           <TableCell className="hidden md:table-cell">
                             <div className="flex flex-col">
-                              <span className="text-xs text-muted-foreground">{contact.email || "N/A"}</span>
+                              <span className="text-xs text-muted-foreground">{contact.email || ""}</span>
                               {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
                                 <div className="mt-1 flex flex-col gap-0.5">
                                   {contact.alternativeEmails.map((email, i) => (
@@ -1563,7 +1563,7 @@ export default function Home() {
                               <div>{contact.companyName}</div>
                               <div>{contact.role || "N/A"}</div>
                               <div className="flex flex-col">
-                                <div>{contact.email || "N/A"}</div>
+                                <div>{contact.email || ""}</div>
                                 {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
                                   <div className="flex flex-col gap-0.5 mt-1">
                                     {contact.alternativeEmails.map((email, i) => (
