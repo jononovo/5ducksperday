@@ -104,7 +104,21 @@ function ContactSearchChips({
 
   const toggleCustomSearch = () => {
     if (config.customSearchTarget.trim()) {
-      updateConfig({ enableCustomSearch: !config.enableCustomSearch });
+      if (config.enableCustomSearch) {
+        // Disable current custom search
+        updateConfig({ enableCustomSearch: false });
+      } else {
+        // Enable this custom search, disable the other
+        // Restore original customSearchTarget if it was overwritten
+        const originalTarget = config.customSearchTarget2.trim() === config.customSearchTarget 
+          ? config.customSearchTarget // Keep current if it matches saved second target
+          : config.customSearchTarget; // Otherwise use the saved first target
+        updateConfig({ 
+          enableCustomSearch: true,
+          customSearchTarget: originalTarget,
+          enableCustomSearch2: false
+        });
+      }
     } else {
       setIsCustomInputExpanded(true);
     }
@@ -135,7 +149,22 @@ function ContactSearchChips({
 
   const toggleCustomSearch2 = () => {
     if (config.customSearchTarget2.trim()) {
-      updateConfig({ enableCustomSearch2: !config.enableCustomSearch2 });
+      if (config.enableCustomSearch2) {
+        // Disable current custom search
+        updateConfig({ 
+          enableCustomSearch2: false,
+          enableCustomSearch: false,
+          customSearchTarget: ""
+        });
+      } else {
+        // Enable this custom search, disable the other
+        // Move customSearchTarget2 to customSearchTarget for backend
+        updateConfig({ 
+          enableCustomSearch: true,
+          customSearchTarget: config.customSearchTarget2,
+          enableCustomSearch2: true
+        });
+      }
     } else {
       setIsCustomInput2Expanded(true);
     }
