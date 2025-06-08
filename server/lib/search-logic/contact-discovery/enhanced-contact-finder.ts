@@ -186,13 +186,18 @@ export async function findKeyDecisionMakers(
       );
     }
     
-    // 4. Custom search - only if enabled, target provided, and we should continue
+    // 4. Custom search - determine which custom search is active
     const customStartTime = Date.now();
-    if (mergedOptions.enableCustomSearch && 
-        mergedOptions.customSearchTarget?.trim() && 
+    const activeCustomTarget = mergedOptions.enableCustomSearch2 
+      ? mergedOptions.customSearchTarget2 
+      : mergedOptions.customSearchTarget;
+    
+    const isCustomSearchActive = (mergedOptions.enableCustomSearch || mergedOptions.enableCustomSearch2) && activeCustomTarget?.trim();
+    
+    if (isCustomSearchActive && activeCustomTarget &&
         SmartFallbackManager.shouldContinueSearching(allContacts, 'custom search')) {
-      console.log(`Running custom search for "${mergedOptions.customSearchTarget}" at ${companyName}`);
-      const customContacts = await searchCustomTarget(companyName, mergedOptions.customSearchTarget, industry);
+      console.log(`Running custom search for "${activeCustomTarget}" at ${companyName}`);
+      const customContacts = await searchCustomTarget(companyName, activeCustomTarget!, industry);
       allContacts.push(...customContacts);
       
       SearchPerformanceLogger.logSearchPhase(
@@ -206,7 +211,7 @@ export async function findKeyDecisionMakers(
       
       // Add rate limiting delay
       await new Promise(resolve => setTimeout(resolve, 200));
-    } else if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
+    } else if (isCustomSearchActive) {
       SearchPerformanceLogger.logSearchPhase(
         sessionId, 
         'Custom Search', 
@@ -282,9 +287,9 @@ export async function findKeyDecisionMakers(
       );
       
       // Apply custom role affinity scoring if enabled
-      if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
+      if (isCustomSearchActive && activeCustomTarget) {
         const customScoredContacts = await applyCustomRoleAffinityScoring(optimizedContacts, {
-          customSearchTarget: mergedOptions.customSearchTarget,
+          customSearchTarget: activeCustomTarget,
           enableCustomScoring: true
         });
         

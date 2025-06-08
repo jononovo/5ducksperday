@@ -147,16 +147,12 @@ function ContactSearchChips({
     if (config.customSearchTarget2.trim()) {
       if (config.enableCustomSearch2) {
         // Disable current custom search
-        updateConfig({ 
-          enableCustomSearch2: false,
-          enableCustomSearch: false
-        });
+        updateConfig({ enableCustomSearch2: false });
       } else {
         // Enable this custom search, disable the other
-        // Move customSearchTarget2 to customSearchTarget for backend
+        // Don't overwrite saved values - just toggle the enable flags
         updateConfig({ 
-          enableCustomSearch: true,
-          customSearchTarget: config.customSearchTarget2,
+          enableCustomSearch: false,
           enableCustomSearch2: true
         });
       }
