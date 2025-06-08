@@ -128,6 +128,18 @@ export default function PromptEditor({
     }
   }, [initialPrompt, isFromLandingPage]);
 
+  // Handle tooltip dismissal
+  useEffect(() => {
+    const handleTooltipDismiss = () => {
+      if (setIsFromLandingPage) {
+        setIsFromLandingPage(false);
+      }
+    };
+
+    window.addEventListener('dismissTooltip', handleTooltipDismiss);
+    return () => window.removeEventListener('dismissTooltip', handleTooltipDismiss);
+  }, [setIsFromLandingPage]);
+
   // Fetch active search flows with proper typing
   const { data: searchFlows = [] } = useQuery<Array<{
     id: number;
@@ -519,7 +531,7 @@ export default function PromptEditor({
               visible={isFromLandingPage && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)}
               position="custom"
               offsetX={0}
-              offsetY={-15}
+              offsetY={5}
             />
             
             {/* Enhanced search button with dynamic styling based on state */}

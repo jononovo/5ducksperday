@@ -29,8 +29,9 @@ export function LandingPageTooltip({
 
   return (
     <div 
-      className={`${positionClasses} bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 animate-fade-in max-w-xs text-center ${className}`}
+      className={`${positionClasses} bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/90 dark:to-indigo-900/90 p-4 rounded-lg shadow-lg text-sm border-none z-10 w-64 animate-fade-in max-w-xs text-center ${className} cursor-pointer`}
       style={offsetStyle}
+      onClick={() => window.dispatchEvent(new CustomEvent('dismissTooltip'))}
     >
       <div className="tooltip-arrow"></div>
       <p className="font-medium text-blue-800 dark:text-blue-200">
