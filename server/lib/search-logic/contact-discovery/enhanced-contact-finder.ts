@@ -345,12 +345,12 @@ export async function findKeyDecisionMakers(
     }
     
     // End session and return
-    SearchPerformanceLogger.endSession(sessionId, sortedContacts);
+    const searchMetrics = SearchPerformanceLogger.endSession(sessionId, sortedContacts);
     console.log(`Found ${sortedContacts.length} validated contacts for ${companyName}`);
-    return sortedContacts;
+    return { contacts: sortedContacts, searchMetrics };
   } catch (error) {
     console.error(`Error in findKeyDecisionMakers for ${companyName}:`, error);
-    return [];
+    return { contacts: [], searchMetrics: null };
   }
 }
 

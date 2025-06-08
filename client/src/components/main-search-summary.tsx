@@ -2,6 +2,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X, Users, Building2, Clock, TrendingUp } from "lucide-react";
 
+interface SearchPhase {
+  phaseName: string;
+  enabled: boolean;
+  succeeded: boolean;
+  contactsFound: number;
+  executionTime: number;
+}
+
+interface SearchSessionMetrics {
+  sessionId: string;
+  companyName: string;
+  searchPhases: SearchPhase[];
+  totalContacts: number;
+  totalExecutionTime: number;
+  startTime: number;
+  endTime: number;
+}
+
 interface MainSearchSummaryProps {
   query: string;
   totalCompanies: number;
@@ -10,6 +28,7 @@ interface MainSearchSummaryProps {
   isVisible: boolean;
   onClose: () => void;
   companies: any[];
+  searchMetrics?: SearchSessionMetrics | null;
   customSearchTargets?: {
     customSearchTarget?: string;
     customSearchTarget2?: string;
@@ -24,6 +43,7 @@ export function MainSearchSummary({
   isVisible,
   onClose,
   companies,
+  searchMetrics,
   customSearchTargets
 }: MainSearchSummaryProps) {
   if (!isVisible) return null;
