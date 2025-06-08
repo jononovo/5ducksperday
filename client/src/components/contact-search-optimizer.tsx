@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { Settings, Target, Users, Building, Crown, ChevronDown, ChevronUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Settings2, Target, Users, Building, Crown, ChevronDown, ChevronUp, Zap } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -88,198 +87,139 @@ export default function ContactSearchOptimizer({
   };
 
   return (
-    <Card className="w-full border-gray-200 bg-gray-50/50">
-      <CardContent className="p-3">
+    <Card className="w-full border-slate-200 bg-white shadow-sm">
+      <CardContent className="p-4">
         {/* Header with toggle */}
         <div 
-          className="flex items-center justify-between cursor-pointer hover:bg-gray-100/50 -m-1 p-1 rounded"
+          className="flex items-center justify-between cursor-pointer hover:bg-slate-50 -mx-2 px-2 py-1 rounded-lg transition-colors"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-gray-600" />
-            <span className="font-medium text-sm text-gray-700">
-              Contact Discovery Options
-            </span>
-            <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-              {getSelectedCount()} active • ~{getEstimatedTime()}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Settings2 className="h-4 w-4 text-slate-600" />
+              <span className="font-medium text-sm text-slate-900">
+                Contact Search
+              </span>
+            </div>
+            <Badge variant="secondary" className="text-xs">
+              {getSelectedCount()} active
+            </Badge>
+            <span className="text-xs text-slate-500">
+              ~{getEstimatedTime()}
             </span>
           </div>
           {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-gray-500" />
+            <ChevronUp className="h-4 w-4 text-slate-400" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-gray-500" />
+            <ChevronDown className="h-4 w-4 text-slate-400" />
           )}
         </div>
 
         {/* Expanded content */}
         {isExpanded && (
-          <div className="mt-3 space-y-3">
-            {/* Quick actions */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSelectAll}
-                disabled={disabled}
-                className="text-xs h-7"
-              >
-                {config.enableCoreLeadership && config.enableDepartmentHeads && config.enableMiddleManagement 
-                  ? "Deselect All" : "Select All"}
-              </Button>
-              <span className="text-xs text-gray-500">
-                More searches = better coverage, longer time
-              </span>
-            </div>
-
-            {/* Search type checkboxes */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="mt-4 space-y-4">
+            {/* Standard search options */}
+            <div className="space-y-3">
               {/* Core Leadership */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-start space-x-2 p-2 border rounded hover:bg-white transition-colors">
-                      <Checkbox
-                        id="coreLeadership"
-                        checked={config.enableCoreLeadership}
-                        onCheckedChange={(checked) => 
-                          updateConfig({ enableCoreLeadership: checked as boolean })
-                        }
-                        disabled={disabled}
-                      />
-                      <div className="grid gap-1.5 leading-none">
-                        <div className="flex items-center gap-1">
-                          <Crown className="h-3 w-3 text-amber-600" />
-                          <Label 
-                            htmlFor="coreLeadership" 
-                            className="text-xs font-medium cursor-pointer"
-                          >
-                            Core Leadership
-                          </Label>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          CEO, CTO, Founders
-                        </p>
-                      </div>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>C-level executives, founders, board members, and directors</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              {/* Department Heads */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-start space-x-2 p-2 border rounded hover:bg-white transition-colors">
-                      <Checkbox
-                        id="departmentHeads"
-                        checked={config.enableDepartmentHeads}
-                        onCheckedChange={(checked) => 
-                          updateConfig({ enableDepartmentHeads: checked as boolean })
-                        }
-                        disabled={disabled}
-                      />
-                      <div className="grid gap-1.5 leading-none">
-                        <div className="flex items-center gap-1">
-                          <Building className="h-3 w-3 text-blue-600" />
-                          <Label 
-                            htmlFor="departmentHeads" 
-                            className="text-xs font-medium cursor-pointer"
-                          >
-                            Department Heads
-                          </Label>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          Sales, Marketing, IT
-                        </p>
-                      </div>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Leaders of key departments like Sales, Marketing, Engineering, Finance</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              {/* Middle Management */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-start space-x-2 p-2 border rounded hover:bg-white transition-colors">
-                      <Checkbox
-                        id="middleManagement"
-                        checked={config.enableMiddleManagement}
-                        onCheckedChange={(checked) => 
-                          updateConfig({ enableMiddleManagement: checked as boolean })
-                        }
-                        disabled={disabled}
-                      />
-                      <div className="grid gap-1.5 leading-none">
-                        <div className="flex items-center gap-1">
-                          <Users className="h-3 w-3 text-green-600" />
-                          <Label 
-                            htmlFor="middleManagement" 
-                            className="text-xs font-medium cursor-pointer"
-                          >
-                            Middle Management
-                          </Label>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          Team leads, Managers
-                        </p>
-                      </div>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Team leads, senior managers, project managers, and key technical staff</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-
-            {/* Custom search target */}
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="customSearch"
-                  checked={config.enableCustomSearch}
+              <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50/50">
+                <div className="flex items-center gap-3">
+                  <Crown className="h-4 w-4 text-amber-500" />
+                  <div>
+                    <div className="font-medium text-sm text-slate-900">Core Leadership</div>
+                    <div className="text-xs text-slate-500">CEO, CTO, Founders</div>
+                  </div>
+                </div>
+                <Switch
+                  checked={config.enableCoreLeadership}
                   onCheckedChange={(checked) => 
-                    updateConfig({ enableCustomSearch: checked as boolean })
+                    updateConfig({ enableCoreLeadership: checked })
                   }
                   disabled={disabled}
                 />
-                <div className="flex items-center gap-1">
-                  <Target className="h-3 w-3 text-purple-600" />
-                  <Label 
-                    htmlFor="customSearch" 
-                    className="text-xs font-medium cursor-pointer"
-                  >
-                    Custom Target Role
-                  </Label>
+              </div>
+
+              {/* Department Heads */}
+              <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50/50">
+                <div className="flex items-center gap-3">
+                  <Building className="h-4 w-4 text-blue-500" />
+                  <div>
+                    <div className="font-medium text-sm text-slate-900">Department Heads</div>
+                    <div className="text-xs text-slate-500">Sales, Marketing, IT</div>
+                  </div>
                 </div>
+                <Switch
+                  checked={config.enableDepartmentHeads}
+                  onCheckedChange={(checked) => 
+                    updateConfig({ enableDepartmentHeads: checked })
+                  }
+                  disabled={disabled}
+                />
+              </div>
+
+              {/* Middle Management */}
+              <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50/50">
+                <div className="flex items-center gap-3">
+                  <Users className="h-4 w-4 text-green-500" />
+                  <div>
+                    <div className="font-medium text-sm text-slate-900">Middle Management</div>
+                    <div className="text-xs text-slate-500">Team leads, Managers</div>
+                  </div>
+                </div>
+                <Switch
+                  checked={config.enableMiddleManagement}
+                  onCheckedChange={(checked) => 
+                    updateConfig({ enableMiddleManagement: checked })
+                  }
+                  disabled={disabled}
+                />
+              </div>
+            </div>
+
+            {/* Custom search target */}
+            <div className="p-3 rounded-lg border border-dashed border-slate-300 bg-slate-50/30">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-purple-500" />
+                  <span className="font-medium text-sm text-slate-900">Custom Role Search</span>
+                </div>
+                <Switch
+                  checked={config.enableCustomSearch}
+                  onCheckedChange={(checked) => 
+                    updateConfig({ enableCustomSearch: checked })
+                  }
+                  disabled={disabled}
+                />
               </div>
               
               {config.enableCustomSearch && (
-                <Input
-                  placeholder="e.g., Procurement Manager, IT Director, Head of Sales"
-                  value={config.customSearchTarget}
-                  onChange={(e) => updateConfig({ customSearchTarget: e.target.value })}
-                  disabled={disabled}
-                  className="text-xs h-8"
-                />
+                <div className="space-y-2">
+                  <Input
+                    placeholder="e.g., Marketing Manager, Chief Security Officer, Legal Director"
+                    value={config.customSearchTarget}
+                    onChange={(e) => updateConfig({ customSearchTarget: e.target.value })}
+                    disabled={disabled}
+                    className="text-sm border-slate-300 focus:border-purple-500"
+                  />
+                  <p className="text-xs text-slate-500">
+                    Boost scores for specific roles not covered above
+                  </p>
+                </div>
               )}
               
-              <p className="text-xs text-gray-500">
-                Search for specific roles not covered by the standard categories
-              </p>
+              {!config.enableCustomSearch && (
+                <p className="text-xs text-slate-500">
+                  Target specific roles for priority scoring
+                </p>
+              )}
             </div>
 
             {/* Status indicator during search */}
             {isSearching && (
-              <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded border-l-2 border-blue-300">
-                Running {getSelectedCount()} contact discovery searches...
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                <Zap className="h-4 w-4 text-blue-600 animate-pulse" />
+                <span className="text-sm text-blue-700 font-medium">
+                  Running {getSelectedCount()} discovery searches...
+                </span>
               </div>
             )}
           </div>
