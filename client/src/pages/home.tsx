@@ -886,8 +886,8 @@ export default function Home() {
 
   // Email tooltip timing effect
   useEffect(() => {
-    // Only show email tooltip for landing page users after their first search completes
-    if (isFromLandingPage && currentResults && currentResults.length > 0 && !isAnalyzing) {
+    // Show email tooltip 5 seconds after first search completes
+    if (currentResults && currentResults.length > 0 && !isAnalyzing) {
       const timer = setTimeout(() => {
         setShowEmailTooltip(true);
         setTimeout(() => {
@@ -897,7 +897,7 @@ export default function Home() {
       
       return () => clearTimeout(timer);
     }
-  }, [isFromLandingPage, currentResults, isAnalyzing]);
+  }, [currentResults, isAnalyzing]);
 
   // Helper to get current companies without emails (only check top 3 contacts)
   const getCurrentCompaniesWithoutEmails = () => {
@@ -1342,8 +1342,12 @@ export default function Home() {
                           : 'opacity-45 hover:opacity-100 hover:bg-white'
                       } transition-all`}
                       onClick={() => {
-                        if (isFromLandingPage) {
-                          setIsFromLandingPage(false);
+                        try {
+                          if (isFromLandingPage && setIsFromLandingPage) {
+                            setIsFromLandingPage(false);
+                          }
+                        } catch (e) {
+                          // Silent fail - prevents error from showing to users
                         }
                         runConsolidatedEmailSearch();
                       }}
