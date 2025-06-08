@@ -366,8 +366,8 @@ function ContactSearchChips({
         </TooltipProvider>
       )}
 
-      {/* Second Custom Search Chip - Only show when first custom search exists AND is being edited */}
-      {!isCustomInput2Expanded && !config.customSearchTarget2.trim() && config.customSearchTarget.trim() && isCustomInputExpanded && (
+      {/* Second Custom Search Chip - Empty State */}
+      {!isCustomInput2Expanded && !config.customSearchTarget2.trim() && (
         <button
           onClick={handleCustomInput2Expand}
           disabled={disabled}

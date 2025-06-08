@@ -194,22 +194,9 @@ export async function findKeyDecisionMakers(
     
     const isCustomSearchActive = (mergedOptions.enableCustomSearch || mergedOptions.enableCustomSearch2) && activeCustomTarget?.trim();
     
-    // Debug logging for custom search logic
-    console.log(`[${sessionId}] Custom Search Debug:`, {
-      enableCustomSearch: mergedOptions.enableCustomSearch,
-      enableCustomSearch2: mergedOptions.enableCustomSearch2,
-      customSearchTarget: mergedOptions.customSearchTarget,
-      customSearchTarget2: mergedOptions.customSearchTarget2,
-      activeCustomTarget,
-      isCustomSearchActive,
-      allContactsCount: allContacts.length
-    });
-    
-    const shouldContinueSearching = SmartFallbackManager.shouldContinueSearching(allContacts, 'custom search');
-    console.log(`[${sessionId}] SmartFallbackManager.shouldContinueSearching result:`, shouldContinueSearching);
-    
-    if (isCustomSearchActive && activeCustomTarget && shouldContinueSearching) {
-      console.log(`[${sessionId}] EXECUTING: Running custom search for "${activeCustomTarget}" at ${companyName}`);
+    if (isCustomSearchActive && activeCustomTarget &&
+        SmartFallbackManager.shouldContinueSearching(allContacts, 'custom search')) {
+      console.log(`Running custom search for "${activeCustomTarget}" at ${companyName}`);
       const customContacts = await searchCustomTarget(companyName, activeCustomTarget!, industry);
       allContacts.push(...customContacts);
       
@@ -225,7 +212,6 @@ export async function findKeyDecisionMakers(
       // Add rate limiting delay
       await new Promise(resolve => setTimeout(resolve, 200));
     } else if (isCustomSearchActive) {
-      console.log(`[${sessionId}] SKIPPING: Custom search active but sufficient contacts found`);
       SearchPerformanceLogger.logSearchPhase(
         sessionId, 
         'Custom Search', 
@@ -236,7 +222,6 @@ export async function findKeyDecisionMakers(
         'sufficient contacts found'
       );
     } else {
-      console.log(`[${sessionId}] DISABLED: Custom search not active`);
       SearchPerformanceLogger.logSearchPhase(
         sessionId, 
         'Custom Search', 
