@@ -1114,7 +1114,7 @@ export function registerRoutes(app: Express) {
             });
             
             // Use enhanced contact finder with user configuration
-            const contactResult = await findKeyDecisionMakers(companyName, {
+            const contacts = await findKeyDecisionMakers(companyName, {
               industry: industry,
               minimumConfidence: 30,
               maxContacts: 20,
@@ -1131,14 +1131,7 @@ export function registerRoutes(app: Express) {
               customSearchTarget2: contactSearchConfig?.customSearchTarget2 ?? ""
             });
             
-            // Extract contacts and search metrics from result
-            const contacts = contactResult.contacts;
-            const searchMetrics = contactResult.searchMetrics;
-            
             console.log(`Found ${contacts.length} contacts using enhanced contact finder`);
-            if (searchMetrics) {
-              console.log(`Search session metrics available for ${searchMetrics.companyName}`);
-            }
 
             // Create contact records
             const createdContacts = await Promise.all(
@@ -1242,7 +1235,6 @@ export function registerRoutes(app: Express) {
         query: query,
         strategyId: null,
         strategyName: "Direct Search Flow",
-        searchMetrics: searchMetrics // Include search phase metrics for frontend
       });
 
       // Contact discovery complete - return results immediately
@@ -1334,7 +1326,7 @@ export function registerRoutes(app: Express) {
         console.log(`Detected industry for contact enrichment: ${industry || 'unknown'}`);
         
         // Use enhanced contact finder for enrichment with default settings
-        const contactResult = await findKeyDecisionMakers(company.name, {
+        const newContacts = await findKeyDecisionMakers(company.name, {
           industry: industry,
           minimumConfidence: 30,
           maxContacts: 10,
@@ -1348,9 +1340,6 @@ export function registerRoutes(app: Express) {
           enableCustomSearch: false,
           customSearchTarget: ""
         });
-        
-        // Extract contacts from result
-        const newContacts = contactResult.contacts;
         console.log('Enhanced contact finder results:', newContacts);
 
         // Remove existing contacts

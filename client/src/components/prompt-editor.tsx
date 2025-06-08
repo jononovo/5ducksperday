@@ -74,8 +74,7 @@ export default function PromptEditor({
     totalContacts: 0,
     searchDuration: 0,
     startTime: 0,
-    companies: [] as any[],
-    searchMetrics: null as any
+    companies: [] as any[]
   });
   
   // Add auth hooks for semi-protected functionality
@@ -364,8 +363,7 @@ export default function PromptEditor({
         totalCompanies: data.companies.length,
         totalContacts: totalContacts,
         searchDuration: searchDuration,
-        companies: data.companies,
-        searchMetrics: data.searchMetrics // Include actual search phase metrics from API
+        companies: data.companies
       }));
       
       // Show summary after a brief delay
@@ -424,8 +422,7 @@ export default function PromptEditor({
       totalContacts: 0,
       searchDuration: 0,
       startTime: Date.now(),
-      companies: [],
-      searchMetrics: null
+      companies: []
     });
     
     console.log("Analyzing search query...");
@@ -515,11 +512,6 @@ export default function PromptEditor({
           isVisible={summaryVisible}
           onClose={() => setSummaryVisible(false)}
           companies={searchMetrics.companies}
-          searchMetrics={searchMetrics.searchMetrics}
-          customSearchTargets={{
-            customSearchTarget: contactSearchConfig.customSearchTarget,
-            customSearchTarget2: contactSearchConfig.customSearchTarget2
-          }}
         />
         
         <div className="flex flex-row gap-2 pl-0">
