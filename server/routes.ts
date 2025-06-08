@@ -1113,7 +1113,9 @@ export function registerRoutes(app: Express) {
               enableDepartmentHeads: contactSearchConfig?.enableDepartmentHeads,
               enableMiddleManagement: contactSearchConfig?.enableMiddleManagement,
               enableCustomSearch: contactSearchConfig?.enableCustomSearch ?? false,
-              customSearchTarget: contactSearchConfig?.customSearchTarget ?? ""
+              customSearchTarget: contactSearchConfig?.customSearchTarget ?? "",
+              enableCustomSearch2: contactSearchConfig?.enableCustomSearch2 ?? false,
+              customSearchTarget2: contactSearchConfig?.customSearchTarget2 ?? ""
             });
             
             console.log(`Found ${contacts.length} contacts using enhanced contact finder`);
