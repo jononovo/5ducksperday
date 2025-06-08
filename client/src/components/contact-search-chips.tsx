@@ -302,15 +302,24 @@ function ContactSearchChips({
                 {config.enableCustomSearch && <Check className="h-3 w-3" />}
                 <Target className="h-3 w-3" />
                 <span className="text-sm font-medium">{config.customSearchTarget}</span>
-                <button
+                <span
                   onClick={(e) => {
                     e.stopPropagation();
                     handleCustomInputExpand();
                   }}
-                  className="ml-1 text-gray-400 hover:text-gray-600"
+                  className="ml-1 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleCustomInputExpand();
+                    }
+                  }}
                 >
                   <X className="h-3 w-3" />
-                </button>
+                </span>
               </button>
             </TooltipTrigger>
             <TooltipContent>
@@ -392,15 +401,24 @@ function ContactSearchChips({
                 {config.enableCustomSearch2 && <Check className="h-3 w-3" />}
                 <Target className="h-3 w-3" />
                 <span className="text-sm font-medium">{config.customSearchTarget2}</span>
-                <button
+                <span
                   onClick={(e) => {
                     e.stopPropagation();
                     handleCustomInput2Expand();
                   }}
-                  className="ml-1 text-gray-400 hover:text-gray-600"
+                  className="ml-1 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleCustomInput2Expand();
+                    }
+                  }}
                 >
                   <X className="h-3 w-3" />
-                </button>
+                </span>
               </button>
             </TooltipTrigger>
             <TooltipContent>

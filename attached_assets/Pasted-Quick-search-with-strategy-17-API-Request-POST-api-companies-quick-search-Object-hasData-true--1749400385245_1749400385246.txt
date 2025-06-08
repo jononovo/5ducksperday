@@ -1,0 +1,264 @@
+Quick search with strategy: 17
+API Request: POST /api/companies/quick-search 
+Object {hasData: true, timestamp: "2025-06-08T16:32:02.641Z"}
+Processing company results...
+Found 7 companies matching your search
+Companies received: 7
+Starting contact discovery process...
+Searching for key decision makers and contacts...
+Sending comprehensive search request to API...
+This process may take a moment while we find the most relevant contacts...
+API Request: POST /api/companies/search 
+Object {hasData: true, timestamp: "2025-06-08T16:32:07.189Z"}
+Saving search state: 
+Object {query: "Real-estate lawyers in Boston", resultsCount: 7, companies: Array(7)}
+CompanyTable received companies: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Contact discovery completed successfully
+Found 15 contacts across 7 companies
+Processing and organizing results...
+Complete results received with contacts: 7
+Companies with contacts: 6 of 7
+Search process completed!
+CompanyTable received companies: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Saving search state: 
+Object {query: "Real-estate lawyers in Boston", resultsCount: 7, companies: Array(7)}
+5
+Ducks
+🐥
+🥚🥚🥚🥚
+Search
+Outreach
+Replies
+
+Search for target businesses
+🐥
+🥚
+🥚
+🥚
+🥚
+Real-estate lawyers in Boston
+
+Search
+
+
+Core Leadership
+
+Department Heads
+
+Middle Management
+
+Market Analyst
+
+
+Sales
+
+Click "Find Key Emails" button to find emails of decision-makers.
+Companies Analysis
+Save as List
+Search: Real-estate lawyers in Boston
+
+Found 15 contacts for 6 of 7 companies
+
+Great coverage! Most companies have contacts.
+
+
+
+Find Key Emails
+
+Start Selling
+
+5 More
+
+Expand
+	Name	Details	Score	Actions
+	
+DLA Piper
+2 contacts
+
+	
+Goodwin Procter LLP
+3 contacts
+
+	
+Goulston & Storrs PC
+www.goulstonstorrs.com
+2 contacts
+
+	
+Gregg, Hunt, Ahern & Embry
+www.ghaelaw.com
+0 contacts
+
+	
+Berluti McLaughlin & Kutchin LLP
+www.bmklegal.com
+3 contacts
+
+	
+Greenberg Traurig, L.L.P.
+3 contacts
+
+	
+Holland & Knight LLP
+2 contacts
+
+Top Prospects
+Enrich All Prospects
+Highest probability contacts across all companies
+
+	Name	Company	Email	Score	Actions
+	
+Meg Evans
+Business Intelligence & Data Analytics Leader
+86	
+
+
+
+
+
+
+	
+Simon Levine
+Strategic Innovation Partner
+84	
+
+
+
+
+
+
+	
+David Fleming
+Chief Information Officer
+84	
+
+
+
+
+
+
+	
+Mike Caplan
+Chief Operating Officer
+84	
+
+
+
+
+
+
+	
+Maureen Naughton
+Chief Innovation Officer
+84	
+
+
+
+
+
+
+	
+Frank W. Ryan
+Global Co-Chair, Global Co-CEO, and Americas Chair
+74	
+
+
+
+
+
+
+	
+Bill Dillon
+Co-Managing Director
+74	
+
+
+
+
+
+
+	
+Robert R. Berluti
+Partner
+74	
+
+
+
+
+
+
+	
+Edward D. Kutchin
+Partner
+74	
+
+
+
+
+
+
+	
+Melvin Greenberg
+Co-Founder
+74	
+
+
+
+
+
+
+	
+Robert H. Traurig
+Co-Founder (Deceased)
+74	
+
+
+
+
+
+
+	
+Larry J. Hoffman
+Founding Chairman
+74	
+
+
+
+
+
+
+	
+Robert J. Grammig
+Chair and Chief Executive Officer
+74	
+
+
+
+
+
+
+	
+Tiffani G. Lee
+Deputy Managing Partner
+74	
+
+
+
+
+
+
+	
+John T. McLaughlin
+Partner
+71	
+
+
+
+
+
+
+© 2025 5Ducks. All rights reserved.
+Soli Deo Gloria
+LinkedIn

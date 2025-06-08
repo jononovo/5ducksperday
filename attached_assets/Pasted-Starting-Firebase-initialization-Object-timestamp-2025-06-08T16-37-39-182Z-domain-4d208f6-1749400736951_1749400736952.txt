@@ -1,0 +1,116 @@
+Starting Firebase initialization... 
+Object {timestamp: "2025-06-08T16:37:39.182Z", domain: "4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev"}
+Raw environment variables: 
+Object {apiKey: "....aDbuzU", projectId: "fire-5-ducks", appId: "....b133e8", mode: "development", dev: true, …}
+Firebase Configuration: 
+Object {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: "fire-5-ducks.firebaseapp.com", environment: "development", …}
+Firebase initialized successfully: 
+Object {domain: "4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev", isAuth: true, isProvider: true, authDomain: "fire-5-ducks.firebaseapp.com", timestamp: "2025-06-08T16:37:39.184Z"}
+Setting up Firebase auth state listener
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID
+Firebase auth state changed: test119@test.com
+Making backend sync request 
+Object {endpoint: "/api/google-auth", hasAccessToken: false, domain: "4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev"}
+Firebase persistence set to LOCAL
+Auth token set successfully: 
+Object {uid: "G9eUAUS3IDYPUFBibUcjwqnyLsB2", email: "test119@...", timestamp: "2025-06-08T16:37:39.436Z"}
+Successfully synced with backend
+Found pending search query: Real-estate lawyers in Salt Lake City
+Skipping localStorage save - no meaningful data to save
+Saving search state: 
+Object {query: "Real-estate lawyers in Salt Lake City", resultsCount: undefined, companies: undefined}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: true, enableCustomSearch: false, customSearchTarget: "", …}
+Warning: validateDOMNesting(...): <button> cannot appear as a descendant of &lt;button&gt;.
+    at button
+    at button
+    at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DKHUMOWT.js?v=1b06fbfd:52:11
+    at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DKHUMOWT.js?v=1b06fbfd:33:11
+    at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-VZNMAICS.js?v=1b06fbfd:41:13
+    at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DKHUMOWT.js?v=1b06fbfd:52:11
+    at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DKHUMOWT.js?v=1b06fbfd:33:11
+    at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-VZNMAICS.js?v=1b06fbfd:41:13
+    at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DBBTIQDH.js?v=1b06fbfd:1980:13
+    at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=1b06fbfd:189:13
+    at Provider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LSQNWB54.js?v=1b06fbfd:38:15)
+    at Provider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DBBTIQDH.js?v=1b06fbfd:1915:15)
+    at Popper (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DBBTIQDH.js?v=1b06fbfd:1972:11)
+    at Tooltip (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=1b06fbfd:107:5)
+    at Provider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LSQNWB54.js?v=1b06fbfd:38:15)
+    at TooltipProvider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=1b06fbfd:63:5)
+    at div
+    at ContactSearchChips (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/components/contact-search-chips.tsx:28:3)
+    at div
+    at div
+    at PromptEditor (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/components/prompt-editor.tsx:36:3)
+    at Suspense
+    at div
+    at div
+    at div
+    at div
+    at Home (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/pages/home.tsx:76:41)
+    at Suspense
+    at component
+    at Route (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=1b06fbfd:323:16)
+    at SemiProtectedRoute (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/lib/semi-protected-route.tsx:22:3)
+    at Switch (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=1b06fbfd:379:17)
+    at div
+    at div
+    at div
+    at AppLayout (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/components/layout.tsx:38:29)
+    at Route (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=1b06fbfd:323:16)
+    at Switch (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=1b06fbfd:379:17)
+    at Router (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/App.tsx?v=fMnbNmWYnMJ5ekQ-WZhns:83:3)
+    at SearchStrategyProvider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/lib/search-strategy-context.tsx:24:42)
+    at RegistrationModalProvider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/hooks/use-registration-modal.tsx:38:45)
+    at AuthProvider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/hooks/use-auth.tsx:34:32)
+    at QueryClientProvider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=1b06fbfd:2805:3)
+    at App…
+at button
+at button
+at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DKHUMOWT.js?v=1b06fbfd:52:11
+at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DKHUMOWT.js?v=1b06fbfd:33:11
+at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-VZNMAICS.js?v=1b06fbfd:41:13
+at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DKHUMOWT.js?v=1b06fbfd:52:11
+at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DKHUMOWT.js?v=1b06fbfd:33:11
+at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-VZNMAICS.js?v=1b06fbfd:41:13
+at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DBBTIQDH.js?v=1b06fbfd:1980:13
+at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=1b06fbfd:189:13
+at Provider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LSQNWB54.js?v=1b06fbfd:38:15)
+at Provider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DBBTIQDH.js?v=1b06fbfd:1915:15)
+at Popper (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DBBTIQDH.js?v=1b06fbfd:1972:11)
+at Tooltip (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=1b06fbfd:107:5)
+at Provider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LSQNWB54.js?v=1b06fbfd:38:15)
+at TooltipProvider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=1b06fbfd:63:5)
+at div
+at ContactSearchChips (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/components/contact-search-chips.tsx:28:3)
+at div
+at div
+at PromptEditor (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/components/prompt-editor.tsx:36:3)
+at Suspense
+at div
+at div
+at div
+at div
+at Home (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/pages/home.tsx:76:41)
+at Suspense
+at component
+at Route (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=1b06fbfd:323:16)
+at SemiProtectedRoute (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/lib/semi-protected-route.tsx:22:3)
+at Switch (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=1b06fbfd:379:17)
+at div
+at div
+at div
+at AppLayout (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/components/layout.tsx:38:29)
+at Route (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=1b06fbfd:323:16)
+at Switch (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=1b06fbfd:379:17)
+at Router (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/App.tsx?v=fMnbNmWYnMJ5ekQ-WZhns:83:3)
+at SearchStrategyProvider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/lib/search-strategy-context.tsx:24:42)
+at RegistrationModalProvider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/hooks/use-registration-modal.tsx:38:45)
+at AuthProvider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/src/hooks/use-auth.tsx:34:32)
+at QueryClientProvider (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=1b06fbfd:2805:3)
+at App…
+at t.value (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
