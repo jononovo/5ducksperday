@@ -212,7 +212,6 @@ export default function PromptEditor({
       // Get companies quickly without waiting for contact enrichment
       const res = await apiRequest("POST", "/api/companies/quick-search", { 
         query: searchQuery,
-        flows: activeFlows,
         strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
         contactSearchConfig: contactSearchConfig
       });
