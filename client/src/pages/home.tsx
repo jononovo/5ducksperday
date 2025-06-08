@@ -203,7 +203,9 @@ export default function Home() {
 
 
 
-  // Search approaches functionality removed - replaced by contact search chips
+  const { data: searchApproaches = [] } = useQuery<any[]>({
+    queryKey: ["/api/search-approaches"],
+  });
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -1341,8 +1343,12 @@ export default function Home() {
                           : 'opacity-45 hover:opacity-100 hover:bg-white'
                       } transition-all`}
                       onClick={() => {
-                        if (isFromLandingPage) {
-                          setIsFromLandingPage(false);
+                        try {
+                          if (isFromLandingPage && setIsFromLandingPage) {
+                            setIsFromLandingPage(false);
+                          }
+                        } catch (e) {
+                          // Silent fail - prevents error from showing to users
                         }
                         runConsolidatedEmailSearch();
                       }}

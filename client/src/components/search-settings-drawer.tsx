@@ -12,11 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import SearchFlowNew from "./search-flow-new";
-import type { SearchApproach } from "@shared/schema";
+
 
 interface SearchSettingsDrawerProps {
-  approaches: SearchApproach[];
   targetUrl?: string;
   setTargetUrl?: (url: string) => void;
   resultsUrl?: string;
@@ -24,11 +22,9 @@ interface SearchSettingsDrawerProps {
   customSelected?: boolean;
   isCustomLoading?: boolean;
   handleCustomWorkflowSearch?: () => void;
-
 }
 
 export default function SearchSettingsDrawer({ 
-  approaches,
   targetUrl,
   setTargetUrl,
   resultsUrl,
@@ -36,7 +32,6 @@ export default function SearchSettingsDrawer({
   customSelected,
   isCustomLoading,
   handleCustomWorkflowSearch,
-
 }: SearchSettingsDrawerProps) {
   const [open, setOpen] = useState(false);
 
@@ -73,10 +68,6 @@ export default function SearchSettingsDrawer({
 
             <div className="flex-1 p-6 overflow-y-auto">
               <div className="space-y-8">
-                {/* Search Flow Settings Section */}
-                <div>
-                  <SearchFlowNew approaches={approaches} />
-                </div>
                 {/* External Search Configuration */}
                 {setTargetUrl && setResultsUrl && handleCustomWorkflowSearch && (
                   <div>

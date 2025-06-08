@@ -6,7 +6,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search, HelpCircle } from "lucide-react";
-// Types are defined inline since they're component-specific
+
+
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSearchStrategy } from "@/lib/search-strategy-context";
 import SearchSettingsDrawer from "./search-settings-drawer";
@@ -144,17 +145,6 @@ export default function PromptEditor({
     return () => window.removeEventListener('dismissTooltip', handleTooltipDismiss);
   }, [onDismissLandingHint]);
 
-  // Fetch active search flows with proper typing
-  const { data: searchFlows = [] } = useQuery<Array<{
-    id: number;
-    name: string;
-    active: boolean;
-    config: any;
-    completedSearches: string[];
-    moduleType: string;
-  }>>({
-    queryKey: ["/api/search-approaches"],
-  });
 
   // Use our search strategy context
   const { selectedStrategyId } = useSearchStrategy();
@@ -221,26 +211,11 @@ export default function PromptEditor({
       console.log("Sending request to company discovery API...");
       
       // Use the standard search but optimize for quick company results
-      const activeFlows = searchFlows
-        .filter((flow) => flow.active)
-        .map((flow) => ({
-          id: flow.id,
-          name: flow.name,
-          moduleType: flow.moduleType,
-          config: flow.config,
-          completedSearches: flow.completedSearches || []
-        }));
-
-      // Find the selected strategy if one is selected
-      const selectedStrategy = selectedStrategyId ? 
-        searchFlows.find(flow => flow.id.toString() === selectedStrategyId) : null;
-      
-      console.log(`Quick search with strategy: ${selectedStrategy?.name || "Default"} (ID: ${selectedStrategyId || "none"})`);
+      console.log(`Quick search with strategy: ${selectedStrategyId || "Default"}`);
 
       // Get companies quickly without waiting for contact enrichment
       const res = await apiRequest("POST", "/api/companies/quick-search", { 
         query: searchQuery,
-        flows: activeFlows,
         strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
         contactSearchConfig: contactSearchConfig
       });
@@ -319,24 +294,12 @@ export default function PromptEditor({
       console.log("Starting contact discovery process...");
       console.log("Searching for key decision makers and contacts...");
       
-      // Use the standard search
-      const activeFlows = searchFlows
-        .filter((flow) => flow.active)
-        .map((flow) => ({
-          id: flow.id,
-          name: flow.name,
-          moduleType: flow.moduleType,
-          config: flow.config,
-          completedSearches: flow.completedSearches || []
-        }));
-
       // Ensure proper typing for the full search request with contacts
       console.log("Sending comprehensive search request to API...");
       console.log("This process may take a moment while we find the most relevant contacts...");
       
       const res = await apiRequest("POST", "/api/companies/search", { 
         query: searchQuery,
-        flows: activeFlows,
         strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
         includeContacts: true,
         contactSearchConfig: contactSearchConfig
@@ -573,7 +536,7 @@ export default function PromptEditor({
             
             {/* Settings drawer trigger with custom search props */}
             <SearchSettingsDrawer 
-              approaches={searchFlows as any[]} 
+              
               targetUrl={targetUrl}
               setTargetUrl={setTargetUrl}
               resultsUrl={resultsUrl}
@@ -581,7 +544,6 @@ export default function PromptEditor({
               customSelected={customSelected}
               isCustomLoading={isCustomLoading}
               handleCustomWorkflowSearch={handleCustomWorkflowSearch}
-
             />
           </div>
         </div>
