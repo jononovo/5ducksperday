@@ -131,14 +131,14 @@ export default function PromptEditor({
   // Handle tooltip dismissal
   useEffect(() => {
     const handleTooltipDismiss = () => {
-      if (setIsFromLandingPage) {
-        setIsFromLandingPage(false);
+      if (onDismissLandingHint) {
+        onDismissLandingHint();
       }
     };
 
     window.addEventListener('dismissTooltip', handleTooltipDismiss);
     return () => window.removeEventListener('dismissTooltip', handleTooltipDismiss);
-  }, [setIsFromLandingPage]);
+  }, [onDismissLandingHint]);
 
   // Fetch active search flows with proper typing
   const { data: searchFlows = [] } = useQuery<Array<{
