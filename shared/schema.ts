@@ -15,6 +15,7 @@ export const lists = pgTable("lists", {
   listId: integer("list_id").notNull(),
   prompt: text("prompt").notNull(),
   resultCount: integer("result_count").notNull(),
+  customSearchTargets: text("custom_search_targets").array(),
   createdAt: timestamp("created_at").defaultNow()
 });
 
@@ -120,7 +121,8 @@ export const userPreferences = pgTable("user_preferences", {
 const listSchema = z.object({
   listId: z.number().min(1001),
   prompt: z.string().min(1, "Search prompt is required"),
-  resultCount: z.number().min(0)
+  resultCount: z.number().min(0),
+  customSearchTargets: z.array(z.string()).nullable()
 });
 
 const companySchema = z.object({
