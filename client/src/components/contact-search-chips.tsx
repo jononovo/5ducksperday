@@ -271,9 +271,10 @@ function ContactSearchChips({
           <Target className="h-3 w-3 text-purple-600" />
           <Input
             value={customInputValue}
-            onChange={(e) => setCustomInputValue(e.target.value)}
+            onChange={(e) => setCustomInputValue(e.target.value.slice(0, 22))}
             placeholder="e.g., Marketing Manager"
             disabled={disabled}
+            maxLength={22}
             className="h-6 text-sm border-none bg-transparent p-0 focus:ring-0 focus:outline-none min-w-[200px]"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -387,9 +388,10 @@ function ContactSearchChips({
           <input
             type="text"
             value={customInput2Value}
-            onChange={(e) => setCustomInput2Value(e.target.value)}
+            onChange={(e) => setCustomInput2Value(e.target.value.slice(0, 22))}
             placeholder="e.g., Sales Director"
             disabled={disabled}
+            maxLength={22}
             className="h-6 text-sm border-none bg-transparent p-0 focus:ring-0 focus:outline-none min-w-[200px]"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
