@@ -702,7 +702,7 @@ export default function Home() {
     return "";
   };
 
-  // Add Hunter.io mutation with Set-based state management
+  // Enhanced Hunter.io mutation with improved error handling
   const hunterMutation = useMutation({
     mutationFn: async ({ contactId, searchContext = 'manual' }: { contactId: number; searchContext?: 'manual' | 'automated' }) => {
       // Add this contact ID to the set of pending searches
@@ -711,17 +711,40 @@ export default function Home() {
         newSet.add(contactId);
         return newSet;
       });
+      
       const response = await apiRequest("POST", `/api/contacts/${contactId}/hunter`);
-      return {data: await response.json(), contactId, searchContext};
+      const responseData = await response.json();
+      
+      // Handle both success and "no email found" responses
+      if (response.status === 422) {
+        // 422 means search completed but no email found
+        return {
+          data: responseData.contact,
+          contactId,
+          searchContext,
+          searchMetadata: responseData.searchMetadata,
+          success: true,
+          emailFound: false
+        };
+      } else if (!response.ok) {
+        throw new Error(responseData.message || "Search failed");
+      }
+      
+      return {
+        data: responseData,
+        contactId,
+        searchContext,
+        success: true,
+        emailFound: !!responseData.email
+      };
     },
     onSuccess: (result) => {
-      const {data, contactId, searchContext} = result;
+      const {data, contactId, searchContext, searchMetadata, emailFound} = result;
       
       // Update the contact in the results
       setCurrentResults(prev => {
         if (!prev) return null;
         
-        // Only update the specific contact without affecting others
         return prev.map(company => {
           if (!company.contacts?.some(c => c.id === data.id)) {
             return company;
@@ -743,19 +766,20 @@ export default function Home() {
         return newSet;
       });
       
-      // Only show toast notifications based on context
+      // Enhanced toast notifications with search metadata
       if (searchContext === 'manual') {
-        // Manual searches: show all results (success and no email found)
+        const confidence = searchMetadata?.confidence || data.nameConfidenceScore;
+        const retryInfo = searchMetadata?.retryCount > 0 ? ` (${searchMetadata.retryCount + 1} attempts)` : '';
+        
         toast({
-          title: "Hunter.io Email Search Complete",
-          description: `${data.name}: ${data.email 
-            ? `Found email with ${data.nameConfidenceScore || 'unknown'} confidence.`
-            : "No email found for this contact."}`,
+          title: "Hunter.io Search Complete",
+          description: `${data.name}: ${emailFound 
+            ? `Found email with ${confidence || 'unknown'} confidence${retryInfo}.`
+            : `No email found${retryInfo}.`}`,
         });
-      } else if (searchContext === 'automated' && data.email) {
-        // Automated searches: only show when email is found
+      } else if (searchContext === 'automated' && emailFound) {
         toast({
-          title: "Email Search Complete",
+          title: "Email Found",
           description: `${data.name}: Successfully found email address.`,
         });
       }
@@ -770,11 +794,16 @@ export default function Home() {
         return newSet;
       });
       
-      // Only show error notifications for manual searches
+      // Enhanced error handling with retry suggestions
       if (searchContext === 'manual') {
+        const isRetryable = error instanceof Error && 
+          (error.message.includes('rate limit') || error.message.includes('network'));
+        
         toast({
           title: "Hunter.io Search Failed",
-          description: error instanceof Error ? error.message : "Failed to find contact email",
+          description: `${error instanceof Error ? error.message : "Failed to find contact email"}${
+            isRetryable ? ' - You can try again in a moment.' : ''
+          }`,
           variant: "destructive",
         });
       }
@@ -1285,7 +1314,7 @@ export default function Home() {
     return "";
   };
   
-  // Apollo.io mutation
+  // Enhanced Apollo.io mutation with improved error handling
   const apolloMutation = useMutation({
     mutationFn: async ({ contactId, searchContext = 'manual' }: { contactId: number; searchContext?: 'manual' | 'automated' }) => {
       // Add this contact ID to the set of pending searches
@@ -1294,17 +1323,40 @@ export default function Home() {
         newSet.add(contactId);
         return newSet;
       });
+      
       const response = await apiRequest("POST", `/api/contacts/${contactId}/apollo`);
-      return {data: await response.json(), contactId, searchContext};
+      const responseData = await response.json();
+      
+      // Handle both success and "no email found" responses
+      if (response.status === 422) {
+        // 422 means search completed but no email found
+        return {
+          data: responseData.contact,
+          contactId,
+          searchContext,
+          searchMetadata: responseData.searchMetadata,
+          success: true,
+          emailFound: false
+        };
+      } else if (!response.ok) {
+        throw new Error(responseData.message || "Search failed");
+      }
+      
+      return {
+        data: responseData,
+        contactId,
+        searchContext,
+        success: true,
+        emailFound: !!responseData.email
+      };
     },
     onSuccess: (result) => {
-      const {data, contactId, searchContext} = result;
+      const {data, contactId, searchContext, searchMetadata, emailFound} = result;
       
       // Update the contact in the results
       setCurrentResults(prev => {
         if (!prev) return null;
         
-        // Only update the specific contact without affecting others
         return prev.map(company => {
           if (!company.contacts?.some(c => c.id === data.id)) {
             return company;
@@ -1326,19 +1378,21 @@ export default function Home() {
         return newSet;
       });
       
-      // Only show toast notifications based on context
+      // Enhanced toast notifications with search metadata
       if (searchContext === 'manual') {
-        // Manual searches: show all results (success and no email found)
+        const confidence = searchMetadata?.confidence || data.nameConfidenceScore;
+        const retryInfo = searchMetadata?.retryCount > 0 ? ` (${searchMetadata.retryCount + 1} attempts)` : '';
+        const additionalData = data.linkedinUrl || data.phoneNumber ? ' + profile data' : '';
+        
         toast({
           title: "Apollo.io Search Complete",
-          description: `${data.name}: ${data.email 
-            ? `Found email with ${data.nameConfidenceScore || 'unknown'} confidence.`
-            : "No email found for this contact."}`,
+          description: `${data.name}: ${emailFound 
+            ? `Found email with ${confidence || 'unknown'} confidence${additionalData}${retryInfo}.`
+            : `No email found${additionalData ? ', but found other profile data' : ''}${retryInfo}.`}`,
         });
-      } else if (searchContext === 'automated' && data.email) {
-        // Automated searches: only show when email is found
+      } else if (searchContext === 'automated' && emailFound) {
         toast({
-          title: "Email Search Complete",
+          title: "Email Found",
           description: `${data.name}: Successfully found email address.`,
         });
       }
@@ -1353,11 +1407,16 @@ export default function Home() {
         return newSet;
       });
       
-      // Only show error notifications for manual searches
+      // Enhanced error handling with retry suggestions
       if (searchContext === 'manual') {
+        const isRetryable = error instanceof Error && 
+          (error.message.includes('rate limit') || error.message.includes('network'));
+        
         toast({
           title: "Apollo.io Search Failed",
-          description: error instanceof Error ? error.message : "Failed to find contact email",
+          description: `${error instanceof Error ? error.message : "Failed to find contact email"}${
+            isRetryable ? ' - You can try again in a moment.' : ''
+          }`,
           variant: "destructive",
         });
       }

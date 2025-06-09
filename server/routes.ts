@@ -2798,68 +2798,49 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         return;
       }
 
-      // Use the Apollo.io API to search for the email
-      const { searchApollo } = await import('./lib/search-logic/email-discovery/apollo-search');
-      console.log('Initiating Apollo.io search for:', {
-        contactName: contact.name,
-        companyName: company.name
-      });
-
-      const result = await searchApollo(
-        contact.name,
-        company.name,
-        apolloApiKey
-      );
-
-      console.log('Apollo.io search result:', result);
-
-      // Update the contact with the results, but preserve existing email if no new email found
-      const updateData: any = {
-        ...contact,
-        nameConfidenceScore: result.confidence || contact.nameConfidenceScore,
-        linkedinUrl: result.linkedinUrl || contact.linkedinUrl,
-        role: result.title || contact.role,
-        phoneNumber: result.phone || contact.phoneNumber,
-        completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
-        lastValidated: new Date()
-      };
+      // Use enhanced orchestrator for better error handling and retries
+      const { EnhancedSearchOrchestrator } = await import('./lib/search-logic/email-discovery/enhanced-search-orchestrator');
+      const orchestrator = new EnhancedSearchOrchestrator();
       
-      // Handle email updates intelligently
-      if (result.email) {
-        console.log('Processing Apollo.io search email result:', {
-          newEmail: result.email,
-          existingEmail: contact.email,
-          alternativeEmails: contact.alternativeEmails,
-          contactId: contact.id
-        });
+      const searchResult = await orchestrator.executeApolloSearch(contact, company, apolloApiKey);
+      
+      if (searchResult.success) {
+        // Handle email updates intelligently
+        const updateData: any = { ...searchResult.contact };
         
-        // If we already have a primary email but it's different from the new one
-        if (contact.email && contact.email !== result.email) {
-          // Initialize empty array if alternativeEmails is null or undefined
-          const existingAlternatives = Array.isArray(contact.alternativeEmails) ? contact.alternativeEmails : [];
-          console.log('Current alternative emails:', existingAlternatives);
-          
-          if (!existingAlternatives.includes(result.email)) {
-            // Create a proper array for the database
-            updateData.alternativeEmails = [...existingAlternatives, result.email];
-            console.log('Updated alternative emails:', updateData.alternativeEmails);
+        if (searchResult.contact.email && searchResult.contact.email !== contact.email) {
+          if (contact.email && contact.email !== searchResult.contact.email) {
+            // Add to alternative emails
+            const existingAlternatives = Array.isArray(contact.alternativeEmails) ? contact.alternativeEmails : [];
+            if (!existingAlternatives.includes(searchResult.contact.email)) {
+              updateData.alternativeEmails = [...existingAlternatives, searchResult.contact.email];
+            }
           }
-        } else {
-          // If no primary email exists, set this as the primary
-          updateData.email = result.email;
-          console.log('Setting as primary email:', result.email);
         }
+
+        const updatedContact = await storage.updateContact(contactId, updateData, userId);
+        console.log('Apollo search completed:', {
+          success: true,
+          emailFound: !!updatedContact?.email,
+          confidence: searchResult.metadata.confidence
+        });
+
+        res.json(updatedContact);
+      } else {
+        // Update contact to mark search as completed even if failed
+        const updateData = {
+          ...contact,
+          completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
+          lastValidated: new Date()
+        };
+        
+        const updatedContact = await storage.updateContact(contactId, updateData, userId);
+        res.status(422).json({
+          message: searchResult.metadata.error || "No email found",
+          contact: updatedContact,
+          searchMetadata: searchResult.metadata
+        });
       }
-      
-      const updatedContact = await storage.updateContact(contactId, updateData);
-
-      console.log('Contact updated with Apollo.io result:', {
-        id: updatedContact?.id,
-        email: updatedContact?.email,
-        confidence: updatedContact?.nameConfidenceScore
-      });
-
-      res.json(updatedContact);
     } catch (error) {
       console.error('Apollo.io search error:', error);
       // Send a more detailed error response
