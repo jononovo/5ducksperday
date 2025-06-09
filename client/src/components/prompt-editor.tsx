@@ -158,7 +158,7 @@ export default function PromptEditor({
       // If we have quick results, show them immediately
       if (session.quickResults && session.quickResults.length > 0) {
         onCompaniesReceived(session.query, session.quickResults);
-        setValue(session.query);
+        setQuery(session.query);
       }
       
       toast({
@@ -170,10 +170,10 @@ export default function PromptEditor({
       console.log('Restoring recent complete session:', recentCompleteSession);
       
       onSearchResults(recentCompleteSession.query, recentCompleteSession.fullResults);
-      setValue(recentCompleteSession.query);
+      setQuery(recentCompleteSession.query);
       onSearchSuccess?.();
     }
-  }, [onSearchResults, onCompaniesReceived, onSearchSuccess, setValue, toast]);
+  }, [onSearchResults, onCompaniesReceived, onSearchSuccess, setQuery, toast]);
 
   // Handle contact search config changes
   const handleContactSearchConfigChange = useCallback((config: ContactSearchConfig) => {
@@ -290,6 +290,16 @@ export default function PromptEditor({
       console.log("Initiating company search process...");
       console.log("Sending request to company discovery API...");
       
+      // Create a new session for this search
+      const sessionId = SearchSessionManager.createSession(
+        searchQuery, 
+        selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
+        contactSearchConfig
+      ).id;
+      
+      setCurrentSessionId(sessionId);
+      console.log(`Created session ${sessionId} for query: ${searchQuery}`);
+      
       // Use the standard search but optimize for quick company results
       console.log(`Quick search with strategy: ${selectedStrategyId || "Default"}`);
 
@@ -297,7 +307,8 @@ export default function PromptEditor({
       const res = await apiRequest("POST", "/api/companies/quick-search", { 
         query: searchQuery,
         strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
-        contactSearchConfig: contactSearchConfig
+        contactSearchConfig: contactSearchConfig,
+        sessionId: sessionId
       });
       return res.json();
     },
@@ -414,7 +425,8 @@ export default function PromptEditor({
         query: searchQuery,
         strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
         includeContacts: true,
-        contactSearchConfig: contactSearchConfig
+        contactSearchConfig: contactSearchConfig,
+        sessionId: currentSessionId
       });
       return res.json();
     },
