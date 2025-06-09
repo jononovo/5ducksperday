@@ -992,8 +992,49 @@ export default function Home() {
     return getTopContacts(company, 1)[0];
   };
 
-  // Helper function to finish search (no longer shows toast)
-  const finishSearch = () => {
+  // Helper function to finish search with cache refresh
+  const finishSearch = async () => {
+    console.log("Email search completed - refreshing contact data from database");
+    
+    try {
+      // Fetch fresh contact data for all companies from database
+      if (currentResults && currentResults.length > 0) {
+        const refreshedResults = await Promise.all(
+          currentResults.map(async (company) => {
+            try {
+              const response = await apiRequest("GET", `/api/companies/${company.id}/contacts`);
+              const freshContacts = await response.json();
+              return {
+                ...company,
+                contacts: freshContacts
+              };
+            } catch (error) {
+              console.error(`Failed to refresh contacts for company ${company.id}:`, error);
+              return company; // Return original company data on error
+            }
+          })
+        );
+        
+        // Update frontend state with fresh data
+        setCurrentResults(refreshedResults);
+        
+        // Update localStorage with fresh data using existing pattern
+        const stateToSave = {
+          currentQuery,
+          currentResults: refreshedResults
+        };
+        const stateString = JSON.stringify(stateToSave);
+        localStorage.setItem('searchState', stateString);
+        sessionStorage.setItem('searchState', stateString);
+        
+        console.log("Cache refresh completed - all contact data updated");
+      }
+    } catch (error) {
+      console.error("Cache refresh failed:", error);
+      // Continue with normal finish flow even if refresh fails
+    }
+    
+    // Original finish logic
     setIsConsolidatedSearching(false);
     isAutomatedSearchRef.current = false;
     setSummaryVisible(true);
