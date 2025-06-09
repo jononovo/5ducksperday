@@ -1554,6 +1554,7 @@ export default function Home() {
                     totalCompanies={currentResults?.length || 0}
                     totalEmailsFound={lastEmailSearchCount || currentResults?.reduce((total, company) => 
                       total + (getTopContacts(company, 3).filter(contact => contact.email && contact.email.length > 5).length), 0) || 0}
+                    sourceBreakdown={lastSourceBreakdown}
                     onClose={() => setSummaryVisible(false)}
                     isVisible={summaryVisible}
                   />
