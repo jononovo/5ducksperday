@@ -2151,6 +2151,177 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
+  // Backend Email Search Orchestration Endpoint
+  app.post("/api/companies/find-all-emails", requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const { companyIds } = req.body;
+      
+      if (!companyIds || !Array.isArray(companyIds) || companyIds.length === 0) {
+        res.status(400).json({ message: "companyIds array is required" });
+        return;
+      }
+      
+      console.log(`Starting backend email orchestration for ${companyIds.length} companies`);
+      
+      let totalProcessed = 0;
+      let totalEmailsFound = 0;
+      const results = [];
+      
+      for (const companyId of companyIds) {
+        try {
+          const company = await storage.getCompany(companyId, userId);
+          if (!company) {
+            console.log(`Company ${companyId} not found, skipping`);
+            continue;
+          }
+          
+          console.log(`Processing emails for company: ${company.name}`);
+          
+          // Get current contacts for this company
+          const contacts = await storage.listContactsByCompany(company.id, userId);
+          
+          // Filter to contacts needing emails (top 3 contacts without emails)
+          const topContacts = contacts
+            .sort((a, b) => (b.probability || 0) - (a.probability || 0))
+            .slice(0, 3)
+            .filter(contact => !contact.email || contact.email.length <= 5);
+          
+          if (topContacts.length === 0) {
+            console.log(`No contacts need email search for ${company.name}`);
+            continue;
+          }
+          
+          let companyEmailsFound = 0;
+          
+          // Phase 1: Try Perplexity enrichment for up to 2 contacts
+          const perplexityContacts = topContacts.slice(0, 2);
+          for (const contact of perplexityContacts) {
+            try {
+              const enrichedDetails = await searchContactDetails(contact.name, company.name);
+              
+              if (enrichedDetails && enrichedDetails.email && enrichedDetails.email.length > 5) {
+                await storage.updateContact(contact.id, {
+                  ...enrichedDetails,
+                  completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
+                });
+                companyEmailsFound++;
+                totalEmailsFound++;
+                console.log(`Perplexity found email for ${contact.name}: ${enrichedDetails.email}`);
+              }
+              totalProcessed++;
+            } catch (error) {
+              console.error(`Perplexity search failed for contact ${contact.id}:`, error);
+            }
+          }
+          
+          // If Perplexity found emails, move to next company
+          if (companyEmailsFound > 0) {
+            results.push({
+              companyId: company.id,
+              companyName: company.name,
+              emailsFound: companyEmailsFound,
+              source: 'Perplexity'
+            });
+            continue;
+          }
+          
+          // Phase 2: Try existing Apollo endpoint for best contact
+          const bestContact = topContacts[0];
+          if (bestContact) {
+            try {
+              // Make internal API call to existing Apollo endpoint
+              const apolloResponse = await fetch(`http://localhost:5000/api/contacts/${bestContact.id}/apollo`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': req.headers.authorization || ''
+                }
+              });
+              
+              if (apolloResponse.ok) {
+                const apolloData = await apolloResponse.json();
+                if (apolloData.email && apolloData.email.length > 5) {
+                  companyEmailsFound++;
+                  totalEmailsFound++;
+                  console.log(`Apollo found email for ${bestContact.name}: ${apolloData.email}`);
+                }
+              }
+              totalProcessed++;
+            } catch (error) {
+              console.error(`Apollo search failed for contact ${bestContact.id}:`, error);
+            }
+          }
+          
+          // If Apollo found emails, move to next company
+          if (companyEmailsFound > 0) {
+            results.push({
+              companyId: company.id,
+              companyName: company.name,
+              emailsFound: companyEmailsFound,
+              source: 'Apollo'
+            });
+            continue;
+          }
+          
+          // Phase 3: Try existing Hunter endpoint for best contact
+          if (bestContact) {
+            try {
+              // Make internal API call to existing Hunter endpoint
+              const hunterResponse = await fetch(`http://localhost:5000/api/contacts/${bestContact.id}/hunter`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': req.headers.authorization || ''
+                }
+              });
+              
+              if (hunterResponse.ok) {
+                const hunterData = await hunterResponse.json();
+                if (hunterData.email && hunterData.email.length > 5) {
+                  companyEmailsFound++;
+                  totalEmailsFound++;
+                  console.log(`Hunter found email for ${bestContact.name}: ${hunterData.email}`);
+                }
+              }
+              totalProcessed++;
+            } catch (error) {
+              console.error(`Hunter search failed for contact ${bestContact.id}:`, error);
+            }
+          }
+          
+          results.push({
+            companyId: company.id,
+            companyName: company.name,
+            emailsFound: companyEmailsFound,
+            source: companyEmailsFound > 0 ? 'Hunter' : 'None'
+          });
+          
+        } catch (error) {
+          console.error(`Error processing company ${companyId}:`, error);
+        }
+      }
+      
+      console.log(`Backend email orchestration completed: ${totalEmailsFound} emails found for ${totalProcessed} contacts processed`);
+      
+      res.json({
+        success: true,
+        summary: {
+          companiesProcessed: companyIds.length,
+          contactsProcessed: totalProcessed,
+          emailsFound: totalEmailsFound
+        },
+        results
+      });
+      
+    } catch (error) {
+      console.error('Backend email orchestration error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to orchestrate email search"
+      });
+    }
+  });
+
   // Search Quality Testing Endpoint
   app.post("/api/search-test", requireAuth, async (req, res) => {
     try {

@@ -1075,7 +1075,7 @@ export default function Home() {
     }
   };
   
-  // Main consolidated email search function with parallel processing
+  // Backend-orchestrated email search function
   const runConsolidatedEmailSearch = async () => {
     if (!currentResults || currentResults.length === 0) return;
     
@@ -1096,100 +1096,42 @@ export default function Home() {
         return;
       }
       
-      // Phase 1: Perplexity search (2 contacts per company) - using parallel processing
+      // Extract company IDs for backend orchestration
+      const companyIds = companiesNeedingEmails.map(company => company.id);
+      
+      console.log(`Starting backend email orchestration for ${companyIds.length} companies`);
       setSearchProgress({ 
-        phase: "Perplexity Search", 
+        phase: "Backend Email Search", 
         completed: 0, 
-        total: companiesNeedingEmails.length 
+        total: companyIds.length 
       });
       
-      // Collect all contacts needing emails for parallel processing
-      const perplexityContacts: Contact[] = [];
-      
-      // Collect top contacts from each company
-      companiesNeedingEmails.forEach(company => {
-        const topContacts = getTopContacts(company, 2)
-          .filter(contact => !contact.email || contact.email.length <= 5);
-        perplexityContacts.push(...topContacts);
+      // Call backend orchestration endpoint
+      const response = await apiRequest("POST", "/api/companies/find-all-emails", {
+        companyIds,
+        searchConfig: {}
       });
       
-      // Process Perplexity searches in parallel batches (7 at a time for faster processing)
-      await processContactsBatch(
-        perplexityContacts, 
-        (contactId) => enrichContactMutation.mutateAsync(contactId),
-        7 // Batch size of 7 for Perplexity (one per company for optimal speed)
-      );
-      
-      // Check which companies still need emails (where Perplexity found zero emails)
-      const companiesStillNeedingEmails = getCurrentCompaniesWithoutEmails();
-      
-      if (companiesStillNeedingEmails.length === 0) {
-        await finishSearch();
-        return;
+      if (!response.ok) {
+        throw new Error(`Backend orchestration failed: ${response.status}`);
       }
       
-      // Phase 2: Apollo search - faster and higher quality primary search
-      setSearchProgress({ 
-        phase: "Apollo Search", 
-        completed: 0, 
-        total: companiesStillNeedingEmails.length 
+      const data = await response.json();
+      
+      console.log(`Backend orchestration completed:`, data.summary);
+      toast({
+        title: "Email Search Complete",
+        description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies`,
       });
       
-      // Collect best contacts for Apollo
-      const apolloContacts: Contact[] = [];
-      companiesStillNeedingEmails.forEach(company => {
-        const bestContact = getBestContact(company);
-        if (bestContact && (!bestContact.email || bestContact.email.length <= 5)) {
-          apolloContacts.push(bestContact);
-        }
-      });
-      
-      // Process Apollo searches in parallel batches (3 at a time)
-      await processContactsBatch(
-        apolloContacts, 
-        (contactId) => apolloMutation.mutateAsync({ contactId, searchContext: 'automated' }),
-        3 // Batch size of 3 for Apollo
-      );
-      
-      // Check which companies still need emails
-      const companiesNeedingFinalSearch = getCurrentCompaniesWithoutEmails();
-      
-      if (companiesNeedingFinalSearch.length === 0) {
-        await finishSearch();
-        return;
-      }
-      
-      // Phase 3: Hunter search - specialized email-focused fallback
-      setSearchProgress({ 
-        phase: "Hunter Search", 
-        completed: 0, 
-        total: companiesNeedingFinalSearch.length 
-      });
-      
-      // Collect best contacts for Hunter
-      const hunterContacts: Contact[] = [];
-      companiesNeedingFinalSearch.forEach(company => {
-        const bestContact = getBestContact(company);
-        if (bestContact && (!bestContact.email || bestContact.email.length <= 5)) {
-          hunterContacts.push(bestContact);
-        }
-      });
-      
-      // Process Hunter searches in parallel batches (3 at a time)
-      await processContactsBatch(
-        hunterContacts, 
-        (contactId) => hunterMutation.mutateAsync({ contactId, searchContext: 'automated' }),
-        3 // Batch size of 3 for Hunter
-      );
-      
-      // Final summary - no toast needed
+      // Refresh contact data and complete search
       await finishSearch();
       
     } catch (error) {
-      console.error("Consolidated email search error:", error);
+      console.error("Backend email orchestration error:", error);
       toast({
         title: "Search Failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        description: error instanceof Error ? error.message : "Failed to complete email search",
         variant: "destructive"
       });
       setIsConsolidatedSearching(false);
