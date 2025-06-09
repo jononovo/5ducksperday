@@ -953,6 +953,7 @@ export default function Home() {
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [contactReportVisible, setContactReportVisible] = useState(false);
   const [lastEmailSearchCount, setLastEmailSearchCount] = useState(0);
+  const [lastSourceBreakdown, setLastSourceBreakdown] = useState(null);
 
   // Event-driven progress queue system
   const progressQueue = [
@@ -1274,8 +1275,9 @@ export default function Home() {
       // Mark backend as completed (triggers final phase advancement)
       setProgressState(prev => ({ ...prev, backendCompleted: true }));
       
-      // Store the backend email count for summary display
+      // Store the backend email count and source breakdown for summary display
       setLastEmailSearchCount(data.summary.emailsFound);
+      setLastSourceBreakdown(data.summary.sourceBreakdown);
       
       // Complete search immediately
       toast({

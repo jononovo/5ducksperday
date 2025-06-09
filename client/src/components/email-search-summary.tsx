@@ -3,10 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+interface SourceBreakdown {
+  Perplexity: number;
+  Apollo: number;
+  Hunter: number;
+}
+
 interface EmailSearchSummaryProps {
   companiesWithEmails: number;
   totalCompanies: number;
   totalEmailsFound: number;
+  sourceBreakdown?: SourceBreakdown;
   onClose: () => void;
   isVisible: boolean;
 }
@@ -15,6 +22,7 @@ export function EmailSearchSummary({
   companiesWithEmails,
   totalCompanies,
   totalEmailsFound,
+  sourceBreakdown,
   onClose,
   isVisible
 }: EmailSearchSummaryProps) {
@@ -38,6 +46,11 @@ export function EmailSearchSummary({
               ? "Target achieved! At least 5 companies have email addresses."
               : "Some companies still need email addresses."}
           </p>
+          {sourceBreakdown && (
+            <p className="text-muted-foreground text-xs mt-0.5">
+              Perplexity: {sourceBreakdown.Perplexity}, Apollo: {sourceBreakdown.Apollo}, Hunter: {sourceBreakdown.Hunter}
+            </p>
+          )}
         </div>
         <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => {
           setShow(false);

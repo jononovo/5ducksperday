@@ -2330,23 +2330,32 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         companyIds.map((companyId, index) => processCompany(companyId, index))
       );
       
-      // Collect results and calculate totals
+      // Collect results and calculate totals + source breakdown
+      const sourceBreakdown = { Perplexity: 0, Apollo: 0, Hunter: 0 };
+      
       for (const { processed, emailsFound, result } of companyResults) {
         totalProcessed += processed;
         totalEmailsFound += emailsFound;
         if (result) {
           results.push(result);
+          if (result.source && result.emailsFound > 0) {
+            if (result.source === 'Perplexity' || result.source === 'Apollo' || result.source === 'Hunter') {
+              sourceBreakdown[result.source] += result.emailsFound;
+            }
+          }
         }
       }
       
       console.log(`Backend email orchestration completed: ${totalEmailsFound} emails found from ${totalProcessed} searches across ${companyIds.length} companies`);
+      console.log(`Source breakdown - Perplexity: ${sourceBreakdown.Perplexity}, Apollo: ${sourceBreakdown.Apollo}, Hunter: ${sourceBreakdown.Hunter}`);
       
       res.json({
         success: true,
         summary: {
           companiesProcessed: companyIds.length,
           contactsProcessed: totalProcessed,
-          emailsFound: totalEmailsFound
+          emailsFound: totalEmailsFound,
+          sourceBreakdown
         },
         results
       });
