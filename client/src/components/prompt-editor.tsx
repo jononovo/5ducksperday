@@ -104,6 +104,7 @@ export default function PromptEditor({
   // Stable refs for session management
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isPollingRef = useRef(false);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Stable callback refs to prevent useEffect dependencies
   const stableOnSearchResults = useRef(onSearchResults);
@@ -189,6 +190,20 @@ export default function PromptEditor({
       }
     };
   }, [currentSessionId, isPolling]);
+
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      // Clear all timeouts and intervals
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      isPollingRef.current = false;
+    };
+  }, []);
 
   // Check for existing sessions on mount - run only once
   useEffect(() => {
