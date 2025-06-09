@@ -322,6 +322,13 @@ export default function PromptEditor({
       // Reset input changed state since we have initial results
       setInputHasChanged(false);
       
+      // Update session with quick results and start polling for completion
+      if (currentSessionId) {
+        SearchSessionManager.updateWithQuickResults(currentSessionId, data.companies);
+        setIsPolling(true);
+        console.log(`Started polling for session ${currentSessionId} completion`);
+      }
+      
       onCompaniesReceived(query, data.companies);
       
       toast({
@@ -442,6 +449,13 @@ export default function PromptEditor({
       
       // Reset input changed state since search is complete
       setInputHasChanged(false);
+      
+      // Update session with complete results and stop polling
+      if (currentSessionId) {
+        SearchSessionManager.updateWithFullResults(currentSessionId, data.companies);
+        setIsPolling(false);
+        console.log(`Session ${currentSessionId} completed with full results`);
+      }
       
       // Send full results with contacts to parent component
       onSearchResults(query, data.companies);
