@@ -1124,7 +1124,7 @@ export default function Home() {
       const companiesStillNeedingEmails = getCurrentCompaniesWithoutEmails();
       
       if (companiesStillNeedingEmails.length === 0) {
-        finishSearch();
+        await finishSearch();
         return;
       }
       
@@ -1155,7 +1155,7 @@ export default function Home() {
       const companiesNeedingFinalSearch = getCurrentCompaniesWithoutEmails();
       
       if (companiesNeedingFinalSearch.length === 0) {
-        finishSearch();
+        await finishSearch();
         return;
       }
       
@@ -1183,7 +1183,7 @@ export default function Home() {
       );
       
       // Final summary - no toast needed
-      finishSearch();
+      await finishSearch();
       
     } catch (error) {
       console.error("Consolidated email search error:", error);
