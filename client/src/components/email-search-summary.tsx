@@ -48,7 +48,7 @@ export function EmailSearchSummary({
           </p>
           {sourceBreakdown && (
             <p className="text-muted-foreground text-xs mt-0.5">
-              Perplexity: {sourceBreakdown.Perplexity}, Apollo: {sourceBreakdown.Apollo}, Hunter: {sourceBreakdown.Hunter}
+              Perplexity: {sourceBreakdown.Perplexity} Apollo: {sourceBreakdown.Apollo} Hunter: {sourceBreakdown.Hunter}
             </p>
           )}
         </div>
