@@ -34,6 +34,25 @@ import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow
 import { logIncomingWebhook } from "./lib/webhook-logger";
 import { getEmailProvider } from "./services/emailService";
 
+// Global session storage for search results
+interface SearchSessionResult {
+  sessionId: string;
+  query: string;
+  status: 'pending' | 'companies_found' | 'contacts_complete' | 'failed';
+  quickResults?: any[];
+  fullResults?: any[];
+  error?: string;
+  timestamp: number;
+  ttl: number;
+}
+
+declare global {
+  var searchSessions: Map<string, SearchSessionResult>;
+}
+
+// Initialize global search sessions storage
+global.searchSessions = global.searchSessions || new Map();
+
 // Helper function to safely get user ID from request
 function getUserId(req: express.Request): number {
   try {
@@ -603,6 +622,49 @@ export function registerRoutes(app: Express) {
   // Simple ping endpoint for keep-alive mechanism
   app.get("/api/ping", (req, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // Session status endpoint for polling
+  app.get("/api/search-sessions/:sessionId/status", (req, res) => {
+    const { sessionId } = req.params;
+    
+    try {
+      const session = global.searchSessions.get(sessionId);
+      
+      if (!session) {
+        return res.status(404).json({
+          success: false,
+          message: "Session not found"
+        });
+      }
+      
+      // Check if session has expired
+      if (Date.now() - session.timestamp > session.ttl) {
+        global.searchSessions.delete(sessionId);
+        return res.status(404).json({
+          success: false,
+          message: "Session expired"
+        });
+      }
+      
+      res.json({
+        success: true,
+        session: {
+          sessionId: session.sessionId,
+          query: session.query,
+          status: session.status,
+          quickResults: session.quickResults,
+          fullResults: session.fullResults,
+          error: session.error
+        }
+      });
+    } catch (error) {
+      console.error('Error retrieving session status:', error);
+      res.status(500).json({
+        success: false,
+        message: "Error retrieving session status"
+      });
+    }
   });
   
   // Endpoint to trigger a search via workflow
