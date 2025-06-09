@@ -47,7 +47,7 @@ export function EmailSearchSummary({
               : "Some companies still need email addresses."}
           </p>
           {sourceBreakdown && (
-            <p className="text-muted-foreground text-xs mt-0.5">
+            <p className="text-muted-foreground text-[11px] mt-0.5">
               Perplexity: {sourceBreakdown.Perplexity} Apollo: {sourceBreakdown.Apollo} Hunter: {sourceBreakdown.Hunter}
             </p>
           )}
