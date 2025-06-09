@@ -952,6 +952,7 @@ export default function Home() {
   });
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [contactReportVisible, setContactReportVisible] = useState(false);
+  const [lastEmailSearchCount, setLastEmailSearchCount] = useState(0);
 
   // Event-driven progress queue system
   const progressQueue = [
@@ -1273,6 +1274,9 @@ export default function Home() {
       // Mark backend as completed (triggers final phase advancement)
       setProgressState(prev => ({ ...prev, backendCompleted: true }));
       
+      // Store the backend email count for summary display
+      setLastEmailSearchCount(data.summary.emailsFound);
+      
       // Complete search immediately
       toast({
         title: "Email Search Complete",
@@ -1546,6 +1550,8 @@ export default function Home() {
                     companiesWithEmails={currentResults?.filter(company => 
                       getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)).length || 0}
                     totalCompanies={currentResults?.length || 0}
+                    totalEmailsFound={lastEmailSearchCount || currentResults?.reduce((total, company) => 
+                      total + (getTopContacts(company, 3).filter(contact => contact.email && contact.email.length > 5).length), 0) || 0}
                     onClose={() => setSummaryVisible(false)}
                     isVisible={summaryVisible}
                   />
