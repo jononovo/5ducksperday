@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 interface EmailSearchSummaryProps {
   companiesWithEmails: number;
   totalCompanies: number;
+  totalEmailsFound: number;
   onClose: () => void;
   isVisible: boolean;
 }
@@ -13,6 +14,7 @@ interface EmailSearchSummaryProps {
 export function EmailSearchSummary({
   companiesWithEmails,
   totalCompanies,
+  totalEmailsFound,
   onClose,
   isVisible
 }: EmailSearchSummaryProps) {
@@ -30,7 +32,7 @@ export function EmailSearchSummary({
     <div className="bg-white dark:bg-gray-900 border rounded-md mb-2 px-4 py-3 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="text-sm">
-          <p>Found emails for {companiesWithEmails} of {totalCompanies} companies</p>
+          <p>Found {totalEmailsFound} emails for {companiesWithEmails} of {totalCompanies} companies</p>
           <p className="text-muted-foreground text-xs mt-0.5">
             {companiesWithEmails >= 5 
               ? "Target achieved! At least 5 companies have email addresses."
