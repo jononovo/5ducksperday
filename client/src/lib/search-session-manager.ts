@@ -3,7 +3,7 @@ import type { Company, Contact } from "@shared/schema";
 export interface SearchSession {
   id: string;
   query: string;
-  status: 'pending' | 'companies_found' | 'contacts_complete' | 'failed';
+  status: 'pending' | 'companies_found' | 'companies_complete' | 'contacts_complete' | 'failed';
   startTime: number;
   quickResults?: Company[];
   fullResults?: Array<Company & { contacts?: Contact[] }>;
@@ -77,6 +77,19 @@ export class SearchSessionManager {
       console.log('Marked session as failed:', sessionId);
     }
   }
+
+  /**
+   * Mark quick results as complete and restorable
+   */
+  static markQuickResultsComplete(sessionId: string): void {
+    const session = this.getSession(sessionId);
+    if (session && session.quickResults) {
+      session.status = 'companies_complete';
+      session.lastChecked = Date.now();
+      this.saveSession(session);
+      console.log(`Marked quick results as complete for session: ${sessionId}`);
+    }
+  }
   
   /**
    * Get active search sessions (not complete or failed)
@@ -94,7 +107,7 @@ export class SearchSessionManager {
   static getMostRecentCompleteSession(): SearchSession | null {
     const sessions = this.getAllSessions();
     const completeSessions = sessions
-      .filter(session => session.status === 'contacts_complete')
+      .filter(session => session.status === 'contacts_complete' || session.status === 'companies_complete')
       .sort((a, b) => b.startTime - a.startTime);
     
     return completeSessions[0] || null;

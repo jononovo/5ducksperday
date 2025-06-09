@@ -231,19 +231,31 @@ export default function PromptEditor({
         title: "Search in progress",
         description: `Continuing search for "${session.query}"`,
       });
-    } else if (recentCompleteSession && recentCompleteSession.fullResults) {
-      // Restore the most recent complete session
+    } else if (recentCompleteSession) {
+      // Restore the most recent complete session (either companies or full results)
       console.log('Restoring recent complete session:', recentCompleteSession);
-      console.log('Calling onSearchResults with query:', recentCompleteSession.query);
-      console.log('Calling onSearchResults with results count:', recentCompleteSession.fullResults?.length || 0);
-      console.log('Full results data:', recentCompleteSession.fullResults);
       
       setHasRestoredSession(true);
-      stableOnSearchResults.current(recentCompleteSession.query, recentCompleteSession.fullResults);
       setQuery(recentCompleteSession.query);
-      stableOnSearchSuccess.current?.();
       
-      console.log('onSearchResults callback completed');
+      if (recentCompleteSession.fullResults) {
+        // Full search with contacts completed
+        console.log('Calling onSearchResults with query:', recentCompleteSession.query);
+        console.log('Calling onSearchResults with results count:', recentCompleteSession.fullResults?.length || 0);
+        console.log('Full results data:', recentCompleteSession.fullResults);
+        
+        stableOnSearchResults.current(recentCompleteSession.query, recentCompleteSession.fullResults);
+        stableOnSearchSuccess.current?.();
+        console.log('onSearchResults callback completed');
+      } else if (recentCompleteSession.quickResults) {
+        // Only quick search completed, restore company results
+        console.log('Calling onCompaniesReceived with query:', recentCompleteSession.query);
+        console.log('Calling onCompaniesReceived with companies count:', recentCompleteSession.quickResults?.length || 0);
+        console.log('Quick results data:', recentCompleteSession.quickResults);
+        
+        stableOnCompaniesReceived.current(recentCompleteSession.query, recentCompleteSession.quickResults);
+        console.log('onCompaniesReceived callback completed');
+      }
       
       // Clean up the restored session to prevent re-restoration
       SearchSessionManager.cleanupSession(recentCompleteSession.id);
@@ -403,6 +415,8 @@ export default function PromptEditor({
       // Update session with quick results and start polling for completion
       if (currentSessionId) {
         SearchSessionManager.updateWithQuickResults(currentSessionId, data.companies);
+        // Mark quick results as restorable immediately
+        SearchSessionManager.markQuickResultsComplete(currentSessionId);
         setIsPolling(true);
         console.log(`Started polling for session ${currentSessionId} completion`);
       }
