@@ -950,7 +950,7 @@ export function registerRoutes(app: Express) {
     // This temporary fix uses a default user ID if authentication fails
     const userId = req.isAuthenticated() && req.user ? (req.user as any).id : 1;
     
-    const { query, strategyId, contactSearchConfig } = req.body;
+    const { query, strategyId, contactSearchConfig, sessionId } = req.body;
 
     if (!query || typeof query !== 'string') {
       res.status(400).json({
@@ -1013,11 +1013,26 @@ export function registerRoutes(app: Express) {
       console.log(`[Quick Search] Cached ${companyResults.length} company API results and ${companies.length} database records for reuse`);
       console.log(`[Quick Search] Cache key: ${cacheKey}`);
       
+      // Store session if sessionId provided
+      if (sessionId) {
+        const session: SearchSessionResult = {
+          sessionId,
+          query,
+          status: 'companies_found',
+          quickResults: companies,
+          timestamp: Date.now(),
+          ttl: 30 * 60 * 1000 // 30 minutes
+        };
+        global.searchSessions.set(sessionId, session);
+        console.log(`[Quick Search] Session ${sessionId} updated with companies`);
+      }
+      
       // Return the quick company data
       res.json({
         companies,
         query,
-        strategyId: strategyId || null
+        strategyId: strategyId || null,
+        sessionId
       });
       
     } catch (error) {
@@ -1034,7 +1049,7 @@ export function registerRoutes(app: Express) {
     // This temporary fix uses a default user ID if authentication fails
     const userId = req.isAuthenticated() && req.user ? (req.user as any).id : 1;
     
-    const { query, strategyId, includeContacts = true, contactSearchConfig } = req.body;
+    const { query, strategyId, includeContacts = true, contactSearchConfig, sessionId } = req.body;
 
     // Debug: Log contact search configuration at batch level
     console.log(`[BATCH CONFIG] Contact search configuration:`, {
@@ -1291,12 +1306,25 @@ export function registerRoutes(app: Express) {
         })
       );
 
+      // Store complete session results if sessionId provided
+      if (sessionId) {
+        const session = global.searchSessions.get(sessionId);
+        if (session) {
+          session.status = 'contacts_complete';
+          session.fullResults = companies;
+          session.timestamp = Date.now();
+          global.searchSessions.set(sessionId, session);
+          console.log(`[Full Search] Session ${sessionId} completed with ${companies.length} companies and contacts`);
+        }
+      }
+
       // Return results immediately to complete the search
       res.json({
         companies: companies,
         query: query,
         strategyId: null,
         strategyName: "Direct Search Flow",
+        sessionId
       });
 
       // Contact discovery complete - return results immediately

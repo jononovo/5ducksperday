@@ -11,6 +11,7 @@ import { Loader2, Search, HelpCircle } from "lucide-react";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSearchStrategy } from "@/lib/search-strategy-context";
 import SearchSettingsDrawer from "./search-settings-drawer";
+import { SearchSessionManager } from "@/lib/search-session-manager";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
@@ -94,6 +95,85 @@ export default function PromptEditor({
     enableCustomSearch2: false,
     customSearchTarget2: ""
   });
+
+  // Session management state
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isPolling, setIsPolling] = useState(false);
+
+  // Polling effect to check for session completion
+  useEffect(() => {
+    if (!currentSessionId || !isPolling) return;
+
+    const pollForCompletion = async () => {
+      try {
+        const response = await fetch(`/api/search-sessions/${currentSessionId}`);
+        if (response.ok) {
+          const session = await response.json();
+          
+          if (session.status === 'contacts_complete' && session.fullResults) {
+            console.log('Session completed, restoring results:', session);
+            setIsPolling(false);
+            
+            // Restore the complete results
+            onSearchResults(session.query, session.fullResults);
+            onSearchSuccess?.();
+            
+            toast({
+              title: "Search completed!",
+              description: `Found results for "${session.query}"`,
+            });
+          } else if (session.status === 'failed') {
+            console.log('Session failed:', session);
+            setIsPolling(false);
+            
+            toast({
+              title: "Search failed",
+              description: session.error || "An error occurred during search",
+              variant: "destructive"
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error polling session:', error);
+      }
+    };
+
+    const interval = setInterval(pollForCompletion, 3000); // Poll every 3 seconds
+    return () => clearInterval(interval);
+  }, [currentSessionId, isPolling, onSearchResults, onSearchSuccess, toast]);
+
+  // Check for existing sessions on mount
+  useEffect(() => {
+    const activeSessions = SearchSessionManager.getActiveSessions();
+    const recentCompleteSession = SearchSessionManager.getMostRecentCompleteSession();
+    
+    if (activeSessions.length > 0) {
+      // Resume the most recent active session
+      const session = activeSessions[0];
+      console.log('Resuming active session:', session);
+      
+      setCurrentSessionId(session.id);
+      setIsPolling(true);
+      
+      // If we have quick results, show them immediately
+      if (session.quickResults && session.quickResults.length > 0) {
+        onCompaniesReceived(session.query, session.quickResults);
+        setValue(session.query);
+      }
+      
+      toast({
+        title: "Search in progress",
+        description: `Continuing search for "${session.query}"`,
+      });
+    } else if (recentCompleteSession && recentCompleteSession.fullResults) {
+      // Restore the most recent complete session
+      console.log('Restoring recent complete session:', recentCompleteSession);
+      
+      onSearchResults(recentCompleteSession.query, recentCompleteSession.fullResults);
+      setValue(recentCompleteSession.query);
+      onSearchSuccess?.();
+    }
+  }, [onSearchResults, onCompaniesReceived, onSearchSuccess, setValue, toast]);
 
   // Handle contact search config changes
   const handleContactSearchConfigChange = useCallback((config: ContactSearchConfig) => {
