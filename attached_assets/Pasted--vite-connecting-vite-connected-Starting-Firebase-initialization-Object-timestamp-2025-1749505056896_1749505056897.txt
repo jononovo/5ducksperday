@@ -1,0 +1,40 @@
+[vite] connecting...
+[vite] connected.
+Starting Firebase initialization... 
+Object {timestamp: "2025-06-09T21:27:24.855Z", domain: "4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev"}
+Raw environment variables: 
+Object {apiKey: "....aDbuzU", projectId: "fire-5-ducks", appId: "....b133e8", mode: "development", dev: true, …}
+Firebase Configuration: 
+Object {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: "fire-5-ducks.firebaseapp.com", environment: "development", …}
+Firebase initialized successfully: 
+Object {domain: "4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev", isAuth: true, isProvider: true, authDomain: "fire-5-ducks.firebaseapp.com", timestamp: "2025-06-09T21:27:24.859Z"}
+authDomain: "fire-5-ducks.firebaseapp.com"
+domain: "4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev"
+isAuth: true
+isProvider: true
+timestamp: "2025-06-09T21:27:24.859Z"
+[[Prototype]]: Object
+Setting up Firebase auth state listener
+Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID
+Firebase auth state changed: test119@test.com
+Making backend sync request 
+Object {endpoint: "/api/google-auth", hasAccessToken: false, domain: "4d208f68-6f49-4969-8844-102bb042860f-00-2f2u3qqe6syuf.kirk.replit.dev"}
+Firebase persistence set to LOCAL
+Auth token set successfully: 
+Object {uid: "G9eUAUS3IDYPUFBibUcjwqnyLsB2", email: "test119@...", timestamp: "2025-06-09T21:27:25.298Z"}
+Successfully synced with backend
+Found pending search query: Automotive component suppliers in Boston
+Skipping localStorage save - no meaningful data to save
+Saving search state: 
+Object {query: "Automotive component suppliers in Boston", resultsCount: undefined, companies: undefined}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: true, enableCustomSearch: false, customSearchTarget: "", …}
+Restoring recent complete session: 
+Object {id: "search_1749503844870_622bwgnh5", query: "Automotive component suppliers in Boston", status: "contacts_complete", startTime: 1749503844871, lastChecked: 1749503846099, …}
+Calling onSearchResults with query: Automotive component suppliers in Boston
+Calling onSearchResults with results count: 0
+Full results data: 
+Array []
+=== PARENT COMPONENT: handleSearchResults called ===
+Received query: Automotive component suppliers in Boston
+Received results count: 0

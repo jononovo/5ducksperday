@@ -2239,15 +2239,17 @@ Then, on a new line, write the body of the email. Keep both subject and content 
                 }
               });
               
-              if (apolloResponse.ok) {
-                const apolloData = await apolloResponse.json();
-                if (apolloData.email && apolloData.email.length > 5) {
+              const apolloData = await apolloResponse.json();
+              if (apolloResponse.status === 200 || apolloResponse.status === 422) {
+                // Handle both success and "no email found" responses
+                const contactData = apolloResponse.status === 200 ? apolloData : apolloData.contact;
+                if (contactData.email && contactData.email.length > 5) {
                   companyEmailsFound++;
                   totalEmailsFound++;
-                  console.log(`Apollo found email for ${bestContact.name}: ${apolloData.email}`);
+                  console.log(`Apollo found email for ${bestContact.name}: ${contactData.email}`);
                 }
+                totalProcessed++;
               }
-              totalProcessed++;
             } catch (error) {
               console.error(`Apollo search failed for contact ${bestContact.id}:`, error);
             }
@@ -2276,15 +2278,17 @@ Then, on a new line, write the body of the email. Keep both subject and content 
                 }
               });
               
-              if (hunterResponse.ok) {
-                const hunterData = await hunterResponse.json();
-                if (hunterData.email && hunterData.email.length > 5) {
+              const hunterData = await hunterResponse.json();
+              if (hunterResponse.status === 200 || hunterResponse.status === 422) {
+                // Handle both success and "no email found" responses
+                const contactData = hunterResponse.status === 200 ? hunterData : hunterData.contact;
+                if (contactData.email && contactData.email.length > 5) {
                   companyEmailsFound++;
                   totalEmailsFound++;
-                  console.log(`Hunter found email for ${bestContact.name}: ${hunterData.email}`);
+                  console.log(`Hunter found email for ${bestContact.name}: ${contactData.email}`);
                 }
+                totalProcessed++;
               }
-              totalProcessed++;
             } catch (error) {
               console.error(`Hunter search failed for contact ${bestContact.id}:`, error);
             }
@@ -2302,7 +2306,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         }
       }
       
-      console.log(`Backend email orchestration completed: ${totalEmailsFound} emails found for ${totalProcessed} contacts processed`);
+      console.log(`Backend email orchestration completed: ${totalEmailsFound} emails found from ${totalProcessed} searches across ${companyIds.length} companies`);
       
       res.json({
         success: true,
