@@ -234,11 +234,16 @@ export default function PromptEditor({
     } else if (recentCompleteSession && recentCompleteSession.fullResults) {
       // Restore the most recent complete session
       console.log('Restoring recent complete session:', recentCompleteSession);
+      console.log('Calling onSearchResults with query:', recentCompleteSession.query);
+      console.log('Calling onSearchResults with results count:', recentCompleteSession.fullResults?.length || 0);
+      console.log('Full results data:', recentCompleteSession.fullResults);
       
       setHasRestoredSession(true);
       stableOnSearchResults.current(recentCompleteSession.query, recentCompleteSession.fullResults);
       setQuery(recentCompleteSession.query);
       stableOnSearchSuccess.current?.();
+      
+      console.log('onSearchResults callback completed');
       
       // Clean up the restored session to prevent re-restoration
       SearchSessionManager.cleanupSession(recentCompleteSession.id);

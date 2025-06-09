@@ -321,6 +321,11 @@ export default function Home() {
 
   // Modified search results handler for the full data with contacts
   const handleSearchResults = (query: string, results: CompanyWithContacts[]) => {
+    console.log('=== PARENT COMPONENT: handleSearchResults called ===');
+    console.log('Received query:', query);
+    console.log('Received results count:', results.length);
+    console.log('Current component state - query:', currentQuery);
+    console.log('Current component state - results count:', currentResults?.length || 0);
     console.log('Complete results received with contacts:', results.length);
     
     // Sort companies by contact count (most contacts first)
@@ -338,6 +343,11 @@ export default function Home() {
     setCurrentResults(sortedResults);
     setIsSaved(false);
     setIsLoadingContacts(false);
+    
+    console.log('=== PARENT COMPONENT: State updated ===');
+    console.log('New state - query:', query);
+    console.log('New state - results count:', sortedResults.length);
+    console.log('handleSearchResults completed');
     setContactsLoaded(true);
     setLastExecutedQuery(query); // Store the last executed query
     setInputHasChanged(false); // Reset the input changed flag
