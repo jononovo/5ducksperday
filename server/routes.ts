@@ -2168,15 +2168,22 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       let totalEmailsFound = 0;
       const results = [];
       
-      for (const companyId of companyIds) {
+      // Helper function to add delay
+      const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+      
+      // Process individual company with waterfall search
+      const processCompany = async (companyId: number, index: number) => {
+        // Add staggered delay before starting each company
+        await delay(index * 400);
+        
         try {
           const company = await storage.getCompany(companyId, userId);
           if (!company) {
             console.log(`Company ${companyId} not found, skipping`);
-            continue;
+            return { processed: 0, emailsFound: 0, result: null };
           }
           
-          console.log(`Processing emails for company: ${company.name}`);
+          console.log(`Processing emails for company: ${company.name} (started after ${index * 400}ms delay)`);
           
           // Get current contacts for this company
           const contacts = await storage.listContactsByCompany(company.id, userId);
@@ -2189,10 +2196,11 @@ Then, on a new line, write the body of the email. Keep both subject and content 
           
           if (topContacts.length === 0) {
             console.log(`No contacts need email search for ${company.name}`);
-            continue;
+            return { processed: 0, emailsFound: 0, result: null };
           }
           
           let companyEmailsFound = 0;
+          let companyProcessed = 0;
           
           // Phase 1: Try Perplexity enrichment for up to 2 contacts
           const perplexityContacts = topContacts.slice(0, 2);
@@ -2206,24 +2214,27 @@ Then, on a new line, write the body of the email. Keep both subject and content 
                   completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
                 });
                 companyEmailsFound++;
-                totalEmailsFound++;
                 console.log(`Perplexity found email for ${contact.name}: ${enrichedDetails.email}`);
               }
-              totalProcessed++;
+              companyProcessed++;
             } catch (error) {
               console.error(`Perplexity search failed for contact ${contact.id}:`, error);
+              companyProcessed++;
             }
           }
           
-          // If Perplexity found emails, move to next company
+          // If Perplexity found emails, return result
           if (companyEmailsFound > 0) {
-            results.push({
-              companyId: company.id,
-              companyName: company.name,
+            return {
+              processed: companyProcessed,
               emailsFound: companyEmailsFound,
-              source: 'Perplexity'
-            });
-            continue;
+              result: {
+                companyId: company.id,
+                companyName: company.name,
+                emailsFound: companyEmailsFound,
+                source: 'Perplexity'
+              }
+            };
           }
           
           // Phase 2: Try existing Apollo endpoint for best contact
@@ -2245,25 +2256,28 @@ Then, on a new line, write the body of the email. Keep both subject and content 
                 const contactData = apolloResponse.status === 200 ? apolloData : apolloData.contact;
                 if (contactData.email && contactData.email.length > 5) {
                   companyEmailsFound++;
-                  totalEmailsFound++;
                   console.log(`Apollo found email for ${bestContact.name}: ${contactData.email}`);
                 }
-                totalProcessed++;
+                companyProcessed++;
               }
             } catch (error) {
               console.error(`Apollo search failed for contact ${bestContact.id}:`, error);
+              companyProcessed++;
             }
           }
           
-          // If Apollo found emails, move to next company
+          // If Apollo found emails, return result
           if (companyEmailsFound > 0) {
-            results.push({
-              companyId: company.id,
-              companyName: company.name,
+            return {
+              processed: companyProcessed,
               emailsFound: companyEmailsFound,
-              source: 'Apollo'
-            });
-            continue;
+              result: {
+                companyId: company.id,
+                companyName: company.name,
+                emailsFound: companyEmailsFound,
+                source: 'Apollo'
+              }
+            };
           }
           
           // Phase 3: Try existing Hunter endpoint for best contact
@@ -2284,25 +2298,44 @@ Then, on a new line, write the body of the email. Keep both subject and content 
                 const contactData = hunterResponse.status === 200 ? hunterData : hunterData.contact;
                 if (contactData.email && contactData.email.length > 5) {
                   companyEmailsFound++;
-                  totalEmailsFound++;
                   console.log(`Hunter found email for ${bestContact.name}: ${contactData.email}`);
                 }
-                totalProcessed++;
+                companyProcessed++;
               }
             } catch (error) {
               console.error(`Hunter search failed for contact ${bestContact.id}:`, error);
+              companyProcessed++;
             }
           }
           
-          results.push({
-            companyId: company.id,
-            companyName: company.name,
+          return {
+            processed: companyProcessed,
             emailsFound: companyEmailsFound,
-            source: companyEmailsFound > 0 ? 'Hunter' : 'None'
-          });
+            result: {
+              companyId: company.id,
+              companyName: company.name,
+              emailsFound: companyEmailsFound,
+              source: companyEmailsFound > 0 ? 'Hunter' : 'None'
+            }
+          };
           
         } catch (error) {
           console.error(`Error processing company ${companyId}:`, error);
+          return { processed: 0, emailsFound: 0, result: null };
+        }
+      };
+      
+      // Process all companies in parallel with staggered starts
+      const companyResults = await Promise.all(
+        companyIds.map((companyId, index) => processCompany(companyId, index))
+      );
+      
+      // Collect results and calculate totals
+      for (const { processed, emailsFound, result } of companyResults) {
+        totalProcessed += processed;
+        totalEmailsFound += emailsFound;
+        if (result) {
+          results.push(result);
         }
       }
       
