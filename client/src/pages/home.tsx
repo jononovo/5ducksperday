@@ -110,6 +110,7 @@ export default function Home() {
   // Track if component is mounted to prevent localStorage corruption during unmount
   const isMountedRef = useRef(true);
   const isInitializedRef = useRef(false);
+  const hasSessionRestoredDataRef = useRef(false);
 
   // Helper function to load valid search state with fallback
   const loadSearchState = (): SavedSearchState | null => {
@@ -150,16 +151,20 @@ export default function Home() {
       localStorage.removeItem('pendingSearchQuery');
       // No longer automatically triggering search - user must click the search button
     } else {
-      // Load saved search state if no pending query
-      const savedState = loadSearchState();
-      if (savedState) {
-        console.log('Loading saved search state:', {
-          query: savedState.currentQuery,
-          resultsCount: savedState.currentResults?.length,
-          companies: savedState.currentResults?.map(c => ({ id: c.id, name: c.name }))
-        });
-        setCurrentQuery(savedState.currentQuery);
-        setCurrentResults(savedState.currentResults);
+      // Load saved search state if no pending query and no session-restored data
+      if (!hasSessionRestoredDataRef.current) {
+        const savedState = loadSearchState();
+        if (savedState) {
+          console.log('Loading saved search state:', {
+            query: savedState.currentQuery,
+            resultsCount: savedState.currentResults?.length,
+            companies: savedState.currentResults?.map(c => ({ id: c.id, name: c.name }))
+          });
+          setCurrentQuery(savedState.currentQuery);
+          setCurrentResults(savedState.currentResults);
+        }
+      } else {
+        console.log('Skipping localStorage load - session restoration data already present');
       }
     }
     
@@ -310,6 +315,8 @@ export default function Home() {
   // New handler for initial companies data
   const handleCompaniesReceived = (query: string, companies: Company[]) => {
     console.log('Companies received:', companies.length);
+    // Mark that we've received session-restored data
+    hasSessionRestoredDataRef.current = true;
     // Update the UI with just the companies data
     setCurrentQuery(query);
     // Convert Company[] to CompanyWithContacts[] with empty contacts arrays
