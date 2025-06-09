@@ -335,6 +335,9 @@ export default function Home() {
     console.log('Current component state - results count:', currentResults?.length || 0);
     console.log('Complete results received with contacts:', results.length);
     
+    // Mark that we've received session-restored data
+    hasSessionRestoredDataRef.current = true;
+    
     // Sort companies by contact count (most contacts first)
     const sortedResults = [...results].sort((a, b) => {
       const contactsA = a.contacts?.length || 0;
