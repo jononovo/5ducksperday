@@ -953,14 +953,12 @@ export default function Home() {
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [contactReportVisible, setContactReportVisible] = useState(false);
 
-  // Enhanced progress queue system
+  // Event-driven progress queue system
   const progressQueue = [
-    { name: "Starting Key Emails Search", minDuration: 3000, triggerEvent: 'start' },
-    { name: "Analyzing Contact Priorities", minDuration: 3000, triggerEvent: 'backend_call' },
-    { name: "Perplexity Contact Enrichment", minDuration: 8000 },
-    { name: "Apollo Professional Search", minDuration: 6000 },
-    { name: "Hunter Email Discovery", minDuration: 5000 },
-    { name: "Finalizing Results", minDuration: 3000, triggerEvent: 'response' }
+    { name: "Starting Key Emails Search", triggerEvent: 'start' },
+    { name: "Processing Companies", triggerEvent: 'backend_call' },
+    { name: "Searching for Emails", triggerEvent: 'backend_processing' },
+    { name: "Finalizing Results", triggerEvent: 'response' }
   ];
 
   const [progressState, setProgressState] = useState({
@@ -1008,21 +1006,17 @@ export default function Home() {
         if (!currentPhaseData || currentState.currentPhase >= progressQueue.length - 1) {
           return currentState;
         }
-
-        const elapsed = Date.now() - currentState.startTime;
         
-        // Check if we can advance based on trigger events
+        // Check if we can advance based on trigger events only (no timing delays)
         const canAdvance = 
-          elapsed >= currentPhaseData.minDuration &&
-          (
-            !currentPhaseData.triggerEvent ||
-            (currentPhaseData.triggerEvent === 'start' && currentState.currentPhase === 0) ||
-            (currentPhaseData.triggerEvent === 'backend_call' && currentState.backendStarted) ||
-            (currentPhaseData.triggerEvent === 'response' && currentState.backendCompleted)
-          );
+          !currentPhaseData.triggerEvent ||
+          (currentPhaseData.triggerEvent === 'start' && currentState.currentPhase === 0) ||
+          (currentPhaseData.triggerEvent === 'backend_call' && currentState.backendStarted) ||
+          (currentPhaseData.triggerEvent === 'backend_processing' && currentState.backendStarted) ||
+          (currentPhaseData.triggerEvent === 'response' && currentState.backendCompleted);
 
         if (canAdvance) {
-          // Advance to next phase
+          // Advance to next phase immediately
           const nextPhase = currentState.currentPhase + 1;
           if (nextPhase < progressQueue.length) {
             const nextPhaseData = progressQueue[nextPhase];
@@ -1034,7 +1028,7 @@ export default function Home() {
               total: progressQueue.length
             });
 
-            // Schedule next advancement
+            // Schedule next advancement check
             progressTimerRef.current = setTimeout(scheduleNextAdvancement, 100);
 
             return {
@@ -1044,15 +1038,15 @@ export default function Home() {
             };
           }
         } else {
-          // Check again in 500ms if we can't advance yet
-          progressTimerRef.current = setTimeout(scheduleNextAdvancement, 500);
+          // Check again in 200ms if we can't advance yet
+          progressTimerRef.current = setTimeout(scheduleNextAdvancement, 200);
         }
         
         return currentState;
       });
     };
 
-    // Start the first advancement check after a short delay
+    // Start the first advancement check immediately
     progressTimerRef.current = setTimeout(scheduleNextAdvancement, 100);
   };
 
@@ -1279,16 +1273,14 @@ export default function Home() {
       // Mark backend as completed (triggers final phase advancement)
       setProgressState(prev => ({ ...prev, backendCompleted: true }));
       
-      // Wait a moment for final phase to show
-      setTimeout(async () => {
-        toast({
-          title: "Email Search Complete",
-          description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies`,
-        });
-        
-        // Refresh contact data and complete search
-        await finishSearch();
-      }, 1500);
+      // Complete search immediately
+      toast({
+        title: "Email Search Complete",
+        description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies`,
+      });
+      
+      // Refresh contact data and complete search
+      await finishSearch();
       
     } catch (error) {
       console.error("Backend email orchestration error:", error);
