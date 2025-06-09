@@ -923,6 +923,118 @@ export default function Home() {
   });
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [contactReportVisible, setContactReportVisible] = useState(false);
+
+  // Enhanced progress queue system
+  const progressQueue = [
+    { name: "Starting Key Emails Search", minDuration: 3000, triggerEvent: 'start' },
+    { name: "Analyzing Contact Priorities", minDuration: 3000, triggerEvent: 'backend_call' },
+    { name: "Perplexity Contact Enrichment", minDuration: 8000 },
+    { name: "Apollo Professional Search", minDuration: 6000 },
+    { name: "Hunter Email Discovery", minDuration: 5000 },
+    { name: "Finalizing Results", minDuration: 3000, triggerEvent: 'response' }
+  ];
+
+  const [progressState, setProgressState] = useState({
+    currentPhase: 0,
+    startTime: 0,
+    backendStarted: false,
+    backendCompleted: false
+  });
+
+  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Progress advancement system
+  const advanceProgress = () => {
+    setProgressState(prev => {
+      const nextPhase = prev.currentPhase + 1;
+      if (nextPhase >= progressQueue.length) {
+        return prev; // Don't advance beyond final phase
+      }
+
+      const currentPhaseData = progressQueue[nextPhase];
+      
+      // Update search progress display
+      setSearchProgress({
+        phase: currentPhaseData.name,
+        completed: nextPhase,
+        total: progressQueue.length
+      });
+
+      return {
+        ...prev,
+        currentPhase: nextPhase,
+        startTime: Date.now()
+      };
+    });
+  };
+
+  const startProgressTimer = () => {
+    if (progressTimerRef.current) {
+      clearTimeout(progressTimerRef.current);
+    }
+
+    const scheduleNextAdvancement = () => {
+      setProgressState(currentState => {
+        const currentPhaseData = progressQueue[currentState.currentPhase];
+        if (!currentPhaseData || currentState.currentPhase >= progressQueue.length - 1) {
+          return currentState;
+        }
+
+        const elapsed = Date.now() - currentState.startTime;
+        
+        // Check if we can advance based on trigger events
+        const canAdvance = 
+          elapsed >= currentPhaseData.minDuration &&
+          (
+            !currentPhaseData.triggerEvent ||
+            (currentPhaseData.triggerEvent === 'start' && currentState.currentPhase === 0) ||
+            (currentPhaseData.triggerEvent === 'backend_call' && currentState.backendStarted) ||
+            (currentPhaseData.triggerEvent === 'response' && currentState.backendCompleted)
+          );
+
+        if (canAdvance) {
+          // Advance to next phase
+          const nextPhase = currentState.currentPhase + 1;
+          if (nextPhase < progressQueue.length) {
+            const nextPhaseData = progressQueue[nextPhase];
+            
+            // Update search progress display
+            setSearchProgress({
+              phase: nextPhaseData.name,
+              completed: nextPhase,
+              total: progressQueue.length
+            });
+
+            // Schedule next advancement
+            progressTimerRef.current = setTimeout(scheduleNextAdvancement, 100);
+
+            return {
+              ...currentState,
+              currentPhase: nextPhase,
+              startTime: Date.now()
+            };
+          }
+        } else {
+          // Check again in 500ms if we can't advance yet
+          progressTimerRef.current = setTimeout(scheduleNextAdvancement, 500);
+        }
+        
+        return currentState;
+      });
+    };
+
+    // Start the first advancement check after a short delay
+    progressTimerRef.current = setTimeout(scheduleNextAdvancement, 100);
+  };
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (progressTimerRef.current) {
+        clearTimeout(progressTimerRef.current);
+      }
+    };
+  }, []);
   
   // Effect to highlight Start Selling button when email search completes
   useEffect(() => {
@@ -1075,14 +1187,31 @@ export default function Home() {
     }
   };
   
-  // Backend-orchestrated email search function
+  // Backend-orchestrated email search function with enhanced progress
   const runConsolidatedEmailSearch = async () => {
     if (!currentResults || currentResults.length === 0) return;
     
     setIsConsolidatedSearching(true);
     isAutomatedSearchRef.current = true;
     setSummaryVisible(false);
-    setSearchProgress({ phase: "Preparing", completed: 0, total: currentResults.length });
+    
+    // Initialize progress queue
+    setProgressState({
+      currentPhase: 0,
+      startTime: Date.now(),
+      backendStarted: false,
+      backendCompleted: false
+    });
+    
+    // Set initial progress
+    setSearchProgress({
+      phase: progressQueue[0].name,
+      completed: 0,
+      total: progressQueue.length
+    });
+    
+    // Start progress timer
+    startProgressTimer();
     
     try {
       // Get companies without emails (only check top 3 contacts)
@@ -1100,11 +1229,9 @@ export default function Home() {
       const companyIds = companiesNeedingEmails.map(company => company.id);
       
       console.log(`Starting backend email orchestration for ${companyIds.length} companies`);
-      setSearchProgress({ 
-        phase: "Backend Email Search", 
-        completed: 0, 
-        total: companyIds.length 
-      });
+      
+      // Mark backend as started (triggers phase advancement)
+      setProgressState(prev => ({ ...prev, backendStarted: true }));
       
       // Call backend orchestration endpoint
       const response = await apiRequest("POST", "/api/companies/find-all-emails", {
@@ -1119,13 +1246,20 @@ export default function Home() {
       const data = await response.json();
       
       console.log(`Backend orchestration completed:`, data.summary);
-      toast({
-        title: "Email Search Complete",
-        description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies`,
-      });
       
-      // Refresh contact data and complete search
-      await finishSearch();
+      // Mark backend as completed (triggers final phase advancement)
+      setProgressState(prev => ({ ...prev, backendCompleted: true }));
+      
+      // Wait a moment for final phase to show
+      setTimeout(async () => {
+        toast({
+          title: "Email Search Complete",
+          description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies`,
+        });
+        
+        // Refresh contact data and complete search
+        await finishSearch();
+      }, 1500);
       
     } catch (error) {
       console.error("Backend email orchestration error:", error);
@@ -1136,6 +1270,11 @@ export default function Home() {
       });
       setIsConsolidatedSearching(false);
       isAutomatedSearchRef.current = false;
+      
+      // Clear progress timer on error
+      if (progressTimerRef.current) {
+        clearTimeout(progressTimerRef.current);
+      }
     }
   };
 
