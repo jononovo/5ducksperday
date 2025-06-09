@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -99,12 +99,35 @@ export default function PromptEditor({
   // Session management state
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState(false);
+  const [hasRestoredSession, setHasRestoredSession] = useState(false);
+  
+  // Stable refs for session management
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isPollingRef = useRef(false);
 
-  // Polling effect to check for session completion
+  // Stable callback refs to prevent useEffect dependencies
+  const stableOnSearchResults = useRef(onSearchResults);
+  const stableOnCompaniesReceived = useRef(onCompaniesReceived);
+  const stableOnSearchSuccess = useRef(onSearchSuccess);
+  const stableToast = useRef(toast);
+  
+  // Update refs when props change
   useEffect(() => {
-    if (!currentSessionId || !isPolling) return;
+    stableOnSearchResults.current = onSearchResults;
+    stableOnCompaniesReceived.current = onCompaniesReceived;
+    stableOnSearchSuccess.current = onSearchSuccess;
+    stableToast.current = toast;
+  });
+
+  // Polling effect with proper cleanup
+  useEffect(() => {
+    if (!currentSessionId || !isPolling || isPollingRef.current) return;
+
+    isPollingRef.current = true;
 
     const pollForCompletion = async () => {
+      if (!isPollingRef.current) return; // Exit if polling was stopped
+      
       try {
         const response = await fetch(`/api/search-sessions/${currentSessionId}`);
         if (response.ok) {
@@ -112,21 +135,39 @@ export default function PromptEditor({
           
           if (session.status === 'contacts_complete' && session.fullResults) {
             console.log('Session completed, restoring results:', session);
+            
+            // Stop polling before restoration
+            isPollingRef.current = false;
             setIsPolling(false);
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
+            }
+            
+            // Clean up the completed session to prevent re-restoration
+            SearchSessionManager.cleanupSession(session.id);
             
             // Restore the complete results
-            onSearchResults(session.query, session.fullResults);
-            onSearchSuccess?.();
+            stableOnSearchResults.current(session.query, session.fullResults);
+            stableOnSearchSuccess.current?.();
             
-            toast({
+            stableToast.current({
               title: "Search completed!",
               description: `Found results for "${session.query}"`,
             });
           } else if (session.status === 'failed') {
             console.log('Session failed:', session);
-            setIsPolling(false);
             
-            toast({
+            isPollingRef.current = false;
+            setIsPolling(false);
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
+            }
+            
+            SearchSessionManager.cleanupSession(session.id);
+            
+            stableToast.current({
               title: "Search failed",
               description: session.error || "An error occurred during search",
               variant: "destructive"
@@ -138,12 +179,21 @@ export default function PromptEditor({
       }
     };
 
-    const interval = setInterval(pollForCompletion, 3000); // Poll every 3 seconds
-    return () => clearInterval(interval);
-  }, [currentSessionId, isPolling, onSearchResults, onSearchSuccess, toast]);
+    pollingIntervalRef.current = setInterval(pollForCompletion, 3000);
+    
+    return () => {
+      isPollingRef.current = false;
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [currentSessionId, isPolling]);
 
-  // Check for existing sessions on mount
+  // Check for existing sessions on mount - run only once
   useEffect(() => {
+    if (hasRestoredSession) return; // Prevent multiple executions
+    
     const activeSessions = SearchSessionManager.getActiveSessions();
     const recentCompleteSession = SearchSessionManager.getMostRecentCompleteSession();
     
@@ -154,14 +204,15 @@ export default function PromptEditor({
       
       setCurrentSessionId(session.id);
       setIsPolling(true);
+      setHasRestoredSession(true);
       
       // If we have quick results, show them immediately
       if (session.quickResults && session.quickResults.length > 0) {
-        onCompaniesReceived(session.query, session.quickResults);
+        stableOnCompaniesReceived.current(session.query, session.quickResults);
         setQuery(session.query);
       }
       
-      toast({
+      stableToast.current({
         title: "Search in progress",
         description: `Continuing search for "${session.query}"`,
       });
@@ -169,11 +220,18 @@ export default function PromptEditor({
       // Restore the most recent complete session
       console.log('Restoring recent complete session:', recentCompleteSession);
       
-      onSearchResults(recentCompleteSession.query, recentCompleteSession.fullResults);
+      setHasRestoredSession(true);
+      stableOnSearchResults.current(recentCompleteSession.query, recentCompleteSession.fullResults);
       setQuery(recentCompleteSession.query);
-      onSearchSuccess?.();
+      stableOnSearchSuccess.current?.();
+      
+      // Clean up the restored session to prevent re-restoration
+      SearchSessionManager.cleanupSession(recentCompleteSession.id);
     }
-  }, [onSearchResults, onCompaniesReceived, onSearchSuccess, setQuery, toast]);
+    
+    // Cleanup old sessions on mount
+    SearchSessionManager.cleanupOldSessions();
+  }, []); // Empty dependency array - run only once on mount
 
   // Handle contact search config changes
   const handleContactSearchConfigChange = useCallback((config: ContactSearchConfig) => {

@@ -184,6 +184,18 @@ export class SearchSessionManager {
       }
     }
   }
+
+  /**
+   * Clean up a specific session by ID
+   */
+  static cleanupSession(sessionId: string): void {
+    try {
+      localStorage.removeItem(`${this.SESSION_PREFIX}${sessionId}`);
+      console.log('Cleaned up session:', sessionId);
+    } catch (error) {
+      console.error('Error cleaning up session:', error);
+    }
+  }
   
   /**
    * Clear all search sessions (for testing/debugging)
