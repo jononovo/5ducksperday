@@ -1502,7 +1502,31 @@ export function registerRoutes(app: Express) {
   app.get("/api/companies/:companyId/contacts", requireAuth, async (req, res) => {
     try {
       const userId = getUserId(req);
-      const contacts = await storage.listContactsByCompany(parseInt(req.params.companyId), userId);
+      const companyId = parseInt(req.params.companyId);
+      
+      // Check for cache invalidation timestamp parameter
+      const cacheTimestamp = req.query.t;
+      if (cacheTimestamp) {
+        console.log(`Cache invalidation requested for company ${companyId} contacts at timestamp ${cacheTimestamp}`);
+      }
+      
+      // Force fresh database query by clearing any potential cache
+      if (cacheTimestamp && storage.clearContactsCache) {
+        await storage.clearContactsCache(companyId);
+      }
+      
+      const contacts = await storage.listContactsByCompany(companyId, userId);
+      
+      // Set no-cache headers to prevent browser caching of fresh data
+      if (cacheTimestamp) {
+        res.set({
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        });
+        console.log(`Returning fresh contacts for company ${companyId}: ${contacts.length} contacts`);
+      }
+      
       res.json(contacts);
     } catch (error) {
       console.error("Error fetching contacts by company:", error);
