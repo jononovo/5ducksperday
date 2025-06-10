@@ -82,6 +82,15 @@ function ContactSearchChips({
     onConfigChange(config);
   }, [config, onConfigChange]);
 
+  // Cleanup mobile timer on unmount
+  useEffect(() => {
+    return () => {
+      if (mobileExpandTimerRef.current) {
+        clearTimeout(mobileExpandTimerRef.current);
+      }
+    };
+  }, []);
+
   const updateConfig = (updates: Partial<ContactSearchConfig>) => {
     setConfig(prev => ({ ...prev, ...updates }));
   };
