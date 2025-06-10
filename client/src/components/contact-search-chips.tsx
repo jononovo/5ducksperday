@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Settings2, Target, Users, Building, Crown, Check, Plus, X, Save, Edit2 } from "lucide-react";
 import {
@@ -38,6 +38,8 @@ function ContactSearchChips({
   const [customInputValue, setCustomInputValue] = useState("");
   const [customInput2Value, setCustomInput2Value] = useState("");
   const [originalCustomTarget, setOriginalCustomTarget] = useState("");
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const mobileExpandTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [config, setConfig] = useState<ContactSearchConfig>({
     enableCoreLeadership: true,
     enableDepartmentHeads: true,
@@ -82,6 +84,30 @@ function ContactSearchChips({
 
   const updateConfig = (updates: Partial<ContactSearchConfig>) => {
     setConfig(prev => ({ ...prev, ...updates }));
+  };
+
+  // Mobile click handler for expanded/compressed behavior
+  const handleMobileChipClick = (normalClickHandler: () => void) => {
+    const isMobile = window.innerWidth < 768; // md breakpoint
+    
+    if (!isMobile) {
+      normalClickHandler();
+      return;
+    }
+    
+    if (!isMobileExpanded) {
+      // First tap - expand all chips
+      setIsMobileExpanded(true);
+      
+      // Auto-collapse after 5 seconds
+      if (mobileExpandTimerRef.current) clearTimeout(mobileExpandTimerRef.current);
+      mobileExpandTimerRef.current = setTimeout(() => {
+        setIsMobileExpanded(false);
+      }, 5000);
+    } else {
+      // Already expanded - normal behavior
+      normalClickHandler();
+    }
   };
 
   const handleCustomInputSave = () => {
@@ -168,10 +194,12 @@ function ContactSearchChips({
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => updateConfig({ enableCoreLeadership: !config.enableCoreLeadership })}
+              onClick={() => handleMobileChipClick(() => updateConfig({ enableCoreLeadership: !config.enableCoreLeadership }))}
               disabled={disabled}
               className={`
                 flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
+                md:gap-2 gap-1 md:px-3 px-2
+                ${!isMobileExpanded ? 'max-md:w-10 max-md:h-10 max-md:justify-center max-md:px-0' : ''}
                 ${config.enableCoreLeadership 
                   ? (hasSearchResults && !inputHasChanged)
                     ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -183,7 +211,7 @@ function ContactSearchChips({
             >
               {config.enableCoreLeadership && <Check className="h-3 w-3" />}
               <Crown className="h-3 w-3" />
-              <span className="text-sm font-medium">Leadership</span>
+              <span className={`text-sm font-medium ${!isMobileExpanded ? 'max-md:hidden' : ''}`}>Leadership</span>
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -197,10 +225,12 @@ function ContactSearchChips({
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => updateConfig({ enableDepartmentHeads: !config.enableDepartmentHeads })}
+              onClick={() => handleMobileChipClick(() => updateConfig({ enableDepartmentHeads: !config.enableDepartmentHeads }))}
               disabled={disabled}
               className={`
                 flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
+                md:gap-2 gap-1 md:px-3 px-2
+                ${!isMobileExpanded ? 'max-md:w-10 max-md:h-10 max-md:justify-center max-md:px-0' : ''}
                 ${config.enableDepartmentHeads 
                   ? (hasSearchResults && !inputHasChanged)
                     ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -212,7 +242,7 @@ function ContactSearchChips({
             >
               {config.enableDepartmentHeads && <Check className="h-3 w-3" />}
               <Building className="h-3 w-3" />
-              <span className="text-sm font-medium">Department Heads</span>
+              <span className={`text-sm font-medium ${!isMobileExpanded ? 'max-md:hidden' : ''}`}>Department Heads</span>
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -226,10 +256,12 @@ function ContactSearchChips({
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => updateConfig({ enableMiddleManagement: !config.enableMiddleManagement })}
+              onClick={() => handleMobileChipClick(() => updateConfig({ enableMiddleManagement: !config.enableMiddleManagement }))}
               disabled={disabled}
               className={`
                 flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
+                md:gap-2 gap-1 md:px-3 px-2
+                ${!isMobileExpanded ? 'max-md:w-10 max-md:h-10 max-md:justify-center max-md:px-0' : ''}
                 ${config.enableMiddleManagement 
                   ? (hasSearchResults && !inputHasChanged)
                     ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -241,7 +273,7 @@ function ContactSearchChips({
             >
               {config.enableMiddleManagement && <Check className="h-3 w-3" />}
               <Users className="h-3 w-3" />
-              <span className="text-sm font-medium">Middle Management</span>
+              <span className={`text-sm font-medium ${!isMobileExpanded ? 'max-md:hidden' : ''}`}>Middle Management</span>
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -324,10 +356,12 @@ function ContactSearchChips({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={toggleCustomSearch}
+                onClick={() => handleMobileChipClick(toggleCustomSearch)}
                 disabled={disabled}
                 className={`
                   flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
+                  md:gap-2 gap-1 md:px-3 px-2
+                  ${!isMobileExpanded ? 'max-md:w-10 max-md:h-10 max-md:justify-center max-md:px-0' : ''}
                   ${config.enableCustomSearch 
                     ? (hasSearchResults && !inputHasChanged)
                       ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -339,7 +373,7 @@ function ContactSearchChips({
               >
                 {config.enableCustomSearch && <Check className="h-3 w-3" />}
                 <Target className="h-3 w-3" />
-                <span className="text-sm font-medium">{config.customSearchTarget}</span>
+                <span className={`text-sm font-medium ${!isMobileExpanded ? 'max-md:hidden' : ''}`}>{config.customSearchTarget}</span>
                 <span
                   onClick={(e) => {
                     e.stopPropagation();
@@ -441,10 +475,12 @@ function ContactSearchChips({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={toggleCustomSearch2}
+                onClick={() => handleMobileChipClick(toggleCustomSearch2)}
                 disabled={disabled}
                 className={`
                   flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
+                  md:gap-2 gap-1 md:px-3 px-2
+                  ${!isMobileExpanded ? 'max-md:w-10 max-md:h-10 max-md:justify-center max-md:px-0' : ''}
                   ${config.enableCustomSearch2 
                     ? (hasSearchResults && !inputHasChanged)
                       ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -456,7 +492,7 @@ function ContactSearchChips({
               >
                 {config.enableCustomSearch2 && <Check className="h-3 w-3" />}
                 <Target className="h-3 w-3" />
-                <span className="text-sm font-medium">{config.customSearchTarget2}</span>
+                <span className={`text-sm font-medium ${!isMobileExpanded ? 'max-md:hidden' : ''}`}>{config.customSearchTarget2}</span>
                 <span
                   onClick={(e) => {
                     e.stopPropagation();
