@@ -240,6 +240,54 @@ function generateSitemap(req: express.Request, res: express.Response) {
 }
 
 export function registerRoutes(app: Express) {
+  // Session status endpoint for polling
+  app.get("/api/search-sessions/:sessionId/status", (req, res) => {
+    try {
+      const sessionId = req.params.sessionId;
+      const session = global.searchSessions.get(sessionId);
+      
+      if (!session) {
+        res.status(404).json({
+          success: false,
+          error: "Session not found"
+        });
+        return;
+      }
+      
+      // Check if session has expired
+      if (Date.now() - session.timestamp > session.ttl) {
+        global.searchSessions.delete(sessionId);
+        res.status(404).json({
+          success: false,
+          error: "Session expired"
+        });
+        return;
+      }
+      
+      res.json({
+        success: true,
+        session: {
+          id: session.sessionId,
+          query: session.query,
+          status: session.status,
+          quickResults: session.quickResults,
+          fullResults: session.fullResults,
+          error: session.error,
+          timestamp: session.timestamp,
+          emailSearchStatus: session.emailSearchStatus || 'none',
+          emailSearchCompleted: session.emailSearchCompleted
+        }
+      });
+      
+    } catch (error) {
+      console.error('Session status error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to get session status"
+      });
+    }
+  });
+
   // Serve static files from the static directory
   app.use('/static', express.static(path.join(__dirname, '../static')));
   
