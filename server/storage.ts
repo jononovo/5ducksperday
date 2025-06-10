@@ -14,7 +14,7 @@ import {
   type OnboardingChat, type InsertOnboardingChat
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, sql } from "drizzle-orm";
+import { eq, and, or, sql, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User Auth
@@ -150,7 +150,7 @@ class DatabaseStorage implements IStorage {
 
   // Lists
   async listLists(userId: number): Promise<List[]> {
-    return db.select().from(lists).where(eq(lists.userId, userId));
+    return db.select().from(lists).where(eq(lists.userId, userId)).orderBy(desc(lists.createdAt));
   }
 
   async getList(listId: number, userId: number): Promise<List | undefined> {
