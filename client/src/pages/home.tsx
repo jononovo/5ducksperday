@@ -1198,101 +1198,71 @@ export default function Home() {
   const [lastEmailSearchCount, setLastEmailSearchCount] = useState(0);
   const [lastSourceBreakdown, setLastSourceBreakdown] = useState<SourceBreakdown | undefined>(undefined);
 
-  // Event-driven progress queue system
+  // Time-based progress queue system with realistic timing
   const progressQueue = [
-    { name: "Starting Key Emails Search", triggerEvent: 'start' },
-    { name: "Processing Companies", triggerEvent: 'backend_call' },
-    { name: "Searching for Emails", triggerEvent: 'backend_processing' },
-    { name: "Finalizing Results", triggerEvent: 'response' }
+    { name: "Starting Key Emails Search", duration: 1000 }, // 1 second
+    { name: "Processing Companies", duration: 2000 },       // 2 seconds  
+    { name: "Searching for Emails", duration: 3000 },      // 3 seconds
+    { name: "Finalizing Results", duration: 1500 }         // 1.5 seconds
   ];
 
   const [progressState, setProgressState] = useState({
     currentPhase: 0,
     startTime: 0,
-    backendStarted: false,
     backendCompleted: false
   });
 
   const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Progress advancement system
-  const advanceProgress = () => {
-    setProgressState(prev => {
-      const nextPhase = prev.currentPhase + 1;
-      if (nextPhase >= progressQueue.length) {
-        return prev; // Don't advance beyond final phase
-      }
-
-      const currentPhaseData = progressQueue[nextPhase];
-      
-      // Update search progress display
-      setSearchProgress({
-        phase: currentPhaseData.name,
-        completed: nextPhase,
-        total: progressQueue.length
-      });
-
-      return {
-        ...prev,
-        currentPhase: nextPhase,
-        startTime: Date.now()
-      };
-    });
-  };
 
   const startProgressTimer = () => {
     if (progressTimerRef.current) {
       clearTimeout(progressTimerRef.current);
     }
 
-    const scheduleNextAdvancement = () => {
-      setProgressState(currentState => {
-        const currentPhaseData = progressQueue[currentState.currentPhase];
-        if (!currentPhaseData || currentState.currentPhase >= progressQueue.length - 1) {
-          return currentState;
-        }
+    let currentPhase = 0;
+    const totalDuration = progressQueue.reduce((sum, phase) => sum + phase.duration, 0);
+    
+    const updateProgress = () => {
+      if (currentPhase < progressQueue.length) {
+        const currentPhaseData = progressQueue[currentPhase];
         
-        // Check if we can advance based on trigger events only (no timing delays)
-        const canAdvance = 
-          !currentPhaseData.triggerEvent ||
-          (currentPhaseData.triggerEvent === 'start' && currentState.currentPhase === 0) ||
-          (currentPhaseData.triggerEvent === 'backend_call' && currentState.backendStarted) ||
-          (currentPhaseData.triggerEvent === 'backend_processing' && currentState.backendStarted) ||
-          (currentPhaseData.triggerEvent === 'response' && currentState.backendCompleted);
-
-        if (canAdvance) {
-          // Advance to next phase immediately
-          const nextPhase = currentState.currentPhase + 1;
-          if (nextPhase < progressQueue.length) {
-            const nextPhaseData = progressQueue[nextPhase];
-            
-            // Update search progress display
-            setSearchProgress({
-              phase: nextPhaseData.name,
-              completed: nextPhase,
-              total: progressQueue.length
-            });
-
-            // Schedule next advancement check
-            progressTimerRef.current = setTimeout(scheduleNextAdvancement, 100);
-
-            return {
-              ...currentState,
-              currentPhase: nextPhase,
-              startTime: Date.now()
-            };
-          }
+        // Update progress display
+        setSearchProgress({
+          phase: currentPhaseData.name,
+          completed: currentPhase + 1,
+          total: progressQueue.length
+        });
+        
+        // Schedule next phase
+        if (currentPhase < progressQueue.length - 1) {
+          progressTimerRef.current = setTimeout(() => {
+            currentPhase++;
+            updateProgress();
+          }, currentPhaseData.duration);
         } else {
-          // Check again in 200ms if we can't advance yet
-          progressTimerRef.current = setTimeout(scheduleNextAdvancement, 200);
+          // Final phase - wait for backend completion or timeout
+          const finalPhaseTimeout = setTimeout(() => {
+            // Force completion if backend takes too long
+            if (!progressState.backendCompleted) {
+              setProgressState(prev => ({ ...prev, backendCompleted: true }));
+            }
+          }, currentPhaseData.duration);
+          
+          // Clear timeout if backend completes early
+          const checkBackendCompletion = () => {
+            if (progressState.backendCompleted) {
+              clearTimeout(finalPhaseTimeout);
+            } else {
+              setTimeout(checkBackendCompletion, 200);
+            }
+          };
+          checkBackendCompletion();
         }
-        
-        return currentState;
-      });
+      }
     };
-
-    // Start the first advancement check immediately
-    progressTimerRef.current = setTimeout(scheduleNextAdvancement, 100);
+    
+    // Start progress sequence
+    updateProgress();
   };
 
   // Clean up timer on unmount
@@ -1438,6 +1408,12 @@ export default function Home() {
       console.error("Cache refresh failed:", error);
     }
     
+    // Clean up progress timer
+    if (progressTimerRef.current) {
+      clearTimeout(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+    
     // Original finish logic
     setIsConsolidatedSearching(false);
     isAutomatedSearchRef.current = false;
@@ -1489,22 +1465,21 @@ export default function Home() {
     
 
     
-    // Initialize progress queue
+    // Initialize progress state
     setProgressState({
       currentPhase: 0,
       startTime: Date.now(),
-      backendStarted: false,
       backendCompleted: false
     });
     
     // Set initial progress
     setSearchProgress({
       phase: progressQueue[0].name,
-      completed: 0,
+      completed: 1,
       total: progressQueue.length
     });
     
-    // Start progress timer
+    // Start realistic progress timer
     startProgressTimer();
     
     try {
@@ -1533,8 +1508,7 @@ export default function Home() {
         SearchSessionManager.markEmailSearchStarted(currentSessionId);
       }
       
-      // Mark backend as started (triggers phase advancement)
-      setProgressState(prev => ({ ...prev, backendStarted: true }));
+
       
       // Call backend orchestration endpoint with session ID
       const response = await apiRequest("POST", "/api/companies/find-all-emails", {
@@ -1556,7 +1530,7 @@ export default function Home() {
         SearchSessionManager.markEmailSearchCompleted(currentSessionId);
       }
       
-      // Mark backend as completed (triggers final phase advancement)
+      // Mark backend as completed
       setProgressState(prev => ({ ...prev, backendCompleted: true }));
       
       // Store the backend email count and source breakdown for summary display
