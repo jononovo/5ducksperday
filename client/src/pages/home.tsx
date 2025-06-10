@@ -150,6 +150,53 @@ export default function Home() {
     return null;
   };
 
+  // Auto-refresh contact data if there was a recent email search
+  const refreshContactDataIfNeeded = async (companies: CompanyWithContacts[]) => {
+    try {
+      // Check if there was a recent email search (within last 2 minutes)
+      const lastEmailSearch = localStorage.getItem('lastEmailSearchTimestamp');
+      if (lastEmailSearch) {
+        const timeSinceSearch = Date.now() - parseInt(lastEmailSearch);
+        if (timeSinceSearch < 120000) { // 2 minutes
+          console.log('Recent email search detected, refreshing contact data...');
+          
+          const refreshedResults = await Promise.all(
+            companies.map(async (company) => {
+              try {
+                const response = await apiRequest("GET", `/api/companies/${company.id}/contacts`);
+                const freshContacts = await response.json();
+                return {
+                  ...company,
+                  contacts: freshContacts
+                };
+              } catch (error) {
+                console.error(`Failed to refresh contacts for company ${company.id}:`, error);
+                return company;
+              }
+            })
+          );
+          
+          setCurrentResults(refreshedResults);
+          
+          // Update localStorage with refreshed data
+          const stateToSave = {
+            currentQuery,
+            currentResults: refreshedResults,
+            currentListId
+          };
+          localStorage.setItem('searchState', JSON.stringify(stateToSave));
+          sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
+          
+          // Clear the timestamp as we've refreshed the data
+          localStorage.removeItem('lastEmailSearchTimestamp');
+          console.log('Contact data refresh completed');
+        }
+      }
+    } catch (error) {
+      console.error('Auto-refresh failed:', error);
+    }
+  };
+
   // Load state from localStorage on component mount
   useEffect(() => {
     // Check for pending search query from landing page
@@ -174,6 +221,11 @@ export default function Home() {
           setCurrentQuery(savedState.currentQuery);
           setCurrentResults(savedState.currentResults);
           setCurrentListId(savedState.currentListId);
+          
+          // Auto-refresh contact data if there was a recent email search
+          if (savedState.currentResults && savedState.currentResults.length > 0) {
+            refreshContactDataIfNeeded(savedState.currentResults);
+          }
         }
       } else {
         console.log('Skipping localStorage load - session restoration data already present');
@@ -1339,13 +1391,17 @@ export default function Home() {
         // Update localStorage with fresh data using existing pattern
         const stateToSave = {
           currentQuery,
-          currentResults: refreshedResults
+          currentResults: refreshedResults,
+          currentListId
         };
         const stateString = JSON.stringify(stateToSave);
         localStorage.setItem('searchState', stateString);
         sessionStorage.setItem('searchState', stateString);
         
         console.log("Cache refresh completed - all contact data updated");
+        
+        // Add a small delay to ensure the UI updates are processed
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     } catch (error) {
       console.error("Cache refresh failed:", error);
@@ -1400,6 +1456,9 @@ export default function Home() {
     setIsConsolidatedSearching(true);
     isAutomatedSearchRef.current = true;
     setSummaryVisible(false);
+    
+    // Mark the start of email search for auto-refresh mechanism
+    localStorage.setItem('lastEmailSearchTimestamp', Date.now().toString());
     
     // Initialize progress queue
     setProgressState({
