@@ -1504,27 +1504,18 @@ export function registerRoutes(app: Express) {
       const userId = getUserId(req);
       const companyId = parseInt(req.params.companyId);
       
-      // Check for cache invalidation timestamp parameter
+      // Handle cache invalidation for fresh data requests
       const cacheTimestamp = req.query.t;
-      if (cacheTimestamp) {
-        console.log(`Cache invalidation requested for company ${companyId} contacts at timestamp ${cacheTimestamp}`);
-      }
-      
-      // Force fresh database query by clearing any potential cache
-      if (cacheTimestamp && storage.clearContactsCache) {
-        await storage.clearContactsCache(companyId);
-      }
       
       const contacts = await storage.listContactsByCompany(companyId, userId);
       
-      // Set no-cache headers to prevent browser caching of fresh data
+      // Set no-cache headers for fresh data requests
       if (cacheTimestamp) {
         res.set({
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         });
-        console.log(`Returning fresh contacts for company ${companyId}: ${contacts.length} contacts`);
       }
       
       res.json(contacts);
@@ -2346,7 +2337,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         return;
       }
       
-      console.log(`Starting backend email orchestration for ${companyIds.length} companies`);
+
       
       // Mark email search as started in session if sessionId provided
       if (sessionId) {

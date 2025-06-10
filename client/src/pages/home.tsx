@@ -1372,35 +1372,24 @@ export default function Home() {
     return getTopContacts(company, 1)[0];
   };
 
-  // Helper function to finish search with aggressive cache invalidation
+  // Helper function to finish search with cache invalidation
   const finishSearch = async () => {
-    console.log("Email search completed - forcing fresh data reload from database");
-    
     try {
-      // Clear all contact-related cache to force fresh requests
-      console.log("Clearing browser cache and localStorage contact data");
-      
-      // Clear localStorage contact cache
+      // Clear browser cache to force fresh requests
       Object.keys(localStorage).forEach(key => {
         if (key.includes('contact') || key.includes('company') || key.includes('search')) {
           localStorage.removeItem(key);
         }
       });
-      
-      // Clear sessionStorage as well
       sessionStorage.clear();
       
-      // Force fresh requests with cache-busting timestamp
+      // Fetch fresh contact data with cache-busting timestamp
       const cacheTimestamp = Date.now();
-      console.log(`Using cache-busting timestamp: ${cacheTimestamp}`);
       
-      // Fetch fresh contact data for all companies from database with cache invalidation
       if (currentResults && currentResults.length > 0) {
         const refreshedResults = await Promise.all(
           currentResults.map(async (company) => {
             try {
-              console.log(`Fetching fresh contacts for ${company.name} with cache invalidation`);
-              
               const response = await fetch(`/api/companies/${company.id}/contacts?t=${cacheTimestamp}`, {
                 method: 'GET',
                 cache: 'no-cache',
@@ -1414,31 +1403,26 @@ export default function Home() {
               
               if (response.ok) {
                 const freshContacts = await response.json();
-                console.log(`Fresh contacts loaded for ${company.name}:`, freshContacts.length, 'contacts');
                 return {
                   ...company,
                   contacts: freshContacts
                 };
               } else {
-                console.error(`Failed to fetch fresh contacts for ${company.name}:`, response.status);
                 return company;
               }
             } catch (error) {
-              console.error(`Failed to refresh contacts for company ${company.id}:`, error);
-              return company; // Return original company data on error
+              return company;
             }
           })
         );
         
-        // Force state update with fresh data
-        console.log("Forcing state update with fresh contact data");
-        setCurrentResults([]);  // Clear state first
+        // Update state with fresh data
+        setCurrentResults([]);
         setTimeout(() => {
-          setCurrentResults(refreshedResults);  // Then set fresh data
-          console.log("Cache invalidation completed - all contact data refreshed from database");
+          setCurrentResults(refreshedResults);
         }, 100);
         
-        // Update localStorage with fresh data using existing pattern
+        // Update localStorage with fresh data
         const stateToSave = {
           currentQuery,
           currentResults: refreshedResults,
@@ -1448,12 +1432,10 @@ export default function Home() {
         localStorage.setItem('searchState', stateString);
         sessionStorage.setItem('searchState', stateString);
         
-        // Add a small delay to ensure the UI updates are processed
         await new Promise(resolve => setTimeout(resolve, 200));
       }
     } catch (error) {
       console.error("Cache refresh failed:", error);
-      // Continue with normal finish flow even if refresh fails
     }
     
     // Original finish logic
@@ -1505,8 +1487,7 @@ export default function Home() {
     isAutomatedSearchRef.current = true;
     setSummaryVisible(false);
     
-    // Mark the start of email search for auto-refresh mechanism
-    localStorage.setItem('lastEmailSearchTimestamp', Date.now().toString());
+
     
     // Initialize progress queue
     setProgressState({
