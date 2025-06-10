@@ -208,7 +208,14 @@ function ContactSearchChips({
               className={`
                 flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
                 md:gap-2 gap-1 md:px-3 px-2
-                ${!isMobileExpanded ? 'max-md:w-10 max-md:h-10 max-md:justify-center max-md:px-0' : ''}
+                ${!isMobileExpanded ? 
+                  `max-md:justify-center ${
+                    config.enableCoreLeadership 
+                      ? 'max-md:min-w-12 max-md:px-1'  // Oblong for selected (checkmark + icon)
+                      : 'max-md:w-10 max-md:h-10 max-md:px-0'  // Circle for unselected (icon only)
+                  }` 
+                  : ''
+                }
                 ${config.enableCoreLeadership 
                   ? (hasSearchResults && !inputHasChanged)
                     ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -239,7 +246,14 @@ function ContactSearchChips({
               className={`
                 flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
                 md:gap-2 gap-1 md:px-3 px-2
-                ${!isMobileExpanded ? 'max-md:w-10 max-md:h-10 max-md:justify-center max-md:px-0' : ''}
+                ${!isMobileExpanded ? 
+                  `max-md:justify-center ${
+                    config.enableDepartmentHeads 
+                      ? 'max-md:min-w-12 max-md:px-1'  // Oblong for selected (checkmark + icon)
+                      : 'max-md:w-10 max-md:h-10 max-md:px-0'  // Circle for unselected (icon only)
+                  }` 
+                  : ''
+                }
                 ${config.enableDepartmentHeads 
                   ? (hasSearchResults && !inputHasChanged)
                     ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -270,7 +284,14 @@ function ContactSearchChips({
               className={`
                 flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
                 md:gap-2 gap-1 md:px-3 px-2
-                ${!isMobileExpanded ? 'max-md:w-10 max-md:h-10 max-md:justify-center max-md:px-0' : ''}
+                ${!isMobileExpanded ? 
+                  `max-md:justify-center ${
+                    config.enableMiddleManagement 
+                      ? 'max-md:min-w-12 max-md:px-1'  // Oblong for selected (checkmark + icon)
+                      : 'max-md:w-10 max-md:h-10 max-md:px-0'  // Circle for unselected (icon only)
+                  }` 
+                  : ''
+                }
                 ${config.enableMiddleManagement 
                   ? (hasSearchResults && !inputHasChanged)
                     ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -294,11 +315,12 @@ function ContactSearchChips({
       {/* Custom Search Chip */}
       {!isCustomInputExpanded && !config.customSearchTarget.trim() && (
         <button
-          onClick={handleCustomInputExpand}
+          onClick={() => handleMobileChipClick(handleCustomInputExpand)}
           disabled={disabled}
           className={`
             flex items-center justify-center px-3 py-2 rounded-full border border-dashed border-gray-300 
             text-gray-600 hover:bg-gray-50 transition-all duration-200 min-w-[40px]
+            max-md:w-10 max-md:h-10 max-md:px-0
             ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           `}
         >
@@ -370,7 +392,15 @@ function ContactSearchChips({
                 className={`
                   flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
                   md:gap-2 gap-1 md:px-3 px-2
-                  ${!isMobileExpanded ? 'max-md:w-10 max-md:h-10 max-md:justify-center max-md:px-0' : ''}
+                  ${!isMobileExpanded ? 
+                    `max-md:justify-center ${
+                      // Custom chips are oblong when they have content (text to display)
+                      config.customSearchTarget.trim() 
+                        ? 'max-md:min-w-12 max-md:px-1'  // Oblong for chips with content
+                        : 'max-md:w-10 max-md:h-10 max-md:px-0'  // Circle for empty state
+                    }` 
+                    : ''
+                  }
                   ${config.enableCustomSearch 
                     ? (hasSearchResults && !inputHasChanged)
                       ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -413,11 +443,12 @@ function ContactSearchChips({
       {/* Second Custom Search Chip - Empty State */}
       {!isCustomInput2Expanded && !config.customSearchTarget2.trim() && config.customSearchTarget.trim() && (
         <button
-          onClick={handleCustomInput2Expand}
+          onClick={() => handleMobileChipClick(handleCustomInput2Expand)}
           disabled={disabled}
           className={`
             flex items-center justify-center px-3 py-2 rounded-full border border-dashed border-gray-300 
             text-gray-600 hover:bg-gray-50 transition-all duration-200 min-w-[40px]
+            max-md:w-10 max-md:h-10 max-md:px-0
             ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           `}
         >
@@ -489,7 +520,15 @@ function ContactSearchChips({
                 className={`
                   flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
                   md:gap-2 gap-1 md:px-3 px-2
-                  ${!isMobileExpanded ? 'max-md:w-10 max-md:h-10 max-md:justify-center max-md:px-0' : ''}
+                  ${!isMobileExpanded ? 
+                    `max-md:justify-center ${
+                      // Custom chips are oblong when they have content (text to display)
+                      config.customSearchTarget2.trim() 
+                        ? 'max-md:min-w-12 max-md:px-1'  // Oblong for chips with content
+                        : 'max-md:w-10 max-md:h-10 max-md:px-0'  // Circle for empty state
+                    }` 
+                    : ''
+                  }
                   ${config.enableCustomSearch2 
                     ? (hasSearchResults && !inputHasChanged)
                       ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
