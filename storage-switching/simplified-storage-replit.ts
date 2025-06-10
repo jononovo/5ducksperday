@@ -244,6 +244,22 @@ export class ReplitStorage implements IStorage {
   }
 
   // @ts-ignore
+  async updateList(listId: number, data: Partial<InsertList>, userId: number): Promise<List | undefined> {
+    // Get existing list
+    const existingList = await this.getList(listId, userId);
+    if (!existingList) return undefined;
+    
+    // Update with new data
+    const updatedList = { ...existingList, ...data };
+    
+    // Save back to storage using the internal ID
+    await this.set(`list:${existingList.id}`, updatedList);
+    
+    // @ts-ignore: Date handling issues
+    return updatedList;
+  }
+
+  // @ts-ignore
   async updateCompanyList(companyId: number, listId: number): Promise<Company | undefined> {
     const company = await this.getCompany(companyId);
     if (!company) return undefined;
