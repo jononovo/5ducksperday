@@ -190,11 +190,17 @@ export default function Home() {
           // Clear the timestamp as we've refreshed the data
           localStorage.removeItem('lastEmailSearchTimestamp');
           console.log('Contact data refresh completed');
+          
+          // Return the refreshed results for immediate use
+          return refreshedResults;
         }
       }
     } catch (error) {
       console.error('Auto-refresh failed:', error);
     }
+    
+    // Return original companies if no refresh was needed
+    return companies;
   };
 
   // Load state from localStorage on component mount
@@ -224,7 +230,11 @@ export default function Home() {
           
           // Auto-refresh contact data if there was a recent email search
           if (savedState.currentResults && savedState.currentResults.length > 0) {
-            refreshContactDataIfNeeded(savedState.currentResults);
+            refreshContactDataIfNeeded(savedState.currentResults).then(refreshedResults => {
+              if (refreshedResults !== savedState.currentResults) {
+                setCurrentResults(refreshedResults);
+              }
+            });
           }
         }
       } else {
@@ -1479,12 +1489,16 @@ export default function Home() {
     startProgressTimer();
     
     try {
-      // Get companies without emails (only check top 3 contacts)
-      const companiesNeedingEmails = currentResults.filter(company => 
+      // First, check if we need to refresh contact data from recent email searches
+      const updatedResults = await refreshContactDataIfNeeded(currentResults);
+      
+      // Get companies without emails (only check top 3 contacts) using refreshed data
+      const companiesNeedingEmails = updatedResults.filter(company => 
         !getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)
       );
       
       if (companiesNeedingEmails.length === 0) {
+        console.log('No companies need email searches - all companies have sufficient emails');
         setIsConsolidatedSearching(false);
         setSummaryVisible(true);
         return;
