@@ -190,7 +190,11 @@ export class ReplitStorage implements IStorage {
       if (list) lists.push(list);
     }
     
-    return lists.reverse();
+    console.log(`Before reverse - first 3 lists for user ${userId}:`, lists.slice(0, 3).map(l => `ID${l.listId}`));
+    const reversed = lists.reverse();
+    console.log(`After reverse - first 3 lists for user ${userId}:`, reversed.slice(0, 3).map(l => `ID${l.listId}`));
+    
+    return reversed;
   }
 
   // @ts-ignore
