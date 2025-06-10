@@ -304,6 +304,16 @@ export default function PromptEditor({
     };
   }, []);
 
+  // Helper function to check if session data has complete contact information
+  const isSessionDataComplete = (session: any): boolean => {
+    if (!session.fullResults || !Array.isArray(session.fullResults)) return false;
+    
+    // Check if at least one company has contacts
+    return session.fullResults.some((company: any) => 
+      company.contacts && Array.isArray(company.contacts) && company.contacts.length > 0
+    );
+  };
+
   // Check for existing sessions on mount - run only once
   useEffect(() => {
     if (hasRestoredSession) return; // Prevent multiple executions
@@ -334,33 +344,45 @@ export default function PromptEditor({
         description: `Continuing search for "${session.query}"`,
       });
     } else if (recentCompleteSession) {
-      // Restore the most recent complete session (either companies or full results)
-      console.log('Restoring recent complete session:', recentCompleteSession);
+      // Check if session has complete data with contacts
+      const sessionHasCompleteData = isSessionDataComplete(recentCompleteSession);
       
-      setHasRestoredSession(true);
+      console.log('Restoring recent complete session:', recentCompleteSession);
+      console.log('Session has complete contact data:', sessionHasCompleteData);
+      
       setQuery(recentCompleteSession.query);
       
-      if (recentCompleteSession.fullResults) {
-        // Full search with contacts completed
+      if (recentCompleteSession.fullResults && sessionHasCompleteData) {
+        // Full search with contacts completed - use session data
+        console.log('Using complete session data with contacts');
         console.log('Calling onSearchResults with query:', recentCompleteSession.query);
         console.log('Calling onSearchResults with results count:', recentCompleteSession.fullResults?.length || 0);
         console.log('Full results data:', recentCompleteSession.fullResults);
         
+        setHasRestoredSession(true);
         stableOnSearchResults.current(recentCompleteSession.query, recentCompleteSession.fullResults);
         stableOnSearchSuccess.current?.();
         console.log('onSearchResults callback completed');
+        
+        // Clean up the restored session
+        SearchSessionManager.cleanupSession(recentCompleteSession.id);
       } else if (recentCompleteSession.quickResults) {
-        // Only quick search completed, restore company results
+        // Session only has companies without contacts - don't mark as fully restored
+        // This allows localStorage restoration to run in the Home component
+        console.log('Session has incomplete data (companies only) - allowing localStorage fallback');
         console.log('Calling onCompaniesReceived with query:', recentCompleteSession.query);
         console.log('Calling onCompaniesReceived with companies count:', recentCompleteSession.quickResults?.length || 0);
-        console.log('Quick results data:', recentCompleteSession.quickResults);
         
+        // DON'T set hasRestoredSession = true here to allow localStorage restoration
         stableOnCompaniesReceived.current(recentCompleteSession.query, recentCompleteSession.quickResults);
-        console.log('onCompaniesReceived callback completed');
+        console.log('onCompaniesReceived callback completed - localStorage restoration still allowed');
+        
+        // Clean up the session since we're using the data
+        SearchSessionManager.cleanupSession(recentCompleteSession.id);
+      } else {
+        // No usable session data
+        console.log('No usable session data found - allowing localStorage restoration');
       }
-      
-      // Clean up the restored session to prevent re-restoration
-      SearchSessionManager.cleanupSession(recentCompleteSession.id);
     }
     
     // Cleanup old sessions on mount
