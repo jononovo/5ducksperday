@@ -82,6 +82,7 @@ export default function Home() {
   const [currentQuery, setCurrentQuery] = useState<string | null>(null);
   const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
+  const [currentListId, setCurrentListId] = useState<number | null>(null);
   const [pendingContactIds, setPendingContactIds] = useState<Set<number>>(new Set());
   // State for selected contacts (for multi-select checkboxes)
   const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
@@ -251,6 +252,123 @@ export default function Home() {
     },
   });
   
+  // Auto-creation mutation for silent list creation after search
+  const autoCreateListMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentQuery || !currentResults) return;
+      
+      // Get current contact search config from localStorage
+      const savedConfig = localStorage.getItem('contactSearchConfig');
+      let contactSearchConfig = null;
+      if (savedConfig) {
+        try {
+          contactSearchConfig = JSON.parse(savedConfig);
+        } catch (error) {
+          console.error('Error parsing contact search config:', error);
+        }
+      }
+      
+      const res = await apiRequest("POST", "/api/lists", {
+        companies: currentResults,
+        prompt: currentQuery,
+        contactSearchConfig: contactSearchConfig
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
+      setCurrentListId(data.listId); // Track the auto-created list
+      setIsSaved(true); // Mark as saved
+      // No toast notification (silent auto-save)
+    },
+    onError: (error) => {
+      console.error("Auto list creation failed:", error);
+      // Silent failure - don't show error to user
+    },
+  });
+
+  // Mutation for updating existing list
+  const updateListMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentQuery || !currentResults || !currentListId) return;
+      
+      // Get current contact search config from localStorage
+      const savedConfig = localStorage.getItem('contactSearchConfig');
+      let contactSearchConfig = null;
+      if (savedConfig) {
+        try {
+          contactSearchConfig = JSON.parse(savedConfig);
+        } catch (error) {
+          console.error('Error parsing contact search config:', error);
+        }
+      }
+      
+      const res = await apiRequest("PUT", `/api/lists/${currentListId}`, {
+        companies: currentResults,
+        prompt: currentQuery,
+        contactSearchConfig: contactSearchConfig
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
+      toast({
+        title: "List Updated",
+        description: "Your search results have been updated.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for updating existing list and navigating to outreach
+  const updateAndNavigateMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentQuery || !currentResults || !currentListId) return;
+      
+      // Get current contact search config from localStorage
+      const savedConfig = localStorage.getItem('contactSearchConfig');
+      let contactSearchConfig = null;
+      if (savedConfig) {
+        try {
+          contactSearchConfig = JSON.parse(savedConfig);
+        } catch (error) {
+          console.error('Error parsing contact search config:', error);
+        }
+      }
+      
+      const res = await apiRequest("PUT", `/api/lists/${currentListId}`, {
+        companies: currentResults,
+        prompt: currentQuery,
+        contactSearchConfig: contactSearchConfig
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
+      toast({
+        title: "List Updated",
+        description: "Your search results have been updated. Redirecting to outreach...",
+      });
+      // Navigate to outreach page
+      setTimeout(() => {
+        navigate('/outreach');
+      }, 1000);
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Mutation for saving and navigating to outreach
   const saveAndNavigateMutation = useMutation({
     mutationFn: async () => {
@@ -374,6 +492,11 @@ export default function Home() {
       setContactReportVisible(true);
     }
     
+    // Auto-create list after search completes with contacts
+    if (sortedResults.length > 0) {
+      setTimeout(() => autoCreateListMutation.mutate(), 1000); // Small delay
+    }
+    
     // Keep isFromLandingPage true until email button is clicked
     // (removed automatic reset to allow email tooltip to show)
   };
@@ -387,7 +510,14 @@ export default function Home() {
       });
       return;
     }
-    saveMutation.mutate();
+
+    if (currentListId) {
+      // Update existing list instead of creating new one
+      updateListMutation.mutate();
+    } else {
+      // Fallback to create new (existing logic)
+      saveMutation.mutate();
+    }
   };
   
   // Handler for Start Selling button
@@ -403,8 +533,12 @@ export default function Home() {
     
     // If email search summary is visible, we know an email search has run
     if (summaryVisible) {
-      // Proceed with saving and navigating
-      saveAndNavigateMutation.mutate();
+      // Proceed with updating or saving and navigating
+      if (currentListId) {
+        updateAndNavigateMutation.mutate();
+      } else {
+        saveAndNavigateMutation.mutate();
+      }
       return;
     }
     
