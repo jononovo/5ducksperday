@@ -1108,9 +1108,21 @@ export function registerRoutes(app: Express) {
       if (cachedCompanies) {
         console.log(`[Full Search] Reusing ${cachedCompanies.length} cached company records - enriching with contacts`);
         
-        // Enrich existing companies with contacts instead of creating new ones
-        const enrichedCompanies = await Promise.all(
-          cachedCompanies.map(async (existingCompany) => {
+        // Helper function to process companies in parallel batches
+        async function processBatch<T, R>(items: T[], processor: (item: T) => Promise<R>, batchSize: number = 3): Promise<R[]> {
+          const results: R[] = [];
+          for (let i = 0; i < items.length; i += batchSize) {
+            const batch = items.slice(i, i + batchSize);
+            const batchResults = await Promise.all(batch.map(processor));
+            results.push(...batchResults);
+          }
+          return results;
+        }
+
+        // Enrich existing companies with contacts using parallel batch processing
+        const enrichedCompanies = await processBatch(
+          cachedCompanies,
+          async (existingCompany) => {
             const companyName = existingCompany.name;
             const companyWebsite = existingCompany.website;
             const companyDescription = existingCompany.description;
@@ -1234,7 +1246,8 @@ export function registerRoutes(app: Express) {
             );
 
             return { ...updatedCompany || existingCompany, contacts: createdContacts };
-          })
+          },
+          3 // batch size
         );
         
         // Return enriched companies using existing records
