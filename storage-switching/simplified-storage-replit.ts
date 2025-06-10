@@ -190,7 +190,7 @@ export class ReplitStorage implements IStorage {
       if (list) lists.push(list);
     }
     
-    return lists;
+    return lists.reverse();
   }
 
   // @ts-ignore
