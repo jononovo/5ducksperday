@@ -130,9 +130,24 @@ export default function PromptEditor({
       if (!isPollingRef.current) return; // Exit if polling was stopped
       
       try {
-        const response = await fetch(`/api/search-sessions/${currentSessionId}`);
+        const response = await fetch(`/api/search-sessions/${currentSessionId}/status`);
         if (response.ok) {
-          const session = await response.json();
+          // Validate that response is actually JSON
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            console.warn('Session polling response is not JSON, skipping...');
+            return;
+          }
+          
+          const responseData = await response.json();
+          
+          // Validate response structure
+          if (!responseData.success || !responseData.session) {
+            console.warn('Invalid session response structure:', responseData);
+            return;
+          }
+          
+          const session = responseData.session;
           
           if (session.status === 'contacts_complete' && session.fullResults) {
             console.log('Session completed, restoring results:', session);
@@ -177,6 +192,15 @@ export default function PromptEditor({
         }
       } catch (error) {
         console.error('Error polling session:', error);
+        // If polling fails repeatedly, stop polling to prevent spam
+        if (isPollingRef.current) {
+          isPollingRef.current = false;
+          setIsPolling(false);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+        }
       }
     };
 
