@@ -213,44 +213,7 @@ export default function Home() {
     queryKey: ["/api/search-approaches"],
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentQuery || !currentResults) return;
-      
-      // Get current contact search config from localStorage
-      const savedConfig = localStorage.getItem('contactSearchConfig');
-      let contactSearchConfig = null;
-      if (savedConfig) {
-        try {
-          contactSearchConfig = JSON.parse(savedConfig);
-        } catch (error) {
-          console.error('Error parsing contact search config:', error);
-        }
-      }
-      
-      const res = await apiRequest("POST", "/api/lists", {
-        companies: currentResults,
-        prompt: currentQuery,
-        contactSearchConfig: contactSearchConfig
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
-      toast({
-        title: "List Saved",
-        description: "The search results have been saved as a new list.",
-      });
-      setIsSaved(true);
-    },
-    onError: (error) => {
-      toast({
-        title: "Save Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+
   
   // Auto-creation mutation for silent list creation after search
   const autoCreateListMutation = useMutation({
@@ -363,6 +326,51 @@ export default function Home() {
     onError: (error) => {
       toast({
         title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for auto-creating list and navigating to outreach
+  const autoCreateAndNavigateMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentQuery || !currentResults) return;
+      
+      // Get current contact search config from localStorage
+      const savedConfig = localStorage.getItem('contactSearchConfig');
+      let contactSearchConfig = null;
+      if (savedConfig) {
+        try {
+          contactSearchConfig = JSON.parse(savedConfig);
+        } catch (error) {
+          console.error('Error parsing contact search config:', error);
+        }
+      }
+      
+      const res = await apiRequest("POST", "/api/lists", {
+        companies: currentResults,
+        prompt: currentQuery,
+        contactSearchConfig: contactSearchConfig
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
+      setCurrentListId(data.listId); // Track the auto-created list
+      setIsSaved(true); // Mark as saved
+      toast({
+        title: "List Created",
+        description: "Your search results have been saved. Redirecting to outreach...",
+      });
+      // Navigate to outreach page
+      setTimeout(() => {
+        window.location.href = '/outreach';
+      }, 1000);
+    },
+    onError: (error) => {
+      toast({
+        title: "Save Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -515,8 +523,8 @@ export default function Home() {
       // Update existing list instead of creating new one
       updateListMutation.mutate();
     } else {
-      // Fallback to create new (existing logic)
-      saveMutation.mutate();
+      // Force auto-creation first, then mark as saved
+      autoCreateListMutation.mutate();
     }
   };
   
@@ -533,11 +541,11 @@ export default function Home() {
     
     // If email search summary is visible, we know an email search has run
     if (summaryVisible) {
-      // Proceed with updating or saving and navigating
+      // Proceed with updating or auto-creating and navigating
       if (currentListId) {
         updateAndNavigateMutation.mutate();
       } else {
-        saveAndNavigateMutation.mutate();
+        autoCreateAndNavigateMutation.mutate();
       }
       return;
     }
@@ -550,8 +558,12 @@ export default function Home() {
     }, 0);
     
     if (emailCount >= 5) {
-      // We have enough emails, proceed
-      saveAndNavigateMutation.mutate();
+      // We have enough emails, proceed with auto-creation and navigation
+      if (currentListId) {
+        updateAndNavigateMutation.mutate();
+      } else {
+        autoCreateAndNavigateMutation.mutate();
+      }
     } else {
       // Not enough emails
       toast({
