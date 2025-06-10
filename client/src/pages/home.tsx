@@ -1134,7 +1134,7 @@ export default function Home() {
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [contactReportVisible, setContactReportVisible] = useState(false);
   const [lastEmailSearchCount, setLastEmailSearchCount] = useState(0);
-  const [lastSourceBreakdown, setLastSourceBreakdown] = useState(null);
+  const [lastSourceBreakdown, setLastSourceBreakdown] = useState<SourceBreakdown | undefined>(undefined);
 
   // Event-driven progress queue system
   const progressQueue = [
