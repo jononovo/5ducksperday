@@ -205,6 +205,45 @@ export default function Home() {
     return companies;
   };
 
+  // Helper function to check if data has complete contact information
+  const hasCompleteContacts = (data: CompanyWithContacts[] | null): boolean => {
+    if (!data || !Array.isArray(data)) return false;
+    
+    // Check if at least one company has contacts
+    return data.some(company => 
+      company.contacts && Array.isArray(company.contacts) && company.contacts.length > 0
+    );
+  };
+
+  // Enhanced data refresh logic for navigation persistence
+  const refreshContactDataFromDatabase = async (companies: CompanyWithContacts[]): Promise<CompanyWithContacts[]> => {
+    try {
+      console.log('Refreshing contact data from database for navigation persistence...');
+      
+      const refreshedResults = await Promise.all(
+        companies.map(async (company) => {
+          try {
+            const response = await apiRequest("GET", `/api/companies/${company.id}/contacts`);
+            const freshContacts = await response.json();
+            return {
+              ...company,
+              contacts: freshContacts
+            };
+          } catch (error) {
+            console.error(`Failed to refresh contacts for company ${company.id}:`, error);
+            return company;
+          }
+        })
+      );
+      
+      console.log('Contact data refresh completed from database');
+      return refreshedResults;
+    } catch (error) {
+      console.error('Database refresh failed:', error);
+      return companies;
+    }
+  };
+
   // Load state from localStorage on component mount
   useEffect(() => {
     // Check for pending search query from landing page
@@ -217,31 +256,53 @@ export default function Home() {
       localStorage.removeItem('pendingSearchQuery');
       // No longer automatically triggering search - user must click the search button
     } else {
-      // Load saved search state if no pending query and no session-restored data
-      if (!hasSessionRestoredDataRef.current) {
-        const savedState = loadSearchState();
-        if (savedState) {
-          console.log('Loading saved search state:', {
-            query: savedState.currentQuery,
-            resultsCount: savedState.currentResults?.length,
-            listId: savedState.currentListId,
-            companies: savedState.currentResults?.map(c => ({ id: c.id, name: c.name }))
+      // Enhanced data restoration logic with intelligent merging
+      const savedState = loadSearchState();
+      
+      if (savedState && savedState.currentResults) {
+        console.log('Found localStorage data:', {
+          query: savedState.currentQuery,
+          resultsCount: savedState.currentResults?.length,
+          hasContacts: hasCompleteContacts(savedState.currentResults),
+          listId: savedState.currentListId
+        });
+        
+        // Always restore the data first
+        setCurrentQuery(savedState.currentQuery);
+        setCurrentResults(savedState.currentResults);
+        setCurrentListId(savedState.currentListId);
+        
+        // Check if we need to refresh contact data for better persistence
+        const shouldRefresh = !hasCompleteContacts(savedState.currentResults) || 
+                             hasSessionRestoredDataRef.current; // Session data might be incomplete
+        
+        if (shouldRefresh) {
+          console.log('Contact data incomplete or session override - refreshing from database');
+          refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
+            if (hasCompleteContacts(refreshedResults)) {
+              console.log('Successfully refreshed contact data - updating state');
+              setCurrentResults(refreshedResults);
+              
+              // Update localStorage with complete data
+              const updatedState = {
+                currentQuery: savedState.currentQuery,
+                currentResults: refreshedResults,
+                currentListId: savedState.currentListId
+              };
+              localStorage.setItem('searchState', JSON.stringify(updatedState));
+              sessionStorage.setItem('searchState', JSON.stringify(updatedState));
+            }
           });
-          setCurrentQuery(savedState.currentQuery);
-          setCurrentResults(savedState.currentResults);
-          setCurrentListId(savedState.currentListId);
-          
-          // Auto-refresh contact data if there was a recent email search
-          if (savedState.currentResults && savedState.currentResults.length > 0) {
-            refreshContactDataIfNeeded(savedState.currentResults).then(refreshedResults => {
-              if (refreshedResults !== savedState.currentResults) {
-                setCurrentResults(refreshedResults);
-              }
-            });
-          }
+        } else {
+          // Check for recent email search refresh
+          refreshContactDataIfNeeded(savedState.currentResults).then(refreshedResults => {
+            if (refreshedResults !== savedState.currentResults) {
+              setCurrentResults(refreshedResults);
+            }
+          });
         }
       } else {
-        console.log('Skipping localStorage load - session restoration data already present');
+        console.log('No saved search state found');
       }
     }
     
