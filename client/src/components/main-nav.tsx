@@ -19,7 +19,19 @@ const navigation = [
 
 export function MainNav() {
   const [location] = useLocation();
-  const { user, logoutMutation } = useAuth();
+  
+  // Safe auth hook usage with error handling
+  let user = null;
+  let logoutMutation = null;
+  
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    logoutMutation = auth.logoutMutation;
+  } catch (error) {
+    // MainNav is being rendered outside AuthProvider context
+    // This is acceptable for public routes - just don't show user menu
+  }
 
   return (
     <nav className="flex items-center justify-between border-b mb-4 px-4 py-3">
