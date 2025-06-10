@@ -1901,7 +1901,9 @@ export default function Home() {
                     <LandingPageTooltip
                       message="Ready to turn your research into results? Start your outreach!"
                       visible={showStartSellingTooltip}
-                      position="above-button"
+                      position="custom"
+                      offsetX={-30}
+                      offsetY={-10}
                     />
                   </div>
                   
