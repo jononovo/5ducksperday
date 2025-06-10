@@ -1902,8 +1902,8 @@ export default function Home() {
                       message="Ready to turn your research into results? Start your outreach!"
                       visible={showStartSellingTooltip}
                       position="custom"
-                      offsetX={-30}
-                      offsetY={-10}
+                      offsetX={-20}
+                      offsetY={0}
                     />
                   </div>
                   
