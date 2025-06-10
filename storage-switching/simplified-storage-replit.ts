@@ -190,7 +190,7 @@ export class ReplitStorage implements IStorage {
       if (list) lists.push(list);
     }
     
-    return lists.reverse();
+    return lists;
   }
 
   // @ts-ignore
@@ -234,9 +234,9 @@ export class ReplitStorage implements IStorage {
     // Store the list
     await this.set(`list:${id}`, list);
     
-    // Add to user's lists
+    // Add to user's lists (add at beginning for newest-first order)
     const userLists = await this.get<number[]>(`lists:user:${data.userId}`) || [];
-    userLists.push(id);
+    userLists.unshift(id);
     await this.set(`lists:user:${data.userId}`, userLists);
     
     // @ts-ignore: Date handling issues
