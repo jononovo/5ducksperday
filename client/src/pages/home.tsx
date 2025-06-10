@@ -79,6 +79,11 @@ interface SavedSearchState {
   currentListId: number | null;
 }
 
+// Define SourceBreakdown interface
+interface SourceBreakdown {
+  [source: string]: number;
+}
+
 export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentQuery, setCurrentQuery] = useState<string | null>(null);
@@ -1742,7 +1747,7 @@ export default function Home() {
                     totalCompanies={currentResults?.length || 0}
                     totalEmailsFound={lastEmailSearchCount || currentResults?.reduce((total, company) => 
                       total + (getTopContacts(company, 3).filter(contact => contact.email && contact.email.length > 5).length), 0) || 0}
-                    sourceBreakdown={lastSourceBreakdown}
+                    sourceBreakdown={lastSourceBreakdown || undefined}
                     onClose={() => setSummaryVisible(false)}
                     isVisible={summaryVisible}
                   />
