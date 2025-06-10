@@ -887,6 +887,53 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Update list endpoint
+  app.put("/api/lists/:listId", requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const listId = parseInt(req.params.listId);
+      const { companies, prompt, contactSearchConfig } = req.body;
+      
+      // Extract custom search targets (reuse existing logic)
+      const customSearchTargets: string[] = [];
+      if (contactSearchConfig) {
+        if (contactSearchConfig.enableCustomSearch && contactSearchConfig.customSearchTarget) {
+          customSearchTargets.push(contactSearchConfig.customSearchTarget);
+        }
+        if (contactSearchConfig.enableCustomSearch2 && contactSearchConfig.customSearchTarget2) {
+          customSearchTargets.push(contactSearchConfig.customSearchTarget2);
+        }
+      }
+      
+      // Update the list
+      const updated = await storage.updateList(listId, {
+        prompt,
+        resultCount: companies.length,
+        customSearchTargets: customSearchTargets.length > 0 ? customSearchTargets : null
+      }, userId);
+      
+      if (!updated) {
+        return res.status(404).json({
+          message: "List not found or you don't have permission to update it"
+        });
+      }
+      
+      // Update company associations
+      await Promise.all(
+        companies.map(company =>
+          storage.updateCompanyList(company.id, listId)
+        )
+      );
+      
+      res.json(updated);
+    } catch (error) {
+      console.error('List update error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to update list"
+      });
+    }
+  });
+
   // Companies
   app.get("/api/companies", requireAuth, async (req, res) => {
     // Check if the user is authenticated with their own account

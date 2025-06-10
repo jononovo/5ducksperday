@@ -191,6 +191,14 @@ class DatabaseStorage implements IStorage {
       .where(eq(companies.id, companyId));
   }
 
+  async updateList(listId: number, data: Partial<InsertList>, userId: number): Promise<List | undefined> {
+    const [updated] = await db.update(lists)
+      .set(data)
+      .where(and(eq(lists.listId, listId), eq(lists.userId, userId)))
+      .returning();
+    return updated;
+  }
+
   // Companies
   async listCompanies(userId: number): Promise<Company[]> {
     console.log('DatabaseStorage.listCompanies - Fetching companies for userId:', userId);

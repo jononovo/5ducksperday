@@ -357,7 +357,7 @@ export default function Home() {
       });
       // Navigate to outreach page
       setTimeout(() => {
-        navigate('/outreach');
+        window.location.href = '/outreach';
       }, 1000);
     },
     onError: (error) => {
