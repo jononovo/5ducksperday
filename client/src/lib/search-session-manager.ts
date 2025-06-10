@@ -10,6 +10,8 @@ export interface SearchSession {
   lastChecked: number;
   strategyId?: number;
   contactSearchConfig?: any;
+  emailSearchStatus?: 'none' | 'running' | 'completed';
+  emailSearchCompleted?: number; // timestamp when email search finished
 }
 
 export class SearchSessionManager {
