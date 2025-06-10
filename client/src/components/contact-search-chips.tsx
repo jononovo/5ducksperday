@@ -211,7 +211,7 @@ function ContactSearchChips({
                 ${!isMobileExpanded ? 
                   `max-md:justify-center ${
                     config.enableCoreLeadership 
-                      ? 'max-md:min-w-12 max-md:px-1'  // Oblong for selected (checkmark + icon)
+                      ? 'max-md:min-w-16 max-md:px-2'  // Oblong for selected (checkmark + icon)
                       : 'max-md:w-10 max-md:h-10 max-md:px-0'  // Circle for unselected (icon only)
                   }` 
                   : ''
@@ -249,7 +249,7 @@ function ContactSearchChips({
                 ${!isMobileExpanded ? 
                   `max-md:justify-center ${
                     config.enableDepartmentHeads 
-                      ? 'max-md:min-w-12 max-md:px-1'  // Oblong for selected (checkmark + icon)
+                      ? 'max-md:min-w-16 max-md:px-2'  // Oblong for selected (checkmark + icon)
                       : 'max-md:w-10 max-md:h-10 max-md:px-0'  // Circle for unselected (icon only)
                   }` 
                   : ''
@@ -287,7 +287,7 @@ function ContactSearchChips({
                 ${!isMobileExpanded ? 
                   `max-md:justify-center ${
                     config.enableMiddleManagement 
-                      ? 'max-md:min-w-12 max-md:px-1'  // Oblong for selected (checkmark + icon)
+                      ? 'max-md:min-w-16 max-md:px-2'  // Oblong for selected (checkmark + icon)
                       : 'max-md:w-10 max-md:h-10 max-md:px-0'  // Circle for unselected (icon only)
                   }` 
                   : ''
@@ -396,7 +396,7 @@ function ContactSearchChips({
                     `max-md:justify-center ${
                       // Custom chips are oblong when they have content (text to display)
                       config.customSearchTarget.trim() 
-                        ? 'max-md:min-w-12 max-md:px-1'  // Oblong for chips with content
+                        ? 'max-md:min-w-16 max-md:px-2'  // Oblong for chips with content
                         : 'max-md:w-10 max-md:h-10 max-md:px-0'  // Circle for empty state
                     }` 
                     : ''
@@ -524,7 +524,7 @@ function ContactSearchChips({
                     `max-md:justify-center ${
                       // Custom chips are oblong when they have content (text to display)
                       config.customSearchTarget2.trim() 
-                        ? 'max-md:min-w-12 max-md:px-1'  // Oblong for chips with content
+                        ? 'max-md:min-w-16 max-md:px-2'  // Oblong for chips with content
                         : 'max-md:w-10 max-md:h-10 max-md:px-0'  // Circle for empty state
                     }` 
                     : ''
