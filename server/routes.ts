@@ -65,12 +65,9 @@ function getUserId(req: express.Request): number {
       return (req.user as any).id;
     }
     
-    // Then check for Firebase authentication
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
-      // Firebase token is verified in the middleware and user is attached to req
-      if ((req as any).firebaseUser && (req as any).firebaseUser.id) {
-        return (req as any).firebaseUser.id;
-      }
+    // Then check for Firebase authentication - this should now be properly set after the middleware fix
+    if ((req as any).firebaseUser && (req as any).firebaseUser.id) {
+      return (req as any).firebaseUser.id;
     }
   } catch (error) {
     console.error('Error accessing user ID:', error);

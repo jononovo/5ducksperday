@@ -216,7 +216,7 @@ export function setupAuth(app: Express) {
         // Attach the Firebase user to the request for other middleware to access
         (req as any).firebaseUser = firebaseUser;
         
-        // Also log the user in to create a session
+        // Also log the user in to create a session - WAIT for completion
         req.login(firebaseUser, (err) => {
           if (err) return next(err);
           console.log('Firebase user logged in:', {
@@ -224,12 +224,17 @@ export function setupAuth(app: Express) {
             email: firebaseUser.email?.split('@')[0] + '@...',
             timestamp: new Date().toISOString()
           });
-          next();
+          next(); // Only call next() after login completes
         });
-        return;
+        // Remove the return here - wait for req.login to complete
+      } else {
+        // No Firebase user found, continue without authentication
+        next();
       }
+    } else {
+      // Already authenticated via session
+      next();
     }
-    next();
   });
 
   app.post("/api/register", async (req, res, next) => {

@@ -1,0 +1,57 @@
+Skipping localStorage load - session restoration data already present
+Skipping localStorage save - no meaningful data to save
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: false, enableCustomSearch: true, customSearchTarget: "sales", …}
+CompanyTable received companies: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Auto-expanding first company to show contacts: Chamberlain Group
+Saving search state: 
+Object {query: "Automotive component suppliers in chicago", resultsCount: 7, listId: null, companies: Array(7)}
+API Request: POST /api/lists 
+Object {hasData: true, timestamp: "2025-06-10T04:29:20.106Z"}
+Saving search state: 
+Object {query: "Automotive component suppliers in chicago", resultsCount: 7, listId: 1192, companies: Array(7)}
+Starting backend email orchestration for 7 companies
+API Request: POST /api/companies/find-all-emails 
+Object {hasData: true, timestamp: "2025-06-10T04:29:23.692Z"}
+QuickTemplates - Loaded templates: 
+(3) [{…}, {…}, {…}]
+QuickTemplates - Loaded templates: 
+(3) [{…}, {…}, {…}]
+QuickTemplates - Loaded templates: 
+(3) [{…}, {…}, {…}]
+Backend orchestration completed: 
+Object {companiesProcessed: 7, contactsProcessed: 9, emailsFound: 4, sourceBreakdown: {…}}
+Email search completed - refreshing contact data from database
+API Request: GET /api/companies/6817/contacts 
+Object {hasData: false, timestamp: "2025-06-10T04:29:28.563Z"}
+API Request: GET /api/companies/6816/contacts 
+Object {hasData: false, timestamp: "2025-06-10T04:29:28.564Z"}
+API Request: GET /api/companies/6818/contacts 
+Object {hasData: false, timestamp: "2025-06-10T04:29:28.564Z"}
+API Request: GET /api/companies/6819/contacts 
+Object {hasData: false, timestamp: "2025-06-10T04:29:28.564Z"}
+API Request: GET /api/companies/6815/contacts 
+Object {hasData: false, timestamp: "2025-06-10T04:29:28.565Z"}
+API Request: GET /api/companies/6820/contacts 
+Object {hasData: false, timestamp: "2025-06-10T04:29:28.565Z"}
+API Request: GET /api/companies/6821/contacts 
+Object {hasData: false, timestamp: "2025-06-10T04:29:28.565Z"}
+QuickTemplates - Loaded templates: 
+(3) [{…}, {…}, {…}]
+Cache refresh completed - all contact data updated
+QuickTemplates - Loaded templates: 
+(3) [{…}, {…}, {…}]
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: true, enableCustomSearch: false, customSearchTarget: "", …}
+Loading saved search state: 
+Object {query: "Automotive component suppliers in chicago", resultsCount: 7, listId: undefined, companies: Array(7)}
+Using cached search state - no email updates detected
+Skipping localStorage save - no meaningful data to save
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: true, enableMiddleManagement: false, enableCustomSearch: true, customSearchTarget: "sales", …}
+CompanyTable received companies: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Auto-expanding first company to show contacts: Chamberlain Group
+Saving search state: 
+Object {query: "Automotive component suppliers in chicago", resultsCount: 7, listId: undefined, companies: Array(7)}
