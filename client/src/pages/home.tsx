@@ -1696,9 +1696,9 @@ export default function Home() {
                     </Button>
                   )}
                 </div>
-                {currentQuery && (
+                {lastExecutedQuery && (
                   <p className="text-sm text-muted-foreground mt-2">
-                    Search: {currentQuery}
+                    Search: {lastExecutedQuery}
                   </p>
                 )}
               </CardHeader>
