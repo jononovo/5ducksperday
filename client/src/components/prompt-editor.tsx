@@ -440,7 +440,7 @@ export default function PromptEditor({
       
       // Show search phase notifications conditionally based on configuration
       const showPhaseNotifications = () => {
-        // 5s: Leadership (only if enabled)
+        // 3s: Leadership (only if enabled)
         if (contactSearchConfig?.enableCoreLeadership) {
           setTimeout(() => {
             toast({
@@ -448,47 +448,47 @@ export default function PromptEditor({
               description: "Searching for C-level executives and founders...",
             });
             setSearchProgress(prev => ({ ...prev, phase: "Contact Discovery", completed: 3 }));
-          }, 5000);
+          }, 3000);
         }
         
-        // 8s: Department heads (only if enabled)  
+        // 5s: Department heads (only if enabled)  
         if (contactSearchConfig?.enableDepartmentHeads) {
           setTimeout(() => {
             toast({
               title: "Department Search",
               description: "Identifying department leaders and key managers...",
             });
-          }, 8000);
+          }, 5000);
         }
         
-        // 11s: Middle management (only if enabled)
+        // 7s: Middle management (only if enabled)
         if (contactSearchConfig?.enableMiddleManagement) {
           setTimeout(() => {
             toast({
               title: "Senior Staff Search",
               description: "Finding senior staff and decision makers...",
             });
-          }, 11000);
+          }, 7000);
         }
         
-        // 14s: First custom search (only if enabled)
+        // 9s: First custom search (only if enabled)
         if (contactSearchConfig?.enableCustomSearch && contactSearchConfig?.customSearchTarget) {
           setTimeout(() => {
             toast({
               title: "Custom Search",
               description: `Searching for ${contactSearchConfig.customSearchTarget} specialists...`,
             });
-          }, 14000);
+          }, 9000);
         }
         
-        // 17s: Second custom search (only if enabled)
+        // 11s: Second custom search (only if enabled)
         if (contactSearchConfig?.enableCustomSearch2 && contactSearchConfig?.customSearchTarget2) {
           setTimeout(() => {
             toast({
               title: "Custom Search",
               description: `Searching for ${contactSearchConfig.customSearchTarget2} specialists...`,
             });
-          }, 17000);
+          }, 11000);
         }
       };
       
