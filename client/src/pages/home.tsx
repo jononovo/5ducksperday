@@ -108,6 +108,7 @@ export default function Home() {
   const [highlightStartSellingButton, setHighlightStartSellingButton] = useState(false);
   const [showEmailTooltip, setShowEmailTooltip] = useState(false);
   const [hasShownEmailTooltip, setHasShownEmailTooltip] = useState(false);
+  const [showStartSellingTooltip, setShowStartSellingTooltip] = useState(false);
   // Tour modal has been removed
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
@@ -1284,8 +1285,10 @@ export default function Home() {
       const timer = setTimeout(() => {
         // The search has completed and results are available, highlight the Start Selling button
         setHighlightStartSellingButton(true);
+        setShowStartSellingTooltip(true);
         setTimeout(() => {
           setHighlightStartSellingButton(false);
+          setShowStartSellingTooltip(false);
         }, 25000);
       }, 2000);
       
@@ -1893,6 +1896,14 @@ export default function Home() {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+                  
+                  <div className="relative">
+                    <LandingPageTooltip
+                      message="Ready to turn your research into results? Start your outreach!"
+                      visible={showStartSellingTooltip}
+                      position="above-button"
+                    />
+                  </div>
                   
                   <TooltipProvider>
                     <Tooltip>
