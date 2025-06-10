@@ -21,12 +21,13 @@ export interface IStorage {
   getList(listId: number, userId: number): Promise<List | undefined>;
   listLists(userId: number): Promise<List[]>;
   createList(list: InsertList & { userId: number }): Promise<List>;
+  updateList(listId: number, data: Partial<InsertList>, userId: number): Promise<List | undefined>;
   getNextListId(): Promise<number>;
 
   // Companies
   getCompany(id: number): Promise<Company | undefined>;
   listCompanies(): Promise<Company[]>;
-  listCompaniesByList(listId: number): Promise<Company[]>;
+  listCompaniesByList(listId: number, userId: number): Promise<Company[]>;
   createCompany(company: InsertCompany): Promise<Company>;
   updateCompany(id: number, company: Partial<Company>): Promise<Company | undefined>;
   updateCompanyList(companyId: number, listId: number): Promise<Company | undefined>;

@@ -200,14 +200,14 @@ export class ReplitStorage implements IStorage {
   }
 
   // @ts-ignore
-  async listCompaniesByList(listId: number): Promise<Company[]> {
+  async listCompaniesByList(listId: number, userId: number): Promise<Company[]> {
     const companies = await this.get<number[]>(`companies:list:${listId}`) || [];
     const result: Company[] = [];
     
     for (const id of companies) {
       const company = await this.getCompany(id);
       // @ts-ignore: Date handling issues
-      if (company) result.push(company);
+      if (company && company.userId === userId) result.push(company);
     }
     
     return result;
