@@ -160,10 +160,12 @@ export default function Home() {
           console.log('Loading saved search state:', {
             query: savedState.currentQuery,
             resultsCount: savedState.currentResults?.length,
+            listId: savedState.currentListId,
             companies: savedState.currentResults?.map(c => ({ id: c.id, name: c.name }))
           });
           setCurrentQuery(savedState.currentQuery);
           setCurrentResults(savedState.currentResults);
+          setCurrentListId(savedState.currentListId);
         }
       } else {
         console.log('Skipping localStorage load - session restoration data already present');
@@ -191,11 +193,13 @@ export default function Home() {
     if (currentQuery || (currentResults && currentResults.length > 0)) {
       const stateToSave: SavedSearchState = {
         currentQuery,
-        currentResults
+        currentResults,
+        currentListId
       };
       console.log('Saving search state:', {
         query: currentQuery,
         resultsCount: currentResults?.length,
+        listId: currentListId,
         companies: currentResults?.map(c => ({ id: c.id, name: c.name }))
       });
       
@@ -206,7 +210,7 @@ export default function Home() {
     } else {
       console.log('Skipping localStorage save - no meaningful data to save');
     }
-  }, [currentQuery, currentResults]);
+  }, [currentQuery, currentResults, currentListId]);
 
 
 
@@ -254,7 +258,22 @@ export default function Home() {
   // Mutation for updating existing list
   const updateListMutation = useMutation({
     mutationFn: async () => {
-      if (!currentQuery || !currentResults || !currentListId) return;
+      if (!currentQuery || !currentResults || !currentListId) {
+        console.error('Update list validation failed:', {
+          hasQuery: !!currentQuery,
+          hasResults: !!currentResults,
+          hasListId: !!currentListId,
+          currentListId
+        });
+        throw new Error('Missing required data for list update');
+      }
+      
+      console.log('Starting list update:', {
+        listId: currentListId,
+        query: currentQuery,
+        companyCount: currentResults.length,
+        companyIds: currentResults.map(c => c.id)
+      });
       
       // Get current contact search config from localStorage
       const savedConfig = localStorage.getItem('contactSearchConfig');
@@ -274,7 +293,8 @@ export default function Home() {
       });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('List update successful:', data);
       queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
       toast({
         title: "List Updated",
@@ -282,6 +302,7 @@ export default function Home() {
       });
     },
     onError: (error) => {
+      console.error('List update failed:', error);
       toast({
         title: "Update Failed",
         description: error.message,
