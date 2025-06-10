@@ -254,12 +254,15 @@ export default function Home() {
       setIsFromLandingPage(true); // Set flag when coming from landing page
       setHasShownEmailTooltip(false); // Reset tooltip flag for new session
       localStorage.removeItem('pendingSearchQuery');
+      // Clear any existing search state when starting fresh search
+      localStorage.removeItem('searchState');
+      sessionStorage.removeItem('searchState');
       // No longer automatically triggering search - user must click the search button
     } else {
       // Enhanced data restoration logic with intelligent merging
       const savedState = loadSearchState();
       
-      if (savedState && savedState.currentResults) {
+      if (savedState && savedState.currentResults && !hasSessionRestoredDataRef.current) {
         console.log('Found localStorage data:', {
           query: savedState.currentQuery,
           resultsCount: savedState.currentResults?.length,
@@ -273,11 +276,10 @@ export default function Home() {
         setCurrentListId(savedState.currentListId);
         
         // Check if we need to refresh contact data for better persistence
-        const shouldRefresh = !hasCompleteContacts(savedState.currentResults) || 
-                             hasSessionRestoredDataRef.current; // Session data might be incomplete
+        const shouldRefresh = !hasCompleteContacts(savedState.currentResults);
         
         if (shouldRefresh) {
-          console.log('Contact data incomplete or session override - refreshing from database');
+          console.log('Contact data incomplete - refreshing from database');
           refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
             if (hasCompleteContacts(refreshedResults)) {
               console.log('Successfully refreshed contact data - updating state');
@@ -302,7 +304,7 @@ export default function Home() {
           });
         }
       } else {
-        console.log('No saved search state found');
+        console.log('No saved search state found or session data already restored');
       }
     }
     
@@ -616,6 +618,13 @@ export default function Home() {
     console.log('Current component state - query:', currentQuery);
     console.log('Current component state - results count:', currentResults?.length || 0);
     console.log('Complete results received with contacts:', results.length);
+    
+    // Clear any stale localStorage data that might conflict with new search results
+    if (currentQuery !== query) {
+      console.log('New search detected - clearing stale localStorage data');
+      localStorage.removeItem('searchState');
+      sessionStorage.removeItem('searchState');
+    }
     
     // Mark that we've received session-restored data
     hasSessionRestoredDataRef.current = true;
