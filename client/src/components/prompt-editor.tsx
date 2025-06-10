@@ -39,6 +39,7 @@ interface PromptEditorProps {
   onInputChange?: (newValue: string) => void; // Callback for input changes
   onSearchSuccess?: () => void; // Callback when search completes successfully
   hasSearchResults?: boolean; // Flag to indicate if search results exist
+  onSessionIdChange?: (sessionId: string | null) => void; // Callback for session ID changes
 }
 
 export default function PromptEditor({ 
@@ -53,7 +54,8 @@ export default function PromptEditor({
   lastExecutedQuery = null,
   onInputChange,
   onSearchSuccess,
-  hasSearchResults = false
+  hasSearchResults = false,
+  onSessionIdChange
 }: PromptEditorProps) {
   const [query, setQuery] = useState(initialPrompt);
   const { toast } = useToast();

@@ -65,6 +65,7 @@ import {
 import { filterTopProspects, ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ContactActionColumn } from "@/components/contact-action-column";
+import { SearchSessionManager } from "@/lib/search-session-manager";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -98,6 +99,8 @@ export default function Home() {
   // Track when to highlight the email search button and start selling button
   const [highlightEmailButton, setHighlightEmailButton] = useState(false);
   const [highlightStartSellingButton, setHighlightStartSellingButton] = useState(false);
+  // Track current session ID for email search persistence
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [showEmailTooltip, setShowEmailTooltip] = useState(false);
   // Tour modal has been removed
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
@@ -1385,7 +1388,7 @@ export default function Home() {
     }
   };
   
-  // Backend-orchestrated email search function with enhanced progress
+  // Backend-orchestrated email search function with session persistence
   const runConsolidatedEmailSearch = async () => {
     if (!currentResults || currentResults.length === 0) return;
     
@@ -1428,13 +1431,19 @@ export default function Home() {
       
       console.log(`Starting backend email orchestration for ${companyIds.length} companies`);
       
+      // Mark email search as started in session (if we have a session)
+      if (currentSessionId) {
+        SearchSessionManager.markEmailSearchStarted(currentSessionId);
+      }
+      
       // Mark backend as started (triggers phase advancement)
       setProgressState(prev => ({ ...prev, backendStarted: true }));
       
-      // Call backend orchestration endpoint
+      // Call backend orchestration endpoint with session ID
       const response = await apiRequest("POST", "/api/companies/find-all-emails", {
         companyIds,
-        searchConfig: {}
+        searchConfig: {},
+        sessionId: currentSessionId
       });
       
       if (!response.ok) {
@@ -1444,6 +1453,11 @@ export default function Home() {
       const data = await response.json();
       
       console.log(`Backend orchestration completed:`, data.summary);
+      
+      // Mark email search as completed in session
+      if (currentSessionId) {
+        SearchSessionManager.markEmailSearchCompleted(currentSessionId);
+      }
       
       // Mark backend as completed (triggers final phase advancement)
       setProgressState(prev => ({ ...prev, backendCompleted: true }));

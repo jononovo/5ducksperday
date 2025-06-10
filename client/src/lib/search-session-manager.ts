@@ -81,6 +81,33 @@ export class SearchSessionManager {
   }
 
   /**
+   * Mark email search as started for a session
+   */
+  static markEmailSearchStarted(sessionId: string): void {
+    const session = this.getSession(sessionId);
+    if (session) {
+      session.emailSearchStatus = 'running';
+      session.lastChecked = Date.now();
+      this.saveSession(session);
+      console.log('Marked email search as started for session:', sessionId);
+    }
+  }
+
+  /**
+   * Mark email search as completed for a session
+   */
+  static markEmailSearchCompleted(sessionId: string): void {
+    const session = this.getSession(sessionId);
+    if (session) {
+      session.emailSearchStatus = 'completed';
+      session.emailSearchCompleted = Date.now();
+      session.lastChecked = Date.now();
+      this.saveSession(session);
+      console.log('Marked email search as completed for session:', sessionId);
+    }
+  }
+
+  /**
    * Mark quick results as complete and restorable
    */
   static markQuickResultsComplete(sessionId: string): void {
