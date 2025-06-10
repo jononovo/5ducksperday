@@ -2266,7 +2266,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
   app.post("/api/companies/find-all-emails", requireAuth, async (req, res) => {
     try {
       const userId = getUserId(req);
-      const { companyIds } = req.body;
+      const { companyIds, sessionId } = req.body;
       
       if (!companyIds || !Array.isArray(companyIds) || companyIds.length === 0) {
         res.status(400).json({ message: "companyIds array is required" });
@@ -2274,6 +2274,16 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       }
       
       console.log(`Starting backend email orchestration for ${companyIds.length} companies`);
+      
+      // Mark email search as started in session if sessionId provided
+      if (sessionId) {
+        const session = global.searchSessions?.get(sessionId);
+        if (session) {
+          session.emailSearchStatus = 'running';
+          global.searchSessions.set(sessionId, session);
+          console.log(`[Email Search] Session ${sessionId} marked as email search running`);
+        }
+      }
       
       let totalProcessed = 0;
       let totalEmailsFound = 0;

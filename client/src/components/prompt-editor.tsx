@@ -122,6 +122,64 @@ export default function PromptEditor({
     stableToast.current = toast;
   });
 
+  // Function to refresh contact data from database when email search completes
+  const refreshContactDataFromCache = async (session: any) => {
+    try {
+      // Get saved search state from localStorage
+      const savedState = localStorage.getItem('searchState');
+      if (!savedState) return;
+      
+      const { currentResults } = JSON.parse(savedState);
+      if (!currentResults || currentResults.length === 0) return;
+      
+      console.log('Refreshing contact data for', currentResults.length, 'companies');
+      
+      // Fetch fresh contact data for all companies from database
+      const refreshedResults = await Promise.all(
+        currentResults.map(async (company: any) => {
+          try {
+            const response = await fetch(`/api/companies/${company.id}/contacts`);
+            if (response.ok) {
+              const freshContacts = await response.json();
+              return {
+                ...company,
+                contacts: freshContacts
+              };
+            } else {
+              console.error(`Failed to refresh contacts for company ${company.id}:`, response.status);
+              return company; // Return original company data on error
+            }
+          } catch (error) {
+            console.error(`Failed to refresh contacts for company ${company.id}:`, error);
+            return company; // Return original company data on error
+          }
+        })
+      );
+      
+      // Update localStorage with fresh data
+      const updatedState = {
+        currentQuery: session.query,
+        currentResults: refreshedResults
+      };
+      const stateString = JSON.stringify(updatedState);
+      localStorage.setItem('searchState', stateString);
+      sessionStorage.setItem('searchState', stateString);
+      
+      // Trigger UI update by calling onSearchResults with fresh data
+      stableOnSearchResults.current(session.query, refreshedResults);
+      
+      console.log('Contact data refresh completed - all email updates applied');
+      
+      stableToast.current({
+        title: "Email Search Results Updated",
+        description: "Fresh contact data loaded with latest email search results",
+      });
+      
+    } catch (error) {
+      console.error('Failed to refresh contact data:', error);
+    }
+  };
+
   // Polling effect with proper cleanup
   useEffect(() => {
     if (!currentSessionId || !isPolling || isPollingRef.current) return;
@@ -150,6 +208,21 @@ export default function PromptEditor({
           }
           
           const session = responseData.session;
+          
+          // Check for email search completion first
+          if (session.emailSearchStatus === 'completed' && session.emailSearchCompleted) {
+            console.log('Email search completed, refreshing contact data');
+            
+            // Check if we need to refresh contact data
+            const lastCacheUpdate = localStorage.getItem('lastCacheUpdate') ? 
+              parseInt(localStorage.getItem('lastCacheUpdate') || '0') : 0;
+            
+            if (session.emailSearchCompleted > lastCacheUpdate) {
+              console.log('Email search newer than cache, refreshing data');
+              refreshContactDataFromCache(session);
+              localStorage.setItem('lastCacheUpdate', session.emailSearchCompleted.toString());
+            }
+          }
           
           if (session.status === 'contacts_complete' && session.fullResults) {
             console.log('Session completed, restoring results:', session);
@@ -246,6 +319,9 @@ export default function PromptEditor({
       setCurrentSessionId(session.id);
       setIsPolling(true);
       setHasRestoredSession(true);
+      
+      // Notify parent component of session ID
+      onSessionIdChange?.(session.id);
       
       // If we have quick results, show them immediately
       if (session.quickResults && session.quickResults.length > 0) {

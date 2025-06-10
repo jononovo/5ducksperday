@@ -1688,6 +1688,7 @@ export default function Home() {
                 }, 25000);
                 }}
                 hasSearchResults={currentResults ? currentResults.length > 0 : false}
+                onSessionIdChange={setCurrentSessionId}
             />
             </Suspense>
           </div>
