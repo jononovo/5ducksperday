@@ -107,6 +107,7 @@ export default function Home() {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [highlightStartSellingButton, setHighlightStartSellingButton] = useState(false);
   const [showEmailTooltip, setShowEmailTooltip] = useState(false);
+  const [hasShownEmailTooltip, setHasShownEmailTooltip] = useState(false);
   // Tour modal has been removed
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
@@ -211,6 +212,7 @@ export default function Home() {
       console.log('Found pending search query:', pendingQuery);
       setCurrentQuery(pendingQuery);
       setIsFromLandingPage(true); // Set flag when coming from landing page
+      setHasShownEmailTooltip(false); // Reset tooltip flag for new session
       localStorage.removeItem('pendingSearchQuery');
       // No longer automatically triggering search - user must click the search button
     } else {
@@ -1294,10 +1296,11 @@ export default function Home() {
 
   // Email tooltip timing effect
   useEffect(() => {
-    // Show email tooltip 5 seconds after first search completes
-    if (currentResults && currentResults.length > 0 && !isAnalyzing) {
+    // Show email tooltip 5 seconds after first search completes (only once per session)
+    if (currentResults && currentResults.length > 0 && !isAnalyzing && !hasShownEmailTooltip) {
       const timer = setTimeout(() => {
         setShowEmailTooltip(true);
+        setHasShownEmailTooltip(true); // Mark as shown
         setTimeout(() => {
           setShowEmailTooltip(false);
         }, 5000);
@@ -1305,7 +1308,7 @@ export default function Home() {
       
       return () => clearTimeout(timer);
     }
-  }, [currentResults, isAnalyzing]);
+  }, [currentResults, isAnalyzing, hasShownEmailTooltip]);
 
   // Helper to get current companies without emails (only check top 3 contacts)
   const getCurrentCompaniesWithoutEmails = () => {
