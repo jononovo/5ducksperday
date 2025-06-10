@@ -844,6 +844,8 @@ export function registerRoutes(app: Express) {
   app.post("/api/lists", requireAuth, async (req, res) => {
     const { companies, prompt, contactSearchConfig } = req.body;
 
+    console.log(`POST /api/lists called - THIS SHOULD NOT HAPPEN FOR UPDATES! Companies: ${companies?.length || 0}`);
+
     if (!Array.isArray(companies) || !prompt || typeof prompt !== 'string') {
       res.status(400).json({ message: "Invalid request: companies must be an array and prompt must be a string" });
       return;
@@ -894,8 +896,11 @@ export function registerRoutes(app: Express) {
       const listId = parseInt(req.params.listId);
       const { companies, prompt, contactSearchConfig } = req.body;
       
+      console.log(`PUT /api/lists/${listId} called by user ${userId} with ${companies?.length || 0} companies`);
+      
       // Validate listId parameter
       if (isNaN(listId)) {
+        console.log(`PUT request failed: Invalid listId ${req.params.listId}`);
         return res.status(400).json({
           message: "Invalid list ID"
         });
@@ -909,6 +914,8 @@ export function registerRoutes(app: Express) {
           message: "List not found or you don't have permission to update it"
         });
       }
+      
+      console.log(`Found existing list ${listId} for user ${userId}: ${existingList.name}`);
       
       // Validate companies array
       if (!Array.isArray(companies)) {
