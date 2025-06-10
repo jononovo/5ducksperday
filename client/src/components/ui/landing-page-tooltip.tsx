@@ -23,9 +23,10 @@ export function LandingPageTooltip({
     ? 'absolute -top-20 sm:-top-20 left-1/2 transform -translate-x-1/2' 
     : 'absolute -top-20 sm:-top-20 transform -translate-x-1/2';
 
-  const offsetStyle = offsetX !== 0 ? { 
-    left: `calc(50% + ${offsetX}px)`
-  } : {};
+  const offsetStyle = {
+    ...(offsetX !== 0 && { left: `calc(50% + ${offsetX}px)` }),
+    ...(offsetY !== 0 && { top: `calc(-5rem + ${offsetY}px)` })
+  };
 
   return (
     <div 
