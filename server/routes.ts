@@ -44,6 +44,8 @@ interface SearchSessionResult {
   error?: string;
   timestamp: number;
   ttl: number;
+  emailSearchStatus?: 'none' | 'running' | 'completed';
+  emailSearchCompleted?: number;
 }
 
 declare global {
@@ -52,6 +54,8 @@ declare global {
 
 // Initialize global search sessions storage
 global.searchSessions = global.searchSessions || new Map();
+
+
 
 // Helper function to safely get user ID from request
 function getUserId(req: express.Request): number {
@@ -2469,6 +2473,17 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       
       console.log(`Backend email orchestration completed: ${totalEmailsFound} emails found from ${totalProcessed} searches across ${companyIds.length} companies`);
       console.log(`Source breakdown - Perplexity: ${sourceBreakdown.Perplexity}, Apollo: ${sourceBreakdown.Apollo}, Hunter: ${sourceBreakdown.Hunter}`);
+      
+      // Mark email search as completed in session if sessionId provided
+      if (sessionId) {
+        const session = global.searchSessions?.get(sessionId);
+        if (session) {
+          session.emailSearchStatus = 'completed';
+          session.emailSearchCompleted = Date.now();
+          global.searchSessions.set(sessionId, session);
+          console.log(`[Email Search] Session ${sessionId} marked as email search completed`);
+        }
+      }
       
       res.json({
         success: true,

@@ -98,9 +98,9 @@ export default function Home() {
   const [inputHasChanged, setInputHasChanged] = useState(false);
   // Track when to highlight the email search button and start selling button
   const [highlightEmailButton, setHighlightEmailButton] = useState(false);
-  const [highlightStartSellingButton, setHighlightStartSellingButton] = useState(false);
   // Track current session ID for email search persistence
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [highlightStartSellingButton, setHighlightStartSellingButton] = useState(false);
   const [showEmailTooltip, setShowEmailTooltip] = useState(false);
   // Tour modal has been removed
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
