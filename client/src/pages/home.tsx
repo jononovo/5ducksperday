@@ -654,6 +654,11 @@ export default function Home() {
         return newSet;
       });
       
+      // Mark list as needing update since contact data changed
+      if (currentListId) {
+        setIsSaved(false);
+      }
+      
       // Only show notifications if we're not in a consolidated search
       if (!isConsolidatedSearching && !isAutomatedSearchRef.current) {
         toast({
@@ -1661,11 +1666,11 @@ export default function Home() {
                     <Button
                       variant="outline"
                       onClick={handleSaveList}
-                      disabled={isSaved || saveMutation.isPending}
+                      disabled={autoCreateListMutation.isPending || updateListMutation.isPending}
                       className="opacity-45 hover:opacity-100 hover:bg-white transition-all"
                     >
                       <ListPlus className="mr-2 h-4 w-4" />
-                      {isSaved ? "Saved" : "Save as List"}
+                      {currentListId && isSaved ? "Saved" : currentListId ? "Update List" : "Save as List"}
                     </Button>
                   )}
                 </div>
