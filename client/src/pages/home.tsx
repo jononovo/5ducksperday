@@ -75,6 +75,7 @@ interface CompanyWithContacts extends Company {
 interface SavedSearchState {
   currentQuery: string | null;
   currentResults: CompanyWithContacts[] | null;
+  currentListId: number | null;
 }
 
 export default function Home() {

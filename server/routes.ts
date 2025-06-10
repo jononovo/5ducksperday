@@ -894,6 +894,48 @@ export function registerRoutes(app: Express) {
       const listId = parseInt(req.params.listId);
       const { companies, prompt, contactSearchConfig } = req.body;
       
+      // Validate listId parameter
+      if (isNaN(listId)) {
+        return res.status(400).json({
+          message: "Invalid list ID"
+        });
+      }
+      
+      // Check if list exists and user has permission
+      const existingList = await storage.getList(listId, userId);
+      if (!existingList) {
+        console.log(`List update failed: List ${listId} not found for user ${userId}`);
+        return res.status(404).json({
+          message: "List not found or you don't have permission to update it"
+        });
+      }
+      
+      // Validate companies array
+      if (!Array.isArray(companies)) {
+        return res.status(400).json({
+          message: "Companies must be an array"
+        });
+      }
+      
+      // Verify all companies belong to the user and exist
+      const companyValidation = await Promise.all(
+        companies.map(async (company) => {
+          if (!company.id || typeof company.id !== 'number') {
+            return { id: company.id, exists: false, error: 'Invalid company ID' };
+          }
+          const exists = await storage.getCompany(company.id, userId);
+          return { id: company.id, exists: !!exists };
+        })
+      );
+      
+      const invalidCompanies = companyValidation.filter(c => !c.exists);
+      if (invalidCompanies.length > 0) {
+        console.log(`List update failed: Invalid companies for user ${userId}:`, invalidCompanies.map(c => c.id));
+        return res.status(400).json({
+          message: `Invalid or unauthorized companies: ${invalidCompanies.map(c => c.id).join(', ')}`
+        });
+      }
+      
       // Extract custom search targets (reuse existing logic)
       const customSearchTargets: string[] = [];
       if (contactSearchConfig) {
@@ -905,7 +947,7 @@ export function registerRoutes(app: Express) {
         }
       }
       
-      // Update the list
+      // Update the list metadata
       const updated = await storage.updateList(listId, {
         prompt,
         resultCount: companies.length,
@@ -913,18 +955,20 @@ export function registerRoutes(app: Express) {
       }, userId);
       
       if (!updated) {
-        return res.status(404).json({
-          message: "List not found or you don't have permission to update it"
+        console.log(`List update failed: updateList returned null for list ${listId}`);
+        return res.status(500).json({
+          message: "Failed to update list"
         });
       }
       
-      // Update company associations
+      // Update company associations (only after successful list update)
       await Promise.all(
         companies.map(company =>
           storage.updateCompanyList(company.id, listId)
         )
       );
       
+      console.log(`List ${listId} successfully updated with ${companies.length} companies`);
       res.json(updated);
     } catch (error) {
       console.error('List update error:', error);
