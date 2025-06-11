@@ -834,11 +834,8 @@ export default function Outreach() {
 
               {/* Email Subject Field */}
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Email Subject
-                </label>
                 <Input
-                  placeholder="Enter email subject..."
+                  placeholder="Email Subject"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
                 />
