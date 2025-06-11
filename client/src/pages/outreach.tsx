@@ -76,6 +76,7 @@ export default function Outreach() {
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [currentCompanyIndex, setCurrentCompanyIndex] = useState(0);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const [autoCollapseTimer, setAutoCollapseTimer] = useState<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -186,6 +187,43 @@ export default function Outreach() {
   const selectedContact = useMemo(() => 
     selectedContactId ? topContacts.find(contact => contact.id === selectedContactId) || topContacts[0] : topContacts[0]
   , [topContacts, selectedContactId]);
+
+  // Auto-collapse functionality
+  const startAutoCollapseTimer = () => {
+    if (autoCollapseTimer) {
+      clearTimeout(autoCollapseTimer);
+    }
+    const timer = setTimeout(() => {
+      setIsMobileExpanded(false);
+    }, 3000);
+    setAutoCollapseTimer(timer);
+  };
+
+  const resetAutoCollapseTimer = () => {
+    if (autoCollapseTimer) {
+      clearTimeout(autoCollapseTimer);
+      setAutoCollapseTimer(null);
+    }
+  };
+
+  const handleMobileContactCardTap = () => {
+    setIsMobileExpanded(true);
+    startAutoCollapseTimer();
+  };
+
+  const handleMobileColumnInteraction = () => {
+    resetAutoCollapseTimer();
+    startAutoCollapseTimer();
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoCollapseTimer) {
+        clearTimeout(autoCollapseTimer);
+      }
+    };
+  }, [autoCollapseTimer]);
 
   // Adjacent company prefetching for instant navigation
   useEffect(() => {
@@ -605,45 +643,109 @@ export default function Outreach() {
 
   return (
     <div className="w-full md:container md:mx-auto md:py-8">
-      {/* Mobile Compact Contact Card - Only visible on mobile */}
+      {/* Mobile Contact Card - Only visible on mobile */}
       <div className="md:hidden">
-        {selectedContact && currentCompany && (
-          <motion.div
-            layout
-            className="border rounded-lg p-4 mb-4 bg-white cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setIsMobileExpanded(!isMobileExpanded)}
+        {selectedContact && currentCompany ? (
+          <div 
+            className="mb-4 cursor-pointer"
+            onClick={handleMobileContactCardTap}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-sm truncate">{selectedContact.name}</h3>
-                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                    {selectedContact.probability}%
+            <div className={cn(
+              "w-full text-left p-3 relative rounded-lg border",
+              "border-l-4 border-dashed border-gray-600 border-4 border-blue-200/60 shadow-md"
+            )}>
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{selectedContact.name}</span>
+                <div className="flex items-center gap-2">
+                  <Badge variant={
+                    (selectedContact.probability || 0) >= 90 ? "default" :
+                    (selectedContact.probability || 0) >= 70 ? "secondary" : "outline"
+                  }>
+                    {selectedContact.probability || 0}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground truncate">
-                  {selectedContact.role} at {currentCompany.name}
-                </p>
-                {selectedContact.email && (
-                  <p className="text-xs text-blue-600 truncate mt-1">
-                    {selectedContact.email}
-                  </p>
-                )}
               </div>
-              <motion.div
-                animate={{ rotate: isMobileExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
+              <div className="text-sm text-muted-foreground mt-1">
+                {selectedContact.role}
+              </div>
+              {selectedContact.email && (
+                <div className="text-sm text-blue-600 mt-1">
+                  {selectedContact.email}
+                </div>
+              )}
+              
+              {/* Copy button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "absolute bottom-2 right-2 p-1.5",
+                  "hover:bg-background/80 transition-colors",
+                  copiedContactIds.has(selectedContact.id) 
+                    ? "text-green-600 hover:text-green-700" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopyContact(selectedContact, e);
+                }}
               >
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </motion.div>
+                {copiedContactIds.has(selectedContact.id) ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </Button>
+              
+              {/* Mobile menu button */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-foreground"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Menu className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={(e) => {
+                    e.stopPropagation();
+                    handleEmailContact(selectedContact, e);
+                  }}>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Find Email
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          </motion.div>
+          </div>
+        ) : (
+          <div 
+            className="mb-4 cursor-pointer"
+            onClick={handleMobileContactCardTap}
+          >
+            <div className={cn(
+              "w-full text-left p-3 relative rounded-lg border border-dashed",
+              "border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors"
+            )}>
+              <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                <Users className="w-4 h-4" />
+                <span>Tap to select a company and contact</span>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-6">
         {/* Left Column - Hidden on mobile when collapsed */}
-        <div className={`md:block ${!isMobileExpanded ? 'hidden' : 'block'}`}>
+        <div 
+          className={`md:block ${!isMobileExpanded ? 'hidden' : 'block'}`}
+          onClick={handleMobileColumnInteraction}
+          onTouchStart={handleMobileColumnInteraction}
+        >
           <div className="md:border md:rounded-lg md:shadow-sm">
             <div className="p-6 md:pb-6">
               <div className="space-y-3">
