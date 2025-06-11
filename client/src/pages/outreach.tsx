@@ -597,12 +597,12 @@ export default function Outreach() {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full md:container md:mx-auto md:py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-6">
         {/* Left Column */}
-        <div className="md:p-6">
-          <div>
-            <div className="pb-6">
+        <div>
+          <div className="md:border md:rounded-lg md:shadow-sm">
+            <div className="p-6 md:pb-6">
               <div className="space-y-3">
                 {/* List Selection Row */}
                 <Select
@@ -657,7 +657,7 @@ export default function Outreach() {
                 </div>
               </div>
             </div>
-            <div>
+            <div className="px-6 pb-6 md:px-6 md:pb-6">
 
               {/* Key Members Section */}
               {topContacts && topContacts.length > 0 && (
@@ -833,9 +833,9 @@ export default function Outreach() {
         </div>
 
         {/* Right Column - Email Creation */}
-        <div className="md:p-6">
-          <div>
-            <div className="pb-6">
+        <div>
+          <div className="md:border md:rounded-lg md:shadow-sm">
+            <div className="p-6 md:pb-6">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <Send className="w-5 h-5" />
@@ -846,7 +846,7 @@ export default function Outreach() {
                 </Button>
               </div>
             </div>
-            <div className="space-y-6">
+            <div className="px-6 pb-6 md:px-6 md:pb-6 space-y-6">
               {/* Email Prompt Field */}
               <div>
                 <Textarea
