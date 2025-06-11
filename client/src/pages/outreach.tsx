@@ -1,4 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Building2,
@@ -9,7 +10,8 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  PartyPopper
+  PartyPopper,
+  ExternalLink
 } from "lucide-react";
 import {
   Select,
@@ -42,6 +44,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Menu, Mail } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 
 // Define interface for the saved state
@@ -65,6 +73,7 @@ export default function Outreach() {
   const [currentCompanyIndex, setCurrentCompanyIndex] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
   // Email enrichment state tracking
   const [pendingContactIds, setPendingContactIds] = useState<Set<number>>(new Set());
@@ -695,9 +704,32 @@ export default function Outreach() {
                   <CardContent className="pt-6">
                     {currentCompany ? (
                       <div className="space-y-6">
-                        {/* Company Name - More prominent */}
+                        {/* Company Name with Link - More prominent */}
                         <div>
-                          <h2 className="text-xl font-semibold mb-1">{currentCompany.name}</h2>
+                          <div className="flex justify-between items-start mb-1">
+                            <h2 className="text-xl font-semibold">{currentCompany.name}</h2>
+                            <TooltipProvider delayDuration={500}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-8 w-8 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      console.log('Company view button clicked:', { id: currentCompany.id, name: currentCompany.name });
+                                      setLocation(`/companies/${currentCompany.id}`);
+                                    }}
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Open company page</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                           {currentCompany.size && (
                             <p className="text-muted-foreground">
                               {currentCompany.size} employees
@@ -705,6 +737,17 @@ export default function Outreach() {
                           )}
                         </div>
 
+                        {/* Company Description */}
+                        <div>
+                          <h4 className="font-medium mb-2">Description</h4>
+                          {currentCompany.description ? (
+                            <p className="text-muted-foreground leading-relaxed">
+                              {currentCompany.description}
+                            </p>
+                          ) : (
+                            <p className="text-muted-foreground italic">No description available</p>
+                          )}
+                        </div>
 
                       </div>
                     ) : (
