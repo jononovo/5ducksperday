@@ -703,7 +703,7 @@ export default function Outreach() {
                 <Card>
                   <CardContent className="pt-6">
                     {currentCompany ? (
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {/* Company Name with Link - More prominent */}
                         <div>
                           <div className="flex justify-between items-start mb-1">
