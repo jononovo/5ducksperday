@@ -534,7 +534,8 @@ export default function PromptEditor({
         query: searchQuery,
         strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
         contactSearchConfig: contactSearchConfig,
-        sessionId: sessionId
+        sessionId: sessionId,
+        searchType: searchType
       });
       return res.json();
     },
@@ -558,6 +559,20 @@ export default function PromptEditor({
       }
       
       onCompaniesReceived(query, data.companies);
+      
+      // Handle search completion based on selected search type
+      if (searchType === 'companies') {
+        toast({
+          title: "Search Complete",
+          description: `Found ${data.companies.length} companies.`,
+        });
+        
+        setSearchProgress(prev => ({ ...prev, phase: "Search Complete", completed: 5, total: 5 }));
+        
+        // Complete the search for companies-only mode
+        onComplete();
+        return;
+      }
       
       toast({
         title: "Companies Found",
@@ -760,10 +775,17 @@ export default function PromptEditor({
     });
     
     console.log("Analyzing search query...");
-    console.log("Preparing to search for companies and contacts...");
+    console.log(`Preparing to search for ${searchType === 'companies' ? 'companies only' : searchType === 'contacts' ? 'companies and contacts' : 'companies, contacts, and emails'}...`);
     onAnalyze();
-    // Use quickSearchMutation to first get companies without waiting for contact enrichment
-    quickSearchMutation.mutate(query);
+    
+    // Choose search strategy based on selected search type
+    if (searchType === 'companies') {
+      // Companies-only search - use quick search without contact enrichment
+      quickSearchMutation.mutate(query);
+    } else {
+      // Full search with contacts (and potentially emails)
+      quickSearchMutation.mutate(query);
+    }
     
     // Semi-protected logic: Show registration modal after 5 seconds if not authenticated
     if (!user) {
@@ -849,23 +871,32 @@ export default function PromptEditor({
         />
         
         <div className="flex flex-row gap-2 pl-0">
-          <Input
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              if (onInputChange) {
-                onInputChange(e.target.value);
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)) {
-                e.preventDefault();
-                handleSearch();
-              }
-            }}
-            placeholder="Enter a search query (e.g., 'High-rated Greek restaurants in Midtown NYC')..."
-            className={`flex-1 text-base md:text-lg text-gray-700 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
-          />
+          <div className="relative flex-1">
+            <Input
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                if (onInputChange) {
+                  onInputChange(e.target.value);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)) {
+                  e.preventDefault();
+                  handleSearch();
+                }
+              }}
+              placeholder="Enter a search query (e.g., 'High-rated Greek restaurants in Midtown NYC')..."
+              className={`pr-20 text-base md:text-lg text-gray-700 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
+            />
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+              <SearchTypeSelector
+                selectedType={searchType}
+                onTypeChange={setSearchType}
+                disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+              />
+            </div>
+          </div>
           <div className="flex items-center justify-end md:justify-start relative">
 
             

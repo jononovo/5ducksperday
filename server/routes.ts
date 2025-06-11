@@ -1098,7 +1098,7 @@ export function registerRoutes(app: Express) {
     // This temporary fix uses a default user ID if authentication fails
     const userId = req.isAuthenticated() && req.user ? (req.user as any).id : 1;
     
-    const { query, strategyId, contactSearchConfig, sessionId } = req.body;
+    const { query, strategyId, contactSearchConfig, sessionId, searchType } = req.body;
 
     if (!query || typeof query !== 'string') {
       res.status(400).json({
@@ -1110,6 +1110,7 @@ export function registerRoutes(app: Express) {
     try {
       console.log(`[Quick Search] Processing query: ${query}`);
       console.log(`[Quick Search] Using strategy ID: ${strategyId || 'default'}`);
+      console.log(`[Quick Search] Search type: ${searchType || 'emails'}`);
       
       // First, get the company search results quickly
       const companyResults = await searchCompanies(query);
@@ -1180,7 +1181,8 @@ export function registerRoutes(app: Express) {
         companies,
         query,
         strategyId: strategyId || null,
-        sessionId
+        sessionId,
+        searchType: searchType || 'emails'
       });
       
     } catch (error) {
