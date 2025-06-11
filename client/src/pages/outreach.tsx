@@ -196,7 +196,7 @@ export default function Outreach() {
     }
     const timer = setTimeout(() => {
       setIsMobileExpanded(false);
-    }, 3000);
+    }, 5000);
     setAutoCollapseTimer(timer);
   };
 
@@ -646,98 +646,109 @@ export default function Outreach() {
     <div className="w-full md:container md:mx-auto md:py-8">
       {/* Mobile Contact Card - Only visible on mobile */}
       <div className="md:hidden">
-        {selectedContact && currentCompany ? (
-          <div 
-            className="mb-4 cursor-pointer"
-            onClick={handleMobileContactCardTap}
-          >
-            <div className={cn(
-              "w-full text-left p-3 relative rounded-lg border",
-              "border-l-4 border-dashed border-gray-600 border-4 border-blue-200/60 shadow-md"
-            )}>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">{selectedContact.name}</span>
-                <div className="flex items-center gap-2">
-                  <Badge variant={
-                    (selectedContact.probability || 0) >= 90 ? "default" :
-                    (selectedContact.probability || 0) >= 70 ? "secondary" : "outline"
-                  }>
-                    {selectedContact.probability || 0}
-                  </Badge>
+        <AnimatePresence>
+          {!isMobileExpanded && (
+            <motion.div
+              initial={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden"
+            >
+              {selectedContact && currentCompany ? (
+                <div 
+                  className="mb-4 cursor-pointer"
+                  onClick={handleMobileContactCardTap}
+                >
+                  <div className={cn(
+                    "w-full text-left p-3 relative rounded-lg border",
+                    "border-l-4 border-dashed border-gray-600 border-4 border-blue-200/60 shadow-md"
+                  )}>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{selectedContact.name}</span>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={
+                          (selectedContact.probability || 0) >= 90 ? "default" :
+                          (selectedContact.probability || 0) >= 70 ? "secondary" : "outline"
+                        }>
+                          {selectedContact.probability || 0}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {selectedContact.role}
+                    </div>
+                    {selectedContact.email && (
+                      <div className="text-sm text-blue-600 mt-1">
+                        {selectedContact.email}
+                      </div>
+                    )}
+                    
+                    {/* Copy button */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "absolute bottom-2 right-2 p-1.5",
+                        "hover:bg-background/80 transition-colors",
+                        copiedContactIds.has(selectedContact.id) 
+                          ? "text-green-600 hover:text-green-700" 
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCopyContact(selectedContact, e);
+                      }}
+                    >
+                      {copiedContactIds.has(selectedContact.id) ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </Button>
+                    
+                    {/* Mobile menu button */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-foreground"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Menu className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          handleEmailContact(selectedContact, e);
+                        }}>
+                          <Mail className="w-4 h-4 mr-2" />
+                          Find Email
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-              </div>
-              <div className="text-sm text-muted-foreground mt-1">
-                {selectedContact.role}
-              </div>
-              {selectedContact.email && (
-                <div className="text-sm text-blue-600 mt-1">
-                  {selectedContact.email}
+              ) : (
+                <div 
+                  className="mb-4 cursor-pointer"
+                  onClick={handleMobileContactCardTap}
+                >
+                  <div className={cn(
+                    "w-full text-left p-3 relative rounded-lg border border-dashed",
+                    "border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  )}>
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                      <Users className="w-4 h-4" />
+                      <span>Tap to select a company and contact</span>
+                    </div>
+                  </div>
                 </div>
               )}
-              
-              {/* Copy button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "absolute bottom-2 right-2 p-1.5",
-                  "hover:bg-background/80 transition-colors",
-                  copiedContactIds.has(selectedContact.id) 
-                    ? "text-green-600 hover:text-green-700" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCopyContact(selectedContact, e);
-                }}
-              >
-                {copiedContactIds.has(selectedContact.id) ? (
-                  <Check className="w-4 h-4" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-              </Button>
-              
-              {/* Mobile menu button */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-foreground"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Menu className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={(e) => {
-                    e.stopPropagation();
-                    handleEmailContact(selectedContact, e);
-                  }}>
-                    <Mail className="w-4 h-4 mr-2" />
-                    Find Email
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        ) : (
-          <div 
-            className="mb-4 cursor-pointer"
-            onClick={handleMobileContactCardTap}
-          >
-            <div className={cn(
-              "w-full text-left p-3 relative rounded-lg border border-dashed",
-              "border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors"
-            )}>
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                <Users className="w-4 h-4" />
-                <span>Tap to select a company and contact</span>
-              </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-6">
