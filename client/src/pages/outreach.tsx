@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input"; // Import Input component
 import { cn } from "@/lib/utils";
 import type { List, Company, Contact } from "@shared/schema";
 import { generateShortListDisplayName } from "@/lib/list-utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import QuickTemplates from "@/components/quick-templates";
 import type { EmailTemplate } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -86,11 +86,15 @@ export default function Outreach() {
 
   const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { data: companies = [] } = useQuery<Company[]>({
     queryKey: [`/api/lists/${selectedListId}/companies`],
     enabled: !!selectedListId,
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Get the current company based on the index
@@ -99,13 +103,68 @@ export default function Outreach() {
   const { data: contacts = [] } = useQuery<Contact[]>({
     queryKey: [`/api/companies/${currentCompany?.id}/contacts`],
     enabled: !!currentCompany?.id,
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Get top 3 leadership contacts
-  const topContacts = contacts
-    ?.filter(contact => contact.probability && contact.probability >= 70) // Filter high probability contacts
-    .sort((a, b) => (b.probability || 0) - (a.probability || 0)) // Sort by probability
-    .slice(0, 3);
+  // Memoized top 3 leadership contacts computation
+  const topContacts = useMemo(() => 
+    contacts
+      ?.filter(contact => contact.probability && contact.probability >= 70) // Filter high probability contacts
+      .sort((a, b) => (b.probability || 0) - (a.probability || 0)) // Sort by probability
+      .slice(0, 3) || []
+  , [contacts]);
+
+  // Adjacent company prefetching for instant navigation
+  useEffect(() => {
+    if (!companies.length) return;
+
+    const prefetchAdjacentCompanies = () => {
+      // Calculate range: current ±3 companies
+      const start = Math.max(0, currentCompanyIndex - 3);
+      const end = Math.min(companies.length - 1, currentCompanyIndex + 3);
+      
+      console.log(`Prefetching contacts for companies ${start} to ${end} (current: ${currentCompanyIndex})`);
+      
+      for (let i = start; i <= end; i++) {
+        // Skip current company (already loaded)
+        if (i === currentCompanyIndex) continue;
+        
+        const company = companies[i];
+        if (company?.id) {
+          queryClient.prefetchQuery({
+            queryKey: [`/api/companies/${company.id}/contacts`],
+            queryFn: async () => {
+              const response = await apiRequest("GET", `/api/companies/${company.id}/contacts`);
+              return response.json();
+            },
+            staleTime: 3 * 60 * 1000, // 3 minutes
+            gcTime: 5 * 60 * 1000, // 5 minutes
+          });
+        }
+      }
+    };
+
+    // Small delay to avoid blocking current company load
+    const timeoutId = setTimeout(prefetchAdjacentCompanies, 100);
+    return () => clearTimeout(timeoutId);
+  }, [companies, currentCompanyIndex]);
+
+  // Page focus invalidation for fresh data after search page updates
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Page focused - invalidating contact caches for fresh data');
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/companies'],
+          predicate: (query) => query.queryKey[0] === '/api/companies'
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   const handleSaveEmail = () => {
     if (!emailPrompt || !emailContent) {
