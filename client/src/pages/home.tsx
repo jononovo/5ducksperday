@@ -1898,11 +1898,15 @@ export default function Home() {
                   setInputHasChanged(newValue !== lastExecutedQuery);
                 }}
                 onSearchSuccess={() => {
-                  // Highlight only the email search button for 25 seconds
-                setHighlightEmailButton(true);
-                setTimeout(() => {
-                  setHighlightEmailButton(false);
-                }, 25000);
+                  const selectedSearchType = localStorage.getItem('searchType') || 'contacts';
+                  if (selectedSearchType === 'emails') {
+                    // Auto-trigger email search for full flow
+                    setTimeout(() => runConsolidatedEmailSearch(), 500);
+                  } else {
+                    // Standard behavior - highlight email button
+                    setHighlightEmailButton(true);
+                    setTimeout(() => setHighlightEmailButton(false), 25000);
+                  }
                 }}
                 hasSearchResults={currentResults ? currentResults.length > 0 : false}
                 onSessionIdChange={setCurrentSessionId}
