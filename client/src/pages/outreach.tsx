@@ -752,7 +752,6 @@ export default function Outreach() {
                         {currentCompany.website && (
                           <div>
                             <p className="text-muted-foreground">
-                              <span className="font-medium">Website: </span>
                               <a 
                                 href={currentCompany.website.startsWith('http') ? currentCompany.website : `https://${currentCompany.website}`}
                                 target="_blank"
