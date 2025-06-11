@@ -285,6 +285,73 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Session termination endpoint
+  app.delete("/api/search-sessions/:sessionId", (req, res) => {
+    try {
+      const sessionId = req.params.sessionId;
+      const session = global.searchSessions.get(sessionId);
+      
+      if (session) {
+        // Clean up the session
+        global.searchSessions.delete(sessionId);
+        console.log(`[Session Cleanup] Terminated session: ${sessionId}`);
+        
+        // If this session had background processes, they should naturally stop
+        // when they check for session existence
+        
+        res.json({
+          success: true,
+          message: `Session ${sessionId} terminated successfully`
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          error: "Session not found"
+        });
+      }
+      
+    } catch (error) {
+      console.error('Session termination error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to terminate session"
+      });
+    }
+  });
+
+  // Bulk session cleanup endpoint
+  app.delete("/api/search-sessions", (req, res) => {
+    try {
+      const userSessions = Array.from(global.searchSessions.values());
+      let cleanedCount = 0;
+      
+      for (const [sessionId, session] of global.searchSessions.entries()) {
+        // Clean up sessions older than 1 hour or completed email searches
+        const isOld = Date.now() - session.timestamp > (60 * 60 * 1000); // 1 hour
+        const isEmailComplete = session.emailSearchStatus === 'completed';
+        
+        if (isOld || isEmailComplete) {
+          global.searchSessions.delete(sessionId);
+          cleanedCount++;
+          console.log(`[Bulk Cleanup] Removed session: ${sessionId}`);
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: `Cleaned up ${cleanedCount} sessions`,
+        cleanedCount
+      });
+      
+    } catch (error) {
+      console.error('Bulk session cleanup error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to cleanup sessions"
+      });
+    }
+  });
+
   // Serve static files from the static directory
   app.use('/static', express.static(path.join(__dirname, '../static')));
   

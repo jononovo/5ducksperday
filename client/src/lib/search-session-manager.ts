@@ -36,6 +36,12 @@ export class SearchSessionManager {
     
     this.saveSession(session);
     console.log('Created search session:', sessionId, 'for query:', query);
+    
+    // Cleanup old active sessions asynchronously after creating new session
+    this.cleanupActiveSessions().catch(error => 
+      console.warn('[Session Cleanup] Background cleanup failed:', error)
+    );
+    
     return session;
   }
   
@@ -252,5 +258,99 @@ export class SearchSessionManager {
     }
     keys.forEach(key => localStorage.removeItem(key));
     console.log('Cleared all search sessions');
+  }
+
+  /**
+   * Cleanup active sessions to prevent conflicts when starting new searches
+   */
+  static async cleanupActiveSessions(): Promise<void> {
+    try {
+      const activeSessions = this.getActiveSessions();
+      
+      if (activeSessions.length > 0) {
+        console.log(`[Session Cleanup] Found ${activeSessions.length} active sessions, terminating...`);
+        
+        // Terminate each active session on backend
+        for (const session of activeSessions) {
+          try {
+            const response = await fetch(`/api/search-sessions/${session.id}`, {
+              method: 'DELETE'
+            });
+            
+            if (response.ok) {
+              console.log(`[Session Cleanup] Backend session terminated: ${session.id}`);
+            }
+          } catch (error) {
+            console.warn(`[Session Cleanup] Failed to terminate backend session ${session.id}:`, error);
+          }
+          
+          // Remove from localStorage
+          this.cleanupSession(session.id);
+        }
+        
+        console.log(`[Session Cleanup] Completed cleanup of ${activeSessions.length} sessions`);
+      }
+    } catch (error) {
+      console.error('[Session Cleanup] Error during active session cleanup:', error);
+    }
+  }
+
+  /**
+   * Terminate a specific session both locally and on backend
+   */
+  static async terminateSession(sessionId: string): Promise<void> {
+    try {
+      // Terminate on backend
+      const response = await fetch(`/api/search-sessions/${sessionId}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        console.log(`[Session Cleanup] Backend session terminated: ${sessionId}`);
+      }
+      
+      // Remove from localStorage
+      this.cleanupSession(sessionId);
+      
+    } catch (error) {
+      console.error(`[Session Cleanup] Error terminating session ${sessionId}:`, error);
+      // Still remove from localStorage even if backend fails
+      this.cleanupSession(sessionId);
+    }
+  }
+
+  /**
+   * Bulk cleanup completed sessions
+   */
+  static async bulkCleanupCompletedSessions(): Promise<void> {
+    try {
+      const response = await fetch('/api/search-sessions', {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`[Bulk Cleanup] ${result.message}`);
+        
+        // Also cleanup local sessions that match the criteria
+        const sessions = this.getAllSessions();
+        let localCleanedCount = 0;
+        
+        for (const session of sessions) {
+          const isOld = Date.now() - session.startTime > (60 * 60 * 1000); // 1 hour
+          const isEmailComplete = session.emailSearchStatus === 'completed';
+          
+          if (isOld || isEmailComplete) {
+            this.cleanupSession(session.id);
+            localCleanedCount++;
+          }
+        }
+        
+        console.log(`[Bulk Cleanup] Cleaned ${localCleanedCount} local sessions`);
+      }
+      
+    } catch (error) {
+      console.error('[Bulk Cleanup] Error during bulk cleanup:', error);
+    }
   }
 }

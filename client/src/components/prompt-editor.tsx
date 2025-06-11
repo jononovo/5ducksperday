@@ -330,39 +330,55 @@ export default function PromptEditor({
   useEffect(() => {
     if (hasRestoredSession) return; // Prevent multiple executions
     
-    const activeSessions = SearchSessionManager.getActiveSessions();
-    const recentCompleteSession = SearchSessionManager.getMostRecentCompleteSession();
-    
-    if (activeSessions.length > 0) {
-      // Resume the most recent active session
-      const session = activeSessions[0];
-      console.log('Resuming active session:', session);
+    const handleSessionRestore = async () => {
+      const activeSessions = SearchSessionManager.getActiveSessions();
+      const recentCompleteSession = SearchSessionManager.getMostRecentCompleteSession();
       
-      setCurrentSessionId(session.id);
-      setIsPolling(true);
-      setHasRestoredSession(true);
-      
-      // Notify parent component of session ID
-      onSessionIdChange?.(session.id);
-      
-      // If we have quick results, show them immediately
-      if (session.quickResults && session.quickResults.length > 0) {
-        stableOnCompaniesReceived.current(session.query, session.quickResults);
-        setQuery(session.query);
-      }
-      
-      stableToast.current({
-        title: "Search in progress",
-        description: `Continuing search for "${session.query}"`,
-      });
-    } else if (recentCompleteSession) {
-      // Check if session has complete data with contacts
-      const sessionHasCompleteData = isSessionDataComplete(recentCompleteSession);
-      
-      console.log('Restoring recent complete session:', recentCompleteSession);
-      console.log('Session has complete contact data:', sessionHasCompleteData);
-      
-      setQuery(recentCompleteSession.query);
+      if (activeSessions.length > 0) {
+        // Check if we have multiple active sessions - clean them up first
+        if (activeSessions.length > 1) {
+          console.log(`[Session Conflict] Found ${activeSessions.length} active sessions, cleaning up older ones...`);
+          
+          // Keep only the most recent session, terminate others
+          const mostRecentSession = activeSessions[0];
+          const olderSessions = activeSessions.slice(1);
+          
+          for (const oldSession of olderSessions) {
+            await SearchSessionManager.terminateSession(oldSession.id);
+          }
+          
+          console.log(`[Session Conflict] Terminated ${olderSessions.length} older sessions, keeping ${mostRecentSession.id}`);
+        }
+        
+        // Resume the most recent active session
+        const session = activeSessions[0];
+        console.log('Resuming active session:', session);
+        
+        setCurrentSessionId(session.id);
+        setIsPolling(true);
+        setHasRestoredSession(true);
+        
+        // Notify parent component of session ID
+        onSessionIdChange?.(session.id);
+        
+        // If we have quick results, show them immediately
+        if (session.quickResults && session.quickResults.length > 0) {
+          stableOnCompaniesReceived.current(session.query, session.quickResults);
+          setQuery(session.query);
+        }
+        
+        stableToast.current({
+          title: "Search in progress",
+          description: `Continuing search for "${session.query}"`,
+        });
+      } else if (recentCompleteSession) {
+        // Check if session has complete data with contacts
+        const sessionHasCompleteData = isSessionDataComplete(recentCompleteSession);
+        
+        console.log('Restoring recent complete session:', recentCompleteSession);
+        console.log('Session has complete contact data:', sessionHasCompleteData);
+        
+        setQuery(recentCompleteSession.query);
       
       if (recentCompleteSession.fullResults && sessionHasCompleteData) {
         // Full search with contacts completed - use session data
