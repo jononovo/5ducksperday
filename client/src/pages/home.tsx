@@ -157,30 +157,7 @@ export default function Home() {
     return null;
   };
 
-  // Helper function to refresh contact data from database
-  const refreshContactDataFromDatabase = async (companies: CompanyWithContacts[]) => {
-    try {
-      const refreshedResults = await Promise.all(
-        companies.map(async (company) => {
-          try {
-            const response = await apiRequest("GET", `/api/companies/${company.id}/contacts`);
-            const freshContacts = await response.json();
-            return {
-              ...company,
-              contacts: freshContacts
-            };
-          } catch (error) {
-            console.error(`Failed to refresh contacts for company ${company.id}:`, error);
-            return company;
-          }
-        })
-      );
-      return refreshedResults;
-    } catch (error) {
-      console.error("Failed to refresh contact data from database:", error);
-      return companies;
-    }
-  };
+
 
   // Auto-refresh contact data if there was a recent email search
   const refreshContactDataIfNeeded = async (companies: CompanyWithContacts[]) => {
@@ -244,7 +221,7 @@ export default function Home() {
             const freshContacts = await response.json();
             
             console.log(`Refreshed ${freshContacts.length} contacts for ${company.name}:`, 
-              freshContacts.map(c => ({ name: c.name, email: c.email, hasEmail: !!c.email })));
+              freshContacts.map((c: Contact) => ({ name: c.name, email: c.email, hasEmail: !!c.email })));
             
             return {
               ...company,
@@ -1583,7 +1560,7 @@ export default function Home() {
         
         // Update localStorage with fresh data including email preservation metadata
         const emailCount = refreshedResults.reduce((total, company) => 
-          total + (company.contacts?.filter(c => c.email).length || 0), 0
+          total + (company.contacts?.filter((c) => c.email).length || 0), 0
         );
         
         const stateToSave = {
