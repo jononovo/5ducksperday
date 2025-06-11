@@ -849,13 +849,12 @@ export default function Outreach() {
               </div>
 
               {/* Email Content Field */}
-              <div className="relative">
-                <FileText className="absolute left-3 top-3 text-muted-foreground w-4 h-4" />
+              <div>
                 <Textarea
                   placeholder="Enter or edit the generated email content..."
                   value={emailContent}
                   onChange={(e) => setEmailContent(e.target.value)}
-                  className="min-h-[400px] pl-10"
+                  className="min-h-[400px]"
                   rows={20}
                 />
               </div>
