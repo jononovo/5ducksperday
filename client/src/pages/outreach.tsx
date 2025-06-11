@@ -605,11 +605,10 @@ export default function Outreach() {
                       <div
                         key={contact.id}
                         className={cn(
-                          "w-full text-left p-3 rounded-lg transition-all duration-200 relative cursor-pointer",
-                          "bg-card", // Always use card background
+                          "w-full text-left p-3 transition-all duration-200 relative cursor-pointer",
                           selectedContactId === contact.id 
-                            ? "border-l-4 border-black" 
-                            : "border-l-2 border-transparent hover:border-gray-300"
+                            ? "bg-accent/10 border-l-4 border-dashed border-black" 
+                            : "bg-card border-l-2 border-transparent hover:border-gray-400 hover:border-solid"
                         )}
                         onClick={() => setSelectedContactId(contact.id)}
                       >
