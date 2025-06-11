@@ -595,7 +595,7 @@ export default function Outreach() {
                   setCurrentCompanyIndex(0); // Reset company index when changing list
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="[&>span]:pl-2">
                   <SelectValue placeholder="Select a list" />
                 </SelectTrigger>
                 <SelectContent>
