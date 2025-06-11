@@ -739,7 +739,7 @@ export default function Outreach() {
                 <div>
                   <div className="pt-6">
                     {currentCompany ? (
-                      <div className="space-y-2">
+                      <div className="border rounded-lg p-4 space-y-2">
                         {/* Company Name with Link - More prominent */}
                         <div>
                           <div className="flex justify-between items-start mb-1">
