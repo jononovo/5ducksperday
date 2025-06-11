@@ -13,7 +13,8 @@ import {
   PartyPopper,
   ExternalLink,
   Mail,
-  Type
+  Type,
+  FileText
 } from "lucide-react";
 import {
   Select,
@@ -848,15 +849,13 @@ export default function Outreach() {
               </div>
 
               {/* Email Content Field */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Email Content
-                </label>
+              <div className="relative">
+                <FileText className="absolute left-3 top-3 text-muted-foreground w-4 h-4" />
                 <Textarea
                   placeholder="Enter or edit the generated email content..."
                   value={emailContent}
                   onChange={(e) => setEmailContent(e.target.value)}
-                  className="min-h-[400px]"
+                  className="min-h-[400px] pl-10"
                   rows={20}
                 />
               </div>
