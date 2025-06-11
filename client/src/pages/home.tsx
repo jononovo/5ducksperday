@@ -82,6 +82,9 @@ interface SavedSearchState {
   navigationRefreshTimestamp?: number;
   finishSearchRefreshTimestamp?: number;
   emailsPreserved?: number;
+  emailsFound?: number;
+  preservationChecksum?: number;
+  recoveryTimestamp?: number;
 }
 
 // Define SourceBreakdown interface
@@ -281,61 +284,134 @@ export default function Home() {
           contactsWithEmails: c.contacts?.filter(contact => contact.email).length || 0
         })));
         
-        // Check if this was an email search session
+        // Enhanced email search session detection
+        const emailPreservationData = localStorage.getItem('emailPreservationData');
+        let preservationInfo = null;
+        
+        if (emailPreservationData) {
+          try {
+            preservationInfo = JSON.parse(emailPreservationData);
+          } catch (e) {
+            console.warn('Failed to parse email preservation data');
+          }
+        }
+        
         const wasEmailSearch = savedState.emailSearchCompleted || 
                               savedState.emailSearchTimestamp || 
+                              preservationInfo ||
                               localStorage.getItem('lastEmailSearchTimestamp');
         
         if (wasEmailSearch) {
-          console.log('Email search session detected - ensuring email preservation during navigation');
+          console.log('NAVIGATION: Email search session detected - forcing complete data refresh');
+          if (preservationInfo) {
+            console.log(`NAVIGATION: Expected ${preservationInfo.emailCount} emails from preservation data`);
+          }
         }
         
-        refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
-          console.log('Contact data refresh completed - updating state with fresh data including emails');
-          const emailsAfterRefresh = refreshedResults.reduce((total, company) => 
-            total + (company.contacts?.filter(c => c.email).length || 0), 0
-          );
+        // Always force a complete refresh during navigation for email sessions
+        const shouldForceRefresh = wasEmailSearch || savedState.emailSearchCompleted;
+        
+        if (shouldForceRefresh) {
+          console.log('NAVIGATION: Forcing complete database refresh for email preservation');
           
-          console.log('Companies after refresh:', refreshedResults.map(c => ({
-            name: c.name,
-            contactCount: c.contacts?.length || 0,
-            contactsWithEmails: c.contacts?.filter(contact => contact.email).length || 0
-          })));
+          // First set the basic state
+          setCurrentQuery(savedState.currentQuery);
+          setCurrentListId(savedState.currentListId);
+          setCurrentResults(savedState.currentResults);
           
-          console.log(`Total emails preserved after navigation refresh: ${emailsAfterRefresh}`);
-          
-          setCurrentResults(refreshedResults);
-          
-          // Update localStorage with complete fresh data including email metadata
-          const updatedState = {
-            currentQuery: savedState.currentQuery,
-            currentResults: refreshedResults,
-            currentListId: savedState.currentListId,
-            emailSearchCompleted: savedState.emailSearchCompleted || false,
-            emailSearchTimestamp: savedState.emailSearchTimestamp || null,
-            navigationRefreshTimestamp: Date.now()
-          };
-          localStorage.setItem('searchState', JSON.stringify(updatedState));
-          sessionStorage.setItem('searchState', JSON.stringify(updatedState));
-          
-          // Verify emails were preserved
-          if (wasEmailSearch && emailsAfterRefresh === 0) {
-            console.warn('Email preservation failed during navigation - emails were lost');
-            // Force another refresh after a short delay
-            setTimeout(() => {
-              console.log('Attempting recovery refresh for lost emails');
-              refreshContactDataFromDatabase(refreshedResults).then(recoveryResults => {
-                const recoveredEmails = recoveryResults.reduce((total, company) => 
-                  total + (company.contacts?.filter(c => c.email).length || 0), 0
-                );
-                if (recoveredEmails > 0) {
-                  console.log(`Email recovery successful: ${recoveredEmails} emails restored`);
-                  setCurrentResults(recoveryResults);
-                }
-              });
-            }, 1000);
-          }
-        });
+          // Then immediately refresh from database
+          refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
+            const emailsAfterRefresh = refreshedResults.reduce((total, company) => 
+              total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
+            );
+            
+            console.log(`NAVIGATION: Database refresh completed with ${emailsAfterRefresh} emails`);
+            console.log('NAVIGATION: Companies after refresh:', refreshedResults.map(c => ({
+              name: c.name,
+              contactCount: c.contacts?.length || 0,
+              contactsWithEmails: c.contacts?.filter(contact => contact.email && contact.email.length > 0).length || 0
+            })));
+            
+            // Update state with refreshed data
+            setCurrentResults(refreshedResults);
+            
+            // Update localStorage with complete fresh data
+            const updatedState = {
+              currentQuery: savedState.currentQuery,
+              currentResults: refreshedResults,
+              currentListId: savedState.currentListId,
+              emailSearchCompleted: savedState.emailSearchCompleted || false,
+              emailSearchTimestamp: savedState.emailSearchTimestamp || null,
+              emailsFound: emailsAfterRefresh,
+              navigationRefreshTimestamp: Date.now()
+            };
+            localStorage.setItem('searchState', JSON.stringify(updatedState));
+            sessionStorage.setItem('searchState', JSON.stringify(updatedState));
+            
+            // Verify email preservation success
+            if (preservationInfo && emailsAfterRefresh < preservationInfo.emailCount) {
+              console.error(`NAVIGATION: Email preservation failed! Expected ${preservationInfo.emailCount}, got ${emailsAfterRefresh}`);
+              
+              // Attempt aggressive recovery
+              setTimeout(() => {
+                console.log('NAVIGATION: Attempting aggressive email recovery...');
+                
+                // Try multiple refresh attempts
+                const attemptRecovery = async (attempt = 1) => {
+                  if (attempt > 3) {
+                    console.error('NAVIGATION: Email recovery failed after 3 attempts');
+                    return;
+                  }
+                  
+                  console.log(`NAVIGATION: Recovery attempt ${attempt}/3`);
+                  const recoveryResults = await refreshContactDataFromDatabase(refreshedResults);
+                  const recoveredEmails = recoveryResults.reduce((total, company) => 
+                    total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
+                  );
+                  
+                  if (recoveredEmails >= preservationInfo.emailCount) {
+                    console.log(`NAVIGATION: Email recovery successful! Restored ${recoveredEmails} emails`);
+                    setCurrentResults(recoveryResults);
+                    
+                    // Update localStorage with recovered data
+                    const recoveredState = {
+                      ...updatedState,
+                      currentResults: recoveryResults,
+                      emailsFound: recoveredEmails,
+                      recoveryTimestamp: Date.now()
+                    };
+                    localStorage.setItem('searchState', JSON.stringify(recoveredState));
+                  } else {
+                    console.log(`NAVIGATION: Recovery attempt ${attempt} found ${recoveredEmails} emails, retrying...`);
+                    setTimeout(() => attemptRecovery(attempt + 1), 1000);
+                  }
+                };
+                
+                attemptRecovery();
+              }, 500);
+            } else if (emailsAfterRefresh > 0) {
+              console.log(`NAVIGATION: Email preservation successful! ${emailsAfterRefresh} emails restored`);
+            }
+          }).catch(error => {
+            console.error('NAVIGATION: Database refresh failed:', error);
+            // Fallback to using saved state as-is
+            setCurrentResults(savedState.currentResults);
+          });
+        } else {
+          console.log('NAVIGATION: Standard restoration (no email search detected)');
+          refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
+            setCurrentResults(refreshedResults);
+            
+            const updatedState = {
+              currentQuery: savedState.currentQuery,
+              currentResults: refreshedResults,
+              currentListId: savedState.currentListId,
+              navigationRefreshTimestamp: Date.now()
+            };
+            localStorage.setItem('searchState', JSON.stringify(updatedState));
+            sessionStorage.setItem('searchState', JSON.stringify(updatedState));
+          });
+        }
       } else {
         console.log('No saved search state found or session data already restored');
       }
@@ -1718,27 +1794,48 @@ export default function Home() {
         description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies`,
       });
       
-      // Immediately refresh contact data and update localStorage to preserve emails
-      console.log('Immediately refreshing contact data after email search to preserve emails');
+      // CRITICAL: Immediately refresh contact data and update localStorage to preserve emails
+      console.log('CRITICAL: Immediately refreshing contact data after email search to preserve emails');
       const emailRefreshedResults = await refreshContactDataFromDatabase(currentResults);
-      setCurrentResults(emailRefreshedResults);
       
-      // Update localStorage immediately with email data
-      const emailStateToSave = {
-        currentQuery,
-        currentResults: emailRefreshedResults,
-        currentListId,
-        emailSearchCompleted: true,
-        emailSearchTimestamp: Date.now()
-      };
-      localStorage.setItem('searchState', JSON.stringify(emailStateToSave));
-      sessionStorage.setItem('searchState', JSON.stringify(emailStateToSave));
-      localStorage.setItem('lastEmailSearchTimestamp', Date.now().toString());
+      // Count emails to verify they're actually there
+      const emailCount = emailRefreshedResults.reduce((total, company) => 
+        total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
+      );
       
-      console.log('Email search state saved to localStorage with', 
-        emailRefreshedResults.reduce((total, company) => 
-          total + (company.contacts?.filter(c => c.email).length || 0), 0
-        ), 'emails preserved');
+      console.log(`CRITICAL: Email refresh completed with ${emailCount} emails found`);
+      
+      if (emailCount > 0) {
+        // Update UI state immediately
+        setCurrentResults(emailRefreshedResults);
+        
+        // Save to localStorage with email preservation flags
+        const emailStateToSave = {
+          currentQuery,
+          currentResults: emailRefreshedResults,
+          currentListId,
+          emailSearchCompleted: true,
+          emailSearchTimestamp: Date.now(),
+          emailsFound: emailCount,
+          preservationChecksum: Date.now() // Unique identifier for this email session
+        };
+        
+        const stateString = JSON.stringify(emailStateToSave);
+        localStorage.setItem('searchState', stateString);
+        sessionStorage.setItem('searchState', stateString);
+        localStorage.setItem('lastEmailSearchTimestamp', Date.now().toString());
+        localStorage.setItem('emailPreservationData', JSON.stringify({
+          timestamp: Date.now(),
+          emailCount,
+          companyIds: emailRefreshedResults.map(c => c.id),
+          checksum: emailStateToSave.preservationChecksum
+        }));
+        
+        console.log(`CRITICAL: Email search state saved to localStorage with ${emailCount} emails preserved`);
+        console.log('Email preservation data stored for navigation recovery');
+      } else {
+        console.error('CRITICAL: No emails found during refresh - email search may have failed');
+      }
       
       // Smart list update logic - only update existing lists, never create during email search
       if (currentListId) {
