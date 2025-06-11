@@ -643,10 +643,7 @@ export default function Outreach() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-6">
         {/* Left Column - Hidden on mobile when collapsed */}
-        <motion.div
-          layout
-          className={`md:block ${!isMobileExpanded ? 'hidden' : 'block'}`}
-        >
+        <div className={`md:block ${!isMobileExpanded ? 'hidden' : 'block'}`}>
           <div className="md:border md:rounded-lg md:shadow-sm">
             <div className="p-6 md:pb-6">
               <div className="space-y-3">
@@ -879,10 +876,7 @@ export default function Outreach() {
         </div>
 
         {/* Right Column - Email Creation */}
-        <motion.div
-          layout
-          className={`md:block ${isMobileExpanded ? 'mt-4' : ''}`}
-        >
+        <div className={`md:block ${isMobileExpanded ? 'mt-4' : ''}`}>
           <div className="md:border md:rounded-lg md:shadow-sm">
             <div className="p-6 md:pb-6">
               <div className="flex justify-between items-center">
