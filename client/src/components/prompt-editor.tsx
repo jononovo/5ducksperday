@@ -19,6 +19,7 @@ import { SearchProgress } from "./search-progress";
 import { MainSearchSummary } from "./main-search-summary";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import ContactSearchChips, { ContactSearchConfig } from "./contact-search-chips";
+import SearchTypeSelector, { SearchType } from "./search-type-selector";
 import {
   Tooltip,
   TooltipContent,
@@ -97,6 +98,17 @@ export default function PromptEditor({
     enableCustomSearch2: false,
     customSearchTarget2: ""
   });
+
+  // Search type configuration state - default to full search (emails)
+  const [searchType, setSearchType] = useState<SearchType>(() => {
+    const saved = localStorage.getItem('searchType');
+    return (saved as SearchType) || 'emails';
+  });
+
+  // Save search type to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('searchType', searchType);
+  }, [searchType]);
 
   // Session management state
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
