@@ -275,34 +275,21 @@ export default function Home() {
         setCurrentResults(savedState.currentResults);
         setCurrentListId(savedState.currentListId);
         
-        // Check if we need to refresh contact data for better persistence
-        const shouldRefresh = !hasCompleteContacts(savedState.currentResults);
-        
-        if (shouldRefresh) {
-          console.log('Contact data incomplete - refreshing from database');
-          refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
-            if (hasCompleteContacts(refreshedResults)) {
-              console.log('Successfully refreshed contact data - updating state');
-              setCurrentResults(refreshedResults);
-              
-              // Update localStorage with complete data
-              const updatedState = {
-                currentQuery: savedState.currentQuery,
-                currentResults: refreshedResults,
-                currentListId: savedState.currentListId
-              };
-              localStorage.setItem('searchState', JSON.stringify(updatedState));
-              sessionStorage.setItem('searchState', JSON.stringify(updatedState));
-            }
-          });
-        } else {
-          // Check for recent email search refresh
-          refreshContactDataIfNeeded(savedState.currentResults).then(refreshedResults => {
-            if (refreshedResults !== savedState.currentResults) {
-              setCurrentResults(refreshedResults);
-            }
-          });
-        }
+        // Always refresh contact data when restoring from localStorage to ensure emails are preserved
+        console.log('Refreshing contact data from database to preserve emails after navigation');
+        refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
+          console.log('Contact data refresh completed - updating state with fresh data including emails');
+          setCurrentResults(refreshedResults);
+          
+          // Update localStorage with complete fresh data
+          const updatedState = {
+            currentQuery: savedState.currentQuery,
+            currentResults: refreshedResults,
+            currentListId: savedState.currentListId
+          };
+          localStorage.setItem('searchState', JSON.stringify(updatedState));
+          sessionStorage.setItem('searchState', JSON.stringify(updatedState));
+        });
       } else {
         console.log('No saved search state found or session data already restored');
       }
