@@ -739,7 +739,6 @@ export default function Outreach() {
 
                         {/* Company Description */}
                         <div>
-                          <h4 className="font-medium mb-2">Description</h4>
                           {currentCompany.description ? (
                             <p className="text-muted-foreground leading-relaxed">
                               {currentCompany.description}
@@ -748,6 +747,40 @@ export default function Outreach() {
                             <p className="text-muted-foreground italic">No description available</p>
                           )}
                         </div>
+
+                        {/* Company Website */}
+                        {currentCompany.website && (
+                          <div>
+                            <p className="text-muted-foreground">
+                              <span className="font-medium">Website: </span>
+                              <a 
+                                href={currentCompany.website.startsWith('http') ? currentCompany.website : `https://${currentCompany.website}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {currentCompany.website}
+                              </a>
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Alternative Profile URL */}
+                        {currentCompany.alternativeProfileUrl && (
+                          <div>
+                            <p className="text-muted-foreground">
+                              <span className="font-medium">Profile: </span>
+                              <a 
+                                href={currentCompany.alternativeProfileUrl.startsWith('http') ? currentCompany.alternativeProfileUrl : `https://${currentCompany.alternativeProfileUrl}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {currentCompany.alternativeProfileUrl}
+                              </a>
+                            </p>
+                          </div>
+                        )}
 
                       </div>
                     ) : (
