@@ -465,84 +465,57 @@ export default function Outreach() {
                       <div
                         key={contact.id}
                         className={cn(
-                          "w-full text-left p-3 rounded-lg transition-all duration-200 cursor-pointer border",
-                          "hover:bg-accent/50 hover:border-accent-foreground/20",
+                          "w-full text-left p-3 rounded-lg transition-colors relative cursor-pointer",
+                          "hover:bg-accent hover:text-accent-foreground",
                           selectedContactId === contact.id 
-                            ? "bg-accent/30 border-accent-foreground/30 shadow-sm" 
-                            : "bg-card border-border hover:shadow-sm"
+                            ? "bg-accent/20 border border-accent-foreground/20" 
+                            : "bg-card hover:bg-accent"
                         )}
                         onClick={() => setSelectedContactId(contact.id)}
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-medium text-sm">{contact.name}</span>
-                              <Badge variant={
-                                (contact.probability || 0) >= 90 ? "default" :
-                                (contact.probability || 0) >= 70 ? "secondary" : "outline"
-                              } className="text-xs">
-                                {contact.probability || 0}
-                              </Badge>
-                            </div>
-                            {contact.role && (
-                              <div className="text-xs text-muted-foreground mb-2 truncate">
-                                {contact.role}
-                              </div>
-                            )}
-                            {contact.email && (
-                              <div className="text-xs text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded truncate">
-                                {contact.email}
-                              </div>
-                            )}
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">{contact.name}</span>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={
+                              (contact.probability || 0) >= 90 ? "default" :
+                              (contact.probability || 0) >= 70 ? "secondary" : "outline"
+                            }>
+                              {contact.probability || 0}
+                            </Badge>
+                            {/* Mobile Actions Menu */}
+                            <ContactActionColumn
+                              contact={contact as any}
+                              standalone={true}
+                              displayMode="mobile"
+                              className="p-0"
+                            />
                           </div>
-                          
-                          {/* Actions Menu */}
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="ml-2 p-1 h-6 w-6 hover:bg-background/80"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <Menu className="w-3 h-3" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCopyContact(contact, e);
-                                }}
-                              >
-                                <Copy className="mr-2 h-4 w-4" />
-                                Copy Contact Info
-                              </DropdownMenuItem>
-                              {contact.email && (
-                                <>
-                                  <DropdownMenuItem
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleCopyEmail(contact.email!, e);
-                                    }}
-                                  >
-                                    <Copy className="mr-2 h-4 w-4" />
-                                    Copy Email Only
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEmailContact(contact, e);
-                                    }}
-                                  >
-                                    <Mail className="mr-2 h-4 w-4" />
-                                    Use as Recipient
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
                         </div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {contact.role && (
+                            <span className="block">{contact.role}</span>
+                          )}
+                          {contact.email && (
+                            <span className="block">{contact.email}</span>
+                          )}
+                        </div>
+                        {/* Copy button */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={cn(
+                            "absolute bottom-2 right-2 p-1.5",
+                            "hover:bg-background/80 transition-colors",
+                            "text-muted-foreground hover:text-foreground",
+                            selectedContactId === contact.id && "hover:bg-primary-foreground/20"
+                          )}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopyContact(contact, e);
+                          }}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
