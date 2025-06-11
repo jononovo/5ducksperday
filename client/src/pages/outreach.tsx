@@ -824,9 +824,6 @@ export default function Outreach() {
 
               {/* To Email Field */}
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  To Email
-                </label>
                 <Input
                   placeholder="Recipient email address..."
                   value={toEmail}
