@@ -47,6 +47,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Menu } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Tooltip,
   TooltipContent,
@@ -74,6 +75,7 @@ export default function Outreach() {
   const [emailSubject, setEmailSubject] = useState("");
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [currentCompanyIndex, setCurrentCompanyIndex] = useState(0);
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -179,6 +181,11 @@ export default function Outreach() {
       .sort((a, b) => (b.probability || 0) - (a.probability || 0)) // Sort by probability
       .slice(0, 3) || []
   , [contacts]);
+
+  // Get selected contact for mobile compact view
+  const selectedContact = useMemo(() => 
+    selectedContactId ? topContacts.find(contact => contact.id === selectedContactId) || topContacts[0] : topContacts[0]
+  , [topContacts, selectedContactId]);
 
   // Adjacent company prefetching for instant navigation
   useEffect(() => {
@@ -598,9 +605,48 @@ export default function Outreach() {
 
   return (
     <div className="w-full md:container md:mx-auto md:py-8">
+      {/* Mobile Compact Contact Card - Only visible on mobile */}
+      <div className="md:hidden">
+        {selectedContact && currentCompany && (
+          <motion.div
+            layout
+            className="border rounded-lg p-4 mb-4 bg-white cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setIsMobileExpanded(!isMobileExpanded)}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-sm truncate">{selectedContact.name}</h3>
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                    {selectedContact.probability}%
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground truncate">
+                  {selectedContact.role} at {currentCompany.name}
+                </p>
+                {selectedContact.email && (
+                  <p className="text-xs text-blue-600 truncate mt-1">
+                    {selectedContact.email}
+                  </p>
+                )}
+              </div>
+              <motion.div
+                animate={{ rotate: isMobileExpanded ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-6">
-        {/* Left Column */}
-        <div>
+        {/* Left Column - Hidden on mobile when collapsed */}
+        <motion.div
+          layout
+          className={`md:block ${!isMobileExpanded ? 'hidden' : 'block'}`}
+        >
           <div className="md:border md:rounded-lg md:shadow-sm">
             <div className="p-6 md:pb-6">
               <div className="space-y-3">
@@ -833,7 +879,10 @@ export default function Outreach() {
         </div>
 
         {/* Right Column - Email Creation */}
-        <div>
+        <motion.div
+          layout
+          className={`md:block ${isMobileExpanded ? 'mt-4' : ''}`}
+        >
           <div className="md:border md:rounded-lg md:shadow-sm">
             <div className="p-6 md:pb-6">
               <div className="flex justify-between items-center">
