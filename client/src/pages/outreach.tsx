@@ -740,7 +740,7 @@ export default function Outreach() {
                         {/* Company Description */}
                         <div>
                           {currentCompany.description ? (
-                            <p className="text-muted-foreground leading-relaxed">
+                            <p className="text-sm text-muted-foreground leading-relaxed">
                               {currentCompany.description}
                             </p>
                           ) : (
