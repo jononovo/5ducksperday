@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  UserCircle,
+  Building2,
   Send,
   Save,
   Wand2,
@@ -580,30 +580,32 @@ export default function Outreach() {
                 </Select>
                 
                 {/* Title + Navigation Row */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <CardTitle className="flex items-center gap-2">
-                    <UserCircle className="w-5 h-5" />
+                    <Building2 className="w-5 h-5" />
                   </CardTitle>
                   {companies.length > 0 && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="default"
+                        className="px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors"
                         onClick={handlePrevCompany}
                         disabled={currentCompanyIndex === 0}
                       >
-                        <ChevronLeft className="w-4 h-4" />
+                        <ChevronLeft className="w-5 h-5" />
                       </Button>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-muted-foreground font-medium">
                         {currentCompanyIndex + 1} of {companies.length}
                       </span>
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="default"
+                        className="px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors"
                         onClick={handleNextCompany}
                         disabled={currentCompanyIndex === companies.length - 1}
                       >
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-5 h-5" />
                       </Button>
                     </div>
                   )}
