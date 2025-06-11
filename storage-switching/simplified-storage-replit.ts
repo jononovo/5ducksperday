@@ -252,8 +252,9 @@ export class ReplitStorage implements IStorage {
     // Update with new data
     const updatedList = { ...existingList, ...data };
     
-    // Save back to storage using the internal ID
-    await this.set(`list:${existingList.id}`, updatedList);
+    // Save back to storage using the listId parameter (NOT internal ID)
+    // This ensures we update the existing record instead of creating a new one
+    await this.set(`list:${listId}`, updatedList);
     
     // @ts-ignore: Date handling issues
     return updatedList;
