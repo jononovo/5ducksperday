@@ -14,7 +14,9 @@ import {
   ExternalLink,
   Mail,
   Type,
-  FileText
+  FileText,
+  Users,
+  Menu
 } from "lucide-react";
 import {
   Select,
@@ -46,7 +48,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Tooltip,
