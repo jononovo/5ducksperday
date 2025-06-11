@@ -208,8 +208,11 @@ export default function Outreach() {
   };
 
   const handleMobileContactCardTap = () => {
-    setIsMobileExpanded(true);
-    startAutoCollapseTimer();
+    // Start fade-out transition immediately
+    setTimeout(() => {
+      setIsMobileExpanded(true);
+      startAutoCollapseTimer();
+    }, 1000);
   };
 
   const handleMobileColumnInteraction = () => {
