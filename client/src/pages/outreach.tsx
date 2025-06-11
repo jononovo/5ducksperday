@@ -27,6 +27,7 @@ import { useState, useEffect, useMemo } from "react";
 import QuickTemplates from "@/components/quick-templates";
 import type { EmailTemplate } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import {Loader2} from "lucide-react";
@@ -62,6 +63,7 @@ export default function Outreach() {
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [currentCompanyIndex, setCurrentCompanyIndex] = useState(0);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Load state from localStorage on component mount
   useEffect(() => {
@@ -189,7 +191,8 @@ export default function Outreach() {
       subject: emailSubject || "New Email Template",
       content: emailContent,
       description: emailPrompt,
-      category: "saved"
+      category: "saved",
+      userId: user?.id || 1 // Use authenticated user ID or fallback to demo user
     };
 
     createMutation.mutate(templateData);
