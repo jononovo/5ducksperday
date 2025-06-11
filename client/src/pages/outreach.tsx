@@ -11,7 +11,9 @@ import {
   ChevronLeft,
   ChevronRight,
   PartyPopper,
-  ExternalLink
+  ExternalLink,
+  Mail,
+  Type
 } from "lucide-react";
 import {
   Select,
@@ -43,7 +45,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, Mail } from "lucide-react";
+import { Menu } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -835,11 +837,13 @@ export default function Outreach() {
               </div>
 
               {/* Email Subject Field */}
-              <div>
+              <div className="relative">
+                <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   placeholder="Email Subject"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
+                  className="pl-10"
                 />
               </div>
 
