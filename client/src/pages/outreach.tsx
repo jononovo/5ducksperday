@@ -813,9 +813,6 @@ export default function Outreach() {
             <CardContent className="space-y-6">
               {/* Email Prompt Field */}
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Email Creation Prompt
-                </label>
                 <Textarea
                   placeholder="Enter your prompt for email generation..."
                   value={emailPrompt}
