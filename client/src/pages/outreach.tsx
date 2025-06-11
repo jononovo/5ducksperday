@@ -6,6 +6,7 @@ import {
   Save,
   Wand2,
   Copy,
+  Check,
   ChevronLeft,
   ChevronRight,
   PartyPopper
@@ -70,6 +71,9 @@ export default function Outreach() {
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
+  
+  // Copy feedback state tracking
+  const [copiedContactIds, setCopiedContactIds] = useState<Set<number>>(new Set());
 
   // Load state from localStorage on component mount
   useEffect(() => {
@@ -351,10 +355,17 @@ export default function Outreach() {
     e.stopPropagation(); // Prevent triggering the parent button click
     const textToCopy = `${contact.name}${contact.email ? ` <${contact.email}>` : ''}`;
     navigator.clipboard.writeText(textToCopy).then(() => {
-      toast({
-        title: "Copied to clipboard",
-        description: `Contact information for ${contact.name} has been copied.`
-      });
+      // Add to copied contacts set
+      setCopiedContactIds(prev => new Set(prev).add(contact.id));
+      
+      // Remove from copied set after 2 seconds
+      setTimeout(() => {
+        setCopiedContactIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(contact.id);
+          return newSet;
+        });
+      }, 2000);
     });
   };
 
@@ -653,7 +664,9 @@ export default function Outreach() {
                           className={cn(
                             "absolute bottom-2 right-2 p-1.5",
                             "hover:bg-background/80 transition-colors",
-                            "text-muted-foreground hover:text-foreground",
+                            copiedContactIds.has(contact.id) 
+                              ? "text-green-600 hover:text-green-700" 
+                              : "text-muted-foreground hover:text-foreground",
                             selectedContactId === contact.id && "hover:bg-primary-foreground/20"
                           )}
                           onClick={(e) => {
@@ -661,7 +674,11 @@ export default function Outreach() {
                             handleCopyContact(contact, e);
                           }}
                         >
-                          <Copy className="w-4 h-4" />
+                          {copiedContactIds.has(contact.id) ? (
+                            <Check className="w-4 h-4" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
                         </Button>
                       </div>
                     ))}
