@@ -597,12 +597,12 @@ export default function Outreach() {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="grid grid-cols-2 gap-6">
+    <div className="w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 md:gap-6">
         {/* Left Column */}
-        <div>
-          <Card>
-            <CardHeader>
+        <div className="md:p-6">
+          <div>
+            <div className="pb-6">
               <div className="space-y-3">
                 {/* List Selection Row */}
                 <Select
@@ -656,8 +656,8 @@ export default function Outreach() {
                   )}
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div>
 
               {/* Key Members Section */}
               {topContacts && topContacts.length > 0 && (
@@ -825,11 +825,11 @@ export default function Outreach() {
                           : "Select a list to view company details"}
                       </p>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Right Column - Email Creation */}
