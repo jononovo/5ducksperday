@@ -583,7 +583,6 @@ export default function Outreach() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <UserCircle className="w-5 h-5" />
-                    Key Members
                   </CardTitle>
                   {companies.length > 0 && (
                     <div className="flex items-center gap-2">
@@ -615,10 +614,8 @@ export default function Outreach() {
 
               {/* Key Members Section */}
               {topContacts && topContacts.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Key Members</h3>
-                  <div className="space-y-2">
-                    {topContacts.map((contact) => (
+                <div className="space-y-2">
+                  {topContacts.map((contact) => (
                       <div
                         key={contact.id}
                         className={cn(
@@ -687,8 +684,7 @@ export default function Outreach() {
                           )}
                         </Button>
                       </div>
-                    ))}
-                  </div>
+                  ))}
                 </div>
               )}
 
