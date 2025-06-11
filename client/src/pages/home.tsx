@@ -80,11 +80,6 @@ interface SavedSearchState {
   emailSearchCompleted?: boolean;
   emailSearchTimestamp?: number;
   navigationRefreshTimestamp?: number;
-  finishSearchRefreshTimestamp?: number;
-  emailsPreserved?: number;
-  emailsFound?: number;
-  preservationChecksum?: number;
-  recoveryTimestamp?: number;
 }
 
 // Define SourceBreakdown interface
@@ -284,134 +279,50 @@ export default function Home() {
           contactsWithEmails: c.contacts?.filter(contact => contact.email).length || 0
         })));
         
-        // Enhanced email search session detection
-        const emailPreservationData = localStorage.getItem('emailPreservationData');
-        let preservationInfo = null;
+        // SIMPLIFIED NAVIGATION RESTORATION: Always refresh from database
+        console.log('NAVIGATION: Restoring search state and refreshing from database');
         
-        if (emailPreservationData) {
-          try {
-            preservationInfo = JSON.parse(emailPreservationData);
-          } catch (e) {
-            console.warn('Failed to parse email preservation data');
-          }
-        }
+        // Set basic state first
+        setCurrentQuery(savedState.currentQuery);
+        setCurrentListId(savedState.currentListId);
+        setCurrentResults(savedState.currentResults);
         
-        const wasEmailSearch = savedState.emailSearchCompleted || 
-                              savedState.emailSearchTimestamp || 
-                              preservationInfo ||
-                              localStorage.getItem('lastEmailSearchTimestamp');
-        
-        if (wasEmailSearch) {
-          console.log('NAVIGATION: Email search session detected - forcing complete data refresh');
-          if (preservationInfo) {
-            console.log(`NAVIGATION: Expected ${preservationInfo.emailCount} emails from preservation data`);
-          }
-        }
-        
-        // Always force a complete refresh during navigation for email sessions
-        const shouldForceRefresh = wasEmailSearch || savedState.emailSearchCompleted;
-        
-        if (shouldForceRefresh) {
-          console.log('NAVIGATION: Forcing complete database refresh for email preservation');
+        // Always refresh from database to ensure fresh data (including emails)
+        refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
+          const emailsAfterRefresh = refreshedResults.reduce((total, company) => 
+            total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
+          );
           
-          // First set the basic state
-          setCurrentQuery(savedState.currentQuery);
-          setCurrentListId(savedState.currentListId);
+          console.log(`NAVIGATION: Database refresh completed with ${emailsAfterRefresh} emails`);
+          console.log('NAVIGATION: Companies after refresh:', refreshedResults.map(c => ({
+            name: c.name,
+            contactCount: c.contacts?.length || 0,
+            contactsWithEmails: c.contacts?.filter(contact => contact.email && contact.email.length > 0).length || 0
+          })));
+          
+          // Update state with refreshed data
+          setCurrentResults(refreshedResults);
+          
+          // Update localStorage with complete fresh data
+          const updatedState = {
+            currentQuery: savedState.currentQuery,
+            currentResults: refreshedResults,
+            currentListId: savedState.currentListId,
+            emailSearchCompleted: savedState.emailSearchCompleted || false,
+            emailSearchTimestamp: savedState.emailSearchTimestamp || null,
+            navigationRefreshTimestamp: Date.now()
+          };
+          localStorage.setItem('searchState', JSON.stringify(updatedState));
+          sessionStorage.setItem('searchState', JSON.stringify(updatedState));
+          
+          if (emailsAfterRefresh > 0) {
+            console.log(`NAVIGATION: Successfully restored ${emailsAfterRefresh} emails`);
+          }
+        }).catch(error => {
+          console.error('NAVIGATION: Database refresh failed:', error);
+          // Fallback to using saved state as-is
           setCurrentResults(savedState.currentResults);
-          
-          // Then immediately refresh from database
-          refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
-            const emailsAfterRefresh = refreshedResults.reduce((total, company) => 
-              total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
-            );
-            
-            console.log(`NAVIGATION: Database refresh completed with ${emailsAfterRefresh} emails`);
-            console.log('NAVIGATION: Companies after refresh:', refreshedResults.map(c => ({
-              name: c.name,
-              contactCount: c.contacts?.length || 0,
-              contactsWithEmails: c.contacts?.filter(contact => contact.email && contact.email.length > 0).length || 0
-            })));
-            
-            // Update state with refreshed data
-            setCurrentResults(refreshedResults);
-            
-            // Update localStorage with complete fresh data
-            const updatedState = {
-              currentQuery: savedState.currentQuery,
-              currentResults: refreshedResults,
-              currentListId: savedState.currentListId,
-              emailSearchCompleted: savedState.emailSearchCompleted || false,
-              emailSearchTimestamp: savedState.emailSearchTimestamp || null,
-              emailsFound: emailsAfterRefresh,
-              navigationRefreshTimestamp: Date.now()
-            };
-            localStorage.setItem('searchState', JSON.stringify(updatedState));
-            sessionStorage.setItem('searchState', JSON.stringify(updatedState));
-            
-            // Verify email preservation success
-            if (preservationInfo && emailsAfterRefresh < preservationInfo.emailCount) {
-              console.error(`NAVIGATION: Email preservation failed! Expected ${preservationInfo.emailCount}, got ${emailsAfterRefresh}`);
-              
-              // Attempt aggressive recovery
-              setTimeout(() => {
-                console.log('NAVIGATION: Attempting aggressive email recovery...');
-                
-                // Try multiple refresh attempts
-                const attemptRecovery = async (attempt = 1) => {
-                  if (attempt > 3) {
-                    console.error('NAVIGATION: Email recovery failed after 3 attempts');
-                    return;
-                  }
-                  
-                  console.log(`NAVIGATION: Recovery attempt ${attempt}/3`);
-                  const recoveryResults = await refreshContactDataFromDatabase(refreshedResults);
-                  const recoveredEmails = recoveryResults.reduce((total, company) => 
-                    total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
-                  );
-                  
-                  if (recoveredEmails >= preservationInfo.emailCount) {
-                    console.log(`NAVIGATION: Email recovery successful! Restored ${recoveredEmails} emails`);
-                    setCurrentResults(recoveryResults);
-                    
-                    // Update localStorage with recovered data
-                    const recoveredState = {
-                      ...updatedState,
-                      currentResults: recoveryResults,
-                      emailsFound: recoveredEmails,
-                      recoveryTimestamp: Date.now()
-                    };
-                    localStorage.setItem('searchState', JSON.stringify(recoveredState));
-                  } else {
-                    console.log(`NAVIGATION: Recovery attempt ${attempt} found ${recoveredEmails} emails, retrying...`);
-                    setTimeout(() => attemptRecovery(attempt + 1), 1000);
-                  }
-                };
-                
-                attemptRecovery();
-              }, 500);
-            } else if (emailsAfterRefresh > 0) {
-              console.log(`NAVIGATION: Email preservation successful! ${emailsAfterRefresh} emails restored`);
-            }
-          }).catch(error => {
-            console.error('NAVIGATION: Database refresh failed:', error);
-            // Fallback to using saved state as-is
-            setCurrentResults(savedState.currentResults);
-          });
-        } else {
-          console.log('NAVIGATION: Standard restoration (no email search detected)');
-          refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
-            setCurrentResults(refreshedResults);
-            
-            const updatedState = {
-              currentQuery: savedState.currentQuery,
-              currentResults: refreshedResults,
-              currentListId: savedState.currentListId,
-              navigationRefreshTimestamp: Date.now()
-            };
-            localStorage.setItem('searchState', JSON.stringify(updatedState));
-            sessionStorage.setItem('searchState', JSON.stringify(updatedState));
-          });
-        }
+        });
       } else {
         console.log('No saved search state found or session data already restored');
       }
@@ -1634,25 +1545,17 @@ export default function Home() {
           setCurrentResults(refreshedResults);
         }, 100);
         
-        // Update localStorage with fresh data including email preservation metadata
-        const emailCount = refreshedResults.reduce((total, company) => 
-          total + (company.contacts?.filter((c) => c.email).length || 0), 0
-        );
-        
+        // Update localStorage with fresh data (simplified)
         const stateToSave = {
           currentQuery,
           currentResults: refreshedResults,
-          currentListId,
-          emailSearchCompleted: true,
-          emailSearchTimestamp: Date.now(),
-          finishSearchRefreshTimestamp: Date.now(),
-          emailsPreserved: emailCount
+          currentListId
         };
         const stateString = JSON.stringify(stateToSave);
         localStorage.setItem('searchState', stateString);
         sessionStorage.setItem('searchState', stateString);
         
-        console.log(`finishSearchWithoutSave: Preserved ${emailCount} emails in localStorage`);
+        console.log('finishSearchWithoutSave: Updated localStorage with refreshed data');
         
         await new Promise(resolve => setTimeout(resolve, 200));
       }
@@ -1794,48 +1697,48 @@ export default function Home() {
         description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies`,
       });
       
-      // CRITICAL: Immediately refresh contact data and update localStorage to preserve emails
-      console.log('CRITICAL: Immediately refreshing contact data after email search to preserve emails');
-      const emailRefreshedResults = await refreshContactDataFromDatabase(currentResults);
+      // COMPLETE RELOAD APPROACH: Clear localStorage and reload fresh from database
+      console.log('EMAIL SEARCH COMPLETE: Starting complete database reload to ensure email persistence');
       
-      // Count emails to verify they're actually there
-      const emailCount = emailRefreshedResults.reduce((total, company) => 
+      // Step 1: Clear all localStorage to prevent stale data
+      localStorage.removeItem('searchState');
+      sessionStorage.removeItem('searchState');
+      localStorage.removeItem('lastEmailSearchTimestamp');
+      localStorage.removeItem('emailPreservationData');
+      console.log('Cleared all localStorage state');
+      
+      // Step 2: Wait for backend to fully complete (ensure database consistency)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Step 3: Fetch completely fresh data from database
+      console.log('Fetching complete fresh data from database...');
+      const freshResults = await refreshContactDataFromDatabase(currentResults);
+      
+      // Step 4: Count emails to verify success
+      const emailCount = freshResults.reduce((total, company) => 
         total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
       );
       
-      console.log(`CRITICAL: Email refresh completed with ${emailCount} emails found`);
+      console.log(`Database reload completed with ${emailCount} emails found`);
       
-      if (emailCount > 0) {
-        // Update UI state immediately
-        setCurrentResults(emailRefreshedResults);
-        
-        // Save to localStorage with email preservation flags
-        const emailStateToSave = {
-          currentQuery,
-          currentResults: emailRefreshedResults,
-          currentListId,
-          emailSearchCompleted: true,
-          emailSearchTimestamp: Date.now(),
-          emailsFound: emailCount,
-          preservationChecksum: Date.now() // Unique identifier for this email session
-        };
-        
-        const stateString = JSON.stringify(emailStateToSave);
-        localStorage.setItem('searchState', stateString);
-        sessionStorage.setItem('searchState', stateString);
-        localStorage.setItem('lastEmailSearchTimestamp', Date.now().toString());
-        localStorage.setItem('emailPreservationData', JSON.stringify({
-          timestamp: Date.now(),
-          emailCount,
-          companyIds: emailRefreshedResults.map(c => c.id),
-          checksum: emailStateToSave.preservationChecksum
-        }));
-        
-        console.log(`CRITICAL: Email search state saved to localStorage with ${emailCount} emails preserved`);
-        console.log('Email preservation data stored for navigation recovery');
-      } else {
-        console.error('CRITICAL: No emails found during refresh - email search may have failed');
-      }
+      // Step 5: Update UI with fresh data
+      setCurrentResults(freshResults);
+      
+      // Step 6: Save complete fresh state to localStorage (single authoritative save)
+      const completeState = {
+        currentQuery,
+        currentResults: freshResults,
+        currentListId,
+        emailSearchCompleted: true,
+        emailSearchTimestamp: Date.now()
+      };
+      
+      const stateString = JSON.stringify(completeState);
+      localStorage.setItem('searchState', stateString);
+      sessionStorage.setItem('searchState', stateString);
+      
+      console.log(`Complete state saved to localStorage with ${emailCount} emails`);
+      console.log('Email search completion: Database reload approach successful');
       
       // Smart list update logic - only update existing lists, never create during email search
       if (currentListId) {
