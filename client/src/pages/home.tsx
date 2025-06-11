@@ -1503,11 +1503,7 @@ export default function Home() {
       if (currentResults && currentResults.length > 0) {
         const refreshedResults = await Promise.all(
           currentResults.map(async (company) => {
-            if (!company.contacts || company.contacts.length === 0) {
-              return company;
-            }
-            
-            // Fetch fresh contact data for each company
+            // Fetch fresh contact data for ALL companies (removed faulty skip logic)
             try {
               const response = await apiRequest("GET", `/api/companies/${company.id}/contacts`);
               const freshContacts = await response.json();
