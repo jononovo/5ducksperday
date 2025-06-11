@@ -580,7 +580,7 @@ export default function Outreach() {
                 </Select>
                 
                 {/* Title + Navigation Row */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
                   <CardTitle className="flex items-center gap-2">
                     <UserCircle className="w-5 h-5" />
                   </CardTitle>
