@@ -1679,13 +1679,14 @@ export default function Home() {
         description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies`,
       });
       
-      // Smart list update logic - prevent duplicate creation
+      // Smart list update logic - only update existing lists, never create during email search
       if (currentListId) {
         console.log('Updating existing list after email search completion:', currentListId);
         updateListMutation.mutate();
       } else {
-        console.log('Creating new list after email search completion');
-        autoCreateListMutation.mutate();
+        console.log('No existing list to update - email results will be available for manual save');
+        // Don't auto-create during email search to prevent duplicates
+        // The first auto-creation from search completion will handle list creation
       }
 
       // Call finishSearch without auto-save trigger
