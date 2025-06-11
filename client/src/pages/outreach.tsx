@@ -736,8 +736,8 @@ export default function Outreach() {
               )}
 
               <div className="mt-6">
-                <Card>
-                  <CardContent className="pt-6">
+                <div>
+                  <div className="pt-6">
                     {currentCompany ? (
                       <div className="space-y-2">
                         {/* Company Name with Link - More prominent */}
@@ -833,20 +833,20 @@ export default function Outreach() {
         </div>
 
         {/* Right Column - Email Creation */}
-        <div>
-          <Card>
-            <CardHeader>
+        <div className="md:p-6">
+          <div>
+            <div className="pb-6">
               <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center gap-2">
-                  <Send className="w-5 h-5" /> {/*Corrected Icon Here*/}
-                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Send className="w-5 h-5" />
+                </div>
                 <Button onClick={handleGenerateEmail}>
                   <Wand2 className="w-4 h-4 mr-2" />
                   Generate Email
                 </Button>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
+            </div>
+            <div className="space-y-6">
               {/* Email Prompt Field */}
               <div>
                 <Textarea
@@ -941,8 +941,8 @@ export default function Outreach() {
                   }}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>
