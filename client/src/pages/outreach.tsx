@@ -341,17 +341,30 @@ export default function Outreach() {
     });
   };
 
+  // Smart contact pre-selection - auto-select highest probability contact
+  useEffect(() => {
+    if (topContacts.length > 0 && !selectedContactId) {
+      const highestProbabilityContact = topContacts[0];
+      setSelectedContactId(highestProbabilityContact.id);
+      
+      // Auto-populate email if available
+      if (highestProbabilityContact.email && !toEmail) {
+        setToEmail(highestProbabilityContact.email);
+      }
+    }
+  }, [topContacts, selectedContactId, toEmail]);
+
   const handlePrevCompany = () => {
     if (currentCompanyIndex > 0) {
       setCurrentCompanyIndex(prev => prev - 1);
-      setSelectedContactId(null); // Reset selected contact when changing company
+      // Don't reset selectedContactId immediately - let smart selection handle it
     }
   };
 
   const handleNextCompany = () => {
     if (currentCompanyIndex < companies.length - 1) {
       setCurrentCompanyIndex(prev => prev + 1);
-      setSelectedContactId(null); // Reset selected contact when changing company
+      // Don't reset selectedContactId immediately - let smart selection handle it
     }
   };
 
