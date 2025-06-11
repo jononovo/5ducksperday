@@ -3,14 +3,26 @@ import type { ChatCompletionMessageParam } from 'openai/resources/chat/completio
 import { queryPerplexity } from './perplexity-client';
 import type { PerplexityMessage } from '../perplexity';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+let openaiClient: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OpenAI API key not configured. Please add OPENAI_API_KEY to your environment variables.');
+    }
+    openaiClient = new OpenAI({ apiKey });
+  }
+  return openaiClient;
+}
 
 interface FunctionCallResult {
-  type: 'conversation' | 'product_summary' | 'email_strategy' | 'sales_approach';
+  type: 'conversation' | 'product_summary' | 'email_strategy' | 'sales_approach' | 'progressive_strategy';
   message: string;
   data?: any;
+  initialTarget?: string;
+  refinedTarget?: string;
+  needsProgressiveGeneration?: boolean;
 }
 
 // Perplexity-powered report generation functions
@@ -248,7 +260,7 @@ export async function queryOpenAI(
   productContext: any
 ): Promise<FunctionCallResult> {
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages,
       tools: [
@@ -338,7 +350,7 @@ export async function queryOpenAI(
       } else if (functionName === 'generateEmailStrategy') {
         // Redirect to progressive boundary selection flow instead of generating complete strategy
         return {
-          type: 'progressive_strategy',
+          type: 'progressive_strategy' as const,
           message: "Perfect! Now I'll create your **strategic sales plan** step by step.",
           initialTarget: functionArgs.initialTarget,
           refinedTarget: functionArgs.refinedTarget,
@@ -361,7 +373,20 @@ export async function queryOpenAI(
     };
 
   } catch (error) {
+    // Check if it's an API key configuration error
+    if (error instanceof Error && error.message.includes('OpenAI API key not configured')) {
+      return {
+        type: 'conversation',
+        message: 'AI features are currently unavailable. Please configure your OpenAI API key to enable intelligent search capabilities.'
+      };
+    }
+    
     console.error('OpenAI API error:', error);
-    throw error;
+    
+    // Return user-friendly error instead of throwing
+    return {
+      type: 'conversation',
+      message: 'AI services are temporarily unavailable. Please try again later.'
+    };
   }
 }
