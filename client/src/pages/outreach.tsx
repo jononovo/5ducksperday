@@ -896,7 +896,7 @@ export default function Outreach() {
                     handleTextareaResize();
                   }}
                   className="resize-none transition-all duration-200"
-                  style={{ minHeight: '80px', maxHeight: '400px' }}
+                  style={{ minHeight: '160px', maxHeight: '400px' }}
                 />
               </div>
 
