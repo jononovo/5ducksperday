@@ -558,11 +558,35 @@ export default function Outreach() {
         <div>
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <UserCircle className="w-5 h-5" />
+              <div className="space-y-3">
+                {/* List Selection Row */}
+                <Select
+                  value={selectedListId}
+                  onValueChange={(value) => {
+                    setSelectedListId(value);
+                    setCurrentCompanyIndex(0); // Reset company index when changing list
+                  }}
+                >
+                  <SelectTrigger className="[&>span]:pl-2">
+                    <SelectValue placeholder="Select a list" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {lists.map((list: List) => (
+                      <SelectItem key={list.listId} value={list.listId.toString()}>
+                        {generateShortListDisplayName(list)} ({list.resultCount} companies)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {/* Title + Navigation Row */}
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <UserCircle className="w-5 h-5" />
+                    Key Members
+                  </CardTitle>
                   {companies.length > 0 && (
-                    <div className="flex items-center gap-2 ml-4">
+                    <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -584,32 +608,14 @@ export default function Outreach() {
                       </Button>
                     </div>
                   )}
-                </CardTitle>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <Select
-                value={selectedListId}
-                onValueChange={(value) => {
-                  setSelectedListId(value);
-                  setCurrentCompanyIndex(0); // Reset company index when changing list
-                }}
-              >
-                <SelectTrigger className="[&>span]:pl-2">
-                  <SelectValue placeholder="Select a list" />
-                </SelectTrigger>
-                <SelectContent>
-                  {lists.map((list: List) => (
-                    <SelectItem key={list.listId} value={list.listId.toString()}>
-                      {generateShortListDisplayName(list)} ({list.resultCount} companies)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
 
               {/* Key Members Section */}
               {topContacts && topContacts.length > 0 && (
-                <div className="mt-6">
+                <div>
                   <h3 className="text-lg font-semibold mb-4">Key Members</h3>
                   <div className="space-y-2">
                     {topContacts.map((contact) => (
