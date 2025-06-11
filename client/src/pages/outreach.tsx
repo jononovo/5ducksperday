@@ -406,6 +406,140 @@ export default function Outreach() {
     }
   };
 
+  // Email enrichment handlers
+  const handleEnrichContact = async (contactId: number) => {
+    setPendingContactIds(prev => new Set(prev).add(contactId));
+    
+    try {
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/enrich`, {});
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to enrich contact");
+      }
+      
+      // Refresh contacts for current company
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/companies/${currentCompany?.id}/contacts`] 
+      });
+      
+      toast({
+        title: "Contact Enriched",
+        description: "Email search completed successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Enrichment Failed",
+        description: error instanceof Error ? error.message : "Failed to enrich contact",
+        variant: "destructive",
+      });
+    } finally {
+      setPendingContactIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contactId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleHunterSearch = async (contactId: number) => {
+    setPendingHunterIds(prev => new Set(prev).add(contactId));
+    
+    try {
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/hunter-search`, {});
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to search Hunter");
+      }
+      
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/companies/${currentCompany?.id}/contacts`] 
+      });
+      
+      toast({
+        title: "Hunter Search Complete",
+        description: "Hunter.io email search completed",
+      });
+    } catch (error) {
+      toast({
+        title: "Hunter Search Failed",
+        description: error instanceof Error ? error.message : "Failed to search Hunter.io",
+        variant: "destructive",
+      });
+    } finally {
+      setPendingHunterIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contactId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleAeroLeadsSearch = async (contactId: number) => {
+    setPendingAeroLeadsIds(prev => new Set(prev).add(contactId));
+    
+    try {
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/aeroleads-search`, {});
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to search AeroLeads");
+      }
+      
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/companies/${currentCompany?.id}/contacts`] 
+      });
+      
+      toast({
+        title: "AeroLeads Search Complete",
+        description: "AeroLeads email search completed",
+      });
+    } catch (error) {
+      toast({
+        title: "AeroLeads Search Failed",
+        description: error instanceof Error ? error.message : "Failed to search AeroLeads",
+        variant: "destructive",
+      });
+    } finally {
+      setPendingAeroLeadsIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contactId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleApolloSearch = async (contactId: number) => {
+    setPendingApolloIds(prev => new Set(prev).add(contactId));
+    
+    try {
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/apollo-search`, {});
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to search Apollo");
+      }
+      
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/companies/${currentCompany?.id}/contacts`] 
+      });
+      
+      toast({
+        title: "Apollo Search Complete",
+        description: "Apollo.io email search completed",
+      });
+    } catch (error) {
+      toast({
+        title: "Apollo Search Failed",
+        description: error instanceof Error ? error.message : "Failed to search Apollo.io",
+        variant: "destructive",
+      });
+    } finally {
+      setPendingApolloIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contactId);
+        return newSet;
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="grid grid-cols-2 gap-6">
@@ -494,6 +628,14 @@ export default function Outreach() {
                               standalone={true}
                               displayMode="mobile"
                               className="p-0"
+                              handleEnrichContact={handleEnrichContact}
+                              handleHunterSearch={handleHunterSearch}
+                              handleAeroLeadsSearch={handleAeroLeadsSearch}
+                              handleApolloSearch={handleApolloSearch}
+                              pendingContactIds={pendingContactIds}
+                              pendingHunterIds={pendingHunterIds}
+                              pendingAeroLeadsIds={pendingAeroLeadsIds}
+                              pendingApolloIds={pendingApolloIds}
                             />
                           </div>
                         </div>
