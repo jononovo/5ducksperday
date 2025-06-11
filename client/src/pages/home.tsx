@@ -685,10 +685,10 @@ export default function Home() {
     }
 
     if (currentListId) {
-      // Update existing list instead of creating new one
+      console.log('Manual save: Updating existing list', currentListId);
       updateListMutation.mutate();
     } else {
-      // Force auto-creation first, then mark as saved
+      console.log('Manual save: Creating new list');
       autoCreateListMutation.mutate();
     }
   };
@@ -1496,6 +1496,66 @@ export default function Home() {
     setSummaryVisible(true);
   };
 
+  // Helper function to finish search without triggering list creation
+  const finishSearchWithoutSave = async () => {
+    try {
+      // All the cache refresh logic from finishSearch() but without save operations
+      if (currentResults && currentResults.length > 0) {
+        const refreshedResults = await Promise.all(
+          currentResults.map(async (company) => {
+            if (!company.contacts || company.contacts.length === 0) {
+              return company;
+            }
+            
+            // Fetch fresh contact data for each company
+            try {
+              const response = await apiRequest("GET", `/api/companies/${company.id}/contacts`);
+              const freshContacts = await response.json();
+              
+              return {
+                ...company,
+                contacts: freshContacts
+              };
+            } catch (error) {
+              console.error(`Failed to refresh contacts for ${company.name}:`, error);
+              return company; // Return original if refresh fails
+            }
+          })
+        );
+        
+        // Brief UI refresh to show updated data
+        setCurrentResults([]);
+        setTimeout(() => {
+          setCurrentResults(refreshedResults);
+        }, 100);
+        
+        // Update localStorage with fresh data (but don't trigger list operations)
+        const stateToSave = {
+          currentQuery,
+          currentResults: refreshedResults,
+          currentListId
+        };
+        const stateString = JSON.stringify(stateToSave);
+        localStorage.setItem('searchState', stateString);
+        sessionStorage.setItem('searchState', stateString);
+        
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    } catch (error) {
+      console.error("Cache refresh failed:", error);
+    }
+    
+    // Clean up progress timer and complete search UI
+    if (progressTimerRef.current) {
+      clearTimeout(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+    
+    setIsConsolidatedSearching(false);
+    isAutomatedSearchRef.current = false;
+    setSummaryVisible(true);
+  };
+
   // Add delay helper for throttling API requests
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   
@@ -1619,8 +1679,17 @@ export default function Home() {
         description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies`,
       });
       
-      // Refresh contact data and complete search
-      await finishSearch();
+      // Smart list update logic - prevent duplicate creation
+      if (currentListId) {
+        console.log('Updating existing list after email search completion:', currentListId);
+        updateListMutation.mutate();
+      } else {
+        console.log('Creating new list after email search completion');
+        autoCreateListMutation.mutate();
+      }
+
+      // Call finishSearch without auto-save trigger
+      await finishSearchWithoutSave();
       
     } catch (error) {
       console.error("Backend email orchestration error:", error);

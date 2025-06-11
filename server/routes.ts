@@ -893,7 +893,8 @@ export function registerRoutes(app: Express) {
   app.post("/api/lists", requireAuth, async (req, res) => {
     const { companies, prompt, contactSearchConfig } = req.body;
 
-    console.log(`POST /api/lists called - THIS SHOULD NOT HAPPEN FOR UPDATES! Companies: ${companies?.length || 0}`);
+    console.log(`POST /api/lists called with ${companies?.length || 0} companies`);
+  console.log('Call stack context:', new Error().stack?.split('\n')[2]); // Track where call originated
 
     if (!Array.isArray(companies) || !prompt || typeof prompt !== 'string') {
       res.status(400).json({ message: "Invalid request: companies must be an array and prompt must be a string" });
