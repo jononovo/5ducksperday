@@ -691,7 +691,6 @@ export default function Outreach() {
               )}
 
               <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-4">Company Summary</h3>
                 <Card>
                   <CardContent className="pt-6">
                     {currentCompany ? (
