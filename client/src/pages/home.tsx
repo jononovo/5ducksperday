@@ -223,8 +223,14 @@ export default function Home() {
       const refreshedResults = await Promise.all(
         companies.map(async (company) => {
           try {
-            const response = await apiRequest("GET", `/api/companies/${company.id}/contacts`);
+            // Add cache-busting timestamp to ensure fresh data
+            const timestamp = Date.now();
+            const response = await apiRequest("GET", `/api/companies/${company.id}/contacts?t=${timestamp}`);
             const freshContacts = await response.json();
+            
+            console.log(`Refreshed ${freshContacts.length} contacts for ${company.name}:`, 
+              freshContacts.map(c => ({ name: c.name, email: c.email, hasEmail: !!c.email })));
+            
             return {
               ...company,
               contacts: freshContacts
@@ -277,8 +283,20 @@ export default function Home() {
         
         // Always refresh contact data when restoring from localStorage to ensure emails are preserved
         console.log('Refreshing contact data from database to preserve emails after navigation');
+        console.log('Companies before refresh:', savedState.currentResults.map(c => ({
+          name: c.name,
+          contactCount: c.contacts?.length || 0,
+          contactsWithEmails: c.contacts?.filter(contact => contact.email).length || 0
+        })));
+        
         refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
           console.log('Contact data refresh completed - updating state with fresh data including emails');
+          console.log('Companies after refresh:', refreshedResults.map(c => ({
+            name: c.name,
+            contactCount: c.contacts?.length || 0,
+            contactsWithEmails: c.contacts?.filter(contact => contact.email).length || 0
+          })));
+          
           setCurrentResults(refreshedResults);
           
           // Update localStorage with complete fresh data
