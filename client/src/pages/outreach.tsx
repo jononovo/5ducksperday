@@ -196,7 +196,7 @@ export default function Outreach() {
     }
     const timer = setTimeout(() => {
       setIsMobileExpanded(false);
-    }, 5000);
+    }, 7500);
     setAutoCollapseTimer(timer);
   };
 
@@ -208,11 +208,11 @@ export default function Outreach() {
   };
 
   const handleMobileContactCardTap = () => {
-    // Start fade-out transition immediately
+    // Start fade-out transition after 200ms
     setTimeout(() => {
       setIsMobileExpanded(true);
       startAutoCollapseTimer();
-    }, 1000);
+    }, 200);
   };
 
   const handleMobileColumnInteraction = () => {
@@ -654,7 +654,12 @@ export default function Outreach() {
             <motion.div
               initial={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ 
+                duration: 0.8,
+                ease: "easeInOut",
+                opacity: { duration: 0.6 },
+                height: { duration: 0.8, delay: 0.2 }
+              }}
               className="overflow-hidden"
             >
               {selectedContact && currentCompany ? (
