@@ -65,6 +65,12 @@ export default function Outreach() {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Email enrichment state tracking
+  const [pendingContactIds, setPendingContactIds] = useState<Set<number>>(new Set());
+  const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
+  const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
+  const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
+
   // Load state from localStorage on component mount
   useEffect(() => {
     const savedState = localStorage.getItem('outreachState');
@@ -465,11 +471,11 @@ export default function Outreach() {
                       <div
                         key={contact.id}
                         className={cn(
-                          "w-full text-left p-3 rounded-lg transition-colors relative cursor-pointer",
-                          "hover:bg-accent hover:text-accent-foreground",
+                          "w-full text-left p-3 rounded-lg transition-all duration-200 relative cursor-pointer",
+                          "bg-card", // Always use card background
                           selectedContactId === contact.id 
-                            ? "bg-accent/20 border border-accent-foreground/20" 
-                            : "bg-card hover:bg-accent"
+                            ? "border-l-4 border-black" 
+                            : "border-l-2 border-transparent hover:border-gray-300"
                         )}
                         onClick={() => setSelectedContactId(contact.id)}
                       >
