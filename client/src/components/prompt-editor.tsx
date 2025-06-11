@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search, HelpCircle } from "lucide-react";
 
@@ -134,7 +134,7 @@ export default function PromptEditor({
     stableToast.current = toast;
   });
 
-  // Function to refresh contact data from database when email search completes
+  // Function to refresh contact data using outreach page pattern (cache invalidation + fresh queries)
   const refreshContactDataFromCache = async (session: any) => {
     try {
       // Get saved search state from localStorage
@@ -144,9 +144,19 @@ export default function PromptEditor({
       const { currentResults } = JSON.parse(savedState);
       if (!currentResults || currentResults.length === 0) return;
       
-      console.log('Refreshing contact data for', currentResults.length, 'companies');
+      console.log('[Email Refresh] Starting database sync for', currentResults.length, 'companies');
       
-      // Fetch fresh contact data for all companies from database
+      // STEP 1: Force cache invalidation (outreach page pattern)
+      console.log('[Email Refresh] Invalidating React Query cache...');
+      currentResults.forEach((company: any) => {
+        queryClient.invalidateQueries({ queryKey: [`/api/companies/${company.id}/contacts`] });
+      });
+      
+      // STEP 2: Wait for cache invalidation to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      // STEP 3: Fetch fresh contact data directly from database
+      console.log('[Email Refresh] Fetching fresh contact data from database...');
       const refreshedResults = await Promise.all(
         currentResults.map(async (company: any) => {
           try {
@@ -159,16 +169,16 @@ export default function PromptEditor({
               };
             } else {
               console.error(`Failed to refresh contacts for company ${company.id}:`, response.status);
-              return company; // Return original company data on error
+              return company;
             }
           } catch (error) {
             console.error(`Failed to refresh contacts for company ${company.id}:`, error);
-            return company; // Return original company data on error
+            return company;
           }
         })
       );
       
-      // Update localStorage with fresh data
+      // STEP 4: Update localStorage with fresh database data
       const updatedState = {
         currentQuery: session.query,
         currentResults: refreshedResults
@@ -177,18 +187,18 @@ export default function PromptEditor({
       localStorage.setItem('searchState', stateString);
       sessionStorage.setItem('searchState', stateString);
       
-      // Trigger UI update by calling onSearchResults with fresh data
+      // STEP 5: Force UI update with fresh database data
       stableOnSearchResults.current(session.query, refreshedResults);
       
-      console.log('Contact data refresh completed - all email updates applied');
+      console.log('[Email Refresh] Database sync completed - all emails reflected');
       
       stableToast.current({
-        title: "Email Search Results Updated",
-        description: "Fresh contact data loaded with latest email search results",
+        title: "Email Search Complete",
+        description: "Contact data updated with fresh email discoveries",
       });
       
     } catch (error) {
-      console.error('Failed to refresh contact data:', error);
+      console.error('[Email Refresh] Database sync failed:', error);
     }
   };
 
@@ -698,10 +708,21 @@ export default function PromptEditor({
         console.log(`Session ${currentSessionId} completed with full results`);
       }
       
-      // Send full results with contacts to parent component
-      onSearchResults(query, data.companies);
+      // Force fresh database queries by invalidating React Query cache
+      // This replicates the outreach page behavior that works perfectly
+      console.log("[Database Sync] Invalidating cache to force fresh queries...");
       
-
+      // Invalidate all company and contact queries to force database refresh
+      queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
+      data.companies.forEach((company: any) => {
+        queryClient.invalidateQueries({ queryKey: [`/api/companies/${company.id}/contacts`] });
+      });
+      
+      // Small delay to ensure cache invalidation completes before UI update
+      setTimeout(() => {
+        console.log("[Database Sync] Cache invalidated, sending results to UI...");
+        onSearchResults(query, data.companies);
+      }, 100);
       
       // Calculate search duration and show summary
       const searchDuration = Math.round((Date.now() - searchMetrics.startTime) / 1000);
