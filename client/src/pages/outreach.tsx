@@ -705,19 +705,7 @@ export default function Outreach() {
                           )}
                         </div>
 
-                        {/* Services Section */}
-                        <div>
-                          <h4 className="font-medium mb-2">Services & Description</h4>
-                          {currentCompany.services && currentCompany.services.length > 0 ? (
-                            <ul className="list-disc pl-4 space-y-1">
-                              {currentCompany.services.map((service, index) => (
-                                <li key={index} className="text-muted-foreground">{service}</li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p className="text-muted-foreground italic">No services information available</p>
-                          )}
-                        </div>
+
                       </div>
                     ) : (
                       <p className="text-muted-foreground">
