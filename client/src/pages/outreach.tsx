@@ -29,7 +29,7 @@ import { Input } from "@/components/ui/input"; // Import Input component
 import { cn } from "@/lib/utils";
 import type { List, Company, Contact } from "@shared/schema";
 import { generateShortListDisplayName } from "@/lib/list-utils";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import QuickTemplates from "@/components/quick-templates";
 import type { EmailTemplate } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -86,6 +86,24 @@ export default function Outreach() {
   
   // Copy feedback state tracking
   const [copiedContactIds, setCopiedContactIds] = useState<Set<number>>(new Set());
+  
+  // Textarea ref for auto-resizing
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize function
+  const handleTextareaResize = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      const newHeight = Math.min(textarea.scrollHeight, 400); // 400px max
+      textarea.style.height = `${newHeight}px`;
+    }
+  };
+
+  // Auto-resize on emailContent changes
+  useEffect(() => {
+    handleTextareaResize();
+  }, [emailContent]);
 
   // Load state from localStorage on component mount
   useEffect(() => {
@@ -851,11 +869,15 @@ export default function Outreach() {
               {/* Email Content Field */}
               <div>
                 <Textarea
+                  ref={textareaRef}
                   placeholder="Enter or edit the generated email content..."
                   value={emailContent}
-                  onChange={(e) => setEmailContent(e.target.value)}
-                  className="min-h-[400px]"
-                  rows={20}
+                  onChange={(e) => {
+                    setEmailContent(e.target.value);
+                    handleTextareaResize();
+                  }}
+                  className="resize-none transition-all duration-200"
+                  style={{ minHeight: '80px', maxHeight: '400px' }}
                 />
               </div>
 
