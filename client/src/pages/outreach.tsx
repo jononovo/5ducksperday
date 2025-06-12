@@ -850,7 +850,7 @@ export default function Outreach() {
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-medium">{contact.name}</span>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-3">
                             <Badge variant={
                               (contact.probability || 0) >= 90 ? "default" :
                               (contact.probability || 0) >= 70 ? "secondary" : "outline"
