@@ -78,6 +78,7 @@ export default function Outreach() {
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [currentCompanyIndex, setCurrentCompanyIndex] = useState(0);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const [showExpandedView, setShowExpandedView] = useState(false);
   const [autoCollapseTimer, setAutoCollapseTimer] = useState<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -686,8 +687,8 @@ export default function Outreach() {
 
   return (
     <div className="w-full md:container md:mx-auto md:py-8">
-      {/* Mobile Duck Header - Only visible on mobile */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
+      {/* Mobile Duck Header - Only visible on mobile when in compressed view */}
+      <div className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 ${showExpandedView ? 'hidden' : 'block'}`}>
         <div className="flex items-center justify-center pt-2 pb-1">
           <span className="text-2xl">🐥</span>
           <span className="text-lg ml-1">🥚🥚🥚🥚</span>
