@@ -25,8 +25,7 @@ import Auth from "@/pages/auth";
 // Lazy imports for app pages that can be loaded on demand
 const Home = lazy(() => import("@/pages/home"));
 const Build = lazy(() => import("@/pages/build"));
-const Lists = lazy(() => import("@/pages/lists"));
-const ListDetails = lazy(() => import("@/pages/list-details"));
+// Lists functionality moved to drawer in Home page
 const Campaigns = lazy(() => import("@/pages/campaigns"));
 const CampaignDetails = lazy(() => import("@/pages/campaign-details"));
 const Outreach = lazy(() => import("@/pages/outreach"));
@@ -184,16 +183,7 @@ function Router() {
                     <Build />
                   </Suspense>
                 } />
-                <ProtectedRoute path="/lists" component={() => 
-                  <Suspense fallback={<LoadingScreen />}>
-                    <Lists />
-                  </Suspense>
-                } />
-                <ProtectedRoute path="/lists/:listId" component={() => 
-                  <Suspense fallback={<LoadingScreen />}>
-                    <ListDetails />
-                  </Suspense>
-                } />
+                {/* Lists routes removed - functionality moved to drawer in Home page */}
                 <ProtectedRoute path="/campaigns" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Campaigns />

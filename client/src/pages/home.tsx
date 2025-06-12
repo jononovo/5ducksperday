@@ -55,7 +55,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import type { Company, Contact } from "@shared/schema";
+import type { Company, Contact, List } from "@shared/schema";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,6 +66,7 @@ import { filterTopProspects, ContactWithCompanyInfo } from "@/lib/results-analys
 import { Checkbox } from "@/components/ui/checkbox";
 import { ContactActionColumn } from "@/components/contact-action-column";
 import { SearchSessionManager } from "@/lib/search-session-manager";
+import { SavedSearchesDrawer } from "@/components/saved-searches-drawer";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -1021,6 +1022,32 @@ export default function Home() {
     }
   };
 
+  // Handle loading a saved search from the drawer
+  const handleLoadSavedSearch = async (list: List) => {
+    try {
+      const companies = await queryClient.fetchQuery({
+        queryKey: [`/api/lists/${list.listId}/companies`]
+      }) as CompanyWithContacts[];
+      
+      setCurrentQuery(list.prompt);
+      setCurrentResults(companies);
+      setCurrentListId(list.listId);
+      setIsSaved(true);
+      setSavedSearchesDrawerOpen(false);
+      
+      toast({
+        title: "Search Loaded",
+        description: `Loaded "${list.prompt}" with ${list.resultCount} companies`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to load search",
+        description: "Could not load the selected search.",
+        variant: "destructive"
+      });
+    }
+  };
+
   //New function added here
   const getEnrichButtonText = (contact: Contact) => {
     if (isContactPending(contact.id)) return "Processing...";
@@ -1939,7 +1966,14 @@ export default function Home() {
           {/* Search Section - border removed and moved up */}
           <div className="px-6 py-1"> {/* Matched padding with CardHeader (p-6) */}
             <div className="flex flex-col-reverse md:flex-row items-center gap-4 mb-3">
-              <h2 className="text-2xl font-semibold mt-2 md:mt-0">Search for target businesses</h2>
+              <div className="flex items-center gap-3">
+                <SavedSearchesDrawer 
+                  open={savedSearchesDrawerOpen}
+                  onOpenChange={setSavedSearchesDrawerOpen}
+                  onLoadSearch={handleLoadSavedSearch}
+                />
+                <h2 className="text-2xl font-semibold mt-2 md:mt-0">Search for target businesses</h2>
+              </div>
               <div>
                 <EggAnimation />
               </div>
