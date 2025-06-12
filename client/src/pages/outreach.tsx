@@ -653,6 +653,38 @@ export default function Outreach() {
     <div className="w-full md:container md:mx-auto md:py-8">
       {/* Mobile Contact Card - Only visible on mobile */}
       <div className="md:hidden">
+        {/* Mobile Company Navigation Bar - Above contact card */}
+        {!isMobileExpanded && currentCompany && selectedContact && (
+          <div className="md:hidden px-4 py-0.5 flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handlePrevCompany}
+              disabled={currentCompanyIndex === 0}
+              className="px-1 text-muted-foreground hover:text-muted-foreground/80 h-6"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <div className="flex-1 text-center">
+              <span className="font-medium text-sm text-muted-foreground">{currentCompany.name}</span>
+              <div className="text-xs text-muted-foreground/70">
+                {currentCompanyIndex + 1} of {companies.length}
+              </div>
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleNextCompany}
+              disabled={currentCompanyIndex === companies.length - 1}
+              className="px-1 text-muted-foreground hover:text-muted-foreground/80 h-6"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+        
         <AnimatePresence>
           {!isMobileExpanded && (
             <motion.div
@@ -759,38 +791,6 @@ export default function Outreach() {
             </motion.div>
           )}
         </AnimatePresence>
-        
-        {/* Mobile Company Navigation Bar - Above contact card */}
-        {!isMobileExpanded && currentCompany && selectedContact && (
-          <div className="md:hidden px-4 py-0.5 flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handlePrevCompany}
-              disabled={currentCompanyIndex === 0}
-              className="px-1 text-muted-foreground hover:text-muted-foreground/80 h-6"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            
-            <div className="flex-1 text-center">
-              <span className="font-medium text-sm text-muted-foreground">{currentCompany.name}</span>
-              <div className="text-xs text-muted-foreground/70">
-                {currentCompanyIndex + 1} of {companies.length}
-              </div>
-            </div>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleNextCompany}
-              disabled={currentCompanyIndex === companies.length - 1}
-              className="px-1 text-muted-foreground hover:text-muted-foreground/80 h-6"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-6">
