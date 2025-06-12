@@ -92,6 +92,9 @@ export default function Outreach() {
   // Copy feedback state tracking
   const [copiedContactIds, setCopiedContactIds] = useState<Set<number>>(new Set());
   
+  // Tooltip state for mobile support
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  
   // Textarea refs for auto-resizing
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -1024,11 +1027,15 @@ export default function Outreach() {
                   className="resize-none transition-all duration-200 pb-12"
                   style={{ minHeight: '60px', maxHeight: '100px' }}
                 />
-                <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                <div className="absolute bottom-2 right-2 flex items-center gap-2">
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
                       <TooltipTrigger asChild>
-                        <button className="p-1 rounded hover:bg-accent transition-colors">
+                        <button 
+                          className="p-1 rounded hover:bg-accent transition-colors"
+                          onClick={() => setTooltipOpen(!tooltipOpen)}
+                          onBlur={() => setTooltipOpen(false)}
+                        >
                           <Info className="w-3 h-3 text-muted-foreground" />
                         </button>
                       </TooltipTrigger>
