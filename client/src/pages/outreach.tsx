@@ -501,17 +501,46 @@ export default function Outreach() {
     }
   }, [topContacts, selectedContactId, toEmail]);
 
+  // Helper functions to check if navigation is possible
+  const hasPrevCompanyWithContacts = () => {
+    for (let i = currentCompanyIndex - 1; i >= 0; i--) {
+      const company = companies[i];
+      const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
+      if (contacts.length > 0) return true;
+    }
+    return false;
+  };
+
+  const hasNextCompanyWithContacts = () => {
+    for (let i = currentCompanyIndex + 1; i < companies.length; i++) {
+      const company = companies[i];
+      const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
+      if (contacts.length > 0) return true;
+    }
+    return false;
+  };
+
   const handlePrevCompany = () => {
-    if (currentCompanyIndex > 0) {
-      setCurrentCompanyIndex(prev => prev - 1);
-      // Don't reset selectedContactId immediately - let smart selection handle it
+    // Find previous company with contacts
+    for (let i = currentCompanyIndex - 1; i >= 0; i--) {
+      const company = companies[i];
+      const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
+      if (contacts.length > 0) {
+        setCurrentCompanyIndex(i);
+        return;
+      }
     }
   };
 
   const handleNextCompany = () => {
-    if (currentCompanyIndex < companies.length - 1) {
-      setCurrentCompanyIndex(prev => prev + 1);
-      // Don't reset selectedContactId immediately - let smart selection handle it
+    // Find next company with contacts
+    for (let i = currentCompanyIndex + 1; i < companies.length; i++) {
+      const company = companies[i];
+      const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
+      if (contacts.length > 0) {
+        setCurrentCompanyIndex(i);
+        return;
+      }
     }
   };
 
@@ -660,10 +689,10 @@ export default function Outreach() {
               variant="ghost"
               size="default"
               onClick={handlePrevCompany}
-              disabled={currentCompanyIndex === 0}
+              disabled={!hasPrevCompanyWithContacts()}
               className={cn(
                 "px-3 h-12 flex items-center justify-center",
-                currentCompanyIndex === 0 
+                !hasPrevCompanyWithContacts() 
                   ? "text-gray-300 cursor-not-allowed" 
                   : "text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
               )}
@@ -682,10 +711,10 @@ export default function Outreach() {
               variant="ghost"
               size="default"
               onClick={handleNextCompany}
-              disabled={currentCompanyIndex === companies.length - 1}
+              disabled={!hasNextCompanyWithContacts()}
               className={cn(
                 "px-3 h-12 flex items-center justify-center",
-                currentCompanyIndex === companies.length - 1
+                !hasNextCompanyWithContacts()
                   ? "text-gray-300 cursor-not-allowed"
                   : "text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
               )}
