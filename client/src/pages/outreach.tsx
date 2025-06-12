@@ -695,7 +695,7 @@ export default function Outreach() {
       </div>
 
       {/* Mobile Contact Card - Only visible on mobile */}
-      <div className="md:hidden pt-8">
+      <div className="md:hidden pt-0">
         {/* Mobile Company Navigation Bar - Above contact card */}
         {!isMobileExpanded && currentCompany && selectedContact && (
           <div className="md:hidden px-2 py-0 -mt-2 flex items-center justify-between">
