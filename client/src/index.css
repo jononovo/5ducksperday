@@ -126,22 +126,22 @@
   animation-fill-mode: backwards;
 }
 
-/* Secondary button styling - warm yellow/amber */
+/* Secondary button styling - warm yellow/amber with transparency */
 .btn-secondary {
-  @apply bg-yellow-400 hover:bg-yellow-500 text-yellow-900 border-yellow-400 hover:border-yellow-500;
+  @apply bg-yellow-400/20 hover:bg-yellow-400/30 text-yellow-700 border-yellow-400/30 hover:border-yellow-400/50;
   @apply transition-colors duration-200;
 }
 
 .btn-secondary:focus {
-  @apply ring-2 ring-yellow-400 ring-offset-2;
+  @apply ring-2 ring-yellow-400/50 ring-offset-2;
 }
 
 .dark .btn-secondary {
-  @apply bg-amber-400 hover:bg-amber-500 text-amber-900 border-amber-400 hover:border-amber-500;
+  @apply bg-amber-400/25 hover:bg-amber-400/35 text-amber-300 border-amber-400/40 hover:border-amber-400/60;
 }
 
 .dark .btn-secondary:focus {
-  @apply ring-amber-400;
+  @apply ring-amber-400/50;
 }
 
 @layer base {
