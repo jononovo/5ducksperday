@@ -1075,6 +1075,7 @@ export default function Outreach() {
                 <Button
                   variant="outline"
                   onClick={handleSaveEmail}
+                  className="btn-secondary"
                 >
                   <Save className="w-4 h-4 mr-2" />
                   Save Template

@@ -126,6 +126,24 @@
   animation-fill-mode: backwards;
 }
 
+/* Secondary button styling - warm yellow/amber */
+.btn-secondary {
+  @apply bg-yellow-400 hover:bg-yellow-500 text-yellow-900 border-yellow-400 hover:border-yellow-500;
+  @apply transition-colors duration-200;
+}
+
+.btn-secondary:focus {
+  @apply ring-2 ring-yellow-400 ring-offset-2;
+}
+
+.dark .btn-secondary {
+  @apply bg-amber-400 hover:bg-amber-500 text-amber-900 border-amber-400 hover:border-amber-500;
+}
+
+.dark .btn-secondary:focus {
+  @apply ring-amber-400;
+}
+
 @layer base {
   * {
     @apply border-border;
