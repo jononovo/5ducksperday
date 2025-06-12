@@ -16,7 +16,8 @@ import {
   Type,
   FileText,
   Users,
-  Menu
+  Menu,
+  Info
 } from "lucide-react";
 import {
   Select,
@@ -48,13 +49,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { motion, AnimatePresence } from "framer-motion";
 
 
 // Define interface for the saved state
@@ -1023,19 +1024,33 @@ export default function Outreach() {
                   className="resize-none transition-all duration-200 pb-12"
                   style={{ minHeight: '60px', maxHeight: '100px' }}
                 />
-                <Button 
-                  onClick={handleGenerateEmail} 
-                  variant="yellow"
-                  disabled={generateEmailMutation.isPending}
-                  className="absolute bottom-2 right-2 h-8 px-3 text-xs"
-                >
-                  {generateEmailMutation.isPending ? (
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                  ) : (
-                    <Wand2 className="w-3 h-3 mr-1" />
-                  )}
-                  {generateEmailMutation.isPending ? "Generating..." : "Generate Email"}
-                </Button>
+                <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="p-1 rounded hover:bg-accent transition-colors">
+                          <Info className="w-3 h-3 text-muted-foreground" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-sm max-w-xs">
+                        <p>Give us a sentence about your offer for your product or what you'd like to offer in the email below, and we'll generate the email for you. It'll be awesome.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <Button 
+                    onClick={handleGenerateEmail} 
+                    variant="yellow"
+                    disabled={generateEmailMutation.isPending}
+                    className="h-8 px-3 text-xs"
+                  >
+                    {generateEmailMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Wand2 className="w-3 h-3 mr-1" />
+                    )}
+                    {generateEmailMutation.isPending ? "Generating..." : "Generate Email"}
+                  </Button>
+                </div>
               </div>
 
               {/* To Email Field */}
