@@ -1986,11 +1986,6 @@ export default function Home() {
           <div className="px-6 py-1"> {/* Matched padding with CardHeader (p-6) */}
             <div className="flex flex-col-reverse md:flex-row items-center gap-4 mb-3">
               <div className="flex items-center gap-3">
-                <SavedSearchesDrawer 
-                  open={savedSearchesDrawerOpen}
-                  onOpenChange={setSavedSearchesDrawerOpen}
-                  onLoadSearch={handleLoadSavedSearch}
-                />
                 <h2 className="text-2xl font-semibold mt-2 md:mt-0">Search for target businesses</h2>
               </div>
               <div>
@@ -2437,6 +2432,13 @@ export default function Home() {
 
         {/* API Templates Button moved to settings drawer */}
       </div>
+
+      {/* Fixed position saved searches drawer */}
+      <SavedSearchesDrawer 
+        open={savedSearchesDrawerOpen}
+        onOpenChange={setSavedSearchesDrawerOpen}
+        onLoadSearch={handleLoadSavedSearch}
+      />
     </div>
   );
 }
