@@ -760,15 +760,15 @@ export default function Outreach() {
           )}
         </AnimatePresence>
         
-        {/* Mobile Company Navigation Bar - Only visible when compressed contact card is shown */}
+        {/* Mobile Company Navigation Bar - Above contact card */}
         {!isMobileExpanded && currentCompany && selectedContact && (
-          <div className="md:hidden px-4 py-2 flex items-center justify-between">
+          <div className="md:hidden px-4 py-0.5 flex items-center justify-between">
             <Button
               variant="ghost"
               size="sm"
               onClick={handlePrevCompany}
               disabled={currentCompanyIndex === 0}
-              className="px-2 text-muted-foreground hover:text-muted-foreground/80"
+              className="px-1 text-muted-foreground hover:text-muted-foreground/80 h-6"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -785,7 +785,7 @@ export default function Outreach() {
               size="sm"
               onClick={handleNextCompany}
               disabled={currentCompanyIndex === companies.length - 1}
-              className="px-2 text-muted-foreground hover:text-muted-foreground/80"
+              className="px-1 text-muted-foreground hover:text-muted-foreground/80 h-6"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
