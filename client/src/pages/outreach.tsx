@@ -759,6 +759,38 @@ export default function Outreach() {
             </motion.div>
           )}
         </AnimatePresence>
+        
+        {/* Mobile Company Navigation Bar - Only visible when expanded */}
+        {isMobileExpanded && currentCompany && (
+          <div className="md:hidden bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handlePrevCompany}
+              disabled={currentCompanyIndex === 0}
+              className="px-2"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <div className="flex-1 text-center">
+              <span className="font-medium text-sm">{currentCompany.name}</span>
+              <div className="text-xs text-muted-foreground">
+                {currentCompanyIndex + 1} of {companies.length}
+              </div>
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleNextCompany}
+              disabled={currentCompanyIndex === companies.length - 1}
+              className="px-2"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-6">
