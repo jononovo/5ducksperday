@@ -1025,19 +1025,38 @@ export default function Home() {
   // Handle loading a saved search from the drawer
   const handleLoadSavedSearch = async (list: List) => {
     try {
+      // First fetch the companies
       const companies = await queryClient.fetchQuery({
         queryKey: [`/api/lists/${list.listId}/companies`]
-      }) as CompanyWithContacts[];
+      }) as Company[];
+      
+      // Then fetch contacts for each company
+      const companiesWithContacts = await Promise.all(
+        companies.map(async (company) => {
+          try {
+            const contacts = await queryClient.fetchQuery({
+              queryKey: [`/api/companies/${company.id}/contacts`]
+            }) as Contact[];
+            return { ...company, contacts };
+          } catch (error) {
+            console.error(`Failed to load contacts for company ${company.id}:`, error);
+            return { ...company, contacts: [] };
+          }
+        })
+      );
       
       setCurrentQuery(list.prompt);
-      setCurrentResults(companies);
+      setCurrentResults(companiesWithContacts);
       setCurrentListId(list.listId);
       setIsSaved(true);
       setSavedSearchesDrawerOpen(false);
       
+      const totalContacts = companiesWithContacts.reduce((sum, company) => 
+        sum + (company.contacts?.length || 0), 0);
+      
       toast({
         title: "Search Loaded",
-        description: `Loaded "${list.prompt}" with ${list.resultCount} companies`,
+        description: `Loaded "${list.prompt}" with ${list.resultCount} companies and ${totalContacts} contacts`,
       });
     } catch (error) {
       toast({
