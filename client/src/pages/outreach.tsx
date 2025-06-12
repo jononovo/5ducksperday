@@ -1040,7 +1040,7 @@ export default function Outreach() {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="text-sm max-w-xs">
-                        <p>Give us a sentence about your offer for your product or what you'd like to offer in the email below, and we'll generate the email for you. It'll be awesome.</p>
+                        <p>Give us a sentence about your offer and we'll generate the email for you. It'll be awesome.</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
