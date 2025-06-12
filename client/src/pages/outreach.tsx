@@ -762,7 +762,7 @@ export default function Outreach() {
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-6">
         {/* Left Column - Hidden on mobile when collapsed */}
         <div 
-          className={`md:block ${!isMobileExpanded ? 'hidden' : 'block'}`}
+          className={`md:block ${!isMobileExpanded ? 'hidden' : 'block'} ${isMobileExpanded ? 'animate-in fade-in-0 zoom-in-95 duration-300 ease-out' : ''}`}
           onClick={handleMobileColumnInteraction}
           onTouchStart={handleMobileColumnInteraction}
         >
