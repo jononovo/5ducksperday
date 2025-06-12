@@ -661,15 +661,15 @@ export default function Outreach() {
               size="sm"
               onClick={handlePrevCompany}
               disabled={currentCompanyIndex === 0}
-              className="px-1 text-muted-foreground hover:text-muted-foreground/80 h-6"
+              className="px-3 text-muted-foreground hover:text-muted-foreground/80 h-10"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-6 h-6" />
             </Button>
             
             <div className="flex-1 text-center">
               <span className="font-medium text-sm text-muted-foreground">{currentCompany.name}</span>
               <div className="text-xs text-muted-foreground/70">
-                {currentCompanyIndex + 1} of {companies.length}
+                Company {currentCompanyIndex + 1} of {companies.length}
               </div>
             </div>
             
@@ -678,9 +678,9 @@ export default function Outreach() {
               size="sm"
               onClick={handleNextCompany}
               disabled={currentCompanyIndex === companies.length - 1}
-              className="px-1 text-muted-foreground hover:text-muted-foreground/80 h-6"
+              className="px-3 text-muted-foreground hover:text-muted-foreground/80 h-10"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-6 h-6" />
             </Button>
           </div>
         )}
@@ -704,8 +704,7 @@ export default function Outreach() {
                   onClick={handleMobileContactCardTap}
                 >
                   <div className={cn(
-                    "w-full text-left p-3 relative rounded-lg border",
-                    "border-l-4 border-dashed border-gray-600 border-4 border-blue-200/60 shadow-md"
+                    "w-full text-left p-3 relative rounded-lg shadow-md"
                   )}>
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{selectedContact.name}</span>
@@ -722,7 +721,7 @@ export default function Outreach() {
                       {selectedContact.role}
                     </div>
                     {selectedContact.email && (
-                      <div className="text-sm text-blue-600 mt-1">
+                      <div className="text-sm text-muted-foreground mt-1">
                         {selectedContact.email}
                       </div>
                     )}
