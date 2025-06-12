@@ -34,7 +34,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
         <Button 
           variant="outline" 
           size="icon" 
-          className="fixed left-0 top-20 z-50 h-12 w-12 rounded-l-none rounded-r-lg border-l-0 border-r border-t border-b bg-background/95 backdrop-blur-sm shadow-md hover:bg-accent hover:text-accent-foreground transition-all duration-200"
+          className="fixed left-0 top-20 z-50 h-10 w-10 rounded-l-none rounded-r-lg border-l-0 border-r border-t border-b bg-background/95 backdrop-blur-sm shadow-md hover:bg-accent hover:text-accent-foreground transition-all duration-200"
         >
           <ListChecks className="h-5 w-5" />
         </Button>
