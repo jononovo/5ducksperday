@@ -1026,10 +1026,15 @@ export default function Outreach() {
                 <Button 
                   onClick={handleGenerateEmail} 
                   variant="yellow"
+                  disabled={generateEmailMutation.isPending}
                   className="absolute bottom-2 right-2 h-8 px-3 text-xs"
                 >
-                  <Wand2 className="w-3 h-3 mr-1" />
-                  Generate Email
+                  {generateEmailMutation.isPending ? (
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  ) : (
+                    <Wand2 className="w-3 h-3 mr-1" />
+                  )}
+                  {generateEmailMutation.isPending ? "Generating..." : "Generate Email"}
                 </Button>
               </div>
 
