@@ -1025,7 +1025,7 @@ export default function Outreach() {
                 />
                 <Button 
                   onClick={handleGenerateEmail} 
-                  className="absolute bottom-2 right-2 h-8 px-3 text-xs"
+                  className="absolute bottom-2 right-2 h-8 px-3 text-xs btn-secondary"
                 >
                   <Wand2 className="w-3 h-3 mr-1" />
                   Generate Email
