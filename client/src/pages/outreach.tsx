@@ -1008,15 +1008,8 @@ export default function Outreach() {
         {/* Right Column - Email Creation */}
         <div className={`md:block ${isMobileExpanded ? 'mt-4' : ''}`}>
           <div className="md:border md:rounded-lg md:shadow-sm">
-            <div className="p-6 md:pb-6">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Send className="w-5 h-5" />
-                  <span className="text-sm font-medium text-muted-foreground">Just send it!</span>
-                </div>
-              </div>
-            </div>
-            <div className="px-6 pb-6 md:px-6 md:pb-6 space-y-6">
+
+            <div className="p-6 space-y-6">
               {/* Email Prompt Field */}
               <div className="relative">
                 <Textarea
