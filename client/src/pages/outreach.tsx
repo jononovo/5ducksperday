@@ -1025,7 +1025,8 @@ export default function Outreach() {
                 />
                 <Button 
                   onClick={handleGenerateEmail} 
-                  className="absolute bottom-2 right-2 h-8 px-3 text-xs btn-secondary"
+                  variant="yellow"
+                  className="absolute bottom-2 right-2 h-8 px-3 text-xs"
                 >
                   <Wand2 className="w-3 h-3 mr-1" />
                   Generate Email
@@ -1073,9 +1074,8 @@ export default function Outreach() {
               {/* Action Buttons */}
               <div className="flex gap-4 justify-end">
                 <Button
-                  variant="outline"
+                  variant="yellow"
                   onClick={handleSaveEmail}
-                  className="btn-secondary"
                 >
                   <Save className="w-4 h-4 mr-2" />
                   Save Template
