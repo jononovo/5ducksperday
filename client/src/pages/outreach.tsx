@@ -688,9 +688,9 @@ export default function Outreach() {
     <div className="w-full md:container md:mx-auto md:py-8">
       {/* Mobile Duck Header - Only visible on mobile */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
-        <div className="flex items-center justify-center py-2">
-          <span className="text-2xl py-1">🐥</span>
-          <span className="text-lg ml-1 py-1">🥚🥚🥚🥚</span>
+        <div className="flex items-center justify-center py-1">
+          <span className="text-2xl">🐥</span>
+          <span className="text-lg ml-1">🥚🥚🥚🥚</span>
         </div>
       </div>
 
