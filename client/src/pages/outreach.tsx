@@ -664,7 +664,7 @@ export default function Outreach() {
             >
               {selectedContact && currentCompany ? (
                 <div 
-                  className={`mb-4 cursor-pointer ${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-400 ease-out' : ''}`}
+                  className={`mb-4 cursor-pointer ${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-700 ease-out' : ''}`}
                   onClick={handleMobileContactCardTap}
                 >
                   <div className={cn(
@@ -1010,7 +1010,7 @@ export default function Outreach() {
         {/* Right Column - Email Creation */}
         <div className={`md:block ${isMobileExpanded ? 'mt-4' : ''}`}>
           <div className="md:border md:rounded-lg md:shadow-sm">
-            <div className={`p-6 md:pb-6 ${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-500 ease-out [animation-delay:200ms] opacity-0 animate-fill-forwards' : ''}`}>
+            <div className={`p-6 md:pb-6 ${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-700 ease-out [animation-delay:400ms] opacity-0 animate-fill-forwards' : ''}`}>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <Send className="w-5 h-5" />
@@ -1023,7 +1023,7 @@ export default function Outreach() {
             </div>
             <div className="px-6 pb-6 md:px-6 md:pb-6 space-y-6">
               {/* Email Prompt Field */}
-              <div className={`${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-500 ease-out [animation-delay:300ms] opacity-0 animate-fill-forwards' : ''}`}>
+              <div className={`${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-700 ease-out [animation-delay:600ms] opacity-0 animate-fill-forwards' : ''}`}>
                 <Textarea
                   ref={promptTextareaRef}
                   placeholder="Enter your prompt for email generation..."
@@ -1038,7 +1038,7 @@ export default function Outreach() {
               </div>
 
               {/* To Email Field */}
-              <div className={`relative ${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-500 ease-out [animation-delay:400ms] opacity-0 animate-fill-forwards' : ''}`}>
+              <div className={`relative ${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-700 ease-out [animation-delay:800ms] opacity-0 animate-fill-forwards' : ''}`}>
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   placeholder="Recipient Email"
@@ -1050,7 +1050,7 @@ export default function Outreach() {
               </div>
 
               {/* Email Subject Field */}
-              <div className={`relative ${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-500 ease-out [animation-delay:500ms] opacity-0 animate-fill-forwards' : ''}`}>
+              <div className={`relative ${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-700 ease-out [animation-delay:1000ms] opacity-0 animate-fill-forwards' : ''}`}>
                 <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   placeholder="Email Subject"
@@ -1061,7 +1061,7 @@ export default function Outreach() {
               </div>
 
               {/* Email Content Field */}
-              <div className={`${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-500 ease-out [animation-delay:600ms] opacity-0 animate-fill-forwards' : ''}`}>
+              <div className={`${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-700 ease-out [animation-delay:1200ms] opacity-0 animate-fill-forwards' : ''}`}>
                 <Textarea
                   ref={textareaRef}
                   placeholder="Enter or edit the generated email content..."
@@ -1076,7 +1076,7 @@ export default function Outreach() {
               </div>
 
               {/* Action Buttons */}
-              <div className={`flex gap-4 justify-end ${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-500 ease-out [animation-delay:700ms] opacity-0 animate-fill-forwards' : ''}`}>
+              <div className={`flex gap-4 justify-end ${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-700 ease-out [animation-delay:1400ms] opacity-0 animate-fill-forwards' : ''}`}>
                 <Button
                   variant="outline"
                   onClick={handleSaveEmail}
@@ -1108,7 +1108,7 @@ export default function Outreach() {
               </div>
 
               {/* Quick Templates Section - Moved below email content and buttons */}
-              <div className={`mt-8 pt-6 border-t ${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-500 ease-out [animation-delay:800ms] opacity-0 animate-fill-forwards' : ''}`}>
+              <div className={`mt-8 pt-6 border-t ${isMobileExpanded ? 'animate-in slide-in-from-top-4 duration-700 ease-out [animation-delay:1600ms] opacity-0 animate-fill-forwards' : ''}`}>
                 <QuickTemplates
                   onSelectTemplate={(template: EmailTemplate) => {
                     setEmailPrompt(template.description || "");
