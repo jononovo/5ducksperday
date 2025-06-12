@@ -839,7 +839,7 @@ export default function Outreach() {
                         onClick={() => {
                           setSelectedContactId(contact.id);
                           // On mobile, immediately collapse after contact selection
-                          if (window.innerWidth < 768) { // md breakpoint
+                          if (typeof window !== 'undefined' && window.innerWidth < 768) { // md breakpoint
                             setIsMobileExpanded(false);
                             if (autoCollapseTimer) {
                               clearTimeout(autoCollapseTimer);
