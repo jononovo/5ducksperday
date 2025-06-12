@@ -2,8 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
@@ -37,14 +35,8 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
           <ListChecks className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-96">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <ListChecks className="w-5 h-5" />
-            Saved Searches
-          </SheetTitle>
-        </SheetHeader>
-        <div className="mt-6 h-full overflow-auto">
+      <SheetContent side="left" className="w-96 pl-0 pr-0">
+        <div className="h-full overflow-auto">
           <Table>
             <TableHeader>
               <TableRow>
