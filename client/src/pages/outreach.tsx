@@ -551,6 +551,11 @@ export default function Outreach() {
     }
   };
 
+  const handleCloseDuckHeader = () => {
+    setSelectedContactId(null);  // This will hide the header due to existing logic
+    setShowExpandedView(true);   // Show expanded view as fallback
+  };
+
   // Email enrichment handlers
   const handleEnrichContact = async (contactId: number) => {
     setPendingContactIds(prev => new Set(prev).add(contactId));
@@ -689,9 +694,26 @@ export default function Outreach() {
     <div className="w-full md:container md:mx-auto md:py-8">
       {/* Mobile Duck Header - Only visible on mobile when in compressed view with selected contact */}
       <div className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 ${showExpandedView || !selectedContact ? 'hidden' : 'block'}`}>
-        <div className="flex items-center justify-center pt-2 pb-1">
+        <div className="flex items-center justify-center pt-2 pb-1 relative">
+          {/* Chevron Left - Only show when in compressed mode with selected contact */}
+          {selectedContact && (
+            <button
+              onClick={handleShowExpanded}
+              className="absolute left-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
           <span className="text-2xl">🐥</span>
           <span className="text-lg ml-1">🥚🥚🥚🥚</span>
+          
+          {/* X Close Button */}
+          <button
+            onClick={handleCloseDuckHeader}
+            className="absolute right-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
