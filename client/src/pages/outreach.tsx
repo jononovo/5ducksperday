@@ -1018,7 +1018,7 @@ export default function Outreach() {
             </div>
             <div className="px-6 pb-6 md:px-6 md:pb-6 space-y-6">
               {/* Email Prompt Field */}
-              <div>
+              <div className="relative">
                 <Textarea
                   ref={promptTextareaRef}
                   placeholder="Enter your prompt for email generation..."
@@ -1027,15 +1027,16 @@ export default function Outreach() {
                     setEmailPrompt(e.target.value);
                     handlePromptTextareaResize();
                   }}
-                  className="resize-none transition-all duration-200"
+                  className="resize-none transition-all duration-200 pb-12"
                   style={{ minHeight: '60px', maxHeight: '100px' }}
                 />
-                <div className="mt-3">
-                  <Button onClick={handleGenerateEmail} className="w-full">
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    Generate Email
-                  </Button>
-                </div>
+                <Button 
+                  onClick={handleGenerateEmail} 
+                  className="absolute bottom-2 right-2 h-8 px-3 text-xs"
+                >
+                  <Wand2 className="w-3 h-3 mr-1" />
+                  Generate Email
+                </Button>
               </div>
 
               {/* To Email Field */}
