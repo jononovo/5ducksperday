@@ -689,8 +689,8 @@ export default function Outreach() {
       {/* Mobile Duck Header - Only visible on mobile */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
         <div className="flex items-center justify-center py-1">
-          <span className="text-lg">🐥</span>
-          <span className="text-sm ml-1">🥚🥚🥚🥚</span>
+          <span className="text-xl">🐥</span>
+          <span className="text-base ml-1">🥚🥚🥚🥚</span>
         </div>
       </div>
 
