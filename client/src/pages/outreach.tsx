@@ -664,16 +664,7 @@ export default function Outreach() {
             >
               {selectedContact && currentCompany ? (
                 <div 
-                  className={`mb-4 cursor-pointer transition-all duration-700 ease-out ${
-                    isMobileExpanded 
-                      ? 'transform translate-y-0 opacity-100' 
-                      : ''
-                  }`}
-                  style={{
-                    transform: isMobileExpanded ? 'translateY(0)' : 'translateY(-16px)',
-                    opacity: isMobileExpanded ? 1 : 0,
-                    transitionDelay: '0ms'
-                  }}
+                  className="mb-4 cursor-pointer"
                   onClick={handleMobileContactCardTap}
                 >
                   <div className={cn(
@@ -1019,12 +1010,7 @@ export default function Outreach() {
         {/* Right Column - Email Creation */}
         <div className={`md:block ${isMobileExpanded ? 'mt-4' : ''}`}>
           <div className="md:border md:rounded-lg md:shadow-sm">
-            <div className="p-6 md:pb-6 transition-all duration-700 ease-out"
-            style={{
-              transform: isMobileExpanded ? 'translateY(0)' : 'translateY(-16px)',
-              opacity: isMobileExpanded ? 1 : 0,
-              transitionDelay: '400ms'
-            }}>
+            <div className="p-6 md:pb-6">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <Send className="w-5 h-5" />
@@ -1037,12 +1023,7 @@ export default function Outreach() {
             </div>
             <div className="px-6 pb-6 md:px-6 md:pb-6 space-y-6">
               {/* Email Prompt Field */}
-              <div className="transition-all duration-700 ease-out"
-              style={{
-                transform: isMobileExpanded ? 'translateY(0)' : 'translateY(-16px)',
-                opacity: isMobileExpanded ? 1 : 0,
-                transitionDelay: '600ms'
-              }}>
+              <div>
                 <Textarea
                   ref={promptTextareaRef}
                   placeholder="Enter your prompt for email generation..."
@@ -1057,12 +1038,7 @@ export default function Outreach() {
               </div>
 
               {/* To Email Field */}
-              <div className="relative transition-all duration-700 ease-out"
-              style={{
-                transform: isMobileExpanded ? 'translateY(0)' : 'translateY(-16px)',
-                opacity: isMobileExpanded ? 1 : 0,
-                transitionDelay: '800ms'
-              }}>
+              <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   placeholder="Recipient Email"
@@ -1074,12 +1050,7 @@ export default function Outreach() {
               </div>
 
               {/* Email Subject Field */}
-              <div className="relative transition-all duration-700 ease-out"
-              style={{
-                transform: isMobileExpanded ? 'translateY(0)' : 'translateY(-16px)',
-                opacity: isMobileExpanded ? 1 : 0,
-                transitionDelay: '1000ms'
-              }}>
+              <div className="relative">
                 <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   placeholder="Email Subject"
@@ -1090,12 +1061,7 @@ export default function Outreach() {
               </div>
 
               {/* Email Content Field */}
-              <div className="transition-all duration-700 ease-out"
-              style={{
-                transform: isMobileExpanded ? 'translateY(0)' : 'translateY(-16px)',
-                opacity: isMobileExpanded ? 1 : 0,
-                transitionDelay: '1200ms'
-              }}>
+              <div>
                 <Textarea
                   ref={textareaRef}
                   placeholder="Enter or edit the generated email content..."
@@ -1110,12 +1076,7 @@ export default function Outreach() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-4 justify-end transition-all duration-700 ease-out"
-              style={{
-                transform: isMobileExpanded ? 'translateY(0)' : 'translateY(-16px)',
-                opacity: isMobileExpanded ? 1 : 0,
-                transitionDelay: '1400ms'
-              }}>
+              <div className="flex gap-4 justify-end">
                 <Button
                   variant="outline"
                   onClick={handleSaveEmail}
@@ -1147,12 +1108,7 @@ export default function Outreach() {
               </div>
 
               {/* Quick Templates Section - Moved below email content and buttons */}
-              <div className="mt-8 pt-6 border-t transition-all duration-700 ease-out"
-              style={{
-                transform: isMobileExpanded ? 'translateY(0)' : 'translateY(-16px)',
-                opacity: isMobileExpanded ? 1 : 0,
-                transitionDelay: '1600ms'
-              }}>
+              <div className="mt-8 pt-6 border-t">
                 <QuickTemplates
                   onSelectTemplate={(template: EmailTemplate) => {
                     setEmailPrompt(template.description || "");
