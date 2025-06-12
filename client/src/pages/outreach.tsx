@@ -16,7 +16,8 @@ import {
   Type,
   FileText,
   Users,
-  Menu
+  Menu,
+  Info
 } from "lucide-react";
 import {
   Select,
@@ -48,13 +49,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { motion, AnimatePresence } from "framer-motion";
 
 
 // Define interface for the saved state
@@ -90,6 +91,9 @@ export default function Outreach() {
   
   // Copy feedback state tracking
   const [copiedContactIds, setCopiedContactIds] = useState<Set<number>>(new Set());
+  
+  // Tooltip state for mobile support
+  const [tooltipOpen, setTooltipOpen] = useState(false);
   
   // Textarea refs for auto-resizing
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -649,6 +653,38 @@ export default function Outreach() {
     <div className="w-full md:container md:mx-auto md:py-8">
       {/* Mobile Contact Card - Only visible on mobile */}
       <div className="md:hidden">
+        {/* Mobile Company Navigation Bar - Above contact card */}
+        {!isMobileExpanded && currentCompany && selectedContact && (
+          <div className="md:hidden px-4 py-0.5 flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handlePrevCompany}
+              disabled={currentCompanyIndex === 0}
+              className="px-1 text-muted-foreground hover:text-muted-foreground/80 h-6"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <div className="flex-1 text-center">
+              <span className="font-medium text-sm text-muted-foreground">{currentCompany.name}</span>
+              <div className="text-xs text-muted-foreground/70">
+                {currentCompanyIndex + 1} of {companies.length}
+              </div>
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleNextCompany}
+              disabled={currentCompanyIndex === companies.length - 1}
+              className="px-1 text-muted-foreground hover:text-muted-foreground/80 h-6"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+        
         <AnimatePresence>
           {!isMobileExpanded && (
             <motion.div
@@ -673,7 +709,7 @@ export default function Outreach() {
                   )}>
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{selectedContact.name}</span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 pr-6">
                         <Badge variant={
                           (selectedContact.probability || 0) >= 90 ? "default" :
                           (selectedContact.probability || 0) >= 70 ? "secondary" : "outline"
@@ -714,28 +750,26 @@ export default function Outreach() {
                       )}
                     </Button>
                     
-                    {/* Mobile menu button */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-foreground"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Menu className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation();
-                          handleEmailContact(selectedContact, e);
-                        }}>
-                          <Mail className="w-4 h-4 mr-2" />
-                          Find Email
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {/* Mobile Actions Menu */}
+                    <div 
+                      className="absolute top-2 right-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ContactActionColumn
+                        contact={selectedContact as any}
+                        standalone={true}
+                        displayMode="mobile"
+                        className="p-0"
+                        handleEnrichContact={handleEnrichContact}
+                        handleHunterSearch={handleHunterSearch}
+                        handleAeroLeadsSearch={handleAeroLeadsSearch}
+                        handleApolloSearch={handleApolloSearch}
+                        pendingContactIds={pendingContactIds}
+                        pendingHunterIds={pendingHunterIds}
+                        pendingAeroLeadsIds={pendingAeroLeadsIds}
+                        pendingApolloIds={pendingApolloIds}
+                      />
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -850,7 +884,7 @@ export default function Outreach() {
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-medium">{contact.name}</span>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-3">
                             <Badge variant={
                               (contact.probability || 0) >= 90 ? "default" :
                               (contact.probability || 0) >= 70 ? "secondary" : "outline"
@@ -1010,20 +1044,10 @@ export default function Outreach() {
         {/* Right Column - Email Creation */}
         <div className={`md:block ${isMobileExpanded ? 'mt-4' : ''}`}>
           <div className="md:border md:rounded-lg md:shadow-sm">
-            <div className="p-6 md:pb-6">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Send className="w-5 h-5" />
-                </div>
-                <Button onClick={handleGenerateEmail}>
-                  <Wand2 className="w-4 h-4 mr-2" />
-                  Generate Email
-                </Button>
-              </div>
-            </div>
-            <div className="px-6 pb-6 md:px-6 md:pb-6 space-y-6">
+
+            <div className="p-6 space-y-6">
               {/* Email Prompt Field */}
-              <div>
+              <div className="relative">
                 <Textarea
                   ref={promptTextareaRef}
                   placeholder="Enter your prompt for email generation..."
@@ -1032,9 +1056,40 @@ export default function Outreach() {
                     setEmailPrompt(e.target.value);
                     handlePromptTextareaResize();
                   }}
-                  className="resize-none transition-all duration-200"
+                  className="resize-none transition-all duration-200 pb-12"
                   style={{ minHeight: '60px', maxHeight: '100px' }}
                 />
+                <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
+                      <TooltipTrigger asChild>
+                        <button 
+                          className="p-1 rounded hover:bg-accent transition-colors"
+                          onClick={() => setTooltipOpen(!tooltipOpen)}
+                          onBlur={() => setTooltipOpen(false)}
+                        >
+                          <Info className="w-3 h-3 text-muted-foreground" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-sm max-w-xs">
+                        <p>Give us a sentence about your offer and we'll generate the email for you. It'll be awesome.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <Button 
+                    onClick={handleGenerateEmail} 
+                    variant="yellow"
+                    disabled={generateEmailMutation.isPending}
+                    className="h-8 px-3 text-xs"
+                  >
+                    {generateEmailMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Wand2 className="w-3 h-3 mr-1" />
+                    )}
+                    {generateEmailMutation.isPending ? "Generating..." : "Generate Email"}
+                  </Button>
+                </div>
               </div>
 
               {/* To Email Field */}
@@ -1078,7 +1133,7 @@ export default function Outreach() {
               {/* Action Buttons */}
               <div className="flex gap-4 justify-end">
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   onClick={handleSaveEmail}
                 >
                   <Save className="w-4 h-4 mr-2" />

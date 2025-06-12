@@ -126,6 +126,8 @@
   animation-fill-mode: backwards;
 }
 
+
+
 @layer base {
   * {
     @apply border-border;
