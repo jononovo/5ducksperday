@@ -503,6 +503,9 @@ export default function Outreach() {
 
   // Helper functions to check if navigation is possible
   const hasPrevCompanyWithContacts = () => {
+    // If no companies or at first index, no prev available
+    if (currentCompanyIndex === 0) return false;
+    
     for (let i = currentCompanyIndex - 1; i >= 0; i--) {
       const company = companies[i];
       const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
@@ -512,6 +515,9 @@ export default function Outreach() {
   };
 
   const hasNextCompanyWithContacts = () => {
+    // If no companies or at last index, no next available
+    if (currentCompanyIndex >= companies.length - 1) return false;
+    
     for (let i = currentCompanyIndex + 1; i < companies.length; i++) {
       const company = companies[i];
       const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
@@ -689,10 +695,10 @@ export default function Outreach() {
               variant="ghost"
               size="default"
               onClick={handlePrevCompany}
-              disabled={!hasPrevCompanyWithContacts()}
+              disabled={currentCompanyIndex === 0}
               className={cn(
                 "px-3 h-12 flex items-center justify-center",
-                !hasPrevCompanyWithContacts() 
+                currentCompanyIndex === 0 
                   ? "text-gray-300 cursor-not-allowed" 
                   : "text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
               )}
@@ -711,10 +717,10 @@ export default function Outreach() {
               variant="ghost"
               size="default"
               onClick={handleNextCompany}
-              disabled={!hasNextCompanyWithContacts()}
+              disabled={currentCompanyIndex === companies.length - 1}
               className={cn(
                 "px-3 h-12 flex items-center justify-center",
-                !hasNextCompanyWithContacts()
+                currentCompanyIndex === companies.length - 1
                   ? "text-gray-300 cursor-not-allowed"
                   : "text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
               )}
