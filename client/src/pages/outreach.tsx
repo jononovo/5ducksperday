@@ -760,9 +760,9 @@ export default function Outreach() {
           )}
         </AnimatePresence>
         
-        {/* Mobile Company Navigation Bar - Only visible when expanded */}
-        {isMobileExpanded && currentCompany && (
-          <div className="md:hidden bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between">
+        {/* Mobile Company Navigation Bar - Only visible when compressed contact card is shown */}
+        {!isMobileExpanded && currentCompany && selectedContact && (
+          <div className="md:hidden bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between mb-4">
             <Button
               variant="ghost"
               size="sm"
