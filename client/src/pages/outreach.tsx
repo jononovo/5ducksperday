@@ -714,28 +714,26 @@ export default function Outreach() {
                       )}
                     </Button>
                     
-                    {/* Mobile menu button */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-foreground"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Menu className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation();
-                          handleEmailContact(selectedContact, e);
-                        }}>
-                          <Mail className="w-4 h-4 mr-2" />
-                          Find Email
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {/* Mobile Actions Menu */}
+                    <div 
+                      className="absolute top-2 right-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ContactActionColumn
+                        contact={selectedContact as any}
+                        standalone={true}
+                        displayMode="mobile"
+                        className="p-0"
+                        handleEnrichContact={handleEnrichContact}
+                        handleHunterSearch={handleHunterSearch}
+                        handleAeroLeadsSearch={handleAeroLeadsSearch}
+                        handleApolloSearch={handleApolloSearch}
+                        pendingContactIds={pendingContactIds}
+                        pendingHunterIds={pendingHunterIds}
+                        pendingAeroLeadsIds={pendingAeroLeadsIds}
+                        pendingApolloIds={pendingApolloIds}
+                      />
+                    </div>
                   </div>
                 </div>
               ) : (
