@@ -749,7 +749,7 @@ export default function Outreach() {
       <div className="md:hidden pt-0">
         {/* Mobile Company Navigation Bar - Above contact card */}
         {!isMobileExpanded && currentCompany && selectedContact && (
-          <div className="md:hidden px-2 py-0.5 -mt-4 bg-white flex items-center justify-between z-[60]">
+          <div className="md:hidden px-2.5 py-0.5 -mt-4 bg-white flex items-center justify-between z-[60]">
             <div className="flex-1 text-left">
               <span className="font-medium text-sm text-muted-foreground">{currentCompany.name}</span>
             </div>
