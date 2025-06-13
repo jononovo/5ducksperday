@@ -765,10 +765,10 @@ export default function Outreach() {
                 variant="ghost"
                 size="sm"
                 onClick={handleNextCompany}
-                className="px-2 h-8 flex items-center justify-center gap-1 text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
+                className="px-2 h-8 flex items-center justify-center gap-1 text-muted-foreground/50 hover:text-muted-foreground/60 bg-gray-50/30 hover:bg-gray-100/40"
               >
                 <Building2 className="w-2.5 h-2.5" />
-                <span className="text-[9px] text-muted-foreground/70">
+                <span className="text-[9px] text-muted-foreground/50">
                   {currentCompanyIndex + 1}/{companies.length}
                 </span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -782,7 +782,7 @@ export default function Outreach() {
                   className="px-2 h-8 flex items-center justify-center gap-1 text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
                 >
                   <User className="w-2.5 h-2.5" />
-                  <span className="text-[9px] text-muted-foreground/70">
+                  <span className="text-[9px] text-muted-foreground">
                     {currentContactIndex + 1}/{topContacts.length}
                   </span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -807,7 +807,7 @@ export default function Outreach() {
             >
               {selectedContact && currentCompany ? (
                 <div 
-                  className="mb-2 cursor-pointer"
+                  className="mb-2 mt-1 cursor-pointer"
                   onClick={handleMobileContactCardTap}
                 >
                   <div className={cn(
@@ -824,7 +824,7 @@ export default function Outreach() {
                         </Badge>
                       </div>
                     </div>
-                    <div className="text-sm text-muted-foreground mt-1">
+                    <div className="text-sm text-muted-foreground mt-0.5">
                       {selectedContact.role}
                     </div>
                     {selectedContact.email && (
