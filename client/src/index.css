@@ -131,8 +131,8 @@
 /* Mobile input field styling - edge-to-edge with borders and subtle background */
 @media (max-width: 768px) {
   .mobile-input {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
     border-radius: 0 !important;
@@ -140,6 +140,11 @@
     border-right: none !important;
     background-color: rgb(248, 250, 252) !important; /* Very subtle blue-gray */
     transition: background-color 0.2s ease !important;
+  }
+  
+  /* Special padding for inputs with icons */
+  .mobile-input.pl-10 {
+    padding-left: 40px !important; /* Space for icon + margin */
   }
   
   .mobile-input:focus,
