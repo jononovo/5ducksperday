@@ -824,11 +824,11 @@ export default function Outreach() {
                         </Badge>
                       </div>
                     </div>
-                    <div className="text-sm text-muted-foreground mt-0.5">
+                    <div className="text-xs text-muted-foreground mt-0">
                       {selectedContact.role}
                     </div>
                     {selectedContact.email && (
-                      <div className="text-sm text-muted-foreground mt-1">
+                      <div className="text-sm text-muted-foreground mt-2">
                         {selectedContact.email}
                       </div>
                     )}
