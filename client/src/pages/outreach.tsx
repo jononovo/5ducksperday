@@ -733,7 +733,6 @@ export default function Outreach() {
                 <span className="text-[9px] text-muted-foreground/50">
                   {currentCompanyIndex + 1}/{companies.length}
                 </span>
-                <ChevronRight className="w-3.5 h-3.5" />
               </Button>
               
               {topContacts.length > 0 && (
@@ -747,7 +746,6 @@ export default function Outreach() {
                   <span className="text-[9px] text-muted-foreground">
                     {currentContactIndex + 1}/{topContacts.length}
                   </span>
-                  <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
               )}
             </div>
