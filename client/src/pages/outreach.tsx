@@ -821,7 +821,7 @@ export default function Outreach() {
                         </Badge>
                       </div>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-0">
+                    <div className="text-xs text-muted-foreground mt-0 whitespace-nowrap overflow-hidden text-ellipsis">
                       {selectedContact.role}
                     </div>
                     {selectedContact.email && (
