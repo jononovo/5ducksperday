@@ -112,7 +112,9 @@
 
 ## Changelog
 - June 13, 2025. Initial setup
+- June 13, 2025. Mobile UI optimizations: Fixed duck header positioning (-mt-1), removed chevron arrows from navigation buttons, and eliminated excessive padding (pt-16→pt-4) in email form container
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Mobile UI preference: Compact, space-efficient design with seamless header-to-content transitions.
