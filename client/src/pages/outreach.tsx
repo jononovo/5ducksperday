@@ -1160,9 +1160,8 @@ export default function Outreach() {
                     setEmailPrompt(e.target.value);
                     handlePromptTextareaResize();
                   }}
-                  rows={1}
-                  className="resize-none transition-all duration-200 pb-12 h-10 min-h-10"
-                  style={{ maxHeight: '100px' }}
+                  className="resize-none transition-all duration-200 pb-12"
+                  style={{ minHeight: '60px', maxHeight: '100px' }}
                 />
                 <div className="absolute bottom-2 right-2 flex items-center gap-2">
                   <TooltipProvider>
