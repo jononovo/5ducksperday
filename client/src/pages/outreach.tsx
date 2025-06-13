@@ -1112,7 +1112,7 @@ export default function Outreach() {
                     setEmailPrompt(e.target.value);
                     handlePromptTextareaResize();
                   }}
-                  className="resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3"
+                  className="mobile-input resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3"
                   style={{ minHeight: '32px', maxHeight: '100px' }}
                 />
                 <div className="absolute bottom-2 right-2 flex items-center gap-2">
@@ -1156,7 +1156,7 @@ export default function Outreach() {
                   value={toEmail}
                   onChange={(e) => setToEmail(e.target.value)}
                   type="email"
-                  className="pl-10 border-0 rounded-none md:border md:rounded-md"
+                  className="mobile-input pl-10 border-0 rounded-none md:border md:rounded-md"
                 />
               </div>
 
@@ -1167,7 +1167,7 @@ export default function Outreach() {
                   placeholder="Email Subject"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
-                  className="pl-10 border-0 rounded-none md:border md:rounded-md"
+                  className="mobile-input pl-10 border-0 rounded-none md:border md:rounded-md"
                 />
               </div>
 
