@@ -815,7 +815,7 @@ export default function Outreach() {
                             (selectedContact.probability || 0) >= 90 ? "default" :
                             (selectedContact.probability || 0) >= 70 ? "secondary" : "outline"
                           }
-                          className="text-muted-foreground/60"
+                          className="text-muted-foreground/60 text-xs"
                         >
                           {selectedContact.probability || 0}
                         </Badge>
