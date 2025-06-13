@@ -1103,7 +1103,7 @@ export default function Outreach() {
 
             <div className="px-0 py-6 md:p-6 space-y-0 md:space-y-6">
               {/* Email Prompt Field */}
-              <div className="relative border-b md:border-b-0 md:mb-6">
+              <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6">
                 <Textarea
                   ref={promptTextareaRef}
                   placeholder="Example: Sell dog-grooming services"
