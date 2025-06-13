@@ -835,7 +835,7 @@ export default function Outreach() {
                       variant="ghost"
                       size="sm"
                       className={cn(
-                        "absolute bottom-2 right-2 p-1.5",
+                        "absolute bottom-1 right-2 p-1.5",
                         "hover:bg-background/80 transition-colors",
                         copiedContactIds.has(selectedContact.id) 
                           ? "text-green-600 hover:text-green-700" 
