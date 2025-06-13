@@ -112,7 +112,7 @@
 
 ## Changelog
 - June 13, 2025. Initial setup
-- June 13, 2025. Mobile UI optimizations: Fixed duck header positioning (-mt-1), removed chevron arrows from navigation buttons, and eliminated excessive padding (pt-16→pt-4) in email form container
+- June 13, 2025. Mobile UI optimizations: Fixed duck header positioning (-mt-1), reduced email form horizontal padding (p-6→px-3 py-6 md:p-6) for 24px wider mobile inputs, updated "Save Template" to "Save as Template", and removed chevron arrow from mobile duck header navigation button
 
 ## User Preferences
 

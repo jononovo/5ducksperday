@@ -9,7 +9,7 @@ import {
   Copy,
   Check,
   ChevronLeft,
-
+  ChevronRight,
   PartyPopper,
   ExternalLink,
   Mail,
@@ -691,15 +691,7 @@ export default function Outreach() {
       {/* Mobile Duck Header - Only visible on mobile when in compressed view with selected contact */}
       <div className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 ${showExpandedView || !selectedContact ? 'hidden' : 'block'}`}>
         <div className="flex items-center justify-center pt-2 pb-1 relative">
-          {/* Chevron Left - Only show when in compressed mode with selected contact */}
-          {selectedContact && (
-            <button
-              onClick={handleCloseDuckHeader}
-              className="absolute left-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-          )}
+
           <span className="text-2xl">🐥</span>
           <span className="text-lg ml-1">🥚🥚🥚🥚</span>
           
@@ -904,7 +896,7 @@ export default function Outreach() {
                         onClick={handlePrevCompany}
                         disabled={currentCompanyIndex === 0}
                       >
-                        Prev
+                        <ChevronLeft className="w-5 h-5" />
                       </Button>
                       <span className="text-sm text-muted-foreground font-medium">
                         {currentCompanyIndex + 1} of {companies.length}
@@ -916,7 +908,7 @@ export default function Outreach() {
                         onClick={handleNextCompany}
                         disabled={currentCompanyIndex === companies.length - 1}
                       >
-                        Next
+                        <ChevronRight className="w-5 h-5" />
                       </Button>
                     </div>
                   )}
