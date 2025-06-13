@@ -811,7 +811,7 @@ export default function Outreach() {
                   onClick={handleMobileContactCardTap}
                 >
                   <div className={cn(
-                    "w-full text-left p-2.5 relative rounded-lg shadow-md border-t-0"
+                    "w-full text-left px-2.5 pt-1.5 pb-2.5 relative rounded-lg shadow-md border-t-0"
                   )}>
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{selectedContact.name}</span>
