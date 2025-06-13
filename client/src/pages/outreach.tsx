@@ -1187,7 +1187,7 @@ export default function Outreach() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-4 justify-end mt-6 px-3 md:px-0">
+              <div className="flex gap-4 justify-end mt-6 px-3 md:px-0 pb-6">
                 <Button
                   variant="secondary"
                   onClick={handleSaveEmail}
