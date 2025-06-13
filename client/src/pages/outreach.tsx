@@ -559,8 +559,10 @@ export default function Outreach() {
   };
 
   const handleCloseDuckHeader = () => {
+    console.log('X clicked - closing duck header and restoring expanded view');
     setSelectedContactId(null);  // This will hide the header due to existing logic
     setShowExpandedView(true);   // Show expanded view as fallback
+    setIsMobileExpanded(true);   // CRITICAL: Also restore the mobile expanded state for column visibility
   };
 
   // Email enrichment handlers
