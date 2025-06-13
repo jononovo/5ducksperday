@@ -17,7 +17,8 @@ import {
   FileText,
   Users,
   Menu,
-  Info
+  Info,
+  X
 } from "lucide-react";
 import {
   Select,
@@ -549,6 +550,12 @@ export default function Outreach() {
         return;
       }
     }
+  };
+
+  const handleShowExpanded = () => {
+    console.log('Chevron clicked - showing expanded view');
+    setShowExpandedView(true);
+    setSelectedContactId(null);
   };
 
   const handleCloseDuckHeader = () => {
