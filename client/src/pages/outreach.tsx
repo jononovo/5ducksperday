@@ -1116,7 +1116,7 @@ export default function Outreach() {
               <div className="relative">
                 <Textarea
                   ref={promptTextareaRef}
-                  placeholder="Enter your prompt for email generation..."
+                  placeholder="Sell dog-grooming services"
                   value={emailPrompt}
                   onChange={(e) => {
                     setEmailPrompt(e.target.value);
