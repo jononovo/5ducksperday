@@ -82,7 +82,7 @@ export default function Outreach() {
   const [currentContactIndex, setCurrentContactIndex] = useState(0);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [showExpandedView, setShowExpandedView] = useState(false);
-  const [autoCollapseTimer, setAutoCollapseTimer] = useState<NodeJS.Timeout | null>(null);
+
   const { toast } = useToast();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -197,39 +197,7 @@ export default function Outreach() {
     selectedContactId ? topContacts.find(contact => contact.id === selectedContactId) || topContacts[0] : topContacts[0]
   , [topContacts, selectedContactId]);
 
-  // Auto-collapse functionality
-  const startAutoCollapseTimer = () => {
-    if (autoCollapseTimer) {
-      clearTimeout(autoCollapseTimer);
-    }
-    const timer = setTimeout(() => {
-      setIsMobileExpanded(false);
-    }, 7500);
-    setAutoCollapseTimer(timer);
-  };
 
-  const resetAutoCollapseTimer = () => {
-    if (autoCollapseTimer) {
-      clearTimeout(autoCollapseTimer);
-      setAutoCollapseTimer(null);
-    }
-  };
-
-
-
-  const handleMobileColumnInteraction = () => {
-    resetAutoCollapseTimer();
-    startAutoCollapseTimer();
-  };
-
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (autoCollapseTimer) {
-        clearTimeout(autoCollapseTimer);
-      }
-    };
-  }, [autoCollapseTimer]);
 
   // Adjacent company prefetching for instant navigation
   useEffect(() => {
@@ -900,8 +868,6 @@ export default function Outreach() {
         {/* Left Column - Hidden on mobile when collapsed */}
         <div 
           className={`md:block ${!isMobileExpanded ? 'hidden' : 'block'}`}
-          onClick={handleMobileColumnInteraction}
-          onTouchStart={handleMobileColumnInteraction}
         >
           <div className="md:border md:rounded-lg md:shadow-sm">
             <div className="p-6 md:pb-6">
@@ -979,10 +945,6 @@ export default function Outreach() {
                           if (typeof window !== 'undefined' && window.innerWidth < 768) { // md breakpoint
                             setIsMobileExpanded(false);
                             setShowExpandedView(false); // CRITICAL: Reset this so duck header can appear
-                            if (autoCollapseTimer) {
-                              clearTimeout(autoCollapseTimer);
-                              setAutoCollapseTimer(null);
-                            }
                           }
                         }}
                       >
