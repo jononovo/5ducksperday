@@ -1123,7 +1123,7 @@ export default function Outreach() {
                     handlePromptTextareaResize();
                   }}
                   className="resize-none transition-all duration-200 pb-12"
-                  style={{ minHeight: '60px', maxHeight: '100px' }}
+                  style={{ minHeight: '20px', maxHeight: '100px' }}
                 />
                 <div className="absolute bottom-2 right-2 flex items-center gap-2">
                   <TooltipProvider>
