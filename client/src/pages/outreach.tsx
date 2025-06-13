@@ -541,12 +541,14 @@ export default function Outreach() {
   };
 
   const handleNextCompany = () => {
-    // Find next company with contacts
-    for (let i = currentCompanyIndex + 1; i < companies.length; i++) {
-      const company = companies[i];
+    // Find next company with contacts, wrapping around to beginning
+    const totalCompanies = companies.length;
+    for (let offset = 1; offset < totalCompanies; offset++) {
+      const nextIndex = (currentCompanyIndex + offset) % totalCompanies;
+      const company = companies[nextIndex];
       const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
       if (contacts.length > 0) {
-        setCurrentCompanyIndex(i);
+        setCurrentCompanyIndex(nextIndex);
         return;
       }
     }
@@ -739,13 +741,7 @@ export default function Outreach() {
               variant="ghost"
               size="sm"
               onClick={handleNextCompany}
-              disabled={currentCompanyIndex === companies.length - 1}
-              className={cn(
-                "px-2 h-8 flex items-center justify-center gap-1",
-                currentCompanyIndex === companies.length - 1
-                  ? "text-gray-300 cursor-not-allowed"
-                  : "text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
-              )}
+              className="px-2 h-8 flex items-center justify-center gap-1 text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
             >
               <span className="text-xs text-muted-foreground/70">
                 {currentCompanyIndex + 1}/{companies.length}
