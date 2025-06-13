@@ -707,7 +707,7 @@ export default function Outreach() {
           {/* Chevron Left - Only show when in compressed mode with selected contact */}
           {selectedContact && (
             <button
-              onClick={handleShowExpanded}
+              onClick={handleCloseDuckHeader}
               className="absolute left-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
