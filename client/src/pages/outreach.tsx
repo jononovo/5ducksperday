@@ -731,22 +731,7 @@ export default function Outreach() {
         {/* Mobile Company Navigation Bar - Above contact card */}
         {!isMobileExpanded && currentCompany && selectedContact && (
           <div className="md:hidden px-2 py-0 -mt-6 bg-white flex items-center justify-between z-[60]">
-            <Button
-              variant="ghost"
-              size="default"
-              onClick={handlePrevCompany}
-              disabled={currentCompanyIndex === 0}
-              className={cn(
-                "px-3 h-12 flex items-center justify-center",
-                currentCompanyIndex === 0 
-                  ? "text-gray-300 cursor-not-allowed" 
-                  : "text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
-              )}
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </Button>
-            
-            <div className="flex-1 text-center">
+            <div className="flex-1 text-left">
               <span className="font-medium text-sm text-muted-foreground">{currentCompany.name}</span>
               <div className="text-xs text-muted-foreground/70">
                 Company {currentCompanyIndex + 1} of {companies.length}
@@ -759,12 +744,13 @@ export default function Outreach() {
               onClick={handleNextCompany}
               disabled={currentCompanyIndex === companies.length - 1}
               className={cn(
-                "px-3 h-12 flex items-center justify-center",
+                "px-3 h-12 flex items-center justify-center gap-1",
                 currentCompanyIndex === companies.length - 1
                   ? "text-gray-300 cursor-not-allowed"
                   : "text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
               )}
             >
+              <Building2 className="w-4 h-4" />
               <ChevronRight className="w-6 h-6" />
             </Button>
           </div>
