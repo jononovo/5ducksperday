@@ -1112,7 +1112,7 @@ export default function Outreach() {
                     setEmailPrompt(e.target.value);
                     handlePromptTextareaResize();
                   }}
-                  className="mobile-input resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-0 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="mobile-input resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
                   style={{ minHeight: '32px', maxHeight: '100px' }}
                 />
                 <div className="absolute bottom-2 right-2 flex items-center gap-2">
@@ -1181,7 +1181,7 @@ export default function Outreach() {
                     setEmailContent(e.target.value);
                     handleTextareaResize();
                   }}
-                  className="mobile-input resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-0 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="mobile-input resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
                   style={{ minHeight: '160px', maxHeight: '400px' }}
                 />
               </div>
