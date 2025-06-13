@@ -16,6 +16,7 @@ import {
   Type,
   FileText,
   Users,
+  User,
   Menu,
   Info,
   X
@@ -78,6 +79,7 @@ export default function Outreach() {
   const [emailSubject, setEmailSubject] = useState("");
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [currentCompanyIndex, setCurrentCompanyIndex] = useState(0);
+  const [currentContactIndex, setCurrentContactIndex] = useState(0);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [showExpandedView, setShowExpandedView] = useState(false);
   const [autoCollapseTimer, setAutoCollapseTimer] = useState<NodeJS.Timeout | null>(null);
@@ -495,6 +497,7 @@ export default function Outreach() {
     if (topContacts.length > 0 && !selectedContactId) {
       const highestProbabilityContact = topContacts[0];
       setSelectedContactId(highestProbabilityContact.id);
+      setCurrentContactIndex(0); // Reset to first contact
       
       // Auto-populate email if available
       if (highestProbabilityContact.email && !toEmail) {
@@ -502,6 +505,11 @@ export default function Outreach() {
       }
     }
   }, [topContacts, selectedContactId, toEmail]);
+
+  // Reset contact index when company changes
+  useEffect(() => {
+    setCurrentContactIndex(0);
+  }, [currentCompanyIndex]);
 
   // Helper functions to check if navigation is possible
   const hasPrevCompanyWithContacts = () => {
@@ -551,6 +559,21 @@ export default function Outreach() {
         setCurrentCompanyIndex(nextIndex);
         return;
       }
+    }
+  };
+
+  const handleNextContact = () => {
+    if (topContacts.length === 0) return;
+    
+    const nextIndex = (currentContactIndex + 1) % topContacts.length;
+    const nextContact = topContacts[nextIndex];
+    
+    setCurrentContactIndex(nextIndex);
+    setSelectedContactId(nextContact.id);
+    
+    // Auto-populate email if available
+    if (nextContact.email) {
+      setToEmail(nextContact.email);
     }
   };
 
@@ -737,18 +760,35 @@ export default function Outreach() {
               <span className="font-medium text-sm text-muted-foreground">{currentCompany.name}</span>
             </div>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleNextCompany}
-              className="px-2 h-8 flex items-center justify-center gap-1 text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
-            >
-              <Building2 className="w-3 h-3" />
-              <span className="text-[9px] text-muted-foreground/70">
-                {currentCompanyIndex + 1}/{companies.length}
-              </span>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNextCompany}
+                className="px-2 h-8 flex items-center justify-center gap-1 text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
+              >
+                <Building2 className="w-3 h-3" />
+                <span className="text-[9px] text-muted-foreground/70">
+                  {currentCompanyIndex + 1}/{companies.length}
+                </span>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+              
+              {topContacts.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleNextContact}
+                  className="px-2 h-8 flex items-center justify-center gap-1 text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
+                >
+                  <User className="w-3 h-3" />
+                  <span className="text-[9px] text-muted-foreground/70">
+                    {currentContactIndex + 1}/{topContacts.length}
+                  </span>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
         )}
         
