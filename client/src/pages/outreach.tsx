@@ -875,7 +875,7 @@ export default function Outreach() {
               ) : (
                 <div 
                   className="mb-4 cursor-pointer"
-                  onClick={handleMobileContactCardTap}
+                  onClick={handleCloseDuckHeader}
                 >
                   <div className={cn(
                     "w-full text-left p-3 relative rounded-lg border border-dashed",
