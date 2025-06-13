@@ -140,6 +140,8 @@
     border-right: none !important;
     background-color: rgb(248, 250, 252) !important; /* Very subtle blue-gray */
     transition: background-color 0.2s ease !important;
+    outline: none !important; /* Remove focus outline */
+    box-shadow: none !important; /* Remove focus ring */
   }
   
   /* Special padding for inputs with icons */
@@ -150,6 +152,9 @@
   .mobile-input:focus,
   .mobile-input:active {
     background-color: rgb(241, 245, 249) !important; /* Slightly darker blue-gray when focused */
+    outline: none !important; /* Remove focus outline */
+    box-shadow: none !important; /* Remove focus ring */
+    border: none !important; /* Remove any focus borders */
   }
 }
 
