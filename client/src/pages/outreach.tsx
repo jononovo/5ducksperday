@@ -959,6 +959,7 @@ export default function Outreach() {
                           // On mobile, immediately collapse after contact selection
                           if (typeof window !== 'undefined' && window.innerWidth < 768) { // md breakpoint
                             setIsMobileExpanded(false);
+                            setShowExpandedView(false); // CRITICAL: Reset this so duck header can appear
                             if (autoCollapseTimer) {
                               clearTimeout(autoCollapseTimer);
                               setAutoCollapseTimer(null);
