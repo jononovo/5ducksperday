@@ -833,9 +833,9 @@ export default function Outreach() {
                     {/* Copy button */}
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="icon"
                       className={cn(
-                        "absolute bottom-1 right-2 p-1",
+                        "absolute bottom-1 right-2 p-0.5 h-6 w-6",
                         "hover:bg-background/80 transition-colors",
                         copiedContactIds.has(selectedContact.id) 
                           ? "text-green-600 hover:text-green-700" 
