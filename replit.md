@@ -113,6 +113,7 @@
 ## Changelog
 - June 13, 2025. Initial setup
 - June 13, 2025. Mobile UI optimizations: Fixed duck header positioning (-mt-1), reduced email form horizontal padding (p-6→px-3 py-6 md:p-6) for 24px wider mobile inputs, updated "Save Template" to "Save as Template", and removed chevron arrow from mobile duck header navigation button
+- June 13, 2025. Edge-to-edge mobile input layout: Implemented Gmail-style mobile input fields with zero horizontal margins (px-0), added border separators between fields, and maintained desktop spacing while maximizing mobile typing space
 
 ## User Preferences
 

@@ -1101,9 +1101,9 @@ export default function Outreach() {
         <div className={`md:block ${isMobileExpanded ? 'mt-4' : ''}`}>
           <div className="md:border md:rounded-lg md:shadow-sm">
 
-            <div className="px-3 py-6 md:p-6 space-y-6">
+            <div className="px-0 py-6 md:p-6 space-y-0 md:space-y-6">
               {/* Email Prompt Field */}
-              <div className="relative">
+              <div className="relative border-b md:border-b-0 md:mb-6">
                 <Textarea
                   ref={promptTextareaRef}
                   placeholder="Example: Sell dog-grooming services"
@@ -1112,7 +1112,7 @@ export default function Outreach() {
                     setEmailPrompt(e.target.value);
                     handlePromptTextareaResize();
                   }}
-                  className="resize-none transition-all duration-200 pb-6"
+                  className="resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3"
                   style={{ minHeight: '32px', maxHeight: '100px' }}
                 />
                 <div className="absolute bottom-2 right-2 flex items-center gap-2">
@@ -1149,30 +1149,30 @@ export default function Outreach() {
               </div>
 
               {/* To Email Field */}
-              <div className="relative">
+              <div className="relative border-b md:border-b-0 md:mb-6">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   placeholder="Recipient Email"
                   value={toEmail}
                   onChange={(e) => setToEmail(e.target.value)}
                   type="email"
-                  className="pl-10"
+                  className="pl-10 border-0 rounded-none md:border md:rounded-md"
                 />
               </div>
 
               {/* Email Subject Field */}
-              <div className="relative">
+              <div className="relative border-b md:border-b-0 md:mb-6">
                 <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   placeholder="Email Subject"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 border-0 rounded-none md:border md:rounded-md"
                 />
               </div>
 
               {/* Email Content Field */}
-              <div>
+              <div className="md:mb-6">
                 <Textarea
                   ref={textareaRef}
                   placeholder="Enter or edit the generated email content..."
@@ -1181,13 +1181,13 @@ export default function Outreach() {
                     setEmailContent(e.target.value);
                     handleTextareaResize();
                   }}
-                  className="resize-none transition-all duration-200"
+                  className="resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3"
                   style={{ minHeight: '160px', maxHeight: '400px' }}
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-4 justify-end">
+              <div className="flex gap-4 justify-end mt-6 px-3 md:px-0">
                 <Button
                   variant="secondary"
                   onClick={handleSaveEmail}
