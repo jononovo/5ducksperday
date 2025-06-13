@@ -215,13 +215,7 @@ export default function Outreach() {
     }
   };
 
-  const handleMobileContactCardTap = () => {
-    // Start fade-out transition after 200ms
-    setTimeout(() => {
-      setIsMobileExpanded(true);
-      startAutoCollapseTimer();
-    }, 200);
-  };
+
 
   const handleMobileColumnInteraction = () => {
     resetAutoCollapseTimer();
@@ -808,7 +802,7 @@ export default function Outreach() {
               {selectedContact && currentCompany ? (
                 <div 
                   className="mb-2 -mt-1 cursor-pointer"
-                  onClick={handleMobileContactCardTap}
+                  onClick={handleCloseDuckHeader}
                 >
                   <div className={cn(
                     "w-full text-left px-2.5 pt-1.5 pb-2.5 relative rounded-lg shadow-md border-t-0"
