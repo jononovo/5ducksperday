@@ -1151,7 +1151,7 @@ export default function Outreach() {
 
             <div className="p-6 space-y-6">
               {/* Email Prompt Field */}
-              <div className="relative">
+              <div className="space-y-2">
                 <Textarea
                   ref={promptTextareaRef}
                   placeholder="Enter your prompt for email generation..."
@@ -1161,10 +1161,10 @@ export default function Outreach() {
                     handlePromptTextareaResize();
                   }}
                   rows={1}
-                  className="resize-none transition-all duration-200 pb-12 h-1"
+                  className="resize-none transition-all duration-200 h-10"
                   style={{ maxHeight: '100px' }}
                 />
-                <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                <div className="flex items-center justify-end gap-2">
                   <TooltipProvider>
                     <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
                       <TooltipTrigger asChild>
