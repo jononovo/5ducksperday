@@ -755,7 +755,7 @@ export default function Outreach() {
       <div className="md:hidden pt-0">
         {/* Mobile Company Navigation Bar - Above contact card */}
         {!isMobileExpanded && currentCompany && selectedContact && (
-          <div className="md:hidden px-2 py-1 -mt-4 bg-white flex items-center justify-between z-[60]">
+          <div className="md:hidden px-2 py-0.5 -mt-4 bg-white flex items-center justify-between z-[60]">
             <div className="flex-1 text-left">
               <span className="font-medium text-sm text-muted-foreground">{currentCompany.name}</span>
             </div>
@@ -767,11 +767,11 @@ export default function Outreach() {
                 onClick={handleNextCompany}
                 className="px-2 h-8 flex items-center justify-center gap-1 text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
               >
-                <Building2 className="w-3 h-3" />
+                <Building2 className="w-2.5 h-2.5" />
                 <span className="text-[9px] text-muted-foreground/70">
                   {currentCompanyIndex + 1}/{companies.length}
                 </span>
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3.5 h-3.5" />
               </Button>
               
               {topContacts.length > 0 && (
@@ -781,11 +781,11 @@ export default function Outreach() {
                   onClick={handleNextContact}
                   className="px-2 h-8 flex items-center justify-center gap-1 text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
                 >
-                  <User className="w-3 h-3" />
+                  <User className="w-2.5 h-2.5" />
                   <span className="text-[9px] text-muted-foreground/70">
                     {currentContactIndex + 1}/{topContacts.length}
                   </span>
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
               )}
             </div>
@@ -807,11 +807,11 @@ export default function Outreach() {
             >
               {selectedContact && currentCompany ? (
                 <div 
-                  className="mb-4 cursor-pointer"
+                  className="mb-2 cursor-pointer"
                   onClick={handleMobileContactCardTap}
                 >
                   <div className={cn(
-                    "w-full text-left p-3 relative rounded-lg shadow-md"
+                    "w-full text-left p-2.5 relative rounded-lg shadow-md"
                   )}>
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{selectedContact.name}</span>
