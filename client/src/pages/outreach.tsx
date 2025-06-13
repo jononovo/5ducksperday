@@ -9,7 +9,7 @@ import {
   Copy,
   Check,
   ChevronLeft,
-  ChevronRight,
+
   PartyPopper,
   ExternalLink,
   Mail,
@@ -904,7 +904,7 @@ export default function Outreach() {
                         onClick={handlePrevCompany}
                         disabled={currentCompanyIndex === 0}
                       >
-                        <ChevronLeft className="w-5 h-5" />
+                        Prev
                       </Button>
                       <span className="text-sm text-muted-foreground font-medium">
                         {currentCompanyIndex + 1} of {companies.length}
@@ -916,7 +916,7 @@ export default function Outreach() {
                         onClick={handleNextCompany}
                         disabled={currentCompanyIndex === companies.length - 1}
                       >
-                        <ChevronRight className="w-5 h-5" />
+                        Next
                       </Button>
                     </div>
                   )}
