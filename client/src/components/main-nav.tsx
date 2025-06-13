@@ -70,10 +70,12 @@ export function MainNav() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
-                <LogOut className="h-4 w-4 mr-2" />
-                <span>Logout</span>
-              </DropdownMenuItem>
+              {logoutMutation && (
+                <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <Link href="/build">
                 <DropdownMenuItem>

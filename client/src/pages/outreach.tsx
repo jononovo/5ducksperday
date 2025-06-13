@@ -1111,7 +1111,7 @@ export default function Outreach() {
         <div className={`md:block ${isMobileExpanded ? 'mt-4' : ''}`}>
           <div className="md:border md:rounded-lg md:shadow-sm">
 
-            <div className="p-6 space-y-6">
+            <div className={`p-6 space-y-6 ${!showExpandedView && selectedContact ? 'pt-8' : ''}`}>
               {/* Email Prompt Field */}
               <div className="relative">
                 <Textarea
