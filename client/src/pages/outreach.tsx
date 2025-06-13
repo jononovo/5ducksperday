@@ -807,11 +807,11 @@ export default function Outreach() {
             >
               {selectedContact && currentCompany ? (
                 <div 
-                  className="mb-2 mt-1 cursor-pointer"
+                  className="mb-2 -mt-1 cursor-pointer"
                   onClick={handleMobileContactCardTap}
                 >
                   <div className={cn(
-                    "w-full text-left p-2.5 relative rounded-lg shadow-md"
+                    "w-full text-left p-2.5 relative rounded-lg shadow-md border-t-0"
                   )}>
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{selectedContact.name}</span>
