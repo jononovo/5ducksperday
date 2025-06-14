@@ -126,6 +126,7 @@
 - June 14, 2025. Simplified email prompt placeholder: Removed "Example:" prefix from email prompt field placeholder text, changing from "Example: Sell dog-grooming services" to "Sell dog-grooming services" for cleaner UX
 - June 14, 2025. Inline email body buttons: Moved "Save as Template" and "Send Email" buttons inside the email body textarea field using absolute positioning, matching the Generate Email button pattern for consistent UI design
 - June 14, 2025. Relocated Save as Template button: Moved "Save as Template" button from email body field to Quick Templates section header, positioned next to "New Template" button for better organization and cleaner email body interface
+- June 14, 2025. Complete inline merge system for Create Template dialog: Added "Merge" dropdown buttons to all three fields (Email Subject, Description/Prompt, Email Body) with predefined merge variables ({{company_name}}, {{contact_name}}, {{contact_role}}, {{sender_name}}). Implemented consistent positioning using relative containers with absolute bottom-2 right-2 button placement and pb-10/pb-12 padding for proper text spacing
 
 ## User Preferences
 

@@ -220,15 +220,42 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
                 <FormItem>
                   <FormLabel>Description/Prompt</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Template description or generation prompt"
-                      className="min-h-[100px]"
-                      {...field} 
-                      onChange={(e) => {
-                        console.log('Description field changed:', e.target.value);
-                        field.onChange(e);
-                      }}
-                    />
+                    <div className="relative">
+                      <Textarea 
+                        placeholder="Template description or generation prompt"
+                        className="min-h-[100px] pb-12"
+                        {...field} 
+                        onChange={(e) => {
+                          console.log('Description field changed:', e.target.value);
+                          field.onChange(e);
+                        }}
+                      />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            type="button"
+                            variant="outline" 
+                            size="sm"
+                            className="absolute bottom-2 right-2 h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+                          >
+                            <FileText className="w-3 h-3 mr-1" />
+                            Merge
+                            <ChevronDown className="w-3 h-3 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          {MERGE_VARIABLES.map((variable) => (
+                            <DropdownMenuItem
+                              key={variable.value}
+                              onClick={() => insertMergeVariable(variable.value, field)}
+                              className="cursor-pointer"
+                            >
+                              {variable.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -241,15 +268,42 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
                 <FormItem>
                   <FormLabel>Email Body</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Email content"
-                      className="min-h-[200px]"
-                      {...field}
-                      onChange={(e) => {
-                        console.log('Content field changed:', e.target.value);
-                        field.onChange(e);
-                      }}
-                    />
+                    <div className="relative">
+                      <Textarea 
+                        placeholder="Email content"
+                        className="min-h-[200px] pb-12"
+                        {...field}
+                        onChange={(e) => {
+                          console.log('Content field changed:', e.target.value);
+                          field.onChange(e);
+                        }}
+                      />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            type="button"
+                            variant="outline" 
+                            size="sm"
+                            className="absolute bottom-2 right-2 h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+                          >
+                            <FileText className="w-3 h-3 mr-1" />
+                            Merge
+                            <ChevronDown className="w-3 h-3 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          {MERGE_VARIABLES.map((variable) => (
+                            <DropdownMenuItem
+                              key={variable.value}
+                              onClick={() => insertMergeVariable(variable.value, field)}
+                              className="cursor-pointer"
+                            >
+                              {variable.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
