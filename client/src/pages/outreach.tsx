@@ -59,6 +59,9 @@ import {
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 import { resolveMergeField, resolveAllMergeFields, hasMergeFields, type MergeFieldContext } from '@/lib/merge-field-resolver';
+import { MergeFieldProvider } from '@/contexts/MergeFieldContext';
+import { MergeFieldInput } from '@/components/ui/merge-field-input';
+import { MergeFieldTextarea } from '@/components/ui/merge-field-textarea';
 
 
 // Define interface for the saved state
@@ -1272,11 +1275,14 @@ export default function Outreach() {
         {/* Right Column - Email Creation */}
         <div className={`md:block ${isMobileExpanded ? 'mt-4' : ''}`}>
           <div className="md:border md:rounded-lg md:shadow-sm">
-
-            <div className="px-0 py-3 md:p-6 space-y-0 md:space-y-6">
+            <MergeFieldProvider 
+              mergeFieldContext={mergeFieldContext} 
+              isEditMode={isEditMode}
+            >
+              <div className="px-0 py-3 md:p-6 space-y-0 md:space-y-6">
               {/* Email Prompt Field */}
               <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
-                <Textarea
+                <MergeFieldTextarea
                   ref={emailPromptRef}
                   placeholder="Sell dog-grooming services"
                   value={getDisplayValue(emailPrompt)}
@@ -1323,7 +1329,7 @@ export default function Outreach() {
               {/* To Email Field */}
               <div className="relative border-b md:border-b-0 md:mb-6">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
+                <MergeFieldInput
                   ref={toEmailRef}
                   placeholder="Recipient Email"
                   value={getDisplayValue(toEmail)}
@@ -1336,7 +1342,7 @@ export default function Outreach() {
               {/* Email Subject Field */}
               <div className="relative border-b md:border-b-0 md:mb-6">
                 <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
+                <MergeFieldInput
                   ref={emailSubjectRef}
                   placeholder="Email Subject"
                   value={getDisplayValue(emailSubject)}
@@ -1347,7 +1353,7 @@ export default function Outreach() {
 
               {/* Email Content Field */}
               <div className="relative md:mb-6">
-                <Textarea
+                <MergeFieldTextarea
                   ref={emailContentRef}
                   placeholder="Enter or edit the generated email content..."
                   value={getDisplayValue(emailContent)}
