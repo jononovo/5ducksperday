@@ -39,9 +39,18 @@ interface CreateTemplateModalProps {
 // Define merge variables for email templates
 const MERGE_VARIABLES = [
   { label: "Company Name", value: "{{company_name}}" },
-  { label: "Contact Name", value: "{{contact_name}}" },
   { label: "Contact Role", value: "{{contact_role}}" },
   { label: "Sender Name", value: "{{sender_name}}" },
+  { label: "First Name", value: "{{first_name}}" },
+  { label: "Last Name", value: "{{last_name}}" },
+  { label: "Personal Intro", value: "{{personal_intro}}" },
+  { label: "Custom Proposal", value: "{{custom_proposal}}" },
+  { label: "Product1 Name", value: "{{product1_name}}" },
+  { label: "Product1 Description", value: "{{product1_description}}" },
+  { label: "Product2 Name", value: "{{product2_name}}" },
+  { label: "Product2 Description", value: "{{product2_description}}" },
+  { label: "Custom1", value: "{{custom1}}" },
+  { label: "Custom2", value: "{{custom2}}" },
 ];
 
 export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplateModalProps) {
