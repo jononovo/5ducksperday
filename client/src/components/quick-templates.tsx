@@ -124,7 +124,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
 
       <div className="space-y-2">
         <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="mx-4">
             <SelectValue placeholder={isLoading ? "Loading templates..." : "Select a template"} />
           </SelectTrigger>
           <SelectContent>
