@@ -35,6 +35,10 @@ interface QuickTemplatesProps {
   onSelectTemplate: (template: EmailTemplate) => void;
   onSaveTemplate?: (templateName: string) => void;
   onMergeFieldInsert?: (mergeField: string) => void;
+  onEditTemplate?: (template: EmailTemplate) => void;
+  isEditMode?: boolean;
+  editingTemplateId?: number | null;
+  onExitEditMode?: () => void;
 }
 
 export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMergeFieldInsert }: QuickTemplatesProps) {

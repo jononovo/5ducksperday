@@ -105,6 +105,10 @@ export default function Outreach() {
   // Tooltip state for mobile support
   const [tooltipOpen, setTooltipOpen] = useState(false);
   
+  // Template edit mode state
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
+  
   // Textarea refs for auto-resizing
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -293,6 +297,46 @@ export default function Outreach() {
         toEmailRef.current?.setSelectionRange(pos + mergeField.length, pos + mergeField.length);
       }, 0);
     }
+  };
+
+  // Template edit mode functions
+  const enterEditMode = (template: EmailTemplate) => {
+    setIsEditMode(true);
+    setEditingTemplateId(template.id);
+    // Load template data into form fields
+    setEmailPrompt(template.description || "");
+    setEmailSubject(template.subject || "");
+    setEmailContent(template.content || "");
+  };
+
+  const exitEditMode = () => {
+    setIsEditMode(false);
+    setEditingTemplateId(null);
+  };
+
+  // Content resolution utility functions
+  const resolveContent = (content: string, contact: Contact | null) => {
+    if (!contact || isEditMode) return content; // Show raw in edit mode
+    
+    const firstName = contact.name?.split(' ')[0] || '';
+    const lastName = contact.name?.split(' ').slice(1).join(' ') || '';
+    
+    return content
+      .replace(/\{\{company_name\}\}/g, currentCompany?.name || '{{company_name}}')
+      .replace(/\{\{contact_name\}\}/g, contact.name || '{{contact_name}}')
+      .replace(/\{\{first_name\}\}/g, firstName || '{{first_name}}')
+      .replace(/\{\{last_name\}\}/g, lastName || '{{last_name}}')
+      .replace(/\{\{contact_role\}\}/g, contact.role || '{{contact_role}}')
+      .replace(/\{\{sender_name\}\}/g, user?.email?.split('@')[0] || '{{sender_name}}');
+  };
+
+  const highlightMergeFields = (content: string) => {
+    if (isEditMode) return content; // No highlighting in edit mode
+    
+    return content.replace(
+      /(\{\{[^}]+\}\})/g,
+      '<span style="background-color: rgba(156, 163, 175, 0.2); padding: 1px 2px; border-radius: 2px;">$1</span>'
+    );
   };
 
   const handleSaveEmail = (templateName: string) => {
