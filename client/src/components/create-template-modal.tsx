@@ -24,15 +24,36 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Loader2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, Loader2, FileText, ChevronDown } from "lucide-react";
 
 interface CreateTemplateModalProps {
   onTemplateCreated?: () => void;
 }
 
+// Define merge variables for email templates
+const MERGE_VARIABLES = [
+  { label: "Company Name", value: "{{company_name}}" },
+  { label: "Contact Name", value: "{{contact_name}}" },
+  { label: "Contact Role", value: "{{contact_role}}" },
+  { label: "Sender Name", value: "{{sender_name}}" },
+];
+
 export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplateModalProps) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+
+  // Helper function to insert merge variable into subject field
+  const insertMergeVariable = (mergeVariable: string, field: any) => {
+    const currentValue = field.value || "";
+    const newValue = currentValue + mergeVariable;
+    field.onChange(newValue);
+  };
   const queryClient = useQueryClient();
 
   const form = useForm<InsertEmailTemplate>({
@@ -151,14 +172,42 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
                 <FormItem>
                   <FormLabel>Subject</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Email subject" 
-                      {...field}
-                      onChange={(e) => {
-                        console.log('Subject field changed:', e.target.value);
-                        field.onChange(e);
-                      }}
-                    />
+                    <div className="relative">
+                      <Input 
+                        placeholder="Email subject" 
+                        {...field}
+                        className="pb-10"
+                        onChange={(e) => {
+                          console.log('Subject field changed:', e.target.value);
+                          field.onChange(e);
+                        }}
+                      />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            type="button"
+                            variant="outline" 
+                            size="sm"
+                            className="absolute bottom-2 right-2 h-6 px-2 text-xs hover:scale-105 transition-all duration-300 ease-out"
+                          >
+                            <FileText className="w-3 h-3 mr-1" />
+                            Merge
+                            <ChevronDown className="w-3 h-3 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          {MERGE_VARIABLES.map((variable) => (
+                            <DropdownMenuItem
+                              key={variable.value}
+                              onClick={() => insertMergeVariable(variable.value, field)}
+                              className="cursor-pointer"
+                            >
+                              {variable.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
