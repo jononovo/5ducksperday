@@ -356,6 +356,14 @@ export default function Outreach() {
     );
   };
 
+  // Get the currently selected contact for merge field resolution
+  const selectedContact = selectedContactId ? contacts?.find(c => c.id === selectedContactId) : null;
+
+  // Functions to get display values for form fields
+  const getDisplayValue = (content: string) => {
+    return isEditMode ? content : resolveContent(content, selectedContact);
+  };
+
   const handleSaveEmail = (templateName: string) => {
     if (!emailPrompt || !emailContent) {
       toast({

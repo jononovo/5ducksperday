@@ -70,6 +70,7 @@ export interface IStorage {
   listEmailTemplates(userId: number): Promise<EmailTemplate[]>;
   getEmailTemplate(id: number, userId: number): Promise<EmailTemplate | undefined>;
   createEmailTemplate(data: InsertEmailTemplate): Promise<EmailTemplate>;
+  updateEmailTemplate(id: number, data: InsertEmailTemplate): Promise<EmailTemplate>;
 
 
 
@@ -380,11 +381,33 @@ class DatabaseStorage implements IStorage {
     }
   }
 
-
-  
-
-
-
+  async updateEmailTemplate(id: number, data: InsertEmailTemplate): Promise<EmailTemplate> {
+    console.log('DatabaseStorage.updateEmailTemplate called with:', {
+      id,
+      name: data.name,
+      userId: data.userId
+    });
+    try {
+      const [template] = await db
+        .update(emailTemplates)
+        .set({
+          ...data,
+          updatedAt: new Date()
+        })
+        .where(eq(emailTemplates.id, id))
+        .returning();
+      
+      if (!template) {
+        throw new Error(`Template with id ${id} not found`);
+      }
+      
+      console.log('Updated template:', { id: template.id, name: template.name });
+      return template;
+    } catch (error) {
+      console.error('Error updating email template:', error);
+      throw error;
+    }
+  }
 
   // Strategic Profiles methods
   async getStrategicProfiles(userId: number): Promise<StrategicProfile[]> {

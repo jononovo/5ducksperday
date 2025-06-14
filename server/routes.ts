@@ -1916,6 +1916,54 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  app.put("/api/email-templates/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const templateId = parseInt(req.params.id);
+      
+      if (isNaN(templateId)) {
+        res.status(400).json({ message: "Invalid template ID" });
+        return;
+      }
+
+      console.log('PUT /api/email-templates - Request body:', {
+        ...req.body,
+        templateId,
+        userId: userId
+      });
+
+      const result = insertEmailTemplateSchema.safeParse({
+        ...req.body,
+        userId: userId,
+        category: req.body.category || 'general'
+      });
+
+      if (!result.success) {
+        console.error('Email template validation failed:', result.error.errors);
+        res.status(400).json({ 
+          message: "Invalid request body",
+          errors: result.error.errors
+        });
+        return;
+      }
+
+      console.log('Updating email template with validated data:', result.data);
+      const template = await storage.updateEmailTemplate(templateId, result.data);
+      console.log('Updated email template:', {
+        id: template.id,
+        name: template.name,
+        userId: template.userId
+      });
+
+      res.json(template);
+    } catch (error) {
+      console.error('Email template update error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
+    }
+  });
+
   // Leave the search approaches endpoints without auth since they are system-wide
 
   
