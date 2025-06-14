@@ -42,7 +42,7 @@ interface QuickTemplatesProps {
   onExitEditMode?: () => void;
 }
 
-export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMergeFieldInsert, onEditTemplate, isEditMode, editingTemplateId, onExitEditMode }: QuickTemplatesProps) {
+export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpdateTemplate, onMergeFieldInsert, onEditTemplate, isEditMode, editingTemplateId, onExitEditMode }: QuickTemplatesProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
   const [mergeFieldDialogOpen, setMergeFieldDialogOpen] = useState(false);
   const [editConfirmDialogOpen, setEditConfirmDialogOpen] = useState(false);
@@ -173,7 +173,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
           </Button>
           <Button 
             variant="secondary"
-            onClick={isEditMode ? onSaveTemplate : handleEditTemplate} 
+            onClick={isEditMode ? () => onUpdateTemplate?.() : handleEditTemplate} 
             disabled={!selectedTemplateId}
             className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
           >
