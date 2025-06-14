@@ -133,6 +133,7 @@
 - June 14, 2025. Edit Template functionality: Added "Edit Template" button next to "Insert Template" with Edit icon, same disabled logic when no template selected, and confirmation dialog warning "Editing this template, will replace all content currently in fields on this page" with Cancel/Load Template options using shadcn AlertDialog components
 - June 14, 2025. Complete merge field insertion system: Implemented clickable merge field functionality with React refs for all form inputs (email prompt, subject, content, recipient), cursor position handling, and MergeFieldDialog integration that inserts merge variables directly at cursor position instead of clipboard copy
 - June 14, 2025. Mobile navigation spacing optimization: Refined company button spacing with mr-0.5 between Building2 icon and "7/7" text for better readability, while maintaining gap-0 base spacing and tight chevron positioning. Contacts button remains with uniform gap-0 spacing throughout
+- June 14, 2025. Clean templates section layout: Removed "Quick Templates" heading and added pt-6 padding above templates section for better visual separation from email body input. Right-aligned action buttons (Merge Field, Save as Template) for cleaner interface design
 
 ## User Preferences
 

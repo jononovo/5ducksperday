@@ -100,29 +100,26 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
 
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Quick Templates</h3>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
-            onClick={() => setMergeFieldDialogOpen(true)}
+    <div className="space-y-4 pt-6">
+      <div className="flex items-center justify-end gap-2">
+        <Button 
+          variant="outline" 
+          className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+          onClick={() => setMergeFieldDialogOpen(true)}
+        >
+          <Plus className="w-3 h-3 mr-1" />
+          Merge Field
+        </Button>
+        {onSaveTemplate && (
+          <Button
+            variant="secondary"
+            onClick={handleSaveTemplate}
+            className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
           >
-            <Plus className="w-3 h-3 mr-1" />
-            Merge Field
+            <Save className="w-3 h-3 mr-1" />
+            Save as Template
           </Button>
-          {onSaveTemplate && (
-            <Button
-              variant="secondary"
-              onClick={handleSaveTemplate}
-              className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
-            >
-              <Save className="w-3 h-3 mr-1" />
-              Save as Template
-            </Button>
-          )}
-        </div>
+        )}
       </div>
 
       <div className="space-y-2">
