@@ -132,7 +132,7 @@
 - June 14, 2025. Button size standardization: Updated "Insert Template" button to match smaller sizing (h-8 px-3 text-xs), consistent hover animation (scale-105), content-based width (removed w-full), right alignment (justify-end), secondary variant styling, right margin (mr-2), FileText icon, and restored disabled state when no template selected for proper UX feedback in Quick Templates section
 - June 14, 2025. Edit Template functionality: Added "Edit Template" button next to "Insert Template" with Edit icon, same disabled logic when no template selected, and confirmation dialog warning "Editing this template, will replace all content currently in fields on this page" with Cancel/Load Template options using shadcn AlertDialog components
 - June 14, 2025. Complete merge field insertion system: Implemented clickable merge field functionality with React refs for all form inputs (email prompt, subject, content, recipient), cursor position handling, and MergeFieldDialog integration that inserts merge variables directly at cursor position instead of clipboard copy
-- June 14, 2025. Mobile navigation spacing improvement: Added gap-1 spacing between Building2 icon and company count text in mobile company navigation button for better visual separation
+- June 14, 2025. Mobile navigation spacing consistency: Standardized both navigation buttons to use gap-0 spacing for identical visual rhythm between company button (Building2 + "7/7" + ChevronRight) and contacts button (User + "1/3" + ChevronRight), creating uniform tight spacing across mobile header navigation
 
 ## User Preferences
 
