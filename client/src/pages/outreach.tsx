@@ -764,13 +764,13 @@ export default function Outreach() {
                 variant="ghost"
                 size="sm"
                 onClick={handleNextCompany}
-                className="px-2 h-8 flex items-center justify-center gap-1 text-muted-foreground/50 hover:text-muted-foreground/60 bg-gray-50/30 hover:bg-gray-100/40"
+                className="px-2 h-8 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground/60 bg-gray-50/30 hover:bg-gray-100/40"
               >
-                <Building2 className="w-2.5 h-2.5" />
+                <Building2 className="w-2.5 h-2.5 mr-1" />
                 <span className="text-[9px] text-muted-foreground/50">
                   {currentCompanyIndex + 1}/{companies.length}
                 </span>
-                <ChevronRight className="w-2.5 h-2.5 text-muted-foreground/50" />
+                <ChevronRight className="w-2.5 h-2.5 text-muted-foreground/50 ml-0.5" />
               </Button>
               
               {topContacts.length > 0 && (
