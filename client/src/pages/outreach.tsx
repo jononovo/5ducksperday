@@ -83,6 +83,12 @@ export default function Outreach() {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [showExpandedView, setShowExpandedView] = useState(false);
 
+  // Refs for form inputs to handle merge field insertion
+  const emailPromptRef = useRef<HTMLTextAreaElement>(null);
+  const emailSubjectRef = useRef<HTMLInputElement>(null);
+  const emailContentRef = useRef<HTMLTextAreaElement>(null);
+  const toEmailRef = useRef<HTMLInputElement>(null);
+
   const { toast } = useToast();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -249,6 +255,45 @@ export default function Outreach() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
+
+  const handleMergeFieldInsert = (mergeField: string) => {
+    const activeElement = document.activeElement;
+    
+    if (activeElement === emailPromptRef.current) {
+      const pos = emailPromptRef.current.selectionStart || emailPrompt.length;
+      const newValue = emailPrompt.slice(0, pos) + mergeField + emailPrompt.slice(emailPromptRef.current.selectionEnd || pos);
+      setEmailPrompt(newValue);
+      // Restore focus and cursor position
+      setTimeout(() => {
+        emailPromptRef.current?.focus();
+        emailPromptRef.current?.setSelectionRange(pos + mergeField.length, pos + mergeField.length);
+      }, 0);
+    } else if (activeElement === emailSubjectRef.current) {
+      const pos = emailSubjectRef.current.selectionStart || emailSubject.length;
+      const newValue = emailSubject.slice(0, pos) + mergeField + emailSubject.slice(emailSubjectRef.current.selectionEnd || pos);
+      setEmailSubject(newValue);
+      setTimeout(() => {
+        emailSubjectRef.current?.focus();
+        emailSubjectRef.current?.setSelectionRange(pos + mergeField.length, pos + mergeField.length);
+      }, 0);
+    } else if (activeElement === emailContentRef.current) {
+      const pos = emailContentRef.current.selectionStart || emailContent.length;
+      const newValue = emailContent.slice(0, pos) + mergeField + emailContent.slice(emailContentRef.current.selectionEnd || pos);
+      setEmailContent(newValue);
+      setTimeout(() => {
+        emailContentRef.current?.focus();
+        emailContentRef.current?.setSelectionRange(pos + mergeField.length, pos + mergeField.length);
+      }, 0);
+    } else if (activeElement === toEmailRef.current) {
+      const pos = toEmailRef.current.selectionStart || toEmail.length;
+      const newValue = toEmail.slice(0, pos) + mergeField + toEmail.slice(toEmailRef.current.selectionEnd || pos);
+      setToEmail(newValue);
+      setTimeout(() => {
+        toEmailRef.current?.focus();
+        toEmailRef.current?.setSelectionRange(pos + mergeField.length, pos + mergeField.length);
+      }, 0);
+    }
+  };
 
   const handleSaveEmail = (templateName: string) => {
     if (!emailPrompt || !emailContent) {
@@ -1107,7 +1152,7 @@ export default function Outreach() {
               {/* Email Prompt Field */}
               <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
                 <Textarea
-                  ref={promptTextareaRef}
+                  ref={emailPromptRef}
                   placeholder="Sell dog-grooming services"
                   value={emailPrompt}
                   onChange={(e) => {
@@ -1154,6 +1199,7 @@ export default function Outreach() {
               <div className="relative border-b md:border-b-0 md:mb-6">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
+                  ref={toEmailRef}
                   placeholder="Recipient Email"
                   value={toEmail}
                   onChange={(e) => setToEmail(e.target.value)}
@@ -1166,6 +1212,7 @@ export default function Outreach() {
               <div className="relative border-b md:border-b-0 md:mb-6">
                 <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
+                  ref={emailSubjectRef}
                   placeholder="Email Subject"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
@@ -1176,7 +1223,7 @@ export default function Outreach() {
               {/* Email Content Field */}
               <div className="relative md:mb-6">
                 <Textarea
-                  ref={textareaRef}
+                  ref={emailContentRef}
                   placeholder="Enter or edit the generated email content..."
                   value={emailContent}
                   onChange={(e) => {
