@@ -33,19 +33,26 @@ const HighlightedTextarea = forwardRef<HTMLTextAreaElement, HighlightedTextareaP
     const generateHighlightedContent = (content: string, raw: string) => {
       if (!resolveField) return content.replace(/\n/g, '<br>');
 
-      // Find all merge fields in the raw content
-      const mergeFields = [...raw.matchAll(highlightPattern)];
+      // Find all merge fields in the raw content using exec method
+      let match;
+      const mergeFields: string[] = [];
+      const regex = new RegExp(highlightPattern.source, 'g');
+      
+      while ((match = regex.exec(raw)) !== null) {
+        mergeFields.push(match[0]);
+      }
+      
       let highlightedContent = content;
       
       // Replace resolved values with highlighted versions
-      mergeFields.forEach(match => {
-        const mergeField = match[0];
+      mergeFields.forEach(mergeField => {
         const resolvedValue = resolveField(mergeField);
         if (resolvedValue && content.includes(resolvedValue)) {
-          // Use global replace to handle multiple instances
-          const regex = new RegExp(resolvedValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+          // Escape special regex characters in resolved value
+          const escapedValue = resolvedValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const valueRegex = new RegExp(escapedValue, 'g');
           highlightedContent = highlightedContent.replace(
-            regex,
+            valueRegex,
             `<span class="${highlightClassName}">${resolvedValue}</span>`
           );
         }

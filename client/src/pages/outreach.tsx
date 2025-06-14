@@ -58,6 +58,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
+import { resolveMergeField, resolveAllMergeFields, hasMergeFields, type MergeFieldContext } from '@/lib/merge-field-resolver';
+import { HighlightedInput } from '@/components/ui/highlighted-input';
+import { HighlightedTextarea } from '@/components/ui/highlighted-textarea';
 
 
 // Define interface for the saved state
@@ -363,9 +366,29 @@ export default function Outreach() {
   // Get the currently selected contact for merge field resolution
   const currentSelectedContact = selectedContactId ? contacts?.find(c => c.id === selectedContactId) : null;
 
+  // Create merge field context
+  const mergeFieldContext: MergeFieldContext = {
+    contact: currentSelectedContact ? {
+      name: currentSelectedContact.name,
+      role: currentSelectedContact.role || undefined,
+      email: currentSelectedContact.email || undefined,
+    } : null,
+    company: currentCompany ? {
+      name: currentCompany.name,
+    } : null,
+    sender: {
+      name: 'Your Name'
+    }
+  };
+
+  // Custom merge field resolver for the highlighted components
+  const resolveMergeFieldForHighlighting = (field: string) => {
+    return resolveMergeField(field, mergeFieldContext);
+  };
+
   // Functions to get display values for form fields
   const getDisplayValue = (content: string) => {
-    return isEditMode ? content : resolveContent(content, currentSelectedContact || null);
+    return isEditMode ? content : resolveAllMergeFields(content, mergeFieldContext);
   };
 
   const handleSaveEmail = (templateName: string) => {
@@ -1255,17 +1278,33 @@ export default function Outreach() {
             <div className="px-0 py-3 md:p-6 space-y-0 md:space-y-6">
               {/* Email Prompt Field */}
               <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
-                <Textarea
-                  ref={emailPromptRef}
-                  placeholder="Sell dog-grooming services"
-                  value={getDisplayValue(emailPrompt)}
-                  onChange={(e) => {
-                    setEmailPrompt(e.target.value);
-                    handlePromptTextareaResize();
-                  }}
-                  className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0`}
-                  style={{ minHeight: '32px', maxHeight: '100px' }}
-                />
+                {!isEditMode && hasMergeFields(emailPrompt) ? (
+                  <HighlightedTextarea
+                    ref={emailPromptRef}
+                    placeholder="Sell dog-grooming services"
+                    value={getDisplayValue(emailPrompt)}
+                    rawValue={emailPrompt}
+                    onChange={(value) => {
+                      setEmailPrompt(value);
+                      handlePromptTextareaResize();
+                    }}
+                    resolveField={resolveMergeFieldForHighlighting}
+                    className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    style={{ minHeight: '32px', maxHeight: '100px' }}
+                  />
+                ) : (
+                  <Textarea
+                    ref={emailPromptRef}
+                    placeholder="Sell dog-grooming services"
+                    value={getDisplayValue(emailPrompt)}
+                    onChange={(e) => {
+                      setEmailPrompt(e.target.value);
+                      handlePromptTextareaResize();
+                    }}
+                    className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    style={{ minHeight: '32px', maxHeight: '100px' }}
+                  />
+                )}
                 <div className="absolute bottom-2 right-2 flex items-center gap-2">
                   <TooltipProvider>
                     <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
