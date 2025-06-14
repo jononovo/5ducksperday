@@ -59,8 +59,6 @@ import {
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 import { resolveMergeField, resolveAllMergeFields, hasMergeFields, type MergeFieldContext } from '@/lib/merge-field-resolver';
-import { HighlightedInput } from '@/components/ui/highlighted-input';
-import { HighlightedTextarea } from '@/components/ui/highlighted-textarea';
 
 
 // Define interface for the saved state
@@ -1278,33 +1276,17 @@ export default function Outreach() {
             <div className="px-0 py-3 md:p-6 space-y-0 md:space-y-6">
               {/* Email Prompt Field */}
               <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
-                {!isEditMode && hasMergeFields(emailPrompt) ? (
-                  <HighlightedTextarea
-                    ref={emailPromptRef}
-                    placeholder="Sell dog-grooming services"
-                    value={getDisplayValue(emailPrompt)}
-                    rawValue={emailPrompt}
-                    onChange={(value) => {
-                      setEmailPrompt(value);
-                      handlePromptTextareaResize();
-                    }}
-                    resolveField={resolveMergeFieldForHighlighting}
-                    className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    style={{ minHeight: '32px', maxHeight: '100px' }}
-                  />
-                ) : (
-                  <Textarea
-                    ref={emailPromptRef}
-                    placeholder="Sell dog-grooming services"
-                    value={getDisplayValue(emailPrompt)}
-                    onChange={(e) => {
-                      setEmailPrompt(e.target.value);
-                      handlePromptTextareaResize();
-                    }}
-                    className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    style={{ minHeight: '32px', maxHeight: '100px' }}
-                  />
-                )}
+                <Textarea
+                  ref={emailPromptRef}
+                  placeholder="Sell dog-grooming services"
+                  value={getDisplayValue(emailPrompt)}
+                  onChange={(e) => {
+                    setEmailPrompt(e.target.value);
+                    handlePromptTextareaResize();
+                  }}
+                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  style={{ minHeight: '32px', maxHeight: '100px' }}
+                />
                 <div className="absolute bottom-2 right-2 flex items-center gap-2">
                   <TooltipProvider>
                     <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
@@ -1340,83 +1322,42 @@ export default function Outreach() {
 
               {/* To Email Field */}
               <div className="relative border-b md:border-b-0 md:mb-6">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 z-20" />
-                {!isEditMode && hasMergeFields(toEmail) ? (
-                  <HighlightedInput
-                    ref={toEmailRef}
-                    placeholder="Recipient Email"
-                    value={getDisplayValue(toEmail)}
-                    rawValue={toEmail}
-                    onChange={(value) => setToEmail(value)}
-                    resolveField={resolveMergeFieldForHighlighting}
-                    type="email"
-                    className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
-                  />
-                ) : (
-                  <Input
-                    ref={toEmailRef}
-                    placeholder="Recipient Email"
-                    value={getDisplayValue(toEmail)}
-                    onChange={(e) => setToEmail(e.target.value)}
-                    type="email"
-                    className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
-                  />
-                )}
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  ref={toEmailRef}
+                  placeholder="Recipient Email"
+                  value={getDisplayValue(toEmail)}
+                  onChange={(e) => setToEmail(e.target.value)}
+                  type="email"
+                  className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
               </div>
 
               {/* Email Subject Field */}
               <div className="relative border-b md:border-b-0 md:mb-6">
-                <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 z-20" />
-                {!isEditMode && hasMergeFields(emailSubject) ? (
-                  <HighlightedInput
-                    ref={emailSubjectRef}
-                    placeholder="Email Subject"
-                    value={getDisplayValue(emailSubject)}
-                    rawValue={emailSubject}
-                    onChange={(value) => setEmailSubject(value)}
-                    resolveField={resolveMergeFieldForHighlighting}
-                    className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
-                  />
-                ) : (
-                  <Input
-                    ref={emailSubjectRef}
-                    placeholder="Email Subject"
-                    value={getDisplayValue(emailSubject)}
-                    onChange={(e) => setEmailSubject(e.target.value)}
-                    className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
-                  />
-                )}
+                <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  ref={emailSubjectRef}
+                  placeholder="Email Subject"
+                  value={getDisplayValue(emailSubject)}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
               </div>
 
               {/* Email Content Field */}
               <div className="relative md:mb-6">
-                {!isEditMode && hasMergeFields(emailContent) ? (
-                  <HighlightedTextarea
-                    ref={emailContentRef}
-                    placeholder="Enter or edit the generated email content..."
-                    value={getDisplayValue(emailContent)}
-                    rawValue={emailContent}
-                    onChange={(value) => {
-                      setEmailContent(value);
-                      handleTextareaResize();
-                    }}
-                    resolveField={resolveMergeFieldForHighlighting}
-                    className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    style={{ minHeight: '160px', maxHeight: '400px' }}
-                  />
-                ) : (
-                  <Textarea
-                    ref={emailContentRef}
-                    placeholder="Enter or edit the generated email content..."
-                    value={getDisplayValue(emailContent)}
-                    onChange={(e) => {
-                      setEmailContent(e.target.value);
-                      handleTextareaResize();
-                    }}
-                    className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    style={{ minHeight: '160px', maxHeight: '400px' }}
-                  />
-                )}
+                <Textarea
+                  ref={emailContentRef}
+                  placeholder="Enter or edit the generated email content..."
+                  value={getDisplayValue(emailContent)}
+                  onChange={(e) => {
+                    setEmailContent(e.target.value);
+                    handleTextareaResize();
+                  }}
+                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  style={{ minHeight: '160px', maxHeight: '400px' }}
+                />
                 <div className="absolute bottom-2 right-2">
                   <Button
                     onClick={handleSendEmail}
