@@ -1263,9 +1263,7 @@ export default function Outreach() {
                     setEmailPrompt(e.target.value);
                     handlePromptTextareaResize();
                   }}
-                  className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                    !isEditMode && emailPrompt.includes('{{') ? 'bg-yellow-100 border-l-4 border-yellow-400' : ''
-                  }`}
+                  className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0`}
                   style={{ minHeight: '32px', maxHeight: '100px' }}
                 />
                 <div className="absolute bottom-2 right-2 flex items-center gap-2">
@@ -1310,9 +1308,7 @@ export default function Outreach() {
                   value={getDisplayValue(toEmail)}
                   onChange={(e) => setToEmail(e.target.value)}
                   type="email"
-                  className={`mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                    !isEditMode && toEmail.includes('{{') ? 'bg-yellow-100 border-l-4 border-yellow-400' : ''
-                  }`}
+                  className={`mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0`}
                 />
               </div>
 
@@ -1324,9 +1320,7 @@ export default function Outreach() {
                   placeholder="Email Subject"
                   value={getDisplayValue(emailSubject)}
                   onChange={(e) => setEmailSubject(e.target.value)}
-                  className={`mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                    !isEditMode && emailSubject.includes('{{') ? 'bg-yellow-100 border-l-4 border-yellow-400' : ''
-                  }`}
+                  className={`mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0`}
                 />
               </div>
 
@@ -1340,9 +1334,7 @@ export default function Outreach() {
                     setEmailContent(e.target.value);
                     handleTextareaResize();
                   }}
-                  className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                    !isEditMode && emailContent.includes('{{') ? 'bg-yellow-100 border-l-4 border-yellow-400' : ''
-                  }`}
+                  className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0`}
                   style={{ minHeight: '160px', maxHeight: '400px' }}
                 />
                 <div className="absolute bottom-2 right-2">
