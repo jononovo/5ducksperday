@@ -125,6 +125,7 @@
 - June 14, 2025. iOS Safari auto-zoom prevention: Added mobile-input-text-fix CSS class (16px font-size on mobile, 14px on desktop) to all outreach page input fields to prevent automatic zoom behavior while preserving design on larger screens
 - June 14, 2025. Simplified email prompt placeholder: Removed "Example:" prefix from email prompt field placeholder text, changing from "Example: Sell dog-grooming services" to "Sell dog-grooming services" for cleaner UX
 - June 14, 2025. Inline email body buttons: Moved "Save as Template" and "Send Email" buttons inside the email body textarea field using absolute positioning, matching the Generate Email button pattern for consistent UI design
+- June 14, 2025. Relocated Save as Template button: Moved "Save as Template" button from email body field to Quick Templates section header, positioned next to "New Template" button for better organization and cleaner email body interface
 
 ## User Preferences
 

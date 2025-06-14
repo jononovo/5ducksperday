@@ -1186,15 +1186,7 @@ export default function Outreach() {
                   className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
                   style={{ minHeight: '160px', maxHeight: '400px' }}
                 />
-                <div className="absolute bottom-2 right-2 flex items-center gap-2">
-                  <Button
-                    variant="secondary"
-                    onClick={handleSaveEmail}
-                    className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
-                  >
-                    <Save className="w-3 h-3 mr-1" />
-                    Save as Template
-                  </Button>
+                <div className="absolute bottom-2 right-2">
                   <Button
                     onClick={handleSendEmail}
                     disabled={sendEmailMutation.isPending}
@@ -1228,6 +1220,7 @@ export default function Outreach() {
                     setEmailPrompt(template.description || "");
                     setEmailContent(template.content);
                   }}
+                  onSaveTemplate={handleSaveEmail}
                 />
               </div>
             </div>

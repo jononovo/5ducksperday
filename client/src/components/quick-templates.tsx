@@ -8,15 +8,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
+import { FileText, Save } from "lucide-react";
 import type { EmailTemplate } from "@shared/schema";
 import CreateTemplateModal from "./create-template-modal";
 
 interface QuickTemplatesProps {
   onSelectTemplate: (template: EmailTemplate) => void;
+  onSaveTemplate?: () => void;
 }
 
-export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps) {
+export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: QuickTemplatesProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
   const queryClient = useQueryClient();
 
@@ -49,7 +50,19 @@ export default function QuickTemplates({ onSelectTemplate }: QuickTemplatesProps
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Quick Templates</h3>
-        <CreateTemplateModal onTemplateCreated={handleTemplateCreated} />
+        <div className="flex items-center gap-2">
+          <CreateTemplateModal onTemplateCreated={handleTemplateCreated} />
+          {onSaveTemplate && (
+            <Button
+              variant="secondary"
+              onClick={onSaveTemplate}
+              className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+            >
+              <Save className="w-3 h-3 mr-1" />
+              Save as Template
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">
