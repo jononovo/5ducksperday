@@ -124,11 +124,11 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
           className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
           onClick={() => {
             // Placeholder functionality - can be customized
-            console.log('View button clicked');
+            console.log('Merge View button clicked');
           }}
         >
           <Eye className="w-3 h-3 mr-1" />
-          View
+          Merge View
         </Button>
         <Button 
           variant="outline" 

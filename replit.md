@@ -139,7 +139,7 @@
 - June 14, 2025. Complete template edit mode system: Implemented comprehensive template editing with mode switching (Edit Template ↔ Save Template), red "Edit Template Mode" notification banner, content resolution showing handlebars vs resolved merge fields based on mode, and full backend support with PUT endpoint and storage methods for seamless same-page template editing and preview
 - June 14, 2025. Template name preservation fix: Resolved critical bug where template updates were hardcoded to "Updated Template" name. Added editingTemplate state to store complete template object during editing, ensuring original template names are preserved during updates while allowing content modifications
 - June 14, 2025. Merge field highlighting removal: Completely removed all merge field highlighting functionality including overlay components, context providers, and enhanced input components. Reverted to standard Input and Textarea components for cleaner, simpler form handling without visual highlighting complexity
-- June 14, 2025. View button addition: Added View button with Eye icon to the immediate left of Merge Field button in Quick Templates section, matching identical styling (h-8 px-3 text-xs hover:scale-105) and outline variant with placeholder click functionality ready for customization
+- June 14, 2025. Merge View button addition: Added "Merge View" button with Eye icon to the immediate left of Merge Field button in Quick Templates section, matching identical styling (h-8 px-3 text-xs hover:scale-105) and outline variant with placeholder click functionality ready for customization
 
 ## User Preferences
 
