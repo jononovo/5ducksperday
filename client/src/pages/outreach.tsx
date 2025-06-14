@@ -1279,24 +1279,24 @@ export default function Outreach() {
               mergeFieldContext={mergeFieldContext} 
               isEditMode={isEditMode}
             >
-              <div className="px-0 py-3 md:p-6 space-y-0 md:space-y-6">
-              {/* Email Prompt Field */}
-              <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
-                <MergeFieldTextarea
-                  ref={emailPromptRef}
-                  placeholder="Sell dog-grooming services"
-                  value={getDisplayValue(emailPrompt)}
-                  onChange={(e) => {
-                    setEmailPrompt(e.target.value);
-                    handlePromptTextareaResize();
-                  }}
-                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
-                  style={{ minHeight: '32px', maxHeight: '100px' }}
-                />
-                <div className="absolute bottom-2 right-2 flex items-center gap-2">
-                  <TooltipProvider>
-                    <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
-                      <TooltipTrigger asChild>
+                <div className="px-0 py-3 md:p-6 space-y-0 md:space-y-6">
+                {/* Email Prompt Field */}
+                <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
+                  <MergeFieldTextarea
+                    ref={emailPromptRef}
+                    placeholder="Sell dog-grooming services"
+                    value={getDisplayValue(emailPrompt)}
+                    onChange={(e) => {
+                      setEmailPrompt(e.target.value);
+                      handlePromptTextareaResize();
+                    }}
+                    className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    style={{ minHeight: '32px', maxHeight: '100px' }}
+                  />
+                  <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                    <TooltipProvider>
+                      <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
+                        <TooltipTrigger asChild>
                         <button 
                           className="p-1 rounded hover:bg-accent transition-colors"
                           onClick={() => setTooltipOpen(!tooltipOpen)}
@@ -1409,6 +1409,7 @@ export default function Outreach() {
                 />
               </div>
             </div>
+            </MergeFieldProvider>
           </div>
         </div>
       </div>
