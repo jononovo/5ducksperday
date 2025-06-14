@@ -124,6 +124,7 @@
 - June 13, 2025. New Template button standardization: Made "New Template" button smaller (h-8 px-3 text-xs) to match other action buttons and added the same 105% scaling hover effect with smooth transitions
 - June 14, 2025. iOS Safari auto-zoom prevention: Added mobile-input-text-fix CSS class (16px font-size on mobile, 14px on desktop) to all outreach page input fields to prevent automatic zoom behavior while preserving design on larger screens
 - June 14, 2025. Simplified email prompt placeholder: Removed "Example:" prefix from email prompt field placeholder text, changing from "Example: Sell dog-grooming services" to "Sell dog-grooming services" for cleaner UX
+- June 14, 2025. Inline email body buttons: Moved "Save as Template" and "Send Email" buttons inside the email body textarea field using absolute positioning, matching the Generate Email button pattern for consistent UI design
 
 ## User Preferences
 

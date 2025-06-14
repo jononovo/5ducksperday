@@ -1174,7 +1174,7 @@ export default function Outreach() {
               </div>
 
               {/* Email Content Field */}
-              <div className="md:mb-6">
+              <div className="relative md:mb-6">
                 <Textarea
                   ref={textareaRef}
                   placeholder="Enter or edit the generated email content..."
@@ -1183,44 +1183,42 @@ export default function Outreach() {
                     setEmailContent(e.target.value);
                     handleTextareaResize();
                   }}
-                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
                   style={{ minHeight: '160px', maxHeight: '400px' }}
                 />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-4 justify-end mt-6 px-3 md:px-0 pb-6">
-                <Button
-                  variant="secondary"
-                  onClick={handleSaveEmail}
-                  className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
-                >
-                  <Save className="w-3 h-3 mr-1" />
-                  Save as Template
-                </Button>
-                <Button
-                  onClick={handleSendEmail}
-                  disabled={sendEmailMutation.isPending}
-                  variant="outline"
-                  className={cn(
-                    "h-8 px-3 text-xs bg-white text-black border-black hover:bg-black hover:text-white hover:scale-105 transition-all duration-300 ease-out",
-                    sendEmailMutation.isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500"
-                  )}
-                >
-                  {sendEmailMutation.isPending ? (
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                  ) : sendEmailMutation.isSuccess ? (
-                    <>
-                      <PartyPopper className="w-3 h-3 mr-1" />
-                      Sent Email
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-3 h-3 mr-1" />
-                      Send Email
-                    </>
-                  )}
-                </Button>
+                <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    onClick={handleSaveEmail}
+                    className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+                  >
+                    <Save className="w-3 h-3 mr-1" />
+                    Save as Template
+                  </Button>
+                  <Button
+                    onClick={handleSendEmail}
+                    disabled={sendEmailMutation.isPending}
+                    variant="outline"
+                    className={cn(
+                      "h-8 px-3 text-xs bg-white text-black border-black hover:bg-black hover:text-white hover:scale-105 transition-all duration-300 ease-out",
+                      sendEmailMutation.isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500"
+                    )}
+                  >
+                    {sendEmailMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : sendEmailMutation.isSuccess ? (
+                      <>
+                        <PartyPopper className="w-3 h-3 mr-1" />
+                        Sent Email
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3 h-3 mr-1" />
+                        Send Email
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
 
               {/* Quick Templates Section - Moved below email content and buttons */}
