@@ -138,6 +138,7 @@
 - June 14, 2025. Insert Template confirmation dialog: Added confirmation dialog to "Insert Template" button matching Edit Template pattern, with title "Load Template" and warning "Loading this template, will replace all content currently in fields on this page" for consistent user protection against data loss
 - June 14, 2025. Complete template edit mode system: Implemented comprehensive template editing with mode switching (Edit Template ↔ Save Template), red "Edit Template Mode" notification banner, content resolution showing handlebars vs resolved merge fields based on mode, grey background highlighting for merge fields in normal mode, and full backend support with PUT endpoint and storage methods for seamless same-page template editing and preview
 - June 14, 2025. Template name preservation fix: Resolved critical bug where template updates were hardcoded to "Updated Template" name. Added editingTemplate state to store complete template object during editing, ensuring original template names are preserved during updates while allowing content modifications
+- June 14, 2025. Enhanced merge field highlighting system: Fixed critical visual feedback issue by replacing ineffective gray background highlighting with high-contrast yellow highlighting (bg-yellow-100 with border-l-4 border-yellow-400) for all form fields containing merge variables in normal mode. Resolved fundamental technical constraint where React input/textarea elements cannot display HTML highlighting by implementing CSS-based field-level highlighting strategy
 
 ## User Preferences
 
