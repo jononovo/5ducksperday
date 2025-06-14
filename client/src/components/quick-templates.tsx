@@ -34,9 +34,10 @@ import MergeFieldDialog from "./merge-field-dialog";
 interface QuickTemplatesProps {
   onSelectTemplate: (template: EmailTemplate) => void;
   onSaveTemplate?: (templateName: string) => void;
+  onMergeFieldInsert?: (mergeField: string) => void;
 }
 
-export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: QuickTemplatesProps) {
+export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMergeFieldInsert }: QuickTemplatesProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
   const [mergeFieldDialogOpen, setMergeFieldDialogOpen] = useState(false);
   const [editConfirmDialogOpen, setEditConfirmDialogOpen] = useState(false);
@@ -44,22 +45,23 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
   const [templateName, setTemplateName] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: templates = [], isLoading } = useQuery<EmailTemplate[]>({
+  const { data: templates = [], isLoading } = useQuery({
     queryKey: ["/api/email-templates"],
     staleTime: 0, // Don't use cached data
-    cacheTime: 0, // Don't cache the response
+    gcTime: 0, // Don't cache the response (renamed from cacheTime in v5)
     retry: false, // Don't retry failed requests
     refetchOnMount: true, // Always refetch when component mounts
   });
 
-  console.log('QuickTemplates - Loaded templates:', templates.map(t => ({ id: t.id, name: t.name })));
+  const typedTemplates = templates as EmailTemplate[];
+  console.log('QuickTemplates - Loaded templates:', typedTemplates.map(t => ({ id: t.id, name: t.name })));
 
   const handleInsertTemplate = () => {
     if (!selectedTemplateId) {
       // Could show a toast or just return silently
       return;
     }
-    const template = templates.find(t => t.id.toString() === selectedTemplateId);
+    const template = typedTemplates.find(t => t.id.toString() === selectedTemplateId);
     if (template) {
       console.log('QuickTemplates - Selected template:', { id: template.id, name: template.name });
       onSelectTemplate(template);
@@ -74,7 +76,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
   };
 
   const handleConfirmEdit = () => {
-    const template = templates.find(t => t.id.toString() === selectedTemplateId);
+    const template = typedTemplates.find(t => t.id.toString() === selectedTemplateId);
     if (template) {
       console.log('QuickTemplates - Loading template for editing:', { id: template.id, name: template.name });
       onSelectTemplate(template);
@@ -129,7 +131,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
             <SelectValue placeholder={isLoading ? "Loading templates..." : "Select a template"} />
           </SelectTrigger>
           <SelectContent>
-            {templates.map((template) => (
+            {typedTemplates.map((template) => (
               <SelectItem 
                 key={template.id} 
                 value={template.id.toString()}

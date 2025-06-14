@@ -259,7 +259,7 @@ export default function Outreach() {
   const handleMergeFieldInsert = (mergeField: string) => {
     const activeElement = document.activeElement;
     
-    if (activeElement === emailPromptRef.current) {
+    if (activeElement === emailPromptRef.current && emailPromptRef.current) {
       const pos = emailPromptRef.current.selectionStart || emailPrompt.length;
       const newValue = emailPrompt.slice(0, pos) + mergeField + emailPrompt.slice(emailPromptRef.current.selectionEnd || pos);
       setEmailPrompt(newValue);
@@ -268,7 +268,7 @@ export default function Outreach() {
         emailPromptRef.current?.focus();
         emailPromptRef.current?.setSelectionRange(pos + mergeField.length, pos + mergeField.length);
       }, 0);
-    } else if (activeElement === emailSubjectRef.current) {
+    } else if (activeElement === emailSubjectRef.current && emailSubjectRef.current) {
       const pos = emailSubjectRef.current.selectionStart || emailSubject.length;
       const newValue = emailSubject.slice(0, pos) + mergeField + emailSubject.slice(emailSubjectRef.current.selectionEnd || pos);
       setEmailSubject(newValue);
@@ -276,7 +276,7 @@ export default function Outreach() {
         emailSubjectRef.current?.focus();
         emailSubjectRef.current?.setSelectionRange(pos + mergeField.length, pos + mergeField.length);
       }, 0);
-    } else if (activeElement === emailContentRef.current) {
+    } else if (activeElement === emailContentRef.current && emailContentRef.current) {
       const pos = emailContentRef.current.selectionStart || emailContent.length;
       const newValue = emailContent.slice(0, pos) + mergeField + emailContent.slice(emailContentRef.current.selectionEnd || pos);
       setEmailContent(newValue);
@@ -284,7 +284,7 @@ export default function Outreach() {
         emailContentRef.current?.focus();
         emailContentRef.current?.setSelectionRange(pos + mergeField.length, pos + mergeField.length);
       }, 0);
-    } else if (activeElement === toEmailRef.current) {
+    } else if (activeElement === toEmailRef.current && toEmailRef.current) {
       const pos = toEmailRef.current.selectionStart || toEmail.length;
       const newValue = toEmail.slice(0, pos) + mergeField + toEmail.slice(toEmailRef.current.selectionEnd || pos);
       setToEmail(newValue);
@@ -1266,8 +1266,10 @@ export default function Outreach() {
                   onSelectTemplate={(template: EmailTemplate) => {
                     setEmailPrompt(template.description || "");
                     setEmailContent(template.content);
+                    setEmailSubject(template.subject || "");
                   }}
                   onSaveTemplate={handleSaveEmail}
+                  onMergeFieldInsert={handleMergeFieldInsert}
                 />
               </div>
             </div>
