@@ -71,7 +71,7 @@ interface SavedOutreachState {
   emailContent: string;
   toEmail: string;
   emailSubject: string;
-  currentCompanyIndex: number;
+  selectedCompanyIndex: number;
 }
 
 export default function Outreach() {
@@ -81,7 +81,7 @@ export default function Outreach() {
   const [toEmail, setToEmail] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
-  const [currentCompanyIndex, setCurrentCompanyIndex] = useState(0);
+  const [selectedCompanyIndex, setCurrentCompanyIndex] = useState(0);
   const [currentContactIndex, setCurrentContactIndex] = useState(0);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [showExpandedView, setShowExpandedView] = useState(false);
@@ -157,7 +157,7 @@ export default function Outreach() {
       setEmailContent(parsed.emailContent);
       setToEmail(parsed.toEmail || "");
       setEmailSubject(parsed.emailSubject || "");
-      setCurrentCompanyIndex(parsed.currentCompanyIndex || 0);
+      setCurrentCompanyIndex(parsed.selectedCompanyIndex || 0);
     }
   }, []);
 
@@ -170,10 +170,10 @@ export default function Outreach() {
       emailContent,
       toEmail,
       emailSubject,
-      currentCompanyIndex
+      selectedCompanyIndex
     };
     localStorage.setItem('outreachState', JSON.stringify(stateToSave));
-  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, currentCompanyIndex]);
+  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, selectedCompanyIndex]);
 
   const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
@@ -189,11 +189,11 @@ export default function Outreach() {
   });
 
   // Get the current company based on the index
-  const currentCompany = companies[currentCompanyIndex];
+  const selectedCompany = companies[selectedCompanyIndex];
 
   const { data: contacts = [] } = useQuery<Contact[]>({
-    queryKey: [`/api/companies/${currentCompany?.id}/contacts`],
-    enabled: !!currentCompany?.id,
+    queryKey: [`/api/companies/${selectedCompany?.id}/contacts`],
+    enabled: !!selectedCompany?.id,
     staleTime: 3 * 60 * 1000, // 3 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -219,14 +219,14 @@ export default function Outreach() {
 
     const prefetchAdjacentCompanies = () => {
       // Calculate range: current ±3 companies
-      const start = Math.max(0, currentCompanyIndex - 3);
-      const end = Math.min(companies.length - 1, currentCompanyIndex + 3);
+      const start = Math.max(0, selectedCompanyIndex - 3);
+      const end = Math.min(companies.length - 1, selectedCompanyIndex + 3);
       
-      console.log(`Prefetching contacts for companies ${start} to ${end} (current: ${currentCompanyIndex})`);
+      console.log(`Prefetching contacts for companies ${start} to ${end} (current: ${selectedCompanyIndex})`);
       
       for (let i = start; i <= end; i++) {
         // Skip current company (already loaded)
-        if (i === currentCompanyIndex) continue;
+        if (i === selectedCompanyIndex) continue;
         
         const company = companies[i];
         if (company?.id) {
@@ -246,7 +246,7 @@ export default function Outreach() {
     // Small delay to avoid blocking current company load
     const timeoutId = setTimeout(prefetchAdjacentCompanies, 100);
     return () => clearTimeout(timeoutId);
-  }, [companies, currentCompanyIndex]);
+  }, [companies, selectedCompanyIndex]);
 
   // Page focus invalidation for fresh data after search page updates
   useEffect(() => {
@@ -346,7 +346,7 @@ export default function Outreach() {
     const lastName = contact.name?.split(' ').slice(1).join(' ') || '';
     
     return content
-      .replace(/\{\{company_name\}\}/g, currentCompany?.name || '{{company_name}}')
+      .replace(/\{\{company_name\}\}/g, selectedCompany?.name || '{{company_name}}')
       .replace(/\{\{contact_name\}\}/g, contact.name || '{{contact_name}}')
       .replace(/\{\{first_name\}\}/g, firstName || '{{first_name}}')
       .replace(/\{\{last_name\}\}/g, lastName || '{{last_name}}')
@@ -373,8 +373,8 @@ export default function Outreach() {
       role: currentSelectedContact.role || undefined,
       email: currentSelectedContact.email || undefined,
     } : null,
-    company: currentCompany ? {
-      name: currentCompany.name,
+    company: selectedCompany ? {
+      name: selectedCompany.name,
     } : null,
     sender: {
       name: 'Your Name'
@@ -533,7 +533,7 @@ export default function Outreach() {
       const payload = {
         emailPrompt,
         contact: selectedContact || null,
-        company: currentCompany,
+        company: selectedCompany,
         toEmail,
         emailSubject
       };
@@ -566,7 +566,7 @@ export default function Outreach() {
   });
 
   const handleGenerateEmail = () => {
-    if (!currentCompany) {
+    if (!selectedCompany) {
       toast({
         title: "No Company Selected",
         description: "Please select a company first",
@@ -643,14 +643,14 @@ export default function Outreach() {
   // Reset contact index when company changes
   useEffect(() => {
     setCurrentContactIndex(0);
-  }, [currentCompanyIndex]);
+  }, [selectedCompanyIndex]);
 
   // Helper functions to check if navigation is possible
   const hasPrevCompanyWithContacts = () => {
     // If no companies or at first index, no prev available
-    if (currentCompanyIndex === 0) return false;
+    if (selectedCompanyIndex === 0) return false;
     
-    for (let i = currentCompanyIndex - 1; i >= 0; i--) {
+    for (let i = selectedCompanyIndex - 1; i >= 0; i--) {
       const company = companies[i];
       const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
       if (contacts.length > 0) return true;
@@ -660,9 +660,9 @@ export default function Outreach() {
 
   const hasNextCompanyWithContacts = () => {
     // If no companies or at last index, no next available
-    if (currentCompanyIndex >= companies.length - 1) return false;
+    if (selectedCompanyIndex >= companies.length - 1) return false;
     
-    for (let i = currentCompanyIndex + 1; i < companies.length; i++) {
+    for (let i = selectedCompanyIndex + 1; i < companies.length; i++) {
       const company = companies[i];
       const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
       if (contacts.length > 0) return true;
@@ -672,7 +672,7 @@ export default function Outreach() {
 
   const handlePrevCompany = () => {
     // Find previous company with contacts
-    for (let i = currentCompanyIndex - 1; i >= 0; i--) {
+    for (let i = selectedCompanyIndex - 1; i >= 0; i--) {
       const company = companies[i];
       const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
       if (contacts.length > 0) {
@@ -686,7 +686,7 @@ export default function Outreach() {
     // Find next company with contacts, wrapping around to beginning
     const totalCompanies = companies.length;
     for (let offset = 1; offset < totalCompanies; offset++) {
-      const nextIndex = (currentCompanyIndex + offset) % totalCompanies;
+      const nextIndex = (selectedCompanyIndex + offset) % totalCompanies;
       const company = companies[nextIndex];
       const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
       if (contacts.length > 0) {
@@ -737,7 +737,7 @@ export default function Outreach() {
       
       // Refresh contacts for current company
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/companies/${currentCompany?.id}/contacts`] 
+        queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] 
       });
       
       toast({
@@ -770,7 +770,7 @@ export default function Outreach() {
       }
       
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/companies/${currentCompany?.id}/contacts`] 
+        queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] 
       });
       
       toast({
@@ -803,7 +803,7 @@ export default function Outreach() {
       }
       
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/companies/${currentCompany?.id}/contacts`] 
+        queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] 
       });
       
       toast({
@@ -836,7 +836,7 @@ export default function Outreach() {
       }
       
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/companies/${currentCompany?.id}/contacts`] 
+        queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] 
       });
       
       toast({
@@ -880,10 +880,10 @@ export default function Outreach() {
       {/* Mobile Contact Card - Only visible on mobile */}
       <div className="md:hidden pt-0">
         {/* Mobile Company Navigation Bar - Above contact card */}
-        {!isMobileExpanded && currentCompany && selectedContact && (
+        {!isMobileExpanded && selectedCompany && selectedContact && (
           <div className={`md:hidden px-2.5 bg-white flex items-center justify-between z-[60] ${!showExpandedView && selectedContact ? '-mt-1' : '-mt-4'}`}>
             <div className="flex-1 text-left">
-              <span className="font-medium text-sm text-muted-foreground">{currentCompany.name}</span>
+              <span className="font-medium text-sm text-muted-foreground">{selectedCompany.name}</span>
             </div>
             
             <div className="flex gap-2">
@@ -895,7 +895,7 @@ export default function Outreach() {
               >
                 <Building2 className="w-2.5 h-2.5 mr-0.5" />
                 <span className="text-[9px] text-muted-foreground/50">
-                  {currentCompanyIndex + 1}/{companies.length}
+                  {selectedCompanyIndex + 1}/{companies.length}
                 </span>
                 <ChevronRight className="w-2.5 h-2.5 text-muted-foreground/50" />
               </Button>
@@ -931,7 +931,7 @@ export default function Outreach() {
               }}
               className="overflow-hidden"
             >
-              {selectedContact && currentCompany ? (
+              {selectedContact && selectedCompany ? (
                 <div 
                   className="mb-2 -mt-1 cursor-pointer"
                   onClick={handleCloseDuckHeader}
@@ -1068,19 +1068,19 @@ export default function Outreach() {
                         size="default"
                         className="px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
                         onClick={handlePrevCompany}
-                        disabled={currentCompanyIndex === 0}
+                        disabled={selectedCompanyIndex === 0}
                       >
                         <ChevronLeft className="w-5 h-5" />
                       </Button>
                       <span className="text-sm text-muted-foreground font-medium">
-                        {currentCompanyIndex + 1} of {companies.length}
+                        {selectedCompanyIndex + 1} of {companies.length}
                       </span>
                       <Button
                         variant="outline"
                         size="default"
                         className="px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
                         onClick={handleNextCompany}
-                        disabled={currentCompanyIndex === companies.length - 1}
+                        disabled={selectedCompanyIndex === companies.length - 1}
                       >
                         <ChevronRight className="w-5 h-5" />
                       </Button>
@@ -1177,12 +1177,12 @@ export default function Outreach() {
               <div className="mt-6">
                 <div>
                   <div className="pt-6">
-                    {currentCompany ? (
+                    {selectedCompany ? (
                       <div className="border rounded-lg p-4 space-y-2">
                         {/* Company Name with Link - More prominent */}
                         <div>
                           <div className="flex justify-between items-start mb-1">
-                            <h2 className="text-xl font-semibold">{currentCompany.name}</h2>
+                            <h2 className="text-xl font-semibold">{selectedCompany.name}</h2>
                             <TooltipProvider delayDuration={500}>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -1192,8 +1192,8 @@ export default function Outreach() {
                                     className="h-8 w-8 p-0"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      console.log('Company view button clicked:', { id: currentCompany.id, name: currentCompany.name });
-                                      setLocation(`/companies/${currentCompany.id}`);
+                                      console.log('Company view button clicked:', { id: selectedCompany.id, name: selectedCompany.name });
+                                      setLocation(`/companies/${selectedCompany.id}`);
                                     }}
                                   >
                                     <ExternalLink className="h-4 w-4" />
@@ -1205,18 +1205,18 @@ export default function Outreach() {
                               </Tooltip>
                             </TooltipProvider>
                           </div>
-                          {currentCompany.size && (
+                          {selectedCompany.size && (
                             <p className="text-muted-foreground">
-                              {currentCompany.size} employees
+                              {selectedCompany.size} employees
                             </p>
                           )}
                         </div>
 
                         {/* Company Description */}
                         <div>
-                          {currentCompany.description ? (
+                          {selectedCompany.description ? (
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                              {currentCompany.description}
+                              {selectedCompany.description}
                             </p>
                           ) : (
                             <p className="text-muted-foreground italic">No description available</p>
@@ -1224,33 +1224,33 @@ export default function Outreach() {
                         </div>
 
                         {/* Company Website */}
-                        {currentCompany.website && (
+                        {selectedCompany.website && (
                           <div>
                             <p className="text-muted-foreground">
                               <a 
-                                href={currentCompany.website.startsWith('http') ? currentCompany.website : `https://${currentCompany.website}`}
+                                href={selectedCompany.website.startsWith('http') ? selectedCompany.website : `https://${selectedCompany.website}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-600 hover:underline"
                               >
-                                {currentCompany.website}
+                                {selectedCompany.website}
                               </a>
                             </p>
                           </div>
                         )}
 
                         {/* Alternative Profile URL */}
-                        {currentCompany.alternativeProfileUrl && (
+                        {selectedCompany.alternativeProfileUrl && (
                           <div>
                             <p className="text-muted-foreground">
                               <span className="font-medium">Profile: </span>
                               <a 
-                                href={currentCompany.alternativeProfileUrl.startsWith('http') ? currentCompany.alternativeProfileUrl : `https://${currentCompany.alternativeProfileUrl}`}
+                                href={selectedCompany.alternativeProfileUrl.startsWith('http') ? selectedCompany.alternativeProfileUrl : `https://${selectedCompany.alternativeProfileUrl}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-600 hover:underline"
                               >
-                                {currentCompany.alternativeProfileUrl}
+                                {selectedCompany.alternativeProfileUrl}
                               </a>
                             </p>
                           </div>
@@ -1340,27 +1340,52 @@ export default function Outreach() {
 
               {/* To Email Field */}
               <div className="relative border-b md:border-b-0 md:mb-6">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  ref={toEmailRef}
-                  placeholder="Recipient Email"
-                  value={getDisplayValue(toEmail)}
-                  onChange={(e) => setToEmail(e.target.value)}
-                  type="email"
-                  className={`mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0`}
-                />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 z-20" />
+                {!isEditMode && hasMergeFields(toEmail) ? (
+                  <HighlightedInput
+                    ref={toEmailRef}
+                    placeholder="Recipient Email"
+                    value={getDisplayValue(toEmail)}
+                    rawValue={toEmail}
+                    onChange={(value) => setToEmail(value)}
+                    resolveField={resolveMergeFieldForHighlighting}
+                    type="email"
+                    className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
+                ) : (
+                  <Input
+                    ref={toEmailRef}
+                    placeholder="Recipient Email"
+                    value={getDisplayValue(toEmail)}
+                    onChange={(e) => setToEmail(e.target.value)}
+                    type="email"
+                    className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
+                )}
               </div>
 
               {/* Email Subject Field */}
               <div className="relative border-b md:border-b-0 md:mb-6">
-                <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  ref={emailSubjectRef}
-                  placeholder="Email Subject"
-                  value={getDisplayValue(emailSubject)}
-                  onChange={(e) => setEmailSubject(e.target.value)}
-                  className={`mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0`}
-                />
+                <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 z-20" />
+                {!isEditMode && hasMergeFields(emailSubject) ? (
+                  <HighlightedInput
+                    ref={emailSubjectRef}
+                    placeholder="Email Subject"
+                    value={getDisplayValue(emailSubject)}
+                    rawValue={emailSubject}
+                    onChange={(value) => setEmailSubject(value)}
+                    resolveField={resolveMergeFieldForHighlighting}
+                    className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
+                ) : (
+                  <Input
+                    ref={emailSubjectRef}
+                    placeholder="Email Subject"
+                    value={getDisplayValue(emailSubject)}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
+                )}
               </div>
 
               {/* Email Content Field */}
