@@ -171,7 +171,8 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
       
       <MergeFieldDialog 
         open={mergeFieldDialogOpen} 
-        onOpenChange={setMergeFieldDialogOpen} 
+        onOpenChange={setMergeFieldDialogOpen}
+        onMergeFieldInsert={onMergeFieldInsert}
       />
 
       <AlertDialog open={editConfirmDialogOpen} onOpenChange={setEditConfirmDialogOpen}>

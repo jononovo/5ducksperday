@@ -12,38 +12,52 @@ import { MERGE_FIELDS, type MergeFieldItem } from "@/lib/merge-fields";
 interface MergeFieldDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onMergeFieldInsert?: (mergeField: string) => void;
 }
 
-export default function MergeFieldDialog({ open, onOpenChange }: MergeFieldDialogProps) {
+export default function MergeFieldDialog({ open, onOpenChange, onMergeFieldInsert }: MergeFieldDialogProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const copyToClipboard = async (field: MergeFieldItem) => {
-    try {
-      await navigator.clipboard.writeText(field.value);
+  const handleFieldSelect = async (field: MergeFieldItem) => {
+    if (onMergeFieldInsert) {
+      // Use the merge field insertion function if available
+      onMergeFieldInsert(field.value);
       setCopiedField(field.value);
       
-      // Auto-close dialog after 1 second
+      // Auto-close dialog after 500ms
       setTimeout(() => {
         onOpenChange(false);
         setCopiedField(null);
-      }, 1000);
-    } catch (err) {
-      // Fallback for older browsers
+      }, 500);
+    } else {
+      // Fallback to clipboard copy if insertion function not available
       try {
-        const textArea = document.createElement('textarea');
-        textArea.value = field.value;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
+        await navigator.clipboard.writeText(field.value);
         setCopiedField(field.value);
+        
+        // Auto-close dialog after 1 second
         setTimeout(() => {
           onOpenChange(false);
           setCopiedField(null);
         }, 1000);
-      } catch (fallbackErr) {
-        console.error('Failed to copy to clipboard:', fallbackErr);
+      } catch (err) {
+        // Fallback for older browsers
+        try {
+          const textArea = document.createElement('textarea');
+          textArea.value = field.value;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          
+          setCopiedField(field.value);
+          setTimeout(() => {
+            onOpenChange(false);
+            setCopiedField(null);
+          }, 1000);
+        } catch (fallbackErr) {
+          console.error('Failed to copy to clipboard:', fallbackErr);
+        }
       }
     }
   };
@@ -73,7 +87,7 @@ export default function MergeFieldDialog({ open, onOpenChange }: MergeFieldDialo
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(field)}
+                onClick={() => handleFieldSelect(field)}
                 className="ml-3 flex-shrink-0 h-8 w-8 p-0"
                 disabled={copiedField === field.value}
               >
