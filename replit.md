@@ -136,6 +136,7 @@
 - June 14, 2025. Clean templates section layout: Removed "Quick Templates" heading and added pt-6 padding above templates section for better visual separation from email body input. Right-aligned action buttons (Merge Field, Save as Template) for cleaner interface design
 - June 14, 2025. Unified margin strategy implementation: Applied consistent mr-2 margin pattern (matching Save as Template button) to template dropdown SelectTrigger and both Insert/Edit Template buttons for reliable mobile spacing and visual consistency
 - June 14, 2025. Insert Template confirmation dialog: Added confirmation dialog to "Insert Template" button matching Edit Template pattern, with title "Load Template" and warning "Loading this template, will replace all content currently in fields on this page" for consistent user protection against data loss
+- June 14, 2025. Complete template edit mode system: Implemented comprehensive template editing with mode switching (Edit Template ↔ Save Template), red "Edit Template Mode" notification banner, content resolution showing handlebars vs resolved merge fields based on mode, grey background highlighting for merge fields in normal mode, and full backend support with PUT endpoint and storage methods for seamless same-page template editing and preview
 
 ## User Preferences
 

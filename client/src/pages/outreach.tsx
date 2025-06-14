@@ -357,11 +357,11 @@ export default function Outreach() {
   };
 
   // Get the currently selected contact for merge field resolution
-  const selectedContact = selectedContactId ? contacts?.find(c => c.id === selectedContactId) : null;
+  const currentSelectedContact = selectedContactId ? contacts?.find(c => c.id === selectedContactId) : null;
 
   // Functions to get display values for form fields
   const getDisplayValue = (content: string) => {
-    return isEditMode ? content : resolveContent(content, selectedContact);
+    return isEditMode ? content : resolveContent(content, currentSelectedContact || null);
   };
 
   const handleSaveEmail = (templateName: string) => {
@@ -1254,12 +1254,14 @@ export default function Outreach() {
                 <Textarea
                   ref={emailPromptRef}
                   placeholder="Sell dog-grooming services"
-                  value={emailPrompt}
+                  value={getDisplayValue(emailPrompt)}
                   onChange={(e) => {
                     setEmailPrompt(e.target.value);
                     handlePromptTextareaResize();
                   }}
-                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0 ${
+                    !isEditMode && emailPrompt.includes('{{') ? 'bg-gray-50' : ''
+                  }`}
                   style={{ minHeight: '32px', maxHeight: '100px' }}
                 />
                 <div className="absolute bottom-2 right-2 flex items-center gap-2">
@@ -1301,10 +1303,12 @@ export default function Outreach() {
                 <Input
                   ref={toEmailRef}
                   placeholder="Recipient Email"
-                  value={toEmail}
+                  value={getDisplayValue(toEmail)}
                   onChange={(e) => setToEmail(e.target.value)}
                   type="email"
-                  className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className={`mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0 ${
+                    !isEditMode && toEmail.includes('{{') ? 'bg-gray-50' : ''
+                  }`}
                 />
               </div>
 
@@ -1314,9 +1318,11 @@ export default function Outreach() {
                 <Input
                   ref={emailSubjectRef}
                   placeholder="Email Subject"
-                  value={emailSubject}
+                  value={getDisplayValue(emailSubject)}
                   onChange={(e) => setEmailSubject(e.target.value)}
-                  className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className={`mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0 ${
+                    !isEditMode && emailSubject.includes('{{') ? 'bg-gray-50' : ''
+                  }`}
                 />
               </div>
 
@@ -1325,12 +1331,14 @@ export default function Outreach() {
                 <Textarea
                   ref={emailContentRef}
                   placeholder="Enter or edit the generated email content..."
-                  value={emailContent}
+                  value={getDisplayValue(emailContent)}
                   onChange={(e) => {
                     setEmailContent(e.target.value);
                     handleTextareaResize();
                   }}
-                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 ${
+                    !isEditMode && emailContent.includes('{{') ? 'bg-gray-50' : ''
+                  }`}
                   style={{ minHeight: '160px', maxHeight: '400px' }}
                 />
                 <div className="absolute bottom-2 right-2">
