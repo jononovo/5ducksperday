@@ -33,7 +33,10 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
   console.log('QuickTemplates - Loaded templates:', templates.map(t => ({ id: t.id, name: t.name })));
 
   const handleInsertTemplate = () => {
-    if (!selectedTemplateId) return;
+    if (!selectedTemplateId) {
+      // Could show a toast or just return silently
+      return;
+    }
     const template = templates.find(t => t.id.toString() === selectedTemplateId);
     if (template) {
       console.log('QuickTemplates - Selected template:', { id: template.id, name: template.name });
@@ -95,7 +98,6 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
           <Button 
             variant="secondary"
             onClick={handleInsertTemplate} 
-            disabled={!selectedTemplateId}
             className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
           >
             Insert Template
