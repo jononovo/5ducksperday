@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, Save, Plus, Edit, Eye } from "lucide-react";
+import { FileText, Save, Plus, Edit, Eye, EyeOff } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,9 +40,11 @@ interface QuickTemplatesProps {
   isEditMode?: boolean;
   editingTemplateId?: number | null;
   onExitEditMode?: () => void;
+  isMergeViewMode?: boolean;
+  onToggleMergeView?: () => void;
 }
 
-export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpdateTemplate, onMergeFieldInsert, onEditTemplate, isEditMode, editingTemplateId, onExitEditMode }: QuickTemplatesProps) {
+export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpdateTemplate, onMergeFieldInsert, onEditTemplate, isEditMode, editingTemplateId, onExitEditMode, isMergeViewMode, onToggleMergeView }: QuickTemplatesProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
   const [mergeFieldDialogOpen, setMergeFieldDialogOpen] = useState(false);
   const [editConfirmDialogOpen, setEditConfirmDialogOpen] = useState(false);
@@ -115,6 +117,13 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
       {isEditMode && (
         <div className="bg-red-50 border border-red-200 text-red-800 px-3 py-2 rounded-md text-sm mb-4">
           Edit Template Mode
+        </div>
+      )}
+      
+      {/* Merge View Mode Notification Banner */}
+      {isMergeViewMode && !isEditMode && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded-md text-sm mb-4">
+          Merge View Mode - Showing technical merge fields
         </div>
       )}
       

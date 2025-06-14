@@ -111,6 +111,9 @@ export default function Outreach() {
   const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   
+  // Merge view toggle state (independent from edit mode)
+  const [isMergeViewMode, setIsMergeViewMode] = useState(false);
+  
   // Textarea refs for auto-resizing
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -318,6 +321,11 @@ export default function Outreach() {
     setEditingTemplate(null);
   };
 
+  // Merge view toggle function
+  const toggleMergeView = () => {
+    setIsMergeViewMode(!isMergeViewMode);
+  };
+
   const saveCurrentTemplate = () => {
     if (editingTemplateId && editingTemplate && emailPrompt && emailContent) {
       const templateData: InsertEmailTemplate = {
@@ -386,7 +394,7 @@ export default function Outreach() {
 
   // Functions to get display values for form fields
   const getDisplayValue = (content: string) => {
-    return isEditMode ? content : resolveAllMergeFields(content, mergeFieldContext);
+    return (isEditMode || isMergeViewMode) ? content : resolveAllMergeFields(content, mergeFieldContext);
   };
 
   const handleSaveEmail = (templateName: string) => {
@@ -1399,6 +1407,8 @@ export default function Outreach() {
                   isEditMode={isEditMode}
                   editingTemplateId={editingTemplateId}
                   onExitEditMode={exitEditMode}
+                  isMergeViewMode={isMergeViewMode}
+                  onToggleMergeView={toggleMergeView}
                 />
               </div>
             </div>
