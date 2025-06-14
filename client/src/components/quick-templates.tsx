@@ -34,6 +34,7 @@ import MergeFieldDialog from "./merge-field-dialog";
 interface QuickTemplatesProps {
   onSelectTemplate: (template: EmailTemplate) => void;
   onSaveTemplate?: (templateName: string) => void;
+  onUpdateTemplate?: () => void;
   onMergeFieldInsert?: (mergeField: string) => void;
   onEditTemplate?: (template: EmailTemplate) => void;
   isEditMode?: boolean;
@@ -172,7 +173,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
           </Button>
           <Button 
             variant="secondary"
-            onClick={isEditMode ? onExitEditMode : handleEditTemplate} 
+            onClick={isEditMode ? onSaveTemplate : handleEditTemplate} 
             disabled={!selectedTemplateId}
             className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
           >

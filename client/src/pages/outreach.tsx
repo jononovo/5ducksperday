@@ -310,8 +310,12 @@ export default function Outreach() {
   };
 
   const exitEditMode = () => {
+    setIsEditMode(false);
+    setEditingTemplateId(null);
+  };
+
+  const saveCurrentTemplate = () => {
     if (editingTemplateId && emailPrompt && emailContent) {
-      // Save the current template if we're in edit mode
       const templateData: InsertEmailTemplate = {
         name: "Updated Template", // We'll need to get the actual name from the template
         subject: emailSubject || "Updated Email Template",
@@ -325,11 +329,8 @@ export default function Outreach() {
         id: editingTemplateId,
         template: templateData
       });
-    } else {
-      setIsEditMode(false);
-      setEditingTemplateId(null);
     }
-  };
+  };;
 
   // Content resolution utility functions
   const resolveContent = (content: string, contact: Contact | null) => {
@@ -1377,6 +1378,7 @@ export default function Outreach() {
                     setEmailSubject(template.subject || "");
                   }}
                   onSaveTemplate={handleSaveEmail}
+                  onUpdateTemplate={saveCurrentTemplate}
                   onMergeFieldInsert={handleMergeFieldInsert}
                   onEditTemplate={enterEditMode}
                   isEditMode={isEditMode}
