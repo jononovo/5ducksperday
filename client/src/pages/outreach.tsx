@@ -732,7 +732,7 @@ export default function Outreach() {
                   variant="ghost"
                   size="sm"
                   onClick={handleNextContact}
-                  className="px-2 h-8 flex items-center justify-center gap-1 text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
+                  className="px-2 h-8 flex items-center justify-center gap-0.5 text-muted-foreground hover:text-muted-foreground/80 bg-gray-50/30 hover:bg-gray-100/40"
                 >
                   <User className="w-2.5 h-2.5" />
                   <span className="text-[9px] text-muted-foreground">
