@@ -100,6 +100,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
             onClick={handleInsertTemplate} 
             className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
           >
+            <FileText className="w-3 h-3 mr-1" />
             Insert Template
           </Button>
         </div>
