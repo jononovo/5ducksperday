@@ -108,6 +108,7 @@ export default function Outreach() {
   // Template edit mode state
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   
   // Textarea refs for auto-resizing
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -303,6 +304,7 @@ export default function Outreach() {
   const enterEditMode = (template: EmailTemplate) => {
     setIsEditMode(true);
     setEditingTemplateId(template.id);
+    setEditingTemplate(template);
     // Load template data into form fields
     setEmailPrompt(template.description || "");
     setEmailSubject(template.subject || "");
@@ -312,16 +314,17 @@ export default function Outreach() {
   const exitEditMode = () => {
     setIsEditMode(false);
     setEditingTemplateId(null);
+    setEditingTemplate(null);
   };
 
   const saveCurrentTemplate = () => {
-    if (editingTemplateId && emailPrompt && emailContent) {
+    if (editingTemplateId && editingTemplate && emailPrompt && emailContent) {
       const templateData: InsertEmailTemplate = {
-        name: "Updated Template", // We'll need to get the actual name from the template
-        subject: emailSubject || "Updated Email Template",
+        name: editingTemplate.name, // Preserve original template name
+        subject: emailSubject || editingTemplate.subject || "Email Template",
         content: emailContent,
         description: emailPrompt,
-        category: "saved",
+        category: editingTemplate.category || "saved",
         userId: user?.id || 1
       };
       
@@ -330,7 +333,7 @@ export default function Outreach() {
         template: templateData
       });
     }
-  };;
+  };
 
   // Content resolution utility functions
   const resolveContent = (content: string, contact: Contact | null) => {
