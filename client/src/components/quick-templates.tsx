@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { FileText, Save, Plus, Edit } from "lucide-react";
 import {
   AlertDialog,
@@ -19,18 +20,28 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { EmailTemplate } from "@shared/schema";
 import MergeFieldDialog from "./merge-field-dialog";
 
 interface QuickTemplatesProps {
   onSelectTemplate: (template: EmailTemplate) => void;
-  onSaveTemplate?: () => void;
+  onSaveTemplate?: (templateName: string) => void;
 }
 
 export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: QuickTemplatesProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
   const [mergeFieldDialogOpen, setMergeFieldDialogOpen] = useState(false);
   const [editConfirmDialogOpen, setEditConfirmDialogOpen] = useState(false);
+  const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
   const queryClient = useQueryClient();
 
   const { data: templates = [], isLoading } = useQuery<EmailTemplate[]>({
@@ -71,6 +82,19 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
     setEditConfirmDialogOpen(false);
   };
 
+  const handleSaveTemplate = () => {
+    if (!onSaveTemplate) return;
+    setTemplateName("");
+    setSaveTemplateDialogOpen(true);
+  };
+
+  const handleConfirmSave = () => {
+    if (!templateName.trim() || !onSaveTemplate) return;
+    onSaveTemplate(templateName.trim());
+    setSaveTemplateDialogOpen(false);
+    setTemplateName("");
+  };
+
 
 
   return (
@@ -89,7 +113,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
           {onSaveTemplate && (
             <Button
               variant="secondary"
-              onClick={onSaveTemplate}
+              onClick={handleSaveTemplate}
               className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
             >
               <Save className="w-3 h-3 mr-1" />
@@ -166,6 +190,44 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={saveTemplateDialogOpen} onOpenChange={setSaveTemplateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save as Template</DialogTitle>
+            <DialogDescription>
+              Enter name of new template:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="Sales Genius 2027"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && templateName.trim()) {
+                  handleConfirmSave();
+                }
+              }}
+              className="w-full"
+            />
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setSaveTemplateDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmSave}
+              disabled={!templateName.trim()}
+            >
+              Save Template
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

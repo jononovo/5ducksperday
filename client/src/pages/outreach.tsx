@@ -250,7 +250,7 @@ export default function Outreach() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
-  const handleSaveEmail = () => {
+  const handleSaveEmail = (templateName: string) => {
     if (!emailPrompt || !emailContent) {
       toast({
         title: "Missing Information",
@@ -261,7 +261,7 @@ export default function Outreach() {
     }
 
     const templateData: InsertEmailTemplate = {
-      name: `Template from ${new Date().toLocaleDateString()}`,
+      name: templateName,
       subject: emailSubject || "New Email Template",
       content: emailContent,
       description: emailPrompt,
