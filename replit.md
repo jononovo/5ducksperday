@@ -128,6 +128,7 @@
 - June 14, 2025. Relocated Save as Template button: Moved "Save as Template" button from email body field to Quick Templates section header, positioned next to "New Template" button for better organization and cleaner email body interface
 - June 14, 2025. Complete inline merge system for Create Template dialog: Added "Merge" dropdown buttons to all three fields (Email Subject, Description/Prompt, Email Body) with predefined merge variables ({{company_name}}, {{contact_name}}, {{contact_role}}, {{sender_name}}). Implemented consistent positioning using relative containers with absolute bottom-2 right-2 button placement and pb-10/pb-12 padding for proper text spacing
 - June 14, 2025. Comprehensive merge field dialog system: Created dedicated MergeFieldDialog component with 13 merge variables, responsive design (full-page mobile, standard desktop), copy-to-clipboard functionality with visual feedback, and auto-close after 1 second. Added "Merge Field" button to Quick Templates header for easy access across the application
+- June 14, 2025. Removed Create Template Dialog: Eliminated 350+ lines of duplicated code by removing CreateTemplateModal component and all related functionality. Template creation now streamlined through outreach page "Save as Template" workflow only, reducing code complexity and improving user experience
 
 ## User Preferences
 

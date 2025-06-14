@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { FileText, Save, Plus } from "lucide-react";
 import type { EmailTemplate } from "@shared/schema";
-import CreateTemplateModal from "./create-template-modal";
 import MergeFieldDialog from "./merge-field-dialog";
 
 interface QuickTemplatesProps {
@@ -42,18 +41,13 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
     }
   };
 
-  // Function to refresh templates after creation
-  const handleTemplateCreated = () => {
-    console.log('Template created, refreshing templates list');
-    queryClient.invalidateQueries({ queryKey: ["/api/email-templates"] });
-  };
+
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Quick Templates</h3>
         <div className="flex items-center gap-2">
-          <CreateTemplateModal onTemplateCreated={handleTemplateCreated} />
           <Button 
             variant="outline" 
             className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
