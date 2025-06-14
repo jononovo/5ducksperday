@@ -204,7 +204,7 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
                             <ChevronDown className="w-3 h-3 ml-1" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuContent align="end" className="w-48">
                           {MERGE_VARIABLES.map((variable) => (
                             <DropdownMenuItem
                               key={variable.value}
