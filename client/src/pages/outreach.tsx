@@ -1138,7 +1138,7 @@ export default function Outreach() {
                     onClick={handleGenerateEmail} 
                     variant="yellow"
                     disabled={generateEmailMutation.isPending}
-                    className="h-8 px-3 text-xs"
+                    className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
                   >
                     {generateEmailMutation.isPending ? (
                       <Loader2 className="w-3 h-3 mr-1 animate-spin" />
@@ -1193,7 +1193,7 @@ export default function Outreach() {
                 <Button
                   variant="secondary"
                   onClick={handleSaveEmail}
-                  className="h-8 px-3 text-xs"
+                  className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
                 >
                   <Save className="w-3 h-3 mr-1" />
                   Save as Template

@@ -120,6 +120,7 @@
 - June 13, 2025. Navigation consistency: Added ChevronRight icons to both mobile navigation buttons - contact button with standard styling and company button with lighter gray (text-muted-foreground/50) to match existing visual hierarchy
 - June 13, 2025. Button design updates: Made Save as Template and Send Email buttons smaller to match Generate Email button size (h-8 px-3 text-xs), and changed Send Email button to white background with black border and text for clean minimal styling
 - June 13, 2025. Simplified Send Email button hover: Clean color reversal hover effect (white→black background, black→white text) with 105% scaling and smooth 300ms transitions
+- June 13, 2025. Consistent button hover animations: Added 105% scaling hover effect with smooth 300ms transitions to Generate Email and Save as Template buttons, maintaining their original colors while providing unified interaction feedback
 
 ## User Preferences
 
