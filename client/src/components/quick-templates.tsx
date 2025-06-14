@@ -124,7 +124,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
 
       <div className="space-y-2">
         <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
-          <SelectTrigger className="ml-4 mr-4">
+          <SelectTrigger className="mr-2">
             <SelectValue placeholder={isLoading ? "Loading templates..." : "Select a template"} />
           </SelectTrigger>
           <SelectContent>
@@ -149,7 +149,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
             variant="secondary"
             onClick={handleInsertTemplate} 
             disabled={!selectedTemplateId}
-            className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+            className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
           >
             <FileText className="w-3 h-3 mr-1" />
             Insert Template
@@ -158,7 +158,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
             variant="secondary"
             onClick={handleEditTemplate} 
             disabled={!selectedTemplateId}
-            className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+            className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
           >
             <Edit className="w-3 h-3 mr-1" />
             Edit Template
