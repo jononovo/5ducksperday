@@ -137,6 +137,7 @@
 - June 14, 2025. Unified margin strategy implementation: Applied consistent mr-2 margin pattern (matching Save as Template button) to template dropdown SelectTrigger and both Insert/Edit Template buttons for reliable mobile spacing and visual consistency
 - June 14, 2025. Insert Template confirmation dialog: Added confirmation dialog to "Insert Template" button matching Edit Template pattern, with title "Load Template" and warning "Loading this template, will replace all content currently in fields on this page" for consistent user protection against data loss
 - June 14, 2025. Complete template edit mode system: Implemented comprehensive template editing with mode switching (Edit Template ↔ Save Template), red "Edit Template Mode" notification banner, content resolution showing handlebars vs resolved merge fields based on mode, grey background highlighting for merge fields in normal mode, and full backend support with PUT endpoint and storage methods for seamless same-page template editing and preview
+- June 14, 2025. Template name preservation fix: Resolved critical bug where template updates were hardcoded to "Updated Template" name. Added editingTemplate state to store complete template object during editing, ensuring original template names are preserved during updates while allowing content modifications
 
 ## User Preferences
 
