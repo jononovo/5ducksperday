@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, Save, Plus, Edit } from "lucide-react";
+import { FileText, Save, Plus, Edit, Eye } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -119,6 +119,17 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
       )}
       
       <div className="flex items-center justify-end gap-2">
+        <Button 
+          variant="outline" 
+          className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+          onClick={() => {
+            // Placeholder functionality - can be customized
+            console.log('View button clicked');
+          }}
+        >
+          <Eye className="w-3 h-3 mr-1" />
+          View
+        </Button>
         <Button 
           variant="outline" 
           className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
