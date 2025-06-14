@@ -41,6 +41,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
   const [mergeFieldDialogOpen, setMergeFieldDialogOpen] = useState(false);
   const [editConfirmDialogOpen, setEditConfirmDialogOpen] = useState(false);
+  const [insertConfirmDialogOpen, setInsertConfirmDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const queryClient = useQueryClient();
@@ -58,14 +59,18 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
 
   const handleInsertTemplate = () => {
     if (!selectedTemplateId) {
-      // Could show a toast or just return silently
       return;
     }
+    setInsertConfirmDialogOpen(true);
+  };
+
+  const handleConfirmInsert = () => {
     const template = typedTemplates.find(t => t.id.toString() === selectedTemplateId);
     if (template) {
       console.log('QuickTemplates - Selected template:', { id: template.id, name: template.name });
       onSelectTemplate(template);
     }
+    setInsertConfirmDialogOpen(false);
   };
 
   const handleEditTemplate = () => {
@@ -185,6 +190,25 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmEdit}>
+              Load the Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={insertConfirmDialogOpen} onOpenChange={setInsertConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Load Template</AlertDialogTitle>
+            <AlertDialogDescription>
+              Loading this template, will replace all content currently in fields on this page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setInsertConfirmDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmInsert}>
               Load the Template
             </AlertDialogAction>
           </AlertDialogFooter>
