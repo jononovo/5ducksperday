@@ -41,7 +41,7 @@ interface QuickTemplatesProps {
   onExitEditMode?: () => void;
 }
 
-export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMergeFieldInsert }: QuickTemplatesProps) {
+export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMergeFieldInsert, onEditTemplate, isEditMode, editingTemplateId, onExitEditMode }: QuickTemplatesProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
   const [mergeFieldDialogOpen, setMergeFieldDialogOpen] = useState(false);
   const [editConfirmDialogOpen, setEditConfirmDialogOpen] = useState(false);
@@ -86,9 +86,9 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
 
   const handleConfirmEdit = () => {
     const template = typedTemplates.find(t => t.id.toString() === selectedTemplateId);
-    if (template) {
+    if (template && onEditTemplate) {
       console.log('QuickTemplates - Loading template for editing:', { id: template.id, name: template.name });
-      onSelectTemplate(template);
+      onEditTemplate(template);
     }
     setEditConfirmDialogOpen(false);
   };
@@ -110,6 +110,13 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
 
   return (
     <div className="space-y-4 pt-6">
+      {/* Edit Mode Notification Banner */}
+      {isEditMode && (
+        <div className="bg-red-50 border border-red-200 text-red-800 px-3 py-2 rounded-md text-sm mb-4">
+          Edit Template Mode
+        </div>
+      )}
+      
       <div className="flex items-center justify-end gap-2">
         <Button 
           variant="outline" 
@@ -165,12 +172,21 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onMer
           </Button>
           <Button 
             variant="secondary"
-            onClick={handleEditTemplate} 
+            onClick={isEditMode ? onExitEditMode : handleEditTemplate} 
             disabled={!selectedTemplateId}
             className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
           >
-            <Edit className="w-3 h-3 mr-1" />
-            Edit Template
+            {isEditMode ? (
+              <>
+                <Save className="w-3 h-3 mr-1" />
+                Save Template
+              </>
+            ) : (
+              <>
+                <Edit className="w-3 h-3 mr-1" />
+                Edit Template
+              </>
+            )}
           </Button>
         </div>
       </div>

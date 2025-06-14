@@ -310,8 +310,25 @@ export default function Outreach() {
   };
 
   const exitEditMode = () => {
-    setIsEditMode(false);
-    setEditingTemplateId(null);
+    if (editingTemplateId && emailPrompt && emailContent) {
+      // Save the current template if we're in edit mode
+      const templateData: InsertEmailTemplate = {
+        name: "Updated Template", // We'll need to get the actual name from the template
+        subject: emailSubject || "Updated Email Template",
+        content: emailContent,
+        description: emailPrompt,
+        category: "saved",
+        userId: user?.id || 1
+      };
+      
+      updateMutation.mutate({
+        id: editingTemplateId,
+        template: templateData
+      });
+    } else {
+      setIsEditMode(false);
+      setEditingTemplateId(null);
+    }
   };
 
   // Content resolution utility functions
@@ -386,6 +403,37 @@ export default function Outreach() {
       toast({
         title: "Error",
         description: error.message || "Failed to save email template",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: { id: number; template: InsertEmailTemplate }) => {
+      console.log('Updating email template:', {
+        id: data.id,
+        name: data.template.name,
+        subject: data.template.subject
+      });
+      const res = await apiRequest("PUT", `/api/email-templates/${data.id}`, data.template);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to update template");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/email-templates"] });
+      exitEditMode();
+      toast({
+        title: "Success",
+        description: "Template updated successfully!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update template",
         variant: "destructive",
       });
     },
@@ -1314,6 +1362,10 @@ export default function Outreach() {
                   }}
                   onSaveTemplate={handleSaveEmail}
                   onMergeFieldInsert={handleMergeFieldInsert}
+                  onEditTemplate={enterEditMode}
+                  isEditMode={isEditMode}
+                  editingTemplateId={editingTemplateId}
+                  onExitEditMode={exitEditMode}
                 />
               </div>
             </div>
