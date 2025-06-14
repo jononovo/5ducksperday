@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Save, Plus } from "lucide-react";
 import type { EmailTemplate } from "@shared/schema";
 import CreateTemplateModal from "./create-template-modal";
+import MergeFieldDialog from "./merge-field-dialog";
 
 interface QuickTemplatesProps {
   onSelectTemplate: (template: EmailTemplate) => void;
@@ -19,6 +20,7 @@ interface QuickTemplatesProps {
 
 export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: QuickTemplatesProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
+  const [mergeFieldDialogOpen, setMergeFieldDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: templates = [], isLoading } = useQuery<EmailTemplate[]>({
@@ -55,6 +57,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
           <Button 
             variant="outline" 
             className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+            onClick={() => setMergeFieldDialogOpen(true)}
           >
             <Plus className="w-3 h-3 mr-1" />
             Merge Field
@@ -102,6 +105,11 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
           Insert Template
         </Button>
       </div>
+      
+      <MergeFieldDialog 
+        open={mergeFieldDialogOpen} 
+        onOpenChange={setMergeFieldDialogOpen} 
+      />
     </div>
   );
 }
