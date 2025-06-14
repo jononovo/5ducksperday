@@ -91,13 +91,15 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
           </SelectContent>
         </Select>
 
-        <Button 
-          onClick={handleInsertTemplate} 
-          disabled={!selectedTemplateId}
-          className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
-        >
-          Insert Template
-        </Button>
+        <div className="flex justify-end">
+          <Button 
+            onClick={handleInsertTemplate} 
+            disabled={!selectedTemplateId}
+            className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+          >
+            Insert Template
+          </Button>
+        </div>
       </div>
       
       <MergeFieldDialog 

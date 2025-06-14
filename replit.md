@@ -129,7 +129,7 @@
 - June 14, 2025. Complete inline merge system for Create Template dialog: Added "Merge" dropdown buttons to all three fields (Email Subject, Description/Prompt, Email Body) with predefined merge variables ({{company_name}}, {{contact_name}}, {{contact_role}}, {{sender_name}}). Implemented consistent positioning using relative containers with absolute bottom-2 right-2 button placement and pb-10/pb-12 padding for proper text spacing
 - June 14, 2025. Comprehensive merge field dialog system: Created dedicated MergeFieldDialog component with 13 merge variables, responsive design (full-page mobile, standard desktop), copy-to-clipboard functionality with visual feedback, and auto-close after 1 second. Added "Merge Field" button to Quick Templates header for easy access across the application
 - June 14, 2025. Removed Create Template Dialog: Eliminated 350+ lines of duplicated code by removing CreateTemplateModal component and all related functionality. Template creation now streamlined through outreach page "Save as Template" workflow only, reducing code complexity and improving user experience
-- June 14, 2025. Button size standardization: Updated "Insert Template" button to match smaller sizing (h-8 px-3 text-xs), consistent hover animation (scale-105), and content-based width (removed w-full) to match other action buttons in Quick Templates section
+- June 14, 2025. Button size standardization: Updated "Insert Template" button to match smaller sizing (h-8 px-3 text-xs), consistent hover animation (scale-105), content-based width (removed w-full), and right alignment (justify-end) to match other action buttons in Quick Templates section
 
 ## User Preferences
 
