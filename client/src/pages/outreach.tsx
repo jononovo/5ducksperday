@@ -343,12 +343,12 @@ export default function Outreach() {
     const lastName = contact.name?.split(' ').slice(1).join(' ') || '';
     
     return content
-      .replace(/\{\{company_name\}\}/g, currentCompany?.name || '{{company_name}}')
-      .replace(/\{\{contact_name\}\}/g, contact.name || '{{contact_name}}')
-      .replace(/\{\{first_name\}\}/g, firstName || '{{first_name}}')
-      .replace(/\{\{last_name\}\}/g, lastName || '{{last_name}}')
-      .replace(/\{\{contact_role\}\}/g, contact.role || '{{contact_role}}')
-      .replace(/\{\{sender_name\}\}/g, user?.email?.split('@')[0] || '{{sender_name}}');
+      .replace(/\{\{company_name\}\}/g, `<span class="merge-field-highlight">${currentCompany?.name || '{{company_name}}'}</span>`)
+      .replace(/\{\{contact_name\}\}/g, `<span class="merge-field-highlight">${contact.name || '{{contact_name}}'}</span>`)
+      .replace(/\{\{first_name\}\}/g, `<span class="merge-field-highlight">${firstName || '{{first_name}}'}</span>`)
+      .replace(/\{\{last_name\}\}/g, `<span class="merge-field-highlight">${lastName || '{{last_name}}'}</span>`)
+      .replace(/\{\{contact_role\}\}/g, `<span class="merge-field-highlight">${contact.role || '{{contact_role}}'}</span>`)
+      .replace(/\{\{sender_name\}\}/g, `<span class="merge-field-highlight">${user?.email?.split('@')[0] || '{{sender_name}}'}</span>`);
   };
 
   const highlightMergeFields = (content: string) => {
@@ -365,6 +365,10 @@ export default function Outreach() {
 
   // Functions to get display values for form fields
   const getDisplayValue = (content: string) => {
+    return isEditMode ? content : content; // Always return raw content for input value
+  };
+
+  const getDisplayHTML = (content: string) => {
     return isEditMode ? content : resolveContent(content, currentSelectedContact || null);
   };
 
@@ -1255,6 +1259,13 @@ export default function Outreach() {
             <div className="px-0 py-3 md:p-6 space-y-0 md:space-y-6">
               {/* Email Prompt Field */}
               <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
+                {!isEditMode && emailPrompt.includes('{{') ? (
+                  <div 
+                    className="absolute inset-0 px-3 py-2 pointer-events-none whitespace-pre-wrap break-words text-sm mobile-input-text-fix z-10"
+                    style={{ minHeight: '32px', maxHeight: '100px', overflow: 'hidden' }}
+                    dangerouslySetInnerHTML={{ __html: getDisplayHTML(emailPrompt) }}
+                  />
+                ) : null}
                 <Textarea
                   ref={emailPromptRef}
                   placeholder="Sell dog-grooming services"
@@ -1264,7 +1275,7 @@ export default function Outreach() {
                     handlePromptTextareaResize();
                   }}
                   className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                    !isEditMode && emailPrompt.includes('{{') ? 'bg-gray-50' : ''
+                    !isEditMode && emailPrompt.includes('{{') ? 'text-transparent' : ''
                   }`}
                   style={{ minHeight: '32px', maxHeight: '100px' }}
                 />
@@ -1303,7 +1314,13 @@ export default function Outreach() {
 
               {/* To Email Field */}
               <div className="relative border-b md:border-b-0 md:mb-6">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 z-20" />
+                {!isEditMode && toEmail.includes('{{') ? (
+                  <div 
+                    className="absolute inset-0 pl-10 pr-3 py-2 pointer-events-none whitespace-nowrap overflow-hidden text-sm mobile-input-text-fix z-10"
+                    dangerouslySetInnerHTML={{ __html: getDisplayHTML(toEmail) }}
+                  />
+                ) : null}
                 <Input
                   ref={toEmailRef}
                   placeholder="Recipient Email"
@@ -1311,27 +1328,40 @@ export default function Outreach() {
                   onChange={(e) => setToEmail(e.target.value)}
                   type="email"
                   className={`mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                    !isEditMode && toEmail.includes('{{') ? 'bg-gray-50' : ''
+                    !isEditMode && toEmail.includes('{{') ? 'text-transparent' : ''
                   }`}
                 />
               </div>
 
               {/* Email Subject Field */}
               <div className="relative border-b md:border-b-0 md:mb-6">
-                <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 z-20" />
+                {!isEditMode && emailSubject.includes('{{') ? (
+                  <div 
+                    className="absolute inset-0 pl-10 pr-3 py-2 pointer-events-none whitespace-nowrap overflow-hidden text-sm mobile-input-text-fix z-10"
+                    dangerouslySetInnerHTML={{ __html: getDisplayHTML(emailSubject) }}
+                  />
+                ) : null}
                 <Input
                   ref={emailSubjectRef}
                   placeholder="Email Subject"
                   value={getDisplayValue(emailSubject)}
                   onChange={(e) => setEmailSubject(e.target.value)}
                   className={`mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                    !isEditMode && emailSubject.includes('{{') ? 'bg-gray-50' : ''
+                    !isEditMode && emailSubject.includes('{{') ? 'text-transparent' : ''
                   }`}
                 />
               </div>
 
               {/* Email Content Field */}
               <div className="relative md:mb-6">
+                {!isEditMode && emailContent.includes('{{') ? (
+                  <div 
+                    className="absolute inset-0 px-3 py-2 pointer-events-none whitespace-pre-wrap break-words text-sm mobile-input-text-fix z-10"
+                    style={{ minHeight: '160px', maxHeight: '400px', overflow: 'hidden', paddingBottom: '48px' }}
+                    dangerouslySetInnerHTML={{ __html: getDisplayHTML(emailContent) }}
+                  />
+                ) : null}
                 <Textarea
                   ref={emailContentRef}
                   placeholder="Enter or edit the generated email content..."
@@ -1341,7 +1371,7 @@ export default function Outreach() {
                     handleTextareaResize();
                   }}
                   className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                    !isEditMode && emailContent.includes('{{') ? 'bg-gray-50' : ''
+                    !isEditMode && emailContent.includes('{{') ? 'text-transparent' : ''
                   }`}
                   style={{ minHeight: '160px', maxHeight: '400px' }}
                 />
