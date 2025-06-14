@@ -738,6 +738,7 @@ export default function Outreach() {
                   <span className="text-[9px] text-muted-foreground">
                     {currentContactIndex + 1}/{topContacts.length}
                   </span>
+                  <ChevronRight className="w-2.5 h-2.5" />
                 </Button>
               )}
             </div>
