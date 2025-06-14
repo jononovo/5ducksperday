@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* iOS Safari auto-zoom prevention - mobile only */
+.mobile-input-text-fix {
+  font-size: 16px;
+}
+
+@media (min-width: 768px) {
+  .mobile-input-text-fix {
+    font-size: 14px; /* Restore original text-sm size on desktop */
+  }
+}
+
 /* Custom fluffy gradient backgrounds */
 .fluffy-gradient-bg {
   background-image: 
