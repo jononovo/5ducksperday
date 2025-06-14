@@ -130,6 +130,7 @@
 - June 14, 2025. Comprehensive merge field dialog system: Created dedicated MergeFieldDialog component with 13 merge variables, responsive design (full-page mobile, standard desktop), copy-to-clipboard functionality with visual feedback, and auto-close after 1 second. Added "Merge Field" button to Quick Templates header for easy access across the application
 - June 14, 2025. Removed Create Template Dialog: Eliminated 350+ lines of duplicated code by removing CreateTemplateModal component and all related functionality. Template creation now streamlined through outreach page "Save as Template" workflow only, reducing code complexity and improving user experience
 - June 14, 2025. Button size standardization: Updated "Insert Template" button to match smaller sizing (h-8 px-3 text-xs), consistent hover animation (scale-105), content-based width (removed w-full), right alignment (justify-end), secondary variant styling, right margin (mr-2), FileText icon, and restored disabled state when no template selected for proper UX feedback in Quick Templates section
+- June 14, 2025. Edit Template functionality: Added "Edit Template" button next to "Insert Template" with Edit icon, same disabled logic when no template selected, and confirmation dialog warning "Editing this template, will replace all content currently in fields on this page" with Cancel/Load Template options using shadcn AlertDialog components
 
 ## User Preferences
 

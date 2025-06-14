@@ -8,7 +8,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { FileText, Save, Plus } from "lucide-react";
+import { FileText, Save, Plus, Edit } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { EmailTemplate } from "@shared/schema";
 import MergeFieldDialog from "./merge-field-dialog";
 
@@ -20,6 +30,7 @@ interface QuickTemplatesProps {
 export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: QuickTemplatesProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
   const [mergeFieldDialogOpen, setMergeFieldDialogOpen] = useState(false);
+  const [editConfirmDialogOpen, setEditConfirmDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: templates = [], isLoading } = useQuery<EmailTemplate[]>({
@@ -42,6 +53,22 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
       console.log('QuickTemplates - Selected template:', { id: template.id, name: template.name });
       onSelectTemplate(template);
     }
+  };
+
+  const handleEditTemplate = () => {
+    if (!selectedTemplateId) {
+      return;
+    }
+    setEditConfirmDialogOpen(true);
+  };
+
+  const handleConfirmEdit = () => {
+    const template = templates.find(t => t.id.toString() === selectedTemplateId);
+    if (template) {
+      console.log('QuickTemplates - Loading template for editing:', { id: template.id, name: template.name });
+      onSelectTemplate(template);
+    }
+    setEditConfirmDialogOpen(false);
   };
 
 
@@ -94,15 +121,24 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
           </SelectContent>
         </Select>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
           <Button 
             variant="secondary"
             onClick={handleInsertTemplate} 
             disabled={!selectedTemplateId}
-            className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
+            className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
           >
             <FileText className="w-3 h-3 mr-1" />
             Insert Template
+          </Button>
+          <Button 
+            variant="secondary"
+            onClick={handleEditTemplate} 
+            disabled={!selectedTemplateId}
+            className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+          >
+            <Edit className="w-3 h-3 mr-1" />
+            Edit Template
           </Button>
         </div>
       </div>
@@ -111,6 +147,25 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
         open={mergeFieldDialogOpen} 
         onOpenChange={setMergeFieldDialogOpen} 
       />
+
+      <AlertDialog open={editConfirmDialogOpen} onOpenChange={setEditConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Edit Template</AlertDialogTitle>
+            <AlertDialogDescription>
+              Editing this template, will replace all content currently in fields on this page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setEditConfirmDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmEdit}>
+              Load the Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
