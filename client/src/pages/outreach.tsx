@@ -1193,27 +1193,29 @@ export default function Outreach() {
                 <Button
                   variant="secondary"
                   onClick={handleSaveEmail}
+                  className="h-8 px-3 text-xs"
                 >
-                  <Save className="w-4 h-4 mr-2" />
+                  <Save className="w-3 h-3 mr-1" />
                   Save as Template
                 </Button>
                 <Button
                   onClick={handleSendEmail}
                   disabled={sendEmailMutation.isPending}
                   className={cn(
+                    "h-8 px-3 text-xs",
                     sendEmailMutation.isSuccess && "bg-pink-500 hover:bg-pink-600"
                   )}
                 >
                   {sendEmailMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                   ) : sendEmailMutation.isSuccess ? (
                     <>
-                      <PartyPopper className="w-4 h-4 mr-2" />
+                      <PartyPopper className="w-3 h-3 mr-1" />
                       Sent Email
                     </>
                   ) : (
                     <>
-                      <Send className="w-4 h-4 mr-2" />
+                      <Send className="w-3 h-3 mr-1" />
                       Send Email
                     </>
                   )}
