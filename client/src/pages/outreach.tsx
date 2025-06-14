@@ -1203,7 +1203,7 @@ export default function Outreach() {
                   disabled={sendEmailMutation.isPending}
                   variant="outline"
                   className={cn(
-                    "h-8 px-3 text-xs bg-white text-black border-black hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-600 hover:text-white hover:border-transparent hover:shadow-lg hover:scale-105 transition-all duration-300 ease-out",
+                    "h-8 px-3 text-xs bg-white text-black border-black hover:bg-black hover:text-white hover:scale-105 transition-all duration-300 ease-out",
                     sendEmailMutation.isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500"
                   )}
                 >
