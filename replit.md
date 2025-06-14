@@ -121,6 +121,7 @@
 - June 13, 2025. Button design updates: Made Save as Template and Send Email buttons smaller to match Generate Email button size (h-8 px-3 text-xs), and changed Send Email button to white background with black border and text for clean minimal styling
 - June 13, 2025. Simplified Send Email button hover: Clean color reversal hover effect (white→black background, black→white text) with 105% scaling and smooth 300ms transitions
 - June 13, 2025. Consistent button hover animations: Added 105% scaling hover effect with smooth 300ms transitions to Generate Email and Save as Template buttons, maintaining their original colors while providing unified interaction feedback
+- June 13, 2025. New Template button standardization: Made "New Template" button smaller (h-8 px-3 text-xs) to match other action buttons and added the same 105% scaling hover effect with smooth transitions
 
 ## User Preferences
 

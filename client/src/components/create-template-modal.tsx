@@ -109,8 +109,8 @@ export default function CreateTemplateModal({ onTemplateCreated }: CreateTemplat
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Plus className="w-4 h-4 mr-2" />
+        <Button variant="outline" className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out">
+          <Plus className="w-3 h-3 mr-1" />
           New Template
         </Button>
       </DialogTrigger>
