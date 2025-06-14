@@ -94,7 +94,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
         <Button 
           onClick={handleInsertTemplate} 
           disabled={!selectedTemplateId}
-          className="w-full"
+          className="w-full h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
         >
           Insert Template
         </Button>
