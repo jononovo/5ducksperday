@@ -118,6 +118,7 @@
 - June 13, 2025. Clean CSS architecture: Removed !important hacks and properly overrode shadcn focus styling using focus-visible:ring-0 and focus-visible:ring-offset-0 Tailwind classes. Added consistent left padding (px-3) to generate email and email content fields for better text positioning
 - June 13, 2025. Contact navigation UX improvement: Added ChevronRight icon to mobile contact toggle button (showing contact count like "2/3") to provide visual indication of interactivity without changing button behavior
 - June 13, 2025. Navigation consistency: Added ChevronRight icons to both mobile navigation buttons - contact button with standard styling and company button with lighter gray (text-muted-foreground/50) to match existing visual hierarchy
+- June 13, 2025. Button design updates: Made Save as Template and Send Email buttons smaller to match Generate Email button size (h-8 px-3 text-xs), and changed Send Email button to white background with black border and text for clean minimal styling
 
 ## User Preferences
 

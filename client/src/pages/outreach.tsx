@@ -1201,9 +1201,10 @@ export default function Outreach() {
                 <Button
                   onClick={handleSendEmail}
                   disabled={sendEmailMutation.isPending}
+                  variant="outline"
                   className={cn(
-                    "h-8 px-3 text-xs",
-                    sendEmailMutation.isSuccess && "bg-pink-500 hover:bg-pink-600"
+                    "h-8 px-3 text-xs bg-white text-black border-black hover:bg-gray-50",
+                    sendEmailMutation.isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500"
                   )}
                 >
                   {sendEmailMutation.isPending ? (
