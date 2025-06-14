@@ -93,6 +93,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate }: Qui
 
         <div className="flex justify-end">
           <Button 
+            variant="secondary"
             onClick={handleInsertTemplate} 
             disabled={!selectedTemplateId}
             className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
