@@ -131,13 +131,19 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
         <Button 
           variant="outline" 
           className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
-          onClick={() => {
-            // Placeholder functionality - can be customized
-            console.log('Merge View button clicked');
-          }}
+          onClick={onToggleMergeView}
         >
-          <Eye className="w-3 h-3 mr-1" />
-          Merge View
+          {isMergeViewMode ? (
+            <>
+              <EyeOff className="w-3 h-3 mr-1" />
+              Normal View
+            </>
+          ) : (
+            <>
+              <Eye className="w-3 h-3 mr-1" />
+              Merge View
+            </>
+          )}
         </Button>
         <Button 
           variant="outline" 
