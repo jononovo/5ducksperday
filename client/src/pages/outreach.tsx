@@ -1390,17 +1390,33 @@ export default function Outreach() {
 
               {/* Email Content Field */}
               <div className="relative md:mb-6">
-                <Textarea
-                  ref={emailContentRef}
-                  placeholder="Enter or edit the generated email content..."
-                  value={getDisplayValue(emailContent)}
-                  onChange={(e) => {
-                    setEmailContent(e.target.value);
-                    handleTextareaResize();
-                  }}
-                  className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0`}
-                  style={{ minHeight: '160px', maxHeight: '400px' }}
-                />
+                {!isEditMode && hasMergeFields(emailContent) ? (
+                  <HighlightedTextarea
+                    ref={emailContentRef}
+                    placeholder="Enter or edit the generated email content..."
+                    value={getDisplayValue(emailContent)}
+                    rawValue={emailContent}
+                    onChange={(value) => {
+                      setEmailContent(value);
+                      handleTextareaResize();
+                    }}
+                    resolveField={resolveMergeFieldForHighlighting}
+                    className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    style={{ minHeight: '160px', maxHeight: '400px' }}
+                  />
+                ) : (
+                  <Textarea
+                    ref={emailContentRef}
+                    placeholder="Enter or edit the generated email content..."
+                    value={getDisplayValue(emailContent)}
+                    onChange={(e) => {
+                      setEmailContent(e.target.value);
+                      handleTextareaResize();
+                    }}
+                    className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    style={{ minHeight: '160px', maxHeight: '400px' }}
+                  />
+                )}
                 <div className="absolute bottom-2 right-2">
                   <Button
                     onClick={handleSendEmail}
