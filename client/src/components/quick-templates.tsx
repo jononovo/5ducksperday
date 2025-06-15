@@ -127,7 +127,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
         </div>
       )}
       
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-end gap-2 mb-6">
         <Button 
           variant="outline" 
           className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
