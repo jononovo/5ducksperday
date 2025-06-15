@@ -29,6 +29,11 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
   const [isOpenedFromProtectedRoute, setIsOpenedFromProtectedRoute] = useState(false);
   const { user } = useAuth();
 
+  // Clean up obsolete localStorage key from previous first-time visitor logic
+  useEffect(() => {
+    localStorage.removeItem("hasVisitedBefore");
+  }, []);
+
   const openModal = () => {
     setIsOpenedFromProtectedRoute(false);
     setIsOpen(true);
