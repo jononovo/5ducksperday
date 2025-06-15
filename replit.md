@@ -165,6 +165,7 @@
 - June 15, 2025. Mobile button label optimization: Hidden text labels on mobile for "Start Selling", "5 More", and "Expand" buttons using `hidden md:inline` classes while preserving icons and desktop functionality. "Find Key Emails" button retains full text on all screen sizes for clarity
 - June 15, 2025. Clean search interface optimization: Hide entire header container (emoji animation + "Search for target businesses" heading) when search results are present using conditional rendering (!currentResults). Saves ~60-80px vertical space and creates cleaner, more focused results interface while preserving welcoming introduction for new users
 - June 15, 2025. Saved searches drawer button repositioning: Moved button from top-20 to top-32 on mobile (md:top-20 preserves desktop position) to prevent overlap with search input. Made button more compact on mobile (h-8 w-8 vs h-10 w-10 desktop) and scaled down ListChecks icon (h-4 w-4 vs h-5 w-5 desktop) for better mobile space efficiency
+- June 15, 2025. Replies menu item hidden: Commented out "Replies" navigation item in main-nav.tsx navigation array to hide the unfinished feature while preserving code for future re-enablement
 
 
 ## User Preferences

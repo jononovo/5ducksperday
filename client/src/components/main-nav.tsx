@@ -14,7 +14,7 @@ import {
 const navigation = [
   { name: "Search", href: "/app", icon: "dashboard" },
   { name: "Outreach", href: "/outreach", icon: "mail" },
-  { name: "Replies", href: "/replies", icon: "message" }
+  // { name: "Replies", href: "/replies", icon: "message" }
 ];
 
 export function MainNav() {
