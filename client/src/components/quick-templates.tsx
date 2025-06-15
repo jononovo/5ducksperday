@@ -167,7 +167,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
 
       <div className="space-y-2">
         <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
-          <SelectTrigger className="mr-2">
+          <SelectTrigger>
             <SelectValue placeholder={isLoading ? "Loading templates..." : "Select a template"} />
           </SelectTrigger>
           <SelectContent>
@@ -175,6 +175,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
               <SelectItem 
                 key={template.id} 
                 value={template.id.toString()}
+                className="pl-3 pr-2"
               >
                 <div>
                   <div className="font-medium">{template.name}</div>
