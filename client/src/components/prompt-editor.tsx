@@ -971,7 +971,7 @@ export default function PromptEditor({
               inputHasChanged={hasSearchResults && query !== lastExecutedQuery}
             />
           </div>
-          <div className="ml-2 mt-4">
+          <div className="ml-2 mt-5">
             <SearchTypeSelector
               selectedType={searchType}
               onTypeChange={setSearchType}
