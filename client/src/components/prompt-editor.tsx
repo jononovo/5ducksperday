@@ -952,7 +952,7 @@ export default function PromptEditor({
               ) : (
                 <>
                   <Search className="h-4 w-4" />
-                  <span className="hidden sm:inline">Search</span>
+                  <span className="hidden sm:inline">Find</span>
                 </>
               )}
             </Button>
