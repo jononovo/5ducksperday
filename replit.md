@@ -149,7 +149,8 @@
 - June 15, 2025. Email textarea auto-resize fix: Corrected ref mismatch in handleTextareaResize function by changing textareaRef.current to emailContentRef.current. Email body now properly expands from 160px minimum to 400px maximum height before becoming scrollable. Removed unused textareaRef declaration
 - June 15, 2025. Mini footer simplification: Removed copyright text, reduced font size from text-sm to text-xs, and cut height in half by changing padding from py-4 to py-2. Footer now shows only "Soli Deo Gloria" and "LinkedIn" link with minimal footprint
 - June 15, 2025. Contact search chips default optimization: Changed default configuration to enable only Core Leadership by default, while Department Heads and Middle Management start disabled. This focuses searches on C-level executives and founders by default, allowing users to manually expand scope as needed. Applied to both initial state and localStorage fallback configuration
-- June 15, 2025. Search settings icon repositioning: Moved search settings icon from main search bar to lower right corner with absolute positioning (bottom-4 right-4). Made icon less prominent with 40% opacity, gray coloring, and smaller size (h-4 w-4). Icon remains fully functional but now sits discretely out of the main interface flow
+- June 15, 2025. Search settings icon repositioning: Moved search settings icon from main search bar to lower right corner with absolute positioning (bottom-8 right-4). Made icon less prominent with 40% opacity, gray coloring, and smaller size (h-4 w-4). Icon remains fully functional but now sits discretely out of the main interface flow
+- June 15, 2025. Mobile contact chips spacing optimization: Reduced vertical spacing between search bar and contact chips on mobile screens by changing container gap from gap-2 to gap-1 md:gap-2. Creates tighter visual flow on narrow screens while maintaining proper spacing on desktop
 
 ## User Preferences
 
