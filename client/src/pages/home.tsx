@@ -1976,14 +1976,14 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 px-2 md:px-6">
       {/* Intro tour modal has been removed */}
 
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-12 gap-3 md:gap-6">
         {/* Main Content Area - full width */}
-        <div className="col-span-12 space-y-4 mt-[-10px]">
+        <div className="col-span-12 space-y-2 md:space-y-4 mt-[-10px]">
           {/* Search Section - border removed and moved up */}
-          <div className="px-6 py-1"> {/* Matched padding with CardHeader (p-6) */}
+          <div className="px-3 md:px-6 py-1"> {/* Reduced mobile padding, matched desktop padding with CardHeader (p-6) */}
             <div className="flex flex-col-reverse md:flex-row items-center gap-4 mb-3">
               <div className="flex items-center gap-3">
                 <h2 className="text-2xl font-semibold mt-2 md:mt-0">Search for target businesses</h2>
