@@ -148,6 +148,7 @@
 - June 15, 2025. Button row spacing improvement: Added mb-6 (24px bottom margin) to Quick Templates button row containing "Merge View", "Merge Field", and "Save as Template" buttons for better visual separation from template dropdown section
 - June 15, 2025. Email textarea auto-resize fix: Corrected ref mismatch in handleTextareaResize function by changing textareaRef.current to emailContentRef.current. Email body now properly expands from 160px minimum to 400px maximum height before becoming scrollable. Removed unused textareaRef declaration
 - June 15, 2025. Mini footer simplification: Removed copyright text, reduced font size from text-sm to text-xs, and cut height in half by changing padding from py-4 to py-2. Footer now shows only "Soli Deo Gloria" and "LinkedIn" link with minimal footprint
+- June 15, 2025. Contact search chips default optimization: Changed default configuration to enable only Core Leadership by default, while Department Heads and Middle Management start disabled. This focuses searches on C-level executives and founders by default, allowing users to manually expand scope as needed. Applied to both initial state and localStorage fallback configuration
 
 ## User Preferences
 

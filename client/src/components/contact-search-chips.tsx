@@ -42,8 +42,8 @@ function ContactSearchChips({
   const mobileExpandTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [config, setConfig] = useState<ContactSearchConfig>({
     enableCoreLeadership: true,
-    enableDepartmentHeads: true,
-    enableMiddleManagement: true,
+    enableDepartmentHeads: false,
+    enableMiddleManagement: false,
     enableCustomSearch: false,
     customSearchTarget: "",
     enableCustomSearch2: false,
@@ -59,8 +59,8 @@ function ContactSearchChips({
         // Ensure all properties exist for backward compatibility
         const fullConfig = {
           enableCoreLeadership: true,
-          enableDepartmentHeads: true,
-          enableMiddleManagement: true,
+          enableDepartmentHeads: false,
+          enableMiddleManagement: false,
           enableCustomSearch: false,
           customSearchTarget: "",
           enableCustomSearch2: false,
