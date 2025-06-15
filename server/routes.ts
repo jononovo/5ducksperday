@@ -2498,42 +2498,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
           let companyEmailsFound = 0;
           let companyProcessed = 0;
           
-          // Phase 1: Try Perplexity enrichment for up to 2 contacts
-          const perplexityContacts = topContacts.slice(0, 2);
-          for (const contact of perplexityContacts) {
-            try {
-              const enrichedDetails = await searchContactDetails(contact.name, company.name);
-              
-              if (enrichedDetails && enrichedDetails.email && enrichedDetails.email.length > 5) {
-                await storage.updateContact(contact.id, {
-                  ...enrichedDetails,
-                  completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
-                });
-                companyEmailsFound++;
-                console.log(`Perplexity found email for ${contact.name}: ${enrichedDetails.email}`);
-              }
-              companyProcessed++;
-            } catch (error) {
-              console.error(`Perplexity search failed for contact ${contact.id}:`, error);
-              companyProcessed++;
-            }
-          }
-          
-          // If Perplexity found emails, return result
-          if (companyEmailsFound > 0) {
-            return {
-              processed: companyProcessed,
-              emailsFound: companyEmailsFound,
-              result: {
-                companyId: company.id,
-                companyName: company.name,
-                emailsFound: companyEmailsFound,
-                source: 'Perplexity'
-              }
-            };
-          }
-          
-          // Phase 2: Try existing Apollo endpoint for best contact
+          // Phase 1: Try existing Apollo endpoint for best contact
           const bestContact = topContacts[0];
           if (bestContact) {
             try {
@@ -2572,6 +2537,41 @@ Then, on a new line, write the body of the email. Keep both subject and content 
                 companyName: company.name,
                 emailsFound: companyEmailsFound,
                 source: 'Apollo'
+              }
+            };
+          }
+          
+          // Phase 2: Try Perplexity enrichment for up to 2 contacts
+          const perplexityContacts = topContacts.slice(0, 2);
+          for (const contact of perplexityContacts) {
+            try {
+              const enrichedDetails = await searchContactDetails(contact.name, company.name);
+              
+              if (enrichedDetails && enrichedDetails.email && enrichedDetails.email.length > 5) {
+                await storage.updateContact(contact.id, {
+                  ...enrichedDetails,
+                  completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
+                });
+                companyEmailsFound++;
+                console.log(`Perplexity found email for ${contact.name}: ${enrichedDetails.email}`);
+              }
+              companyProcessed++;
+            } catch (error) {
+              console.error(`Perplexity search failed for contact ${contact.id}:`, error);
+              companyProcessed++;
+            }
+          }
+          
+          // If Perplexity found emails, return result
+          if (companyEmailsFound > 0) {
+            return {
+              processed: companyProcessed,
+              emailsFound: companyEmailsFound,
+              result: {
+                companyId: company.id,
+                companyName: company.name,
+                emailsFound: companyEmailsFound,
+                source: 'Perplexity'
               }
             };
           }
