@@ -147,6 +147,7 @@
 - June 15, 2025. Duck header scroll compression: Implemented smooth scroll-triggered compression effect for mobile duck emoji header. Added scroll listener that immediately triggers when user scrolls (window.scrollY > 0), reducing emoji font sizes (🐥: text-2xl→text-lg, 🥚: text-lg→text-sm), compressing padding (pt-2 pb-1→pt-1 pb-0.5), and shrinking close button (w-5 h-5→w-4 h-4, p-1→p-0.5). Header maintains fixed positioning to overlay main navigation. All transitions use 300ms duration for smooth animation
 - June 15, 2025. Button row spacing improvement: Added mb-6 (24px bottom margin) to Quick Templates button row containing "Merge View", "Merge Field", and "Save as Template" buttons for better visual separation from template dropdown section
 - June 15, 2025. Email textarea auto-resize fix: Corrected ref mismatch in handleTextareaResize function by changing textareaRef.current to emailContentRef.current. Email body now properly expands from 160px minimum to 400px maximum height before becoming scrollable. Removed unused textareaRef declaration
+- June 15, 2025. Mini footer simplification: Removed copyright text, reduced font size from text-sm to text-xs, and cut height in half by changing padding from py-4 to py-2. Footer now shows only "Soli Deo Gloria" and "LinkedIn" link with minimal footprint
 
 ## User Preferences
 
