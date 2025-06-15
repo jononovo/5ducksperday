@@ -23,10 +23,11 @@ export default function MergeFieldDialog({ open, onOpenChange, onMergeFieldInser
       await navigator.clipboard.writeText(field.value);
       setCopiedField(field.value);
       
-      // Reset copied state after 1 second
+      // Reset copied state and close dialog after 0.8 seconds
       setTimeout(() => {
         setCopiedField(null);
-      }, 1000);
+        onOpenChange(false);
+      }, 800);
     } catch (err) {
       // Fallback for older browsers
       try {
@@ -40,7 +41,8 @@ export default function MergeFieldDialog({ open, onOpenChange, onMergeFieldInser
         setCopiedField(field.value);
         setTimeout(() => {
           setCopiedField(null);
-        }, 1000);
+          onOpenChange(false);
+        }, 800);
       } catch (fallbackErr) {
         console.error('Failed to copy to clipboard:', fallbackErr);
       }
@@ -70,7 +72,7 @@ export default function MergeFieldDialog({ open, onOpenChange, onMergeFieldInser
           {MERGE_FIELDS.map((field) => (
             <div
               key={field.value}
-              onClick={() => handleFieldSelect(field)}
+              onClick={() => handleCopyToClipboard(field)}
               className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors cursor-pointer"
             >
               <div className="flex-1 min-w-0">
@@ -85,10 +87,7 @@ export default function MergeFieldDialog({ open, onOpenChange, onMergeFieldInser
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCopyToClipboard(field);
-                }}
+                onClick={() => handleCopyToClipboard(field)}
                 className="ml-3 flex-shrink-0 h-8 w-8 p-0"
                 disabled={copiedField === field.value}
               >
