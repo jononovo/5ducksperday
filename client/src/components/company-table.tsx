@@ -261,31 +261,38 @@ export default function CompanyTable({
                   <TableCell className={`font-medium pl-1 ${isExpanded ? 'py-0' : 'py-1'}`}>
                     <div>{company.name}</div>
                     {!isExpanded && company.website && (
-                      <div className="md:hidden text-xs text-muted-foreground leading-tight">
+                      <div className="md:hidden text-xs text-muted-foreground leading-tight flex items-center gap-1">
+                        <span className="text-blue-500">
+                          {company.website.replace(/^https?:\/\//, '')}
+                        </span>
                         <a 
                           href={company.website.startsWith('http') ? company.website : `https://${company.website}`} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-blue-500 hover:underline"
                           onClick={(e) => e.stopPropagation()}
+                          className="hover:text-blue-700 transition-colors"
                         >
-                          {company.website.replace(/^https?:\/\//, '')}
+                          <ExternalLink className="h-3 w-3" />
                         </a>
                       </div>
                     )}
                   </TableCell>
                   <TableCell className={`hidden md:table-cell ${isExpanded ? 'py-0' : 'py-1'}`}>
                     {company.website ? (
-                      <a 
-                        href={company.website.startsWith('http') ? company.website : `https://${company.website}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline flex items-center gap-1 text-sm"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {company.website.replace(/^https?:\/\//, '')}
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                      <div className="flex items-center gap-1 text-sm">
+                        <span className="text-blue-600">
+                          {company.website.replace(/^https?:\/\//, '')}
+                        </span>
+                        <a 
+                          href={company.website.startsWith('http') ? company.website : `https://${company.website}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="hover:text-blue-800 transition-colors"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
                     ) : null}
                     {!isExpanded && (
                       <div className="text-xs text-muted-foreground">

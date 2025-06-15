@@ -171,6 +171,7 @@
 - June 15, 2025. Landing page statistics update: Changed time savings metric from "22 Hours" / "Saved per Month" to "~48 Mins" / "Saved per Day" for more relatable daily value proposition
 - June 15, 2025. First-time visitor authentication block removal: Eliminated immediate authentication modal for new users that was blocking the "try before you buy" experience. Removed shouldShowForFirstTimeUsers logic, hasVisitedBefore localStorage tracking, and cleaned up obsolete references. New users now get proper 14-second grace period to explore search functionality before authentication prompt
 - June 15, 2025. Authentication delay extension: Increased semi-protected route authentication delay from 5 seconds to 14 seconds to give new users more time to explore and engage with search functionality before being prompted to register
+- June 15, 2025. Company table URL click prevention: Modified company website URLs to be non-clickable text while keeping only the ExternalLink icon clickable. This prevents accidental URL clicks when users intend to expand company rows. Applied to both desktop and mobile views for consistent behavior
 
 
 ## User Preferences
