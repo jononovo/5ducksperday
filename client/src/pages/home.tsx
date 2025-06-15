@@ -1976,7 +1976,7 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto py-6 px-2 md:px-6">
+    <div className="container mx-auto py-6 px-0 md:px-6">
       {/* Intro tour modal has been removed */}
 
       <div className="grid grid-cols-12 gap-3 md:gap-6">
