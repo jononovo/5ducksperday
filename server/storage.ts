@@ -285,8 +285,12 @@ class DatabaseStorage implements IStorage {
   }
 
   async updateContact(id: number, data: Partial<Contact>): Promise<Contact> {
+    // Clean contact data to prevent duplicate emails
+    const { cleanContactData } = await import('./lib/email-utils');
+    const cleanedData = cleanContactData(data);
+    
     const [updated] = await db.update(contacts)
-      .set(data)
+      .set(cleanedData)
       .where(eq(contacts.id, id))
       .returning();
     return updated;

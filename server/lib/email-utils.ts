@@ -50,7 +50,8 @@ export function normalizeEmail(email: string): string {
  * Ensures primary email doesn't appear in alternative emails array
  */
 export function cleanContactData(contactData: any): any {
-  if (!contactData.email || !contactData.alternativeEmails) {
+  // If no email or no alternatives, nothing to clean
+  if (!contactData.email || !contactData.alternativeEmails || !Array.isArray(contactData.alternativeEmails)) {
     return contactData;
   }
 
