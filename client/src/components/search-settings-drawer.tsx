@@ -42,10 +42,10 @@ export default function SearchSettingsDrawer({
         variant="ghost"
         size="icon"
         onClick={() => setOpen(true)}
-        className="opacity-40 hover:opacity-60 text-gray-400 hover:text-gray-500"
+        className="opacity-40 hover:opacity-60 text-gray-400 hover:text-gray-500 h-8 w-8 md:h-10 md:w-10"
         aria-label="Search Settings"
       >
-        <Settings2 className="h-4 w-4" />
+        <Settings2 className="h-3 w-3 md:h-4 md:w-4" />
       </Button>
 
       {/* Full Screen Drawer */}
