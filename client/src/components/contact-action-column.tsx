@@ -125,6 +125,35 @@ export function ContactActionColumn({
             </Tooltip>
           )}
           
+          {/* Apollo search button */}
+          {handleApolloSearch && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  disabled={isPending.apollo(contact.id) || isComplete.apollo(contact)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleApolloSearch(contact.id);
+                  }}
+                >
+                  {isPending.apollo(contact.id) ? (
+                    <div className="animate-spin h-4 w-4">
+                      <Rocket className="h-4 w-4 text-gray-700" />
+                    </div>
+                  ) : (
+                    <Rocket className={`h-4 w-4 ${isComplete.apollo(contact) && contact.email ? getSuccessColor.apollo : "text-gray-700"}`} />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Apollo.io email search</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          
           {/* AI-powered search button */}
           {handleEnrichContact && (
             <Tooltip>
@@ -211,35 +240,6 @@ export function ContactActionColumn({
               </TooltipContent>
             </Tooltip>
           )}
-          
-          {/* Apollo search button */}
-          {handleApolloSearch && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  disabled={isPending.apollo(contact.id) || isComplete.apollo(contact)}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleApolloSearch(contact.id);
-                  }}
-                >
-                  {isPending.apollo(contact.id) ? (
-                    <div className="animate-spin h-4 w-4">
-                      <Rocket className="h-4 w-4 text-gray-700" />
-                    </div>
-                  ) : (
-                    <Rocket className={`h-4 w-4 ${isComplete.apollo(contact) && contact.email ? getSuccessColor.apollo : "text-gray-700"}`} />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Apollo.io email search</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
         </TooltipProvider>
       </div>
       
@@ -262,6 +262,26 @@ export function ContactActionColumn({
               >
                 <Eye className="mr-2 h-5 w-5 text-gray-700" />
                 View Contact
+              </DropdownMenuItem>
+            )}
+            
+            {/* Apollo search menu item */}
+            {handleApolloSearch && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleApolloSearch(contact.id);
+                }}
+                disabled={isPending.apollo(contact.id) || isComplete.apollo(contact)}
+              >
+                {isPending.apollo(contact.id) ? (
+                  <div className="animate-spin mr-2 h-5 w-5">
+                    <Rocket className="h-5 w-5 text-gray-700" />
+                  </div>
+                ) : (
+                  <Rocket className={`mr-2 h-5 w-5 ${isComplete.apollo(contact) && contact.email ? getSuccessColor.apollo : "text-gray-700"}`} />
+                )}
+                Apollo.io Search
               </DropdownMenuItem>
             )}
             
@@ -322,26 +342,6 @@ export function ContactActionColumn({
                   <Gem className={`mr-2 h-5 w-5 ${isComplete.aeroLeads(contact) && contact.email ? getSuccessColor.aeroLeads : "text-gray-700"}`} />
                 )}
                 AeroLeads Search
-              </DropdownMenuItem>
-            )}
-            
-            {/* Apollo search menu item */}
-            {handleApolloSearch && (
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleApolloSearch(contact.id);
-                }}
-                disabled={isPending.apollo(contact.id) || isComplete.apollo(contact)}
-              >
-                {isPending.apollo(contact.id) ? (
-                  <div className="animate-spin mr-2 h-5 w-5">
-                    <Rocket className="h-5 w-5 text-gray-700" />
-                  </div>
-                ) : (
-                  <Rocket className={`mr-2 h-5 w-5 ${isComplete.apollo(contact) && contact.email ? getSuccessColor.apollo : "text-gray-700"}`} />
-                )}
-                Apollo.io Search
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
