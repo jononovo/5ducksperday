@@ -979,7 +979,7 @@ export default function PromptEditor({
         )}
 
         {/* Settings drawer trigger - positioned in lower right corner */}
-        <div className="absolute bottom-4 right-4">
+        <div className="absolute bottom-8 right-4">
           <SearchSettingsDrawer 
             targetUrl={targetUrl}
             setTargetUrl={setTargetUrl}
