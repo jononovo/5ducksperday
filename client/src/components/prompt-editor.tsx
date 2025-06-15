@@ -905,7 +905,7 @@ export default function PromptEditor({
                   handleSearch();
                 }
               }}
-              placeholder="Enter a search query (e.g., 'High-rated Greek restaurants in Midtown NYC')..."
+              placeholder="Be as detailed as possible 🎯 😉"
               className={`md:rounded-md rounded-l-md rounded-r-none md:pr-20 pr-4 text-base md:text-lg text-gray-700 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
             />
             {/* Desktop search type selector - inside input field */}
