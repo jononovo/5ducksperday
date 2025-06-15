@@ -114,6 +114,11 @@ export default function Outreach() {
   // Merge view toggle state (independent from edit mode)
   const [isMergeViewMode, setIsMergeViewMode] = useState(false);
   
+  // Original template versions for merge field conversion
+  const [originalEmailPrompt, setOriginalEmailPrompt] = useState("");
+  const [originalEmailContent, setOriginalEmailContent] = useState("");
+  const [originalEmailSubject, setOriginalEmailSubject] = useState("");
+  
   // Textarea refs for auto-resizing
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -392,9 +397,11 @@ export default function Outreach() {
     return resolveMergeField(field, mergeFieldContext);
   };
 
-  // Functions to get display values for form fields
-  const getDisplayValue = (content: string) => {
-    return (isEditMode || isMergeViewMode) ? content : resolveAllMergeFields(content, mergeFieldContext);
+  // Functions to get display values for form fields with dual storage support
+  const getDisplayValue = (content: string, originalContent?: string) => {
+    if (isEditMode) return content;
+    if (isMergeViewMode) return originalContent || content;
+    return resolveAllMergeFields(originalContent || content, mergeFieldContext);
   };
 
   const handleSaveEmail = (templateName: string) => {
@@ -1286,9 +1293,10 @@ export default function Outreach() {
                 <Textarea
                   ref={emailPromptRef}
                   placeholder="Sell dog-grooming services"
-                  value={getDisplayValue(emailPrompt)}
+                  value={getDisplayValue(emailPrompt, originalEmailPrompt)}
                   onChange={(e) => {
                     setEmailPrompt(e.target.value);
+                    setOriginalEmailPrompt(e.target.value);
                     handlePromptTextareaResize();
                   }}
                   className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -1346,8 +1354,11 @@ export default function Outreach() {
                 <Input
                   ref={emailSubjectRef}
                   placeholder="Email Subject"
-                  value={getDisplayValue(emailSubject)}
-                  onChange={(e) => setEmailSubject(e.target.value)}
+                  value={getDisplayValue(emailSubject, originalEmailSubject)}
+                  onChange={(e) => {
+                    setEmailSubject(e.target.value);
+                    setOriginalEmailSubject(e.target.value);
+                  }}
                   className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
@@ -1357,9 +1368,10 @@ export default function Outreach() {
                 <Textarea
                   ref={emailContentRef}
                   placeholder="Enter or edit the generated email content..."
-                  value={getDisplayValue(emailContent)}
+                  value={getDisplayValue(emailContent, originalEmailContent)}
                   onChange={(e) => {
                     setEmailContent(e.target.value);
+                    setOriginalEmailContent(e.target.value);
                     handleTextareaResize();
                   }}
                   className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
