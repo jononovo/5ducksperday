@@ -127,12 +127,11 @@ export default function Outreach() {
   const [isScrolled, setIsScrolled] = useState(false);
   
   // Textarea refs for auto-resizing
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize functions
   const handleTextareaResize = () => {
-    const textarea = textareaRef.current;
+    const textarea = emailContentRef.current;
     if (textarea) {
       textarea.style.height = 'auto';
       const newHeight = Math.min(textarea.scrollHeight, 400); // 400px max
