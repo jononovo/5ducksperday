@@ -2062,7 +2062,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
       };
       
-      // Handle email updates intelligently
+      // Handle email updates with unified deduplication logic
       if (enrichedDetails.email) {
         console.log('Processing Perplexity search email result:', {
           newEmail: enrichedDetails.email,
@@ -2071,21 +2071,14 @@ Then, on a new line, write the body of the email. Keep both subject and content 
           contactId: contact.id
         });
         
-        // If we already have a primary email but it's different from the new one
-        if (contact.email && contact.email !== enrichedDetails.email) {
-          // Initialize empty array if alternativeEmails is null or undefined
-          const existingAlternatives = Array.isArray(contact.alternativeEmails) ? contact.alternativeEmails : [];
-          console.log('Current alternative emails:', existingAlternatives);
-          
-          if (!existingAlternatives.includes(enrichedDetails.email)) {
-            // Create a proper array for the database
-            updateData.alternativeEmails = [...existingAlternatives, enrichedDetails.email];
-            console.log('Updated alternative emails:', updateData.alternativeEmails);
-          }
-        } else {
-          // If no primary email exists, set this as the primary
-          updateData.email = enrichedDetails.email;
+        const { mergeEmailData } = await import('./lib/email-utils');
+        const emailUpdates = mergeEmailData(contact, enrichedDetails.email);
+        Object.assign(updateData, emailUpdates);
+        
+        if (emailUpdates.email) {
           console.log('Setting as primary email:', enrichedDetails.email);
+        } else if (emailUpdates.alternativeEmails) {
+          console.log('Updated alternative emails:', emailUpdates.alternativeEmails);
         }
       }
       
@@ -3270,7 +3263,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         lastValidated: new Date()
       };
       
-      // Handle email updates intelligently
+      // Handle email updates with unified deduplication logic
       if (result.email) {
         console.log('Processing AeroLeads search email result:', {
           newEmail: result.email,
@@ -3279,21 +3272,14 @@ Then, on a new line, write the body of the email. Keep both subject and content 
           contactId: contact.id
         });
         
-        // If we already have a primary email but it's different from the new one
-        if (contact.email && contact.email !== result.email) {
-          // Initialize empty array if alternativeEmails is null or undefined
-          const existingAlternatives = Array.isArray(contact.alternativeEmails) ? contact.alternativeEmails : [];
-          console.log('Current alternative emails:', existingAlternatives);
-          
-          if (!existingAlternatives.includes(result.email)) {
-            // Create a proper array for the database
-            updateData.alternativeEmails = [...existingAlternatives, result.email];
-            console.log('Updated alternative emails:', updateData.alternativeEmails);
-          }
-        } else {
-          // If no primary email exists, set this as the primary
-          updateData.email = result.email;
+        const { mergeEmailData } = await import('./lib/email-utils');
+        const emailUpdates = mergeEmailData(contact, result.email);
+        Object.assign(updateData, emailUpdates);
+        
+        if (emailUpdates.email) {
           console.log('Setting as primary email:', result.email);
+        } else if (emailUpdates.alternativeEmails) {
+          console.log('Updated alternative emails:', emailUpdates.alternativeEmails);
         }
         updateData.nameConfidenceScore = result.confidence;
       }
