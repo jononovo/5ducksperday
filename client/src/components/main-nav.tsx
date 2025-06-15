@@ -65,7 +65,7 @@ export function MainNav() {
         <div className="flex items-center ml-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8">
                 <Menu className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
