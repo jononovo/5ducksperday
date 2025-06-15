@@ -175,6 +175,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
               <SelectItem 
                 key={template.id} 
                 value={template.id.toString()}
+                className="pl-3"
               >
                 {template.name}
               </SelectItem>
