@@ -877,7 +877,7 @@ export default function PromptEditor({
 
   return (
     <div className="pl-0 pr-1 pt-1 pb-1 shadow-none"> {/* Container with no padding */}
-      <div className="flex flex-col gap-1 md:gap-2">
+      <div className="flex flex-col gap-0 md:gap-2">
         {/* Main Search Summary */}
         <MainSearchSummary
           query={searchMetrics.query}
