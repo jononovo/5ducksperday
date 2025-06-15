@@ -44,3 +44,22 @@ export function hasCompletedEmailSearch(contact: Contact): boolean {
 export function normalizeEmail(email: string): string {
   return email.toLowerCase().trim();
 }
+
+/**
+ * Clean contact data before creation to prevent duplicate emails
+ * Ensures primary email doesn't appear in alternative emails array
+ */
+export function cleanContactData(contactData: any): any {
+  if (!contactData.email || !contactData.alternativeEmails) {
+    return contactData;
+  }
+
+  const primaryEmail = normalizeEmail(contactData.email);
+  const cleanedAlternatives = contactData.alternativeEmails
+    .filter((altEmail: string) => normalizeEmail(altEmail) !== primaryEmail);
+
+  return {
+    ...contactData,
+    alternativeEmails: cleanedAlternatives.length > 0 ? cleanedAlternatives : null
+  };
+}

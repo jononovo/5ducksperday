@@ -276,7 +276,11 @@ class DatabaseStorage implements IStorage {
   }
 
   async createContact(data: InsertContact): Promise<Contact> {
-    const [contact] = await db.insert(contacts).values(data as any).returning();
+    // Clean contact data to prevent duplicate emails
+    const { cleanContactData } = await import('./lib/email-utils');
+    const cleanedData = cleanContactData(data);
+    
+    const [contact] = await db.insert(contacts).values(cleanedData as any).returning();
     return contact;
   }
 
