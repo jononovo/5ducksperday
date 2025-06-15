@@ -3036,6 +3036,14 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         res.status(404).json({ message: "Contact not found" });
         return;
       }
+
+      // Check if contact already has completed email search
+      const { hasCompletedEmailSearch } = await import('./lib/email-utils');
+      if (hasCompletedEmailSearch(contact)) {
+        console.log('Contact already has email, skipping Hunter search:', contact.email);
+        res.json(contact);
+        return;
+      }
       console.log('Contact data from database:', {
         id: contact.id,
         name: contact.name,
@@ -3067,17 +3075,13 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const searchResult = await orchestrator.executeHunterSearch(contact, company, hunterApiKey);
       
       if (searchResult.success) {
-        // Handle email updates intelligently
+        // Handle email updates with unified deduplication logic
         const updateData: any = { ...searchResult.contact };
         
-        if (searchResult.contact.email && searchResult.contact.email !== contact.email) {
-          if (contact.email && contact.email !== searchResult.contact.email) {
-            // Add to alternative emails
-            const existingAlternatives = Array.isArray(contact.alternativeEmails) ? contact.alternativeEmails : [];
-            if (!existingAlternatives.includes(searchResult.contact.email)) {
-              updateData.alternativeEmails = [...existingAlternatives, searchResult.contact.email];
-            }
-          }
+        if (searchResult.contact.email) {
+          const { mergeEmailData } = await import('./lib/email-utils');
+          const emailUpdates = mergeEmailData(contact, searchResult.contact.email);
+          Object.assign(updateData, emailUpdates);
         }
 
         const updatedContact = await storage.updateContact(contactId, updateData, userId);
@@ -3158,17 +3162,13 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const searchResult = await orchestrator.executeApolloSearch(contact, company, apolloApiKey);
       
       if (searchResult.success) {
-        // Handle email updates intelligently
+        // Handle email updates with unified deduplication logic
         const updateData: any = { ...searchResult.contact };
         
-        if (searchResult.contact.email && searchResult.contact.email !== contact.email) {
-          if (contact.email && contact.email !== searchResult.contact.email) {
-            // Add to alternative emails
-            const existingAlternatives = Array.isArray(contact.alternativeEmails) ? contact.alternativeEmails : [];
-            if (!existingAlternatives.includes(searchResult.contact.email)) {
-              updateData.alternativeEmails = [...existingAlternatives, searchResult.contact.email];
-            }
-          }
+        if (searchResult.contact.email) {
+          const { mergeEmailData } = await import('./lib/email-utils');
+          const emailUpdates = mergeEmailData(contact, searchResult.contact.email);
+          Object.assign(updateData, emailUpdates);
         }
 
         const updatedContact = await storage.updateContact(contactId, updateData, userId);
