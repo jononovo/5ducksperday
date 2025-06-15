@@ -69,5 +69,10 @@ export const MERGE_FIELDS: MergeFieldItem[] = [
     value: "{{custom2}}",
     label: "Custom 2",
     description: "Additional custom field"
+  },
+  {
+    value: "{{customer_pain-point}}",
+    label: "Customer Pain Point",
+    description: "Specific problem or challenge the customer faces"
   }
 ];

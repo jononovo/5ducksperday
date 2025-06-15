@@ -28,7 +28,8 @@ const DEFAULT_VALUES: Record<string, string> = {
   '{{company_website}}': 'company-website.com',
   '{{company_linkedin}}': 'linkedin.com/company/name',
   '{{contact_linkedin}}': 'linkedin.com/in/contact',
-  '{{contact_name}}': 'Contact Name'
+  '{{contact_name}}': 'Contact Name',
+  '{{customer_pain-point}}': 'Customer pain point or challenge'
 };
 
 export function resolveMergeField(field: string, context: MergeFieldContext): string {
