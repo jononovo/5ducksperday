@@ -806,11 +806,11 @@ export default function PromptEditor({
       quickSearchMutation.mutate(query);
     }
     
-    // Semi-protected logic: Show registration modal after 5 seconds if not authenticated
+    // Semi-protected logic: Show registration modal after 14 seconds if not authenticated
     if (!user) {
       setTimeout(() => {
         openForProtectedRoute();
-      }, 5000);
+      }, 14000);
     }
   };
 
