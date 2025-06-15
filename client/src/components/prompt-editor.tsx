@@ -906,9 +906,10 @@ export default function PromptEditor({
                 }
               }}
               placeholder="Enter a search query (e.g., 'High-rated Greek restaurants in Midtown NYC')..."
-              className={`pr-20 text-base md:text-lg text-gray-700 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
+              className={`md:pr-20 pr-4 text-base md:text-lg text-gray-700 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
             />
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+            {/* Desktop search type selector - inside input field */}
+            <div className="hidden md:block absolute right-2 top-1/2 transform -translate-y-1/2">
               <SearchTypeSelector
                 selectedType={searchType}
                 onTypeChange={setSearchType}
@@ -958,15 +959,37 @@ export default function PromptEditor({
 
           </div>
         </div>
+
+        {/* Mobile layout: Search type selector and Contact chips on same row */}
+        <div className="md:hidden flex items-center justify-between">
+          <div className="flex-1">
+            <ContactSearchChips
+              onConfigChange={handleContactSearchConfigChange}
+              disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+              isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+              hasSearchResults={hasSearchResults}
+              inputHasChanged={hasSearchResults && query !== lastExecutedQuery}
+            />
+          </div>
+          <div className="ml-2">
+            <SearchTypeSelector
+              selectedType={searchType}
+              onTypeChange={setSearchType}
+              disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+            />
+          </div>
+        </div>
         
-        {/* Contact Search Chips - positioned below search input */}
-        <ContactSearchChips
-          onConfigChange={handleContactSearchConfigChange}
-          disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-          isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-          hasSearchResults={hasSearchResults}
-          inputHasChanged={hasSearchResults && query !== lastExecutedQuery}
-        />
+        {/* Desktop Contact Search Chips - positioned below search input */}
+        <div className="hidden md:block">
+          <ContactSearchChips
+            onConfigChange={handleContactSearchConfigChange}
+            disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+            isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+            hasSearchResults={hasSearchResults}
+            inputHasChanged={hasSearchResults && query !== lastExecutedQuery}
+          />
+        </div>
         
         {/* Progress Bar - moved below search input/button */}
         {(quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (

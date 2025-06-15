@@ -151,6 +151,7 @@
 - June 15, 2025. Contact search chips default optimization: Changed default configuration to enable only Core Leadership by default, while Department Heads and Middle Management start disabled. This focuses searches on C-level executives and founders by default, allowing users to manually expand scope as needed. Applied to both initial state and localStorage fallback configuration
 - June 15, 2025. Search settings icon repositioning: Moved search settings icon from main search bar to lower right corner with absolute positioning (bottom-8 right-4). Made icon less prominent with 40% opacity, gray coloring, and smaller size (h-4 w-4). Icon remains fully functional but now sits discretely out of the main interface flow
 - June 15, 2025. Mobile contact chips spacing optimization: Eliminated vertical spacing between search bar and contact chips on mobile screens by changing container gap from gap-2 to gap-0 md:gap-2. Creates seamless connection on narrow screens while maintaining proper spacing on desktop
+- June 15, 2025. Mobile search input optimization: Repositioned search type selector from inside input field to below search button on mobile screens. Changed input padding from pr-20 to md:pr-20 pr-4 for maximum mobile typing space. Created responsive layout where contact chips and search selector share same row on mobile (justify-between) while maintaining separate rows on desktop. Preserves all functionality while maximizing mobile usability
 
 ## User Preferences
 
