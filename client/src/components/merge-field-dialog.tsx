@@ -70,7 +70,8 @@ export default function MergeFieldDialog({ open, onOpenChange, onMergeFieldInser
           {MERGE_FIELDS.map((field) => (
             <div
               key={field.value}
-              className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors"
+              onClick={() => handleFieldSelect(field)}
+              className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-lg transition-colors cursor-pointer"
             >
               <div className="flex-1 min-w-0">
                 <div className="font-mono text-sm text-foreground">
@@ -84,7 +85,10 @@ export default function MergeFieldDialog({ open, onOpenChange, onMergeFieldInser
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleCopyToClipboard(field)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopyToClipboard(field);
+                }}
                 className="ml-3 flex-shrink-0 h-8 w-8 p-0"
                 disabled={copiedField === field.value}
               >
