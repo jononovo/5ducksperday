@@ -175,12 +175,8 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
               <SelectItem 
                 key={template.id} 
                 value={template.id.toString()}
-                className="pl-3 pr-2"
               >
-                <div>
-                  <div className="font-medium">{template.name}</div>
-                  <div className="text-xs text-muted-foreground">{template.description}</div>
-                </div>
+                {template.name}
               </SelectItem>
             ))}
           </SelectContent>
