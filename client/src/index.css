@@ -13,20 +13,27 @@
   }
 }
 
-/* Mobile focus enhancement - width expansion and internal border */
+/* Mobile focus enhancement - container expansion and input border */
 @media (max-width: 767px) {
   .mobile-focus-enhancement {
-    transition: flex-grow 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: inset 0 0 0 0 transparent;
-    flex-grow: 1;
+    transform-origin: left;
+    transition: transform 0.3s ease;
   }
   
-  .mobile-focus-enhancement:focus {
-    flex-grow: 1.03;
+  .mobile-focus-enhancement:focus-within {
+    transform: scaleX(1.03);
+  }
+  
+  .mobile-input-border {
+    transition: box-shadow 0.3s ease;
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+  
+  .mobile-input-border:focus {
     box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.4);
   }
   
-  .mobile-focus-enhancement:focus-visible {
+  .mobile-input-border:focus-visible {
     outline: none !important;
     border-color: transparent !important;
     box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.4) !important;

@@ -890,7 +890,7 @@ export default function PromptEditor({
         />
         
         <div className="flex flex-row md:gap-2 gap-0 pl-0">
-          <div className="relative flex-1">
+          <div className="relative flex-1 mobile-focus-enhancement">
             <Input
               value={query}
               onChange={(e) => {
@@ -906,7 +906,7 @@ export default function PromptEditor({
                 }
               }}
               placeholder="Be as detailed as possible 🎯 😉"
-              className={`md:rounded-md rounded-l-md rounded-r-none md:pr-20 pr-4 text-base md:text-lg text-gray-700 hover:border-gray-300 md:focus-visible:border-gray-400 mobile-focus-enhancement ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
+              className={`md:rounded-md rounded-l-md rounded-r-none md:pr-20 pr-4 text-base md:text-lg text-gray-700 hover:border-gray-300 md:focus-visible:border-gray-400 mobile-input-border ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
             />
             {/* Desktop search type selector - inside input field */}
             <div className="hidden md:block absolute right-2 top-1/2 transform -translate-y-1/2">
