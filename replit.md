@@ -152,6 +152,7 @@
 - June 15, 2025. Search settings icon repositioning: Moved search settings icon from main search bar to lower right corner with absolute positioning (bottom-8 right-4). Made icon less prominent with 40% opacity, gray coloring, and smaller size (h-4 w-4). Icon remains fully functional but now sits discretely out of the main interface flow
 - June 15, 2025. Mobile contact chips spacing optimization: Eliminated vertical spacing between search bar and contact chips on mobile screens by changing container gap from gap-2 to gap-0 md:gap-2. Creates seamless connection on narrow screens while maintaining proper spacing on desktop
 - June 15, 2025. Mobile search input optimization: Repositioned search type selector from inside input field to below search button on mobile screens. Changed input padding from pr-20 to md:pr-20 pr-4 for maximum mobile typing space. Created responsive layout where contact chips and search selector share same row on mobile (justify-between) while maintaining separate rows on desktop. Preserves all functionality while maximizing mobile usability
+- June 15, 2025. Mobile search type selector alignment fix: Changed mobile container alignment from items-center to items-start to prevent search type selector from jumping down when contact chips expand to multiple rows. Selector now stays anchored to top position for consistent user experience
 
 ## User Preferences
 

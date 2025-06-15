@@ -961,7 +961,7 @@ export default function PromptEditor({
         </div>
 
         {/* Mobile layout: Search type selector and Contact chips on same row */}
-        <div className="md:hidden flex items-center justify-between">
+        <div className="md:hidden flex items-start justify-between">
           <div className="flex-1">
             <ContactSearchChips
               onConfigChange={handleContactSearchConfigChange}
