@@ -889,7 +889,7 @@ export default function PromptEditor({
           companies={searchMetrics.companies}
         />
         
-        <div className="flex flex-row gap-2 pl-0">
+        <div className="flex flex-row md:gap-2 gap-0 pl-0">
           <div className="relative flex-1">
             <Input
               value={query}
@@ -906,7 +906,7 @@ export default function PromptEditor({
                 }
               }}
               placeholder="Enter a search query (e.g., 'High-rated Greek restaurants in Midtown NYC')..."
-              className={`md:pr-20 pr-4 text-base md:text-lg text-gray-700 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
+              className={`md:rounded-md rounded-l-md rounded-r-none md:pr-20 pr-4 text-base md:text-lg text-gray-700 hover:border-gray-300 focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
             />
             {/* Desktop search type selector - inside input field */}
             <div className="hidden md:block absolute right-2 top-1/2 transform -translate-y-1/2">
@@ -935,6 +935,7 @@ export default function PromptEditor({
               onClick={handleSearch} 
               disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
               className={`
+                md:rounded-md rounded-l-none rounded-r-md
                 transition-all duration-300 flex items-center sm:gap-2
                 ${lastExecutedQuery && !inputHasChanged 
                   ? 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-400 dark:hover:bg-gray-500 shadow-md hover:shadow-lg' 

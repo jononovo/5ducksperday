@@ -154,6 +154,7 @@
 - June 15, 2025. Mobile search input optimization: Repositioned search type selector from inside input field to below search button on mobile screens. Changed input padding from pr-20 to md:pr-20 pr-4 for maximum mobile typing space. Created responsive layout where contact chips and search selector share same row on mobile (justify-between) while maintaining separate rows on desktop. Preserves all functionality while maximizing mobile usability
 - June 15, 2025. Mobile search type selector alignment fix: Changed mobile container alignment from items-center to items-start to prevent search type selector from jumping down when contact chips expand to multiple rows. Selector now stays anchored to top position for consistent user experience
 - June 15, 2025. Mobile search type selector spacing fix: Added mt-5 top margin to search type selector wrapper for optimal spacing. Selector positioned with generous distance from search button above for clean visual hierarchy
+- June 15, 2025. Connected mobile search interface: Removed gap between search input and button on mobile (md:gap-2 gap-0), implemented seamless connection with custom border radius (input: rounded-l-md rounded-r-none, button: rounded-l-none rounded-r-md). Creates unified search element on mobile while preserving separate elements on desktop for maximum input width
 
 ## User Preferences
 
