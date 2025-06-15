@@ -161,6 +161,7 @@
 - June 15, 2025. Mobile focus enhancement fixes: Replaced scaleX transform with flex-grow expansion (1 to 1.03) to properly push search button right instead of overlapping. Added comprehensive focus-visible overrides with !important declarations to eliminate shadcn's default dark border/ring styling on mobile, ensuring only internal blue border appears
 - June 15, 2025. Mobile focus styling refinement: Removed problematic width expansion approaches and simplified to clean internal border only. Changed border from thick blue (2px, rgba(59, 130, 246, 0.4)) to thin light gray (1px, rgba(156, 163, 175, 0.3)) for subtle, professional focus indication on mobile devices
 - June 15, 2025. Search placeholder text refinement: Removed winking emoji from placeholder text, changing from "Be as detailed as possible 🎯 😉" to "Be as detailed as possible 🎯" for cleaner, more professional appearance
+- June 15, 2025. Search placeholder example update: Changed placeholder from motivational text to concrete example "Series-A Fintech companies in NYC " to demonstrate the specificity level and search format that works best with the B2B prospecting system
 
 
 ## User Preferences
