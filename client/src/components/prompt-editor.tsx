@@ -890,7 +890,7 @@ export default function PromptEditor({
         />
         
         <div className="flex flex-row md:gap-2 gap-0 pl-0">
-          <div className="relative flex-1 mobile-focus-enhancement">
+          <div className="relative flex-1">
             <Input
               value={query}
               onChange={(e) => {

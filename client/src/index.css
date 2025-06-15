@@ -13,16 +13,8 @@
   }
 }
 
-/* Mobile focus enhancement - container expansion and input border */
+/* Mobile focus enhancement - simple internal border only */
 @media (max-width: 767px) {
-  .mobile-focus-enhancement {
-    transform-origin: left;
-    transition: transform 0.3s ease;
-  }
-  
-  .mobile-focus-enhancement:focus-within {
-    transform: scaleX(1.03);
-  }
   
   .mobile-input-border {
     transition: box-shadow 0.3s ease;
