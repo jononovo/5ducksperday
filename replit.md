@@ -167,6 +167,7 @@
 - June 15, 2025. Saved searches drawer button repositioning: Moved button from top-20 to top-32 on mobile (md:top-20 preserves desktop position) to prevent overlap with search input. Made button more compact on mobile (h-8 w-8 vs h-10 w-10 desktop) and scaled down ListChecks icon (h-4 w-4 vs h-5 w-5 desktop) for better mobile space efficiency
 - June 15, 2025. Replies menu item hidden: Commented out "Replies" navigation item in main-nav.tsx navigation array to hide the unfinished feature while preserving code for future re-enablement
 - June 15, 2025. Hamburger menu button border removal: Changed main navigation dropdown menu button from variant="outline" to variant="ghost" to remove border while preserving hover effects and background states
+- June 15, 2025. Landing page example text update: Changed suggestion button from "Wolf-of-wallstreet-esque trading companies" to "Series-A Fintech companies in NYC" in static/landing.html for better example clarity
 
 
 ## User Preferences
