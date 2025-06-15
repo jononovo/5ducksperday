@@ -168,6 +168,7 @@
 - June 15, 2025. Replies menu item hidden: Commented out "Replies" navigation item in main-nav.tsx navigation array to hide the unfinished feature while preserving code for future re-enablement
 - June 15, 2025. Hamburger menu button border removal: Changed main navigation dropdown menu button from variant="outline" to variant="ghost" to remove border while preserving hover effects and background states
 - June 15, 2025. Landing page example text update: Changed suggestion button from "Wolf-of-wallstreet-esque trading companies" to "Series-A Fintech companies in NYC" in static/landing.html for better example clarity
+- June 15, 2025. Landing page statistics update: Changed time savings metric from "22 Hours" / "Saved per Month" to "~48 Mins" / "Saved per Day" for more relatable daily value proposition
 
 
 ## User Preferences
