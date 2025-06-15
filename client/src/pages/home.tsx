@@ -2142,7 +2142,7 @@ export default function Home() {
                           onClick={handleStartSelling}
                         >
                           <Rocket className="h-4 w-4" />
-                          <span>Start Selling</span>
+                          <span className="hidden md:inline">Start Selling</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
@@ -2178,7 +2178,7 @@ export default function Home() {
                           }}
                         >
                           <Plus className="h-4 w-4" />
-                          <span>5 More</span>
+                          <span className="hidden md:inline">5 More</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
@@ -2196,7 +2196,7 @@ export default function Home() {
                           className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
                         >
                           <ChevronDown className="h-4 w-4" />
-                          <span>Expand</span>
+                          <span className="hidden md:inline">Expand</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">

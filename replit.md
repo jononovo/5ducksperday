@@ -162,6 +162,7 @@
 - June 15, 2025. Mobile focus styling refinement: Removed problematic width expansion approaches and simplified to clean internal border only. Changed border from thick blue (2px, rgba(59, 130, 246, 0.4)) to thin light gray (1px, rgba(156, 163, 175, 0.3)) for subtle, professional focus indication on mobile devices
 - June 15, 2025. Search placeholder text refinement: Removed winking emoji from placeholder text, changing from "Be as detailed as possible 🎯 😉" to "Be as detailed as possible 🎯" for cleaner, more professional appearance
 - June 15, 2025. Search placeholder example update: Changed placeholder from motivational text to concrete example "Series-A Fintech companies in NYC " to demonstrate the specificity level and search format that works best with the B2B prospecting system
+- June 15, 2025. Mobile button label optimization: Hidden text labels on mobile for "Start Selling", "5 More", and "Expand" buttons using `hidden md:inline` classes while preserving icons and desktop functionality. "Find Key Emails" button retains full text on all screen sizes for clarity
 
 
 ## User Preferences
