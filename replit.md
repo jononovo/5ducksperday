@@ -173,6 +173,7 @@
 - June 15, 2025. Authentication delay extension: Increased semi-protected route authentication delay from 5 seconds to 14 seconds to give new users more time to explore and engage with search functionality before being prompted to register
 - June 15, 2025. Company table URL click prevention: Modified company website URLs to be non-clickable text while keeping only the ExternalLink icon clickable. This prevents accidental URL clicks when users intend to expand company rows. Applied to both desktop and mobile views for consistent behavior
 - June 15, 2025. Edge-to-edge mobile Companies Analysis layout: Changed root container padding from px-2 to px-0 on mobile devices (preserving md:px-6 for desktop) to eliminate the 8px left/right margins, allowing the Companies Analysis section to touch screen edges for maximum mobile space utilization
+- June 15, 2025. Unified email deduplication system implementation: Created centralized email-utils.ts with mergeEmailData(), hasCompletedEmailSearch(), and normalizeEmail() functions. Replaced 6+ scattered email handling implementations across server/routes.ts with single source of truth, reducing code by ~65 lines. Added completion checks to Hunter.io, Apollo.io, AeroLeads, and Perplexity endpoints to prevent obsessive re-searching of contacts that already have emails. Fixed duplicate email bug where same email appeared in both primary and alternativeEmails fields due to race conditions between multiple search APIs
 
 
 ## User Preferences

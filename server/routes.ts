@@ -3131,6 +3131,14 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         res.status(404).json({ message: "Contact not found" });
         return;
       }
+
+      // Check if contact already has completed email search
+      const { hasCompletedEmailSearch } = await import('./lib/email-utils');
+      if (hasCompletedEmailSearch(contact)) {
+        console.log('Contact already has email, skipping Apollo search:', contact.email);
+        res.json(contact);
+        return;
+      }
       console.log('Contact data from database:', {
         id: contact.id,
         name: contact.name,
@@ -3217,6 +3225,15 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         res.status(404).json({ message: "Contact not found" });
         return;
       }
+
+      // Check if contact already has completed email search
+      const { hasCompletedEmailSearch } = await import('./lib/email-utils');
+      if (hasCompletedEmailSearch(contact)) {
+        console.log('Contact already has email, skipping AeroLeads search:', contact.email);
+        res.json(contact);
+        return;
+      }
+
       console.log('Contact data from database:', {
         id: contact.id,
         name: contact.name,
