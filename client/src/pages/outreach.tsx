@@ -123,6 +123,9 @@ export default function Outreach() {
   const [originalEmailContent, setOriginalEmailContent] = useState("");
   const [originalEmailSubject, setOriginalEmailSubject] = useState("");
   
+  // Scroll compression state
+  const [isScrolled, setIsScrolled] = useState(false);
+  
   // Textarea refs for auto-resizing
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -191,6 +194,17 @@ export default function Outreach() {
     };
     localStorage.setItem('outreachState', JSON.stringify(stateToSave));
   }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, selectedCompanyIndex, originalEmailPrompt, originalEmailContent, originalEmailSubject]);
+
+  // Scroll compression effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolled = window.scrollY > 0;
+      setIsScrolled(scrolled);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
@@ -888,18 +902,18 @@ export default function Outreach() {
   return (
     <div className="w-full md:container md:mx-auto md:py-8">
       {/* Mobile Duck Header - Only visible on mobile when in compressed view with selected contact */}
-      <div className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 ${showExpandedView || !selectedContact ? 'hidden' : 'block'}`}>
-        <div className="flex items-center justify-center pt-2 pb-1 relative">
+      <div className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 transition-all duration-300 ${showExpandedView || !selectedContact ? 'hidden' : 'block'}`}>
+        <div className={`flex items-center justify-center relative transition-all duration-300 ${isScrolled ? 'pt-1 pb-0.5' : 'pt-2 pb-1'}`}>
 
-          <span className="text-2xl">🐥</span>
-          <span className="text-lg ml-1">🥚🥚🥚🥚</span>
+          <span className={`transition-all duration-300 ${isScrolled ? 'text-lg' : 'text-2xl'}`}>🐥</span>
+          <span className={`ml-1 transition-all duration-300 ${isScrolled ? 'text-sm' : 'text-lg'}`}>🥚🥚🥚🥚</span>
           
           {/* X Close Button */}
           <button
             onClick={handleCloseDuckHeader}
-            className="absolute right-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+            className={`absolute right-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-300 ${isScrolled ? 'p-0.5' : 'p-1'}`}
           >
-            <X className="w-5 h-5" />
+            <X className={`transition-all duration-300 ${isScrolled ? 'w-4 h-4' : 'w-5 h-5'}`} />
           </button>
         </div>
       </div>
