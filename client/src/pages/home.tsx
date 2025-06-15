@@ -1984,14 +1984,16 @@ export default function Home() {
         <div className="col-span-12 space-y-2 md:space-y-4 mt-[-10px]">
           {/* Search Section - border removed and moved up */}
           <div className="px-3 md:px-6 py-1"> {/* Reduced mobile padding, matched desktop padding with CardHeader (p-6) */}
-            <div className="flex flex-col-reverse md:flex-row items-center gap-4 mb-3">
-              <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-semibold mt-2 md:mt-0">Search for target businesses</h2>
+            {!currentResults && (
+              <div className="flex flex-col-reverse md:flex-row items-center gap-4 mb-3">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-semibold mt-2 md:mt-0">Search for target businesses</h2>
+                </div>
+                <div>
+                  <EggAnimation />
+                </div>
               </div>
-              <div>
-                <EggAnimation />
-              </div>
-            </div>
+            )}
             <Suspense fallback={<div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>}>
               <PromptEditor
                 onAnalyze={() => setIsAnalyzing(true)}
