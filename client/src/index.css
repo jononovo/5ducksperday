@@ -22,13 +22,13 @@
   }
   
   .mobile-input-border:focus {
-    box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.4);
+    box-shadow: inset 0 0 0 1px rgba(156, 163, 175, 0.3);
   }
   
   .mobile-input-border:focus-visible {
     outline: none !important;
     border-color: transparent !important;
-    box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.4) !important;
+    box-shadow: inset 0 0 0 1px rgba(156, 163, 175, 0.3) !important;
     ring: 0 !important;
     ring-offset: 0 !important;
     --tw-ring-shadow: 0 0 #0000 !important;
