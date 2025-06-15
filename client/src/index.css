@@ -16,13 +16,24 @@
 /* Mobile focus enhancement - width expansion and internal border */
 @media (max-width: 767px) {
   .mobile-focus-enhancement {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: flex-grow 0.3s ease, box-shadow 0.3s ease;
     box-shadow: inset 0 0 0 0 transparent;
+    flex-grow: 1;
   }
   
   .mobile-focus-enhancement:focus {
-    transform: scaleX(1.03);
+    flex-grow: 1.03;
     box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.4);
+  }
+  
+  .mobile-focus-enhancement:focus-visible {
+    outline: none !important;
+    border-color: transparent !important;
+    box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.4) !important;
+    ring: 0 !important;
+    ring-offset: 0 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
   }
 }
 

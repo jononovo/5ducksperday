@@ -158,6 +158,7 @@
 - June 15, 2025. Mobile padding optimization: Reduced horizontal padding across mobile interface - main container (px-2 md:px-6), search section (px-3 md:px-6), grid gaps (gap-3 md:gap-6), and section spacing (space-y-2 md:space-y-4). Creates tighter, more space-efficient mobile layout while maintaining desktop comfort
 - June 15, 2025. Search placeholder text update: Changed search input placeholder from example-based text to encouraging message "Be as detailed as possible 🎯 😉" to prompt users for more detailed queries and better search results
 - June 15, 2025. Mobile focus enhancement: Implemented mobile-only input focus animation with 3% width expansion (scaleX(1.03)) and internal blue border highlight. Uses CSS transitions for smooth animation and gently pushes search button right when input is active, solving the disjointed outline issue from connected interface
+- June 15, 2025. Mobile focus enhancement fixes: Replaced scaleX transform with flex-grow expansion (1 to 1.03) to properly push search button right instead of overlapping. Added comprehensive focus-visible overrides with !important declarations to eliminate shadcn's default dark border/ring styling on mobile, ensuring only internal blue border appears
 
 ## User Preferences
 
