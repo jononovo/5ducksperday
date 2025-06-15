@@ -70,6 +70,10 @@ interface SavedOutreachState {
   toEmail: string;
   emailSubject: string;
   selectedCompanyIndex: number;
+  // Original content for merge field conversion
+  originalEmailPrompt?: string;
+  originalEmailContent?: string;
+  originalEmailSubject?: string;
 }
 
 export default function Outreach() {
@@ -164,6 +168,10 @@ export default function Outreach() {
       setToEmail(parsed.toEmail || "");
       setEmailSubject(parsed.emailSubject || "");
       setCurrentCompanyIndex(parsed.selectedCompanyIndex || 0);
+      // Load original content for merge field conversion
+      setOriginalEmailPrompt(parsed.originalEmailPrompt || parsed.emailPrompt);
+      setOriginalEmailContent(parsed.originalEmailContent || parsed.emailContent);
+      setOriginalEmailSubject(parsed.originalEmailSubject || parsed.emailSubject || "");
     }
   }, []);
 
@@ -176,10 +184,13 @@ export default function Outreach() {
       emailContent,
       toEmail,
       emailSubject,
-      selectedCompanyIndex
+      selectedCompanyIndex,
+      originalEmailPrompt,
+      originalEmailContent,
+      originalEmailSubject
     };
     localStorage.setItem('outreachState', JSON.stringify(stateToSave));
-  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, selectedCompanyIndex]);
+  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, selectedCompanyIndex, originalEmailPrompt, originalEmailContent, originalEmailSubject]);
 
   const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
@@ -557,13 +568,16 @@ export default function Outreach() {
       // Set the subject if empty and update content
       if (!emailSubject) {
         setEmailSubject(data.subject);
+        setOriginalEmailSubject(data.subject);
       }
       // Set the email if a contact is selected and has an email
       const selectedContact = contacts.find(c => c.id === selectedContactId);
       if (selectedContact?.email && !toEmail) {
         setToEmail(selectedContact.email);
       }
-      setEmailContent(prev => `${data.content}\n\n${prev}`);
+      const newContent = `${data.content}\n\n${emailContent}`;
+      setEmailContent(newContent);
+      setOriginalEmailContent(newContent);
       toast({
         title: "Email Generated",
         description: "New content has been added above the existing email.",
@@ -1411,6 +1425,10 @@ export default function Outreach() {
                     setEmailPrompt(template.description || "");
                     setEmailContent(template.content);
                     setEmailSubject(template.subject || "");
+                    // Store original versions for merge field conversion
+                    setOriginalEmailPrompt(template.description || "");
+                    setOriginalEmailContent(template.content);
+                    setOriginalEmailSubject(template.subject || "");
                   }}
                   onSaveTemplate={handleSaveEmail}
                   onUpdateTemplate={saveCurrentTemplate}
