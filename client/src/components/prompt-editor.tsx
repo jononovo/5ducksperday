@@ -955,17 +955,7 @@ export default function PromptEditor({
               )}
             </Button>
             
-            {/* Settings drawer trigger with custom search props */}
-            <SearchSettingsDrawer 
-              
-              targetUrl={targetUrl}
-              setTargetUrl={setTargetUrl}
-              resultsUrl={resultsUrl}
-              setResultsUrl={setResultsUrl}
-              customSelected={customSelected}
-              isCustomLoading={isCustomLoading}
-              handleCustomWorkflowSearch={handleCustomWorkflowSearch}
-            />
+
           </div>
         </div>
         
@@ -987,6 +977,19 @@ export default function PromptEditor({
             isVisible={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
           />
         )}
+
+        {/* Settings drawer trigger - positioned in lower right corner */}
+        <div className="absolute bottom-4 right-4">
+          <SearchSettingsDrawer 
+            targetUrl={targetUrl}
+            setTargetUrl={setTargetUrl}
+            resultsUrl={resultsUrl}
+            setResultsUrl={setResultsUrl}
+            customSelected={customSelected}
+            isCustomLoading={isCustomLoading}
+            handleCustomWorkflowSearch={handleCustomWorkflowSearch}
+          />
+        </div>
 
       </div>
     </div>
