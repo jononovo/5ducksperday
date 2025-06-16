@@ -2495,123 +2495,141 @@ Then, on a new line, write the body of the email. Keep both subject and content 
             return { processed: 0, emailsFound: 0, result: null };
           }
           
-          let companyEmailsFound = 0;
-          let companyProcessed = 0;
-          
-          // Phase 1: Try existing Apollo endpoint for best contact
-          const bestContact = topContacts[0];
-          if (bestContact) {
-            try {
-              // Make internal API call to existing Apollo endpoint
-              const apolloResponse = await fetch(`http://localhost:5000/api/contacts/${bestContact.id}/apollo`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': req.headers.authorization || ''
-                }
-              });
-              
-              const apolloData = await apolloResponse.json();
-              if (apolloResponse.status === 200 || apolloResponse.status === 422) {
-                // Handle both success and "no email found" responses
-                const contactData = apolloResponse.status === 200 ? apolloData : apolloData.contact;
-                if (contactData.email && contactData.email.length > 5) {
-                  companyEmailsFound++;
-                  console.log(`Apollo found email for ${bestContact.name}: ${contactData.email}`);
-                }
-                companyProcessed++;
-              }
-            } catch (error) {
-              console.error(`Apollo search failed for contact ${bestContact.id}:`, error);
-              companyProcessed++;
-            }
-          }
-          
-          // If Apollo found emails, return result
-          if (companyEmailsFound > 0) {
-            return {
-              processed: companyProcessed,
-              emailsFound: companyEmailsFound,
-              result: {
-                companyId: company.id,
-                companyName: company.name,
-                emailsFound: companyEmailsFound,
-                source: 'Apollo'
-              }
-            };
-          }
-          
-          // Phase 2: Try Perplexity enrichment for up to 2 contacts
-          const perplexityContacts = topContacts.slice(0, 2);
-          for (const contact of perplexityContacts) {
-            try {
-              const enrichedDetails = await searchContactDetails(contact.name, company.name);
-              
-              if (enrichedDetails && enrichedDetails.email && enrichedDetails.email.length > 5) {
-                await storage.updateContact(contact.id, {
-                  ...enrichedDetails,
-                  completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
+          // Helper function: Search multiple contacts with Apollo
+          const searchApolloContacts = async (contacts: Contact[]) => {
+            let emailsFound = 0;
+            let contactsProcessed = 0;
+            const sources = [];
+            
+            for (const contact of contacts) {
+              try {
+                const apolloResponse = await fetch(`http://localhost:5000/api/contacts/${contact.id}/apollo`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': req.headers.authorization || '' }
                 });
-                companyEmailsFound++;
-                console.log(`Perplexity found email for ${contact.name}: ${enrichedDetails.email}`);
+                
+                const apolloData = await apolloResponse.json();
+                if (apolloResponse.status === 200 || apolloResponse.status === 422) {
+                  const contactData = apolloResponse.status === 200 ? apolloData : apolloData.contact;
+                  if (contactData.email && contactData.email.length > 5) {
+                    emailsFound++;
+                    sources.push(`Apollo-${contact.name}`);
+                    console.log(`Apollo found email for ${contact.name}: ${contactData.email}`);
+                  }
+                  contactsProcessed++;
+                }
+              } catch (error) {
+                console.error(`Apollo search failed for contact ${contact.id}:`, error);
+                contactsProcessed++;
               }
-              companyProcessed++;
-            } catch (error) {
-              console.error(`Perplexity search failed for contact ${contact.id}:`, error);
-              companyProcessed++;
             }
-          }
-          
-          // If Perplexity found emails, return result
-          if (companyEmailsFound > 0) {
+            
+            return { emailsFound, contactsProcessed, sources };
+          };
+
+          // Helper function: Search multiple contacts with Perplexity  
+          const searchPerplexityContacts = async (contacts: Contact[]) => {
+            let emailsFound = 0;
+            let contactsProcessed = 0;
+            const sources = [];
+            
+            for (const contact of contacts) {
+              try {
+                const enrichedDetails = await searchContactDetails(contact.name, company.name);
+                if (enrichedDetails && enrichedDetails.email && enrichedDetails.email.length > 5) {
+                  await storage.updateContact(contact.id, {
+                    ...enrichedDetails,
+                    completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
+                  }, userId);
+                  emailsFound++;
+                  sources.push(`Perplexity-${contact.name}`);
+                  console.log(`Perplexity found email for ${contact.name}: ${enrichedDetails.email}`);
+                }
+                contactsProcessed++;
+              } catch (error) {
+                console.error(`Perplexity search failed for contact ${contact.id}:`, error);
+                contactsProcessed++;
+              }
+            }
+            
+            return { emailsFound, contactsProcessed, sources };
+          };
+
+          // Helper function: Search multiple contacts with Hunter
+          const searchHunterContacts = async (contacts: Contact[]) => {
+            let emailsFound = 0;
+            let contactsProcessed = 0;
+            const sources = [];
+            
+            for (const contact of contacts) {
+              try {
+                const hunterResponse = await fetch(`http://localhost:5000/api/contacts/${contact.id}/hunter`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': req.headers.authorization || '' }
+                });
+                
+                const hunterData = await hunterResponse.json();
+                if (hunterResponse.status === 200 || hunterResponse.status === 422) {
+                  const contactData = hunterResponse.status === 200 ? hunterData : hunterData.contact;
+                  if (contactData.email && contactData.email.length > 5) {
+                    emailsFound++;
+                    sources.push(`Hunter-${contact.name}`);
+                    console.log(`Hunter found email for ${contact.name}: ${contactData.email}`);
+                  }
+                  contactsProcessed++;
+                }
+              } catch (error) {
+                console.error(`Hunter search failed for contact ${contact.id}:`, error);
+                contactsProcessed++;
+              }
+            }
+            
+            return { emailsFound, contactsProcessed, sources };
+          };
+
+          // Define contact assignments
+          const contact1 = topContacts[0]; // Highest scored
+          const contact2 = topContacts[1]; // Second highest  
+          const contact3 = topContacts[2]; // Third highest
+
+          // Tier 1 & 2: Run Apollo and Perplexity in parallel
+          console.log(`Starting parallel search - Apollo: contacts 1&2, Perplexity: contacts 1&3 for ${company.name}`);
+          const [apolloResults, perplexityResults] = await Promise.all([
+            searchApolloContacts([contact1, contact2].filter(Boolean)),
+            searchPerplexityContacts([contact1, contact3].filter(Boolean))
+          ]);
+
+          const combinedEmailsFound = apolloResults.emailsFound + perplexityResults.emailsFound;
+          const combinedContactsProcessed = apolloResults.contactsProcessed + perplexityResults.contactsProcessed;
+          const combinedSources = [...apolloResults.sources, ...perplexityResults.sources];
+
+          // Early return if emails found
+          if (combinedEmailsFound > 0) {
+            console.log(`Parallel search success for ${company.name}: ${combinedEmailsFound} emails found`);
             return {
-              processed: companyProcessed,
-              emailsFound: companyEmailsFound,
+              processed: combinedContactsProcessed,
+              emailsFound: combinedEmailsFound,
               result: {
                 companyId: company.id,
                 companyName: company.name,
-                emailsFound: companyEmailsFound,
-                source: 'Perplexity'
+                emailsFound: combinedEmailsFound,
+                source: combinedSources.join(', ')
               }
             };
           }
-          
-          // Phase 3: Try existing Hunter endpoint for best contact
-          if (bestContact) {
-            try {
-              // Make internal API call to existing Hunter endpoint
-              const hunterResponse = await fetch(`http://localhost:5000/api/contacts/${bestContact.id}/hunter`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': req.headers.authorization || ''
-                }
-              });
-              
-              const hunterData = await hunterResponse.json();
-              if (hunterResponse.status === 200 || hunterResponse.status === 422) {
-                // Handle both success and "no email found" responses
-                const contactData = hunterResponse.status === 200 ? hunterData : hunterData.contact;
-                if (contactData.email && contactData.email.length > 5) {
-                  companyEmailsFound++;
-                  console.log(`Hunter found email for ${bestContact.name}: ${contactData.email}`);
-                }
-                companyProcessed++;
-              }
-            } catch (error) {
-              console.error(`Hunter search failed for contact ${bestContact.id}:`, error);
-              companyProcessed++;
-            }
-          }
+
+          // Tier 3: Hunter only if no emails found in Tiers 1 & 2
+          console.log(`No emails found in parallel search, trying Hunter for ${company.name}`);
+          const hunterResults = await searchHunterContacts([contact1, contact2].filter(Boolean));
           
           return {
-            processed: companyProcessed,
-            emailsFound: companyEmailsFound,
+            processed: combinedContactsProcessed + hunterResults.contactsProcessed,
+            emailsFound: hunterResults.emailsFound,
             result: {
               companyId: company.id,
               companyName: company.name,
-              emailsFound: companyEmailsFound,
-              source: companyEmailsFound > 0 ? 'Hunter' : 'None'
+              emailsFound: hunterResults.emailsFound,
+              source: hunterResults.emailsFound > 0 ? hunterResults.sources.join(', ') : 'None'
             }
           };
           
@@ -2635,9 +2653,17 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         if (result) {
           results.push(result);
           if (result.source && result.emailsFound > 0) {
-            if (result.source === 'Perplexity' || result.source === 'Apollo' || result.source === 'Hunter') {
-              sourceBreakdown[result.source] += result.emailsFound;
-            }
+            // Handle parallel search results with multiple sources
+            const sources = result.source.split(', ');
+            sources.forEach(source => {
+              if (source.includes('Apollo')) {
+                sourceBreakdown.Apollo++;
+              } else if (source.includes('Perplexity')) {
+                sourceBreakdown.Perplexity++;
+              } else if (source.includes('Hunter')) {
+                sourceBreakdown.Hunter++;
+              }
+            });
           }
         }
       }
