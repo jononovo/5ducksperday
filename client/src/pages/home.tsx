@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SearchProgress } from "@/components/search-progress";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { SearchStateManager } from "@/lib/search-state-manager";
 
 // Lazy load heavy components
 const CompanyTable = lazy(() => import("@/components/company-table"));
