@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.ico" />
+    <title>5Ducks - Find the right people to sell to</title>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4K01JPM2D8"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-4K01JPM2D8');
+    </script>
+    
+    <style>
+      /* Reset and base styles */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      
+      /* Page structure */
+      .page-container {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      /* Content area - will take at least full viewport height minus footer */
+      .content-area {
+        flex: 1;
+        min-height: 100vh; /* Ensures content pushes footer below viewport */
+      }
+      
+      /* Root container for React */
+      #root {
+        height: 100%;
+      }
+      
+      /* Static footer - now part of normal document flow */
+      #static-footer {
+        width: 100%;
+        border-top: 1px solid #e2e8f0;
+        padding: 2rem 0;
+        background-color: #f8fafc;
+      }
+      
+      /* Hide the static structure once React is loaded */
+      body.react-loaded .static-elements {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Root div for React app must be at the top level -->
+    <div id="root"></div>
+    
+    <!-- Page container for static content -->
+    <div class="page-container static-elements">
+      <!-- Content area to push footer down -->
+      <div class="content-area">
+        <!-- Empty placeholder -->
+      </div>
+      
+      <!-- Static footer -->
+      <footer id="static-footer" style="border-top: 1px solid #e2e8f0; padding: 2rem 0; background-color: #f8fafc;">
+      <div style="max-width: 1200px; margin: 0 auto; padding: 0 1rem;">
+        <div style="display: flex; flex-wrap: wrap; gap: 2rem; margin-bottom: 2rem;">
+          <div style="flex: 1; min-width: 200px;">
+            <div style="font-weight: bold; font-size: 1.25rem; margin-bottom: 1rem;">5Ducks</div>
+            <p style="color: #64748b; font-size: 0.875rem;">
+              5Ducks makes it easy for founders to build a $70k pipeline in only five minutes per day.
+            </p>
+          </div>
+          
+          <div style="flex: 1; min-width: 150px;">
+            <h3 style="font-weight: bold; font-size: 1.125rem; margin-bottom: 1rem;">Product</h3>
+            <ul style="font-size: 0.875rem;">
+              <li style="margin-bottom: 0.5rem;">
+                <a href="/pricing" style="color: #64748b; text-decoration: none;">Pricing</a>
+              </li>
+              <li style="margin-bottom: 0.5rem;">
+                <a href="/levels" style="color: #64748b; text-decoration: none;">Levels</a>
+              </li>
+              <li style="margin-bottom: 0.5rem;">
+                <a href="/blog" style="color: #64748b; text-decoration: none;">Blog</a>
+              </li>
+            </ul>
+          </div>
+          
+          <div style="flex: 1; min-width: 150px;">
+            <h3 style="font-weight: bold; font-size: 1.125rem; margin-bottom: 1rem;">Company</h3>
+            <ul style="font-size: 0.875rem;">
+              <li style="margin-bottom: 0.5rem;">
+                <a href="/contact" style="color: #64748b; text-decoration: none;">Contact</a>
+              </li>
+              <li style="margin-bottom: 0.5rem;">
+                <a href="/support" style="color: #64748b; text-decoration: none;">Support</a>
+              </li>
+              <li style="margin-bottom: 0.5rem;">
+                <a href="/sitemap.xml" style="color: #64748b; text-decoration: none;">Sitemap</a>
+              </li>
+            </ul>
+          </div>
+          
+          <div style="flex: 1; min-width: 150px;">
+            <h3 style="font-weight: bold; font-size: 1.125rem; margin-bottom: 1rem;">Legal</h3>
+            <ul style="font-size: 0.875rem;">
+              <li style="margin-bottom: 0.5rem;">
+                <a href="/privacy.html" style="color: #64748b; text-decoration: none;">Privacy Policy</a>
+              </li>
+              <li style="margin-bottom: 0.5rem;">
+                <a href="/blog/tos" style="color: #64748b; text-decoration: none;">Terms of Service</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <div style="padding-top: 1.5rem; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <div style="color: #64748b; font-size: 0.875rem;">
+            © 2025 5Ducks. All rights reserved.
+          </div>
+          <div>
+            <a href="https://www.linkedin.com/company/5ducks/" style="color: #64748b; font-size: 0.875rem; text-decoration: none;" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+    
+    <!-- Script to hide static footer once React is loaded -->
+    <script>
+      // Hide the static structure when the React app is fully loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        // Check if the app is loaded every 500ms
+        const checkInterval = setInterval(function() {
+          // Look for React-generated content
+          if (document.querySelector('#root > *')) {
+            // App is loaded, hide the static elements
+            document.body.classList.add('react-loaded');
+            clearInterval(checkInterval);
+          }
+        }, 500);
+        
+        // Fallback - if after 10 seconds we still haven't hidden it, hide it anyway
+        setTimeout(function() {
+          document.body.classList.add('react-loaded');
+          clearInterval(checkInterval);
+        }, 10000);
+      });
+    </script>
+    
+    <!-- Show proper footer styling if JavaScript is disabled -->
+    <noscript>
+      <style>
+        #static-footer { 
+          position: relative !important;
+          bottom: auto !important;
+        }
+      </style>
+    </noscript>
+    
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
