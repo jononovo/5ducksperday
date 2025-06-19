@@ -772,7 +772,7 @@ export default function PromptEditor({
     },
   });
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!query.trim()) {
       toast({
         title: "Empty Query",
@@ -780,6 +780,33 @@ export default function PromptEditor({
         variant: "destructive",
       });
       return;
+    }
+
+    // Easter egg check - intercept before normal search
+    if (query.trim() === "5ducks") {
+      try {
+        const response = await apiRequest("POST", "/api/credits/easter-egg", { query: query.trim() });
+        const result = await response.json();
+        
+        toast({
+          title: "Easter Egg Found!",
+          description: result.message,
+        });
+        
+        // Refresh credits display
+        queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+        onComplete();
+        return; // Skip normal search
+      } catch (error: any) {
+        const errorData = await error.response?.json();
+        toast({
+          title: "Easter Egg",
+          description: errorData?.message || "Already claimed!",
+          variant: "destructive",
+        });
+        onComplete();
+        return; // Skip normal search
+      }
     }
     
     // Dismiss the landing page hint if active

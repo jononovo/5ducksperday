@@ -1,4 +1,4 @@
-import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE } from "./types";
+import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE, EasterEgg, EASTER_EGGS } from "./types";
 import Database from '@replit/database';
 
 // Replit DB instance for persistent credit storage
@@ -204,6 +204,59 @@ export class CreditService {
     return credits.transactions
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, limit);
+  }
+
+  /**
+   * Claim Easter Egg bonus credits
+   */
+  static async claimEasterEgg(userId: number, query: string): Promise<{
+    success: boolean; 
+    message: string; 
+    newBalance?: number;
+    easterEgg?: EasterEgg;
+  }> {
+    // Find matching easter egg by trigger
+    const easterEgg = EASTER_EGGS.find(egg => egg.trigger === query.trim());
+    if (!easterEgg) {
+      return { success: false, message: "Invalid easter egg" };
+    }
+
+    const credits = await this.getUserCredits(userId);
+    const easterEggArray = credits.easterEggs || [];
+    
+    // Check if already used
+    if (easterEggArray[easterEgg.id] === 1) {
+      return { success: false, message: "Easter egg already claimed!" };
+    }
+
+    // Award credits and mark as used
+    const transaction: CreditTransaction = {
+      type: 'credit',
+      amount: easterEgg.reward,
+      description: `${easterEgg.emoji} ${easterEgg.description}`,
+      timestamp: Date.now()
+    };
+
+    // Update easter egg tracking array
+    const updatedEasterEggs = [...easterEggArray];
+    updatedEasterEggs[easterEgg.id] = 1;
+
+    const updatedCredits: UserCredits = {
+      ...credits,
+      currentBalance: credits.currentBalance + easterEgg.reward,
+      isBlocked: credits.currentBalance + easterEgg.reward >= 0 ? false : credits.isBlocked,
+      transactions: [transaction, ...credits.transactions],
+      easterEggs: updatedEasterEggs,
+      updatedAt: Date.now()
+    };
+
+    await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
+    return { 
+      success: true, 
+      message: `🎉 Easter egg found! +${easterEgg.reward} credits added!`, 
+      newBalance: updatedCredits.currentBalance,
+      easterEgg 
+    };
   }
 
   /**

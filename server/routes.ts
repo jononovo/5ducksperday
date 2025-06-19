@@ -4267,6 +4267,24 @@ Respond in this exact JSON format:
 
   // All N8N Workflow Management Endpoints and proxies have been removed
 
+  // Easter egg route
+  app.post('/api/credits/easter-egg', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { query } = req.body;
+      
+      const result = await CreditService.claimEasterEgg(userId, query);
+      
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(409).json(result);
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Easter egg claim failed" });
+    }
+  });
+
   // Register credit routes
   registerCreditRoutes(app);
 

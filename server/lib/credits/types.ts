@@ -7,6 +7,14 @@ export interface CreditTransaction {
   success?: boolean;
 }
 
+export interface EasterEgg {
+  id: number;
+  trigger: string;
+  reward: number;
+  description: string;
+  emoji?: string;
+}
+
 export interface UserCredits {
   currentBalance: number;
   lastTopUp: number;
@@ -16,6 +24,7 @@ export interface UserCredits {
   monthlyAllowance: number;
   createdAt: number;
   updatedAt: number;
+  easterEggs?: number[];  // [0, 1, 1] tracking array
 }
 
 export interface CreditDeductionResult {
@@ -46,3 +55,14 @@ export const CREDIT_COSTS: Record<SearchType, number> = {
 } as const;
 
 export const MONTHLY_CREDIT_ALLOWANCE = 5000;
+
+export const EASTER_EGGS: EasterEgg[] = [
+  { 
+    id: 0, 
+    trigger: "5ducks", 
+    reward: 1000, 
+    description: "Easter egg bonus - 5ducks discovered!", 
+    emoji: "🥚" 
+  }
+  // Future eggs easily added here
+];
