@@ -1,7 +1,8 @@
 import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE } from "./types";
+import Database from '@replit/database';
 
-// Simple in-memory storage for now (will be replaced with Replit DB when fully tested)
-const creditStore = new Map<string, UserCredits>();
+// Replit DB instance for persistent credit storage
+const db = new Database();
 
 export class CreditService {
   private static readonly CREDIT_KEY_PREFIX = "user_credits:";
@@ -17,7 +18,17 @@ export class CreditService {
     const key = this.getCreditKey(userId);
     
     try {
-      let credits = creditStore.get(key);
+      const creditsData = await db.get(key);
+      let credits: UserCredits | undefined;
+      
+      if (creditsData) {
+        try {
+          credits = typeof creditsData === 'string' ? JSON.parse(creditsData) : creditsData;
+        } catch (parseError) {
+          console.error(`Error parsing credits data for user ${userId}:`, parseError);
+          credits = undefined;
+        }
+      }
       
       if (!credits) {
         // Create initial credit record with monthly allowance
@@ -37,7 +48,7 @@ export class CreditService {
           updatedAt: Date.now()
         };
         
-        creditStore.set(key, initialCredits);
+        await db.set(key, JSON.stringify(initialCredits));
         return initialCredits;
       }
       
@@ -92,7 +103,7 @@ export class CreditService {
         updatedAt: Date.now()
       };
 
-      creditStore.set(this.getCreditKey(userId), updatedCredits);
+      await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
       console.log(`Applied monthly top-up for user ${userId}: +${MONTHLY_CREDIT_ALLOWANCE} credits`);
       return true;
     }
@@ -145,7 +156,7 @@ export class CreditService {
       updatedAt: Date.now()
     };
 
-    creditStore.set(this.getCreditKey(userId), updatedCredits);
+    await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
 
     console.log(`Credits deducted for user ${userId}: -${amount} credits for ${searchType} (success: ${success})`);
     console.log(`New balance: ${newBalance}, Blocked: ${isBlocked}`);
