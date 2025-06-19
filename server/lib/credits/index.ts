@@ -24,7 +24,7 @@ export class CreditService {
       
       let credits: UserCredits | undefined;
       
-      if (creditsData) {
+      if (creditsData && creditsData.ok !== false) {
         try {
           credits = typeof creditsData === 'string' ? JSON.parse(creditsData) : creditsData;
           console.log(`[CreditService] Parsed credits for user ${userId}:`, credits);
