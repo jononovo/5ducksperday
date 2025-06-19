@@ -26,20 +26,19 @@ export interface CreditDeductionResult {
   error?: string;
 }
 
-export enum SearchType {
-  COMPANY_SEARCH = 'company_search',
-  CONTACT_SEARCH = 'contact_search', 
-  EMAIL_SEARCH = 'email_search',
-  FULL_SEARCH = 'full_search',
-  INDIVIDUAL_EMAIL = 'individual_email'
-}
+export type SearchType = 
+  | 'company_search'
+  | 'contact_discovery'
+  | 'email_search'
+  | 'full_search'
+  | 'individual_email';
 
-export const CREDIT_COSTS = {
-  [SearchType.COMPANY_SEARCH]: 10,
-  [SearchType.CONTACT_SEARCH]: 60,
-  [SearchType.EMAIL_SEARCH]: 170,
-  [SearchType.FULL_SEARCH]: 250,
-  [SearchType.INDIVIDUAL_EMAIL]: 20
+export const CREDIT_COSTS: Record<SearchType, number> = {
+  'company_search': 10,
+  'contact_discovery': 60,
+  'email_search': 170,
+  'full_search': 250,
+  'individual_email': 20
 } as const;
 
 export const MONTHLY_CREDIT_ALLOWANCE = 5000;

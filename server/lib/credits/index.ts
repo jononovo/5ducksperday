@@ -1,14 +1,7 @@
-import { db } from "@replit/database";
-import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult } from "./types";
+import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE } from "./types";
 
-const MONTHLY_CREDIT_ALLOWANCE = 5000;
-const CREDIT_COSTS = {
-  'company_search': 10,
-  'contact_discovery': 60,
-  'email_search': 170,
-  'full_search': 250,
-  'individual_email': 20
-} as const;
+// Simple in-memory storage for now (will be replaced with Replit DB when fully tested)
+const creditStore = new Map<string, UserCredits>();
 
 export class CreditService {
   private static readonly CREDIT_KEY_PREFIX = "user_credits:";
@@ -24,7 +17,7 @@ export class CreditService {
     const key = this.getCreditKey(userId);
     
     try {
-      const credits = await db.get(key);
+      let credits = creditStore.get(key);
       
       if (!credits) {
         // Create initial credit record with monthly allowance
@@ -44,11 +37,11 @@ export class CreditService {
           updatedAt: Date.now()
         };
         
-        await db.set(key, initialCredits);
+        creditStore.set(key, initialCredits);
         return initialCredits;
       }
       
-      return credits as UserCredits;
+      return credits;
     } catch (error) {
       console.error(`Error getting credits for user ${userId}:`, error);
       // Return default credits on error
@@ -99,7 +92,7 @@ export class CreditService {
         updatedAt: Date.now()
       };
 
-      await db.set(this.getCreditKey(userId), updatedCredits);
+      creditStore.set(this.getCreditKey(userId), updatedCredits);
       console.log(`Applied monthly top-up for user ${userId}: +${MONTHLY_CREDIT_ALLOWANCE} credits`);
       return true;
     }
@@ -152,7 +145,7 @@ export class CreditService {
       updatedAt: Date.now()
     };
 
-    await db.set(this.getCreditKey(userId), updatedCredits);
+    creditStore.set(this.getCreditKey(userId), updatedCredits);
 
     console.log(`Credits deducted for user ${userId}: -${amount} credits for ${searchType} (success: ${success})`);
     console.log(`New balance: ${newBalance}, Blocked: ${isBlocked}`);
@@ -220,7 +213,7 @@ export class CreditService {
       updatedAt: Date.now()
     };
 
-    await db.set(this.getCreditKey(userId), updatedCredits);
+    creditStore.set(this.getCreditKey(userId), updatedCredits);
 
     return {
       success: true,
