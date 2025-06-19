@@ -28,6 +28,9 @@ import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
 import { findKeyDecisionMakers } from "./lib/search-logic/contact-discovery/enhanced-contact-finder";
+import { registerCreditRoutes } from "./routes/credits";
+import { CreditService } from "./lib/credits";
+import { SearchType } from "./lib/credits/types";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow-service";
@@ -4225,6 +4228,9 @@ Respond in this exact JSON format:
   });
 
   // All N8N Workflow Management Endpoints and proxies have been removed
+
+  // Register credit routes
+  registerCreditRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;
