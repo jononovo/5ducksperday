@@ -1,0 +1,33 @@
+Successfully synced with backend
+Found pending search query: Series-A Fintech companies in NYC
+Skipping localStorage save - no meaningful data to save
+Saving search state: 
+Object {query: "Series-A Fintech companies in NYC", resultsCount: undefined, listId: null, companies: undefined}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: "", …}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: "", …}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: "", …}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: "", …}
+PromptEditor received config update: 
+Object {enableCoreLeadership: false, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: "", …}
+Saving search state: 
+Object {query: "5", resultsCount: undefined, listId: null, companies: undefined}
+Saving search state: 
+Object {query: "5d", resultsCount: undefined, listId: null, companies: undefined}
+Saving search state: 
+Object {query: "5du", resultsCount: undefined, listId: null, companies: undefined}
+Saving search state: 
+Object {query: "5duc", resultsCount: undefined, listId: null, companies: undefined}
+Saving search state: 
+Object {query: "5duck", resultsCount: undefined, listId: null, companies: undefined}
+Saving search state: 
+Object {query: "5ducks", resultsCount: undefined, listId: null, companies: undefined}
+API Request: POST /api/credits/easter-egg 
+Object {hasData: true, timestamp: "2025-06-19T23:09:46.421Z"}
+API Request: POST /api/credits/easter-egg 
+Object {hasData: true, timestamp: "2025-06-19T23:09:56.846Z"}
+API Request Error: POST /api/credits/easter-egg 
+Object {error: "409: {"success":false,"message":"Easter egg already claimed!"}", timestamp: "2025-06-19T23:09:57.297Z"}

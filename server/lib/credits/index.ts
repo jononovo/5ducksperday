@@ -215,8 +215,10 @@ export class CreditService {
     newBalance?: number;
     easterEgg?: EasterEgg;
   }> {
-    // Find matching easter egg by trigger
-    const easterEgg = EASTER_EGGS.find(egg => egg.trigger === query.trim());
+    // Find matching easter egg by trigger (case-insensitive)
+    const easterEgg = EASTER_EGGS.find(egg => 
+      egg.trigger.toLowerCase() === query.toLowerCase().trim()
+    );
     if (!easterEgg) {
       return { success: false, message: "Invalid easter egg" };
     }
