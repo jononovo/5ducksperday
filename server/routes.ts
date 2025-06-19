@@ -1254,6 +1254,21 @@ export function registerRoutes(app: Express) {
         sessionId,
         searchType: searchType || 'emails'
       });
+
+      // Post-search billing: Deduct credits for successful company search
+      if (req.isAuthenticated() && req.user && companies.length > 0) {
+        try {
+          await CreditService.deductCredits(
+            (req.user as any).id,
+            'company_search',
+            true
+          );
+          console.log(`Credits deducted for user ${(req.user as any).id}: company search`);
+        } catch (creditError) {
+          console.error('Credit deduction error:', creditError);
+          // Don't fail the search if credit deduction fails
+        }
+      }
       
     } catch (error) {
       console.error('Quick search error:', error);

@@ -1,18 +1,18 @@
-import Database from "@replit/database";
-import { 
-  UserCredits, 
-  CreditTransaction, 
-  CreditDeductionResult, 
-  SearchType, 
-  CREDIT_COSTS, 
-  MONTHLY_CREDIT_ALLOWANCE 
-} from "./types";
+import { db } from "@replit/database";
+import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult } from "./types";
 
-const db = new Database();
+const MONTHLY_CREDIT_ALLOWANCE = 5000;
+const CREDIT_COSTS = {
+  'company_search': 10,
+  'contact_discovery': 60,
+  'email_search': 170,
+  'full_search': 250,
+  'individual_email': 20
+} as const;
 
 export class CreditService {
   private static readonly CREDIT_KEY_PREFIX = "user_credits:";
-  
+
   private static getCreditKey(userId: number): string {
     return `${this.CREDIT_KEY_PREFIX}${userId}`;
   }
@@ -22,11 +22,37 @@ export class CreditService {
    */
   static async getUserCredits(userId: number): Promise<UserCredits> {
     const key = this.getCreditKey(userId);
-    const credits = await db.get(key);
     
-    if (!credits) {
-      // Create initial credit record with monthly allowance
-      const initialCredits: UserCredits = {
+    try {
+      const credits = await db.get(key);
+      
+      if (!credits) {
+        // Create initial credit record with monthly allowance
+        const initialCredits: UserCredits = {
+          currentBalance: MONTHLY_CREDIT_ALLOWANCE,
+          lastTopUp: Date.now(),
+          totalUsed: 0,
+          isBlocked: false,
+          transactions: [{
+            type: 'credit',
+            amount: MONTHLY_CREDIT_ALLOWANCE,
+            description: 'Initial credit allocation',
+            timestamp: Date.now()
+          }],
+          monthlyAllowance: MONTHLY_CREDIT_ALLOWANCE,
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        };
+        
+        await db.set(key, initialCredits);
+        return initialCredits;
+      }
+      
+      return credits as UserCredits;
+    } catch (error) {
+      console.error(`Error getting credits for user ${userId}:`, error);
+      // Return default credits on error
+      return {
         currentBalance: MONTHLY_CREDIT_ALLOWANCE,
         lastTopUp: Date.now(),
         totalUsed: 0,
@@ -34,19 +60,14 @@ export class CreditService {
         transactions: [{
           type: 'credit',
           amount: MONTHLY_CREDIT_ALLOWANCE,
-          description: 'Initial credit allocation',
+          description: 'Initial credit allocation (fallback)',
           timestamp: Date.now()
         }],
         monthlyAllowance: MONTHLY_CREDIT_ALLOWANCE,
         createdAt: Date.now(),
         updatedAt: Date.now()
       };
-      
-      await db.set(key, initialCredits);
-      return initialCredits;
     }
-    
-    return credits as UserCredits;
   }
 
   /**
