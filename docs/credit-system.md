@@ -1,5 +1,33 @@
 # 5Ducks Credit System Documentation
 
+## ⚠️ CRITICAL SYSTEM STATUS (June 19, 2025)
+
+### Active Bug: Replit DB Response Parsing Failure
+
+**Symptom**: Credits show "Loading..." after initial successful creation
+**Root Cause**: Replit Database returns wrapped response format `{ ok: true, value: "JSON_STRING" }` but code attempts to parse entire wrapper object instead of extracting `.value` property
+**Impact**: All users with existing credit data cannot see their balances
+**Status**: Critical - requires immediate fix
+
+### Evidence from Production Logs:
+```javascript
+// What Replit DB actually returns:
+[CreditService] Raw DB data: { ok: true, value: '{"currentBalance":180,...}' }
+
+// What code incorrectly does:
+credits = typeof creditsData === 'string' ? JSON.parse(creditsData) : creditsData;
+// Results in: credits = { ok: true, value: '...' } (malformed)
+
+// What should happen:
+const rawData = creditsData.value || creditsData;
+credits = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+// Results in: credits = { currentBalance: 180, ... } (correct)
+```
+
+### Required Fix Location:
+File: `server/lib/credits/index.ts`, Line ~29
+Change data extraction logic to handle Replit DB response wrapper format.
+
 ## Overview
 
 The 5Ducks credit system provides a coin-based usage tracking and billing mechanism for B2B prospecting searches. Users receive 5000 credits monthly and are charged based on search complexity and scope.
@@ -162,15 +190,84 @@ interface CreditTransaction {
 - Blocking mechanism prevents abuse
 - Clear user feedback on insufficient credits
 
+## Current Critical Investigation
+
+### Issue Analysis (June 19, 2025)
+
+**Problem Flow Identified:**
+1. New users register → 180 credits created successfully
+2. Replit DB stores credits as: `{ ok: true, value: '{"currentBalance":180,...}' }`
+3. CreditService attempts to parse wrapper object instead of `.value`
+4. Results in malformed credit object: `{ ok: true, value: '...' }`
+5. API returns `{ balance: undefined }` causing frontend "Loading..." state
+
+**Critical Hypotheses:**
+
+**Hypothesis A: Data Extraction Bug (CONFIRMED)**
+- Replit DB API differs from expected interface
+- Success responses wrap data in `{ ok: true, value: "..." }` format
+- Code assumes direct JSON string or object response
+- Evidence: Production logs show wrapper format consistently
+
+**Hypothesis B: React State Management (SECONDARY)**
+- Duplicate key warnings in template components
+- May cause CreditsDisplay re-render issues
+- Less critical than parsing bug but contributes to instability
+
+**Hypothesis C: API Response Chain Failure (DOWNSTREAM)**
+- Credit parsing succeeds but wrong object structure passed
+- Route handler accesses undefined properties
+- Frontend defensive programming correctly shows loading state
+
+### Investigation Commands
+
+**Backend Verification:**
+```bash
+# Check exact Replit DB response format
+grep -A 5 "Raw DB data for user" server-logs
+
+# Verify credit creation vs parsing
+grep -B 2 -A 2 "initial credits" server-logs
+
+# Monitor API response structure
+grep "Sending response" server-logs
+```
+
+**Frontend Testing:**
+```bash
+# Direct API test
+curl -H "Authorization: Bearer TOKEN" /api/credits
+
+# Check TanStack Query cache state
+# Browser DevTools → Components → TanStack Query
+```
+
+**Database State Verification:**
+```bash
+# Manual Replit DB inspection needed
+# Check actual stored format for user 292
+# Verify key structure: user_credits:292
+```
+
 ## Troubleshooting
 
-### Common Issues
+### Critical Issues (Active)
 
-#### Credits Not Updating
-1. Check if user is authenticated
-2. Verify userId is correctly passed to CreditService
-3. Check Replit DB connectivity
-4. Review server logs for JSON parsing errors
+#### Credits Show "Loading..." After Creation
+**Status: CRITICAL - Active Bug**
+1. **Immediate Fix Required**: Extract `.value` from Replit DB responses
+2. **Location**: `server/lib/credits/index.ts` line 27-35
+3. **Test**: New user registration should show 180 credits immediately
+4. **Verification**: Existing users should display correct balances
+
+#### Replit DB Response Format Mismatch
+**Root Cause Identified**
+1. Expected: `"JSON_STRING"` or `{ currentBalance: 180 }`
+2. Actual: `{ ok: true, value: "JSON_STRING" }`
+3. Solution: Add wrapper extraction logic
+4. Impact: Affects all credit operations for existing users
+
+### Legacy Issues
 
 #### Monthly Top-up Not Working
 1. Verify date comparison logic in `checkAndApplyMonthlyTopUp`

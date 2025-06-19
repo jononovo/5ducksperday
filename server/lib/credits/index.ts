@@ -26,7 +26,9 @@ export class CreditService {
       
       if (creditsData && creditsData.ok !== false) {
         try {
-          credits = typeof creditsData === 'string' ? JSON.parse(creditsData) : creditsData;
+          // Extract value from Replit DB response wrapper format
+          const rawData = creditsData.value || creditsData;
+          credits = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
           console.log(`[CreditService] Parsed credits for user ${userId}:`, credits);
         } catch (parseError) {
           console.error(`Error parsing credits data for user ${userId}:`, parseError);
