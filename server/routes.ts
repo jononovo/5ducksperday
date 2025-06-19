@@ -1255,15 +1255,27 @@ export function registerRoutes(app: Express) {
         searchType: searchType || 'emails'
       });
 
-      // Post-search billing: Deduct credits for successful company search
+      // Post-search billing: Deduct credits based on actual search type selected
       if (req.isAuthenticated() && req.user && companies.length > 0) {
         try {
+          // Map frontend search type to backend search type for billing
+          function mapSearchTypeToCredits(frontendSearchType: string): SearchType {
+            switch(frontendSearchType) {
+              case 'companies': return 'company_search';         // 10 credits
+              case 'contacts': return 'company_and_contacts';    // 70 credits (10 + 60)
+              case 'emails': return 'company_contacts_emails';   // 240 credits (10 + 60 + 170)
+              default: return 'company_search';                  // fallback to 10 credits
+            }
+          }
+
+          const creditSearchType = mapSearchTypeToCredits(searchType || 'companies');
+          
           await CreditService.deductCredits(
             (req.user as any).id,
-            'company_search',
+            creditSearchType,
             true
           );
-          console.log(`Credits deducted for user ${(req.user as any).id}: company search`);
+          console.log(`Credits deducted for user ${(req.user as any).id}: ${creditSearchType} (frontend type: ${searchType})`);
         } catch (creditError) {
           console.error('Credit deduction error:', creditError);
           // Don't fail the search if credit deduction fails

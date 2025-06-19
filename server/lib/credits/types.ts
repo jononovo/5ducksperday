@@ -31,6 +31,8 @@ export type SearchType =
   | 'contact_discovery'
   | 'email_search'
   | 'full_search'
+  | 'company_and_contacts'
+  | 'company_contacts_emails'
   | 'individual_email';
 
 export const CREDIT_COSTS: Record<SearchType, number> = {
@@ -38,6 +40,8 @@ export const CREDIT_COSTS: Record<SearchType, number> = {
   'contact_discovery': 60,
   'email_search': 170,
   'full_search': 250,
+  'company_and_contacts': 70,   // 10 + 60
+  'company_contacts_emails': 240, // 10 + 60 + 170
   'individual_email': 20
 } as const;
 
