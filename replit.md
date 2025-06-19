@@ -2,7 +2,7 @@
 
 ## Overview
 
-5Ducks is a comprehensive B2B lead generation and prospecting platform designed to help small businesses "sell to 5 new people every day." The application combines AI-powered company search, contact discovery, email enrichment, and campaign management into a unified platform. Built with React frontend and Express/Node.js backend, it uses PostgreSQL for data persistence and integrates with multiple third-party APIs for contact discovery and validation.
+5Ducks is a comprehensive B2B lead generation and prospecting platform designed to help small businesses "sell to 5 new people every day." The application combines AI-powered company search, contact discovery, email enrichment, and campaign management into a unified platform. Built with React frontend and Express/Node.js backend, it uses Replit Database for data persistence and integrates with multiple third-party APIs for contact discovery and validation.
 
 ## System Architecture
 
@@ -16,16 +16,14 @@
 
 ### Backend Architecture
 - **Express.js** server with TypeScript
-- **Drizzle ORM** for database operations with strong type safety
-- **PostgreSQL** as primary database (with Replit DB migration option available)
+- **Replit Database** for data persistence with simple key-value operations
 - **Passport.js** for authentication with Firebase Auth integration
 - **Modular API design** with separate route handlers and business logic
 
 ### Database Design
-- **PostgreSQL** with Drizzle ORM for type-safe database operations
-- **Schema-first approach** using Zod for validation
-- **Normalized relational structure** with proper foreign key relationships
-- **Storage abstraction layer** allowing for backend switching (PostgreSQL/Replit DB)
+- **Replit Database** for simple key-value data storage
+- **Schema validation** using Zod for data integrity
+- **Storage abstraction layer** with IStorage interface for consistent data operations
 
 ## Key Components
 
@@ -81,13 +79,12 @@
 
 ### Infrastructure
 - **Firebase**: Authentication and user management
-- **PostgreSQL**: Primary database (Neon/Replit)
+- **Replit Database**: Primary data storage
 - **N8N Workflows**: External automation integration
 - **Google APIs**: Gmail integration for email campaigns
 
 ### Development Tools
 - **Vite**: Frontend build tool and dev server
-- **Drizzle Kit**: Database migrations and schema management
 - **ESBuild**: Backend bundling for production
 
 ## Deployment Strategy
@@ -95,20 +92,19 @@
 ### Development Environment
 - **Replit-optimized**: Configured for Replit's development environment
 - **Hot reloading**: Vite provides instant frontend updates
-- **Database provisioning**: Automatic PostgreSQL setup on Replit
+- **Database provisioning**: Automatic Replit Database setup
 - **Port configuration**: Frontend (3000) and backend (5000) ports configured
 
 ### Production Deployment
 - **Google Cloud Run**: Containerized deployment target
 - **Build process**: Vite builds static assets, ESBuild bundles backend
-- **Environment variables**: Database URLs and API keys via environment
+- **Environment variables**: Replit Database access and API keys via environment
 - **Workflow integration**: N8N webhooks for external automation
 
-### Storage Migration Strategy
-- **Dual storage support**: PostgreSQL and Replit Database compatibility
-- **Migration utilities**: Scripts for data migration between storage backends
-- **Storage abstraction**: IStorage interface allows runtime switching
-- **Cleanup tools**: Scripts to remove migration infrastructure when complete
+### Storage Strategy
+- **Replit Database**: Primary data persistence layer
+- **Storage abstraction**: IStorage interface provides consistent data operations
+- **Key-value operations**: Optimized for Replit's native database system
 
 ## Changelog
 - June 13, 2025. Initial setup
