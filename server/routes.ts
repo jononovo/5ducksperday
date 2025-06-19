@@ -1182,6 +1182,17 @@ export function registerRoutes(app: Express) {
       console.log(`[Quick Search] Using strategy ID: ${strategyId || 'default'}`);
       console.log(`[Quick Search] Search type: ${searchType || 'emails'}`);
       
+      // Credit blocking check: Prevent searches if user has negative balance
+      if (req.isAuthenticated() && req.user) {
+        const credits = await CreditService.getUserCredits((req.user as any).id);
+        if (credits.currentBalance < 0) {
+          return res.status(402).json({
+            message: "Account blocked due to insufficient credits",
+            currentBalance: credits.currentBalance
+          });
+        }
+      }
+      
       // First, get the company search results quickly
       const companyResults = await searchCompanies(query);
       

@@ -1,0 +1,59 @@
+API Request: GET /api/companies/8930/contacts?t=1750368707323 
+Object {hasData: false, timestamp: "2025-06-19T21:31:47.323Z"}
+API Request: GET /api/companies/8931/contacts?t=1750368707323 
+Object {hasData: false, timestamp: "2025-06-19T21:31:47.323Z"}
+API Request: GET /api/companies/8933/contacts?t=1750368707323 
+Object {hasData: false, timestamp: "2025-06-19T21:31:47.323Z"}
+API Request: GET /api/companies/8932/contacts?t=1750368707323 
+Object {hasData: false, timestamp: "2025-06-19T21:31:47.323Z"}
+Refreshed 6 contacts for Seattle Automotive Distributing: 
+(6) [{…}, {…}, {…}, {…}, {…}, {…}]
+Refreshed 7 contacts for Mighty Auto Parts Seattle: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Refreshed 3 contacts for Complete Auto Supply: 
+(3) [{…}, {…}, {…}]
+Refreshed 8 contacts for PDM Automotive: 
+(8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Refreshed 0 contacts for TRED: 
+Array []
+Refreshed 6 contacts for Wrench: 
+(6) [{…}, {…}, {…}, {…}, {…}, {…}]
+Refreshed 9 contacts for First Mode: 
+(9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Contact data refresh completed from database
+Database reload completed with 9 emails found
+Complete state saved to localStorage with 9 emails
+Email search completion: Database reload approach successful
+Updating existing list after email search completion: 1566
+API Request: GET /api/companies/8929/contacts 
+Object {hasData: false, timestamp: "2025-06-19T21:31:48.042Z"}
+API Request: GET /api/companies/8935/contacts 
+Object {hasData: false, timestamp: "2025-06-19T21:31:48.043Z"}
+API Request: GET /api/companies/8934/contacts 
+Object {hasData: false, timestamp: "2025-06-19T21:31:48.043Z"}
+API Request: GET /api/companies/8930/contacts 
+Object {hasData: false, timestamp: "2025-06-19T21:31:48.043Z"}
+API Request: GET /api/companies/8931/contacts 
+Object {hasData: false, timestamp: "2025-06-19T21:31:48.043Z"}
+API Request: GET /api/companies/8933/contacts 
+Object {hasData: false, timestamp: "2025-06-19T21:31:48.044Z"}
+API Request: GET /api/companies/8932/contacts 
+Object {hasData: false, timestamp: "2025-06-19T21:31:48.044Z"}
+Starting list update: 
+Object {listId: 1567, query: "Automotive component suppliers in Seattle", companyCount: 7, companyIds: Array(7)}
+API Request: PUT /api/lists/1567 
+Object {hasData: true, timestamp: "2025-06-19T21:31:48.045Z"}
+CompanyTable received companies: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Saving search state: 
+Object {query: "Automotive component suppliers in Seattle", resultsCount: 7, listId: 1567, companies: Array(7)}
+finishSearchWithoutSave: Updated localStorage with refreshed data
+Saving search state: 
+Object {query: "Automotive component suppliers in Seattle", resultsCount: 0, listId: 1567, companies: Array(0)}
+CompanyTable received companies: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Auto-expanding first company to show contacts: Seattle Automotive Distributing
+Saving search state: 
+Object {query: "Automotive component suppliers in Seattle", resultsCount: 7, listId: 1567, companies: Array(7)}
+List update successful: 
+Object {id: 570, userId: 292, listId: 1567, prompt: "Automotive component suppliers in Seattle", resultCount: 7, …}
