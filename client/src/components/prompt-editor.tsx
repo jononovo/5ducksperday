@@ -784,7 +784,7 @@ export default function PromptEditor({
 
     // Easter egg check - intercept before normal search
     const trimmedQuery = query.trim().toLowerCase();
-    if (trimmedQuery === "5ducks" || trimmedQuery === "free palestine") {
+    if (trimmedQuery === "5ducks" || trimmedQuery === "free palestine" || trimmedQuery === "he is risen") {
       try {
         const response = await apiRequest("POST", "/api/credits/easter-egg", { query: query.trim() });
         const result = await response.json();

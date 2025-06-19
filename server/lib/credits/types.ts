@@ -61,15 +61,22 @@ export const EASTER_EGGS: EasterEgg[] = [
     id: 0, 
     trigger: "5ducks", 
     reward: 1000, 
-    description: "Easter egg bonus - 5ducks discovered!", 
-    emoji: "🥚" 
+    description: "Company mascot discovery", 
+    emoji: "🦆" 
   },
   {
     id: 1,
     trigger: "free palestine",
     reward: 3000,
-    description: "🇵🇸 Solidarity bonus - Free Palestine!",
+    description: "Solidarity bonus",
     emoji: "🇵🇸"
+  },
+  {
+    id: 2,
+    trigger: "he is risen",
+    reward: 3000,
+    description: "Easter blessing",
+    emoji: "🐑"
   }
   // Future eggs easily added here
 ];
