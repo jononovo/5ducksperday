@@ -40,14 +40,14 @@ export function CreditsDisplay() {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+        "flex items-center gap-2 text-sm font-medium",
         credits.isBlocked
-          ? "bg-red-100 text-red-800 border border-red-200"
+          ? "text-red-800"
           : isCritical
-          ? "bg-orange-100 text-orange-800 border border-orange-200"
+          ? "text-orange-800"
           : isLow
-          ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
-          : "bg-green-100 text-green-800 border border-green-200"
+          ? "text-yellow-800"
+          : "text-green-800"
       )}
     >
       <Coins className="h-4 w-4" />
