@@ -660,11 +660,20 @@ export default function PromptEditor({
       }, 14000);
     },
     onError: (error: Error) => {
-      toast({
-        title: "Company Search Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      // Check if it's a credit blocking error (402 status)
+      if (error.message.includes("402:") || error.message.includes("insufficient credits")) {
+        toast({
+          title: "Account Blocked",
+          description: "Account blocked due to insufficient credits.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Company Search Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
       onComplete();
     },
   });
