@@ -224,7 +224,7 @@ export class CreditService {
       updatedAt: Date.now()
     };
 
-    creditStore.set(this.getCreditKey(userId), updatedCredits);
+    await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
 
     return {
       success: true,
