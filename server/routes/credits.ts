@@ -6,19 +6,26 @@ export function registerCreditRoutes(app: express.Express) {
   app.get("/api/credits", async (req: Request, res: Response) => {
     try {
       if (!req.isAuthenticated() || !req.user) {
+        console.log("[Credits Route] Authentication failed");
         return res.status(401).json({ message: "Authentication required" });
       }
 
       const userId = (req.user as any).id;
+      console.log(`[Credits Route] Processing request for user ${userId}`);
+      
       const credits = await CreditService.getUserCredits(userId);
+      console.log(`[Credits Route] Received credits from service:`, credits);
 
-      res.json({
+      const response = {
         balance: credits.currentBalance,
         isBlocked: credits.isBlocked,
         lastTopUp: credits.lastTopUp,
         totalUsed: credits.totalUsed,
         monthlyAllowance: credits.monthlyAllowance
-      });
+      };
+      
+      console.log(`[Credits Route] Sending response for user ${userId}:`, response);
+      res.json(response);
     } catch (error) {
       console.error("Error fetching credits:", error);
       res.status(500).json({ 

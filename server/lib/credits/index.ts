@@ -18,12 +18,16 @@ export class CreditService {
     const key = this.getCreditKey(userId);
     
     try {
+      console.log(`[CreditService] Getting credits for user ${userId} with key: ${key}`);
       const creditsData = await db.get(key);
+      console.log(`[CreditService] Raw DB data for user ${userId}:`, creditsData);
+      
       let credits: UserCredits | undefined;
       
       if (creditsData) {
         try {
           credits = typeof creditsData === 'string' ? JSON.parse(creditsData) : creditsData;
+          console.log(`[CreditService] Parsed credits for user ${userId}:`, credits);
         } catch (parseError) {
           console.error(`Error parsing credits data for user ${userId}:`, parseError);
           credits = undefined;
@@ -31,6 +35,8 @@ export class CreditService {
       }
       
       if (!credits) {
+        console.log(`[CreditService] No credits found for user ${userId}, creating initial record with 180 credits`);
+        
         // Create initial credit record with 180 credit starting bonus
         const initialCredits: UserCredits = {
           currentBalance: 180,
@@ -48,10 +54,13 @@ export class CreditService {
           updatedAt: Date.now()
         };
         
+        console.log(`[CreditService] Saving initial credits for user ${userId}:`, initialCredits);
         await db.set(key, JSON.stringify(initialCredits));
+        console.log(`[CreditService] Successfully saved initial credits for user ${userId}`);
         return initialCredits;
       }
       
+      console.log(`[CreditService] Returning existing credits for user ${userId}:`, credits);
       return credits;
     } catch (error) {
       console.error(`Error getting credits for user ${userId}:`, error);
