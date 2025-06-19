@@ -790,8 +790,8 @@ export default function PromptEditor({
         const result = await response.json();
         
         toast({
-          title: "Easter Egg Found!",
-          description: result.message,
+          title: `${result.easterEgg.emoji} Easter Egg Found!`,
+          description: `${result.easterEgg.description} - +${result.easterEgg.reward} credits added!`,
         });
         
         // Refresh credits display
