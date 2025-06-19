@@ -25,8 +25,13 @@ export function CreditsDisplay() {
     );
   }
 
-  if (!credits) {
-    return null;
+  if (!credits || typeof credits.balance !== 'number') {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground">
+        <Coins className="h-4 w-4 animate-pulse" />
+        <span>Loading...</span>
+      </div>
+    );
   }
 
   const isLow = credits.balance < 500;
@@ -51,7 +56,7 @@ export function CreditsDisplay() {
         <Coins className="h-4 w-4" />
       )}
       <span>
-        {credits.isBlocked ? "Blocked" : `${credits.balance.toLocaleString()} credits`}
+        {credits.isBlocked ? "Blocked" : `${(credits.balance ?? 0).toLocaleString()} credits`}
       </span>
     </div>
   );
