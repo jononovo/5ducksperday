@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SearchProgress } from "@/components/search-progress";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
-import { SearchStateManager } from "@/lib/search-state-manager";
 
 // Lazy load heavy components
 const CompanyTable = lazy(() => import("@/components/company-table"));
@@ -130,36 +129,23 @@ export default function Home() {
   const isInitializedRef = useRef(false);
   const hasSessionRestoredDataRef = useRef(false);
 
-  // Helper function to load valid search state with atomic recovery
+  // Helper function to load valid search state with fallback
   const loadSearchState = (): SavedSearchState | null => {
     try {
-      // Use SearchStateManager for atomic state recovery
-      const atomicState = SearchStateManager.loadSearchState();
-      if (atomicState) {
-        // Convert to legacy format for compatibility
-        const legacyState: SavedSearchState = {
-          currentQuery: atomicState.query,
-          currentResults: atomicState.companies as CompanyWithContacts[],
-          currentListId: atomicState.listId,
-          emailSearchCompleted: atomicState.emailCount > 0,
-          emailSearchTimestamp: atomicState.timestamp,
-          navigationRefreshTimestamp: atomicState.timestamp
-        };
-        
-        console.log('Loaded atomic state with recovery:', {
-          query: atomicState.query,
-          companiesCount: atomicState.companies.length,
-          contactCount: atomicState.contactCount,
-          emailCount: atomicState.emailCount
-        });
-        
-        return legacyState;
-      }
-      
-      // Fallback to legacy localStorage for backward compatibility
+      // Try localStorage first
       const localState = localStorage.getItem('searchState');
       if (localState) {
         const parsed = JSON.parse(localState) as SavedSearchState;
+        // Validate the data - ensure we have meaningful content
+        if (parsed.currentQuery || (parsed.currentResults && parsed.currentResults.length > 0)) {
+          return parsed;
+        }
+      }
+      
+      // Fallback to sessionStorage if localStorage is corrupted
+      const sessionState = sessionStorage.getItem('searchState');
+      if (sessionState) {
+        const parsed = JSON.parse(sessionState) as SavedSearchState;
         if (parsed.currentQuery || (parsed.currentResults && parsed.currentResults.length > 0)) {
           console.log('Restored search state from sessionStorage backup');
           return parsed;
@@ -353,58 +339,38 @@ export default function Home() {
     };
   }, []);
 
-  // Atomic state persistence whenever state changes - prevents contact loss
+  // Save state to localStorage whenever it changes (but prevent corruption during unmount)
   useEffect(() => {
-    // Only save if component is mounted and initialized
+    // Only save if component is mounted and initialized (prevents corruption during unmount)
     if (!isMountedRef.current || !isInitializedRef.current) {
-      console.log('Skipping atomic save - component not ready or unmounting');
+      console.log('Skipping localStorage save - component not ready or unmounting');
       return;
     }
     
-    // Only save if we have meaningful data
+    // Only save if we have meaningful data (prevents saving null states)
     if (currentQuery || (currentResults && currentResults.length > 0)) {
-      // Use SearchStateManager for atomic persistence
-      SearchStateManager.saveSearchState(
-        currentQuery || '', 
-        (currentResults || []) as any[], 
+      const stateToSave: SavedSearchState = {
+        currentQuery,
+        currentResults,
         currentListId
-      );
-      
-      console.log('Atomic state save completed:', {
+      };
+      console.log('Saving search state:', {
         query: currentQuery,
         resultsCount: currentResults?.length,
         listId: currentListId,
-        contactCount: currentResults?.reduce((total, c) => total + (c.contacts?.length || 0), 0)
+        companies: currentResults?.map(c => ({ id: c.id, name: c.name }))
       });
+      
+      // Save to both localStorage and sessionStorage for redundancy
+      const stateString = JSON.stringify(stateToSave);
+      localStorage.setItem('searchState', stateString);
+      sessionStorage.setItem('searchState', stateString);
+    } else {
+      console.log('Skipping localStorage save - no meaningful data to save');
     }
   }, [currentQuery, currentResults, currentListId]);
 
-  // Emergency persistence and state corruption recovery
-  useEffect(() => {
-    // Install emergency persistence for critical state preservation
-    const cleanupEmergencyPersistence = SearchStateManager.installEmergencyPersistence(() => {
-      if (currentQuery || (currentResults && currentResults.length > 0)) {
-        return {
-          query: currentQuery || '',
-          companies: (currentResults || []) as any[],
-          listId: currentListId
-        };
-      }
-      return null;
-    });
 
-    // Check for corrupted state and attempt recovery
-    if (currentResults && SearchStateManager.isStateCorrupted(currentResults as any[])) {
-      console.log('Detected corrupted state, attempting recovery...');
-      const recoveredResults = SearchStateManager.recoverCorruptedState(currentResults as any[]);
-      if (recoveredResults.length > 0) {
-        setCurrentResults(recoveredResults as CompanyWithContacts[]);
-        console.log('State corruption recovery completed');
-      }
-    }
-
-    return cleanupEmergencyPersistence;
-  }, [currentQuery, currentResults, currentListId]);
 
   const { data: searchApproaches = [] } = useQuery<any[]>({
     queryKey: ["/api/search-approaches"],
@@ -1018,23 +984,12 @@ export default function Home() {
             // Update the currentResults with the enriched contacts
             setCurrentResults(prev => {
               if (!prev) return null;
-              const updatedResults = prev.map(company => {
-                const updatedCompany = {
-                  ...company,
-                  contacts: company.contacts?.map(contact =>
-                    updatedContacts.find(uc => uc.id === contact.id) || contact
-                  )
-                };
-                
-                // Real-time contact persistence for each company during enrichment
-                if (updatedCompany.contacts && updatedCompany.contacts.length > 0) {
-                  SearchStateManager.updateCompanyContacts(company.id, updatedCompany.contacts);
-                }
-                
-                return updatedCompany;
-              });
-              
-              return updatedResults;
+              return prev.map(company => ({
+                ...company,
+                contacts: company.contacts?.map(contact =>
+                  updatedContacts.find(uc => uc.id === contact.id) || contact
+                )
+              }));
             });
 
             toast({
@@ -1789,49 +1744,48 @@ export default function Home() {
         description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies`,
       });
       
-      // ATOMIC RELOAD APPROACH: Use SearchStateManager for reliable email persistence
-      console.log('EMAIL SEARCH COMPLETE: Starting atomic database reload with SearchStateManager');
+      // COMPLETE RELOAD APPROACH: Clear localStorage and reload fresh from database
+      console.log('EMAIL SEARCH COMPLETE: Starting complete database reload to ensure email persistence');
       
-      // Clear legacy state but preserve atomic state
+      // Step 1: Clear all localStorage to prevent stale data
       localStorage.removeItem('searchState');
       sessionStorage.removeItem('searchState');
       localStorage.removeItem('lastEmailSearchTimestamp');
       localStorage.removeItem('emailPreservationData');
-      console.log('Cleared legacy localStorage state, preserving atomic state');
+      console.log('Cleared all localStorage state');
       
       // Step 2: Wait for backend to fully complete (ensure database consistency)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Step 3: Fetch completely fresh data from database with real-time persistence
-      console.log('Fetching complete fresh data from database with atomic persistence...');
+      // Step 3: Fetch completely fresh data from database
+      console.log('Fetching complete fresh data from database...');
       const freshResults = await refreshContactDataFromDatabase(currentResults);
       
-      // Step 4: Real-time contact persistence during database refresh
-      freshResults.forEach(company => {
-        if (company.contacts && company.contacts.length > 0) {
-          SearchStateManager.updateCompanyContacts(company.id, company.contacts);
-        }
-      });
-      
-      // Step 5: Count emails to verify success
+      // Step 4: Count emails to verify success
       const emailCount = freshResults.reduce((total, company) => 
         total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
       );
       
       console.log(`Database reload completed with ${emailCount} emails found`);
       
-      // Step 6: Update UI with fresh data
+      // Step 5: Update UI with fresh data
       setCurrentResults(freshResults);
       
-      // Step 7: Atomic state save with SearchStateManager
-      SearchStateManager.saveSearchState(
-        currentQuery || '',
-        freshResults as any[],
-        currentListId
-      );
+      // Step 6: Save complete fresh state to localStorage (single authoritative save)
+      const completeState = {
+        currentQuery,
+        currentResults: freshResults,
+        currentListId,
+        emailSearchCompleted: true,
+        emailSearchTimestamp: Date.now()
+      };
       
-      console.log(`Atomic state saved with ${emailCount} emails - navigation/auth safe`);
-      console.log('Email search completion: Atomic persistence approach successful');
+      const stateString = JSON.stringify(completeState);
+      localStorage.setItem('searchState', stateString);
+      sessionStorage.setItem('searchState', stateString);
+      
+      console.log(`Complete state saved to localStorage with ${emailCount} emails`);
+      console.log('Email search completion: Database reload approach successful');
       
       // Smart list update logic - only update existing lists, never create during email search
       if (currentListId) {
