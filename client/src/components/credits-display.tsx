@@ -50,13 +50,9 @@ export function CreditsDisplay() {
           : "bg-green-100 text-green-800 border border-green-200"
       )}
     >
-      {credits.isBlocked ? (
-        <AlertTriangle className="h-4 w-4" />
-      ) : (
-        <Coins className="h-4 w-4" />
-      )}
+      <Coins className="h-4 w-4" />
       <span>
-        {credits.isBlocked ? "Blocked" : `${(credits.balance ?? 0).toLocaleString()} credits`}
+        {credits.balance < 0 ? credits.balance : `${(credits.balance ?? 0).toLocaleString()} credits`}
       </span>
     </div>
   );
