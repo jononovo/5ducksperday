@@ -31,16 +31,16 @@ export class CreditService {
       }
       
       if (!credits) {
-        // Create initial credit record with monthly allowance
+        // Create initial credit record with 180 credit starting bonus
         const initialCredits: UserCredits = {
-          currentBalance: MONTHLY_CREDIT_ALLOWANCE,
+          currentBalance: 180,
           lastTopUp: Date.now(),
           totalUsed: 0,
           isBlocked: false,
           transactions: [{
             type: 'credit',
-            amount: MONTHLY_CREDIT_ALLOWANCE,
-            description: 'Initial credit allocation',
+            amount: 180,
+            description: 'Welcome bonus - 180 free credits',
             timestamp: Date.now()
           }],
           monthlyAllowance: MONTHLY_CREDIT_ALLOWANCE,
@@ -57,14 +57,14 @@ export class CreditService {
       console.error(`Error getting credits for user ${userId}:`, error);
       // Return default credits on error
       return {
-        currentBalance: MONTHLY_CREDIT_ALLOWANCE,
+        currentBalance: 180,
         lastTopUp: Date.now(),
         totalUsed: 0,
         isBlocked: false,
         transactions: [{
           type: 'credit',
-          amount: MONTHLY_CREDIT_ALLOWANCE,
-          description: 'Initial credit allocation (fallback)',
+          amount: 180,
+          description: 'Welcome bonus - 180 free credits (fallback)',
           timestamp: Date.now()
         }],
         monthlyAllowance: MONTHLY_CREDIT_ALLOWANCE,
