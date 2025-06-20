@@ -47,7 +47,7 @@ export function CreditsDisplay() {
           ? "text-orange-800"
           : isLow
           ? "text-yellow-800"
-          : "text-yellow-800"
+          : "text-yellow-600"
       )}
     >
       <Coins className="h-4 w-4" />
