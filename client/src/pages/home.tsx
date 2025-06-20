@@ -865,20 +865,19 @@ export default function Home() {
       // CREDIT BILLING ON EMAIL SUCCESS (same as other APIs)
       if (data.email) {
         try {
-          const billingResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
-            hasData: true,
-            timestamp: new Date().toISOString()
-          });
-          const billingResult = await billingResponse.json();
-          
-          console.log('Perplexity credit billing result:', {
-            ...billingResult,
+          const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
+            contactId,
             searchType: 'perplexity',
-            contactId: contactId
+            emailFound: true
           });
+          const creditResult = await creditResponse.json();
+          
+          console.log('Perplexity credit billing result:', creditResult);
 
-          // REFRESH CREDIT DISPLAY (same as other APIs)
-          await queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+          // Refresh credits display
+          if (creditResult.success) {
+            await queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+          }
         } catch (error) {
           console.error('Perplexity credit billing failed:', error);
         }

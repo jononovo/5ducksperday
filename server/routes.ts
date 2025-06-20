@@ -3505,7 +3505,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       }
 
       // Validate search type
-      const validSearchTypes = ['apollo', 'hunter', 'aeroleads'];
+      const validSearchTypes = ['apollo', 'hunter', 'aeroleads', 'perplexity'];
       if (!validSearchTypes.includes(searchType)) {
         res.status(400).json({ message: "Invalid search type" });
         return;
