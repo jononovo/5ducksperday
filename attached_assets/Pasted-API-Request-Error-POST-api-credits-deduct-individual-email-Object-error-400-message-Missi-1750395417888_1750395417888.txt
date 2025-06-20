@@ -1,0 +1,77 @@
+API Request Error: POST /api/credits/deduct-individual-email 
+Object {error: "400: {"message":"Missing required parameters"}", timestamp: "2025-06-20T04:54:13.232Z"}
+
+Perplexity credit billing failed: 
+Error {}
+
+Saving search state: 
+Object {query: "Series-A Fintech companies in houston", resultsCount: 7, listId: 1574, companies: Array(7)}
+API Request: GET /api/credits 
+Object {hasData: false, timestamp: "2025-06-20T04:54:20.763Z"}
+API Request: POST /api/contacts/34728/enrich 
+Object {hasData: false, timestamp: "2025-06-20T04:54:21.336Z"}
+CompanyTable received companies: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Saving search state: 
+Object {query: "Series-A Fintech companies in houston", resultsCount: 7, listId: 1574, companies: Array(7)}
+API Request: GET /api/credits 
+Object {hasData: false, timestamp: "2025-06-20T04:54:31.061Z"}
+API Request: POST /api/contacts/34729/enrich 
+Object {hasData: false, timestamp: "2025-06-20T04:54:31.531Z"}
+API Request: POST /api/credits/deduct-individual-email 
+Object {hasData: true, timestamp: "2025-06-20T04:54:35.011Z"}
+CompanyTable received companies: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+API Request Error: POST /api/credits/deduct-individual-email 
+Object {error: "400: {"message":"Missing required parameters"}", timestamp: "2025-06-20T04:54:35.153Z"}
+
+Perplexity credit billing failed: 
+Error {}
+
+Saving search state: 
+Object {query: "Series-A Fintech companies in houston", resultsCount: 7, listId: 1574, companies: Array(7)}
+API Request: GET /api/credits 
+Object {hasData: false, timestamp: "2025-06-20T04:54:45.944Z"}
+API Request: POST /api/contacts/34730/enrich 
+Object {hasData: false, timestamp: "2025-06-20T04:54:46.593Z"}
+API Request: POST /api/credits/deduct-individual-email 
+Object {hasData: true, timestamp: "2025-06-20T04:54:48.973Z"}
+CompanyTable received companies: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+API Request Error: POST /api/credits/deduct-individual-email 
+Object {error: "400: {"message":"Missing required parameters"}", timestamp: "2025-06-20T04:54:49.111Z"}
+
+at t.value (https://559a6c29-cfd3-4cbe-9775-ac14af86a9ed-00-2xvue4ym7neh9.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://559a6c29-cfd3-4cbe-9775-ac14af86a9ed-00-2xvue4ym7neh9.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://559a6c29-cfd3-4cbe-9775-ac14af86a9ed-00-2xvue4ym7neh9.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://559a6c29-cfd3-4cbe-9775-ac14af86a9ed-00-2xvue4ym7neh9.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Perplexity credit billing failed: 
+Error {}
+
+at t.value (https://559a6c29-cfd3-4cbe-9775-ac14af86a9ed-00-2xvue4ym7neh9.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://559a6c29-cfd3-4cbe-9775-ac14af86a9ed-00-2xvue4ym7neh9.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://559a6c29-cfd3-4cbe-9775-ac14af86a9ed-00-2xvue4ym7neh9.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://559a6c29-cfd3-4cbe-9775-ac14af86a9ed-00-2xvue4ym7neh9.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Saving search state: 
+Object {query: "Series-A Fintech companies in houston", resultsCount: 7, listId: 1574, companies: Array(7)}
+companies: Array(7)
+listId: 1574
+query: "Series-A Fintech companies in houston"
+resultsCount: 7
+[[Prototype]]: Object
+API Request: GET /api/credits 
+Object {hasData: false, timestamp: "2025-06-20T04:54:53.761Z"}
+API Request: POST /api/contacts/34731/enrich 
+Object {hasData: false, timestamp: "2025-06-20T04:54:53.979Z"}
+CompanyTable received companies: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Saving search state: 
+Object {query: "Series-A Fintech companies in houston", resultsCount: 7, listId: 1574, companies: Array(7)}
+API Request: GET /api/credits 
+Object {hasData: false, timestamp: "2025-06-20T04:55:01.589Z"}
+API Request: POST /api/contacts/34732/enrich 
+Object {hasData: false, timestamp: "2025-06-20T04:55:02.078Z"}
+CompanyTable received companies: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Saving search state: 
+Object {query: "Series-A Fintech companies in houston", resultsCount: 7, listId: 1574, companies: Array(7)}
