@@ -1137,8 +1137,30 @@ export default function Home() {
         emailFound: !!responseData.email
       };
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       const {data, contactId, searchContext, searchMetadata, emailFound} = result;
+      
+      // Process credit billing for successful email discoveries
+      if (emailFound) {
+        try {
+          const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
+            contactId,
+            searchType: 'hunter',
+            emailFound: true
+          });
+          
+          const creditResult = await creditResponse.json();
+          console.log('Hunter credit billing result:', creditResult);
+          
+          // Refresh credits display
+          if (creditResult.success) {
+            queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+          }
+        } catch (creditError) {
+          console.error('Hunter credit billing failed:', creditError);
+          // Don't block user experience for billing errors
+        }
+      }
       
       // Update the contact in the results
       setCurrentResults(prev => {
@@ -1209,10 +1231,31 @@ export default function Home() {
     },
   });
   
-  // Handler for Hunter.io search
-  const handleHunterSearch = (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
+  // Handler for Hunter.io search with credit checking
+  const handleHunterSearch = async (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
     // Allow multiple searches to run in parallel
     if (pendingHunterIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
+    
+    // Check credits before starting search (only for manual searches)
+    if (searchContext === 'manual') {
+      try {
+        const creditsResponse = await apiRequest("GET", "/api/credits");
+        const creditsData = await creditsResponse.json();
+        
+        if (creditsData.currentBalance < 20) { // 20 credits needed for individual email search
+          toast({
+            title: "Insufficient Credits",
+            description: `You need 20 credits for Hunter email search. Current balance: ${creditsData.currentBalance}`,
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (error) {
+        console.error('Credit check failed:', error);
+        // Continue with search if credit check fails to avoid blocking user
+      }
+    }
+    
     hunterMutation.mutate({ contactId, searchContext });
   };
   
@@ -1228,8 +1271,30 @@ export default function Home() {
       const response = await apiRequest("POST", `/api/contacts/${contactId}/aeroleads`);
       return {data: await response.json(), contactId, searchContext};
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       const {data, contactId, searchContext} = result;
+      
+      // Process credit billing for successful email discoveries
+      if (data.email) {
+        try {
+          const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
+            contactId,
+            searchType: 'aeroleads',
+            emailFound: true
+          });
+          
+          const creditResult = await creditResponse.json();
+          console.log('AeroLeads credit billing result:', creditResult);
+          
+          // Refresh credits display
+          if (creditResult.success) {
+            queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+          }
+        } catch (creditError) {
+          console.error('AeroLeads credit billing failed:', creditError);
+          // Don't block user experience for billing errors
+        }
+      }
       
       // Update the contact in the results
       setCurrentResults(prev => {
@@ -1295,9 +1360,30 @@ export default function Home() {
     },
   });
 
-  const handleAeroLeadsSearch = (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
+  const handleAeroLeadsSearch = async (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
     // Allow multiple searches to run in parallel
     if (pendingAeroLeadsIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
+    
+    // Check credits before starting search (only for manual searches)
+    if (searchContext === 'manual') {
+      try {
+        const creditsResponse = await apiRequest("GET", "/api/credits");
+        const creditsData = await creditsResponse.json();
+        
+        if (creditsData.currentBalance < 20) { // 20 credits needed for individual email search
+          toast({
+            title: "Insufficient Credits",
+            description: `You need 20 credits for AeroLeads email search. Current balance: ${creditsData.currentBalance}`,
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (error) {
+        console.error('Credit check failed:', error);
+        // Continue with search if credit check fails to avoid blocking user
+      }
+    }
+    
     aeroLeadsMutation.mutate({ contactId, searchContext });
   };
 
