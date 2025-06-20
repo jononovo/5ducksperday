@@ -2139,35 +2139,12 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       }
       
       const updatedContact = await storage.updateContact(contactId, updateData);
-      console.log('Updated contact:', updatedContact);
+      console.log('Perplexity search completed:', {
+        success: true,
+        emailFound: !!updatedContact?.email,
+        contactId
+      });
 
-      // POST-SEARCH BILLING (same as other APIs)
-      if (emailFound) {
-        try {
-          const billingResponse = await fetch(`${process.env.REPLIT_DOMAIN || 'http://localhost:5000'}/api/credits/deduct-individual-email`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': req.headers.authorization || ''
-            },
-            body: JSON.stringify({
-              contactId,
-              searchType: 'perplexity',
-              emailFound: true
-            })
-          });
-
-          if (billingResponse.ok) {
-            console.log('Perplexity individual email search billing: 20 credits deducted for contact', contactId);
-          } else {
-            const errorText = await billingResponse.text();
-            console.error('Perplexity billing request failed:', errorText);
-          }
-        } catch (creditError) {
-          console.error('Credit billing failed after successful Perplexity search:', creditError);
-          // Continue - don't fail the search if billing fails
-        }
-      }
 
       res.json(updatedContact);
     } catch (error) {
