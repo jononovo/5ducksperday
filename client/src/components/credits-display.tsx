@@ -52,7 +52,7 @@ export function CreditsDisplay() {
     >
       <Coins className="h-4 w-4" />
       <span>
-        {credits.balance < 0 ? credits.balance : `${(credits.balance ?? 0).toLocaleString()} credits`}
+        {credits.balance < 0 ? credits.balance : `${(credits.balance ?? 0).toLocaleString()}`}
       </span>
     </div>
   );
