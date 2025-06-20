@@ -826,7 +826,7 @@ export default function Home() {
       const response = await apiRequest("POST", `/api/contacts/${contactId}/enrich`);
       return {data: await response.json(), contactId};
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       // The data and the contactId that was processed
       const {data, contactId} = result;
       
@@ -860,6 +860,28 @@ export default function Home() {
       // Mark list as needing update since contact data changed
       if (currentListId) {
         setIsSaved(false);
+      }
+
+      // CREDIT BILLING ON EMAIL SUCCESS (same as other APIs)
+      if (data.email) {
+        try {
+          const billingResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
+            hasData: true,
+            timestamp: new Date().toISOString()
+          });
+          const billingResult = await billingResponse.json();
+          
+          console.log('Perplexity credit billing result:', {
+            ...billingResult,
+            searchType: 'perplexity',
+            contactId: contactId
+          });
+
+          // REFRESH CREDIT DISPLAY (same as other APIs)
+          await queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+        } catch (error) {
+          console.error('Perplexity credit billing failed:', error);
+        }
       }
       
       // Only show notifications if we're not in a consolidated search

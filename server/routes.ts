@@ -2070,29 +2070,40 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     try {
       const contactId = parseInt(req.params.contactId);
       const userId = getUserId(req);
-      console.log('Starting enrichment for contact:', contactId);
+      console.log('Starting Perplexity enrichment for contact:', contactId);
+      console.log('User ID:', userId);
+
+      // PRE-SEARCH CREDIT CHECK (same as other APIs)
+      const creditCheck = await creditService.getUserCredits(userId);
+      if (creditCheck.isBlocked || creditCheck.balance < 20) {
+        res.status(402).json({ 
+          message: "Insufficient credits for individual email search",
+          balance: creditCheck.balance,
+          required: 20
+        });
+        return;
+      }
 
       const contact = await storage.getContact(contactId, userId);
       if (!contact) {
         res.status(404).json({ message: "Contact not found" });
         return;
       }
-      console.log('Found contact:', contact);
+      console.log('Contact data from database:', { id: contact.id, name: contact.name, companyId: contact.companyId });
 
       const company = await storage.getCompany(contact.companyId, userId);
       if (!company) {
         res.status(404).json({ message: "Company not found" });
         return;
       }
-      console.log('Found company:', company.name);
+      console.log('Company data from database:', { id: company.id, name: company.name });
 
-      // Search for additional contact details
+      // EXECUTE SEARCH (unchanged)
       console.log('Searching for contact details...');
       const enrichedDetails = await searchContactDetails(contact.name, company.name);
       console.log('Enriched details found:', enrichedDetails);
 
-      // Update contact with enriched information
-      // Create the update data object
+      // UPDATE CONTACT (unchanged)
       const updateData: any = {
         ...contact,
         linkedinUrl: enrichedDetails.linkedinUrl || contact.linkedinUrl,
@@ -2103,7 +2114,8 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
       };
       
-      // Handle email updates with unified deduplication logic
+      // Handle email updates with billing detection
+      let emailFound = false;
       if (enrichedDetails.email) {
         console.log('Processing Perplexity search email result:', {
           newEmail: enrichedDetails.email,
@@ -2116,6 +2128,9 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         const emailUpdates = mergeEmailData(contact, enrichedDetails.email);
         Object.assign(updateData, emailUpdates);
         
+        // DETECT EMAIL SUCCESS (same logic as other APIs)
+        emailFound = !!(emailUpdates.email || emailUpdates.alternativeEmails?.length > 0);
+        
         if (emailUpdates.email) {
           console.log('Setting as primary email:', enrichedDetails.email);
         } else if (emailUpdates.alternativeEmails) {
@@ -2126,9 +2141,20 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const updatedContact = await storage.updateContact(contactId, updateData);
       console.log('Updated contact:', updatedContact);
 
+      // POST-SEARCH BILLING (same as other APIs)
+      if (emailFound) {
+        try {
+          await creditService.deductCredits(userId, 20, 'individual_email', true);
+          console.log('Perplexity individual email search billing: 20 credits deducted for contact', contactId);
+        } catch (creditError) {
+          console.error('Credit billing failed after successful Perplexity search:', creditError);
+          // Continue - don't fail the search if billing fails
+        }
+      }
+
       res.json(updatedContact);
     } catch (error) {
-      console.error('Contact enrichment error:', error);
+      console.error('Perplexity contact enrichment error:', error);
       res.status(500).json({
         message: error instanceof Error ? error.message : "An unexpected error occurred during contact enrichment"
       });
