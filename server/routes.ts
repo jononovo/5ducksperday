@@ -2074,11 +2074,11 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       console.log('User ID:', userId);
 
       // PRE-SEARCH CREDIT CHECK (same as other APIs)
-      const creditCheck = await creditService.getUserCredits(userId);
-      if (creditCheck.isBlocked || creditCheck.balance < 20) {
+      const creditCheck = await CreditService.getUserCredits(userId);
+      if (creditCheck.isBlocked || creditCheck.currentBalance < 20) {
         res.status(402).json({ 
           message: "Insufficient credits for individual email search",
-          balance: creditCheck.balance,
+          balance: creditCheck.currentBalance,
           required: 20
         });
         return;
@@ -2129,7 +2129,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         Object.assign(updateData, emailUpdates);
         
         // DETECT EMAIL SUCCESS (same logic as other APIs)
-        emailFound = !!(emailUpdates.email || emailUpdates.alternativeEmails?.length > 0);
+        emailFound = !!(emailUpdates.email || (emailUpdates.alternativeEmails && emailUpdates.alternativeEmails.length > 0));
         
         if (emailUpdates.email) {
           console.log('Setting as primary email:', enrichedDetails.email);
@@ -2144,7 +2144,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       // POST-SEARCH BILLING (same as other APIs)
       if (emailFound) {
         try {
-          await creditService.deductCredits(userId, 20, 'individual_email', true);
+          await CreditService.deductCredits(userId, 'individual_email', true);
           console.log('Perplexity individual email search billing: 20 credits deducted for contact', contactId);
         } catch (creditError) {
           console.error('Credit billing failed after successful Perplexity search:', creditError);

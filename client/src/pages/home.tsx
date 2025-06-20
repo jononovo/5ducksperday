@@ -918,10 +918,31 @@ export default function Home() {
     },
   });
 
-  // Update to allow multiple searches to run in parallel
-  const handleEnrichContact = (contactId: number) => {
+  // PRE-SEARCH CREDIT CHECK (same as other APIs)
+  const handleEnrichContact = async (contactId: number) => {
     // Only prevent if this specific contact is already being processed
     if (pendingContactIds.has(contactId)) return;
+    
+    // Check credits before manual search (automated searches bypass this)
+    if (!isAutomatedSearchRef.current) {
+      try {
+        const creditResponse = await apiRequest("GET", "/api/credits");
+        const creditData = await creditResponse.json();
+        
+        if (creditData.isBlocked || creditData.balance < 20) {
+          toast({
+            title: "Insufficient Credits",
+            description: `You need 20 credits for individual email search. Current balance: ${creditData.balance}`,
+            variant: "destructive"
+          });
+          return;
+        }
+      } catch (error) {
+        console.error('Credit check failed:', error);
+        // Continue with search if credit check fails
+      }
+    }
+    
     enrichContactMutation.mutate(contactId);
   };
 
