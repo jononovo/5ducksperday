@@ -35,7 +35,7 @@ export function CreditsDisplay() {
   }
 
   const isLow = credits.balance < 500;
-  const isCritical = credits.balance < 100;
+  const isCritical = credits.balance < 200;
 
   return (
     <div
@@ -47,7 +47,7 @@ export function CreditsDisplay() {
           ? "text-orange-800"
           : isLow
           ? "text-yellow-800"
-          : "text-green-800"
+          : "text-yellow-800"
       )}
     >
       <Coins className="h-4 w-4" />
