@@ -1876,8 +1876,30 @@ export default function Home() {
         emailFound: !!responseData.email
       };
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       const {data, contactId, searchContext, searchMetadata, emailFound} = result;
+      
+      // Process credit billing for successful email discoveries
+      if (emailFound) {
+        try {
+          const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
+            contactId,
+            searchType: 'apollo',
+            emailFound: true
+          });
+          
+          const creditResult = await creditResponse.json();
+          console.log('Apollo credit billing result:', creditResult);
+          
+          // Refresh credits display
+          if (creditResult.success) {
+            queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+          }
+        } catch (creditError) {
+          console.error('Apollo credit billing failed:', creditError);
+          // Don't block user experience for billing errors
+        }
+      }
       
       // Update the contact in the results
       setCurrentResults(prev => {
