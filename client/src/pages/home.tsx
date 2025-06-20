@@ -128,6 +128,7 @@ export default function Home() {
   const isMountedRef = useRef(true);
   const isInitializedRef = useRef(false);
   const hasSessionRestoredDataRef = useRef(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Helper function to load valid search state with fallback
   const loadSearchState = (): SavedSearchState | null => {
@@ -341,33 +342,48 @@ export default function Home() {
 
   // Save state to localStorage whenever it changes (but prevent corruption during unmount)
   useEffect(() => {
-    // Only save if component is mounted and initialized (prevents corruption during unmount)
-    if (!isMountedRef.current || !isInitializedRef.current) {
-      console.log('Skipping localStorage save - component not ready or unmounting');
-      return;
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
     }
     
-    // Only save if we have meaningful data (prevents saving null states)
-    if (currentQuery || (currentResults && currentResults.length > 0)) {
-      const stateToSave: SavedSearchState = {
-        currentQuery,
-        currentResults,
-        currentListId
-      };
-      console.log('Saving search state:', {
-        query: currentQuery,
-        resultsCount: currentResults?.length,
-        listId: currentListId,
-        companies: currentResults?.map(c => ({ id: c.id, name: c.name }))
-      });
+    // Set 1000ms delay for existing save logic
+    debounceTimerRef.current = setTimeout(() => {
+      // Only save if component is mounted and initialized (prevents corruption during unmount)
+      if (!isMountedRef.current || !isInitializedRef.current) {
+        console.log('Skipping localStorage save - component not ready or unmounting');
+        return;
+      }
       
-      // Save to both localStorage and sessionStorage for redundancy
-      const stateString = JSON.stringify(stateToSave);
-      localStorage.setItem('searchState', stateString);
-      sessionStorage.setItem('searchState', stateString);
-    } else {
-      console.log('Skipping localStorage save - no meaningful data to save');
-    }
+      // Only save if we have meaningful data (prevents saving null states)
+      if (currentQuery || (currentResults && currentResults.length > 0)) {
+        const stateToSave: SavedSearchState = {
+          currentQuery,
+          currentResults,
+          currentListId
+        };
+        console.log('Saving search state:', {
+          query: currentQuery,
+          resultsCount: currentResults?.length,
+          listId: currentListId,
+          companies: currentResults?.map(c => ({ id: c.id, name: c.name }))
+        });
+        
+        // Save to both localStorage and sessionStorage for redundancy
+        const stateString = JSON.stringify(stateToSave);
+        localStorage.setItem('searchState', stateString);
+        sessionStorage.setItem('searchState', stateString);
+      } else {
+        console.log('Skipping localStorage save - no meaningful data to save');
+      }
+    }, 1000);
+    
+    // Cleanup on unmount
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, [currentQuery, currentResults, currentListId]);
 
 
