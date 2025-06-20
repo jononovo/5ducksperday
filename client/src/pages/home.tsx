@@ -1971,10 +1971,31 @@ export default function Home() {
     },
   });
   
-  // Handler for Apollo.io search
-  const handleApolloSearch = (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
+  // Handler for Apollo.io search with credit checking
+  const handleApolloSearch = async (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
     // Allow multiple searches to run in parallel
     if (pendingApolloIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
+    
+    // Check credits before starting search (only for manual searches)
+    if (searchContext === 'manual') {
+      try {
+        const creditsResponse = await apiRequest("GET", "/api/credits");
+        const creditsData = await creditsResponse.json();
+        
+        if (creditsData.currentBalance < 20) { // 20 credits needed for individual email search
+          toast({
+            title: "Insufficient Credits",
+            description: `You need 20 credits for Apollo email search. Current balance: ${creditsData.currentBalance}`,
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (error) {
+        console.error('Credit check failed:', error);
+        // Continue with search if credit check fails to avoid blocking user
+      }
+    }
+    
     apolloMutation.mutate({ contactId, searchContext });
   };
   
