@@ -337,10 +337,70 @@ export default function Home() {
     // Registration success callback setup (only set once)
     const handleRegistrationSuccess = async () => {
       console.log('Registration success detected, triggering welcome notification');
+      
+      // Extract guest data before cleanup
+      const extractGuestSearchData = () => {
+        const savedState = loadSearchState();
+        return {
+          originalQuery: savedState?.currentQuery || null,
+          companyCount: savedState?.currentResults?.length || 0,
+          hasEmailData: savedState?.emailSearchCompleted || false
+        };
+      };
+      
+      // Clear all guest localStorage data
+      const clearGuestData = () => {
+        // Core search data
+        localStorage.removeItem('searchState');
+        sessionStorage.removeItem('searchState');
+        
+        // Search configuration
+        localStorage.removeItem('contactSearchConfig');
+        localStorage.removeItem('lastEmailSearchTimestamp');
+        
+        // UI state preservation
+        localStorage.removeItem('pendingSearchQuery');
+        
+        // Clear component state
+        setCurrentResults(null);
+        setCurrentListId(null);
+        setIsSaved(false);
+        setContactsLoaded(false);
+        
+        console.log('Guest data cleared successfully');
+      };
+      
+      // Show transition guidance
+      const showTransitionGuidance = (guestData: any) => {
+        if (guestData.originalQuery && guestData.companyCount > 0) {
+          toast({
+            title: "Welcome! Ready for Full Email Search?",
+            description: `Your previous search (${guestData.companyCount} companies) was a preview. Re-run your search now to get complete results with emails!`,
+            duration: 8000
+          });
+        }
+      };
+      
       try {
+        // Extract guest data before cleanup
+        const guestData = extractGuestSearchData();
+        
+        // Clear all guest localStorage data
+        clearGuestData();
+        
+        // Restore original query to input field
+        if (guestData.originalQuery) {
+          setCurrentQuery(guestData.originalQuery);
+          console.log('Restored guest query to input:', guestData.originalQuery);
+        }
+        
+        // Show transition guidance
+        showTransitionGuidance(guestData);
+        
+        // Trigger welcome notification
         await triggerNotification('registration_complete');
       } catch (error) {
-        console.error('Failed to trigger welcome notification:', error);
+        console.error('Failed to handle registration success:', error);
       }
     };
 
