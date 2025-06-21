@@ -333,6 +333,18 @@ export default function Home() {
         console.log('No saved search state found or session data already restored');
       }
     }
+
+    // Registration success callback setup
+    const handleRegistrationSuccess = async () => {
+      console.log('Registration success detected, triggering welcome notification');
+      try {
+        await triggerNotification('registration_complete');
+      } catch (error) {
+        console.error('Failed to trigger welcome notification:', error);
+      }
+    };
+
+    registrationModal.setRegistrationSuccessCallback(handleRegistrationSuccess);
     
     // Mark component as initialized
     isInitializedRef.current = true;
@@ -341,7 +353,7 @@ export default function Home() {
     return () => {
       isMountedRef.current = false;
     };
-  }, []);
+  }, [registrationModal, triggerNotification]);
 
   // Save state to localStorage whenever it changes (but prevent corruption during unmount)
   useEffect(() => {
@@ -2630,6 +2642,18 @@ export default function Home() {
         open={savedSearchesDrawerOpen}
         onOpenChange={setSavedSearchesDrawerOpen}
         onLoadSearch={handleLoadSavedSearch}
+      />
+
+      {/* Notification System */}
+      <NotificationToast
+        isOpen={notificationState.isOpen}
+        onClose={closeNotification}
+        title={notificationState.notification?.title || ''}
+        description={notificationState.notification?.description || ''}
+        badge={notificationState.notification?.badge}
+        emoji={notificationState.notification?.emoji}
+        buttonText={notificationState.notification?.buttonText}
+        variant="success"
       />
     </div>
   );
