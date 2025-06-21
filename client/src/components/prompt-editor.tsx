@@ -99,11 +99,19 @@ export default function PromptEditor({
     customSearchTarget2: ""
   });
 
-  // Search type configuration state - default based on authentication status
+  // Search type configuration state - initialize with localStorage or default to contacts
   const [searchType, setSearchType] = useState<SearchType>(() => {
     const saved = localStorage.getItem('searchType');
-    return (saved as SearchType) || (user ? 'emails' : 'contacts');
+    return (saved as SearchType) || 'contacts';
   });
+
+  // Set auth-based default only for users without localStorage preference
+  useEffect(() => {
+    const saved = localStorage.getItem('searchType');
+    if (!saved) {
+      setSearchType(user ? 'emails' : 'contacts');
+    }
+  }, [user]);
 
   // Save search type to localStorage when it changes
   useEffect(() => {
