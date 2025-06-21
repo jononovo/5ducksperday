@@ -99,10 +99,10 @@ export default function PromptEditor({
     customSearchTarget2: ""
   });
 
-  // Search type configuration state - default to full search (emails)
+  // Search type configuration state - default based on authentication status
   const [searchType, setSearchType] = useState<SearchType>(() => {
     const saved = localStorage.getItem('searchType');
-    return (saved as SearchType) || 'emails';
+    return (saved as SearchType) || (user ? 'emails' : 'contacts');
   });
 
   // Save search type to localStorage when it changes
