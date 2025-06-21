@@ -1,4 +1,4 @@
-import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE, EasterEgg, EASTER_EGGS } from "./types";
+import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE, EasterEgg, EASTER_EGGS, NotificationConfig, NOTIFICATIONS } from "./types";
 import Database from '@replit/database';
 
 // Replit DB instance for persistent credit storage
@@ -259,6 +259,55 @@ export class CreditService {
       newBalance: updatedCredits.currentBalance,
       easterEgg 
     };
+  }
+
+  /**
+   * Check if notification has been shown to user
+   */
+  static async hasShownNotification(userId: number, notificationId: number): Promise<boolean> {
+    const credits = await this.getUserCredits(userId);
+    const notifications = credits.notifications || [];
+    return notifications[notificationId] === 1;
+  }
+
+  /**
+   * Mark notification as shown
+   */
+  static async markNotificationShown(userId: number, notificationId: number): Promise<void> {
+    const credits = await this.getUserCredits(userId);
+    const notifications = credits.notifications || [];
+    
+    // Update tracking array
+    const updated = [...notifications];
+    updated[notificationId] = 1;
+    
+    const updatedCredits: UserCredits = {
+      ...credits,
+      notifications: updated,
+      updatedAt: Date.now()
+    };
+    
+    await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
+  }
+
+  /**
+   * Trigger notification if not already shown
+   */
+  static async triggerNotification(userId: number, trigger: string): Promise<{
+    shouldShow: boolean;
+    notification?: NotificationConfig;
+  }> {
+    const notification = NOTIFICATIONS.find(n => n.trigger === trigger);
+    if (!notification) {
+      return { shouldShow: false };
+    }
+
+    const hasShown = await this.hasShownNotification(userId, notification.id);
+    if (hasShown) {
+      return { shouldShow: false };
+    }
+
+    return { shouldShow: true, notification };
   }
 
   /**

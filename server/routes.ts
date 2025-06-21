@@ -4362,6 +4362,36 @@ Respond in this exact JSON format:
     }
   });
 
+  // Notification routes
+  app.post('/api/notifications/trigger', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { trigger } = req.body;
+      
+      const result = await CreditService.triggerNotification(userId, trigger);
+      
+      if (result.shouldShow) {
+        res.json(result);
+      } else {
+        res.status(409).json({ shouldShow: false, message: "Notification already shown or not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Notification trigger failed" });
+    }
+  });
+
+  app.post('/api/notifications/mark-shown', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { notificationId } = req.body;
+      
+      await CreditService.markNotificationShown(userId, notificationId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark notification as shown" });
+    }
+  });
+
   // Register credit routes
   registerCreditRoutes(app);
 

@@ -25,6 +25,7 @@ export interface UserCredits {
   createdAt: number;
   updatedAt: number;
   easterEggs?: number[];  // [0, 1, 1] tracking array
+  notifications?: number[];  // [0, 1, 1] notification tracking array
 }
 
 export interface CreditDeductionResult {
@@ -55,6 +56,30 @@ export const CREDIT_COSTS: Record<SearchType, number> = {
 } as const;
 
 export const MONTHLY_CREDIT_ALLOWANCE = 5000;
+
+export interface NotificationConfig {
+  id: number;
+  type: 'welcome' | 'achievement' | 'feature_unlock' | 'milestone';
+  trigger: string;
+  title: string;
+  description: string;
+  badge?: string;
+  emoji?: string;
+  buttonText?: string;
+}
+
+export const NOTIFICATIONS: NotificationConfig[] = [
+  {
+    id: 0,
+    type: 'welcome',
+    trigger: 'registration_complete',
+    title: 'Congrats Hatchling Level Unlocked!',
+    description: 'You have unlocked **Email Search**. Run a NEW search now to see complete results including emails of ~2 Key Contacts per company.',
+    badge: 'Hatchling',
+    emoji: '🦆',
+    buttonText: 'Chirp'
+  }
+];
 
 export const EASTER_EGGS: EasterEgg[] = [
   { 

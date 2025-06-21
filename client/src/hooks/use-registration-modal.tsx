@@ -7,6 +7,7 @@ type RegistrationModalContextType = {
   closeModal: () => void;
   openForProtectedRoute: () => void;
   isOpenedFromProtectedRoute: boolean;
+  setRegistrationSuccessCallback: (callback: () => void) => void;
 };
 
 const RegistrationModalContext = createContext<RegistrationModalContextType>({
@@ -15,6 +16,7 @@ const RegistrationModalContext = createContext<RegistrationModalContextType>({
   closeModal: () => {},
   openForProtectedRoute: () => {},
   isOpenedFromProtectedRoute: false,
+  setRegistrationSuccessCallback: () => {},
 });
 
 export const useRegistrationModal = () => useContext(RegistrationModalContext);
@@ -27,6 +29,7 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
   // Modal should be closed by default
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenedFromProtectedRoute, setIsOpenedFromProtectedRoute] = useState(false);
+  const [onSuccessCallback, setOnSuccessCallback] = useState<(() => void) | null>(null);
   const { user } = useAuth();
 
   // Clean up obsolete localStorage key from previous first-time visitor logic
@@ -49,6 +52,21 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
     setIsOpenedFromProtectedRoute(false);
   };
 
+  const setRegistrationSuccessCallback = (callback: () => void) => {
+    setOnSuccessCallback(() => callback);
+  };
+
+  // Trigger callback when user becomes authenticated after registration
+  useEffect(() => {
+    if (user && onSuccessCallback) {
+      // Small delay to ensure registration flow is complete
+      setTimeout(() => {
+        onSuccessCallback();
+        setOnSuccessCallback(null); // Clear after use
+      }, 100);
+    }
+  }, [user, onSuccessCallback]);
+
 
 
   return (
@@ -58,7 +76,8 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
         openModal, 
         closeModal,
         openForProtectedRoute,
-        isOpenedFromProtectedRoute
+        isOpenedFromProtectedRoute,
+        setRegistrationSuccessCallback
       }}
     >
       {children}
