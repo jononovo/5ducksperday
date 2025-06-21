@@ -105,10 +105,17 @@ export default function PromptEditor({
     return (saved as SearchType) || 'contacts';
   });
 
-  // Set auth-based default only for users without localStorage preference
+  // Set auth-based default and handle guest-to-registered upgrades
   useEffect(() => {
     const saved = localStorage.getItem('searchType');
-    if (!saved) {
+    const wasGuest = !localStorage.getItem('hasEverBeenRegistered');
+    
+    if (user && wasGuest) {
+      // User just registered - upgrade from guest default to full feature set
+      localStorage.setItem('hasEverBeenRegistered', 'true');
+      setSearchType('emails');
+    } else if (!saved) {
+      // First-time defaults based on auth status
       setSearchType(user ? 'emails' : 'contacts');
     }
   }, [user]);
