@@ -125,6 +125,7 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const registrationModal = useRegistrationModal();
   const auth = useAuth();
+  const { notificationState, triggerNotification, closeNotification } = useNotifications();
   
   // Track if component is mounted to prevent localStorage corruption during unmount
   const isMountedRef = useRef(true);
