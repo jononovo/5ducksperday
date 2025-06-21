@@ -44,11 +44,17 @@ export function NotificationToast({
     warning: 'bg-orange-100 text-orange-800 border-orange-200'
   };
 
-  // Parse markdown-style bold text in description
+  // Parse markdown-style bold text and line breaks in description
   const formatDescription = (text: string) => {
-    return text.split('**').map((part, index) => 
-      index % 2 === 1 ? <strong key={index}>{part}</strong> : part
-    );
+    // First split by line breaks, then handle bold formatting within each line
+    return text.split('\n').map((line, lineIndex) => (
+      <span key={lineIndex}>
+        {line.split('**').map((part, partIndex) => 
+          partIndex % 2 === 1 ? <strong key={partIndex}>{part}</strong> : part
+        )}
+        {lineIndex < text.split('\n').length - 1 && <br />}
+      </span>
+    ));
   };
 
   return (

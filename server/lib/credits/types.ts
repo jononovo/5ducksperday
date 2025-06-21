@@ -74,7 +74,7 @@ export const NOTIFICATIONS: NotificationConfig[] = [
     type: 'welcome',
     trigger: 'registration_complete',
     title: 'Congrats Hatchling Level Unlocked!',
-    description: 'You have unlocked **Email Search**. Run a NEW search now to see complete results including emails of ~2 Key Contacts per company.',
+    description: 'You have unlocked **Email Search**.\n\nRun a NEW search now to see complete results including emails of ~2 Key Contacts per company.',
     badge: 'Hatchling',
     emoji: '🦆',
     buttonText: 'Chirp'
