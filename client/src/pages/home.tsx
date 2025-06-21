@@ -334,7 +334,7 @@ export default function Home() {
       }
     }
 
-    // Registration success callback setup
+    // Registration success callback setup (only set once)
     const handleRegistrationSuccess = async () => {
       console.log('Registration success detected, triggering welcome notification');
       try {
@@ -344,7 +344,10 @@ export default function Home() {
       }
     };
 
-    registrationModal.setRegistrationSuccessCallback(handleRegistrationSuccess);
+    // Only set callback once when component mounts
+    if (!isInitializedRef.current) {
+      registrationModal.setRegistrationSuccessCallback(handleRegistrationSuccess);
+    }
     
     // Mark component as initialized
     isInitializedRef.current = true;
@@ -353,7 +356,7 @@ export default function Home() {
     return () => {
       isMountedRef.current = false;
     };
-  }, [registrationModal, triggerNotification]);
+  }, []); // Remove dependencies to prevent re-running
 
   // Save state to localStorage whenever it changes (but prevent corruption during unmount)
   useEffect(() => {

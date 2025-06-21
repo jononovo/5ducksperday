@@ -28,6 +28,13 @@ export function useNotifications() {
   const triggerNotification = async (trigger: string): Promise<boolean> => {
     try {
       const response = await apiRequest("POST", "/api/notifications/trigger", { trigger });
+      
+      if (response.status === 409) {
+        // Notification already shown, silently ignore
+        console.log('Notification already shown for trigger:', trigger);
+        return false;
+      }
+      
       const result = await response.json();
       
       if (result.shouldShow && result.notification) {
