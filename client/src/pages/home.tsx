@@ -367,6 +367,10 @@ export default function Home() {
         setIsSaved(false);
         setContactsLoaded(false);
         
+        // Reset search button state for clean starting point
+        setLastExecutedQuery(null);
+        setInputHasChanged(false);
+        
         console.log('Guest data cleared successfully');
       };
       
