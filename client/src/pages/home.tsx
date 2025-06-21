@@ -67,6 +67,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ContactActionColumn } from "@/components/contact-action-column";
 import { SearchSessionManager } from "@/lib/search-session-manager";
 import { SavedSearchesDrawer } from "@/components/saved-searches-drawer";
+import { GameDialog } from "@/components/ui/gamified-dialog";
+import { Sparkles } from "lucide-react";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -118,6 +120,7 @@ export default function Home() {
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
   const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
+  const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
