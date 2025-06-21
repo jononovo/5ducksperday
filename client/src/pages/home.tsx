@@ -126,6 +126,63 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const registrationModal = useRegistrationModal();
   const auth = useAuth();
+  const user = auth.user;
+  
+  // Clean guest data and show welcome dialog for new registrations
+  const handleRegistrationComplete = () => {
+    // Step 0: Clean start - remove all guest data
+    cleanGuestData();
+    
+    // Step 1: Route the prompt - preserve search query from localStorage
+    const savedState = localStorage.getItem('searchState');
+    if (savedState) {
+      try {
+        const parsedState = JSON.parse(savedState);
+        setCurrentQuery(parsedState.currentQuery || '');
+      } catch (error) {
+        console.error('Error parsing saved search state:', error);
+      }
+    }
+    
+    // Step 2: Reset tooltips for new user experience
+    resetTooltipStates();
+    
+    // Step 3: Show welcome dialog
+    setShowWelcomeDialog(true);
+  };
+
+  // Function to clean all guest data
+  const cleanGuestData = () => {
+    // Clear search results state
+    setCurrentResults(null);
+    setCurrentListId(null);
+    setIsSaved(false);
+    
+    // Clear localStorage data
+    localStorage.removeItem('searchState');
+    localStorage.removeItem('savedSearches');
+    
+    // Clear session storage
+    sessionStorage.removeItem('searchState');
+    
+    // Invalidate lists query to clear drawer
+    queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
+    
+    console.log('Guest data cleaned for new registration');
+  };
+
+  // Function to reset tooltip states for new users
+  const resetTooltipStates = () => {
+    // Reset email tooltip
+    setHasShownEmailTooltip(false);
+    localStorage.removeItem('hasShownEmailTooltip');
+    
+    // Reset other tooltip states
+    setShowEmailTooltip(false);
+    setShowStartSellingTooltip(false);
+    
+    console.log('Tooltip states reset for new user');
+  };
   
   // Track if component is mounted to prevent localStorage corruption during unmount
   const isMountedRef = useRef(true);
@@ -2630,6 +2687,20 @@ export default function Home() {
         open={savedSearchesDrawerOpen}
         onOpenChange={setSavedSearchesDrawerOpen}
         onLoadSearch={handleLoadSavedSearch}
+      />
+
+      {/* Welcome dialog for new registrations */}
+      <GameDialog
+        isOpen={showWelcomeDialog}
+        onClose={() => setShowWelcomeDialog(false)}
+        title="Congrats Hatchling!"
+        badge="Hatchling"
+        badgeColor="bg-yellow-100 text-yellow-800"
+        message="You have joined the **Wildling-Duck-Family** and have unlocked access to **Email Search**.
+
+Run a search now to see complete results including emails of 1-2 Key Contacts per company."
+        actionText="Yaaay! I Feel so Alive."
+        icon={<Sparkles className="h-6 w-6 text-yellow-600" />}
       />
     </div>
   );
