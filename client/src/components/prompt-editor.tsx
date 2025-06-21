@@ -41,7 +41,6 @@ interface PromptEditorProps {
   onSearchSuccess?: () => void; // Callback when search completes successfully
   hasSearchResults?: boolean; // Flag to indicate if search results exist
   onSessionIdChange?: (sessionId: string | null) => void; // Callback for session ID changes
-  onRegistrationComplete?: () => void; // Callback when user completes registration
 }
 
 export default function PromptEditor({ 
@@ -57,8 +56,7 @@ export default function PromptEditor({
   onInputChange,
   onSearchSuccess,
   hasSearchResults = false,
-  onSessionIdChange,
-  onRegistrationComplete
+  onSessionIdChange
 }: PromptEditorProps) {
   const [query, setQuery] = useState(initialPrompt);
   const { toast } = useToast();
@@ -116,11 +114,6 @@ export default function PromptEditor({
       // User just registered - upgrade from guest default to full feature set
       localStorage.setItem('hasEverBeenRegistered', 'true');
       setSearchType('emails');
-      
-      // Trigger clean registration flow
-      if (onRegistrationComplete) {
-        onRegistrationComplete();
-      }
     } else if (!saved) {
       // First-time defaults based on auth status
       setSearchType(user ? 'emails' : 'contacts');
