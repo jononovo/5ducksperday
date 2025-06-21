@@ -371,6 +371,9 @@ export default function Home() {
         setLastExecutedQuery(null);
         setInputHasChanged(false);
         
+        // Clear saved searches cache to remove demo user's lists
+        queryClient.invalidateQueries({ queryKey: ['/api/lists'] });
+        
         console.log('Guest data cleared successfully');
       };
       
