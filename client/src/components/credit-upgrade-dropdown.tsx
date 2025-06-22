@@ -68,7 +68,20 @@ export function CreditUpgradeDropdown() {
         
         // Track waitlist join in database via notification system
         try {
-          await apiRequest('/api/notifications/trigger', 'POST', { trigger: 'waitlist_joined' });
+          const authToken = localStorage.getItem('authToken');
+          const response = await fetch('/api/notifications/trigger', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+            },
+            credentials: 'include',
+            body: JSON.stringify({ trigger: 'waitlist_joined' })
+          });
+          
+          if (!response.ok) {
+            console.error('Failed to track waitlist join:', response.status);
+          }
         } catch (error) {
           console.error('Failed to track waitlist join:', error);
           // Don't show error to user - tracking is background operation
