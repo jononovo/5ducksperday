@@ -29,6 +29,7 @@ import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
 import { findKeyDecisionMakers } from "./lib/search-logic/contact-discovery/enhanced-contact-finder";
 import { registerCreditRoutes } from "./routes/credits";
+import { registerStripeRoutes } from "./routes/stripe";
 import { CreditService } from "./lib/credits";
 import { SearchType } from "./lib/credits/types";
 import { db } from "./db";

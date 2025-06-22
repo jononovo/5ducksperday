@@ -27,6 +27,13 @@ export interface UserCredits {
   easterEggs?: number[];  // [0, 1, 1] tracking array
   notifications?: number[];  // [0, 1, 1] temporary notification tracking array
   badges?: number[];  // [0, 1, 1] permanent badge tracking array
+  // Stripe subscription fields
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing';
+  currentPlan?: 'ugly-duckling';
+  subscriptionStartDate?: number;
+  subscriptionEndDate?: number;
 }
 
 export interface CreditDeductionResult {
@@ -57,6 +64,15 @@ export const CREDIT_COSTS: Record<SearchType, number> = {
 } as const;
 
 export const MONTHLY_CREDIT_ALLOWANCE = 5000;
+
+// Stripe configuration
+export const STRIPE_CONFIG = {
+  UGLY_DUCKLING_PRODUCT_ID: 'prod_SXlmpPTIOgmmjo',
+  PLAN_CREDIT_ALLOWANCES: {
+    'ugly-duckling': 2500, // 2000 + 500 bonus
+    'free': 180 // Default free credits
+  }
+} as const;
 
 export interface NotificationConfig {
   id: number;

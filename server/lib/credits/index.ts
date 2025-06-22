@@ -1,4 +1,4 @@
-import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE, EasterEgg, EASTER_EGGS, NotificationConfig, NOTIFICATIONS, BadgeConfig, BADGES } from "./types";
+import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE, EasterEgg, EASTER_EGGS, NotificationConfig, NOTIFICATIONS, BadgeConfig, BADGES, STRIPE_CONFIG } from "./types";
 import Database from '@replit/database';
 
 // Replit DB instance for persistent credit storage
@@ -98,16 +98,26 @@ export class CreditService {
                       now.getFullYear() !== lastTopUp.getFullYear();
     
     if (isNewMonth) {
+      // Determine credit amount based on subscription status
+      const isSubscribed = credits.subscriptionStatus === 'active' && credits.currentPlan;
+      const creditAmount = isSubscribed && credits.currentPlan 
+        ? STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES[credits.currentPlan]
+        : MONTHLY_CREDIT_ALLOWANCE;
+
+      const planDescription = isSubscribed && credits.currentPlan 
+        ? `${credits.currentPlan} subscription`
+        : 'free tier';
+
       const transaction: CreditTransaction = {
         type: 'credit',
-        amount: MONTHLY_CREDIT_ALLOWANCE,
-        description: `Monthly top-up for ${now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
+        amount: creditAmount,
+        description: `Monthly top-up for ${now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} (${planDescription})`,
         timestamp: Date.now()
       };
 
       const updatedCredits: UserCredits = {
         ...credits,
-        currentBalance: credits.currentBalance + MONTHLY_CREDIT_ALLOWANCE,
+        currentBalance: credits.currentBalance + creditAmount,
         lastTopUp: Date.now(),
         isBlocked: false, // Unblock user on monthly refresh
         transactions: [...credits.transactions, transaction],
@@ -115,7 +125,7 @@ export class CreditService {
       };
 
       await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
-      console.log(`Applied monthly top-up for user ${userId}: +${MONTHLY_CREDIT_ALLOWANCE} credits`);
+      console.log(`Applied monthly top-up for user ${userId}: +${creditAmount} credits (${planDescription})`);
       return true;
     }
     
@@ -440,6 +450,63 @@ export class CreditService {
       thisMonth: thisMonthUsage,
       searchCounts
     };
+  }
+
+  /**
+   * Update Stripe customer ID
+   */
+  static async updateStripeCustomerId(userId: number, customerId: string): Promise<void> {
+    const credits = await this.getUserCredits(userId);
+    credits.stripeCustomerId = customerId;
+    credits.updatedAt = Date.now();
+    
+    await db.set(this.getCreditKey(userId), JSON.stringify(credits));
+    console.log(`Updated Stripe customer ID for user ${userId}: ${customerId}`);
+  }
+
+  /**
+   * Update subscription details
+   */
+  static async updateSubscription(userId: number, subscriptionData: {
+    stripeSubscriptionId?: string;
+    subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing';
+    currentPlan?: 'ugly-duckling';
+    subscriptionStartDate?: number;
+    subscriptionEndDate?: number;
+  }): Promise<void> {
+    const credits = await this.getUserCredits(userId);
+    
+    Object.assign(credits, subscriptionData);
+    credits.updatedAt = Date.now();
+    
+    await db.set(this.getCreditKey(userId), JSON.stringify(credits));
+    console.log(`Updated subscription for user ${userId}:`, subscriptionData);
+  }
+
+  /**
+   * Award subscription credits immediately upon successful subscription
+   */
+  static async awardSubscriptionCredits(userId: number, planId: 'ugly-duckling'): Promise<void> {
+    const credits = await this.getUserCredits(userId);
+    const creditAmount = STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES[planId];
+
+    const transaction: CreditTransaction = {
+      type: 'credit',
+      amount: creditAmount,
+      description: `${planId} subscription activation bonus`,
+      timestamp: Date.now()
+    };
+
+    const updatedCredits: UserCredits = {
+      ...credits,
+      currentBalance: credits.currentBalance + creditAmount,
+      isBlocked: false, // Unblock user on subscription
+      transactions: [...credits.transactions, transaction],
+      updatedAt: Date.now()
+    };
+
+    await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
+    console.log(`Awarded subscription credits for user ${userId}: +${creditAmount} credits for ${planId}`);
   }
 }
 
