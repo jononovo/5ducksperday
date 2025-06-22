@@ -6,10 +6,10 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from "@/lib/utils";
 
 interface CreditData {
@@ -145,8 +145,17 @@ export function CreditUpgradeDropdown() {
   }
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
+    <>
+      {/* Custom overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-40"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+      
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           className="flex items-center gap-2 text-sm font-medium h-auto p-2 hover:bg-accent hover:text-accent-foreground"
@@ -160,9 +169,13 @@ export function CreditUpgradeDropdown() {
           </span>
           <ChevronDown className="w-4 h-4" />
         </Button>
-      </DialogTrigger>
+      </DropdownMenuTrigger>
       
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto p-0 bg-background border shadow-2xl">
+      <DropdownMenuContent
+        align="end"
+        className="w-80 p-0 bg-background border shadow-2xl z-50"
+        sideOffset={8}
+      >
         {/* Header */}
         <div className="bg-gradient-to-r from-muted/50 to-muted/30 p-3 border-b">
           <div className="flex items-center gap-2">
@@ -296,7 +309,8 @@ export function CreditUpgradeDropdown() {
             See full details and features →
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </DropdownMenuContent>
+    </DropdownMenu>
+    </>
   );
 }
