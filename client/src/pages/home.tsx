@@ -179,6 +179,65 @@ export default function Home() {
     
     checkStartSellingTooltipStatus();
   }, [auth?.user]);
+
+  // Handle tooltip dismissal when clicked
+  useEffect(() => {
+    const handleTooltipDismiss = async () => {
+      // Dismiss email discovery tooltip
+      if (showEmailTooltip) {
+        setShowEmailTooltip(false);
+        setHasShownEmailTooltip(true); // Mark as shown
+        
+        // Mark email tooltip as shown for authenticated users
+        if (auth?.user) {
+          try {
+            await fetch('/api/notifications/mark-shown', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(localStorage.getItem('authToken') && { 
+                  'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
+                })
+              },
+              credentials: 'include',
+              body: JSON.stringify({ notificationId: 3 })
+            });
+          } catch (error) {
+            console.error('Failed to mark email tooltip as shown:', error);
+          }
+        }
+      }
+      
+      // Dismiss start selling tooltip
+      if (showStartSellingTooltip) {
+        setShowStartSellingTooltip(false);
+        setHighlightStartSellingButton(false);
+        setHasShownStartSellingTooltip(true); // Mark as shown
+        
+        // Mark start selling tooltip as shown for authenticated users
+        if (auth?.user) {
+          try {
+            await fetch('/api/notifications/mark-shown', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(localStorage.getItem('authToken') && { 
+                  'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
+                })
+              },
+              credentials: 'include',
+              body: JSON.stringify({ notificationId: 4 })
+            });
+          } catch (error) {
+            console.error('Failed to mark start selling tooltip as shown:', error);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('dismissTooltip', handleTooltipDismiss);
+    return () => window.removeEventListener('dismissTooltip', handleTooltipDismiss);
+  }, [showEmailTooltip, showStartSellingTooltip, auth?.user, hasShownEmailTooltip, hasShownStartSellingTooltip]);
   
   // Track if component is mounted to prevent localStorage corruption during unmount
   const isMountedRef = useRef(true);
