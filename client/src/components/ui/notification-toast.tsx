@@ -21,7 +21,7 @@ interface NotificationToastProps {
 }
 
 export function NotificationToast({ notificationState, onClose }: NotificationToastProps) {
-  if (!notificationState.isOpen || (!notificationState.notification && !notificationState.badge)) {
+  if (!notificationState || !notificationState.isOpen || (!notificationState.notification && !notificationState.badge)) {
     return null;
   }
 

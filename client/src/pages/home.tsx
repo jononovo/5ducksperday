@@ -2698,14 +2698,8 @@ export default function Home() {
 
       {/* Notification System */}
       <NotificationToast
-        isOpen={notificationState.isOpen}
+        notificationState={notificationState}
         onClose={closeNotification}
-        title={notificationState.notification?.title || ''}
-        description={notificationState.notification?.description || ''}
-        badge={notificationState.notification?.badge}
-        emoji={notificationState.notification?.emoji}
-        buttonText={notificationState.notification?.buttonText}
-        variant="success"
       />
     </div>
   );
