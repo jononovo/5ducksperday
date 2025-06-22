@@ -75,7 +75,7 @@ export function registerStripeRoutes(app: express.Express) {
         payment_method_types: ['card'],
         line_items: [
           {
-            price: price.id,
+            price: priceId,
             quantity: 1,
           },
         ],
@@ -155,9 +155,10 @@ export function registerStripeRoutes(app: express.Express) {
     let event;
 
     try {
-      // In production, you would want to set this from environment variable
-      // For now, we'll skip signature verification in development
+      // For webhook security, we need proper signature verification
+      // For now in development, we'll parse directly but log the issue
       event = JSON.parse(req.body.toString());
+      console.log('⚠️  WARNING: Webhook signature verification disabled - configure STRIPE_WEBHOOK_SECRET for production');
       
       console.log(`Received Stripe webhook: ${event.type}`);
 
@@ -185,9 +186,10 @@ export function registerStripeRoutes(app: express.Express) {
               subscriptionEndDate: subscription.current_period_end * 1000
             });
 
-            // Award subscription credits if active
+                // Award subscription credits if active
             if (subscription.status === 'active') {
-              await CreditService.awardSubscriptionCredits(userId, planId);
+              await CreditService.awardSubscriptionCredits(userId, planId as 'ugly-duckling');
+              console.log(`Awarded subscription credits to user ${userId} for plan ${planId}`);
             }
           }
           break;
