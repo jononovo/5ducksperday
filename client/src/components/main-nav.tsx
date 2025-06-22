@@ -118,7 +118,7 @@ export function MainNav() {
             <Button 
               variant="outline" 
               onClick={openRegistrationModal}
-              className="h-8 px-4 text-sm"
+              className="h-8 px-4 text-sm text-muted-foreground hover:text-foreground"
             >
               Login
             </Button>
