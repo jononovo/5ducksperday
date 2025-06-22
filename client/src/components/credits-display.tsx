@@ -34,24 +34,13 @@ export function CreditsDisplay() {
     );
   }
 
-  const isLow = credits.balance < 500;
-  const isCritical = credits.balance < 200;
-
   return (
-    <div
-      className={cn(
-        "flex items-center gap-2 text-sm font-medium",
-        credits.isBlocked
-          ? "text-red-800"
-          : isCritical
-          ? "text-orange-800"
-          : isLow
-          ? "text-yellow-800"
-          : "text-yellow-600"
-      )}
-    >
-      <Coins className="h-4 w-4" />
-      <span>
+    <div className="flex items-center gap-2 text-sm font-medium">
+      <Coins className={cn(
+        "h-4 w-4",
+        credits.balance >= 1 ? "text-yellow-500" : "text-red-600"
+      )} />
+      <span className="text-muted-foreground">
         {credits.balance < 0 ? credits.balance : `${(credits.balance ?? 0).toLocaleString()}`}
       </span>
     </div>
