@@ -35,8 +35,6 @@ interface PromptEditorProps {
   onCompaniesReceived: (query: string, companies: any[]) => void; // New callback for quick results
   isAnalyzing: boolean;
   initialPrompt?: string;
-  isFromLandingPage?: boolean; // Flag to indicate if user came from landing page
-  onDismissLandingHint?: () => void; // Callback to dismiss landing page hint
   lastExecutedQuery?: string | null; // Last executed search query
   onInputChange?: (newValue: string) => void; // Callback for input changes
   onSearchSuccess?: () => void; // Callback when search completes successfully
@@ -51,8 +49,6 @@ export default function PromptEditor({
   onCompaniesReceived,
   isAnalyzing,
   initialPrompt = "",
-  isFromLandingPage = false,
-  onDismissLandingHint,
   lastExecutedQuery = null,
   onInputChange,
   onSearchSuccess,
@@ -472,24 +468,12 @@ export default function PromptEditor({
   // State to track if we should apply the gradient text effect
   const [showGradientText, setShowGradientText] = useState(false);
   
-  // Set initial query only once when component mounts or when coming from landing page
+  // Set initial query only once when component mounts
   useEffect(() => {
     if (initialPrompt && query === "") {
       setQuery(initialPrompt);
-      
-      // If we're coming from the landing page, apply the gradient text effect temporarily
-      if (isFromLandingPage) {
-        setShowGradientText(true);
-        
-        // Reset after 6 seconds or when the user changes the input
-        const timer = setTimeout(() => {
-          setShowGradientText(false);
-        }, 3000);
-        
-        return () => clearTimeout(timer);
-      }
     }
-  }, [initialPrompt, isFromLandingPage]);
+  }, [initialPrompt]);
 
   // Handle tooltip dismissal
   useEffect(() => {
