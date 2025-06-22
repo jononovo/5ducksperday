@@ -33,6 +33,7 @@ const Replies = lazy(() => import("@/pages/replies"));
 const CompanyDetails = lazy(() => import("@/pages/company-details"));
 const ContactDetails = lazy(() => import("@/pages/contact-details"));
 const Testing = lazy(() => import("@/pages/testing"));
+const SubscriptionSuccess = lazy(() => import("@/pages/subscription-success"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 // Lazy imports for marketing pages
@@ -212,6 +213,13 @@ function Router() {
                 <ProtectedRoute path="/testing" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Testing />
+                  </Suspense>
+                } />
+                
+                {/* Subscription Success Page */}
+                <Route path="/subscription-success" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <SubscriptionSuccess />
                   </Suspense>
                 } />
                 

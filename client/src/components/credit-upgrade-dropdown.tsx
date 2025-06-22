@@ -40,6 +40,11 @@ export function CreditUpgradeDropdown() {
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
+  const { data: subscriptionStatus } = useQuery<SubscriptionStatus>({
+    queryKey: ['/api/stripe/subscription-status'],
+    refetchInterval: 30000, // Sync with credits
+  });
+
   const { data: notificationStatus } = useQuery<NotificationStatus>({
     queryKey: ['/api/notifications/status'],
     refetchInterval: 30000, // Sync with credits refetch
