@@ -1770,7 +1770,7 @@ export default function Home() {
         setTimeout(() => {
           setHighlightStartSellingButton(false);
           setShowStartSellingTooltip(false);
-        }, 25000);
+        }, 10000);
       }, 2000);
       
       // Clean up timer if component unmounts or dependencies change
