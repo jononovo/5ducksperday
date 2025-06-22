@@ -91,6 +91,32 @@ export default function PromptEditor({
   
   // Track if search tooltip has been shown for authenticated users
   const [hasShownSearchTooltip, setHasShownSearchTooltip] = useState(false);
+
+  // Check if user has already seen search tooltip
+  useEffect(() => {
+    const checkSearchTooltipStatus = async () => {
+      if (user) {
+        try {
+          const response = await fetch('/api/notifications/status', {
+            headers: {
+              ...(localStorage.getItem('authToken') && { 
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
+              })
+            },
+            credentials: 'include'
+          });
+          const data = await response.json();
+          if (data.notifications && data.notifications[2] === 1) {
+            setHasShownSearchTooltip(true);
+          }
+        } catch (error) {
+          console.error('Failed to check search tooltip status:', error);
+        }
+      }
+    };
+    
+    checkSearchTooltipStatus();
+  }, [user]);
   
   // Track if input has changed from last executed query
   const [inputHasChanged, setInputHasChanged] = useState(false);
@@ -467,15 +493,35 @@ export default function PromptEditor({
 
   // Handle tooltip dismissal
   useEffect(() => {
-    const handleTooltipDismiss = () => {
+    const handleTooltipDismiss = async () => {
       if (onDismissLandingHint) {
         onDismissLandingHint();
+      }
+      
+      // Mark search tooltip as shown for authenticated users
+      if (user && !hasShownSearchTooltip) {
+        setHasShownSearchTooltip(true);
+        try {
+          await fetch('/api/notifications/mark-shown', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(localStorage.getItem('authToken') && { 
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
+              })
+            },
+            credentials: 'include',
+            body: JSON.stringify({ notificationId: 2 })
+          });
+        } catch (error) {
+          console.error('Failed to mark search tooltip as shown:', error);
+        }
       }
     };
 
     window.addEventListener('dismissTooltip', handleTooltipDismiss);
     return () => window.removeEventListener('dismissTooltip', handleTooltipDismiss);
-  }, [onDismissLandingHint]);
+  }, [onDismissLandingHint, user, hasShownSearchTooltip]);
 
 
   // Use our search strategy context
@@ -982,7 +1028,7 @@ export default function PromptEditor({
             {/* Component tooltip version for comparison */}
             <LandingPageTooltip
               message="If you are happy with this prompt, click search."
-              visible={isFromLandingPage && !hasShownSearchTooltip && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)}
+              visible={isFromLandingPage && (!user || !hasShownSearchTooltip) && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)}
               position="custom"
               offsetX={0}
               offsetY={-20}
