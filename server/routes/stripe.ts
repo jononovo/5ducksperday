@@ -142,7 +142,7 @@ export function registerStripeRoutes(app: express.Express) {
 
     try {
       // Parse and verify the webhook payload
-      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_TEST_v4_250621;
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
       
       if (webhookSecret && sig) {
         // Production: Verify webhook signature
@@ -150,7 +150,7 @@ export function registerStripeRoutes(app: express.Express) {
         console.log(`✅ Verified Stripe webhook: ${event.type}`);
       } else {
         // Development: Parse without verification but warn
-        const body = req.body.toString();
+        const body = Buffer.isBuffer(req.body) ? req.body.toString() : JSON.stringify(req.body);
         event = JSON.parse(body);
         console.log(`⚠️ Unverified Stripe webhook: ${event.type} - Add webhook secret for production`);
       }
