@@ -114,11 +114,23 @@ export default function Home() {
   const [highlightStartSellingButton, setHighlightStartSellingButton] = useState(false);
   const [showEmailTooltip, setShowEmailTooltip] = useState(false);
   const [hasShownEmailTooltip, setHasShownEmailTooltip] = useState(false);
-  
+  const [showStartSellingTooltip, setShowStartSellingTooltip] = useState(false);
+  // Tour modal has been removed
+  const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
+  const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
+  const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
+  const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+  const registrationModal = useRegistrationModal();
+  const auth = useAuth();
+  const { notificationState, triggerNotification, closeNotification } = useNotifications();
+
   // Check if user has already seen email tooltip
   useEffect(() => {
     const checkEmailTooltipStatus = async () => {
-      if (auth.user) {
+      if (auth?.user) {
         try {
           const response = await fetch('/api/notifications/status', {
             headers: {
@@ -139,19 +151,7 @@ export default function Home() {
     };
     
     checkEmailTooltipStatus();
-  }, [auth.user]);
-  const [showStartSellingTooltip, setShowStartSellingTooltip] = useState(false);
-  // Tour modal has been removed
-  const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
-  const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
-  const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
-  const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
-  const registrationModal = useRegistrationModal();
-  const auth = useAuth();
-  const { notificationState, triggerNotification, closeNotification } = useNotifications();
+  }, [auth?.user]);
   
   // Track if component is mounted to prevent localStorage corruption during unmount
   const isMountedRef = useRef(true);
@@ -1680,7 +1680,7 @@ export default function Home() {
         setHasShownEmailTooltip(true); // Mark as shown
         
         // Mark email tooltip as shown for authenticated users
-        if (auth.user) {
+        if (auth?.user) {
           try {
             await fetch('/api/notifications/mark-shown', {
               method: 'POST',
@@ -1705,7 +1705,7 @@ export default function Home() {
       
       return () => clearTimeout(timer);
     }
-  }, [currentResults, isAnalyzing, hasShownEmailTooltip, auth.user]);
+  }, [currentResults, isAnalyzing, hasShownEmailTooltip, auth?.user]);
 
   // Helper to get current companies without emails (only check top 3 contacts)
   const getCurrentCompaniesWithoutEmails = () => {
