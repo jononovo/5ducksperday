@@ -139,10 +139,10 @@ export function CreditUpgradeDropdown() {
               <Card
                 key={plan.id}
                 className={cn(
-                  "relative transition-all duration-200 cursor-pointer hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 border shadow-md",
+                  "relative transition-all duration-300 cursor-pointer hover:shadow-md hover:scale-[1.01] border shadow-md",
                   isCurrentPlan 
                     ? 'border-green-300 bg-green-50/50 dark:bg-green-950/20 dark:border-green-700' 
-                    : 'border-border hover:border-blue-300 dark:hover:border-blue-700'
+                    : 'border-border hover:border-blue-200 dark:hover:border-blue-800'
                 )}
                 onClick={() => !isCurrentPlan && handlePlanSelect(plan.id)}
               >
@@ -178,7 +178,7 @@ export function CreditUpgradeDropdown() {
                       className={cn(
                         "w-full mt-3 text-base group relative transition-all duration-300 transform hover:scale-102 hover:shadow-lg",
                         isUpgrade 
-                          ? 'bg-gray-200 hover:bg-black hover:text-white text-black border-0' 
+                          ? 'bg-gray-100 hover:bg-black hover:text-white text-black border-0' 
                           : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white border-0 shadow-lg'
                       )}
                       onClick={(e) => {

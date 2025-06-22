@@ -197,6 +197,7 @@
 - June 22, 2025. Credit dropdown button redesign: Updated "Start Selling" button to use search button gradient (cyan-to-blue: from-cyan-500 to-blue-500) for visual consistency. Changed "Duckin' Awesome" plan button to light grey background (bg-gray-200) with black hover state (hover:bg-black hover:text-white) and updated label from "Start Flying" to "Join Waitlist" for waitlist functionality
 - June 22, 2025. Credit button hover enhancement: Reduced hover scaling from scale-105 to scale-102 for subtler effect. Added registration modal's delayed text animation - "Start Selling" transitions to "Let's Go 🚀" after 1-second delay on hover, using absolute positioning with opacity transitions and group hover states for professional interactive feedback
 - June 22, 2025. Credit dropdown upgrade logic fix: Updated isUpgrade logic to properly identify "Duckin' Awesome" plan as upgrade/waitlist plan regardless of current subscription status. Fixed button styling and label so premium plan always shows light grey background with black hover and "Join Waitlist" text
+- June 22, 2025. Credit dropdown subtle refinements: Reduced card hover effects for more subtle interaction - changed scale from 1.02 to 1.01, shadow from hover:shadow-lg to hover:shadow-md, border opacity from 30% to 20%, and extended transition duration to 300ms. Lightened "Join Waitlist" button background from bg-gray-200 to bg-gray-100 for softer appearance
 
 
 ## User Preferences
