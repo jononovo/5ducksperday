@@ -267,21 +267,6 @@ export class CreditService {
   static async hasEarnedBadge(userId: number, badgeId: number): Promise<boolean> {
     const credits = await this.getUserCredits(userId);
     const badges = credits.badges || [];
-    
-    // Handle Hatchling badge (ID 0) with backward compatibility
-    if (badgeId === 0) {
-      // Check if already awarded in new system
-      if (badges[0] === 1) return true;
-      
-      // Migrate from old notification system if needed
-      const notifications = credits.notifications || [];
-      if (notifications[0] === 1) {
-        // Auto-migrate old Hatchling notification to badge
-        await this.awardBadge(userId, 0);
-        return true;
-      }
-    }
-    
     return badges[badgeId] === 1;
   }
 
