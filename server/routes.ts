@@ -4409,8 +4409,7 @@ Respond in this exact JSON format:
       res.json({ 
         notifications: credits.notifications || [],
         badges: credits.badges || [],
-        isWaitlistMember: credits.notifications?.includes(1) || false,
-        hasHatchlingBadge: credits.badges?.includes(0) || false
+        isWaitlistMember: credits.notifications?.includes(1) || false
       });
     } catch (error) {
       console.error('Error fetching notification status:', error);
