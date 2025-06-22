@@ -4392,6 +4392,23 @@ Respond in this exact JSON format:
     }
   });
 
+  app.get('/api/notifications/status', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const credits = await CreditService.getUserCredits(userId);
+      
+      res.json({ 
+        notifications: credits.notifications || [],
+        isWaitlistMember: credits.notifications?.includes(1) || false
+      });
+    } catch (error) {
+      console.error('Error fetching notification status:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch notification status' 
+      });
+    }
+  });
+
   // Register credit routes
   registerCreditRoutes(app);
 

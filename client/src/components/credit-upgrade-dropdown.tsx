@@ -20,10 +20,20 @@ interface CreditData {
   monthlyAllowance: number;
 }
 
+interface NotificationStatus {
+  notifications: number[];
+  isWaitlistMember: boolean;
+}
+
 export function CreditUpgradeDropdown() {
   const { data: credits, isLoading } = useQuery<CreditData>({
     queryKey: ['/api/credits'],
     refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  const { data: notificationStatus } = useQuery<NotificationStatus>({
+    queryKey: ['/api/notifications/status'],
+    refetchInterval: 30000, // Sync with credits refetch
   });
   
   const { toast } = useToast();
@@ -32,6 +42,13 @@ export function CreditUpgradeDropdown() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [waitlistPlans, setWaitlistPlans] = useState<string[]>([]);
+
+  // Sync waitlist state with server data
+  React.useEffect(() => {
+    if (notificationStatus?.isWaitlistMember) {
+      setWaitlistPlans(prev => prev.includes('duckin-awesome') ? prev : [...prev, 'duckin-awesome']);
+    }
+  }, [notificationStatus]);
 
   const plans = [
     {
