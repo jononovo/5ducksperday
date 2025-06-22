@@ -150,7 +150,7 @@ export function CreditUpgradeDropdown() {
       {/* Custom overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/20 z-40"
+          className="fixed inset-0 bg-black/80 z-40"
           onClick={() => setIsOpen(false)}
         />
       )}
