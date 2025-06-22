@@ -26,7 +26,7 @@ export default function SubscriptionSuccess() {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          setLocation('/');
+          setLocation('/app');
           return 0;
         }
         return prev - 1;
@@ -37,7 +37,7 @@ export default function SubscriptionSuccess() {
   }, [setLocation]);
 
   const handleGoToApp = () => {
-    setLocation('/');
+    setLocation('/app');
   };
 
   if (isLoading) {
