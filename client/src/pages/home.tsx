@@ -338,27 +338,22 @@ export default function Home() {
     const handleRegistrationSuccess = async () => {
       console.log('Registration success detected, triggering welcome notification');
       
-      // Extract guest data before cleanup
-      const extractGuestSearchData = () => {
+      try {
+        // Extract guest data BEFORE cleanup (critical timing fix)
         const savedState = loadSearchState();
-        return {
+        const guestData = {
           originalQuery: savedState?.currentQuery || null,
           companyCount: savedState?.currentResults?.length || 0,
           hasEmailData: savedState?.emailSearchCompleted || false
         };
-      };
-      
-      // Clear all guest localStorage data
-      const clearGuestData = () => {
-        // Core search data
+        
+        console.log('Extracted guest data:', guestData);
+        
+        // Clear all guest localStorage data
         localStorage.removeItem('searchState');
         sessionStorage.removeItem('searchState');
-        
-        // Search configuration
         localStorage.removeItem('contactSearchConfig');
         localStorage.removeItem('lastEmailSearchTimestamp');
-        
-        // UI state preservation
         localStorage.removeItem('pendingSearchQuery');
         
         // Clear component state
@@ -375,25 +370,6 @@ export default function Home() {
         queryClient.invalidateQueries({ queryKey: ['/api/lists'] });
         
         console.log('Guest data cleared successfully');
-      };
-      
-      // Show transition guidance
-      const showTransitionGuidance = (guestData: any) => {
-        if (guestData.originalQuery && guestData.companyCount > 0) {
-          toast({
-            title: "Welcome! Ready for Full Email Search?",
-            description: `Your previous search (${guestData.companyCount} companies) was a preview. Re-run your search now to get complete results with emails!`,
-            duration: 8000
-          });
-        }
-      };
-      
-      try {
-        // Extract guest data before cleanup
-        const guestData = extractGuestSearchData();
-        
-        // Clear all guest localStorage data
-        clearGuestData();
         
         // Restore original query to input field
         if (guestData.originalQuery) {
@@ -402,7 +378,13 @@ export default function Home() {
         }
         
         // Show transition guidance
-        showTransitionGuidance(guestData);
+        if (guestData.originalQuery && guestData.companyCount > 0) {
+          toast({
+            title: "Welcome! Ready for Full Email Search?",
+            description: `Your previous search (${guestData.companyCount} companies) was a preview. Re-run your search now to get complete results with emails!`,
+            duration: 8000
+          });
+        }
         
         // Trigger welcome notification
         await triggerNotification('registration_complete');
