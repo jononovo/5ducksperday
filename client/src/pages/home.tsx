@@ -114,6 +114,32 @@ export default function Home() {
   const [highlightStartSellingButton, setHighlightStartSellingButton] = useState(false);
   const [showEmailTooltip, setShowEmailTooltip] = useState(false);
   const [hasShownEmailTooltip, setHasShownEmailTooltip] = useState(false);
+  
+  // Check if user has already seen email tooltip
+  useEffect(() => {
+    const checkEmailTooltipStatus = async () => {
+      if (auth.user) {
+        try {
+          const response = await fetch('/api/notifications/status', {
+            headers: {
+              ...(localStorage.getItem('authToken') && { 
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
+              })
+            },
+            credentials: 'include'
+          });
+          const data = await response.json();
+          if (data.notifications && data.notifications[3] === 1) {
+            setHasShownEmailTooltip(true);
+          }
+        } catch (error) {
+          console.error('Failed to check email tooltip status:', error);
+        }
+      }
+    };
+    
+    checkEmailTooltipStatus();
+  }, [auth.user]);
   const [showStartSellingTooltip, setShowStartSellingTooltip] = useState(false);
   // Tour modal has been removed
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
@@ -1649,9 +1675,29 @@ export default function Home() {
   useEffect(() => {
     // Show email tooltip 5 seconds after first search completes (only once per session)
     if (currentResults && currentResults.length > 0 && !isAnalyzing && !hasShownEmailTooltip) {
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         setShowEmailTooltip(true);
         setHasShownEmailTooltip(true); // Mark as shown
+        
+        // Mark email tooltip as shown for authenticated users
+        if (auth.user) {
+          try {
+            await fetch('/api/notifications/mark-shown', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(localStorage.getItem('authToken') && { 
+                  'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
+                })
+              },
+              credentials: 'include',
+              body: JSON.stringify({ notificationId: 3 })
+            });
+          } catch (error) {
+            console.error('Failed to mark email tooltip as shown:', error);
+          }
+        }
+        
         setTimeout(() => {
           setShowEmailTooltip(false);
         }, 5000);
@@ -1659,7 +1705,7 @@ export default function Home() {
       
       return () => clearTimeout(timer);
     }
-  }, [currentResults, isAnalyzing, hasShownEmailTooltip]);
+  }, [currentResults, isAnalyzing, hasShownEmailTooltip, auth.user]);
 
   // Helper to get current companies without emails (only check top 3 contacts)
   const getCurrentCompaniesWithoutEmails = () => {
