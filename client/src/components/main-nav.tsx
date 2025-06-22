@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { LogOut, User, Menu, LayoutDashboard, ListTodo, Mail, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { CreditsDisplay } from "@/components/credits-display";
@@ -24,11 +25,16 @@ export function MainNav() {
   // Safe auth hook usage with error handling
   let user = null;
   let logoutMutation = null;
+  let openRegistrationModal = null;
   
   try {
     const auth = useAuth();
     user = auth.user;
     logoutMutation = auth.logoutMutation;
+    
+    // Registration modal for login functionality
+    const { openModal } = useRegistrationModal();
+    openRegistrationModal = openModal;
   } catch (error) {
     // MainNav is being rendered outside AuthProvider context
     // This is acceptable for public routes - just don't show user menu
@@ -62,51 +68,63 @@ export function MainNav() {
           );
         })}
       </div>
-      {user && (
-        <div className="flex items-center ml-auto gap-3">
-          <CreditsDisplay />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Menu className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {logoutMutation && (
-                <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  <span>Logout</span>
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <Link href="/build">
-                <DropdownMenuItem>
-                  <LayoutDashboard className="h-4 w-4 mr-2" />
-                  <span>Build</span>
-                </DropdownMenuItem>
-              </Link>
-              <Link href="/account">
-                <DropdownMenuItem>
-                  <User className="h-4 w-4 mr-2" />
-                  <span>Account</span>
-                </DropdownMenuItem>
-              </Link>
-              <Link href="/lists">
-                <DropdownMenuItem>
-                  <ListTodo className="h-4 w-4 mr-2" />
-                  <span>Lists</span>
-                </DropdownMenuItem>
-              </Link>
-              <Link href="/campaigns">
-                <DropdownMenuItem>
-                  <Mail className="h-4 w-4 mr-2" />
-                  <span>Campaigns</span>
-                </DropdownMenuItem>
-              </Link>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
+      <div className="flex items-center ml-auto gap-3">
+        {user ? (
+          <>
+            <CreditsDisplay />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {logoutMutation && (
+                  <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <Link href="/build">
+                  <DropdownMenuItem>
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    <span>Build</span>
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/account">
+                  <DropdownMenuItem>
+                    <User className="h-4 w-4 mr-2" />
+                    <span>Account</span>
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/lists">
+                  <DropdownMenuItem>
+                    <ListTodo className="h-4 w-4 mr-2" />
+                    <span>Lists</span>
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/campaigns">
+                  <DropdownMenuItem>
+                    <Mail className="h-4 w-4 mr-2" />
+                    <span>Campaigns</span>
+                  </DropdownMenuItem>
+                </Link>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        ) : (
+          openRegistrationModal && (
+            <Button 
+              variant="outline" 
+              onClick={openRegistrationModal}
+              className="h-8 px-4 text-sm"
+            >
+              Login
+            </Button>
+          )
+        )}
+      </div>
     </nav>
   );
 }
