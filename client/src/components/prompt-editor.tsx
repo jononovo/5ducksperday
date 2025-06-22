@@ -494,10 +494,6 @@ export default function PromptEditor({
   // Handle tooltip dismissal
   useEffect(() => {
     const handleTooltipDismiss = async () => {
-      if (onDismissLandingHint) {
-        onDismissLandingHint();
-      }
-      
       // Mark search tooltip as shown for authenticated users
       if (user && !hasShownSearchTooltip) {
         setHasShownSearchTooltip(true);
@@ -521,7 +517,7 @@ export default function PromptEditor({
 
     window.addEventListener('dismissTooltip', handleTooltipDismiss);
     return () => window.removeEventListener('dismissTooltip', handleTooltipDismiss);
-  }, [onDismissLandingHint, user, hasShownSearchTooltip]);
+  }, [user, hasShownSearchTooltip]);
 
 
   // Use our search strategy context
@@ -878,10 +874,7 @@ export default function PromptEditor({
       }
     }
     
-    // Dismiss the landing page hint if active
-    if (isFromLandingPage && onDismissLandingHint) {
-      onDismissLandingHint();
-    }
+
     
     // Don't reset inputHasChanged here - wait until search completes
     

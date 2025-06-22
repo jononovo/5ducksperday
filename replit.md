@@ -212,6 +212,7 @@
 - June 22, 2025. Unified tooltip dismissal behavior: Added 'dismissTooltip' event listener to home.tsx enabling click-to-dismiss functionality for Email Discovery and Start Selling tooltips. Both tooltips now respond to clicks by immediately dismissing, marking as shown in database for authenticated users, and preventing future displays. Behavior now matches search button tooltip pattern with immediate persistence on click rather than only timer-based dismissal
 - June 22, 2025. Start Selling tooltip duration optimization: Reduced auto-dismiss timer from 25 seconds to 10 seconds for better user experience consistency with other tooltips in the system
 - June 22, 2025. Guest authentication delay extension: Increased guest user registration prompt delay from 14 seconds to 25 seconds to provide more time for evaluation of search functionality before authentication requirement
+- June 22, 2025. Legacy component cleanup: Removed obsolete Landing Page Hint Dismissal functionality (onDismissLandingHint props, callbacks, and landing-page-tooltip.tsx component) and Search Strategies info tooltip with explanatory text. Eliminated unused isFromLandingPage state and simplified component interfaces by removing redundant explanatory UI elements
 
 
 ## User Preferences

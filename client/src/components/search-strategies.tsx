@@ -10,13 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { InfoIcon } from "lucide-react";
+
 import type { SearchApproach } from "@shared/schema";
 
 interface SearchStrategyProps {
@@ -125,22 +119,7 @@ export function SearchStrategies({ onStrategyChange, defaultStrategy }: SearchSt
           </Select>
         </div>
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <InfoIcon className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="max-w-xs">
-                Choose different search strategies optimized for specific business types and roles.
-                Each strategy uses a different configuration of our four core search modules:
-                Company Overview → Email Discovery → Enrich Email → Email Deepdive.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+
       </div>
 
       {selectedStrategy && selectedStrategyObj && (
