@@ -178,15 +178,15 @@ export function CreditUpgradeDropdown() {
                       className={cn(
                         "w-full mt-3 text-base transition-all duration-300 transform hover:scale-105 hover:shadow-lg",
                         isUpgrade 
-                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-800 hover:to-pink-800 hover:shadow-purple-500/30 text-white border-0' 
-                          : 'bg-gradient-to-r from-blue-800 via-indigo-800 to-purple-800 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white border-0 shadow-lg'
+                          ? 'bg-gray-200 hover:bg-black hover:text-white text-black border-0' 
+                          : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white border-0 shadow-lg'
                       )}
                       onClick={(e) => {
                         e.stopPropagation();
                         handlePlanSelect(plan.id);
                       }}
                     >
-                      {isUpgrade ? 'Start Flying' : 'Start Selling'}
+                      {isUpgrade ? 'Join Waitlist' : 'Start Selling'}
                     </Button>
                   )}
                   
