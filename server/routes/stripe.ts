@@ -142,15 +142,17 @@ export function registerStripeRoutes(app: express.Express) {
 
     try {
       // Parse and verify the webhook payload
-      if (process.env.STRIPE_WEBHOOK_SECRET) {
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_TEST_v4_250621;
+      
+      if (webhookSecret && sig) {
         // Production: Verify webhook signature
-        event = stripe.webhooks.constructEvent(req.body, sig!, process.env.STRIPE_WEBHOOK_SECRET);
+        event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
         console.log(`✅ Verified Stripe webhook: ${event.type}`);
       } else {
         // Development: Parse without verification but warn
         const body = req.body.toString();
         event = JSON.parse(body);
-        console.log(`⚠️ Unverified Stripe webhook: ${event.type} - Add STRIPE_WEBHOOK_SECRET for production`);
+        console.log(`⚠️ Unverified Stripe webhook: ${event.type} - Add webhook secret for production`);
       }
 
     } catch (err: any) {
