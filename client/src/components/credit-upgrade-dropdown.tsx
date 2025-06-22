@@ -44,6 +44,7 @@ export function CreditUpgradeDropdown() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [waitlistPlans, setWaitlistPlans] = useState<string[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   // Sync waitlist state with server data
   React.useEffect(() => {
