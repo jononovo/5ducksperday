@@ -24,9 +24,9 @@ export function CreditUpgradeDropdown() {
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
-  // For now, we'll assume no subscription system until we implement payment processing
-  const isSubscribed = true; // Set to true for testing active state
-  const currentPlan = 'ugly-duckling'; // 'ugly-duckling', 'duckin-awesome', or null - Set for testing active state
+  // State management for subscription testing
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
 
   const plans = [
     {
@@ -51,8 +51,10 @@ export function CreditUpgradeDropdown() {
 
   const handlePlanSelect = (planId: string) => {
     console.log(`Selected plan: ${planId}`);
-    // TODO: Implement payment flow integration
-    alert(`Plan selection coming soon! Selected: ${planId}`);
+    // Simulate subscription activation for testing
+    setIsSubscribed(true);
+    setCurrentPlan(planId);
+    // TODO: Implement actual payment flow integration
   };
 
   const getUpgradeText = () => {
