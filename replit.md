@@ -190,6 +190,7 @@
 - June 22, 2025. Login button consistency fix: Added Login button to app page navigation when user is logged out, matching landing page design. Modified main-nav.tsx to show Login button (triggers registration modal) when no user authenticated, and show menu dropdown when user is logged in. Simple conditional logic change from `{user && (...)}` to proper if/else structure ensures consistent authentication access across all pages
 - June 22, 2025. Button outline variant border removal: Removed border from outline button variant component-wide by updating button.tsx variant definition. Changed from `"border border-input bg-background hover:bg-accent hover:text-accent-foreground"` to `"bg-background hover:bg-accent hover:text-accent-foreground"`. Affects all outline buttons throughout the application for cleaner, borderless styling while maintaining background and hover effects
 - June 22, 2025. Login button color consistency: Updated Login button text color to match navigation menu items by adding `text-muted-foreground hover:text-foreground` classes. Now uses same light grey color as "Search" and "Outreach" menu items for visual consistency across the navigation bar
+- June 22, 2025. HTML landing page Login button border removal: Removed border styling from HTML landing page Login button to match React app borderless styling. Changed from `border border-slate-300 dark:border-slate-600` to borderless design while maintaining all other visual properties including hover effects and transitions
 
 
 ## User Preferences
