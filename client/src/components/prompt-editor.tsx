@@ -15,6 +15,7 @@ import { SearchSessionManager } from "@/lib/search-session-manager";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
+import { useNotifications } from "@/hooks/use-notifications";
 import { SearchProgress } from "./search-progress";
 import { MainSearchSummary } from "./main-search-summary";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
@@ -84,6 +85,12 @@ export default function PromptEditor({
   // Add auth hooks for semi-protected functionality
   const { user } = useAuth();
   const { openForProtectedRoute } = useRegistrationModal();
+  
+  // Notification system for persistent tooltip tracking
+  const { triggerNotification } = useNotifications();
+  
+  // Track if search tooltip has been shown for authenticated users
+  const [hasShownSearchTooltip, setHasShownSearchTooltip] = useState(false);
   
   // Track if input has changed from last executed query
   const [inputHasChanged, setInputHasChanged] = useState(false);
@@ -975,7 +982,7 @@ export default function PromptEditor({
             {/* Component tooltip version for comparison */}
             <LandingPageTooltip
               message="If you are happy with this prompt, click search."
-              visible={isFromLandingPage && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)}
+              visible={isFromLandingPage && !hasShownSearchTooltip && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)}
               position="custom"
               offsetX={0}
               offsetY={-20}

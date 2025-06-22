@@ -103,6 +103,26 @@ export const NOTIFICATIONS: NotificationConfig[] = [
     badge: 'Waitlist Member',
     emoji: '📋',
     buttonText: 'Got It'
+  },
+  {
+    id: 2,
+    type: 'feature_unlock',
+    trigger: 'search_tooltip_shown',
+    title: 'Search Tooltip',
+    description: 'Search button tooltip has been shown',
+    badge: 'Onboarding',
+    emoji: '🔍',
+    buttonText: 'Continue'
+  },
+  {
+    id: 3,
+    type: 'feature_unlock',
+    trigger: 'email_tooltip_shown',
+    title: 'Email Discovery Tooltip',
+    description: 'Email discovery tooltip has been shown',
+    badge: 'Onboarding',
+    emoji: '📧',
+    buttonText: 'Continue'
   }
 ];
 
