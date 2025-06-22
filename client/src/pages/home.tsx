@@ -103,7 +103,7 @@ export default function Home() {
   const [isLoadingContacts, setIsLoadingContacts] = useState(false);
   const [contactsLoaded, setContactsLoaded] = useState(false);
   // Track if user came from landing page
-
+  const [isFromLandingPage, setIsFromLandingPage] = useState(false);
   // Track the last executed search query and if input has changed
   const [lastExecutedQuery, setLastExecutedQuery] = useState<string | null>(null);
   const [inputHasChanged, setInputHasChanged] = useState(false);
@@ -2409,7 +2409,8 @@ export default function Home() {
                 onCompaniesReceived={handleCompaniesReceived}
                 isAnalyzing={isAnalyzing}
                 initialPrompt={currentQuery || ""}
-
+                isFromLandingPage={isFromLandingPage}
+                onDismissLandingHint={() => setIsFromLandingPage(false)}
                 lastExecutedQuery={lastExecutedQuery}
                 onInputChange={(newValue) => {
                   setCurrentQuery(newValue);

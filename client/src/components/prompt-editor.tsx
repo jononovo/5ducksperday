@@ -35,6 +35,8 @@ interface PromptEditorProps {
   onCompaniesReceived: (query: string, companies: any[]) => void; // New callback for quick results
   isAnalyzing: boolean;
   initialPrompt?: string;
+  isFromLandingPage?: boolean; // Flag to indicate if user came from landing page
+  onDismissLandingHint?: () => void; // Callback to dismiss landing page hint
   lastExecutedQuery?: string | null; // Last executed search query
   onInputChange?: (newValue: string) => void; // Callback for input changes
   onSearchSuccess?: () => void; // Callback when search completes successfully
@@ -49,6 +51,8 @@ export default function PromptEditor({
   onCompaniesReceived,
   isAnalyzing,
   initialPrompt = "",
+  isFromLandingPage = false,
+  onDismissLandingHint,
   lastExecutedQuery = null,
   onInputChange,
   onSearchSuccess,
@@ -468,16 +472,32 @@ export default function PromptEditor({
   // State to track if we should apply the gradient text effect
   const [showGradientText, setShowGradientText] = useState(false);
   
-  // Set initial query only once when component mounts
+  // Set initial query only once when component mounts or when coming from landing page
   useEffect(() => {
     if (initialPrompt && query === "") {
       setQuery(initialPrompt);
+      
+      // If we're coming from the landing page, apply the gradient text effect temporarily
+      if (isFromLandingPage) {
+        setShowGradientText(true);
+        
+        // Reset after 6 seconds or when the user changes the input
+        const timer = setTimeout(() => {
+          setShowGradientText(false);
+        }, 3000);
+        
+        return () => clearTimeout(timer);
+      }
     }
-  }, [initialPrompt]);
+  }, [initialPrompt, isFromLandingPage]);
 
   // Handle tooltip dismissal
   useEffect(() => {
     const handleTooltipDismiss = async () => {
+      if (onDismissLandingHint) {
+        onDismissLandingHint();
+      }
+      
       // Mark search tooltip as shown for authenticated users
       if (user && !hasShownSearchTooltip) {
         setHasShownSearchTooltip(true);
@@ -501,7 +521,7 @@ export default function PromptEditor({
 
     window.addEventListener('dismissTooltip', handleTooltipDismiss);
     return () => window.removeEventListener('dismissTooltip', handleTooltipDismiss);
-  }, [user, hasShownSearchTooltip]);
+  }, [onDismissLandingHint, user, hasShownSearchTooltip]);
 
 
   // Use our search strategy context
@@ -858,7 +878,10 @@ export default function PromptEditor({
       }
     }
     
-
+    // Dismiss the landing page hint if active
+    if (isFromLandingPage && onDismissLandingHint) {
+      onDismissLandingHint();
+    }
     
     // Don't reset inputHasChanged here - wait until search completes
     
