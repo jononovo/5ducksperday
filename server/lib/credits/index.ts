@@ -1,4 +1,4 @@
-import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE, EasterEgg, EASTER_EGGS, NotificationConfig, NOTIFICATIONS } from "./types";
+import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE, EasterEgg, EASTER_EGGS, NotificationConfig, NOTIFICATIONS, BadgeConfig, BADGES } from "./types";
 import Database from '@replit/database';
 
 // Replit DB instance for persistent credit storage
@@ -262,6 +262,55 @@ export class CreditService {
   }
 
   /**
+   * Check if badge has been earned by user
+   */
+  static async hasEarnedBadge(userId: number, badgeId: number): Promise<boolean> {
+    const credits = await this.getUserCredits(userId);
+    const badges = credits.badges || [];
+    return badges[badgeId] === 1;
+  }
+
+  /**
+   * Award badge to user
+   */
+  static async awardBadge(userId: number, badgeId: number): Promise<void> {
+    const credits = await this.getUserCredits(userId);
+    const badges = credits.badges || [];
+    
+    // Update tracking array
+    const updated = [...badges];
+    updated[badgeId] = 1;
+    
+    const updatedCredits: UserCredits = {
+      ...credits,
+      badges: updated,
+      updatedAt: Date.now()
+    };
+    
+    await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
+  }
+
+  /**
+   * Trigger badge if not already earned
+   */
+  static async triggerBadge(userId: number, trigger: string): Promise<{
+    shouldShow: boolean;
+    badge?: BadgeConfig;
+  }> {
+    const badge = BADGES.find(b => b.trigger === trigger);
+    if (!badge) {
+      return { shouldShow: false };
+    }
+
+    const hasEarned = await this.hasEarnedBadge(userId, badge.id);
+    if (hasEarned) {
+      return { shouldShow: false };
+    }
+
+    return { shouldShow: true, badge };
+  }
+
+  /**
    * Check if notification has been shown to user
    */
   static async hasShownNotification(userId: number, notificationId: number): Promise<boolean> {
@@ -296,7 +345,19 @@ export class CreditService {
   static async triggerNotification(userId: number, trigger: string): Promise<{
     shouldShow: boolean;
     notification?: NotificationConfig;
+    badge?: BadgeConfig;
   }> {
+    // Check if it's a badge first
+    const badge = BADGES.find(b => b.trigger === trigger);
+    if (badge) {
+      const badgeResult = await this.triggerBadge(userId, trigger);
+      return { 
+        shouldShow: badgeResult.shouldShow, 
+        badge: badgeResult.badge 
+      };
+    }
+
+    // Otherwise check notifications
     const notification = NOTIFICATIONS.find(n => n.trigger === trigger);
     if (!notification) {
       return { shouldShow: false };

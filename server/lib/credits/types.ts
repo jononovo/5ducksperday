@@ -25,7 +25,8 @@ export interface UserCredits {
   createdAt: number;
   updatedAt: number;
   easterEggs?: number[];  // [0, 1, 1] tracking array
-  notifications?: number[];  // [0, 1, 1] notification tracking array
+  notifications?: number[];  // [0, 1, 1] temporary notification tracking array
+  badges?: number[];  // [0, 1, 1] permanent badge tracking array
 }
 
 export interface CreditDeductionResult {
@@ -68,7 +69,18 @@ export interface NotificationConfig {
   buttonText?: string;
 }
 
-export const NOTIFICATIONS: NotificationConfig[] = [
+export interface BadgeConfig {
+  id: number;
+  type: 'welcome' | 'achievement' | 'milestone' | 'special';
+  trigger: string;
+  title: string;
+  description: string;
+  badge: string;
+  emoji?: string;
+  buttonText?: string;
+}
+
+export const BADGES: BadgeConfig[] = [
   {
     id: 0,
     type: 'welcome',
@@ -78,7 +90,10 @@ export const NOTIFICATIONS: NotificationConfig[] = [
     badge: 'Hatchling',
     emoji: '🦆',
     buttonText: 'Chirp'
-  },
+  }
+];
+
+export const NOTIFICATIONS: NotificationConfig[] = [
   {
     id: 1,
     type: 'milestone',

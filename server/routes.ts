@@ -4383,12 +4383,21 @@ Respond in this exact JSON format:
   app.post('/api/notifications/mark-shown', requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;
-      const { notificationId } = req.body;
+      const { notificationId, badgeId } = req.body;
       
-      await CreditService.markNotificationShown(userId, notificationId);
+      if (typeof badgeId === 'number') {
+        // Award badge
+        await CreditService.awardBadge(userId, badgeId);
+      } else if (typeof notificationId === 'number') {
+        // Mark notification as shown
+        await CreditService.markNotificationShown(userId, notificationId);
+      } else {
+        return res.status(400).json({ message: "Either notificationId or badgeId is required" });
+      }
+      
       res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ message: "Failed to mark notification as shown" });
+      res.status(500).json({ message: "Failed to mark notification/badge as shown" });
     }
   });
 
@@ -4399,7 +4408,9 @@ Respond in this exact JSON format:
       
       res.json({ 
         notifications: credits.notifications || [],
-        isWaitlistMember: credits.notifications?.includes(1) || false
+        badges: credits.badges || [],
+        isWaitlistMember: credits.notifications?.includes(1) || false,
+        hasHatchlingBadge: credits.badges?.includes(0) || false
       });
     } catch (error) {
       console.error('Error fetching notification status:', error);

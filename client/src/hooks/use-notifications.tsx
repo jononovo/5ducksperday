@@ -13,15 +13,28 @@ interface NotificationConfig {
   buttonText?: string;
 }
 
+interface BadgeConfig {
+  id: number;
+  type: 'welcome' | 'achievement' | 'milestone' | 'special';
+  trigger: string;
+  title: string;
+  description: string;
+  badge: string;
+  emoji?: string;
+  buttonText?: string;
+}
+
 interface NotificationState {
   isOpen: boolean;
   notification: NotificationConfig | null;
+  badge: BadgeConfig | null;
 }
 
 export function useNotifications() {
   const [notificationState, setNotificationState] = useState<NotificationState>({
     isOpen: false,
-    notification: null
+    notification: null,
+    badge: null
   });
   const queryClient = useQueryClient();
 
@@ -37,10 +50,11 @@ export function useNotifications() {
       
       const result = await response.json();
       
-      if (result.shouldShow && result.notification) {
+      if (result.shouldShow && (result.notification || result.badge)) {
         setNotificationState({
           isOpen: true,
-          notification: result.notification
+          notification: result.notification || null,
+          badge: result.badge || null
         });
         return true;
       }
@@ -52,14 +66,26 @@ export function useNotifications() {
   };
 
   const closeNotification = async () => {
-    if (notificationState.notification) {
+    if (notificationState.badge) {
+      try {
+        await apiRequest("POST", "/api/notifications/mark-shown", {
+          badgeId: notificationState.badge.id
+        });
+        
+        // Refresh credits and notification status
+        queryClient.invalidateQueries({ queryKey: ["/api/credits"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/notifications/status"] });
+      } catch (error) {
+        console.error('Failed to award badge:', error);
+      }
+    } else if (notificationState.notification) {
       try {
         await apiRequest("POST", "/api/notifications/mark-shown", {
           notificationId: notificationState.notification.id
         });
         
-        // Refresh credits in case this affects the user's state
-        queryClient.invalidateQueries({ queryKey: ["/api/credits"] });
+        // Refresh notification status
+        queryClient.invalidateQueries({ queryKey: ["/api/notifications/status"] });
       } catch (error) {
         console.error('Failed to mark notification as shown:', error);
       }
@@ -67,7 +93,8 @@ export function useNotifications() {
     
     setNotificationState({
       isOpen: false,
-      notification: null
+      notification: null,
+      badge: null
     });
   };
 
