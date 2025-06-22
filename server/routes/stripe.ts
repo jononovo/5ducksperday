@@ -53,18 +53,8 @@ export function registerStripeRoutes(app: express.Express) {
         await CreditService.updateStripeCustomerId(userId, customer.id);
       }
 
-      // Get prices for the product
-      const prices = await stripe.prices.list({
-        product: STRIPE_CONFIG.UGLY_DUCKLING_PRODUCT_ID,
-        active: true,
-      });
-
-      if (prices.data.length === 0) {
-        return res.status(400).json({ message: "No active prices found for product" });
-      }
-
-      // Use the first active price (should be $18.95/month)
-      const price = prices.data[0];
+      // Use the specific price ID for The Ugly Duckling plan ($18.95/month)
+      const priceId = 'price_1RcgF4K7jbIybp9HaHIZlv2W';
 
       const successUrl = `${req.get('origin')}/subscription-success?session_id={CHECKOUT_SESSION_ID}`;
       const cancelUrl = `${req.get('origin')}`;
@@ -75,7 +65,7 @@ export function registerStripeRoutes(app: express.Express) {
         payment_method_types: ['card'],
         line_items: [
           {
-            price: priceId,
+            price: 'price_1RcgF4K7jbIybp9HaHIZlv2W',
             quantity: 1,
           },
         ],
@@ -148,22 +138,18 @@ export function registerStripeRoutes(app: express.Express) {
   app.post("/api/stripe/webhook", express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
     const sig = req.headers['stripe-signature'];
     
-    if (!sig) {
-      return res.status(400).send('No signature');
-    }
-
     let event;
 
     try {
-      // For webhook security, we need proper signature verification
-      // For now in development, we'll parse directly but log the issue
-      event = JSON.parse(req.body.toString());
-      console.log('⚠️  WARNING: Webhook signature verification disabled - configure STRIPE_WEBHOOK_SECRET for production');
+      // Parse the webhook payload
+      const body = req.body.toString();
+      event = JSON.parse(body);
       
       console.log(`Received Stripe webhook: ${event.type}`);
+      console.log('⚠️  WARNING: Webhook signature verification disabled - configure STRIPE_WEBHOOK_SECRET for production');
 
     } catch (err: any) {
-      console.error('Webhook signature verification failed:', err.message);
+      console.error('Webhook parsing failed:', err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
@@ -186,7 +172,7 @@ export function registerStripeRoutes(app: express.Express) {
               subscriptionEndDate: subscription.current_period_end * 1000
             });
 
-                // Award subscription credits if active
+            // Award subscription credits if active
             if (subscription.status === 'active') {
               await CreditService.awardSubscriptionCredits(userId, planId as 'ugly-duckling');
               console.log(`Awarded subscription credits to user ${userId} for plan ${planId}`);
