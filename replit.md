@@ -192,6 +192,7 @@
 - June 22, 2025. Login button color consistency: Updated Login button text color to match navigation menu items by adding `text-muted-foreground hover:text-foreground` classes. Now uses same light grey color as "Search" and "Outreach" menu items for visual consistency across the navigation bar
 - June 22, 2025. HTML landing page Login button border removal: Removed border styling from HTML landing page Login button to match React app borderless styling. Changed from `border border-slate-300 dark:border-slate-600` to borderless design while maintaining all other visual properties including hover effects and transitions
 - June 22, 2025. Credits display color simplification: Simplified conditional colors to light yellow (text-yellow-500) for credits >= 1, red for zero/negative. Changed value label to dark grey (text-muted-foreground) to match navigation menu styling. Removed complex conditional logic with multiple color thresholds for cleaner, more consistent appearance
+- June 22, 2025. Interactive credit upgrade dropdown implementation: Replaced static credits display with comprehensive upgrade dropdown featuring plan comparison, pricing, subscription management, and visual feedback. Component integrates with existing credit API, maintains all styling consistency, includes hover animations, dark mode support, and professional upgrade messaging. Credit balance remains clickable with enhanced user experience for easy plan selection and subscription management
 
 
 ## User Preferences

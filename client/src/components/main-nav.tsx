@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
-import { CreditsDisplay } from "@/components/credits-display";
+import { CreditUpgradeDropdown } from "@/components/credit-upgrade-dropdown";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,7 +71,7 @@ export function MainNav() {
       <div className="flex items-center ml-auto gap-3">
         {user ? (
           <>
-            <CreditsDisplay />
+            <CreditUpgradeDropdown />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
