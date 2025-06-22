@@ -176,7 +176,7 @@ export function CreditUpgradeDropdown() {
                   {!isCurrentPlan && (
                     <Button
                       className={cn(
-                        "w-full mt-3 text-base transition-all duration-300 transform hover:scale-105 hover:shadow-lg",
+                        "w-full mt-3 text-base group relative transition-all duration-300 transform hover:scale-102 hover:shadow-lg",
                         isUpgrade 
                           ? 'bg-gray-200 hover:bg-black hover:text-white text-black border-0' 
                           : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white border-0 shadow-lg'
@@ -186,7 +186,18 @@ export function CreditUpgradeDropdown() {
                         handlePlanSelect(plan.id);
                       }}
                     >
-                      {isUpgrade ? 'Join Waitlist' : 'Start Selling'}
+                      {isUpgrade ? (
+                        'Join Waitlist'
+                      ) : (
+                        <>
+                          <span className="transition-all duration-700 delay-1000 group-hover:opacity-0">
+                            Start Selling
+                          </span>
+                          <span className="absolute inset-0 flex items-center justify-center transition-all duration-700 delay-1000 opacity-0 group-hover:opacity-100">
+                            Let's Go 🚀
+                          </span>
+                        </>
+                      )}
                     </Button>
                   )}
                   
