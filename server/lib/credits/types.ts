@@ -123,6 +123,16 @@ export const NOTIFICATIONS: NotificationConfig[] = [
     badge: 'Onboarding',
     emoji: '📧',
     buttonText: 'Continue'
+  },
+  {
+    id: 4,
+    type: 'feature_unlock',
+    trigger: 'start_selling_tooltip_shown',
+    title: 'Start Selling Tooltip',
+    description: 'Start selling tooltip has been shown',
+    badge: 'Onboarding',
+    emoji: '🚀',
+    buttonText: 'Continue'
   }
 ];
 

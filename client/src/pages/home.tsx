@@ -115,6 +115,7 @@ export default function Home() {
   const [showEmailTooltip, setShowEmailTooltip] = useState(false);
   const [hasShownEmailTooltip, setHasShownEmailTooltip] = useState(false);
   const [showStartSellingTooltip, setShowStartSellingTooltip] = useState(false);
+  const [hasShownStartSellingTooltip, setHasShownStartSellingTooltip] = useState(false);
   // Tour modal has been removed
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
@@ -151,6 +152,32 @@ export default function Home() {
     };
     
     checkEmailTooltipStatus();
+  }, [auth?.user]);
+
+  // Check if user has already seen start selling tooltip
+  useEffect(() => {
+    const checkStartSellingTooltipStatus = async () => {
+      if (auth?.user) {
+        try {
+          const response = await fetch('/api/notifications/status', {
+            headers: {
+              ...(localStorage.getItem('authToken') && { 
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
+              })
+            },
+            credentials: 'include'
+          });
+          const data = await response.json();
+          if (data.notifications && data.notifications[4] === 1) {
+            setHasShownStartSellingTooltip(true);
+          }
+        } catch (error) {
+          console.error('Failed to check start selling tooltip status:', error);
+        }
+      }
+    };
+    
+    checkStartSellingTooltipStatus();
   }, [auth?.user]);
   
   // Track if component is mounted to prevent localStorage corruption during unmount
@@ -1654,12 +1681,33 @@ export default function Home() {
   // Effect to highlight Start Selling button when email search completes
   useEffect(() => {
     // If the consolidated search just finished (summary is visible and not searching)
-    if (summaryVisible && !isConsolidatedSearching) {
+    if (summaryVisible && !isConsolidatedSearching && !hasShownStartSellingTooltip) {
       // Add a 2-second delay before highlighting the Start Selling button
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         // The search has completed and results are available, highlight the Start Selling button
         setHighlightStartSellingButton(true);
         setShowStartSellingTooltip(true);
+        setHasShownStartSellingTooltip(true); // Mark as shown
+        
+        // Mark start selling tooltip as shown for authenticated users
+        if (auth?.user) {
+          try {
+            await fetch('/api/notifications/mark-shown', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(localStorage.getItem('authToken') && { 
+                  'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
+                })
+              },
+              credentials: 'include',
+              body: JSON.stringify({ notificationId: 4 })
+            });
+          } catch (error) {
+            console.error('Failed to mark start selling tooltip as shown:', error);
+          }
+        }
+        
         setTimeout(() => {
           setHighlightStartSellingButton(false);
           setShowStartSellingTooltip(false);
@@ -1669,7 +1717,7 @@ export default function Home() {
       // Clean up timer if component unmounts or dependencies change
       return () => clearTimeout(timer);
     }
-  }, [summaryVisible, isConsolidatedSearching]);
+  }, [summaryVisible, isConsolidatedSearching, hasShownStartSellingTooltip, auth?.user]);
 
   // Email tooltip timing effect
   useEffect(() => {
