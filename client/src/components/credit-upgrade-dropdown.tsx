@@ -187,13 +187,20 @@ export function CreditUpgradeDropdown() {
                       }}
                     >
                       {isUpgrade ? (
-                        'Join Waitlist'
+                        <>
+                          <span className="transition-all duration-700 delay-1000 group-hover:opacity-0 group-hover:scale-95">
+                            Join Waitlist
+                          </span>
+                          <span className="absolute transition-all duration-700 delay-1000 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100">
+                            Coming Soon 🚀
+                          </span>
+                        </>
                       ) : (
                         <>
-                          <span className="transition-all duration-700 delay-1000 group-hover:opacity-0">
+                          <span className="transition-all duration-700 delay-1000 group-hover:opacity-0 group-hover:scale-95">
                             Start Selling
                           </span>
-                          <span className="absolute inset-0 flex items-center justify-center transition-all duration-700 delay-1000 opacity-0 group-hover:opacity-100">
+                          <span className="absolute transition-all duration-700 delay-1000 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100">
                             Let's Go 🚀
                           </span>
                         </>
