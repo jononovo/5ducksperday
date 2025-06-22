@@ -176,10 +176,10 @@ export function CreditUpgradeDropdown() {
                   {!isCurrentPlan && (
                     <Button
                       className={cn(
-                        "w-full mt-3 text-base transition-all duration-200 transform hover:scale-105 hover:shadow-lg",
+                        "w-full mt-3 text-base transition-all duration-300 transform hover:scale-105 hover:shadow-lg",
                         isUpgrade 
                           ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-800 hover:to-pink-800 hover:shadow-purple-500/30 text-white border-0' 
-                          : 'bg-blue-600 hover:bg-blue-700 hover:shadow-blue-500/30 text-white'
+                          : 'bg-gradient-to-r from-blue-800 via-indigo-800 to-purple-800 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white border-0 shadow-lg'
                       )}
                       onClick={(e) => {
                         e.stopPropagation();
