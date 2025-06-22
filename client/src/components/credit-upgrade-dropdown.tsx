@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, Zap, Crown, Check, Coins } from 'lucide-react';
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -23,10 +24,13 @@ export function CreditUpgradeDropdown() {
     queryKey: ['/api/credits'],
     refetchInterval: 30000, // Refetch every 30 seconds
   });
+  
+  const { toast } = useToast();
 
   // State management for subscription testing
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+  const [waitlistPlans, setWaitlistPlans] = useState<string[]>([]);
 
   const plans = [
     {
@@ -51,7 +55,20 @@ export function CreditUpgradeDropdown() {
 
   const handlePlanSelect = (planId: string) => {
     console.log(`Selected plan: ${planId}`);
-    // Simulate subscription activation for testing
+    
+    if (planId === 'duckin-awesome') {
+      // Waitlist functionality for unavailable plan
+      if (!waitlistPlans.includes(planId)) {
+        setWaitlistPlans([...waitlistPlans, planId]);
+        toast({
+          title: "Added to Waitlist",
+          description: "We'll notify you when Duckin' Awesome becomes available!",
+        });
+      }
+      return;
+    }
+    
+    // Available plan subscription activation
     setIsSubscribed(true);
     setCurrentPlan(planId);
     // TODO: Implement actual payment flow integration
@@ -136,6 +153,7 @@ export function CreditUpgradeDropdown() {
           {plans.map((plan) => {
             const isCurrentPlan = currentPlan === plan.id;
             const isUpgrade = plan.id === 'duckin-awesome';
+            const isOnWaitlist = waitlistPlans.includes(plan.id);
             
             return (
               <Card
@@ -175,7 +193,7 @@ export function CreditUpgradeDropdown() {
                     </div>
                   </div>
                   
-                  {!isCurrentPlan && (
+                  {!isCurrentPlan && !isOnWaitlist && (
                     <Button
                       className={cn(
                         "w-full mt-3 text-base group relative transition-all duration-300 transform hover:scale-102 hover:shadow-lg",
@@ -208,6 +226,12 @@ export function CreditUpgradeDropdown() {
                         </>
                       )}
                     </Button>
+                  )}
+                  
+                  {isOnWaitlist && (
+                    <div className="mt-3 text-center">
+                      <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">Added to Waitlist</span>
+                    </div>
                   )}
                   
                   {isCurrentPlan && (
