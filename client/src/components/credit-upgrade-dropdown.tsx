@@ -133,7 +133,7 @@ export function CreditUpgradeDropdown() {
         <div className="px-4 pb-2 space-y-4">
           {plans.map((plan) => {
             const isCurrentPlan = currentPlan === plan.id;
-            const isUpgrade = currentPlan === 'ugly-duckling' && plan.id === 'duckin-awesome';
+            const isUpgrade = plan.id === 'duckin-awesome';
             
             return (
               <Card
