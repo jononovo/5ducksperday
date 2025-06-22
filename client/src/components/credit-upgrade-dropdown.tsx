@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from "@/lib/utils";
+import { apiRequest } from "@/lib/queryClient";
 
 interface CreditData {
   balance: number;
@@ -18,6 +19,12 @@ interface CreditData {
   lastTopUp: number;
   totalUsed: number;
   monthlyAllowance: number;
+}
+
+interface SubscriptionStatus {
+  hasSubscription: boolean;
+  status: string | null;
+  currentPlan: string | null;
 }
 
 interface NotificationStatus {
@@ -110,30 +117,56 @@ export function CreditUpgradeDropdown() {
       return;
     }
     
-    // Available plan subscription activation
-    setIsSubscribed(true);
-    setCurrentPlan(planId);
-    // TODO: Implement actual payment flow integration
+    // Stripe checkout for The Ugly Duckling plan
+    if (planId === 'ugly-duckling') {
+      try {
+        setIsOpen(false); // Close dropdown before redirect
+        
+        const response = await apiRequest('POST', '/api/stripe/create-checkout-session', {
+          planId
+        });
+        
+        const data = await response.json();
+        
+        if (data.checkoutUrl) {
+          // Redirect to Stripe checkout
+          window.location.href = data.checkoutUrl;
+        } else {
+          throw new Error('No checkout URL received');
+        }
+      } catch (error: any) {
+        console.error('Stripe checkout error:', error);
+        toast({
+          title: "Checkout Error",
+          description: error.message || "Failed to start checkout process. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
+  // Check if user has active subscription
+  const hasActiveSubscription = subscriptionStatus?.hasSubscription && subscriptionStatus?.status === 'active';
+  const userCurrentPlan = subscriptionStatus?.currentPlan;
+
   const getUpgradeText = () => {
-    if (!isSubscribed) {
-      return "Choose your plan to get started";
+    if (hasActiveSubscription) {
+      if (userCurrentPlan === 'ugly-duckling') {
+        return "Ready to level up?";
+      }
+      return "You're subscribed!";
     }
-    if (currentPlan === 'ugly-duckling') {
-      return "Ready to level up?";
-    }
-    return "You're on our premium plan!";
+    return "Choose your plan to get started";
   };
 
   const getUpgradeSubtext = () => {
-    if (!isSubscribed) {
-      return "Unlock more credits with a monthly subscription";
+    if (hasActiveSubscription) {
+      if (userCurrentPlan === 'ugly-duckling') {
+        return "Get 4x more credits + bigger bonus";
+      }
+      return "You have access to premium features!";
     }
-    if (currentPlan === 'ugly-duckling') {
-      return "Get 4x more credits + bigger bonus";
-    }
-    return "You have access to maximum credits!";
+    return "Unlock more credits with a monthly subscription";
   };
 
   if (isLoading || !credits || typeof credits.balance !== 'number') {
@@ -202,7 +235,7 @@ export function CreditUpgradeDropdown() {
         {/* Plans */}
         <div className="px-4 pb-2 space-y-4">
           {plans.map((plan) => {
-            const isCurrentPlan = currentPlan === plan.id;
+            const isCurrentPlan = hasActiveSubscription && userCurrentPlan === plan.id;
             const isUpgrade = plan.id === 'duckin-awesome';
             const isOnWaitlist = waitlistPlans.includes(plan.id);
             

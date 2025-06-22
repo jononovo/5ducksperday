@@ -4422,6 +4422,9 @@ Respond in this exact JSON format:
 
   // Register credit routes
   registerCreditRoutes(app);
+  
+  // Register Stripe subscription routes
+  registerStripeRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;
