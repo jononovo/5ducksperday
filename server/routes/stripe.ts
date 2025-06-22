@@ -141,12 +141,17 @@ export function registerStripeRoutes(app: express.Express) {
     let event;
 
     try {
-      // Parse the webhook payload
-      const body = req.body.toString();
-      event = JSON.parse(body);
-      
-      console.log(`Received Stripe webhook: ${event.type}`);
-      console.log('⚠️  WARNING: Webhook signature verification disabled - configure STRIPE_WEBHOOK_SECRET for production');
+      // Parse and verify the webhook payload
+      if (process.env.STRIPE_WEBHOOK_SECRET) {
+        // Production: Verify webhook signature
+        event = stripe.webhooks.constructEvent(req.body, sig!, process.env.STRIPE_WEBHOOK_SECRET);
+        console.log(`✅ Verified Stripe webhook: ${event.type}`);
+      } else {
+        // Development: Parse without verification but warn
+        const body = req.body.toString();
+        event = JSON.parse(body);
+        console.log(`⚠️ Unverified Stripe webhook: ${event.type} - Add STRIPE_WEBHOOK_SECRET for production`);
+      }
 
     } catch (err: any) {
       console.error('Webhook parsing failed:', err.message);
