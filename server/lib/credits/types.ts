@@ -78,6 +78,16 @@ export const NOTIFICATIONS: NotificationConfig[] = [
     badge: 'Hatchling',
     emoji: '🦆',
     buttonText: 'Chirp'
+  },
+  {
+    id: 1,
+    type: 'milestone',
+    trigger: 'waitlist_joined',
+    title: 'Added to Waitlist',
+    description: 'You\'ll be notified when Duckin\' Awesome becomes available!',
+    badge: 'Waitlist Member',
+    emoji: '📋',
+    buttonText: 'Got It'
   }
 ];
 

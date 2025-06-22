@@ -202,6 +202,7 @@
 - June 22, 2025. Credit button hover enhancement: Reduced hover scaling from scale-105 to scale-102 for subtler effect. Added registration modal's delayed text animation - "Start Selling" transitions to "Let's Go 🚀" after 1-second delay on hover, using absolute positioning with opacity transitions and group hover states for professional interactive feedback
 - June 22, 2025. Credit dropdown upgrade logic fix: Updated isUpgrade logic to properly identify "Duckin' Awesome" plan as upgrade/waitlist plan regardless of current subscription status. Fixed button styling and label so premium plan always shows light grey background with black hover and "Join Waitlist" text
 - June 22, 2025. Credit dropdown subtle refinements: Reduced card hover effects for more subtle interaction - changed scale from 1.02 to 1.01, shadow from hover:shadow-lg to hover:shadow-md, border opacity from 30% to 20%, and extended transition duration to 300ms. Lightened "Join Waitlist" button background from bg-gray-200 to bg-gray-100 for softer appearance
+- June 22, 2025. Waitlist database tracking integration: Extended existing notification system to track waitlist members. Added notification ID 1 for "waitlist_joined" trigger with "Waitlist Member" badge. Users who join Duckin' Awesome waitlist now have notifications[1] = 1 in their credit record, enabling easy admin filtering and sorting of waitlist members using proven array tracking methodology
 
 
 ## User Preferences

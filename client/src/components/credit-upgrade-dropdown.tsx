@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronDown, Zap, Crown, Check, Coins } from 'lucide-react';
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -53,7 +54,7 @@ export function CreditUpgradeDropdown() {
     }
   ];
 
-  const handlePlanSelect = (planId: string) => {
+  const handlePlanSelect = async (planId: string) => {
     console.log(`Selected plan: ${planId}`);
     
     if (planId === 'duckin-awesome') {
@@ -64,6 +65,17 @@ export function CreditUpgradeDropdown() {
           title: "Added to Waitlist",
           description: "We'll notify you when Duckin' Awesome becomes available!",
         });
+        
+        // Track waitlist join in database via notification system
+        try {
+          await apiRequest('/api/notifications/trigger', {
+            method: 'POST',
+            body: { trigger: 'waitlist_joined' }
+          });
+        } catch (error) {
+          console.error('Failed to track waitlist join:', error);
+          // Don't show error to user - tracking is background operation
+        }
       }
       return;
     }
