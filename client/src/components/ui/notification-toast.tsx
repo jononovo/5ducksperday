@@ -12,41 +12,22 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface NotificationToastProps {
-  isOpen: boolean;
+  notificationState: {
+    isOpen: boolean;
+    notification: any | null;
+    badge: any | null;
+  };
   onClose: () => void;
-  title: string;
-  description: string;
-  badge?: string;
-  emoji?: string;
-  buttonText?: string;
-  variant?: 'success' | 'info' | 'warning';
 }
 
-export function NotificationToast({
-  isOpen,
-  onClose,
-  title,
-  description,
-  badge,
-  emoji,
-  buttonText = 'Got it!',
-  variant = 'success'
-}: NotificationToastProps) {
-  const variantStyles = {
-    success: 'border-blue-200 bg-white',
-    info: 'border-gray-200 bg-white',
-    warning: 'border-orange-200 bg-orange-50'
-  };
+export function NotificationToast({ notificationState, onClose }: NotificationToastProps) {
+  if (!notificationState.isOpen || (!notificationState.notification && !notificationState.badge)) {
+    return null;
+  }
 
-  const badgeVariants = {
-    success: 'bg-blue-100 text-blue-800 border-blue-200',
-    info: 'bg-gray-100 text-gray-800 border-gray-200',
-    warning: 'bg-orange-100 text-orange-800 border-orange-200'
-  };
-
+  const content = notificationState.badge || notificationState.notification;
   // Parse markdown-style bold text and line breaks in description
   const formatDescription = (text: string) => {
-    // First split by line breaks, then handle bold formatting within each line
     return text.split('\n').map((line, lineIndex) => (
       <span key={lineIndex}>
         {line.split('**').map((part, partIndex) => 

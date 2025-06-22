@@ -22,7 +22,9 @@ interface CreditData {
 
 interface NotificationStatus {
   notifications: number[];
+  badges: number[];
   isWaitlistMember: boolean;
+  hasHatchlingBadge: boolean;
 }
 
 export function CreditUpgradeDropdown() {
