@@ -25,8 +25,8 @@ export function CreditUpgradeDropdown() {
   });
 
   // For now, we'll assume no subscription system until we implement payment processing
-  const isSubscribed = false;
-  const currentPlan = null; // 'ugly-duckling', 'duckin-awesome', or null
+  const isSubscribed = true; // Set to true for testing active state
+  const currentPlan = 'ugly-duckling'; // 'ugly-duckling', 'duckin-awesome', or null - Set for testing active state
 
   const plans = [
     {
