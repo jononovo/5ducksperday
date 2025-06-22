@@ -725,7 +725,7 @@ export default function PromptEditor({
       // Update progress to scoring contacts phase
       setTimeout(() => {
         setSearchProgress(prev => ({ ...prev, phase: "Scoring Contacts", completed: 4 }));
-      }, 14000);
+      }, 25000);
     },
     onError: (error: Error) => {
       // Check if it's a credit blocking error (402 status)
