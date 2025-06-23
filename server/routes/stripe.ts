@@ -14,7 +14,7 @@ function getStripe(): Stripe {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     
     if (!stripeSecretKey) {
-      throw new Error(`Missing required Stripe secret key for ${isTestMode ? 'test' : 'production'} mode`);
+      throw new Error(`Missing required Stripe secret key for ${isTestMode ? 'test' : 'production'} mode. Please add STRIPE_SECRET_KEY to your deployment secrets.`);
     }
     
     stripe = new Stripe(stripeSecretKey, {
@@ -33,6 +33,37 @@ function requireAuth(req: Request, res: Response, next: express.NextFunction) {
 }
 
 export function registerStripeRoutes(app: express.Express) {
+  // Only register Stripe routes if the secret key is available
+  const hasStripeKey = !!process.env.STRIPE_SECRET_KEY;
+  
+  if (!hasStripeKey) {
+    console.warn('STRIPE_SECRET_KEY not found - Stripe routes will return errors. Add STRIPE_SECRET_KEY to deployment secrets to enable payments.');
+    
+    // Return error responses for all Stripe endpoints when key is missing
+    app.post("/api/stripe/create-checkout-session", (req: Request, res: Response) => {
+      res.status(503).json({ 
+        message: "Payment service unavailable. STRIPE_SECRET_KEY not configured.",
+        requiresConfiguration: true 
+      });
+    });
+    
+    app.get("/api/stripe/subscription-status", (req: Request, res: Response) => {
+      res.status(503).json({ 
+        message: "Payment service unavailable. STRIPE_SECRET_KEY not configured.",
+        requiresConfiguration: true 
+      });
+    });
+    
+    app.post("/api/stripe/webhook", (req: Request, res: Response) => {
+      res.status(503).json({ 
+        message: "Webhook service unavailable. STRIPE_SECRET_KEY not configured.",
+        requiresConfiguration: true 
+      });
+    });
+    
+    return;
+  }
+
   // Create checkout session for subscription
   app.post("/api/stripe/create-checkout-session", requireAuth, async (req: Request, res: Response) => {
     try {
@@ -259,7 +290,7 @@ export function registerStripeRoutes(app: express.Express) {
         case 'invoice.payment_failed':
           const failedInvoice = event.data.object;
           if (failedInvoice.subscription) {
-            const failedSub = await stripe.subscriptions.retrieve(failedInvoice.subscription);
+            const failedSub = await getStripe().subscriptions.retrieve(failedInvoice.subscription);
             const failedUserId = parseInt(failedSub.metadata.userId);
             
             if (failedUserId) {

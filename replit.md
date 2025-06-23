@@ -106,7 +106,24 @@
 - **Storage abstraction**: IStorage interface provides consistent data operations
 - **Key-value operations**: Optimized for Replit's native database system
 
+## Deployment Configuration
+
+### Environment Variables
+- **Required**: `OPENAI_API_KEY`, `APOLLO_API_KEY` 
+- **Optional**: `STRIPE_SECRET_KEY`, `VITE_STRIPE_PUBLIC_KEY`, `STRIPE_WEBHOOK_SECRET`
+- **Auto-configured**: `DATABASE_URL` (Replit Database), Firebase keys
+
+### Port Configuration
+- Development: Port 5000 on localhost
+- Production: Uses PORT environment variable, binds to 0.0.0.0 for Cloud Run compatibility
+
+### Stripe Integration
+- Payment features gracefully degrade when Stripe keys are missing
+- Application continues to function without payment capabilities
+- Webhook verification is optional (fallback to unverified processing)
+
 ## Changelog
+- June 23, 2025. Fixed deployment configuration: Made Stripe environment variables optional to prevent startup crashes, configured proper port binding for Cloud Run (0.0.0.0), added graceful degradation for missing payment service configuration
 - June 13, 2025. Initial setup
 - June 13, 2025. Mobile UI optimizations: Fixed duck header positioning (-mt-1), reduced email form horizontal padding (p-6→px-3 py-6 md:p-6) for 24px wider mobile inputs, updated "Save Template" to "Save as Template", and removed chevron arrow from mobile duck header navigation button
 - June 13, 2025. Edge-to-edge mobile input layout: Implemented Gmail-style mobile input fields with zero horizontal margins (px-0), added border separators between fields, and maintained desktop spacing while maximizing mobile typing space
