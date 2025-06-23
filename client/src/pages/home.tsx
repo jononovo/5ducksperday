@@ -454,9 +454,7 @@ export default function Home() {
         // Extract guest data BEFORE cleanup (critical timing fix)
         const savedState = loadSearchState();
         const guestData = {
-          originalQuery: savedState?.currentQuery || null,
-          companyCount: savedState?.currentResults?.length || 0,
-          hasEmailData: savedState?.emailSearchCompleted || false
+          originalQuery: savedState?.currentQuery || null
         };
         
         console.log('Extracted guest data:', guestData);
@@ -489,14 +487,7 @@ export default function Home() {
           console.log('Restored guest query to input:', guestData.originalQuery);
         }
         
-        // Show transition guidance
-        if (guestData.originalQuery && guestData.companyCount > 0) {
-          toast({
-            title: "Welcome! Ready for Full Email Search?",
-            description: `Your previous search (${guestData.companyCount} companies) was a preview. Re-run your search now to get complete results with emails!`,
-            duration: 8000
-          });
-        }
+        // Toast removed - redundant with welcome notification system
         
         // Trigger welcome notification
         await triggerNotification('registration_complete');
