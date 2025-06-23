@@ -67,11 +67,8 @@ export const MONTHLY_CREDIT_ALLOWANCE = 5000;
 
 // Stripe configuration
 export const STRIPE_CONFIG = {
-  UGLY_DUCKLING_PRODUCT_ID: 'prod_SXlmpPTIOgmmjo',
-  PRICE_IDS: {
-    production: 'price_1RcgF4K7jbIybp9HaHIZlv2W',
-    test: 'price_1RdAvpGfTiCdmxysMQt7i9FF'
-  },
+  UGLY_DUCKLING_PRODUCT_ID: 'prod_SYHUcVegdfSjxn',
+  UGLY_DUCKLING_PRICE_ID: 'price_1RdAvpGfTiCdmxysMQt7i9FF',
   PLAN_CREDIT_ALLOWANCES: {
     'ugly-duckling': 2500, // 2000 + 500 bonus
     'free': 180 // Default free credits

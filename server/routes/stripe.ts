@@ -57,8 +57,8 @@ export function registerStripeRoutes(app: express.Express) {
         await CreditService.updateStripeCustomerId(userId, customer.id);
       }
 
-      // Use appropriate price ID based on environment (matching the key selection logic)
-      const priceId = isTestMode ? STRIPE_CONFIG.PRICE_IDS.test : STRIPE_CONFIG.PRICE_IDS.production;
+      // Use the same price ID for both test and production
+      const priceId = STRIPE_CONFIG.UGLY_DUCKLING_PRICE_ID;
 
       const successUrl = `${req.get('origin')}/subscription-success?session_id={CHECKOUT_SESSION_ID}`;
       const cancelUrl = `${req.get('origin')}`;
