@@ -134,7 +134,7 @@ export function registerStripeRoutes(app: express.Express) {
     }
   });
 
-  // Stripe webhook endpoint
+  // Stripe webhook endpoint - replace the placeholder route
   app.post("/api/stripe/webhook", express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
     const sig = req.headers['stripe-signature'];
     

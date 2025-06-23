@@ -5,6 +5,13 @@ import { setupAuth } from "./auth";
 import { storage } from "../storage-switching/storage-switcher";
 
 const app = express();
+
+// Register Stripe webhook route BEFORE JSON parsing middleware
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req, res, next) => {
+  // Route handler will be added by registerStripeRoutes
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
