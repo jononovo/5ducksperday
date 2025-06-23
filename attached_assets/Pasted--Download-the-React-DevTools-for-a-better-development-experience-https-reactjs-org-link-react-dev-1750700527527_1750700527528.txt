@@ -1,0 +1,131 @@
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ Starting Firebase initialization... Object
+ Raw environment variables: Object
+ Firebase Configuration: Object
+ Firebase initialized successfully: Object
+ Setting up Firebase auth state listener
+ Missing required Google Analytics key: VITE_GA_MEASUREMENT_ID
+(anonymous) @ App.tsx:626
+ Firebase auth state changed: 4610@test.com
+ Making backend sync request Object
+ Firebase persistence set to LOCAL
+ Auth token set successfully: Object
+ Successfully synced with backend
+ QuickTemplates - Loaded templates: Array(0)
+ QuickTemplates - Loaded templates: Array(1)
+ QuickTemplates - Loaded templates: Array(1)
+ QuickTemplates - Loaded templates: Array(1)
+ QuickTemplates - Loaded templates: Array(1)
+ Prefetching contacts for companies 0 to 3 (current: 0)
+ API Request: GET /api/companies/9513/contacts Object
+ API Request: GET /api/companies/9516/contacts Object
+ API Request: GET /api/companies/9511/contacts Object
+ QuickTemplates - Loaded templates: Array(1)
+ QuickTemplates - Loaded templates: Array(1)
+ QuickTemplates - Loaded templates: Array(1)
+ QuickTemplates - Loaded templates: Array(1)
+ Prefetching contacts for companies 0 to 4 (current: 1)
+ API Request: GET /api/companies/9512/contacts Object
+ QuickTemplates - Loaded templates: Array(1)
+ QuickTemplates - Loaded templates: Array(1)
+ QuickTemplates - Loaded templates: Array(1)
+ QuickTemplates - Loaded templates: Array(1)
+ Found localStorage data: Object
+ Refreshing contact data from database to preserve emails after navigation
+ Companies before refresh: Array(7)
+ NAVIGATION: Restoring search state and refreshing from database
+ Refreshing contact data from database for navigation persistence...
+ API Request: GET /api/companies/9516/contacts?t=1750700459791 Object
+ API Request: GET /api/companies/9510/contacts?t=1750700459792 Object
+ API Request: GET /api/companies/9513/contacts?t=1750700459792 Object
+ API Request: GET /api/companies/9515/contacts?t=1750700459792 Object
+ API Request: GET /api/companies/9511/contacts?t=1750700459792 Object
+ API Request: GET /api/companies/9512/contacts?t=1750700459792 Object
+ API Request: GET /api/companies/9514/contacts?t=1750700459792 Object
+ Refreshed 7 contacts for QDOBA Mexican Eats: Array(7)
+ Refreshed 6 contacts for Burger King: Array(6)
+ Refreshed 4 contacts for Shake Shack: Array(4)
+ Refreshed 16 contacts for McDonald's: Array(16)
+ Registration success detected, triggering welcome notification
+home.tsx:462 Extracted guest data: Object
+home.tsx:484 Guest data cleared successfully
+home.tsx:489 Restored guest query to input: shakeshack
+queryClient.ts:39 API Request: POST /api/notifications/trigger Object
+home.tsx:339 Refreshed 4 contacts for Chipotle Mexican Grill: Array(4)
+home.tsx:339 Refreshed 2 contacts for Wendy's: Array(2)
+home.tsx:339 Refreshed 1 contacts for Five Guys: Array(1)
+home.tsx:353 Contact data refresh completed from database
+home.tsx:414 NAVIGATION: Database refresh completed with 15 emails
+home.tsx:415 NAVIGATION: Companies after refresh: Array(7)
+home.tsx:437 NAVIGATION: Successfully restored 15 emails
+company-table.tsx:73 CompanyTable received companies: Array(7)
+company-table.tsx:198 Auto-expanding first company to show contacts: McDonald's
+api/notifications/trigger:1 
+            
+            
+           Failed to load resource: the server responded with a status of 409 (Conflict)
+queryClient.ts:65 API Request Error: POST /api/notifications/trigger Object
+apiRequest @ queryClient.ts:65
+use-notifications.tsx:63 Failed to trigger notification: Error: 409: {"shouldShow":false,"message":"Notification already shown or not found"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:62:5)
+    at async triggerNotification (use-notifications.tsx:43:24)
+    at async handleRegistrationSuccess (home.tsx:502:9)
+triggerNotification @ use-notifications.tsx:63
+prompt-editor.tsx:458 PromptEditor received config update: Object
+prompt-editor.tsx:458 PromptEditor received config update: Object
+prompt-editor.tsx:458 PromptEditor received config update: Object
+home.tsx:544 Saving search state: Object
+quick-templates.tsx:65 QuickTemplates - Loaded templates: Array(0)
+quick-templates.tsx:65 QuickTemplates - Loaded templates: Array(0)
+outreach.tsx:255 Prefetching contacts for companies 0 to 4 (current: 1)
+quick-templates.tsx:65 QuickTemplates - Loaded templates: Array(1)
+prompt-editor.tsx:458 PromptEditor received config update: Object
+prompt-editor.tsx:458 PromptEditor received config update: Object
+home.tsx:380 Found localStorage data: Object
+home.tsx:393 Refreshing contact data from database to preserve emails after navigation
+home.tsx:394 Companies before refresh: Array(7)
+home.tsx:401 NAVIGATION: Restoring search state and refreshing from database
+home.tsx:329 Refreshing contact data from database for navigation persistence...
+queryClient.ts:39 API Request: GET /api/companies/9516/contacts?t=1750700473919 Object
+queryClient.ts:39 API Request: GET /api/companies/9510/contacts?t=1750700473919 Object
+queryClient.ts:39 API Request: GET /api/companies/9513/contacts?t=1750700473919 Object
+queryClient.ts:39 API Request: GET /api/companies/9515/contacts?t=1750700473919 Object
+queryClient.ts:39 API Request: GET /api/companies/9511/contacts?t=1750700473919 Object
+queryClient.ts:39 API Request: GET /api/companies/9512/contacts?t=1750700473919 Object
+queryClient.ts:39 API Request: GET /api/companies/9514/contacts?t=1750700473919 Object
+prompt-editor.tsx:458 PromptEditor received config update: Object
+prompt-editor.tsx:458 PromptEditor received config update: Object
+company-table.tsx:73 CompanyTable received companies: Array(7)
+company-table.tsx:198 Auto-expanding first company to show contacts: McDonald's
+home.tsx:339 Refreshed 16 contacts for McDonald's: Array(16)
+home.tsx:451 Registration success detected, triggering welcome notification
+home.tsx:462 Extracted guest data: Object
+home.tsx:484 Guest data cleared successfully
+home.tsx:489 Restored guest query to input: shakeshack
+queryClient.ts:39 API Request: POST /api/notifications/trigger Object
+home.tsx:339 Refreshed 7 contacts for QDOBA Mexican Eats: Array(7)
+home.tsx:339 Refreshed 6 contacts for Burger King: Array(6)
+home.tsx:339 Refreshed 1 contacts for Five Guys: Array(1)
+home.tsx:339 Refreshed 4 contacts for Shake Shack: Array(4)
+home.tsx:339 Refreshed 4 contacts for Chipotle Mexican Grill: Array(4)
+home.tsx:339 Refreshed 2 contacts for Wendy's: Array(2)
+home.tsx:353 Contact data refresh completed from database
+home.tsx:414 NAVIGATION: Database refresh completed with 15 emails
+home.tsx:415 NAVIGATION: Companies after refresh: Array(7)
+home.tsx:437 NAVIGATION: Successfully restored 15 emails
+company-table.tsx:73 CompanyTable received companies: Array(7)
+company-table.tsx:198 Auto-expanding first company to show contacts: McDonald's
+api/notifications/trigger:1 
+            
+            
+           Failed to load resource: the server responded with a status of 409 (Conflict)
+queryClient.ts:65 API Request Error: POST /api/notifications/trigger Object
+apiRequest @ queryClient.ts:65
+use-notifications.tsx:63 Failed to trigger notification: Error: 409: {"shouldShow":false,"message":"Notification already shown or not found"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:62:5)
+    at async triggerNotification (use-notifications.tsx:43:24)
+    at async handleRegistrationSuccess (home.tsx:502:9)
+triggerNotification @ use-notifications.tsx:63
+home.tsx:544 Saving search state: Objectcompanies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]listId: nullquery: "shakeshack"resultsCount: 7[[Prototype]]: Object
