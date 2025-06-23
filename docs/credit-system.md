@@ -240,6 +240,7 @@ curl -H "Authorization: Bearer TOKEN" /api/credits
 STRIPE_SECRET_KEY=sk_live_...           # Production secret key
 VITE_STRIPE_PUBLIC_KEY=pk_live_...      # Production publishable key
 STRIPE_WEBHOOK_SECRET=whsec_...         # Production webhook signing secret
+STRIPE_PRICE_ID=price_PRODUCTION_ID     # Production price ID for Ugly Duckling plan
 
 # Optional for Testing
 STRIPE_TEST_SECRET=sk_test_...          # Test mode secret key

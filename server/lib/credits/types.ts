@@ -65,10 +65,16 @@ export const CREDIT_COSTS: Record<SearchType, number> = {
 
 export const MONTHLY_CREDIT_ALLOWANCE = 5000;
 
-// Stripe configuration
+// Stripe configuration with environment-based price selection
 export const STRIPE_CONFIG = {
-  UGLY_DUCKLING_PRODUCT_ID: 'prod_SYHUcVegdfSjxn',
-  UGLY_DUCKLING_PRICE_ID: 'price_1RdAvpGfTiCdmxysMQt7i9FF',
+  // Use environment variable for product ID, fallback to provided production product
+  get UGLY_DUCKLING_PRODUCT_ID() {
+    return process.env.STRIPE_PRODUCT_ID || 'prod_SXlmpPTIOgmmjo';
+  },
+  // Use environment variable for price ID, fallback to provided production price
+  get UGLY_DUCKLING_PRICE_ID() {
+    return process.env.STRIPE_PRICE_ID || 'price_1RcgF4K7jbIybp9HaHIZlv2W';
+  },
   PLAN_CREDIT_ALLOWANCES: {
     'ugly-duckling': 2500, // 2000 + 500 bonus
     'free': 180 // Default free credits
