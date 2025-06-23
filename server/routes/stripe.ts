@@ -13,7 +13,7 @@ if (!stripeSecretKey) {
 }
 
 const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2025-05-28.basil",
 });
 
 function requireAuth(req: Request, res: Response, next: express.NextFunction) {
@@ -58,8 +58,9 @@ export function registerStripeRoutes(app: express.Express) {
         await CreditService.updateStripeCustomerId(userId, customer.id);
       }
 
-      // Use the specific price ID for The Ugly Duckling plan ($18.95/month)
-      const priceId = 'price_1RcgF4K7jbIybp9HaHIZlv2W';
+      // Use appropriate price ID based on environment
+      const isProduction = process.env.NODE_ENV === 'production' || !process.env.STRIPE_TEST_SECRET;
+      const priceId = isProduction ? STRIPE_CONFIG.PRICE_IDS.production : STRIPE_CONFIG.PRICE_IDS.test;
 
       const successUrl = `${req.get('origin')}/subscription-success?session_id={CHECKOUT_SESSION_ID}`;
       const cancelUrl = `${req.get('origin')}`;
