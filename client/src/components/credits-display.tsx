@@ -13,7 +13,6 @@ interface CreditData {
 export function CreditsDisplay() {
   const { data: credits, isLoading } = useQuery<CreditData>({
     queryKey: ['/api/credits'],
-    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   if (isLoading) {
