@@ -645,6 +645,11 @@ export default function PromptEditor({
         
         setSearchProgress(prev => ({ ...prev, phase: "Search Complete", completed: 5, total: 5 }));
         
+        // Refresh credits display for authenticated users
+        if (user) {
+          queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+        }
+        
         // Complete the search for companies-only mode
         onComplete();
         return;
