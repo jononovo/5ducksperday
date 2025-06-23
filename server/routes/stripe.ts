@@ -3,11 +3,16 @@ import Stripe from "stripe";
 import { CreditService } from "../lib/credits";
 import { STRIPE_CONFIG } from "../lib/credits/types";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+// Use test credentials in development, production credentials in production
+const stripeSecretKey = process.env.NODE_ENV === 'production' 
+  ? process.env.STRIPE_SECRET_KEY 
+  : process.env.STRIPE_TEST_SECRET || process.env.STRIPE_SECRET_KEY;
+
+if (!stripeSecretKey) {
+  throw new Error('Missing required Stripe secret key');
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripe = new Stripe(stripeSecretKey, {
   apiVersion: "2024-06-20",
 });
 
@@ -134,8 +139,8 @@ export function registerStripeRoutes(app: express.Express) {
     }
   });
 
-  // Stripe webhook endpoint - replace the placeholder route
-  app.post("/api/stripe/webhook", express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
+  // Stripe webhook endpoint (raw body parsing handled by middleware)
+  app.post("/api/stripe/webhook", async (req: Request, res: Response) => {
     const sig = req.headers['stripe-signature'];
     
     let event;
