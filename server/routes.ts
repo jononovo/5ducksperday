@@ -359,15 +359,7 @@ export function registerRoutes(app: Express) {
   // Serve static files from the static directory
   app.use('/static', express.static(path.join(__dirname, '../static')));
   
-  // Serve the static landing page at root route
-  app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../static/landing.html'));
-  });
-
-  // Serve the landing3 backup version
-  app.get('/landing3', (req, res) => {
-    res.sendFile(path.join(__dirname, '../static/landing3.html'));
-  });
+  // Static routes moved to server/index.ts for proper precedence over Vite middleware
   
 
   

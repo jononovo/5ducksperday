@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./auth";
@@ -82,6 +83,16 @@ app.get('/api/health', (_req, res) => {
       console.error('Error initializing default search approaches:', error);
       // Continue with server startup even if this fails
     }
+
+    // Register static routes BEFORE Vite middleware to ensure precedence
+    
+    app.get('/', (req, res) => {
+      res.sendFile(path.join(__dirname, 'static/landing.html'));
+    });
+
+    app.get('/landing3', (req, res) => {
+      res.sendFile(path.join(__dirname, 'static/landing3.html'));
+    });
 
     const server = registerRoutes(app);
 
