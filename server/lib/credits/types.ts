@@ -70,7 +70,7 @@ export const STRIPE_CONFIG = {
   UGLY_DUCKLING_PRODUCT_ID: 'prod_SXlmpPTIOgmmjo',
   PRICE_IDS: {
     production: 'price_1RcgF4K7jbIybp9HaHIZlv2W',
-    test: 'price_1RcgF4K7jbIybp9HaHIZlv2W' // Will be updated when test price is created
+    test: 'price_1RdAvpGfTiCdmxysMQt7i9FF'
   },
   PLAN_CREDIT_ALLOWANCES: {
     'ugly-duckling': 2500, // 2000 + 500 bonus
