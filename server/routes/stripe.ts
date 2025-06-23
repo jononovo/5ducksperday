@@ -69,7 +69,7 @@ export function registerStripeRoutes(app: express.Express) {
         payment_method_types: ['card'],
         line_items: [
           {
-            price: 'price_1RcgF4K7jbIybp9HaHIZlv2W',
+            price: priceId,
             quantity: 1,
           },
         ],
