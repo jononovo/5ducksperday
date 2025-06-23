@@ -104,6 +104,102 @@ export function registerStripeRoutes(app: express.Express) {
     }
   });
 
+  // Manual subscription activation endpoint (for webhook failures)
+  app.post("/api/stripe/manual-activate-subscription", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const { subscriptionId, customerId } = req.body;
+      
+      // Verify subscription exists in Stripe
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      
+      if (subscription.customer !== customerId) {
+        return res.status(400).json({ message: "Subscription and customer mismatch" });
+      }
+      
+      // Update user's subscription status
+      await CreditService.updateSubscription(userId, {
+        stripeSubscriptionId: subscription.id,
+        subscriptionStatus: subscription.status,
+        currentPlan: 'ugly-duckling',
+        subscriptionStartDate: subscription.created * 1000,
+        subscriptionEndDate: subscription.current_period_end * 1000
+      });
+      
+      // Award subscription credits if not already awarded
+      const credits = await CreditService.getUserCredits(userId);
+      const hasSubscriptionCredits = credits.transactions.some(t => 
+        t.description.includes('subscription activation bonus')
+      );
+      
+      if (!hasSubscriptionCredits) {
+        await CreditService.addCredits(userId, 2500, 'ugly-duckling subscription activation bonus');
+      }
+      
+      console.log(`Manually activated subscription for user ${userId}: ${subscription.id}`);
+      
+      res.json({ 
+        success: true,
+        subscriptionId: subscription.id,
+        status: subscription.status,
+        creditsAwarded: !hasSubscriptionCredits
+      });
+      
+    } catch (error: any) {
+      console.error('Manual subscription activation error:', error);
+      res.status(500).json({ 
+        message: "Failed to activate subscription",
+        error: error.message 
+      });
+    }
+  });
+
+  // Debug endpoint to find customer's subscription data
+  app.get("/api/stripe/debug-customer/:customerId", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { customerId } = req.params;
+      
+      // Get customer details
+      const customer = await stripe.customers.retrieve(customerId);
+      
+      // Get customer's subscriptions
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customerId,
+        limit: 10
+      });
+      
+      // Get recent checkout sessions for this customer
+      const sessions = await stripe.checkout.sessions.list({
+        customer: customerId,
+        limit: 10
+      });
+      
+      res.json({
+        customer: {
+          id: customer.id,
+          email: customer.email,
+          created: customer.created
+        },
+        subscriptions: subscriptions.data.map(sub => ({
+          id: sub.id,
+          status: sub.status,
+          created: sub.created,
+          current_period_end: sub.current_period_end,
+          metadata: sub.metadata
+        })),
+        sessions: sessions.data.map(session => ({
+          id: session.id,
+          payment_status: session.payment_status,
+          subscription: session.subscription,
+          created: session.created
+        }))
+      });
+      
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Get subscription status
   app.get("/api/stripe/subscription-status", requireAuth, async (req: Request, res: Response) => {
     try {
