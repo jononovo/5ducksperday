@@ -822,6 +822,11 @@ export default function PromptEditor({
       
       console.log("Search process completed!");
       
+      // Refresh credits display for authenticated users
+      if (user) {
+        queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+      }
+      
       // Trigger confetti animation on successful search
       triggerConfetti();
       // Call the onSearchSuccess callback to highlight the email button (if provided)
