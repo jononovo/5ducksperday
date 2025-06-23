@@ -331,7 +331,7 @@ export function RegistrationModal() {
                   <div className="relative group">
                     <Button 
                       variant="outline" 
-                      className="w-full justify-center relative bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 group-hover:pointer-events-none"
+                      className="w-full justify-center relative bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
                       onClick={handleGoogleSignIn}
                     >
                       <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
@@ -344,7 +344,7 @@ export function RegistrationModal() {
                     </Button>
                     {/* Hover overlay */}
                     <div className="absolute inset-0 bg-black/70 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                      <span className="text-white font-medium">Google Coming Soon</span>
+                      <span className="text-white font-medium">Google Auth Coming Soon</span>
                     </div>
                   </div>
                   <p className="text-xs text-gray-400 text-center">
@@ -450,7 +450,7 @@ export function RegistrationModal() {
                 <div className="relative group">
                   <Button 
                     variant="outline" 
-                    className="w-full justify-center relative bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 group-hover:pointer-events-none"
+                    className="w-full justify-center relative bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
                     onClick={handleGoogleSignIn}
                   >
                     <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
@@ -463,7 +463,7 @@ export function RegistrationModal() {
                   </Button>
                   {/* Hover overlay */}
                   <div className="absolute inset-0 bg-black/70 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                    <span className="text-white font-medium">Google Coming Soon</span>
+                    <span className="text-white font-medium">Google Auth Coming Soon</span>
                   </div>
                 </div>
               </div>
