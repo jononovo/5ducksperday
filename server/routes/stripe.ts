@@ -3,13 +3,12 @@ import Stripe from "stripe";
 import { CreditService } from "../lib/credits";
 import { STRIPE_CONFIG } from "../lib/credits/types";
 
-// Use test credentials in development, production credentials in production
-const stripeSecretKey = process.env.NODE_ENV === 'production' 
-  ? process.env.STRIPE_SECRET_KEY 
-  : process.env.STRIPE_TEST_SECRET || process.env.STRIPE_SECRET_KEY;
+// Environment detection logic
+const isTestMode = process.env.NODE_ENV !== 'production' && process.env.STRIPE_TEST_SECRET;
+const stripeSecretKey = isTestMode ? process.env.STRIPE_TEST_SECRET : process.env.STRIPE_SECRET_KEY;
 
 if (!stripeSecretKey) {
-  throw new Error('Missing required Stripe secret key');
+  throw new Error(`Missing required Stripe secret key for ${isTestMode ? 'test' : 'production'} mode`);
 }
 
 const stripe = new Stripe(stripeSecretKey, {
@@ -58,9 +57,8 @@ export function registerStripeRoutes(app: express.Express) {
         await CreditService.updateStripeCustomerId(userId, customer.id);
       }
 
-      // Use appropriate price ID based on environment
-      const isProduction = process.env.NODE_ENV === 'production' || !process.env.STRIPE_TEST_SECRET;
-      const priceId = isProduction ? STRIPE_CONFIG.PRICE_IDS.production : STRIPE_CONFIG.PRICE_IDS.test;
+      // Use appropriate price ID based on environment (matching the key selection logic)
+      const priceId = isTestMode ? STRIPE_CONFIG.PRICE_IDS.test : STRIPE_CONFIG.PRICE_IDS.production;
 
       const successUrl = `${req.get('origin')}/subscription-success?session_id={CHECKOUT_SESSION_ID}`;
       const cancelUrl = `${req.get('origin')}`;
