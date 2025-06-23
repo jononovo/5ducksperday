@@ -3,9 +3,9 @@ import Stripe from "stripe";
 import { CreditService } from "../lib/credits";
 import { STRIPE_CONFIG } from "../lib/credits/types";
 
-// Environment detection logic
-const isTestMode = process.env.NODE_ENV !== 'production' && process.env.STRIPE_TEST_SECRET;
-const stripeSecretKey = isTestMode ? process.env.STRIPE_TEST_SECRET : process.env.STRIPE_SECRET_KEY;
+// Environment detection logic - temporarily forcing production mode for real payment testing
+const isTestMode = false; // Temporarily disabled to test real payments in development
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
 if (!stripeSecretKey) {
   throw new Error(`Missing required Stripe secret key for ${isTestMode ? 'test' : 'production'} mode`);
