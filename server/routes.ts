@@ -363,6 +363,11 @@ export function registerRoutes(app: Express) {
   app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../static/landing.html'));
   });
+
+  // Serve the landing3 backup version
+  app.get('/landing3', (req, res) => {
+    res.sendFile(path.join(__dirname, '../static/landing3.html'));
+  });
   
 
   
