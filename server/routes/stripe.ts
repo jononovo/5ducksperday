@@ -5,15 +5,25 @@ import { STRIPE_CONFIG } from "../lib/credits/types";
 
 // Environment detection logic - temporarily forcing production mode for real payment testing
 const isTestMode = false; // Temporarily disabled to test real payments in development
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
-if (!stripeSecretKey) {
-  throw new Error(`Missing required Stripe secret key for ${isTestMode ? 'test' : 'production'} mode`);
+// Lazy initialization to prevent crashes during module loading in production
+let stripe: Stripe | null = null;
+
+function getStripe(): Stripe {
+  if (!stripe) {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    
+    if (!stripeSecretKey) {
+      throw new Error(`Missing required Stripe secret key for ${isTestMode ? 'test' : 'production'} mode`);
+    }
+    
+    stripe = new Stripe(stripeSecretKey, {
+      apiVersion: "2025-03-31.basil",
+    });
+  }
+  
+  return stripe;
 }
-
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: "2025-03-31.basil",
-});
 
 function requireAuth(req: Request, res: Response, next: express.NextFunction) {
   if (!req.isAuthenticated() || !req.user) {
@@ -43,9 +53,9 @@ export function registerStripeRoutes(app: express.Express) {
       const credits = await CreditService.getUserCredits(userId);
       
       if (credits.stripeCustomerId) {
-        customer = await stripe.customers.retrieve(credits.stripeCustomerId);
+        customer = await getStripe().customers.retrieve(credits.stripeCustomerId);
       } else {
-        customer = await stripe.customers.create({
+        customer = await getStripe().customers.create({
           email: user.email,
           metadata: {
             userId: userId.toString(),
@@ -64,7 +74,7 @@ export function registerStripeRoutes(app: express.Express) {
       const cancelUrl = `${req.get('origin')}`;
 
       // Create checkout session
-      const session = await stripe.checkout.sessions.create({
+      const session = await getStripe().checkout.sessions.create({
         customer: customer.id,
         payment_method_types: ['card'],
         line_items: [
@@ -110,10 +120,10 @@ export function registerStripeRoutes(app: express.Express) {
       const { customerId } = req.params;
       
       // Get customer details
-      const customer = await stripe.customers.retrieve(customerId);
+      const customer = await getStripe().customers.retrieve(customerId);
       
       // Get customer's subscriptions
-      const subscriptions = await stripe.subscriptions.list({
+      const subscriptions = await getStripe().subscriptions.list({
         customer: customerId,
         limit: 10
       });
@@ -152,7 +162,7 @@ export function registerStripeRoutes(app: express.Express) {
         });
       }
 
-      const subscription = await stripe.subscriptions.retrieve(credits.stripeSubscriptionId);
+      const subscription = await getStripe().subscriptions.retrieve(credits.stripeSubscriptionId);
 
       res.json({
         hasSubscription: true,
@@ -186,7 +196,7 @@ export function registerStripeRoutes(app: express.Express) {
       
       if (webhookSecret && sig && webhookSecret.length > 50) {
         // Production: Verify webhook signature (only if secret looks valid)
-        event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+        event = getStripe().webhooks.constructEvent(req.body, sig, webhookSecret);
         console.log(`✅ Verified Stripe webhook: ${event.type}`);
       } else {
         // Development or invalid secret: Parse without verification but warn
