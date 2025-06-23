@@ -12,7 +12,7 @@ if (!stripeSecretKey) {
 }
 
 const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: "2025-05-28.basil",
+  apiVersion: "2025-03-31.basil",
 });
 
 function requireAuth(req: Request, res: Response, next: express.NextFunction) {
