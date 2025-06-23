@@ -1258,16 +1258,7 @@ export function registerRoutes(app: Express) {
         console.log(`[Quick Search] Session ${sessionId} updated with companies`);
       }
       
-      // Return the quick company data
-      res.json({
-        companies,
-        query,
-        strategyId: strategyId || null,
-        sessionId,
-        searchType: searchType || 'emails'
-      });
-
-      // Post-search billing: Deduct credits based on actual search type selected
+      // Pre-response billing: Deduct credits based on actual search type selected
       if (req.isAuthenticated() && req.user && companies.length > 0) {
         try {
           // Map frontend search type to backend search type for billing
@@ -1293,6 +1284,15 @@ export function registerRoutes(app: Express) {
           // Don't fail the search if credit deduction fails
         }
       }
+
+      // Return the quick company data
+      res.json({
+        companies,
+        query,
+        strategyId: strategyId || null,
+        sessionId,
+        searchType: searchType || 'emails'
+      });
       
     } catch (error) {
       console.error('Quick search error:', error);
