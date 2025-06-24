@@ -9,7 +9,7 @@ export function MiniFooter() {
             Soli Deo Gloria
           </span>
           <span className="text-xs text-slate-600 dark:text-slate-400">
-            100% vibe-coded in NYC
+            Vibe-coded with ❤️ in NYC
           </span>
           <a
             href="https://www.linkedin.com/company/5ducks/"
