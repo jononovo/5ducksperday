@@ -1021,10 +1021,10 @@ export default function PromptEditor({
                 }
               }}
               placeholder="Recently exited startups in Miami "
-              className={`md:rounded-md rounded-l-md rounded-r-none md:pr-20 pr-4 text-base md:text-lg text-gray-700 hover:border-gray-300 md:focus-visible:border-gray-400 mobile-input-border ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
+              className={`md:rounded-md rounded-l-md rounded-r-none md:pl-20 pr-4 text-base md:text-lg text-gray-700 hover:border-gray-300 md:focus-visible:border-gray-400 mobile-input-border ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
             />
             {/* Desktop search type selector - inside input field */}
-            <div className="hidden md:block absolute right-2 top-1/2 transform -translate-y-1/2">
+            <div className="hidden md:block absolute left-2 top-1/2 transform -translate-y-1/2">
               <SearchTypeSelector
                 selectedType={searchType}
                 onTypeChange={setSearchType}
