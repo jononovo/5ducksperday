@@ -14,7 +14,9 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile,
-  type User as FirebaseUser 
+  GoogleAuthProvider,
+  type User as FirebaseUser,
+  type AuthCredential 
 } from "firebase/auth";
 
 type AuthContextType = {
@@ -213,6 +215,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Calling signInWithPopup...');
       const result = await signInWithPopup(firebaseAuth, firebaseGoogleProvider);
 
+      // Get the OAuth credential from the result
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      
       // Get the token result with detailed scope information
       const tokenResult = await result.user.getIdTokenResult();
 
@@ -220,16 +225,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         success: !!result,
         hasUser: !!result.user,
         hasEmail: !!result.user?.email,
+        hasCredential: !!credential,
+        hasAccessToken: !!credential?.accessToken,
+        hasRefreshToken: !!credential?.refreshToken,
         scopes: tokenResult.claims.scope,
-        // Log OAuth credential details
-        credential: result.user.providerData[0],
-        timestamp: new Date().toISOString()
-      });
-
-      //Added logging for Gmail scopes verification on frontend
-      console.log("Gmail API scopes granted (Frontend):", {
-        hasScope: tokenResult.claims.scope !== undefined,
-        scopeType: typeof tokenResult.claims.scope,
         timestamp: new Date().toISOString()
       });
 
@@ -242,7 +241,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         displayName: result.user.displayName
       });
 
-      await syncWithBackend(result.user);
+      // Pass the OAuth credential to syncWithBackend
+      await syncWithBackend(result.user, credential);
 
     } catch (error: any) {
       console.error("Google sign-in error:", {
@@ -293,20 +293,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   // Function to get Firebase ID token and sync with backend
-  const syncWithBackend = async (firebaseUser: FirebaseUser) => {
+  const syncWithBackend = async (firebaseUser: FirebaseUser, credential?: AuthCredential | null) => {
     try {
-      // Get the access token for Gmail API
-      const credential = firebaseUser.providerData[0];
-      const accessToken = (credential as any)?.accessToken;
+      // Get the ID token for authentication
+      const idToken = await firebaseUser.getIdToken(true);
+
+      // Extract Gmail tokens from OAuth credential if available
+      let gmailAccessToken = '';
+      let gmailRefreshToken = '';
+      let tokenExpiry = Date.now() + (3600 * 1000); // Default 1 hour
+
+      if (credential) {
+        // Extract access token from Google OAuth credential
+        const oauthCredential = credential as any;
+        if (oauthCredential.accessToken) {
+          gmailAccessToken = oauthCredential.accessToken;
+          
+          // Note: Firebase OAuth credentials don't typically include refresh tokens
+          // Refresh tokens need to be obtained through server-side OAuth flow
+          console.log('Extracted Gmail access token from OAuth credential:', {
+            hasAccessToken: !!gmailAccessToken,
+            tokenLength: gmailAccessToken ? gmailAccessToken.length : 0,
+            expiresAt: new Date(tokenExpiry).toISOString()
+          });
+        }
+      } else {
+        console.log('No OAuth credential available for Gmail token extraction');
+      }
 
       console.log('Making backend sync request', {
         endpoint: '/api/google-auth',
-        hasAccessToken: !!accessToken,
+        hasGmailAccessToken: !!gmailAccessToken,
         domain: window.location.hostname
       });
-
-      // Get the ID token for authentication
-      const idToken = await firebaseUser.getIdToken(true);
 
       const createRes = await fetch("/api/google-auth", {
         method: "POST",
@@ -317,7 +336,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           email: firebaseUser.email,
           username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-          accessToken // Add the access token to the request
+          gmailAccessToken,
+          gmailRefreshToken,
+          tokenExpiry,
+          firebaseUid: firebaseUser.uid
         })
       });
 
