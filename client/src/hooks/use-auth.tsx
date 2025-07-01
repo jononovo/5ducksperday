@@ -227,7 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         hasEmail: !!result.user?.email,
         hasCredential: !!credential,
         hasAccessToken: !!credential?.accessToken,
-        hasRefreshToken: !!credential?.refreshToken,
+        credentialType: credential?.providerId || 'none',
         scopes: tokenResult.claims.scope,
         timestamp: new Date().toISOString()
       });
