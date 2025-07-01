@@ -7,6 +7,7 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User, User as SelectUser } from "@shared/schema";
 import admin from "firebase-admin";
+import { TokenService, UserTokens } from "./lib/tokens";
 
 // Extend the session type to include gmailToken
 declare module 'express-session' {
@@ -332,23 +333,15 @@ export function setupAuth(app: Express) {
   // Add to the Google auth route
   app.post("/api/google-auth", async (req, res, next) => {
     try {
-      const { email, username, accessToken } = req.body;
+      const { email, username, gmailAccessToken, gmailRefreshToken, tokenExpiry, firebaseUid } = req.body;
 
       console.log('Google auth endpoint received request:', { 
         hasEmail: !!email, 
         hasUsername: !!username,
-        hasAccessToken: !!accessToken 
+        hasGmailAccessToken: !!gmailAccessToken,
+        hasGmailRefreshToken: !!gmailRefreshToken,
+        hasFirebaseUid: !!firebaseUid
       });
-
-      // Store Gmail token in session if provided
-      if (accessToken) {
-        req.session.gmailToken = accessToken;
-        console.log('Stored Gmail token in session:', {
-          hasToken: !!accessToken,
-          sessionID: req.sessionID,
-          timestamp: new Date().toISOString()
-        });
-      }
 
       if (!email) {
         return res.status(400).json({ error: "Email is required" });
@@ -372,6 +365,41 @@ export function setupAuth(app: Express) {
         }
       }
 
+      // Store Gmail tokens in Replit DB if provided
+      if (gmailAccessToken) {
+        try {
+          // Extract Firebase ID token from Authorization header
+          const authHeader = req.headers.authorization;
+          const firebaseIdToken = authHeader?.startsWith('Bearer ') ? authHeader.split('Bearer ')[1] : '';
+
+          const tokenData: UserTokens = {
+            firebaseIdToken,
+            gmailAccessToken,
+            gmailRefreshToken: gmailRefreshToken || undefined,
+            tokenExpiry: tokenExpiry || (Date.now() + (3600 * 1000)), // Default 1 hour
+            scopes: ['https://www.googleapis.com/auth/gmail.send', 'https://www.googleapis.com/auth/gmail.compose'],
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+          };
+
+          await TokenService.saveUserTokens(user.id, tokenData);
+          console.log('Stored Gmail tokens in Replit DB:', {
+            userId: user.id,
+            hasAccessToken: !!gmailAccessToken,
+            hasRefreshToken: !!gmailRefreshToken,
+            tokenExpiry: new Date(tokenData.tokenExpiry).toISOString()
+          });
+
+          // Optional: Store Firebase UID mapping for fast lookup
+          if (firebaseUid) {
+            await TokenService.storeFirebaseUidMapping(firebaseUid, user.id);
+          }
+        } catch (tokenError) {
+          console.error('Failed to store Gmail tokens:', tokenError);
+          // Don't fail the authentication if token storage fails
+        }
+      }
+
       req.login(user, (err) => {
         if (err) return next(err);
         res.json(user);
@@ -383,13 +411,69 @@ export function setupAuth(app: Express) {
   });
 
   // Add new route to check Gmail authorization status
-  app.get("/api/gmail/auth-status", requireAuth, (req, res) => {
-    const hasGmailToken = !!req.session.gmailToken;
-    console.log('Checking Gmail auth status:', {
-      hasToken: hasGmailToken,
-      sessionID: req.sessionID,
-      timestamp: new Date().toISOString()
-    });
-    res.json({ authorized: hasGmailToken });
+  app.get("/api/gmail/auth-status", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const hasValidAuth = await TokenService.hasValidGmailAuth(userId);
+      
+      console.log('Checking Gmail auth status:', {
+        userId,
+        hasValidAuth,
+        timestamp: new Date().toISOString()
+      });
+      
+      res.json({ 
+        authorized: hasValidAuth,
+        hasValidToken: hasValidAuth
+      });
+    } catch (error) {
+      console.error('Error checking Gmail auth status:', error);
+      res.json({ 
+        authorized: false,
+        hasValidToken: false
+      });
+    }
+  });
+
+  // Add route to revoke Gmail access (delete tokens)
+  app.delete("/api/gmail/tokens", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      await TokenService.deleteUserTokens(userId);
+      
+      console.log('Revoked Gmail tokens:', {
+        userId,
+        timestamp: new Date().toISOString()
+      });
+      
+      res.json({ success: true, message: "Gmail access revoked" });
+    } catch (error) {
+      console.error('Error revoking Gmail tokens:', error);
+      res.status(500).json({ error: "Failed to revoke Gmail access" });
+    }
+  });
+
+  // Add route to trigger Gmail re-authorization
+  app.post("/api/gmail/reauthorize", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      
+      console.log('Gmail re-authorization requested:', {
+        userId,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Delete existing tokens to force fresh authorization
+      await TokenService.deleteUserTokens(userId);
+      
+      res.json({ 
+        success: true, 
+        message: "Please complete Google OAuth flow again to re-authorize Gmail access",
+        requiresOAuth: true
+      });
+    } catch (error) {
+      console.error('Error preparing Gmail re-authorization:', error);
+      res.status(500).json({ error: "Failed to prepare re-authorization" });
+    }
   });
 }
