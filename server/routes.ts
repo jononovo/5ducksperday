@@ -32,6 +32,7 @@ import { registerCreditRoutes } from "./routes/credits";
 import { registerStripeRoutes } from "./routes/stripe";
 import { CreditService } from "./lib/credits";
 import { SearchType } from "./lib/credits/types";
+import { TokenService } from "./lib/tokens";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow-service";
@@ -3435,9 +3436,12 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         return;
       }
 
-      // Get Gmail token from session
-      const gmailToken = req.session.gmailToken;
+      // Get Gmail token from TokenService (persistent storage)
+      const userId = (req.user as any).id;
+      const gmailToken = await TokenService.getGmailAccessToken(userId);
+      
       if (!gmailToken) {
+        console.log(`No valid Gmail token found for user ${userId}`);
         res.status(401).json({ message: "Gmail authorization required" });
         return;
       }

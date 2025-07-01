@@ -1,0 +1,510 @@
+client:495 [vite] connecting...
+client:614 [vite] connected.
+chunk-RPCDYKBN.js?v=1756a228:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+firebase.ts:78 Starting Firebase initialization... {timestamp: '2025-07-01T23:21:30.814Z', domain: '89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev'}
+firebase.ts:18 Raw environment variables: {apiKey: '....aDbuzU', projectId: 'fire-5-ducks', appId: '....b133e8', mode: 'development', dev: true, …}
+firebase.ts:55 Firebase Configuration: {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: 'fire-5-ducks.firebaseapp.com', environment: 'development', …}
+firebase.ts:160 Firebase initialized successfully: {domain: '89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev', isAuth: true, isProvider: true, authDomain: 'fire-5-ducks.firebaseapp.com', timestamp: '2025-07-01T23:21:30.816Z'}
+use-auth.tsx:384 Setting up Firebase auth state listener
+use-auth.tsx:392 Firebase auth state changed: undefined
+firebase.ts:100 Firebase persistence set to LOCAL
+queryClient.ts:89 
+            
+            
+           GET https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev/api/user 401 (Unauthorized)
+(anonymous) @ queryClient.ts:89
+fetchFn @ @tanstack_react-query.js?v=1756a228:840
+run @ @tanstack_react-query.js?v=1756a228:494
+start @ @tanstack_react-query.js?v=1756a228:536
+fetch @ @tanstack_react-query.js?v=1756a228:926
+executeFetch_fn @ @tanstack_react-query.js?v=1756a228:2211
+onSubscribe @ @tanstack_react-query.js?v=1756a228:1898
+subscribe @ @tanstack_react-query.js?v=1756a228:24
+(anonymous) @ @tanstack_react-query.js?v=1756a228:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=1756a228:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=1756a228:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=1756a228:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=1756a228:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=1756a228:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=1756a228:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=1756a228:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=1756a228:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=1756a228:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=1756a228:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=1756a228:19432
+commitRoot @ chunk-RPCDYKBN.js?v=1756a228:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=1756a228:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=1756a228:18718
+workLoop @ chunk-RPCDYKBN.js?v=1756a228:197
+flushWork @ chunk-RPCDYKBN.js?v=1756a228:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=1756a228:384
+firebase.ts:153 User signed out, removed auth token
+home.tsx:445 No saved search state found or session data already restored
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+home.tsx:547 Skipping localStorage save - no meaningful data to save
+use-auth.tsx:185 Starting Google sign-in process {environment: 'development', domain: '89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev', origin: 'https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev'}
+use-auth.tsx:215 Calling signInWithPopup...
+firebase_auth.js?v=1756a228:6898 Cross-Origin-Opener-Policy policy would block the window.closed call.
+poll @ firebase_auth.js?v=1756a228:6898
+firebase_auth.js?v=1756a228:6898 Cross-Origin-Opener-Policy policy would block the window.closed call.
+poll @ firebase_auth.js?v=1756a228:6898
+firebase_auth.js?v=1756a228:6898 Cross-Origin-Opener-Policy policy would block the window.closed call.
+poll @ firebase_auth.js?v=1756a228:6898
+firebase_auth.js?v=1756a228:6898 Cross-Origin-Opener-Policy policy would block the window.closed call.
+poll @ firebase_auth.js?v=1756a228:6898
+firebase_auth.js?v=1756a228:6898 Cross-Origin-Opener-Policy policy would block the window.closed call.
+poll @ firebase_auth.js?v=1756a228:6898
+firebase_auth.js?v=1756a228:6898 Cross-Origin-Opener-Policy policy would block the window.closed call.
+poll @ firebase_auth.js?v=1756a228:6898
+use-auth.tsx:392 Firebase auth state changed: jon@5ducks.ai
+firebase_auth.js?v=1756a228:7364 Cross-Origin-Opener-Policy policy would block the window.close call.
+close @ firebase_auth.js?v=1756a228:7364
+cleanUp @ firebase_auth.js?v=1756a228:6886
+unregisterAndCleanUp @ firebase_auth.js?v=1756a228:6788
+resolve @ firebase_auth.js?v=1756a228:6776
+onAuthEvent @ firebase_auth.js?v=1756a228:6746
+firebase_auth.js?v=1756a228:7364 Cross-Origin-Opener-Policy policy would block the window.close call.
+close @ firebase_auth.js?v=1756a228:7364
+cleanUp @ firebase_auth.js?v=1756a228:6886
+unregisterAndCleanUp @ firebase_auth.js?v=1756a228:6788
+resolve @ firebase_auth.js?v=1756a228:6776
+onAuthEvent @ firebase_auth.js?v=1756a228:6746
+use-auth.tsx:224 SignInWithPopup completed {success: true, hasUser: true, hasEmail: true, hasCredential: true, hasAccessToken: true, …}
+use-auth.tsx:239 Google sign-in successful, syncing with backend {email: 'jon@...', displayName: 'Jon Hamilton'}
+firebase.ts:132 Auth token set successfully: {uid: 'fy9KZJlzTXdkLkOIqoIxPPmfjb82', email: 'jon@...', timestamp: '2025-07-01T23:34:50.475Z'}
+use-auth.tsx:321 No OAuth credential available for Gmail token extraction
+use-auth.tsx:324 Making backend sync request {endpoint: '/api/google-auth', hasGmailAccessToken: false, domain: '89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev'}
+use-auth.tsx:314 Extracted Gmail access token from OAuth credential: {hasAccessToken: true, tokenLength: 222, expiresAt: '2025-07-02T00:34:50.563Z'}
+use-auth.tsx:324 Making backend sync request {endpoint: '/api/google-auth', hasGmailAccessToken: true, domain: '89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev'}
+use-auth.tsx:362 Successfully synced with backend
+home.tsx:451 Registration success detected, triggering welcome notification
+home.tsx:460 Extracted guest data: {originalQuery: 'Recently exited startups in Miami'}
+home.tsx:482 Guest data cleared successfully
+home.tsx:487 Restored guest query to input: Recently exited startups in Miami
+queryClient.ts:39 API Request: POST /api/notifications/trigger {hasData: true, timestamp: '2025-07-01T23:34:52.227Z'}
+queryClient.ts:89 
+            
+            
+           GET https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev/api/stripe/subscription-status 503 (Service Unavailable)
+(anonymous) @ queryClient.ts:89
+fetchFn @ @tanstack_react-query.js?v=1756a228:840
+run @ @tanstack_react-query.js?v=1756a228:494
+start @ @tanstack_react-query.js?v=1756a228:536
+fetch @ @tanstack_react-query.js?v=1756a228:926
+executeFetch_fn @ @tanstack_react-query.js?v=1756a228:2211
+onSubscribe @ @tanstack_react-query.js?v=1756a228:1898
+subscribe @ @tanstack_react-query.js?v=1756a228:24
+(anonymous) @ @tanstack_react-query.js?v=1756a228:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=1756a228:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=1756a228:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=1756a228:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=1756a228:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=1756a228:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=1756a228:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=1756a228:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=1756a228:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=1756a228:19416
+commitRoot @ chunk-RPCDYKBN.js?v=1756a228:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=1756a228:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=1756a228:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=1756a228:555
+flush @ @tanstack_react-query.js?v=1756a228:569
+batch @ @tanstack_react-query.js?v=1756a228:587
+dispatch_fn @ @tanstack_react-query.js?v=1756a228:996
+setData @ @tanstack_react-query.js?v=1756a228:696
+setQueryData @ @tanstack_react-query.js?v=1756a228:1661
+syncWithBackend @ use-auth.tsx:366
+await in syncWithBackend
+signInWithGoogle @ use-auth.tsx:245
+await in signInWithGoogle
+handleGoogleSignIn @ registration-modal.tsx:53
+callCallback2 @ chunk-RPCDYKBN.js?v=1756a228:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1756a228:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1756a228:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1756a228:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1756a228:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1756a228:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1756a228:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1756a228:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1756a228:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1756a228:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1756a228:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1756a228:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1756a228:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1756a228:5449
+queryClient.ts:101 Query error for /api/stripe/subscription-status: Error: 503: {"message":"Payment service unavailable. STRIPE_SECRET_KEY not configured.","requiresConfiguration":true}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async queryClient.ts:98:7
+(anonymous) @ queryClient.ts:101
+await in (anonymous)
+fetchFn @ @tanstack_react-query.js?v=1756a228:840
+run @ @tanstack_react-query.js?v=1756a228:494
+start @ @tanstack_react-query.js?v=1756a228:536
+fetch @ @tanstack_react-query.js?v=1756a228:926
+executeFetch_fn @ @tanstack_react-query.js?v=1756a228:2211
+onSubscribe @ @tanstack_react-query.js?v=1756a228:1898
+subscribe @ @tanstack_react-query.js?v=1756a228:24
+(anonymous) @ @tanstack_react-query.js?v=1756a228:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=1756a228:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=1756a228:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=1756a228:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=1756a228:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=1756a228:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=1756a228:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=1756a228:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=1756a228:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=1756a228:19416
+commitRoot @ chunk-RPCDYKBN.js?v=1756a228:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=1756a228:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=1756a228:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=1756a228:555
+flush @ @tanstack_react-query.js?v=1756a228:569
+batch @ @tanstack_react-query.js?v=1756a228:587
+dispatch_fn @ @tanstack_react-query.js?v=1756a228:996
+setData @ @tanstack_react-query.js?v=1756a228:696
+setQueryData @ @tanstack_react-query.js?v=1756a228:1661
+syncWithBackend @ use-auth.tsx:366
+await in syncWithBackend
+signInWithGoogle @ use-auth.tsx:245
+await in signInWithGoogle
+handleGoogleSignIn @ registration-modal.tsx:53
+callCallback2 @ chunk-RPCDYKBN.js?v=1756a228:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1756a228:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1756a228:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1756a228:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1756a228:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1756a228:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1756a228:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1756a228:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1756a228:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1756a228:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1756a228:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1756a228:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1756a228:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1756a228:5449
+home.tsx:535 Saving search state: {query: 'Recently exited startups in Miami', resultsCount: undefined, listId: null, companies: undefined}
+use-auth.tsx:362 Successfully synced with backend
+queryClient.ts:39 API Request: POST /api/notifications/mark-shown {hasData: true, timestamp: '2025-07-01T23:34:56.048Z'}
+prompt-editor.tsx:911 Analyzing search query...
+prompt-editor.tsx:912 Preparing to search for companies and contacts...
+prompt-editor.tsx:588 Initiating company search process...
+prompt-editor.tsx:589 Sending request to company discovery API...
+prompt-editor.tsx:592 [Session Management] Cleaning up active sessions before starting new search...
+search-session-manager.ts:38 Created search session: search_1751412900060_h32abnjgk for query: Recently exited startups in Miami
+search-session-manager.ts:271 [Session Cleanup] Found 1 active sessions, terminating...
+prompt-editor.tsx:603 Created session search_1751412900060_h32abnjgk for query: Recently exited startups in Miami
+prompt-editor.tsx:606 Quick search with strategy: 17
+queryClient.ts:39 API Request: POST /api/companies/quick-search {hasData: true, timestamp: '2025-07-01T23:35:00.061Z'}
+search-session-manager.ts:276 
+            
+            
+           DELETE https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev/api/search-sessions/search_1751412900060_h32abnjgk 404 (Not Found)
+cleanupActiveSessions @ search-session-manager.ts:276
+createSession @ search-session-manager.ts:41
+mutationFn @ prompt-editor.tsx:596
+await in mutationFn
+fn @ @tanstack_react-query.js?v=1756a228:1189
+run @ @tanstack_react-query.js?v=1756a228:494
+start @ @tanstack_react-query.js?v=1756a228:536
+execute @ @tanstack_react-query.js?v=1756a228:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=1756a228:2630
+(anonymous) @ @tanstack_react-query.js?v=1756a228:3295
+handleSearch @ prompt-editor.tsx:921
+callCallback2 @ chunk-RPCDYKBN.js?v=1756a228:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1756a228:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1756a228:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1756a228:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1756a228:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1756a228:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1756a228:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1756a228:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1756a228:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1756a228:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1756a228:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1756a228:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1756a228:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1756a228:5449
+search-session-manager.ts:242 Cleaned up session: search_1751412900060_h32abnjgk
+search-session-manager.ts:291 [Session Cleanup] Completed cleanup of 1 sessions
+prompt-editor.tsx:622 Processing company results...
+prompt-editor.tsx:623 Found 7 companies matching your search
+prompt-editor.tsx:634 Started polling for session search_1751412900060_h32abnjgk completion
+home.tsx:809 Companies received: 7
+prompt-editor.tsx:757 Starting contact discovery process...
+prompt-editor.tsx:758 Searching for key decision makers and contacts...
+prompt-editor.tsx:761 Sending comprehensive search request to API...
+prompt-editor.tsx:762 This process may take a moment while we find the most relevant contacts...
+queryClient.ts:39 API Request: POST /api/companies/search {hasData: true, timestamp: '2025-07-01T23:35:05.941Z'}
+company-table.tsx:73 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:535 Saving search state: {query: 'Recently exited startups in Miami', resultsCount: 7, listId: null, companies: Array(7)}
+prompt-editor.tsx:778 Contact discovery completed successfully
+prompt-editor.tsx:779 Found 28 contacts across 7 companies
+prompt-editor.tsx:781 Processing and organizing results...
+prompt-editor.tsx:790 Session search_1751412900060_h32abnjgk completed with full results
+prompt-editor.tsx:795 [Database Sync] Invalidating cache to force fresh queries...
+prompt-editor.tsx:828 Search process completed!
+prompt-editor.tsx:805 [Database Sync] Cache invalidated, sending results to UI...
+home.tsx:823 === PARENT COMPONENT: handleSearchResults called ===
+home.tsx:824 Received query: Recently exited startups in Miami
+home.tsx:825 Received results count: 7
+home.tsx:826 Current component state - query: Recently exited startups in Miami
+home.tsx:827 Current component state - results count: 7
+home.tsx:828 Complete results received with contacts: 7
+home.tsx:847 Companies reordered by contact count: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:856 === PARENT COMPONENT: State updated ===
+home.tsx:857 New state - query: Recently exited startups in Miami
+home.tsx:858 New state - results count: 7
+home.tsx:859 handleSearchResults completed
+home.tsx:869 Companies with contacts: 6 of 7
+company-table.tsx:73 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+company-table.tsx:198 Auto-expanding first company to show contacts: Blankfactor
+queryClient.ts:39 API Request: POST /api/lists {hasData: true, timestamp: '2025-07-01T23:35:18.200Z'}
+home.tsx:535 Saving search state: {query: 'Recently exited startups in Miami', resultsCount: 7, listId: null, companies: Array(7)}
+home.tsx:535 Saving search state: {query: 'Recently exited startups in Miami', resultsCount: 7, listId: 1675, companies: Array(7)}
+chunk-6NG4BD6S.js?v=1756a228:324 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ chunk-6NG4BD6S.js?v=1756a228:324
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=1756a228:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=1756a228:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=1756a228:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=1756a228:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=1756a228:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=1756a228:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=1756a228:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=1756a228:19416
+commitRoot @ chunk-RPCDYKBN.js?v=1756a228:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=1756a228:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=1756a228:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:18627
+chunk-6NG4BD6S.js?v=1756a228:338 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ chunk-6NG4BD6S.js?v=1756a228:338
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=1756a228:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=1756a228:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=1756a228:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=1756a228:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=1756a228:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=1756a228:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=1756a228:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=1756a228:19416
+commitRoot @ chunk-RPCDYKBN.js?v=1756a228:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=1756a228:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=1756a228:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:18627
+home.tsx:2060 Starting backend email orchestration for 7 companies
+queryClient.ts:39 API Request: POST /api/companies/find-all-emails {hasData: true, timestamp: '2025-07-01T23:35:26.551Z'}
+home.tsx:2082 Backend orchestration completed: {companiesProcessed: 7, contactsProcessed: 26, emailsFound: 8, sourceBreakdown: {…}}
+home.tsx:2103 EMAIL SEARCH COMPLETE: Starting complete database reload to ensure email persistence
+home.tsx:2110 Cleared all localStorage state
+home.tsx:2116 Fetching complete fresh data from database...
+home.tsx:329 Refreshing contact data from database for navigation persistence...
+queryClient.ts:39 API Request: GET /api/companies/9817/contacts?t=1751412945677 {hasData: false, timestamp: '2025-07-01T23:35:45.677Z'}
+queryClient.ts:39 API Request: GET /api/companies/9821/contacts?t=1751412945679 {hasData: false, timestamp: '2025-07-01T23:35:45.679Z'}
+queryClient.ts:39 API Request: GET /api/companies/9820/contacts?t=1751412945679 {hasData: false, timestamp: '2025-07-01T23:35:45.679Z'}
+queryClient.ts:39 API Request: GET /api/companies/9819/contacts?t=1751412945680 {hasData: false, timestamp: '2025-07-01T23:35:45.680Z'}
+queryClient.ts:39 API Request: GET /api/companies/9818/contacts?t=1751412945680 {hasData: false, timestamp: '2025-07-01T23:35:45.680Z'}
+queryClient.ts:39 API Request: GET /api/companies/9823/contacts?t=1751412945681 {hasData: false, timestamp: '2025-07-01T23:35:45.681Z'}
+queryClient.ts:39 API Request: GET /api/companies/9822/contacts?t=1751412945681 {hasData: false, timestamp: '2025-07-01T23:35:45.681Z'}
+home.tsx:339 Refreshed 11 contacts for Blankfactor: (11) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:339 Refreshed 5 contacts for Jupiter Neurosciences: (5) [{…}, {…}, {…}, {…}, {…}]
+home.tsx:339 Refreshed 5 contacts for Extract Systems: (5) [{…}, {…}, {…}, {…}, {…}]
+home.tsx:339 Refreshed 3 contacts for Bling Capital: (3) [{…}, {…}, {…}]
+home.tsx:339 Refreshed 2 contacts for Sustainabase: (2) [{…}, {…}]
+home.tsx:339 Refreshed 2 contacts for Kinatrax: (2) [{…}, {…}]
+home.tsx:339 Refreshed 0 contacts for Icon Software Corporation: []
+home.tsx:353 Contact data refresh completed from database
+home.tsx:2124 Database reload completed with 6 emails found
+home.tsx:2142 Complete state saved to localStorage with 6 emails
+home.tsx:2143 Email search completion: Database reload approach successful
+home.tsx:2147 Updating existing list after email search completion: 1675
+queryClient.ts:39 API Request: GET /api/companies/9817/contacts {hasData: false, timestamp: '2025-07-01T23:35:46.382Z'}
+queryClient.ts:39 API Request: GET /api/companies/9821/contacts {hasData: false, timestamp: '2025-07-01T23:35:46.383Z'}
+queryClient.ts:39 API Request: GET /api/companies/9820/contacts {hasData: false, timestamp: '2025-07-01T23:35:46.383Z'}
+queryClient.ts:39 API Request: GET /api/companies/9819/contacts {hasData: false, timestamp: '2025-07-01T23:35:46.383Z'}
+queryClient.ts:39 API Request: GET /api/companies/9818/contacts {hasData: false, timestamp: '2025-07-01T23:35:46.383Z'}
+queryClient.ts:39 API Request: GET /api/companies/9823/contacts {hasData: false, timestamp: '2025-07-01T23:35:46.383Z'}
+queryClient.ts:39 API Request: GET /api/companies/9822/contacts {hasData: false, timestamp: '2025-07-01T23:35:46.384Z'}
+home.tsx:615 Starting list update: {listId: 1675, query: 'Recently exited startups in Miami', companyCount: 7, companyIds: Array(7)}
+queryClient.ts:39 API Request: PUT /api/lists/1675 {hasData: true, timestamp: '2025-07-01T23:35:46.384Z'}
+company-table.tsx:73 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:1960 finishSearchWithoutSave: Updated localStorage with refreshed data
+company-table.tsx:73 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+company-table.tsx:198 Auto-expanding first company to show contacts: Blankfactor
+home.tsx:641 List update successful: {id: 678, userId: 415, listId: 1675, prompt: 'Recently exited startups in Miami', resultCount: 7, …}
+home.tsx:535 Saving search state: {query: 'Recently exited startups in Miami', resultsCount: 7, listId: 1675, companies: Array(7)}
+chunk-6NG4BD6S.js?v=1756a228:324 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ chunk-6NG4BD6S.js?v=1756a228:324
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=1756a228:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=1756a228:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=1756a228:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=1756a228:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=1756a228:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=1756a228:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=1756a228:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=1756a228:19416
+commitRoot @ chunk-RPCDYKBN.js?v=1756a228:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=1756a228:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=1756a228:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:18627
+chunk-6NG4BD6S.js?v=1756a228:338 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ chunk-6NG4BD6S.js?v=1756a228:338
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=1756a228:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=1756a228:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=1756a228:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=1756a228:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=1756a228:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=1756a228:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=1756a228:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=1756a228:19416
+commitRoot @ chunk-RPCDYKBN.js?v=1756a228:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=1756a228:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=1756a228:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:18627
+chunk-6NG4BD6S.js?v=1756a228:324 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ chunk-6NG4BD6S.js?v=1756a228:324
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=1756a228:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=1756a228:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=1756a228:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=1756a228:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=1756a228:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=1756a228:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=1756a228:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=1756a228:19416
+commitRoot @ chunk-RPCDYKBN.js?v=1756a228:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=1756a228:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=1756a228:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:18627
+chunk-6NG4BD6S.js?v=1756a228:338 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ chunk-6NG4BD6S.js?v=1756a228:338
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=1756a228:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=1756a228:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=1756a228:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=1756a228:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=1756a228:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=1756a228:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=1756a228:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=1756a228:19416
+commitRoot @ chunk-RPCDYKBN.js?v=1756a228:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=1756a228:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=1756a228:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:18627
+quick-templates.tsx:65 QuickTemplates - Loaded templates: []
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+queryClient.ts:39 API Request: GET /api/gmail/auth-status {hasData: false, timestamp: '2025-07-01T23:41:12.382Z'}
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+queryClient.ts:39 API Request: POST /api/send-gmail {hasData: true, timestamp: '2025-07-01T23:41:15.144Z'}
+queryClient.ts:55 
+            
+            
+           POST https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev/api/send-gmail 401 (Unauthorized)
+apiRequest @ queryClient.ts:55
+mutationFn @ outreach.tsx:533
+await in mutationFn
+fn @ @tanstack_react-query.js?v=1756a228:1189
+run @ @tanstack_react-query.js?v=1756a228:494
+start @ @tanstack_react-query.js?v=1756a228:536
+execute @ @tanstack_react-query.js?v=1756a228:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=1756a228:2630
+(anonymous) @ @tanstack_react-query.js?v=1756a228:3295
+handleSendEmail @ outreach.tsx:564
+callCallback2 @ chunk-RPCDYKBN.js?v=1756a228:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1756a228:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1756a228:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1756a228:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1756a228:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1756a228:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1756a228:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1756a228:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1756a228:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1756a228:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1756a228:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1756a228:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1756a228:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1756a228:5449
+queryClient.ts:65 API Request Error: POST /api/send-gmail {error: '401: {"message":"Gmail authorization required"}', timestamp: '2025-07-01T23:41:15.300Z'}
+apiRequest @ queryClient.ts:65
+await in apiRequest
+mutationFn @ outreach.tsx:533
+await in mutationFn
+fn @ @tanstack_react-query.js?v=1756a228:1189
+run @ @tanstack_react-query.js?v=1756a228:494
+start @ @tanstack_react-query.js?v=1756a228:536
+execute @ @tanstack_react-query.js?v=1756a228:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=1756a228:2630
+(anonymous) @ @tanstack_react-query.js?v=1756a228:3295
+handleSendEmail @ outreach.tsx:564
+callCallback2 @ chunk-RPCDYKBN.js?v=1756a228:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1756a228:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1756a228:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1756a228:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1756a228:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1756a228:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1756a228:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1756a228:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1756a228:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1756a228:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1756a228:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1756a228:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1756a228:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1756a228:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1756a228:5449
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+outreach.tsx:285 Page focused - invalidating contact caches for fresh data
