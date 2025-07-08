@@ -373,11 +373,21 @@ export function registerRoutes(app: Express) {
     try {
       const userId = (req as any).user.id;
       
+      // Debug: Log redirect URI components
+      const redirectUri = `${req.protocol}://${req.get('host')}/api/gmail/callback`;
+      console.log('Gmail OAuth redirect URI debug:', {
+        protocol: req.protocol,
+        hostname: req.hostname,
+        host: req.get('host'),
+        generatedUri: redirectUri,
+        timestamp: new Date().toISOString()
+      });
+      
       // Create OAuth2 client
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
-        `${req.protocol}://${req.hostname}/api/gmail/callback`
+        redirectUri
       );
       
       // Generate authentication URL
@@ -417,11 +427,11 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ error: 'Invalid state parameter' });
       }
       
-      // Create OAuth2 client
+      // Create OAuth2 client (use same redirect URI format as auth route)
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
-        `${req.protocol}://${req.hostname}/api/gmail/callback`
+        `${req.protocol}://${req.get('host')}/api/gmail/callback`
       );
       
       // Exchange code for tokens
