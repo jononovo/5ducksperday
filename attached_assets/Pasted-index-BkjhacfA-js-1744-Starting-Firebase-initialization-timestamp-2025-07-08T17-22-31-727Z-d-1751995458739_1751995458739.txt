@@ -1,0 +1,26 @@
+index-BkjhacfA.js:1744 Starting Firebase initialization... {timestamp: '2025-07-08T17:22:31.727Z', domain: '5duck.replit.app'}
+index-BkjhacfA.js:1744 Raw environment variables: {apiKey: '....aDbuzU', projectId: 'fire-5-ducks', appId: '....b133e8', mode: 'production', dev: false, …}
+index-BkjhacfA.js:1744 Firebase Configuration: {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: 'fire-5-ducks.firebaseapp.com', environment: 'production', …}
+index-BkjhacfA.js:1746 Firebase initialized successfully: {domain: '5duck.replit.app', isAuth: true, isProvider: true, authDomain: 'fire-5-ducks.firebaseapp.com', timestamp: '2025-07-08T17:22:31.729Z'}
+index-BkjhacfA.js:1746 Setting up Firebase auth state listener
+index-BkjhacfA.js:1746 Firebase auth state changed: ale@codetribe.com
+index-BkjhacfA.js:1746 Firebase persistence set to LOCAL
+index-BkjhacfA.js:1746 Making backend sync request {endpoint: '/api/google-auth', domain: '5duck.replit.app'}
+index-BkjhacfA.js:1746 Auth token set successfully: {uid: '1NpuurD6ZfUpZ9ljf1QH6XBpzYD2', email: 'ale@...', timestamp: '2025-07-08T17:22:32.072Z'}
+outreach-b72xwumx.js:55 QuickTemplates - Loaded templates: []
+outreach-b72xwumx.js:55 QuickTemplates - Loaded templates: []
+outreach-b72xwumx.js:55 QuickTemplates - Loaded templates: [{…}]
+index-BkjhacfA.js:1746 Successfully synced with backend
+outreach-b72xwumx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-b72xwumx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-b72xwumx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-b72xwumx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-b72xwumx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-b72xwumx.js:55 Prefetching contacts for companies 0 to 3 (current: 0)
+index-BkjhacfA.js:49 API Request: GET /api/companies/9875/contacts {hasData: false, timestamp: '2025-07-08T17:22:39.629Z'}
+index-BkjhacfA.js:49 API Request: GET /api/companies/9877/contacts {hasData: false, timestamp: '2025-07-08T17:22:39.630Z'}
+index-BkjhacfA.js:49 API Request: GET /api/companies/9879/contacts {hasData: false, timestamp: '2025-07-08T17:22:39.631Z'}
+outreach-b72xwumx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-b72xwumx.js:55 Page focused - invalidating contact caches for fresh data
+outreach-b72xwumx.js:55 Page focused - invalidating contact caches for fresh data
+outreach-b72xwumx.js:55 Page focused - invalidating contact caches for fresh data
