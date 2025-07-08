@@ -228,6 +228,14 @@ export default function Outreach() {
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Gmail authentication status query
+  const { data: gmailStatus, refetch: refetchGmailStatus } = useQuery({
+    queryKey: ["/api/gmail/auth-status"],
+    enabled: !!user, // Only check when user is authenticated
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+  });
+
   // Memoized top 3 leadership contacts computation
   const topContacts = useMemo(() => 
     contacts
@@ -542,6 +550,8 @@ export default function Outreach() {
         title: "Email Sent",
         description: "Your email has been sent successfully via Gmail!",
       });
+      // Refresh Gmail status after successful email sending
+      refetchGmailStatus();
     },
     onError: (error) => {
       toast({
@@ -562,7 +572,25 @@ export default function Outreach() {
       return;
     }
     sendEmailMutation.mutate();
-  };
+  }
+
+  const handleGmailConnect = () => {
+    // Open Gmail OAuth flow in a new window
+    const authWindow = window.open('/api/gmail/auth', 'gmailAuth', 'width=600,height=600');
+    
+    // Listen for the auth completion
+    const checkClosed = setInterval(() => {
+      if (authWindow?.closed) {
+        clearInterval(checkClosed);
+        // Refresh Gmail status after auth window closes
+        refetchGmailStatus();
+        toast({
+          title: "Gmail Connected",
+          description: "You can now send emails via Gmail!",
+        });
+      }
+    }, 1000);
+  };;
 
   const generateEmailMutation = useMutation({
     mutationFn: async () => {
@@ -1404,14 +1432,34 @@ export default function Outreach() {
                   className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
                   style={{ minHeight: '160px', maxHeight: '400px' }}
                 />
-                <div className="absolute bottom-2 right-2">
+                <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                  {/* Gmail Status Badge */}
+                  {gmailStatus?.authorized ? (
+                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-300">
+                      <Mail className="w-3 h-3 mr-1" />
+                      Gmail Connected
+                    </Badge>
+                  ) : (
+                    <Button
+                      onClick={handleGmailConnect}
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 text-xs bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                    >
+                      <Mail className="w-3 h-3 mr-1" />
+                      Connect Gmail
+                    </Button>
+                  )}
+                  
+                  {/* Send Email Button */}
                   <Button
                     onClick={handleSendEmail}
-                    disabled={sendEmailMutation.isPending}
+                    disabled={sendEmailMutation.isPending || !gmailStatus?.authorized}
                     variant="outline"
                     className={cn(
                       "h-8 px-3 text-xs bg-white text-black border-black hover:bg-black hover:text-white hover:scale-105 transition-all duration-300 ease-out",
-                      sendEmailMutation.isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500"
+                      sendEmailMutation.isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500",
+                      !gmailStatus?.authorized && "opacity-50 cursor-not-allowed"
                     )}
                   >
                     {sendEmailMutation.isPending ? (

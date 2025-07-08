@@ -123,6 +123,7 @@
 - Webhook verification is optional (fallback to unverified processing)
 
 ## Changelog
+- July 8, 2025. **Gmail API Integration Implementation**: Completed comprehensive Gmail OAuth integration with proper separation from Firebase authentication. Implemented dual OAuth architecture - Firebase for user authentication, Gmail API for email permissions. Added Gmail connection status checking, Connect Gmail button, and Send Email button that requires Gmail authentication. Gmail tokens stored in Replit key-value database using TokenService. System includes `/api/gmail/auth`, `/api/gmail/callback`, `/api/gmail/auth-status` endpoints and `/api/send-gmail` endpoint that uses Gmail OAuth tokens for email sending. Outreach page now shows Gmail connection status with "Gmail Connected" badge or "Connect Gmail" button, and Send Email button is disabled until Gmail is connected.
 - June 23, 2025. Fixed deployment configuration: Made Stripe environment variables optional to prevent startup crashes, configured proper port binding for Cloud Run (0.0.0.0), added graceful degradation for missing payment service configuration
 - June 13, 2025. Initial setup
 - June 13, 2025. Mobile UI optimizations: Fixed duck header positioning (-mt-1), reduced email form horizontal padding (p-6→px-3 py-6 md:p-6) for 24px wider mobile inputs, updated "Save Template" to "Save as Template", and removed chevron arrow from mobile duck header navigation button
