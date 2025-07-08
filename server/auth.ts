@@ -333,13 +333,11 @@ export function setupAuth(app: Express) {
   // Add to the Google auth route
   app.post("/api/google-auth", async (req, res, next) => {
     try {
-      const { email, username, gmailAccessToken, gmailRefreshToken, tokenExpiry, firebaseUid } = req.body;
+      const { email, username, firebaseUid } = req.body;
 
       console.log('Google auth endpoint received request:', { 
         hasEmail: !!email, 
         hasUsername: !!username,
-        hasGmailAccessToken: !!gmailAccessToken,
-        hasGmailRefreshToken: !!gmailRefreshToken,
         hasFirebaseUid: !!firebaseUid
       });
 
@@ -365,38 +363,13 @@ export function setupAuth(app: Express) {
         }
       }
 
-      // Store Gmail tokens in Replit DB if provided
-      if (gmailAccessToken) {
+      // Optional: Store Firebase UID mapping for fast lookup
+      if (firebaseUid) {
         try {
-          // Extract Firebase ID token from Authorization header
-          const authHeader = req.headers.authorization;
-          const firebaseIdToken = authHeader?.startsWith('Bearer ') ? authHeader.split('Bearer ')[1] : '';
-
-          const tokenData: UserTokens = {
-            firebaseIdToken,
-            gmailAccessToken,
-            gmailRefreshToken: gmailRefreshToken || undefined,
-            tokenExpiry: tokenExpiry || (Date.now() + (3600 * 1000)), // Default 1 hour
-            scopes: ['https://www.googleapis.com/auth/gmail.send', 'https://www.googleapis.com/auth/gmail.compose'],
-            createdAt: Date.now(),
-            updatedAt: Date.now()
-          };
-
-          await TokenService.saveUserTokens(user.id, tokenData);
-          console.log('Stored Gmail tokens in Replit DB:', {
-            userId: user.id,
-            hasAccessToken: !!gmailAccessToken,
-            hasRefreshToken: !!gmailRefreshToken,
-            tokenExpiry: new Date(tokenData.tokenExpiry).toISOString()
-          });
-
-          // Optional: Store Firebase UID mapping for fast lookup
-          if (firebaseUid) {
-            await TokenService.storeFirebaseUidMapping(firebaseUid, user.id);
-          }
+          await TokenService.storeFirebaseUidMapping(firebaseUid, user.id);
         } catch (tokenError) {
-          console.error('Failed to store Gmail tokens:', tokenError);
-          // Don't fail the authentication if token storage fails
+          console.error('Failed to store Firebase UID mapping:', tokenError);
+          // Don't fail the authentication if mapping storage fails
         }
       }
 

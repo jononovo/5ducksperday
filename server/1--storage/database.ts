@@ -4,7 +4,7 @@ import { ContactStorage } from './contacts';
 import { CampaignStorage } from './campaigns';
 import { TemplateStorage } from './templates';
 import { UserStorage } from './users';
-import { db } from '../db';
+import { db } from '../1--db';
 import type { InsertUser, User } from '@shared/schema';
 
 export class DatabaseStorage implements IStorage {

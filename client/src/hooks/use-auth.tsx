@@ -200,16 +200,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Authentication service is not properly configured");
       }
 
-      // Force re-authentication to request new scopes
+      // Force re-authentication for fresh Firebase ID token
       firebaseGoogleProvider.setCustomParameters({
-        prompt: 'consent',
-        access_type: 'offline',
-        scope: [
-          'https://www.googleapis.com/auth/userinfo.email',
-          'https://www.googleapis.com/auth/userinfo.profile',
-          'https://www.googleapis.com/auth/gmail.send',
-          'https://www.googleapis.com/auth/gmail.compose'
-        ].join(' ')
+        prompt: 'consent'
       });
 
       console.log('Calling signInWithPopup...');
@@ -298,32 +291,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Get the ID token for authentication
       const idToken = await firebaseUser.getIdToken(true);
 
-      // Extract Gmail tokens from OAuth credential if available
-      let gmailAccessToken = '';
-      let gmailRefreshToken = '';
-      let tokenExpiry = Date.now() + (3600 * 1000); // Default 1 hour
-
-      if (credential) {
-        // Extract access token from Google OAuth credential
-        const oauthCredential = credential as any;
-        if (oauthCredential.accessToken) {
-          gmailAccessToken = oauthCredential.accessToken;
-          
-          // Note: Firebase OAuth credentials don't typically include refresh tokens
-          // Refresh tokens need to be obtained through server-side OAuth flow
-          console.log('Extracted Gmail access token from OAuth credential:', {
-            hasAccessToken: !!gmailAccessToken,
-            tokenLength: gmailAccessToken ? gmailAccessToken.length : 0,
-            expiresAt: new Date(tokenExpiry).toISOString()
-          });
-        }
-      } else {
-        console.log('No OAuth credential available for Gmail token extraction');
-      }
-
       console.log('Making backend sync request', {
         endpoint: '/api/google-auth',
-        hasGmailAccessToken: !!gmailAccessToken,
         domain: window.location.hostname
       });
 
@@ -336,9 +305,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           email: firebaseUser.email,
           username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-          gmailAccessToken,
-          gmailRefreshToken,
-          tokenExpiry,
           firebaseUid: firebaseUser.uid
         })
       });

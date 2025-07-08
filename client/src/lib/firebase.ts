@@ -105,11 +105,7 @@ try {
     
   googleProvider = new GoogleAuthProvider();
 
-  // Add required scopes for Gmail API
-  googleProvider.addScope('https://www.googleapis.com/auth/gmail.send');
-  googleProvider.addScope('https://www.googleapis.com/auth/gmail.compose');
-
-  // Add basic profile scopes
+  // Add basic profile scopes for Firebase authentication only
   googleProvider.addScope('email');
   googleProvider.addScope('profile');
 
