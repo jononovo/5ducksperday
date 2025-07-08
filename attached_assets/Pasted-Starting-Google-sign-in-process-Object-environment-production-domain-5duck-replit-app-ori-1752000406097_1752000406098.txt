@@ -1,0 +1,38 @@
+Starting Google sign-in process 
+Object { environment: "production", domain: "5duck.replit.app", origin: "https://5duck.replit.app" }
+index-B1d35Otb.js:1746:3985
+Calling signInWithPopup... index-B1d35Otb.js:1746:4409
+Opening multiple popups was blocked due to lack of user activation. index-B1d35Otb.js:1669:753
+Storage access automatically granted for origin “https://fire-5-ducks.firebaseapp.com” on “https://5duck.replit.app”.
+Storage access automatically granted for origin “https://accounts.google.com” on “https://5duck.replit.app”. 3
+Firebase auth state changed: dev@codeforchange.org.za index-B1d35Otb.js:1746:7121
+SignInWithPopup completed 
+Object { success: true, hasUser: true, hasEmail: true, hasCredential: true, hasAccessToken: true, credentialType: "google.com", scopes: undefined, timestamp: "2025-07-08T18:46:14.945Z" }
+index-B1d35Otb.js:1746:4541
+Google sign-in successful, syncing with backend 
+Object { email: "dev@...", displayName: "Dev CodeForChange" }
+index-B1d35Otb.js:1746:4908
+Making backend sync request 
+Object { endpoint: "/api/google-auth", domain: "5duck.replit.app" }
+index-B1d35Otb.js:1746:5955
+Auth token set successfully: 
+Object { uid: "2b1vclCPTmbbHqsacyX29BkUFrE2", email: "dev@...", timestamp: "2025-07-08T18:46:15.031Z" }
+index-B1d35Otb.js:1746:491
+Making backend sync request 
+Object { endpoint: "/api/google-auth", domain: "5duck.replit.app" }
+index-B1d35Otb.js:1746:5955
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://replit.com/__replshield?redirect=https%3A%2F%2F5duck.replit.app%2Fapi%2Fgoogle-auth. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 200.
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://replit.com/__replshield?redirect=https%3A%2F%2F5duck.replit.app%2Fapi%2Fgoogle-auth. (Reason: CORS request did not succeed). Status code: (null).
+Error syncing with backend: 
+Object { error: TypeError, domain: "5duck.replit.app", environment: "production" }
+index-B1d35Otb.js:1746:6809
+Google sign-in error: 
+Object { error: "NetworkError when attempting to fetch resource.", code: undefined, domain: "5duck.replit.app", environment: "production" }
+index-B1d35Otb.js:1746:5077
+Google sign-in failed: TypeError: NetworkError when attempting to fetch resource. index-B1d35Otb.js:1746:16340
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://replit.com/__replshield?redirect=https%3A%2F%2F5duck.replit.app%2Fapi%2Fgoogle-auth. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 200.
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://replit.com/__replshield?redirect=https%3A%2F%2F5duck.replit.app%2Fapi%2Fgoogle-auth. (Reason: CORS request did not succeed). Status code: (null).
+Error syncing with backend: 
+Object { error: TypeError, domain: "5duck.replit.app", environment: "production" }
+index-B1d35Otb.js:1746:6809
+Error during auth state sync: TypeError: NetworkError when attempting to fetch resource. index-B1d35Otb.js:1746:7229
