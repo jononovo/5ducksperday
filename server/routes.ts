@@ -372,62 +372,20 @@ export function registerRoutes(app: Express) {
   // Gmail authorization routes
   app.get('/api/gmail/auth', requireAuth, (req, res) => {
     try {
-      console.log('=== Gmail OAuth Debug Start ===');
-      
-      // Check user authentication
-      const user = (req as any).user;
-      console.log('User auth check:', {
-        hasUser: !!user,
-        userId: user?.id,
-        userEmail: user?.email,
-        timestamp: new Date().toISOString()
-      });
-      
-      if (!user || !user.id) {
-        console.error('Gmail OAuth error: No authenticated user found');
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-      
-      const userId = user.id;
-      
-      // Check environment variables
-      console.log('Environment variables check:', {
-        hasGmailClientId: !!process.env.GMAIL_CLIENT_ID,
-        hasGmailClientSecret: !!process.env.GMAIL_CLIENT_SECRET,
-        gmailClientIdLength: process.env.GMAIL_CLIENT_ID?.length || 0,
-        gmailClientSecretLength: process.env.GMAIL_CLIENT_SECRET?.length || 0,
-        nodeEnv: process.env.NODE_ENV,
-        timestamp: new Date().toISOString()
-      });
-      
-      if (!process.env.GMAIL_CLIENT_ID || !process.env.GMAIL_CLIENT_SECRET) {
-        console.error('Gmail OAuth error: Missing environment variables');
-        return res.status(500).json({ error: 'Gmail credentials not configured' });
-      }
+      const userId = (req as any).user.id;
       
       // Universal protocol detection - works with any domain
       const protocol = process.env.OAUTH_PROTOCOL || (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
       const redirectUri = `${protocol}://${req.get('host')}/api/gmail/callback`;
-      console.log('Gmail OAuth redirect URI debug:', {
-        originalProtocol: req.protocol,
-        detectedProtocol: protocol,
-        hostname: req.hostname,
-        host: req.get('host'),
-        generatedUri: redirectUri,
-        timestamp: new Date().toISOString()
-      });
       
       // Create OAuth2 client
-      console.log('Creating OAuth2 client...');
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
         redirectUri
       );
-      console.log('OAuth2 client created successfully');
       
       // Generate authentication URL
-      console.log('Generating authentication URL...');
       const scopes = [
         'https://www.googleapis.com/auth/gmail.readonly',
         'https://www.googleapis.com/auth/gmail.send',
@@ -437,29 +395,13 @@ export function registerRoutes(app: Express) {
       const authUrl = oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: scopes,
-        prompt: 'consent', // Force to get refresh token
-        state: userId.toString() // Pass user ID to callback
+        prompt: 'consent',
+        state: userId.toString()
       });
       
-      console.log('Gmail OAuth URL generated successfully:', {
-        urlLength: authUrl.length,
-        hasState: authUrl.includes('state='),
-        hasScopes: authUrl.includes('scope='),
-        timestamp: new Date().toISOString()
-      });
-      
-      console.log('=== Gmail OAuth Debug End ===');
-      // Redirect the user to the auth URL
       res.redirect(authUrl);
     } catch (error) {
-      console.error('=== Gmail OAuth Error ===');
-      console.error('Error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString()
-      });
-      console.error('=== Gmail OAuth Error End ===');
+      console.error('Gmail OAuth error:', error);
       res.status(500).json({ error: 'Failed to start Gmail authorization' });
     }
   });
