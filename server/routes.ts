@@ -374,8 +374,8 @@ export function registerRoutes(app: Express) {
     try {
       const userId = (req as any).user.id;
       
-      // Fix protocol detection for Replit (always HTTPS for both .dev and .app)
-      const protocol = (req.get('host')?.includes('replit.dev') || req.get('host')?.includes('replit.app')) ? 'https' : req.protocol;
+      // Universal protocol detection - works with any domain
+      const protocol = process.env.OAUTH_PROTOCOL || (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
       const redirectUri = `${protocol}://${req.get('host')}/api/gmail/callback`;
       console.log('Gmail OAuth redirect URI debug:', {
         originalProtocol: req.protocol,
@@ -431,7 +431,7 @@ export function registerRoutes(app: Express) {
       }
       
       // Create OAuth2 client (use same redirect URI format as auth route)
-      const protocol = (req.get('host')?.includes('replit.dev') || req.get('host')?.includes('replit.app')) ? 'https' : req.protocol;
+      const protocol = process.env.OAUTH_PROTOCOL || (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
