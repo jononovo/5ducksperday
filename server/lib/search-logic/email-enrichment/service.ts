@@ -1,7 +1,7 @@
 import { searchContactDetails } from '../../api-interactions';
 import type { Contact } from '@shared/schema';
 import type { EnrichmentResult, BatchEnrichmentResult, EnrichmentQueueItem } from './types';
-import { storage } from '../../../storage';
+import { storage } from '../../../../storage-switching/simplified-storage-replit';
 
 class EmailEnrichmentService {
   private queue: EnrichmentQueueItem[] = [];
