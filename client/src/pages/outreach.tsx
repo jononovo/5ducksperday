@@ -578,19 +578,36 @@ export default function Outreach() {
     // Open Gmail OAuth flow in a new window
     const authWindow = window.open('/api/gmail/auth', 'gmailAuth', 'width=600,height=600');
     
-    // Listen for the auth completion
-    const checkClosed = setInterval(() => {
-      if (authWindow?.closed) {
-        clearInterval(checkClosed);
-        // Refresh Gmail status after auth window closes
+    // Listen for message from pop-up window
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'GMAIL_AUTH_SUCCESS') {
+        // Clean up event listener
+        window.removeEventListener('message', handleMessage);
+        
+        // Refresh Gmail status
         refetchGmailStatus();
+        
+        // Show success toast
         toast({
           title: "Gmail Connected",
           description: "You can now send emails via Gmail!",
         });
       }
+    };
+    
+    // Add event listener for pop-up messages
+    window.addEventListener('message', handleMessage);
+    
+    // Fallback: check if window is closed (in case postMessage doesn't work)
+    const checkClosed = setInterval(() => {
+      if (authWindow?.closed) {
+        clearInterval(checkClosed);
+        window.removeEventListener('message', handleMessage);
+        // Refresh Gmail status after auth window closes
+        refetchGmailStatus();
+      }
     }, 1000);
-  };;
+  };
 
   const generateEmailMutation = useMutation({
     mutationFn: async () => {

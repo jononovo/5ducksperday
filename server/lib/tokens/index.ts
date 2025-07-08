@@ -140,6 +140,56 @@ export class TokenService {
   }
 
   /**
+   * Store Gmail tokens after OAuth flow
+   */
+  static async storeGmailTokens(userId: number, gmailTokens: {
+    access_token: string;
+    refresh_token?: string;
+    expiry_date?: number;
+  }): Promise<void> {
+    try {
+      const existingTokens = await this.getUserTokens(userId);
+      
+      const tokens: UserTokens = {
+        firebaseIdToken: existingTokens?.firebaseIdToken || '',
+        gmailAccessToken: gmailTokens.access_token,
+        gmailRefreshToken: gmailTokens.refresh_token,
+        tokenExpiry: gmailTokens.expiry_date || (Date.now() + (3600 * 1000)), // Default 1 hour
+        scopes: ['https://www.googleapis.com/auth/gmail.send', 'https://www.googleapis.com/auth/gmail.modify'],
+        createdAt: existingTokens?.createdAt || Date.now(),
+        updatedAt: Date.now()
+      };
+      
+      await this.saveUserTokens(userId, tokens);
+      console.log(`[TokenService] Successfully stored Gmail tokens for user ${userId}`);
+    } catch (error) {
+      console.error(`Error storing Gmail tokens for user ${userId}:`, error);
+      throw new Error(`Failed to store Gmail tokens: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Check if user has valid Gmail authentication
+   */
+  static async hasValidGmailAuth(userId: number): Promise<boolean> {
+    try {
+      const tokens = await this.getUserTokens(userId);
+      const validationResult = this.isTokenValid(tokens);
+      
+      console.log(`Checking Gmail auth status: {
+        userId: ${userId},
+        hasValidAuth: ${validationResult.isValid},
+        timestamp: '${new Date().toISOString()}'
+      }`);
+      
+      return validationResult.isValid;
+    } catch (error) {
+      console.error(`Error checking Gmail auth for user ${userId}:`, error);
+      return false;
+    }
+  }
+
+  /**
    * Refresh Gmail access token using refresh token
    */
   static async refreshGmailToken(userId: number): Promise<boolean> {
@@ -176,14 +226,7 @@ export class TokenService {
     }
   }
 
-  /**
-   * Check if user has valid Gmail authorization
-   */
-  static async hasValidGmailAuth(userId: number): Promise<boolean> {
-    const tokens = await this.getUserTokens(userId);
-    const validation = this.isTokenValid(tokens);
-    return validation.isValid;
-  }
+
 
   /**
    * Get Gmail access token for API calls (with automatic validation)

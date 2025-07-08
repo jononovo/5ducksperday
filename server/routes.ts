@@ -28,6 +28,7 @@ import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
 import { findKeyDecisionMakers } from "./lib/search-logic/contact-discovery/enhanced-contact-finder";
+import { TokenService } from "./lib/tokens/index";
 import { registerCreditRoutes } from "./routes/credits";
 import { registerStripeRoutes } from "./routes/stripe";
 import { CreditService } from "./lib/credits";
@@ -440,36 +441,47 @@ export function registerRoutes(app: Express) {
       // Exchange code for tokens
       const { tokens } = await oauth2Client.getToken(code as string);
       
-      // Store token in session
-      (req.session as any).gmailToken = tokens.access_token;
-      (req.session as any).gmailRefreshToken = tokens.refresh_token;
-      
-      // Save session
-      await new Promise<void>((resolve, reject) => {
-        req.session.save(err => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
+      // Store tokens using TokenService (for persistence)
+      await TokenService.storeGmailTokens(userId, {
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expiry_date: tokens.expiry_date
       });
       
-      // Redirect to replies page
-      res.redirect('/replies');
+      // Send HTML that closes the pop-up and notifies parent window
+      res.send(`
+        <html>
+          <body>
+            <script>
+              // Close popup and notify parent window
+              if (window.opener) {
+                window.opener.postMessage({ type: 'GMAIL_AUTH_SUCCESS' }, '*');
+                window.close();
+              } else {
+                // Fallback: redirect to outreach page
+                window.location.href = '/outreach';
+              }
+            </script>
+            <p>Authentication successful. This window should close automatically.</p>
+          </body>
+        </html>
+      `);
     } catch (error) {
       console.error('Error handling Gmail callback:', error);
       res.status(500).json({ error: 'Failed to complete Gmail authorization' });
     }
   });
   
-  app.get('/api/gmail/status', requireAuth, (req, res) => {
+  app.get('/api/gmail/status', requireAuth, async (req, res) => {
     try {
-      const hasToken = !!(req.session as any)?.gmailToken;
+      const userId = (req as any).user.id;
+      
+      // Check if user has valid Gmail tokens
+      const hasValidAuth = await TokenService.hasValidGmailAuth(userId);
       
       res.json({
-        connected: hasToken,
-        authUrl: hasToken ? null : '/api/gmail/auth'
+        connected: hasValidAuth,
+        authUrl: hasValidAuth ? null : '/api/gmail/auth'
       });
     } catch (error) {
       console.error('Error checking Gmail status:', error);
@@ -477,10 +489,12 @@ export function registerRoutes(app: Express) {
     }
   });
   
-  app.get('/api/gmail/disconnect', requireAuth, (req, res) => {
+  app.get('/api/gmail/disconnect', requireAuth, async (req, res) => {
     try {
-      // Remove Gmail tokens from session
-      delete (req.session as any).gmailToken;
+      const userId = (req as any).user.id;
+      
+      // Remove Gmail tokens from TokenService
+      await TokenService.deleteUserTokens(userId);
       delete (req.session as any).gmailRefreshToken;
       
       // Save session
