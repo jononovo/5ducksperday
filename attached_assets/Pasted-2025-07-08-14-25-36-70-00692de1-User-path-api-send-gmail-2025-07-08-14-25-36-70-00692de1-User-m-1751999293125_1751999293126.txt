@@ -1,0 +1,112 @@
+2025-07-08 14:25:36.70
+00692de1
+User
+path: '/api/send-gmail',
+2025-07-08 14:25:36.70
+00692de1
+User
+method: 'POST',
+2025-07-08 14:25:36.70
+00692de1
+User
+timestamp: '2025-07-08T18:25:36.703Z'
+2025-07-08 14:25:36.70
+00692de1
+User
+}
+2025-07-08 14:25:36.70
+00692de1
+User
+[TokenService] Getting tokens for user 422 with key: user_tokens:422
+2025-07-08 14:25:36.77
+00692de1
+User
+[TokenService] Raw DB data for user 422: found
+2025-07-08 14:25:36.77
+00692de1
+User
+[TokenService] Successfully retrieved tokens for user 422
+2025-07-08 14:25:37.07
+00692de1
+User
+6:25:37 PM [express] POST /api/send-gmail 200 in 404ms :: {"success":true}
+2025-07-08 14:25:37.15
+00692de1
+User
+Current domain captured: https://5duck.replit.app
+2025-07-08 14:25:37.15
+00692de1
+User
+Verifying Firebase token: {
+2025-07-08 14:25:37.15
+00692de1
+User
+hasAuthHeader: true,
+2025-07-08 14:25:37.15
+00692de1
+User
+headerFormat: 'valid',
+2025-07-08 14:25:37.15
+00692de1
+User
+hasToken: true,
+2025-07-08 14:25:37.15
+00692de1
+User
+tokenSource: 'header',
+2025-07-08 14:25:37.15
+00692de1
+User
+hasFirebaseAdmin: true,
+2025-07-08 14:25:37.15
+00692de1
+User
+timestamp: '2025-07-08T18:25:37.150Z'
+2025-07-08 14:25:37.15
+00692de1
+User
+}
+2025-07-08 14:25:37.15
+00692de1
+User
+Verifying ID token with Firebase Admin
+2025-07-08 14:25:37.15
+00692de1
+User
+Token verified successfully: { email: 'jon@...', timestamp: '2025-07-08T18:25:37.150Z' }
+2025-07-08 14:25:37.18
+00692de1
+User
+Firebase user logged in: { id: 422, email: 'jon@...', timestamp: '2025-07-08T18:25:37.184Z' }
+2025-07-08 14:25:37.18
+00692de1
+User
+[TokenService] Getting tokens for user 422 with key: user_tokens:422
+2025-07-08 14:25:37.23
+00692de1
+User
+[TokenService] Raw DB data for user 422: found
+2025-07-08 14:25:37.23
+00692de1
+User
+[TokenService] Successfully retrieved tokens for user 422
+2025-07-08 14:25:37.23
+00692de1
+User
+Checking Gmail auth status: {
+2025-07-08 14:25:37.23
+00692de1
+User
+userId: 422,
+2025-07-08 14:25:37.23
+00692de1
+User
+hasValidAuth: true,
+2025-07-08 14:25:37.23
+00692de1
+User
+timestamp: '2025-07-08T18:25:37.237Z'
+2025-07-08 14:25:37.23
+00692de1
+User
+}

@@ -575,8 +575,18 @@ export default function Outreach() {
   }
 
   const handleGmailConnect = () => {
-    // Open Gmail OAuth flow in a new window
-    const authWindow = window.open('/api/gmail/auth', 'gmailAuth', 'width=600,height=600');
+    // Ensure user is authenticated before starting OAuth flow
+    if (!user?.id) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to connect Gmail.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Open Gmail OAuth flow in a new window with user ID parameter
+    const authWindow = window.open(`/api/gmail/auth?userId=${user.id}`, 'gmailAuth', 'width=600,height=600');
     
     // Listen for message from pop-up window
     const handleMessage = (event: MessageEvent) => {

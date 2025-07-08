@@ -1,0 +1,100 @@
+2025-07-08 14:20:40.96
+00692de1
+User
+method: 'GET',
+2025-07-08 14:20:40.96
+00692de1
+User
+timestamp: '2025-07-08T18:20:40.965Z'
+2025-07-08 14:20:40.96
+00692de1
+User
+}
+2025-07-08 14:20:40.97
+00692de1
+User
+Gmail OAuth error: TypeError: Cannot read properties of undefined (reading 'id')
+2025-07-08 14:20:40.97
+00692de1
+User
+at file:///home/runner/workspace/dist/index.js:6840:32
+2025-07-08 14:20:40.97
+00692de1
+User
+at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+2025-07-08 14:20:40.97
+00692de1
+User
+at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+2025-07-08 14:20:40.97
+00692de1
+User
+at requireAuth2 (file:///home/runner/workspace/dist/index.js:6675:3)
+2025-07-08 14:20:40.97
+00692de1
+User
+at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+2025-07-08 14:20:40.97
+00692de1
+User
+at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+2025-07-08 14:20:40.97
+00692de1
+User
+at Route.dispatch (/home/runner/workspace/node_modules/express/lib/router/route.js:119:3)
+2025-07-08 14:20:40.97
+00692de1
+User
+at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+2025-07-08 14:20:40.97
+00692de1
+User
+at /home/runner/workspace/node_modules/express/lib/router/index.js:284:15
+2025-07-08 14:20:40.97
+00692de1
+User
+at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+2025-07-08 14:20:40.97
+00692de1
+User
+6:20:40 PM [express] GET /api/gmail/auth 500 in 4ms :: {"error":"Failed to start Gmail authorization…
+2025-07-08 14:21:46.83
+00692de1
+User
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T18:21:46.833Z' }
+2025-07-08 14:21:46.83
+00692de1
+User
+Current domain captured: https://5duck.replit.app
+2025-07-08 14:21:46.83
+00692de1
+User
+Verifying Firebase token: {
+2025-07-08 14:21:46.83
+00692de1
+User
+hasAuthHeader: false,
+2025-07-08 14:21:46.83
+00692de1
+User
+headerFormat: 'invalid',
+2025-07-08 14:21:46.83
+00692de1
+User
+hasToken: false,
+2025-07-08 14:21:46.83
+00692de1
+User
+tokenSource: 'none',
+2025-07-08 14:21:46.83
+00692de1
+User
+hasFirebaseAdmin: true,
+2025-07-08 14:21:46.83
+00692de1
+User
+timestamp: '2025-07-08T18:21:46.833Z'
+2025-07-08 14:21:46.83
+00692de1
+User
+}

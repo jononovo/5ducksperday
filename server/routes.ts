@@ -370,9 +370,20 @@ export function registerRoutes(app: Express) {
   app.get('/sitemap.xml', generateSitemap);
   
   // Gmail authorization routes
-  app.get('/api/gmail/auth', requireAuth, (req, res) => {
+  app.get('/api/gmail/auth', async (req, res) => {
     try {
-      const userId = (req as any).user.id;
+      const userId = req.query.userId as string;
+      
+      // Validate user ID parameter
+      if (!userId || !userId.match(/^\d+$/)) {
+        return res.status(400).json({ error: 'Invalid user ID parameter' });
+      }
+      
+      // Validate user exists in database
+      const user = await storage.getUserById(parseInt(userId));
+      if (!user) {
+        return res.status(400).json({ error: 'User not found' });
+      }
       
       // Universal protocol detection - works with any domain
       const protocol = process.env.OAUTH_PROTOCOL || (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
