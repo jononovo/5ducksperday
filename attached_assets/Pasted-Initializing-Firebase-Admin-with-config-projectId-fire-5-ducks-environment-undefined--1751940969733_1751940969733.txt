@@ -1,0 +1,868 @@
+Initializing Firebase Admin with config: {
+  projectId: 'fire-5-ducks',
+  environment: undefined,
+  timestamp: '2025-07-08T02:15:18.625Z'
+}
+Firebase Admin initialized successfully
+Default search approaches initialized successfully
+2:15:19 AM [express] Express server serving on port 5000
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:20.446Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:20.446Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:20.750Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:20.750Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:20.797Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:20.798Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:20.823Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:20.823Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:48.486Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:48.487Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:48.633Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:48.633Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:48.704Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:48.704Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:48.779Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:48.779Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:50.347Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:50.347Z' }
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:51.071Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:51.071Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:51.075Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:51.075Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:51.431Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:51.431Z' }
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:51.432Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:51.432Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:51.448Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:51.448Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.562Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.562Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.640Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.640Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.647Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.647Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.650Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.650Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.813Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.813Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.840Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.841Z' }
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.841Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.841Z' }
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.842Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.842Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.857Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.857Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.891Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.891Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.904Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.904Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.910Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.910Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.911Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.911Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.913Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.913Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.927Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.927Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.967Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.968Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.975Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.975Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.981Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.981Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.982Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.982Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.983Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.983Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:52.996Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:52.997Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.039Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.039Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.045Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.045Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.052Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.052Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.053Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.053Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.054Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.054Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.066Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.066Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.110Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.110Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.115Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.115Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.121Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.121Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.122Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.122Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.124Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.124Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.136Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.136Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.181Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.181Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.187Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.187Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.190Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.190Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.192Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.192Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.195Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.195Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.255Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.255Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.364Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.364Z' }
+2:15:53 AM [express] GET /api/user 401 in 3ms :: {"error":"Not authenticated"}
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.391Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.391Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.756Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.756Z' }
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.757Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.757Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.765Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.765Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.779Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.779Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.787Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.788Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.808Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.808Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.832Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.832Z' }
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.833Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.833Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.836Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.836Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.852Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.852Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.861Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.861Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.881Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.881Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.903Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.903Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.904Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.904Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.905Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.905Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.923Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.923Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.931Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.931Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.977Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.977Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:53.978Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:53.978Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:54.064Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:54.064Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:54.130Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:54.131Z' }
+Auth check: {
+  isAuthenticated: false,
+  hasUser: false,
+  hasFirebaseUser: false,
+  path: '/api/lists',
+  method: 'GET',
+  timestamp: '2025-07-08T02:15:54.131Z'
+}
+No authenticated user found - using demo user ID for compatibility {
+  isAuthenticated: false,
+  hasUser: false,
+  hasFirebaseUser: false,
+  path: '/api/lists',
+  method: 'GET',
+  timestamp: '2025-07-08T02:15:54.131Z'
+}
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:54.137Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:54.137Z' }
+Auth check: {
+  isAuthenticated: false,
+  hasUser: false,
+  hasFirebaseUser: false,
+  path: '/api/search-approaches',
+  method: 'GET',
+  timestamp: '2025-07-08T02:15:54.137Z'
+}
+2:15:54 AM [express] GET /api/search-approaches 304 in 1ms :: []
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:54.239Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:54.239Z' }
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:54.240Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:54.240Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:54.242Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:54.243Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:54.244Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:54.247Z' }
+Current domain captured: https://89531e2e-e63a-4a47-9ff7-99cc671c61fd-00-21wyuvsyim9it.kirk.replit.dev
+Verifying Firebase token: {
+  hasAuthHeader: false,
+  headerFormat: 'invalid',
+  hasToken: false,
+  tokenSource: 'none',
+  hasFirebaseAdmin: true,
+  timestamp: '2025-07-08T02:15:54.254Z'
+}
+Token verification failed: { reason: 'no token found', timestamp: '2025-07-08T02:15:54.254Z' }
+/home/runner/workspace/storage-switching/simplified-storage-replit.ts:187
+    for (const id of listIds) {
+                     ^
+
+
+TypeError: listIds is not iterable
+    at ReplitStorage.listLists (/home/runner/workspace/storage-switching/simplified-storage-replit.ts:187:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:915:25)
+
+Node.js v20.18.1
