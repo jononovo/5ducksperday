@@ -206,7 +206,19 @@ export class ReplitStorage implements IStorage {
 
   // @ts-ignore
   async listCompaniesByList(listId: number, userId: number): Promise<Company[]> {
-    const companies = await this.get<number[]>(`companies:list:${listId}`) || [];
+    const rawCompanies = await this.get<number[]>(`companies:list:${listId}`);
+    
+    // Debug output to see what we're getting
+    console.log('listCompaniesByList debug:', { 
+      listId, 
+      userId, 
+      rawCompanies, 
+      type: typeof rawCompanies, 
+      isArray: Array.isArray(rawCompanies) 
+    });
+    
+    // Ensure we have a proper array
+    const companies = Array.isArray(rawCompanies) ? rawCompanies : [];
     const result: Company[] = [];
     
     for (const id of companies) {
