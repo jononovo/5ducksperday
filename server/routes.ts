@@ -373,10 +373,12 @@ export function registerRoutes(app: Express) {
     try {
       const userId = (req as any).user.id;
       
-      // Debug: Log redirect URI components
-      const redirectUri = `${req.protocol}://${req.get('host')}/api/gmail/callback`;
+      // Fix protocol detection for Replit (always HTTPS)
+      const protocol = req.get('host')?.includes('replit.dev') ? 'https' : req.protocol;
+      const redirectUri = `${protocol}://${req.get('host')}/api/gmail/callback`;
       console.log('Gmail OAuth redirect URI debug:', {
-        protocol: req.protocol,
+        originalProtocol: req.protocol,
+        detectedProtocol: protocol,
         hostname: req.hostname,
         host: req.get('host'),
         generatedUri: redirectUri,
@@ -428,10 +430,11 @@ export function registerRoutes(app: Express) {
       }
       
       // Create OAuth2 client (use same redirect URI format as auth route)
+      const protocol = req.get('host')?.includes('replit.dev') ? 'https' : req.protocol;
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
-        `${req.protocol}://${req.get('host')}/api/gmail/callback`
+        `${protocol}://${req.get('host')}/api/gmail/callback`
       );
       
       // Exchange code for tokens
