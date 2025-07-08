@@ -1,8 +1,7 @@
-// PostgreSQL imports disabled - webhook logging temporarily disabled during cleanup
-// import { db } from "../db";
-// import { webhookLogs } from "@shared/schema";
-// import type { WebhookLog } from "@shared/schema";
-// import { eq, gte, sql } from "drizzle-orm";
+import { db } from "../db";
+import { webhookLogs } from "@shared/schema";
+import type { WebhookLog } from "@shared/schema";
+import { eq, gte, sql } from "drizzle-orm";
 
 /**
  * Logs outgoing webhook requests to N8N workflows
@@ -15,7 +14,7 @@ export async function logOutgoingRequest(
   const requestId = `n8n-send-${Date.now()}`;
   
   try {
-    // Log to console for debugging (PostgreSQL logging temporarily disabled)
+    // Log to console for debugging
     console.log(`[${new Date().toISOString()}] Logging outgoing N8N request:`, {
       requestId,
       searchId,
@@ -23,8 +22,19 @@ export async function logOutgoingRequest(
       payload
     });
     
-    // Database storage temporarily disabled during PostgreSQL cleanup
-    // await db.insert(webhookLogs).values({...});
+    // Store in database
+    await db.insert(webhookLogs).values({
+      requestId,
+      searchId,
+      source: "n8n-send",
+      method: "POST",
+      url,
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      status: "pending",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
     
     return requestId;
   } catch (error) {
@@ -44,15 +54,26 @@ export async function logIncomingWebhook(
   const requestId = `n8n-receive-${Date.now()}`;
   
   try {
-    // Log to console for debugging (PostgreSQL logging temporarily disabled)
+    // Log to console for debugging
     console.log(`[${new Date().toISOString()}] Logging incoming N8N webhook:`, {
       requestId,
       searchId,
       payload
     });
     
-    // Database storage temporarily disabled during PostgreSQL cleanup
-    // await db.insert(webhookLogs).values({...});
+    // Store in database
+    await db.insert(webhookLogs).values({
+      requestId,
+      searchId,
+      source: "n8n-receive",
+      method: "POST",
+      url: "/api/webhooks/workflow",
+      headers,
+      body: payload,
+      status: "received",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
     
     return requestId;
   } catch (error) {
@@ -71,14 +92,26 @@ export async function logHttpStatus(
   responseData?: Record<string, any>
 ): Promise<void> {
   try {
-    // Log to console for debugging (PostgreSQL logging temporarily disabled)
+    // Log to console for debugging
     console.log(`[${new Date().toISOString()}] Logging HTTP status for ${requestId}:`, {
       statusCode,
       statusText
     });
     
-    // Database storage temporarily disabled during PostgreSQL cleanup
-    // await db.update(webhookLogs).set({...}).where(eq(webhookLogs.requestId, requestId));
+    // Update the database record
+    await db.update(webhookLogs)
+      .set({
+        statusCode,
+        status: statusCode >= 200 && statusCode < 300 ? "success" : "error",
+        processingDetails: {
+          httpStatus: statusCode,
+          httpStatusText: statusText,
+          responseTime: new Date().toISOString(),
+          responseData
+        },
+        updatedAt: new Date()
+      })
+      .where(eq(webhookLogs.requestId, requestId));
   } catch (error) {
     console.error(`Failed to log HTTP status: ${error instanceof Error ? error.message : String(error)}`);
   }

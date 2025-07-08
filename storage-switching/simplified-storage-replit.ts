@@ -26,12 +26,7 @@ export class ReplitStorage implements IStorage {
   // Core helper methods
   private async get<T>(key: string): Promise<T | undefined> {
     try {
-      const result = await this.db.get(key);
-      // Handle Replit DB wrapped response format: { ok: true, value: data }
-      if (result && typeof result === 'object' && 'ok' in result && 'value' in result) {
-        return (result as any).value as T;
-      }
-      return result as T;
+      return await this.db.get(key) as T;
     } catch {
       return undefined;
     }
@@ -206,19 +201,7 @@ export class ReplitStorage implements IStorage {
 
   // @ts-ignore
   async listCompaniesByList(listId: number, userId: number): Promise<Company[]> {
-    const rawCompanies = await this.get<number[]>(`companies:list:${listId}`);
-    
-    // Debug output to see what we're getting
-    console.log('listCompaniesByList debug:', { 
-      listId, 
-      userId, 
-      rawCompanies, 
-      type: typeof rawCompanies, 
-      isArray: Array.isArray(rawCompanies) 
-    });
-    
-    // Ensure we have a proper array
-    const companies = Array.isArray(rawCompanies) ? rawCompanies : [];
+    const companies = await this.get<number[]>(`companies:list:${listId}`) || [];
     const result: Company[] = [];
     
     for (const id of companies) {
