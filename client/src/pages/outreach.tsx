@@ -236,6 +236,12 @@ export default function Outreach() {
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Query to get Gmail user info (email and name)
+  const { data: gmailUserInfo } = useQuery({
+    queryKey: ['/api/gmail/user'],
+    enabled: !!user && !!gmailStatus?.authorized,
+  });
+
   // Memoized top 3 leadership contacts computation
   const topContacts = useMemo(() => 
     contacts
@@ -1475,7 +1481,12 @@ export default function Outreach() {
                   {gmailStatus?.authorized ? (
                     <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-300">
                       <Mail className="w-3 h-3 mr-1" />
-                      Gmail Connected
+                      {gmailUserInfo?.email 
+                        ? gmailUserInfo.email.length > 20 
+                          ? `${gmailUserInfo.email.substring(0, 20)}...`
+                          : gmailUserInfo.email
+                        : 'Gmail Connected'
+                      }
                     </Badge>
                   ) : (
                     <Button

@@ -6,6 +6,8 @@ export interface UserTokens {
   scopes: string[];
   createdAt: number;
   updatedAt: number;
+  gmailEmail?: string;
+  gmailName?: string;
 }
 
 export interface TokenValidationResult {

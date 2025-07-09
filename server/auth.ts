@@ -426,6 +426,26 @@ export function setupAuth(app: Express) {
     }
   });
 
+  // Add route to get Gmail user info
+  app.get("/api/gmail/user", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const userInfo = await TokenService.getGmailUserInfo(userId);
+      
+      console.log('Retrieved Gmail user info:', {
+        userId,
+        hasEmail: !!userInfo.email,
+        hasName: !!userInfo.name,
+        timestamp: new Date().toISOString()
+      });
+      
+      res.json(userInfo);
+    } catch (error) {
+      console.error('Error retrieving Gmail user info:', error);
+      res.status(500).json({ error: "Failed to retrieve Gmail user info" });
+    }
+  });
+
   // Add route to trigger Gmail re-authorization
   app.post("/api/gmail/reauthorize", requireAuth, async (req, res) => {
     try {

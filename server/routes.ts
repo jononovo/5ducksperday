@@ -443,11 +443,26 @@ export function registerRoutes(app: Express) {
       // Exchange code for tokens
       const { tokens } = await oauth2Client.getToken(code as string);
       
-      // Store tokens using TokenService (for persistence)
+      // Set credentials for Gmail API call
+      oauth2Client.setCredentials(tokens);
+      
+      // Fetch user's Gmail profile information
+      const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+      const profile = await gmail.users.getProfile({ userId: 'me' });
+      
+      console.log(`[Gmail OAuth] Fetched profile for user ${userId}:`, {
+        email: profile.data.emailAddress,
+        name: profile.data.displayName || profile.data.emailAddress
+      });
+      
+      // Store tokens and user info using TokenService
       await TokenService.storeGmailTokens(userId, {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expiry_date: tokens.expiry_date
+      }, {
+        email: profile.data.emailAddress!,
+        name: profile.data.displayName || profile.data.emailAddress!
       });
       
       // Send HTML that closes the pop-up and notifies parent window

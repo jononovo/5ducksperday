@@ -146,6 +146,9 @@ export class TokenService {
     access_token: string;
     refresh_token?: string;
     expiry_date?: number;
+  }, gmailUserInfo?: {
+    email: string;
+    name: string;
   }): Promise<void> {
     try {
       const existingTokens = await this.getUserTokens(userId);
@@ -157,7 +160,9 @@ export class TokenService {
         tokenExpiry: gmailTokens.expiry_date || (Date.now() + (3600 * 1000)), // Default 1 hour
         scopes: ['https://www.googleapis.com/auth/gmail.send', 'https://www.googleapis.com/auth/gmail.modify'],
         createdAt: existingTokens?.createdAt || Date.now(),
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
+        gmailEmail: gmailUserInfo?.email,
+        gmailName: gmailUserInfo?.name
       };
       
       await this.saveUserTokens(userId, tokens);
@@ -253,6 +258,28 @@ export class TokenService {
     }
 
     return tokens!.gmailAccessToken;
+  }
+
+  /**
+   * Get Gmail user info (email and name)
+   */
+  static async getGmailUserInfo(userId: number): Promise<{ email: string | null; name: string | null }> {
+    try {
+      const tokens = await this.getUserTokens(userId);
+      if (!tokens) {
+        console.log(`[TokenService] No tokens found for user ${userId}`);
+        return { email: null, name: null };
+      }
+
+      console.log(`[TokenService] Retrieved Gmail user info for user ${userId}`);
+      return {
+        email: tokens.gmailEmail || null,
+        name: tokens.gmailName || null
+      };
+    } catch (error) {
+      console.error(`Error getting Gmail user info for user ${userId}:`, error);
+      return { email: null, name: null };
+    }
   }
 
   /**
