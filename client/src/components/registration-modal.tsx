@@ -345,7 +345,7 @@ export function RegistrationModal() {
                 </div>
 
                 {/* Login link */}
-                <div className="text-center mt-6 pt-20">
+                <div className="text-center mt-6 pt-5">
                   <p className="text-gray-400 text-sm">
                     Already have an account?{" "}
                     <button 
