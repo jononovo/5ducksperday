@@ -74,30 +74,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Video container expansion functionality
-  if (videoContainer) {
-    let isVideoExpanded = false;
-    const videoOverlay = document.getElementById('video-overlay');
-    const videoThumbnail = document.getElementById('video-thumbnail');
-    const videoExpandedContent = document.getElementById('video-expanded-content');
-    
-    videoContainer.addEventListener('click', function() {
-      if (!isVideoExpanded) {
-        // Track video play event (placeholder for analytics)
-        console.log('Video play tracked: demo_video');
-        
-        // Expand video
-        isVideoExpanded = true;
-        videoContainer.classList.remove('w-[60%]', 'cursor-pointer');
-        videoContainer.classList.add('w-[90%]', 'shadow-xl');
-        
-        // Hide overlay and thumbnail, show expanded content
-        if (videoOverlay) videoOverlay.classList.add('hidden');
-        if (videoThumbnail) videoThumbnail.classList.add('hidden');
-        if (videoExpandedContent) videoExpandedContent.classList.remove('hidden');
-      }
-    });
-  }
+  // Video container - now handled by Arcade embed
+  // Video expansion functionality removed since Arcade handles interaction natively
   
   // Strategic onboarding buttons
   if (productBtn) {
