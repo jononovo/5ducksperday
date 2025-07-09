@@ -341,9 +341,7 @@ export function RegistrationModal() {
                     </svg>
                     Continue with Google
                   </Button>
-                  <p className="text-xs text-gray-400 text-center">
-                    Gmail permissions required for sending emails from this app
-                  </p>
+
                 </div>
 
                 {/* Login link */}
