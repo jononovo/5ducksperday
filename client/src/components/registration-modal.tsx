@@ -327,7 +327,7 @@ export function RegistrationModal() {
                 </div>
 
                 {/* Google Sign-in Button - always visible */}
-                <div className="space-y-2 mb-10">
+                <div className="space-y-2 mb-32">
                   <Button 
                     variant="outline" 
                     className="w-full justify-center relative bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
