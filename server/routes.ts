@@ -3744,9 +3744,14 @@ Then, on a new line, write the body of the email. Keep both subject and content 
               updatedAt: new Date()
             });
           } else {
+            // Generate auto-name for new product since onboarding doesn't collect names
+            const productNumber = existingProfiles.length + 1;
+            const autoName = `Product ${productNumber}`;
+            
             // Create new profile
             await storage.createStrategicProfile?.({
               userId,
+              name: autoName, // Auto-generate product name
               businessType,
               businessDescription: profileUpdate.businessDescription || profileData.businessDescription || "",
               targetCustomers: profileUpdate.targetCustomers || profileData.targetCustomers || "",

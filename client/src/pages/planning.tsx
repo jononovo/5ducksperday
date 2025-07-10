@@ -257,13 +257,20 @@ To get started, please tell me about your ${type}. What exactly are you offering
                 )}
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-muted-foreground">{getStepProgress()}% Complete</span>
-              <div className="w-20 h-2 bg-gray-200 rounded-full">
-                <div 
-                  className="h-2 bg-blue-600 rounded-full transition-all"
-                  style={{ width: `${getStepProgress()}%` }}
-                />
+            <div className="flex items-center space-x-4">
+              {!user && (
+                <div className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-200">
+                  💡 Sign in to save your product data
+                </div>
+              )}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground">{getStepProgress()}% Complete</span>
+                <div className="w-20 h-2 bg-gray-200 rounded-full">
+                  <div 
+                    className="h-2 bg-blue-600 rounded-full transition-all"
+                    style={{ width: `${getStepProgress()}%` }}
+                  />
+                </div>
               </div>
             </div>
           </div>
