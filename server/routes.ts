@@ -4466,6 +4466,67 @@ Respond in this exact JSON format:
     }
   });
 
+  // User Profile API endpoints
+  app.get('/api/user/profile', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const user = await storage.getUserById(userId);
+      
+      if (!user) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+
+      res.json({
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        createdAt: user.createdAt
+      });
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to fetch user profile' 
+      });
+    }
+  });
+
+  app.put('/api/user/profile', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { username } = req.body;
+      
+      if (!username || typeof username !== 'string') {
+        res.status(400).json({ message: "Username is required" });
+        return;
+      }
+
+      if (username.length < 1 || username.length > 50) {
+        res.status(400).json({ message: "Username must be between 1 and 50 characters" });
+        return;
+      }
+
+      const updatedUser = await storage.updateUser(userId, { username });
+      
+      if (!updatedUser) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+
+      res.json({
+        id: updatedUser.id,
+        email: updatedUser.email,
+        username: updatedUser.username,
+        createdAt: updatedUser.createdAt
+      });
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to update user profile' 
+      });
+    }
+  });
+
   // Register credit routes
   registerCreditRoutes(app);
   
