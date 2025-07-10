@@ -26,7 +26,23 @@ export class ReplitStorage implements IStorage {
   // Core helper methods
   private async get<T>(key: string): Promise<T | undefined> {
     try {
-      return await this.db.get(key) as T;
+      const result = await this.db.get(key);
+      
+      // Handle Replit DB wrapped response format
+      if (result && typeof result === 'object' && 'ok' in result && 'value' in result) {
+        const wrappedResult = result as { ok: boolean; value: string };
+        if (wrappedResult.ok && wrappedResult.value) {
+          try {
+            return JSON.parse(wrappedResult.value) as T;
+          } catch {
+            // If JSON parsing fails, return the value as-is
+            return wrappedResult.value as T;
+          }
+        }
+      }
+      
+      // For direct responses (strings, numbers, etc.)
+      return result as T;
     } catch {
       return undefined;
     }
