@@ -265,10 +265,10 @@ ${profile?.username}`
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
-              Products
+              My Products
             </CardTitle>
             <CardDescription>
-              Manage your subscriptions and features
+              Manage the products I sell and their descriptions.
             </CardDescription>
           </CardHeader>
           <CardContent>
