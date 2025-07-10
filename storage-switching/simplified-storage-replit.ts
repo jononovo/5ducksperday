@@ -896,16 +896,27 @@ export class ReplitStorage implements IStorage {
   // Strategic Profiles - CRITICAL MISSING METHODS
   // @ts-ignore
   async getStrategicProfiles(userId: number): Promise<StrategicProfile[]> {
-    const profileIds = await this.get<number[]>(`strategicProfiles:user:${userId}`) || [];
-    const profiles: StrategicProfile[] = [];
-    
-    for (const id of profileIds) {
-      const profile = await this.get<StrategicProfile>(`strategicProfile:${id}`);
-      // @ts-ignore: Date handling issues
-      if (profile) profiles.push(profile);
+    try {
+      const profileIds = await this.get<number[]>(`strategicProfiles:user:${userId}`);
+      
+      // Ensure we have a valid array
+      if (!Array.isArray(profileIds)) {
+        return [];
+      }
+      
+      const profiles: StrategicProfile[] = [];
+      
+      for (const id of profileIds) {
+        const profile = await this.get<StrategicProfile>(`strategicProfile:${id}`);
+        // @ts-ignore: Date handling issues
+        if (profile) profiles.push(profile);
+      }
+      
+      return profiles;
+    } catch (error) {
+      console.error('Error in getStrategicProfiles:', error);
+      return [];
     }
-    
-    return profiles;
   }
 
   // @ts-ignore
@@ -931,9 +942,10 @@ export class ReplitStorage implements IStorage {
     await this.set(`strategicProfile:${id}`, newProfile);
     
     // Add to user's profiles
-    const userProfiles = await this.get<number[]>(`strategicProfiles:user:${data.userId}`) || [];
-    userProfiles.push(id);
-    await this.set(`strategicProfiles:user:${data.userId}`, userProfiles);
+    const userProfiles = await this.get<number[]>(`strategicProfiles:user:${data.userId}`);
+    const profileArray = Array.isArray(userProfiles) ? userProfiles : [];
+    profileArray.push(id);
+    await this.set(`strategicProfiles:user:${data.userId}`, profileArray);
     
     // @ts-ignore: Date handling issues
     return newProfile;
