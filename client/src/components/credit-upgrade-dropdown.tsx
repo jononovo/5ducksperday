@@ -64,7 +64,7 @@ export function CreditUpgradeDropdown() {
   const plans = [
     {
       id: 'ugly-duckling',
-      name: 'The Ugly Duckling',
+      name: 'The Duckling',
       credits: 2000,
       bonus: 500,
       price: 18.95,
@@ -73,7 +73,7 @@ export function CreditUpgradeDropdown() {
     },
     {
       id: 'duckin-awesome',
-      name: "Duckin' Awesome",
+      name: "Mama Duck",
       credits: 5000,
       bonus: 5000,
       price: 44.95,
@@ -91,7 +91,7 @@ export function CreditUpgradeDropdown() {
         setWaitlistPlans([...waitlistPlans, planId]);
         toast({
           title: "Added to Waitlist",
-          description: "We'll notify you when Duckin' Awesome becomes available!",
+          description: "We'll notify you when Mama Duck becomes available!",
         });
         
         // Track waitlist join in database via notification system
@@ -118,7 +118,7 @@ export function CreditUpgradeDropdown() {
       return;
     }
     
-    // Stripe checkout for The Ugly Duckling plan
+    // Stripe checkout for The Duckling plan
     if (planId === 'ugly-duckling') {
       try {
         setIsOpen(false); // Close dropdown before redirect

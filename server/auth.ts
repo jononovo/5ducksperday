@@ -405,8 +405,8 @@ export function setupAuth(app: Express) {
       const credits = await CreditService.getUserCredits(userId);
       
       const planMap = {
-        'ugly-duckling': 'The Ugly Duckling',
-        'duckin-awesome': 'Duckin\' Awesome'
+        'ugly-duckling': 'The Duckling',
+        'duckin-awesome': 'Mama Duck'
       };
       
       const currentPlan = credits.currentPlan || null;

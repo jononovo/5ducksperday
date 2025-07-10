@@ -320,10 +320,10 @@ ${profile?.username}`
                   variant="outline"
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => window.open(generateEmailLink('downgrade', 'The Ugly Duckling'))}
+                  onClick={() => window.open(generateEmailLink('downgrade', 'The Duckling'))}
                 >
                   <Mail className="mr-2 h-4 w-4" />
-                  Downgrade to "Ugly Duckling"
+                  Downgrade to "The Duckling"
                   <ExternalLink className="ml-auto h-4 w-4" />
                 </Button>
 
@@ -331,10 +331,10 @@ ${profile?.username}`
                   variant="outline"
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => window.open(generateEmailLink('upgrade', 'Duckin\' Awesome'))}
+                  onClick={() => window.open(generateEmailLink('upgrade', 'Mama Duck'))}
                 >
                   <Mail className="mr-2 h-4 w-4" />
-                  Upgrade to "Duckin' Awesome"
+                  Upgrade to "Mama Duck"
                   <ExternalLink className="ml-auto h-4 w-4" />
                 </Button>
 
