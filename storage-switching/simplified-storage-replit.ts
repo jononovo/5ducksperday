@@ -197,16 +197,27 @@ export class ReplitStorage implements IStorage {
   // Lists
   // @ts-ignore
   async listLists(userId: number): Promise<List[]> {
-    const listIds = await this.get<number[]>(`lists:user:${userId}`) || [];
-    const lists: List[] = [];
-    
-    for (const id of listIds) {
-      const list = await this.get<List>(`list:${id}`);
-      // @ts-ignore: Date handling issues
-      if (list) lists.push(list);
+    try {
+      const listIds = await this.get<number[]>(`lists:user:${userId}`);
+      
+      // Ensure we have a valid array
+      if (!Array.isArray(listIds)) {
+        return [];
+      }
+      
+      const lists: List[] = [];
+      
+      for (const id of listIds) {
+        const list = await this.get<List>(`list:${id}`);
+        // @ts-ignore: Date handling issues
+        if (list) lists.push(list);
+      }
+      
+      return lists;
+    } catch (error) {
+      console.error('Error in listLists:', error);
+      return [];
     }
-    
-    return lists;
   }
 
   // @ts-ignore
@@ -217,16 +228,27 @@ export class ReplitStorage implements IStorage {
 
   // @ts-ignore
   async listCompaniesByList(listId: number, userId: number): Promise<Company[]> {
-    const companies = await this.get<number[]>(`companies:list:${listId}`) || [];
-    const result: Company[] = [];
-    
-    for (const id of companies) {
-      const company = await this.getCompany(id);
-      // @ts-ignore: Date handling issues
-      if (company && company.userId === userId) result.push(company);
+    try {
+      const companies = await this.get<number[]>(`companies:list:${listId}`);
+      
+      // Ensure we have a valid array
+      if (!Array.isArray(companies)) {
+        return [];
+      }
+      
+      const result: Company[] = [];
+      
+      for (const id of companies) {
+        const company = await this.getCompany(id);
+        // @ts-ignore: Date handling issues
+        if (company && company.userId === userId) result.push(company);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Error in listCompaniesByList:', error);
+      return [];
     }
-    
-    return result;
   }
 
   // @ts-ignore
@@ -251,9 +273,10 @@ export class ReplitStorage implements IStorage {
     await this.set(`list:${id}`, list);
     
     // Add to user's lists (add at beginning for newest-first order)
-    const userLists = await this.get<number[]>(`lists:user:${data.userId}`) || [];
-    userLists.unshift(id);
-    await this.set(`lists:user:${data.userId}`, userLists);
+    const userLists = await this.get<number[]>(`lists:user:${data.userId}`);
+    const listArray = Array.isArray(userLists) ? userLists : [];
+    listArray.unshift(id);
+    await this.set(`lists:user:${data.userId}`, listArray);
     
     // @ts-ignore: Date handling issues
     return list;
