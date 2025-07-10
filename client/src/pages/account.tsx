@@ -142,20 +142,30 @@ export default function AccountPage() {
   };
 
   const generateEmailLink = (action: string, plan?: string) => {
-    const subject = encodeURIComponent(
-      action === 'cancel' 
-        ? 'Request Subscription Cancellation'
-        : `Request Upgrade to ${plan} Plan`
-    );
+    let subject, actionText, requestedAction;
+    
+    if (action === 'cancel') {
+      subject = 'Request Subscription Cancellation';
+      actionText = 'cancel';
+      requestedAction = 'Cancellation';
+    } else if (action === 'downgrade') {
+      subject = `Request Downgrade to ${plan} Plan`;
+      actionText = 'downgrade';
+      requestedAction = `Downgrade to ${plan}`;
+    } else {
+      subject = `Request Upgrade to ${plan} Plan`;
+      actionText = 'upgrade';
+      requestedAction = `Upgrade to ${plan}`;
+    }
     
     const body = encodeURIComponent(
       `Hello 5Ducks Support,
 
-I would like to ${action === 'cancel' ? 'cancel' : 'upgrade'} my subscription.
+I would like to ${actionText} my subscription.
 
 Account Email: ${profile?.email}
 Current Plan: ${subscriptionStatus?.planDisplayName || 'Not subscribed'}
-Requested Action: ${action === 'cancel' ? 'Cancellation' : `Upgrade to ${plan}`}
+Requested Action: ${requestedAction}
 
 Please process this request and let me know if you need any additional information.
 
@@ -163,7 +173,7 @@ Best regards,
 ${profile?.username}`
     );
     
-    return `mailto:support@5ducks.ai?subject=${subject}&body=${body}`;
+    return `mailto:support@5ducks.ai?subject=${encodeURIComponent(subject)}&body=${body}`;
   };
 
   return (
@@ -310,10 +320,10 @@ ${profile?.username}`
                   variant="outline"
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => window.open(generateEmailLink('upgrade', 'The Ugly Duckling'))}
+                  onClick={() => window.open(generateEmailLink('downgrade', 'The Ugly Duckling'))}
                 >
                   <Mail className="mr-2 h-4 w-4" />
-                  Upgrade to "The Ugly Duckling"
+                  Downgrade to "Ugly Duckling"
                   <ExternalLink className="ml-auto h-4 w-4" />
                 </Button>
 
