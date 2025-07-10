@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { User, Settings, CreditCard, Package } from "lucide-react";
+import { User, Settings, CreditCard, Package, ExternalLink, Mail } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -27,6 +27,12 @@ interface UserProfile {
   createdAt: string;
 }
 
+interface SubscriptionStatus {
+  isSubscribed: boolean;
+  currentPlan: string | null;
+  planDisplayName: string | null;
+}
+
 export default function AccountPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -36,6 +42,12 @@ export default function AccountPage() {
   // Fetch user profile data
   const { data: profile, isLoading, error } = useQuery<UserProfile>({
     queryKey: ["/api/user/profile"],
+    enabled: !!user,
+  });
+
+  // Fetch subscription status
+  const { data: subscriptionStatus } = useQuery<SubscriptionStatus>({
+    queryKey: ["/api/user/subscription-status"],
     enabled: !!user,
   });
 
@@ -129,15 +141,43 @@ export default function AccountPage() {
     });
   };
 
+  const generateEmailLink = (action: string, plan?: string) => {
+    let subject, actionText, requestedAction;
+    
+    if (action === 'cancel') {
+      subject = 'Request Subscription Cancellation';
+      actionText = 'cancel';
+      requestedAction = 'Cancellation';
+    } else if (action === 'downgrade') {
+      subject = `Request Downgrade to ${plan} Plan`;
+      actionText = 'downgrade';
+      requestedAction = `Downgrade to ${plan}`;
+    } else {
+      subject = `Request Upgrade to ${plan} Plan`;
+      actionText = 'upgrade';
+      requestedAction = `Upgrade to ${plan}`;
+    }
+    
+    const body = encodeURIComponent(
+      `Hello 5Ducks Support,
+
+I would like to ${actionText} my subscription.
+
+Account Email: ${profile?.email}
+Current Plan: ${subscriptionStatus?.planDisplayName || 'Not subscribed'}
+Requested Action: ${requestedAction}
+
+Please process this request and let me know if you need any additional information.
+
+Best regards,
+${profile?.username}`
+    );
+    
+    return `mailto:support@5ducks.ai?subject=${encodeURIComponent(subject)}&body=${body}`;
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Account Settings</h1>
-        <p className="text-muted-foreground mt-2">
-          Manage your account information and preferences
-        </p>
-      </div>
-
       <div className="space-y-6">
         {/* Profile Section */}
         <Card>
@@ -250,10 +290,60 @@ export default function AccountPage() {
               Payment methods and billing history
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Billing information will be available here soon.</p>
+          <CardContent className="space-y-6">
+            {/* Current Plan */}
+            <div className="space-y-2">
+              <Label>Current Plan</Label>
+              <div className="text-sm font-medium">
+                {subscriptionStatus?.planDisplayName || 'Not subscribed'}
+              </div>
+            </div>
+
+            {/* Subscription Actions */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Subscription Actions</Label>
+                <p className="text-xs text-muted-foreground">
+                  Click to send email requests to support
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => window.open(generateEmailLink('downgrade', 'The Duckling'))}
+                >
+                  <Mail className="mr-2 h-4 w-4" />
+                  Downgrade to "The Duckling"
+                  <ExternalLink className="ml-auto h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => window.open(generateEmailLink('upgrade', 'Mama Duck'))}
+                >
+                  <Mail className="mr-2 h-4 w-4" />
+                  Upgrade to "Mama Duck"
+                  <ExternalLink className="ml-auto h-4 w-4" />
+                </Button>
+
+                {subscriptionStatus?.isSubscribed && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-destructive hover:text-destructive"
+                    onClick={() => window.open(generateEmailLink('cancel'))}
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    Cancel Subscription
+                    <ExternalLink className="ml-auto h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

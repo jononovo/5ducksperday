@@ -330,6 +330,99 @@ export function setupAuth(app: Express) {
     res.json(req.user);
   });
 
+  app.get("/api/user/profile", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    
+    try {
+      const userId = (req.user as any).id;
+      const user = await storage.getUserById(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json({
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        createdAt: user.createdAt
+      });
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      res.status(500).json({ error: "Failed to fetch user profile" });
+    }
+  });
+
+  app.put("/api/user/profile", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    
+    try {
+      const { username } = req.body;
+      const userId = (req.user as any).id;
+      
+      if (!username || typeof username !== 'string') {
+        return res.status(400).json({ error: "Username is required" });
+      }
+      
+      if (username.length < 1) {
+        return res.status(400).json({ error: "Name is required" });
+      }
+      
+      if (username.length > 50) {
+        return res.status(400).json({ error: "Name must be less than 50 characters" });
+      }
+      
+      const updatedUser = await storage.updateUser(userId, { username });
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json({
+        id: updatedUser.id,
+        email: updatedUser.email,
+        username: updatedUser.username,
+        createdAt: updatedUser.createdAt
+      });
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      res.status(500).json({ error: "Failed to update user profile" });
+    }
+  });
+
+  app.get("/api/user/subscription-status", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    
+    try {
+      const userId = (req.user as any).id;
+      const { CreditService } = await import("./lib/credits");
+      const credits = await CreditService.getUserCredits(userId);
+      
+      const planMap = {
+        'ugly-duckling': 'The Duckling',
+        'duckin-awesome': 'Mama Duck'
+      };
+      
+      const currentPlan = credits.currentPlan || null;
+      const isSubscribed = credits.subscriptionStatus === 'active';
+      
+      res.json({
+        isSubscribed,
+        currentPlan,
+        planDisplayName: currentPlan ? planMap[currentPlan as keyof typeof planMap] : null
+      });
+    } catch (error) {
+      console.error('Error fetching subscription status:', error);
+      res.status(500).json({ error: "Failed to fetch subscription status" });
+    }
+  });
+
   // Add to the Google auth route
   app.post("/api/google-auth", async (req, res, next) => {
     try {
