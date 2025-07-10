@@ -68,7 +68,23 @@ export class ReplitStorage implements IStorage {
   
   private async getNextId(entity: string): Promise<number> {
     const key = `counter:${entity}`;
-    const current = await this.get<number>(key) || 0;
+    
+    // Get current counter value, ensuring we extract the numeric value properly
+    let current = 0;
+    try {
+      const counterValue = await this.get<number>(key);
+      // Ensure we have a valid number, not a wrapped response or corrupted value
+      if (typeof counterValue === 'number' && !isNaN(counterValue)) {
+        current = counterValue;
+      } else {
+        // Reset to 0 if we have corrupted data
+        current = 0;
+      }
+    } catch (error) {
+      // Fallback to 0 if there's any error
+      current = 0;
+    }
+    
     const next = current + 1;
     await this.set(key, next);
     return next;
