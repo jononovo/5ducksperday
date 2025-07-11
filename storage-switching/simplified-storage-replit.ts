@@ -30,14 +30,23 @@ export class ReplitStorage implements IStorage {
       
       // Handle Replit DB wrapped response format
       if (result && typeof result === 'object' && 'ok' in result && 'value' in result) {
-        const wrappedResult = result as { ok: boolean; value: string };
-        if (wrappedResult.ok && wrappedResult.value) {
-          try {
-            return JSON.parse(wrappedResult.value) as T;
-          } catch {
-            // If JSON parsing fails, return the value as-is
+        const wrappedResult = result as { ok: boolean; value: any };
+        if (wrappedResult.ok && wrappedResult.value !== null && wrappedResult.value !== undefined) {
+          // If value is already an object/array, return it directly
+          if (typeof wrappedResult.value === 'object') {
             return wrappedResult.value as T;
           }
+          // If value is a string, try to parse it as JSON
+          if (typeof wrappedResult.value === 'string') {
+            try {
+              return JSON.parse(wrappedResult.value) as T;
+            } catch {
+              // If JSON parsing fails, return the string as-is
+              return wrappedResult.value as T;
+            }
+          }
+          // For other types (numbers, booleans), return as-is
+          return wrappedResult.value as T;
         }
       }
       
