@@ -706,10 +706,10 @@ ${profile?.username}`
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingProduct ? 'Edit Product' : 'Add New Product'}
+              {editingProduct ? 'Edit Product' : "Let's get to know your business"}
             </DialogTitle>
             <DialogDescription>
-              Define your product or service details to create targeted prospecting strategies.
+              {editingProduct ? 'Update your product or service details.' : 'Just a few quick questions to create your strategy'}
             </DialogDescription>
           </DialogHeader>
           
@@ -717,8 +717,8 @@ ${profile?.username}`
             {/* Basic Information */}
             <div className="space-y-4">
               <div className="border-b pb-2">
-                <h3 className="text-lg font-semibold">Basic Information</h3>
-                <p className="text-sm text-muted-foreground">Core details about your product or service</p>
+                <h3 className="text-lg font-semibold">Product/Service Information</h3>
+                <p className="text-sm text-muted-foreground">Tell us about what you sell</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -760,11 +760,12 @@ ${profile?.username}`
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="businessDescription">Business Description *</Label>
+                <Label htmlFor="businessDescription">What is the product/service you sell? *</Label>
+                <p className="text-sm text-muted-foreground">Describe it in 1 sentence</p>
                 <Textarea
                   id="businessDescription"
                   {...productForm.register("businessDescription")}
-                  placeholder="Describe what your business offers, key features, and value proposition"
+                  placeholder="Premium coffee machines for small offices..."
                   rows={3}
                 />
                 {productForm.formState.errors.businessDescription && (
@@ -785,11 +786,12 @@ ${profile?.username}`
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="uniqueAttributes">Unique Selling Points</Label>
+                <Label htmlFor="uniqueAttributes">What makes your product/service unique?</Label>
+                <p className="text-sm text-muted-foreground">What differentiates you from competitors?</p>
                 <Textarea
                   id="uniqueAttributes"
                   {...productForm.register("uniqueAttributes")}
-                  placeholder="What makes your product/service unique? (e.g., AI-powered, 24/7 support, award-winning)"
+                  placeholder="Fast delivery and easy setup..."
                   rows={2}
                 />
                 <p className="text-xs text-muted-foreground">
@@ -801,18 +803,22 @@ ${profile?.username}`
             {/* Market & Customers */}
             <div className="space-y-4">
               <div className="border-b pb-2">
-                <h3 className="text-lg font-semibold">Market & Customers</h3>
-                <p className="text-sm text-muted-foreground">Target market and customer information</p>
+                <h3 className="text-lg font-semibold">Customer Information</h3>
+                <p className="text-sm text-muted-foreground">Who do you sell to and what do they like?</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="targetCustomers">Target Customers *</Label>
+                <Label htmlFor="targetCustomers">Example of a type of business you service or sell to *</Label>
+                <p className="text-sm text-muted-foreground">Like this "[type of business] in [city/niche]"</p>
                 <Textarea
                   id="targetCustomers"
                   {...productForm.register("targetCustomers")}
-                  placeholder="Describe your ideal customers, their characteristics, and needs"
+                  placeholder="Popular cafes in Lower East Side, NYC"
                   rows={3}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Examples: "Popular cafes in Lower East Side, NYC" or "Real-estate insurance brokers in Salt Lake City"
+                </p>
                 {productForm.formState.errors.targetCustomers && (
                   <p className="text-sm text-destructive">
                     {productForm.formState.errors.targetCustomers.message}
@@ -850,11 +856,12 @@ ${profile?.username}`
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="customerFeedback">Customer Feedback</Label>
+                <Label htmlFor="customerFeedback">What do customers say they like?</Label>
+                <p className="text-sm text-muted-foreground">What is one thing customers like about your product or the way you sell it?</p>
                 <Textarea
                   id="customerFeedback"
                   {...productForm.register("customerFeedback")}
-                  placeholder="Common customer feedback, testimonials, or pain points you solve"
+                  placeholder="Fast delivery and easy setup..."
                   rows={2}
                 />
               </div>
@@ -863,8 +870,8 @@ ${profile?.username}`
             {/* Business Operations */}
             <div className="space-y-4">
               <div className="border-b pb-2">
-                <h3 className="text-lg font-semibold">Business Operations</h3>
-                <p className="text-sm text-muted-foreground">How and where you operate your business</p>
+                <h3 className="text-lg font-semibold">Additional Details</h3>
+                <p className="text-sm text-muted-foreground">Optional information to enhance your strategy</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -878,11 +885,12 @@ ${profile?.username}`
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="website">Website</Label>
+                  <Label htmlFor="website">Where can we learn more?</Label>
+                  <p className="text-sm text-muted-foreground">Do you have a website, or any page online (Etsy, FB, or any link) that explains your product/service?</p>
                   <Input
                     id="website"
                     {...productForm.register("website")}
-                    placeholder="https://example.com"
+                    placeholder="Example: https://mycompany.com or https://etsy.com/shop/mystore"
                   />
                 </div>
               </div>
