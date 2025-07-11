@@ -88,7 +88,7 @@ const productSchema = z.object({
   businessType: z.enum(["product", "service"]),
   businessDescription: z.string().min(1, "Business description is required"),
   targetCustomers: z.string().min(1, "Target customers description is required"),
-  uniqueAttributes: z.array(z.string()).optional(),
+  uniqueAttributes: z.string().optional(), // Form uses string, we'll convert to array
   marketNiche: z.enum(["niche", "broad"]).optional(),
   productService: z.string().optional(),
   customerFeedback: z.string().optional(),
@@ -308,7 +308,9 @@ export default function AccountPage() {
       businessType: product.businessType,
       businessDescription: product.businessDescription,
       targetCustomers: product.targetCustomers,
-      uniqueAttributes: product.uniqueAttributes || [],
+      uniqueAttributes: Array.isArray(product.uniqueAttributes) 
+        ? product.uniqueAttributes.join('\n') 
+        : product.uniqueAttributes || "",
       marketNiche: product.marketNiche,
       productService: product.productService || "",
       customerFeedback: product.customerFeedback || "",
@@ -336,10 +338,18 @@ export default function AccountPage() {
   };
 
   const onSubmitProduct = productForm.handleSubmit(async (data) => {
+    // Convert uniqueAttributes from string to array
+    const processedData = {
+      ...data,
+      uniqueAttributes: data.uniqueAttributes 
+        ? data.uniqueAttributes.split('\n').filter(attr => attr.trim()).map(attr => attr.trim())
+        : []
+    };
+
     if (editingProduct) {
-      updateProductMutation.mutate({ ...data, id: editingProduct.id });
+      updateProductMutation.mutate({ ...processedData, id: editingProduct.id });
     } else {
-      createProductMutation.mutate(data);
+      createProductMutation.mutate(processedData);
     }
   });
 
@@ -703,160 +713,199 @@ ${profile?.username}`
             </DialogDescription>
           </DialogHeader>
           
-          <form onSubmit={onSubmitProduct} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Product Name (Optional)</Label>
-                <Input
-                  id="name"
-                  {...productForm.register("name")}
-                  placeholder="My Product Name"
-                />
+          <form onSubmit={onSubmitProduct} className="space-y-6">
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <div className="border-b pb-2">
+                <h3 className="text-lg font-semibold">Basic Information</h3>
+                <p className="text-sm text-muted-foreground">Core details about your product or service</p>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="businessType">Type</Label>
-                <Select
-                  value={productForm.watch("businessType")}
-                  onValueChange={(value: "product" | "service") => 
-                    productForm.setValue("businessType", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="product">Product</SelectItem>
-                    <SelectItem value="service">Service</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Product Name (Optional)</Label>
+                  <Input
+                    id="name"
+                    {...productForm.register("name")}
+                    placeholder="My Product Name"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="businessType">Type</Label>
+                  <Select
+                    value={productForm.watch("businessType")}
+                    onValueChange={(value: "product" | "service") => 
+                      productForm.setValue("businessType", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="product">Product</SelectItem>
+                      <SelectItem value="service">Service</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="short_description">Short Description (Optional)</Label>
-              <Input
-                id="short_description"
-                {...productForm.register("short_description")}
-                placeholder="Brief description for the product card"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="short_description">Short Description (Optional)</Label>
+                <Input
+                  id="short_description"
+                  {...productForm.register("short_description")}
+                  placeholder="Brief description for the product card"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="businessDescription">Business Description *</Label>
-              <Textarea
-                id="businessDescription"
-                {...productForm.register("businessDescription")}
-                placeholder="Describe what your business offers, key features, and value proposition"
-                rows={3}
-              />
-              {productForm.formState.errors.businessDescription && (
-                <p className="text-sm text-destructive">
-                  {productForm.formState.errors.businessDescription.message}
+              <div className="space-y-2">
+                <Label htmlFor="businessDescription">Business Description *</Label>
+                <Textarea
+                  id="businessDescription"
+                  {...productForm.register("businessDescription")}
+                  placeholder="Describe what your business offers, key features, and value proposition"
+                  rows={3}
+                />
+                {productForm.formState.errors.businessDescription && (
+                  <p className="text-sm text-destructive">
+                    {productForm.formState.errors.businessDescription.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="productService">Product/Service Details</Label>
+                <Textarea
+                  id="productService"
+                  {...productForm.register("productService")}
+                  placeholder="Detailed features, specifications, or service offerings"
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="uniqueAttributes">Unique Selling Points</Label>
+                <Textarea
+                  id="uniqueAttributes"
+                  {...productForm.register("uniqueAttributes")}
+                  placeholder="What makes your product/service unique? (e.g., AI-powered, 24/7 support, award-winning)"
+                  rows={2}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter each unique attribute on a separate line or comma-separated
                 </p>
-              )}
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="targetCustomers">Target Customers *</Label>
-              <Textarea
-                id="targetCustomers"
-                {...productForm.register("targetCustomers")}
-                placeholder="Describe your ideal customers, their characteristics, and needs"
-                rows={3}
-              />
-              {productForm.formState.errors.targetCustomers && (
-                <p className="text-sm text-destructive">
-                  {productForm.formState.errors.targetCustomers.message}
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="marketNiche">Market Focus</Label>
-                <Select
-                  value={productForm.watch("marketNiche") || "niche"}
-                  onValueChange={(value: "niche" | "broad") => 
-                    productForm.setValue("marketNiche", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="niche">Niche Market</SelectItem>
-                    <SelectItem value="broad">Broad Market</SelectItem>
-                  </SelectContent>
-                </Select>
+            {/* Market & Customers */}
+            <div className="space-y-4">
+              <div className="border-b pb-2">
+                <h3 className="text-lg font-semibold">Market & Customers</h3>
+                <p className="text-sm text-muted-foreground">Target market and customer information</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
-                <Input
-                  id="website"
-                  {...productForm.register("website")}
-                  placeholder="https://example.com"
+                <Label htmlFor="targetCustomers">Target Customers *</Label>
+                <Textarea
+                  id="targetCustomers"
+                  {...productForm.register("targetCustomers")}
+                  placeholder="Describe your ideal customers, their characteristics, and needs"
+                  rows={3}
+                />
+                {productForm.formState.errors.targetCustomers && (
+                  <p className="text-sm text-destructive">
+                    {productForm.formState.errors.targetCustomers.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="marketNiche">Market Focus</Label>
+                  <Select
+                    value={productForm.watch("marketNiche") || "niche"}
+                    onValueChange={(value: "niche" | "broad") => 
+                      productForm.setValue("marketNiche", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="niche">Niche Market</SelectItem>
+                      <SelectItem value="broad">Broad Market</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="primaryCustomerType">Primary Customer Type</Label>
+                  <Input
+                    id="primaryCustomerType"
+                    {...productForm.register("primaryCustomerType")}
+                    placeholder="e.g., Small businesses, Enterprises, Consumers"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="customerFeedback">Customer Feedback</Label>
+                <Textarea
+                  id="customerFeedback"
+                  {...productForm.register("customerFeedback")}
+                  placeholder="Common customer feedback, testimonials, or pain points you solve"
+                  rows={2}
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="productService">Product/Service Details</Label>
-              <Textarea
-                id="productService"
-                {...productForm.register("productService")}
-                placeholder="Detailed features, specifications, or service offerings"
-                rows={2}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="businessLocation">Business Location</Label>
-                <Input
-                  id="businessLocation"
-                  {...productForm.register("businessLocation")}
-                  placeholder="City, State/Country"
-                />
+            {/* Business Operations */}
+            <div className="space-y-4">
+              <div className="border-b pb-2">
+                <h3 className="text-lg font-semibold">Business Operations</h3>
+                <p className="text-sm text-muted-foreground">How and where you operate your business</p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="primarySalesChannel">Primary Sales Channel</Label>
-                <Input
-                  id="primarySalesChannel"
-                  {...productForm.register("primarySalesChannel")}
-                  placeholder="e.g., Online, Direct Sales, Retail"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="businessLocation">Business Location</Label>
+                  <Input
+                    id="businessLocation"
+                    {...productForm.register("businessLocation")}
+                    placeholder="City, State/Country"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    {...productForm.register("website")}
+                    placeholder="https://example.com"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="primaryCustomerType">Primary Customer Type</Label>
-              <Input
-                id="primaryCustomerType"
-                {...productForm.register("primaryCustomerType")}
-                placeholder="e.g., Small businesses, Enterprises, Consumers"
-              />
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="primarySalesChannel">Primary Sales Channel</Label>
+                  <Input
+                    id="primarySalesChannel"
+                    {...productForm.register("primarySalesChannel")}
+                    placeholder="e.g., Online, Direct Sales, Retail"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="primaryBusinessGoal">Primary Business Goal</Label>
-              <Input
-                id="primaryBusinessGoal"
-                {...productForm.register("primaryBusinessGoal")}
-                placeholder="e.g., Scale revenue, Enter new markets, Improve efficiency"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="customerFeedback">Customer Feedback</Label>
-              <Textarea
-                id="customerFeedback"
-                {...productForm.register("customerFeedback")}
-                placeholder="Common customer feedback, testimonials, or pain points you solve"
-                rows={2}
-              />
+                <div className="space-y-2">
+                  <Label htmlFor="primaryBusinessGoal">Primary Business Goal</Label>
+                  <Input
+                    id="primaryBusinessGoal"
+                    {...productForm.register("primaryBusinessGoal")}
+                    placeholder="e.g., Scale revenue, Enter new markets, Improve efficiency"
+                  />
+                </div>
+              </div>
             </div>
 
             <DialogFooter>
