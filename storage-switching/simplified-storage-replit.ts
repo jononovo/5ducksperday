@@ -923,9 +923,17 @@ export class ReplitStorage implements IStorage {
       const profiles: StrategicProfile[] = [];
       
       for (const id of profileIds) {
-        const profile = await this.get<StrategicProfile>(`strategicProfile:${id}`);
-        // @ts-ignore: Date handling issues
-        if (profile) profiles.push(profile);
+        try {
+          const profile = await this.get<StrategicProfile>(`strategicProfile:${id}`);
+          // @ts-ignore: Date handling issues
+          // Only add profile if it exists and has valid data
+          if (profile && typeof profile === 'object' && profile.id && profile.userId === userId) {
+            profiles.push(profile);
+          }
+        } catch (profileError) {
+          console.error(`Error retrieving profile ${id}:`, profileError);
+          // Continue with other profiles instead of failing entirely
+        }
       }
       
       return profiles;
