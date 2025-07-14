@@ -201,12 +201,54 @@ To get started, please tell me about your ${type}. What exactly are you offering
         setCurrentStep(response.nextStep);
       }
 
-      // If onboarding is complete, redirect to generate search prompts
+      // If onboarding is complete, save profile and redirect
       if (response.completed) {
         toast({
           title: "Strategic Plan Complete!",
-          description: "Your personalized sales strategy is ready. Generating search prompts...",
+          description: "Your personalized sales strategy is ready. Saving to your account...",
         });
+        
+        // Save the strategic profile to database if user is authenticated
+        if (user) {
+          try {
+            // Get existing profiles count to generate name
+            const existingProfiles = await apiRequest("GET", "/api/products");
+            const profileCount = Array.isArray(existingProfiles) ? existingProfiles.length : 0;
+            const productName = `Product ${profileCount + 1}`;
+            
+            // Prepare profile data with all collected information
+            const strategicProfileData = {
+              name: productName,
+              businessType: businessType,
+              businessDescription: profileData.businessDescription || "",
+              targetCustomers: profileData.targetCustomers || "",
+              uniqueAttributes: profileData.uniqueAttributes || [],
+              marketNiche: profileData.marketNiche || "broad",
+              productService: profileData.productService || "",
+              customerFeedback: profileData.customerFeedback || "",
+              website: profileData.website || "",
+              businessLocation: profileData.businessLocation || "",
+              primaryCustomerType: profileData.primaryCustomerType || "",
+              primarySalesChannel: profileData.primarySalesChannel || "",
+              primaryBusinessGoal: profileData.primaryBusinessGoal || "",
+              status: "completed"
+            };
+            
+            await apiRequest("POST", "/api/products", strategicProfileData);
+            
+            toast({
+              title: "Saved Successfully!",
+              description: "Your product strategy has been saved to your account.",
+            });
+          } catch (saveError) {
+            console.error("Failed to save strategic profile:", saveError);
+            toast({
+              title: "Save Warning",
+              description: "Strategy completed but couldn't save to account. You can recreate it anytime.",
+              variant: "destructive"
+            });
+          }
+        }
         
         setTimeout(() => {
           setLocation("/app");
@@ -257,13 +299,20 @@ To get started, please tell me about your ${type}. What exactly are you offering
                 )}
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-muted-foreground">{getStepProgress()}% Complete</span>
-              <div className="w-20 h-2 bg-gray-200 rounded-full">
-                <div 
-                  className="h-2 bg-blue-600 rounded-full transition-all"
-                  style={{ width: `${getStepProgress()}%` }}
-                />
+            <div className="flex items-center space-x-4">
+              {!user && (
+                <div className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-200">
+                  💡 Sign in to save your product data
+                </div>
+              )}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground">{getStepProgress()}% Complete</span>
+                <div className="w-20 h-2 bg-gray-200 rounded-full">
+                  <div 
+                    className="h-2 bg-blue-600 rounded-full transition-all"
+                    style={{ width: `${getStepProgress()}%` }}
+                  />
+                </div>
               </div>
             </div>
           </div>
