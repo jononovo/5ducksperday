@@ -65,8 +65,8 @@ export function CreditUpgradeDropdown() {
     {
       id: 'ugly-duckling',
       name: 'The Duckling',
-      credits: 2000,
-      bonus: 500,
+      credits: 2500,
+      bonus: 0,
       price: 18.95,
       icon: Zap,
       color: 'from-blue-500 to-purple-600'
@@ -74,8 +74,8 @@ export function CreditUpgradeDropdown() {
     {
       id: 'duckin-awesome',
       name: "Mama Duck",
-      credits: 5000,
-      bonus: 5000,
+      credits: 10000,
+      bonus: 0,
       price: 44.95,
       icon: Crown,
       color: 'from-purple-600 to-pink-600'

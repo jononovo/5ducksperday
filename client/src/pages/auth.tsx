@@ -56,6 +56,27 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (user) {
+      // Check if user selected a plan from pricing page
+      const selectedPlan = localStorage.getItem('selectedPlan');
+      const planSource = localStorage.getItem('planSource');
+      
+      if (selectedPlan && planSource === 'pricing_page') {
+        if (selectedPlan === 'ugly-duckling') {
+          // Redirect to Stripe checkout for The Duckling plan
+          console.log('Redirecting to Stripe checkout for The Duckling plan');
+          // Note: localStorage cleanup happens in useAuth after successful backend sync
+          window.location.href = '/stripe/checkout/ugly-duckling';
+          return;
+        } else if (selectedPlan === 'duckin-awesome') {
+          // Redirect to waitlist or app for Mama Duck plan
+          console.log('User selected Mama Duck plan - redirecting to app');
+          // Note: localStorage cleanup happens in useAuth after successful backend sync
+          setLocation("/app");
+          return;
+        }
+      }
+      
+      // Default redirect to app
       setLocation("/app");
     }
   }, [user, setLocation]);

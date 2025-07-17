@@ -78,7 +78,7 @@ function Router() {
             </div>
           </Layout>
         </Route>
-        <Route path="/pricing">
+        <Route path="/pricing-react">
           <Layout>
             <MainNav />
             <div className="flex-1">

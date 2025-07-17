@@ -291,9 +291,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Get the ID token for authentication
       const idToken = await firebaseUser.getIdToken(true);
 
+      // Check for selected plan from pricing page
+      const selectedPlan = localStorage.getItem('selectedPlan');
+      const planSource = localStorage.getItem('planSource');
+      const joinWaitlist = localStorage.getItem('joinWaitlist');
+
       console.log('Making backend sync request', {
         endpoint: '/api/google-auth',
-        domain: window.location.hostname
+        domain: window.location.hostname,
+        selectedPlan,
+        planSource,
+        joinWaitlist
       });
 
       const createRes = await fetch("/api/google-auth", {
@@ -305,7 +313,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           email: firebaseUser.email,
           username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-          firebaseUid: firebaseUser.uid
+          firebaseUid: firebaseUser.uid,
+          selectedPlan,
+          planSource,
+          joinWaitlist: joinWaitlist === 'true'
         })
       });
 
@@ -330,6 +341,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const user = await safeJsonParse(createRes);
         queryClient.setQueryData(["/api/user"], user);
+        
+        // Clean up localStorage after successful sync
+        if (selectedPlan) {
+          localStorage.removeItem('selectedPlan');
+          localStorage.removeItem('planSource');
+          localStorage.removeItem('joinWaitlist');
+          console.log('Cleaned up plan selection from localStorage');
+        }
       } catch (parseError) {
         console.error('Error parsing user data from sync response:', parseError);
         throw new Error('Failed to parse user data from backend response');
