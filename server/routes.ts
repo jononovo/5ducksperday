@@ -3,7 +3,7 @@ import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { storage } from "../storage-switching/1--storage-switcher";
+import { storage } from "./storage";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,8 +21,7 @@ import {
   insertCampaignSchema,
   insertEmailTemplateSchema, 
   insertEmailThreadSchema, 
-  insertEmailMessageSchema,
-  insertStrategicProfileSchema
+  insertEmailMessageSchema
 } from "@shared/schema";
 import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
 import type { PerplexityMessage } from "./lib/perplexity";
@@ -3744,14 +3743,9 @@ Then, on a new line, write the body of the email. Keep both subject and content 
               updatedAt: new Date()
             });
           } else {
-            // Generate auto-name for new product since onboarding doesn't collect names
-            const productNumber = existingProfiles.length + 1;
-            const autoName = `Product ${productNumber}`;
-            
             // Create new profile
             await storage.createStrategicProfile?.({
               userId,
-              name: autoName, // Auto-generate product name
               businessType,
               businessDescription: profileUpdate.businessDescription || profileData.businessDescription || "",
               targetCustomers: profileUpdate.targetCustomers || profileData.targetCustomers || "",
@@ -4529,136 +4523,6 @@ Respond in this exact JSON format:
       console.error('Error updating user profile:', error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : 'Failed to update user profile' 
-      });
-    }
-  });
-
-  // Products (Strategic Profiles) Management
-  app.get('/api/products', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const products = await storage.getStrategicProfiles(userId);
-      res.json(products);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : 'Failed to fetch products' 
-      });
-    }
-  });
-
-  app.get('/api/products/:id', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const productId = parseInt(req.params.id);
-      
-      if (isNaN(productId)) {
-        res.status(400).json({ message: "Invalid product ID" });
-        return;
-      }
-
-      const product = await storage.getStrategicProfile(productId, userId);
-      
-      if (!product) {
-        res.status(404).json({ message: "Product not found" });
-        return;
-      }
-
-      res.json(product);
-    } catch (error) {
-      console.error('Error fetching product:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : 'Failed to fetch product' 
-      });
-    }
-  });
-
-  app.post('/api/products', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const productData = { ...req.body, userId };
-      
-      // Validate required fields
-      if (!productData.businessType || !productData.businessDescription || !productData.targetCustomers) {
-        res.status(400).json({ 
-          message: "Business type, description, and target customers are required" 
-        });
-        return;
-      }
-
-      const product = await storage.createStrategicProfile(productData);
-      res.status(201).json(product);
-    } catch (error) {
-      console.error('Error creating product:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : 'Failed to create product' 
-      });
-    }
-  });
-
-  app.put('/api/products/:id', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const productId = parseInt(req.params.id);
-      
-      if (isNaN(productId)) {
-        res.status(400).json({ message: "Invalid product ID" });
-        return;
-      }
-
-      // Verify ownership
-      const existingProduct = await storage.getStrategicProfile(productId, userId);
-      if (!existingProduct) {
-        res.status(404).json({ message: "Product not found" });
-        return;
-      }
-
-      const updatedProduct = await storage.updateStrategicProfile(productId, req.body);
-      res.json(updatedProduct);
-    } catch (error) {
-      console.error('Error updating product:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : 'Failed to update product' 
-      });
-    }
-  });
-
-  app.delete('/api/products/:id', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const productId = parseInt(req.params.id);
-      
-      if (isNaN(productId)) {
-        res.status(400).json({ message: "Invalid product ID" });
-        return;
-      }
-
-      await storage.deleteStrategicProfile(productId, userId);
-      res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : 'Failed to delete product' 
-      });
-    }
-  });
-
-  app.post('/api/products/:id/clone', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const productId = parseInt(req.params.id);
-      
-      if (isNaN(productId)) {
-        res.status(400).json({ message: "Invalid product ID" });
-        return;
-      }
-
-      const clonedProduct = await storage.cloneStrategicProfile(productId, userId);
-      res.status(201).json(clonedProduct);
-    } catch (error) {
-      console.error('Error cloning product:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : 'Failed to clone product' 
       });
     }
   });
