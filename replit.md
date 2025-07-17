@@ -120,51 +120,24 @@
 
 ## Changelog
 
-### Recent Changes (Last 10 Commits)
+
+- July 10, 2025. **Complete Account Page Implementation**: Created comprehensive account page with three sections: Profile (name, email, member since date), Products (placeholder), and Billing (placeholder). Added full CRUD API endpoints for user profile management, integrated with existing authentication system. Users can now edit their names (both Google and email/password users), view account creation date, and access organized account settings. System uses existing PostgreSQL database with proper validation and error handling. Account page is fully protected route with proper authentication checks.
 
 - July 10, 2025. **Plan Name Rebranding Implementation**: Updated subscription plan names from "The Ugly Duckling" to "The Duckling" and "Duckin' Awesome" to "Mama Duck" across entire application. Updated credit upgrade dropdown component, account billing section, subscription status mappings, email templates, and all user-facing text. Maintained backend plan IDs (`ugly-duckling`, `duckin-awesome`) for database and Stripe consistency while updating all display names.
-
 - July 10, 2025. **Account Page Billing Section Downgrade Logic**: Changed "Upgrade to The Ugly Duckling" button to "Downgrade to Ugly Duckling" reflecting that this is likely a downgrade action for users on higher plans. Updated email generation logic to properly handle downgrade requests with appropriate subject lines and body content. Enhanced email template system to differentiate between upgrade, downgrade, and cancellation actions for more accurate support communication.
-
 - July 9, 2025. **Landing Page Statistics Layout Fix**: Fixed layout issue where three statistics components (~48 Mins, 225 Targets, Avg $70k) were stacking vertically on wider screens instead of staying in a row. Changed `flex-wrap` to `flex-nowrap` on statistics container to force horizontal alignment across all screen sizes. Added `md:whitespace-nowrap` to statistic text divs to prevent text wrapping within each component on wider screens while allowing natural wrapping on mobile.
-
 - July 9, 2025. **Landing Page Copy Updates**: Updated landing page hero message from "Then sell to them everyday. ⚡" to "Find companies, contacts & their emails with a prompt 🎯" for cleaner, more focused messaging that emphasizes the core value proposition. Also updated search input placeholder from "Adventure service providers in Maine" to "Extreme adventure companies in Maine" for more specific targeting.
-
 - July 9, 2025. **Gmail Email Address Display**: Implemented comprehensive Gmail email address display feature. Added gmailEmail and gmailName fields to UserTokens interface, enhanced OAuth callback to fetch Gmail profile data via Gmail API, updated TokenService to store user info, created /api/gmail/user endpoint, and modified frontend to display actual email address instead of "Gmail Connected" badge. Email addresses are truncated to 20 characters with ellipsis for long addresses, with graceful fallback to "Gmail Connected" if user info is unavailable.
-
 - July 9, 2025. **Google Auth Button Cleanup**: Removed "Google Auth Coming Soon" hover message and "Gmail permissions required" text from both registration and login pages. Increased bottom margin for better spacing between Google Sign-in button and "Already have an account? Sign In" text. Google authentication button now appears clean and professional without explanatory overlays.
-
 - July 9, 2025. **Interactive Demo Video Implementation**: Replaced placeholder video section in landing page with real Arcade demo embed. Removed old JavaScript video expansion logic and implemented responsive Arcade iframe that automatically handles mobile/desktop display. Demo now shows actual 5Ducks platform walkthrough with native interaction handling.
-
 - July 8, 2025. **Gmail OAuth Popup Authentication Fix**: Fixed "Authentication required" error when connecting Gmail accounts. Popup windows don't inherit session cookies, so modified OAuth flow to use URL-based user identification instead of session-based authentication. Frontend now passes user ID parameter, backend validates user existence directly. Gmail OAuth now works in both development and production environments.
-
 - July 8, 2025. **Production Crash Fix**: Reverted extensive debug logging that caused complete production server failure. Restored minimal Gmail OAuth implementation with universal protocol detection only. Production server now stable and functional.
-
 - July 8, 2025. **Gmail API Integration Universal Protocol Fix**: Implemented universal protocol detection for Gmail OAuth that works with any domain. Uses environment variable `OAUTH_PROTOCOL` if set, defaults to HTTPS in production, and falls back to request protocol in development. This replaces domain-specific logic and ensures Gmail OAuth works regardless of hosting platform (Replit, custom domains, load balancers, etc.).
+- July 8, 2025. **Gmail API Integration Implementation**: Completed comprehensive Gmail OAuth integration with proper separation from Firebase authentication. Implemented dual OAuth architecture - Firebase for user authentication, Gmail API for email permissions. Added Gmail connection status checking, Connect Gmail button, and Send Email button that requires Gmail authentication. Gmail tokens stored in Replit key-value database using TokenService. System includes `/api/gmail/auth`, `/api/gmail/callback`, `/api/gmail/auth-status` endpoints and `/api/send-gmail` endpoint that uses Gmail OAuth tokens for email sending. Outreach page now shows Gmail connection status with "Gmail Connected" badge or "Connect Gmail" button, and Send Email button is disabled until Gmail is connected.
 
-### Historical Summary (Weekly)
 
-**Week of July 1-7, 2025: Gmail OAuth Integration & Authentication**
-- Implemented comprehensive Gmail OAuth integration with dual authentication (Firebase + Gmail API)
-- Added Gmail connection status checking and email address display
-- Fixed popup authentication issues and universal protocol detection
-- Created account management system with profile editing capabilities
 
-**Week of June 24-30, 2025: Production Deployment & Stability**
-- Configured proper port binding for Cloud Run (0.0.0.0)
-- Made Stripe environment variables optional to prevent startup crashes
-- Added graceful degradation for missing payment service configuration
-- Implemented landing page NYC branding and hero copy optimization
+## User Preferences
 
-**Week of June 13-23, 2025: Template System & Merge Fields**
-- Created comprehensive template management system with edit/save functionality
-- Implemented merge field system with 13 variables and clipboard integration
-- Added template confirmation dialogs and edit mode switching
-- Developed dual storage system for merge field conversion
-
-**Week of June 13-20, 2025: Mobile UI Revolution**
-- Completed mobile-first design transformation across entire application
-- Implemented Gmail-style edge-to-edge mobile input layout
-- Added responsive button standardization and hover animations
-- Created mobile navigation spacing optimization and contact chips system
-
+Preferred communication style: Simple, everyday language.
+Mobile UI preference: Compact, space-efficient design with seamless header-to-content transitions.
