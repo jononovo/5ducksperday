@@ -36,6 +36,28 @@ function joinWaitlist(planId) {
     }, 1000);
 }
 
+// Duckling card hover effect
+function hoverDucklingCard(isHover) {
+    const card = document.querySelector('.pricing-card');
+    const badge = card.querySelector('span');
+    
+    if (isHover) {
+        // Apply hover styles
+        card.classList.remove('border-black');
+        card.classList.add('border-blue-500');
+        
+        badge.classList.remove('bg-black');
+        badge.classList.add('bg-gradient-to-r', 'from-blue-600', 'to-purple-600');
+    } else {
+        // Remove hover styles
+        card.classList.remove('border-blue-500');
+        card.classList.add('border-black');
+        
+        badge.classList.remove('bg-gradient-to-r', 'from-blue-600', 'to-purple-600');
+        badge.classList.add('bg-black');
+    }
+}
+
 // Mobile menu functionality
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Pricing page loaded');
