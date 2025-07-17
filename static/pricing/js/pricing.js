@@ -36,8 +36,23 @@ function joinWaitlist(planId) {
     }, 1000);
 }
 
-// Add smooth scrolling to anchor links
+// Mobile menu functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Add any initialization code here if needed
     console.log('Pricing page loaded');
+    
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!mobileMenuBtn.contains(event.target) && !mobileMenu.contains(event.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    }
 });
