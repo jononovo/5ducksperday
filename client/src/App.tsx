@@ -39,7 +39,7 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 
 // Lazy imports for marketing pages
 const Terms = lazy(() => import("@/pages/terms"));
-const Pricing = lazy(() => import("@/pages/pricing"));
+
 const Blog = lazy(() => import("@/pages/blog"));
 const BlogPost = lazy(() => import("@/pages/blog-post"));
 const Contact = lazy(() => import("@/pages/contact"));
@@ -78,16 +78,7 @@ function Router() {
             </div>
           </Layout>
         </Route>
-        <Route path="/pricing-react">
-          <Layout>
-            <MainNav />
-            <div className="flex-1">
-              <Suspense fallback={<LoadingScreen />}>
-                <Pricing />
-              </Suspense>
-            </div>
-          </Layout>
-        </Route>
+
         <Route path="/blog">
           <Layout>
             <MainNav />
