@@ -1,7 +1,5 @@
-// Mobile menu functionality
+// Shared mobile menu functionality
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Pricing page loaded');
-    
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
     
