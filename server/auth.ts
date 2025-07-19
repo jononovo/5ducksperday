@@ -426,12 +426,15 @@ export function setupAuth(app: Express) {
   // Add to the Google auth route
   app.post("/api/google-auth", async (req, res, next) => {
     try {
-      const { email, username, firebaseUid } = req.body;
+      const { email, username, firebaseUid, selectedPlan, planSource, joinWaitlist } = req.body;
 
       console.log('Google auth endpoint received request:', { 
         hasEmail: !!email, 
         hasUsername: !!username,
-        hasFirebaseUid: !!firebaseUid
+        hasFirebaseUid: !!firebaseUid,
+        selectedPlan,
+        planSource,
+        joinWaitlist
       });
 
       if (!email) {
@@ -463,6 +466,26 @@ export function setupAuth(app: Express) {
         } catch (tokenError) {
           console.error('Failed to store Firebase UID mapping:', tokenError);
           // Don't fail the authentication if mapping storage fails
+        }
+      }
+
+      // Handle plan selection from pricing page
+      if (selectedPlan && planSource === 'pricing_page') {
+        try {
+          const { CreditService } = await import("./lib/credits");
+          
+          if (selectedPlan === 'ugly-duckling') {
+            // User selected The Duckling plan - redirect to Stripe checkout after auth
+            console.log(`User ${user.id} selected The Duckling plan from pricing page`);
+            // The frontend will handle Stripe checkout redirection
+          } else if (selectedPlan === 'duckin-awesome' && joinWaitlist) {
+            // User selected Mama Duck plan - add to waitlist
+            console.log(`User ${user.id} joined Mama Duck waitlist from pricing page`);
+            // TODO: Implement waitlist logic
+          }
+        } catch (error) {
+          console.error('Error handling plan selection:', error);
+          // Don't fail authentication if plan handling fails
         }
       }
 

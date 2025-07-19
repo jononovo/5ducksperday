@@ -2,8 +2,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   const searchInput = document.getElementById('search-input');
   const searchBtn = document.getElementById('search-btn');
-  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-  const mobileMenu = document.getElementById('mobile-menu');
+
   const tryFreeBtn = document.getElementById('try-free-btn');
   const examplePrompts = document.querySelectorAll('.example-prompt');
   const videoContainer = document.getElementById('video-container');
@@ -52,20 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
       handleSearch(prompt);
     });
   });
-  
-  // Mobile menu toggle
-  if (mobileMenuBtn && mobileMenu) {
-    mobileMenuBtn.addEventListener('click', function() {
-      mobileMenu.classList.toggle('hidden');
-    });
-    
-    // Close mobile menu when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
-        mobileMenu.classList.add('hidden');
-      }
-    });
-  }
   
   // Try free button
   if (tryFreeBtn) {
