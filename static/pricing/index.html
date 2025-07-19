@@ -16,11 +16,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: false, // Disable dark mode entirely
+            darkMode: 'selector', // Use explicit selector mode
             theme: {
                 extend: {}
             }
         }
+        
+        // Prevent dark mode activation
+        document.documentElement.classList.remove('dark');
+        
+        // Ensure dark class never gets added
+        new MutationObserver(() => {
+            document.documentElement.classList.remove('dark');
+        }).observe(document.documentElement, { attributes: true });
     </script>
     
     <!-- Custom CSS -->
