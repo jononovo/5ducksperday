@@ -31,7 +31,7 @@ export interface UserCredits {
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing';
-  currentPlan?: 'ugly-duckling';
+  currentPlan?: 'ugly-duckling' | 'duckin-awesome';
   subscriptionStartDate?: number;
   subscriptionEndDate?: number;
 }
@@ -63,7 +63,7 @@ export const CREDIT_COSTS: Record<SearchType, number> = {
   'individual_email': 20
 } as const;
 
-export const MONTHLY_CREDIT_ALLOWANCE = 5000;
+export const MONTHLY_CREDIT_ALLOWANCE = 250;
 
 // Stripe configuration with environment-based price selection
 export const STRIPE_CONFIG = {
@@ -76,8 +76,9 @@ export const STRIPE_CONFIG = {
     return process.env.STRIPE_PRICE_ID || 'price_1RcgF4K7jbIybp9HaHIZlv2W';
   },
   PLAN_CREDIT_ALLOWANCES: {
-    'ugly-duckling': 2500, // 2000 + 500 bonus
-    'free': 180 // Default free credits
+    'ugly-duckling': 5000, // 2000 base + 3000 bonus
+    'duckin-awesome': 15000, // 5000 base + 10000 bonus
+    'free': 250 // Default free credits
   }
 } as const;
 

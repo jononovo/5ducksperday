@@ -37,18 +37,18 @@ export class CreditService {
       }
       
       if (!credits) {
-        console.log(`[CreditService] No credits found for user ${userId}, creating initial record with 180 credits`);
+        console.log(`[CreditService] No credits found for user ${userId}, creating initial record with 250 credits`);
         
-        // Create initial credit record with 180 credit starting bonus
+        // Create initial credit record with 250 credit starting bonus
         const initialCredits: UserCredits = {
-          currentBalance: 180,
+          currentBalance: 250,
           lastTopUp: Date.now(),
           totalUsed: 0,
           isBlocked: false,
           transactions: [{
             type: 'credit',
-            amount: 180,
-            description: 'Welcome bonus - 180 free credits',
+            amount: 250,
+            description: 'Welcome bonus - 250 free credits',
             timestamp: Date.now()
           }],
           monthlyAllowance: MONTHLY_CREDIT_ALLOWANCE,
@@ -68,14 +68,14 @@ export class CreditService {
       console.error(`Error getting credits for user ${userId}:`, error);
       // Return default credits on error
       return {
-        currentBalance: 180,
+        currentBalance: 250,
         lastTopUp: Date.now(),
         totalUsed: 0,
         isBlocked: false,
         transactions: [{
           type: 'credit',
-          amount: 180,
-          description: 'Welcome bonus - 180 free credits (fallback)',
+          amount: 250,
+          description: 'Welcome bonus - 250 free credits (fallback)',
           timestamp: Date.now()
         }],
         monthlyAllowance: MONTHLY_CREDIT_ALLOWANCE,
@@ -104,9 +104,15 @@ export class CreditService {
         ? STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES[credits.currentPlan]
         : MONTHLY_CREDIT_ALLOWANCE;
 
-      const planDescription = isSubscribed && credits.currentPlan 
-        ? `${credits.currentPlan} subscription`
-        : 'free tier';
+      const getPlanDescription = () => {
+        if (!isSubscribed || !credits.currentPlan) return 'free tier';
+        switch (credits.currentPlan) {
+          case 'ugly-duckling': return 'The Duckling subscription (2,000 base + 3,000 bonus)';
+          case 'duckin-awesome': return 'Mama Duck subscription (5,000 base + 10,000 bonus)';
+          default: return `${credits.currentPlan} subscription`;
+        }
+      };
+      const planDescription = getPlanDescription();
 
       const transaction: CreditTransaction = {
         type: 'credit',
