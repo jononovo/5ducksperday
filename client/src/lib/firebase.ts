@@ -1,4 +1,4 @@
-import { initializeApp, type FirebaseApp } from "firebase/app";
+import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { 
   getAuth, 
   type Auth, 
@@ -43,9 +43,13 @@ function validateFirebaseConfig() {
     errors.push('VITE_FIREBASE_APP_ID appears to be malformed (should contain ":")');
   }
 
+  // Use custom auth domain for production, Firebase default for development
+  const isProduction = window.location.hostname === '5ducks.ai';
+  const authDomain = isProduction ? 'auth.5ducks.ai' : `${projectId}.firebaseapp.com`;
+
   const config = {
     apiKey,
-    authDomain: "auth.5ducks.ai",
+    authDomain,
     projectId,
     storageBucket: `${projectId}.appspot.com`,
     messagingSenderId: projectId?.split('-')[1] || '',
@@ -57,6 +61,7 @@ function validateFirebaseConfig() {
     hasProjectId: !!config.projectId,
     hasAppId: !!config.appId,
     authDomain: config.authDomain,
+    isProduction,
     environment: import.meta.env.MODE,
     domain: window.location.hostname,
   });
@@ -91,7 +96,14 @@ try {
     throw new Error(`Firebase configuration validation failed:\n${errors.join('\n')}`);
   }
 
-  app = initializeApp(config);
+  // Check if Firebase app already exists to prevent duplicate app errors during hot reload
+  const existingApps = getApps();
+  if (existingApps.length > 0) {
+    app = existingApps[0];
+    console.log('Using existing Firebase app instance');
+  } else {
+    app = initializeApp(config);
+  }
   auth = getAuth(app);
   
   // Set persistence to LOCAL for long-term authentication
