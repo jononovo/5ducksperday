@@ -1,0 +1,232 @@
+client:495 [vite] connecting...
+client:614 [vite] connected.
+chunk-RPCDYKBN.js?v=926cdd43:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+firebase.ts:83 Starting Firebase initialization... {timestamp: '2025-07-22T18:58:12.691Z', domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev'}
+firebase.ts:18 Raw environment variables: {apiKey: '....aDbuzU', projectId: 'fire-5-ducks', appId: '....b133e8', mode: 'development', dev: true, …}
+firebase.ts:59 Firebase Configuration: {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: 'fire-5-ducks.firebaseapp.com', isProduction: false, …}
+firebase.ts:168 Firebase initialized successfully: {domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev', isAuth: true, isProvider: true, authDomain: 'fire-5-ducks.firebaseapp.com', timestamp: '2025-07-22T18:58:12.693Z'}
+use-auth.tsx:369 Setting up Firebase auth state listener
+use-auth.tsx:377 Firebase auth state changed: undefined
+firebase.ts:112 Firebase persistence set to LOCAL
+queryClient.ts:89 
+            
+            
+           GET https://3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev/api/user 401 (Unauthorized)
+(anonymous) @ queryClient.ts:89
+fetchFn @ @tanstack_react-query.js?v=926cdd43:840
+run @ @tanstack_react-query.js?v=926cdd43:494
+start @ @tanstack_react-query.js?v=926cdd43:536
+fetch @ @tanstack_react-query.js?v=926cdd43:926
+executeFetch_fn @ @tanstack_react-query.js?v=926cdd43:2211
+onSubscribe @ @tanstack_react-query.js?v=926cdd43:1898
+subscribe @ @tanstack_react-query.js?v=926cdd43:24
+(anonymous) @ @tanstack_react-query.js?v=926cdd43:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=926cdd43:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=926cdd43:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=926cdd43:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=926cdd43:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=926cdd43:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=926cdd43:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=926cdd43:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=926cdd43:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=926cdd43:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=926cdd43:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=926cdd43:19432
+commitRoot @ chunk-RPCDYKBN.js?v=926cdd43:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=926cdd43:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=926cdd43:18718
+workLoop @ chunk-RPCDYKBN.js?v=926cdd43:197
+flushWork @ chunk-RPCDYKBN.js?v=926cdd43:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=926cdd43:384
+firebase.ts:161 User signed out, removed auth token
+home.tsx:445 No saved search state found or session data already restored
+home.tsx:547 Skipping localStorage save - no meaningful data to save
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+use-auth.tsx:185 Starting Google sign-in process {environment: 'development', domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev', origin: 'https://3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev'}
+use-auth.tsx:208 Calling signInWithPopup...
+firebase_auth.js?v=926cdd43:6898 Cross-Origin-Opener-Policy policy would block the window.closed call.
+poll @ firebase_auth.js?v=926cdd43:6898
+firebase_auth.js?v=926cdd43:6898 Cross-Origin-Opener-Policy policy would block the window.closed call.
+poll @ firebase_auth.js?v=926cdd43:6898
+firebase_auth.js?v=926cdd43:6898 Cross-Origin-Opener-Policy policy would block the window.closed call.
+poll @ firebase_auth.js?v=926cdd43:6898
+firebase_auth.js?v=926cdd43:6898 Cross-Origin-Opener-Policy policy would block the window.closed call.
+poll @ firebase_auth.js?v=926cdd43:6898
+firebase_auth.js?v=926cdd43:6898 Cross-Origin-Opener-Policy policy would block the window.closed call.
+poll @ firebase_auth.js?v=926cdd43:6898
+firebase_auth.js?v=926cdd43:6898 Cross-Origin-Opener-Policy policy would block the window.closed call.
+poll @ firebase_auth.js?v=926cdd43:6898
+use-auth.tsx:377 Firebase auth state changed: jon@5ducks.ai
+use-auth.tsx:217 SignInWithPopup completed {success: true, hasUser: true, hasEmail: true, hasCredential: true, hasAccessToken: true, …}
+use-auth.tsx:232 Google sign-in successful, syncing with backend {email: 'jon@...', displayName: 'Jon Hamilton'}
+firebase.ts:140 Auth token set successfully: {uid: 'mG2rEdiQ7GhQVExp3XIm4YaPyoz2', email: 'jon@...', timestamp: '2025-07-22T18:59:15.188Z'}
+use-auth.tsx:299 Making backend sync request {endpoint: '/api/google-auth', domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev', selectedPlan: null, planSource: null, joinWaitlist: null}
+use-auth.tsx:299 Making backend sync request {endpoint: '/api/google-auth', domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev', selectedPlan: null, planSource: null, joinWaitlist: null}
+use-auth.tsx:339 Successfully synced with backend
+use-auth.tsx:339 Successfully synced with backend
+home.tsx:451 Registration success detected, triggering welcome notification
+home.tsx:460 Extracted guest data: {originalQuery: 'series A fintech NYC'}
+home.tsx:482 Guest data cleared successfully
+home.tsx:487 Restored guest query to input: series A fintech NYC
+queryClient.ts:39 API Request: POST /api/notifications/trigger {hasData: true, timestamp: '2025-07-22T18:59:16.818Z'}
+queryClient.ts:55 
+            
+            
+           POST https://3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev/api/notifications/trigger 409 (Conflict)
+apiRequest @ queryClient.ts:55
+triggerNotification @ use-notifications.tsx:43
+handleRegistrationSuccess @ home.tsx:493
+(anonymous) @ use-registration-modal.tsx:64
+setTimeout
+(anonymous) @ use-registration-modal.tsx:63
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=926cdd43:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=926cdd43:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=926cdd43:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=926cdd43:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=926cdd43:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=926cdd43:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=926cdd43:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=926cdd43:19416
+commitRoot @ chunk-RPCDYKBN.js?v=926cdd43:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=926cdd43:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=926cdd43:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=926cdd43:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=926cdd43:555
+flush @ @tanstack_react-query.js?v=926cdd43:569
+batch @ @tanstack_react-query.js?v=926cdd43:587
+dispatch_fn @ @tanstack_react-query.js?v=926cdd43:996
+setData @ @tanstack_react-query.js?v=926cdd43:696
+setQueryData @ @tanstack_react-query.js?v=926cdd43:1661
+syncWithBackend @ use-auth.tsx:343
+await in syncWithBackend
+signInWithGoogle @ use-auth.tsx:238
+await in signInWithGoogle
+handleGoogleSignIn @ registration-modal.tsx:53
+callCallback2 @ chunk-RPCDYKBN.js?v=926cdd43:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=926cdd43:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=926cdd43:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=926cdd43:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=926cdd43:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=926cdd43:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=926cdd43:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=926cdd43:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=926cdd43:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=926cdd43:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=926cdd43:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=926cdd43:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=926cdd43:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=926cdd43:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=926cdd43:5449
+queryClient.ts:65 API Request Error: POST /api/notifications/trigger {error: '409: {"shouldShow":false,"message":"Notification already shown or not found"}', timestamp: '2025-07-22T18:59:17.637Z'}
+apiRequest @ queryClient.ts:65
+await in apiRequest
+triggerNotification @ use-notifications.tsx:43
+handleRegistrationSuccess @ home.tsx:493
+(anonymous) @ use-registration-modal.tsx:64
+setTimeout
+(anonymous) @ use-registration-modal.tsx:63
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=926cdd43:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=926cdd43:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=926cdd43:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=926cdd43:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=926cdd43:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=926cdd43:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=926cdd43:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=926cdd43:19416
+commitRoot @ chunk-RPCDYKBN.js?v=926cdd43:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=926cdd43:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=926cdd43:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=926cdd43:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=926cdd43:555
+flush @ @tanstack_react-query.js?v=926cdd43:569
+batch @ @tanstack_react-query.js?v=926cdd43:587
+dispatch_fn @ @tanstack_react-query.js?v=926cdd43:996
+setData @ @tanstack_react-query.js?v=926cdd43:696
+setQueryData @ @tanstack_react-query.js?v=926cdd43:1661
+syncWithBackend @ use-auth.tsx:343
+await in syncWithBackend
+signInWithGoogle @ use-auth.tsx:238
+await in signInWithGoogle
+handleGoogleSignIn @ registration-modal.tsx:53
+callCallback2 @ chunk-RPCDYKBN.js?v=926cdd43:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=926cdd43:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=926cdd43:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=926cdd43:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=926cdd43:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=926cdd43:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=926cdd43:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=926cdd43:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=926cdd43:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=926cdd43:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=926cdd43:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=926cdd43:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=926cdd43:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=926cdd43:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=926cdd43:5449
+use-notifications.tsx:63 Failed to trigger notification: Error: 409: {"shouldShow":false,"message":"Notification already shown or not found"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:62:5)
+    at async triggerNotification (use-notifications.tsx:43:24)
+    at async handleRegistrationSuccess (home.tsx:493:9)
+triggerNotification @ use-notifications.tsx:63
+await in triggerNotification
+handleRegistrationSuccess @ home.tsx:493
+(anonymous) @ use-registration-modal.tsx:64
+setTimeout
+(anonymous) @ use-registration-modal.tsx:63
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=926cdd43:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=926cdd43:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=926cdd43:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=926cdd43:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=926cdd43:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=926cdd43:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=926cdd43:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=926cdd43:19416
+commitRoot @ chunk-RPCDYKBN.js?v=926cdd43:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=926cdd43:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=926cdd43:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=926cdd43:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=926cdd43:555
+flush @ @tanstack_react-query.js?v=926cdd43:569
+batch @ @tanstack_react-query.js?v=926cdd43:587
+dispatch_fn @ @tanstack_react-query.js?v=926cdd43:996
+setData @ @tanstack_react-query.js?v=926cdd43:696
+setQueryData @ @tanstack_react-query.js?v=926cdd43:1661
+syncWithBackend @ use-auth.tsx:343
+await in syncWithBackend
+signInWithGoogle @ use-auth.tsx:238
+await in signInWithGoogle
+handleGoogleSignIn @ registration-modal.tsx:53
+callCallback2 @ chunk-RPCDYKBN.js?v=926cdd43:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=926cdd43:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=926cdd43:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=926cdd43:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=926cdd43:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=926cdd43:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=926cdd43:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=926cdd43:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=926cdd43:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=926cdd43:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=926cdd43:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=926cdd43:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=926cdd43:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=926cdd43:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=926cdd43:5449
+home.tsx:535 Saving search state: {query: 'series A fintech NYC', resultsCount: undefined, listId: null, companies: undefined}
+quick-templates.tsx:65 QuickTemplates - Loaded templates: []
+quick-templates.tsx:65 QuickTemplates - Loaded templates: []
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: [{…}]
+outreach.tsx:585 Gmail Connect - User object: {hasUser: true, userId: 432, userIdType: 'number', userEmail: 'jon@5ducks.ai', fullUser: {…}}
+outreach.tsx:605 Opening Gmail OAuth with URL: /api/gmail/auth?userId=432
+outreach.tsx:630 Cross-Origin-Opener-Policy policy would block the window.closed call.
+(anonymous) @ outreach.tsx:630
+outreach.tsx:630 Cross-Origin-Opener-Policy policy would block the window.closed call.
+(anonymous) @ outreach.tsx:630
