@@ -1,0 +1,88 @@
+index-CFw05PZj.js:1744 Starting Firebase initialization... {timestamp: '2025-07-22T19:06:21.019Z', domain: '5ducks.ai'}
+index-CFw05PZj.js:1744 Raw environment variables: {apiKey: '....aDbuzU', projectId: 'fire-5-ducks', appId: '....b133e8', mode: 'production', dev: false, …}
+index-CFw05PZj.js:1744 Firebase Configuration: {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: 'auth.5ducks.ai', environment: 'production', …}
+index-CFw05PZj.js:1746 Firebase initialized successfully: {domain: '5ducks.ai', isAuth: true, isProvider: true, authDomain: 'auth.5ducks.ai', timestamp: '2025-07-22T19:06:21.021Z'}
+index-CFw05PZj.js:1746 Setting up Firebase auth state listener
+index-CFw05PZj.js:1746 Firebase auth state changed: undefined
+index-CFw05PZj.js:1746 Firebase persistence set to LOCAL
+index-CFw05PZj.js:49 
+            
+            
+           GET https://5ducks.ai/api/user 401 (Unauthorized)
+(anonymous) @ index-CFw05PZj.js:49
+i @ index-CFw05PZj.js:49
+x @ index-CFw05PZj.js:49
+start @ index-CFw05PZj.js:49
+fetch @ index-CFw05PZj.js:49
+ml @ index-CFw05PZj.js:49
+onSubscribe @ index-CFw05PZj.js:49
+subscribe @ index-CFw05PZj.js:49
+(anonymous) @ index-CFw05PZj.js:49
+Dk @ index-CFw05PZj.js:39
+Qf @ index-CFw05PZj.js:41
+Wo @ index-CFw05PZj.js:41
+ew @ index-CFw05PZj.js:41
+di @ index-CFw05PZj.js:39
+sF @ index-CFw05PZj.js:41
+vi @ index-CFw05PZj.js:41
+hP @ index-CFw05PZj.js:41
+_ @ index-CFw05PZj.js:26
+F @ index-CFw05PZj.js:26
+index-CFw05PZj.js:1746 User signed out, removed auth token
+account:1 [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) <input type=​"password" placeholder=​"Password" class=​"w-full p-4 bg-white/​10 border border-white/​20 rounded-md text-white placeholder-gray-400 focus:​outline-none focus:​border-blue-300" value>​
+index-CFw05PZj.js:1746 Attempting registration with: {email: '9022@test.com', name: 'Jon'}
+index-CFw05PZj.js:1746 Starting email registration process {email: '9022@...', timestamp: '2025-07-22T19:06:39.986Z'}
+index-CFw05PZj.js:1746 Firebase auth state changed: 9022@test.com
+index-CFw05PZj.js:1746 Email registration successful, syncing with backend
+index-CFw05PZj.js:1746 Making backend sync request {endpoint: '/api/google-auth', domain: '5ducks.ai', selectedPlan: null, planSource: null, joinWaitlist: null}
+index-CFw05PZj.js:1746 Making backend sync request {endpoint: '/api/google-auth', domain: '5ducks.ai', selectedPlan: null, planSource: null, joinWaitlist: null}
+index-CFw05PZj.js:1746 Auth token set successfully: {uid: 'r7KjAdlX0ESsa3SSrihiIa4rGgB2', email: '9022@...', timestamp: '2025-07-22T19:06:42.048Z'}
+index-CFw05PZj.js:1746 Successfully synced with backend
+index-CFw05PZj.js:1746 Registration successful with Firebase
+index-CFw05PZj.js:1746 Successfully synced with backend
+home-BUvJghfq.js:29 No saved search state found or session data already restored
+home-BUvJghfq.js:29 Registration success detected, triggering welcome notification
+home-BUvJghfq.js:29 Extracted guest data: {originalQuery: 'Real-estate lawyers in Salt Lake City'}
+home-BUvJghfq.js:29 Guest data cleared successfully
+home-BUvJghfq.js:29 Restored guest query to input: Real-estate lawyers in Salt Lake City
+index-CFw05PZj.js:49 API Request: POST /api/notifications/trigger {hasData: true, timestamp: '2025-07-22T19:06:49.602Z'}
+prompt-editor-BP7UuJ_5.js:57 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor-BP7UuJ_5.js:57 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor-BP7UuJ_5.js:57 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+home-BUvJghfq.js:29 Saving search state: {query: 'Real-estate lawyers in Salt Lake City', resultsCount: undefined, listId: null, companies: undefined}
+index-CFw05PZj.js:49 API Request: POST /api/notifications/mark-shown {hasData: true, timestamp: '2025-07-22T19:06:51.121Z'}
+[Violation] Forced reflow while executing JavaScript took 30ms
+outreach-DZTkPKRx.js:55 QuickTemplates - Loaded templates: []
+outreach-DZTkPKRx.js:55 QuickTemplates - Loaded templates: []
+outreach-DZTkPKRx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-DZTkPKRx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-DZTkPKRx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-DZTkPKRx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-DZTkPKRx.js:55 Gmail Connect - User object: {hasUser: true, userId: 446, userIdType: 'number', userEmail: '9022@test.com', fullUser: {…}}
+outreach-DZTkPKRx.js:55 Opening Gmail OAuth with URL: /api/gmail/auth?userId=446
+outreach-DZTkPKRx.js:55 Cross-Origin-Opener-Policy policy would block the window.closed call.
+(anonymous) @ outreach-DZTkPKRx.js:55
+outreach-DZTkPKRx.js:55 Cross-Origin-Opener-Policy policy would block the window.closed call.
+(anonymous) @ outreach-DZTkPKRx.js:55
+outreach-DZTkPKRx.js:55 Page focused - invalidating contact caches for fresh data
+outreach-DZTkPKRx.js:55 Cross-Origin-Opener-Policy policy would block the window.closed call.
+(anonymous) @ outreach-DZTkPKRx.js:55
+outreach-DZTkPKRx.js:55 Cross-Origin-Opener-Policy policy would block the window.closed call.
+(anonymous) @ outreach-DZTkPKRx.js:55
+outreach-DZTkPKRx.js:55 Page focused - invalidating contact caches for fresh data
+outreach-DZTkPKRx.js:55 Gmail Connect - User object: {hasUser: true, userId: 446, userIdType: 'number', userEmail: '9022@test.com', fullUser: {…}}
+outreach-DZTkPKRx.js:55 Opening Gmail OAuth with URL: /api/gmail/auth?userId=446
+outreach-DZTkPKRx.js:55 Cross-Origin-Opener-Policy policy would block the window.closed call.
+(anonymous) @ outreach-DZTkPKRx.js:55
+outreach-DZTkPKRx.js:55 Cross-Origin-Opener-Policy policy would block the window.closed call.
+(anonymous) @ outreach-DZTkPKRx.js:55
+outreach-DZTkPKRx.js:55 Cross-Origin-Opener-Policy policy would block the window.closed call.
+(anonymous) @ outreach-DZTkPKRx.js:55
+outreach-DZTkPKRx.js:55 Cross-Origin-Opener-Policy policy would block the window.closed call.
+(anonymous) @ outreach-DZTkPKRx.js:55
+outreach-DZTkPKRx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-DZTkPKRx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-DZTkPKRx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-DZTkPKRx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-DZTkPKRx.js:55 QuickTemplates - Loaded templates: [{…}]
+outreach-DZTkPKRx.js:55 Page focused - invalidating contact caches for fresh data
