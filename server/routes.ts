@@ -401,11 +401,11 @@ export function registerRoutes(app: Express) {
         redirectUri
       );
       
-      // Generate authentication URL
+      // Generate authentication URL with optimized scopes
       const scopes = [
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.send',
-        'https://www.googleapis.com/auth/gmail.modify'
+        'https://www.googleapis.com/auth/gmail.modify',        // Gmail API access (includes read + send)
+        'https://www.googleapis.com/auth/userinfo.email',      // OAuth2 email access  
+        'https://www.googleapis.com/auth/userinfo.profile'     // OAuth2 profile access
       ];
       
       const authUrl = oauth2Client.generateAuthUrl({
@@ -448,26 +448,42 @@ export function registerRoutes(app: Express) {
       // Exchange code for tokens
       const { tokens } = await oauth2Client.getToken(code as string);
       
-      // Set credentials for Gmail API call
+      // Set credentials for API calls
       oauth2Client.setCredentials(tokens);
       
-      // Fetch user's Gmail profile information
+      // Fetch BOTH Gmail profile AND OAuth2 userinfo for comprehensive profile data
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
-      const profile = await gmail.users.getProfile({ userId: 'me' });
+      const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
       
-      console.log(`[Gmail OAuth] Fetched profile for user ${userId}:`, {
-        email: profile.data.emailAddress,
-        name: profile.data.displayName || profile.data.emailAddress
+      const [gmailProfile, userinfoProfile] = await Promise.all([
+        gmail.users.getProfile({ userId: 'me' }),
+        oauth2.userinfo.get().catch(err => {
+          console.warn(`[Gmail OAuth] Failed to get userinfo profile: ${err.message}`);
+          return null;
+        })
+      ]);
+      
+      console.log(`[Gmail OAuth] Fetched enhanced profile for user ${userId}:`, {
+        gmailEmail: gmailProfile.data.emailAddress,
+        gmailThreadsTotal: gmailProfile.data.threadsTotal,
+        userInfoEmail: userinfoProfile?.data.email,
+        userInfoName: userinfoProfile?.data.name,
+        givenName: userinfoProfile?.data.given_name,
+        familyName: userinfoProfile?.data.family_name
       });
       
-      // Store tokens and user info using TokenService
+      // Store tokens and enhanced user info using TokenService
       await TokenService.storeGmailTokens(userId, {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expiry_date: tokens.expiry_date
       }, {
-        email: profile.data.emailAddress!,
-        name: profile.data.displayName || profile.data.emailAddress!
+        email: gmailProfile.data.emailAddress!,
+        name: userinfoProfile?.data.name || gmailProfile.data.emailAddress!,
+        givenName: userinfoProfile?.data.given_name,
+        familyName: userinfoProfile?.data.family_name,
+        profilePicture: userinfoProfile?.data.picture,
+        verifiedEmail: userinfoProfile?.data.verified_email
       });
       
       // Send HTML that closes the pop-up and notifies parent window
@@ -3499,10 +3515,17 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
-      // Create email content
+      // Get Gmail profile for proper sender identity
+      const gmailUserInfo = await TokenService.getGmailUserInfo(userId);
+      const senderEmail = gmailUserInfo.email || (req.user as any)?.email;
+      const senderName = gmailUserInfo.name || (req.user as any)?.username || 'Your Name';
+
+      // Create email content with proper sender identity
       const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
+      const fromHeader = gmailUserInfo.name ? `${senderName} <${senderEmail}>` : senderEmail;
+      
       const messageParts = [
-        'From: ' + req.user!.email,
+        'From: ' + fromHeader,
         'To: ' + to,
         'Content-Type: text/html; charset=utf-8',
         'MIME-Version: 1.0',

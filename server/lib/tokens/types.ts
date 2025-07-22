@@ -8,6 +8,10 @@ export interface UserTokens {
   updatedAt: number;
   gmailEmail?: string;
   gmailName?: string;
+  givenName?: string;        // From userinfo.profile
+  familyName?: string;       // From userinfo.profile
+  profilePicture?: string;   // From userinfo.profile
+  verifiedEmail?: boolean;   // From userinfo.email
 }
 
 export interface TokenValidationResult {
