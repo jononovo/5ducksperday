@@ -456,7 +456,7 @@ export default function StrategyDashboard() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Strategy</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{productToDelete?.name}"? This action cannot be undone and will permanently remove all strategy data including sales approach, target boundaries, and daily search queries.
+              Are you sure you want to delete this product/strategy? This action cannot be undone and will permanently remove all strategy data including sales approach, target boundaries, and daily search queries.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
