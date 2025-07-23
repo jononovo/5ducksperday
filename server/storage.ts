@@ -79,6 +79,7 @@ export interface IStorage {
   getStrategicProfiles(userId: number): Promise<StrategicProfile[]>;
   createStrategicProfile(data: InsertStrategicProfile): Promise<StrategicProfile>;
   updateStrategicProfile(id: number, data: Partial<StrategicProfile>): Promise<StrategicProfile>;
+  deleteStrategicProfile(id: number): Promise<void>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -450,6 +451,12 @@ class DatabaseStorage implements IStorage {
       .where(eq(strategicProfiles.id, id))
       .returning();
     return profile;
+  }
+
+  async deleteStrategicProfile(id: number): Promise<void> {
+    await db
+      .delete(strategicProfiles)
+      .where(eq(strategicProfiles.id, id));
   }
 }
 

@@ -3592,7 +3592,13 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
-  // Strategic Onboarding Chat Endpoint
+  // ===============================================
+  // OLD HTML LANDING PAGE VERSION - DEPRECATED
+  // This is the old onboarding chat system used by the HTML landing page
+  // The new React Strategy Chat uses /api/onboarding/strategy-chat instead
+  // ===============================================
+  
+  // Strategic Onboarding Chat Endpoint (DEPRECATED - HTML Landing Page Version)
   app.post("/api/onboarding/chat", async (req, res) => {
     try {
       const { message, businessType, currentStep, profileData, conversationHistory, researchResults } = req.body;
@@ -4581,6 +4587,38 @@ Respond in this exact JSON format:
       console.error('Error updating user profile:', error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : 'Failed to update user profile' 
+      });
+    }
+  });
+
+  // Delete strategic profile endpoint (for React Strategy Chat restart)
+  app.delete('/api/strategic-profiles/:id', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const profileId = parseInt(req.params.id);
+
+      if (isNaN(profileId)) {
+        res.status(400).json({ message: 'Invalid profile ID' });
+        return;
+      }
+
+      // Verify profile belongs to user before deleting
+      const profiles = await storage.getStrategicProfiles(userId);
+      const profileToDelete = profiles.find(p => p.id === profileId);
+      
+      if (!profileToDelete) {
+        res.status(404).json({ message: 'Profile not found or access denied' });
+        return;
+      }
+
+      // Delete the profile
+      await storage.deleteStrategicProfile(profileId);
+      
+      res.json({ success: true, message: 'Profile deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting strategic profile:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to delete profile' 
       });
     }
   });

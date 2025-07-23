@@ -112,7 +112,35 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
   };
 
   // Handle restart strategy
-  const handleRestart = () => {
+  const handleRestart = async () => {
+    // First, try to delete any matching in-progress profile
+    try {
+      const currentFormData = prepareFormData();
+      
+      // Get user's profiles to find matching in-progress profile
+      const response = await apiRequest("GET", "/api/products");
+      const profiles = await response.json();
+      
+      // Find matching in-progress profile
+      const matchingProfile = profiles.find((profile: any) => 
+        profile.status === 'in_progress' &&
+        profile.productService === currentFormData.productService &&
+        profile.customerFeedback === currentFormData.customerFeedback &&
+        profile.website === currentFormData.website
+      );
+      
+      // Delete the matching profile if found
+      if (matchingProfile) {
+        await apiRequest("DELETE", `/api/strategic-profiles/${matchingProfile.id}`);
+        // Invalidate products query to refresh dashboard
+        queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      }
+    } catch (error) {
+      console.error('Error cleaning up strategy profile:', error);
+      // Continue with restart even if cleanup fails
+    }
+
+    // Reset all frontend state
     setBusinessType(null);
     setCurrentStep(1);
     setFormData({
