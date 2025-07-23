@@ -207,26 +207,46 @@ export class TokenService {
 
       console.log(`[TokenService] Attempting to refresh Gmail token for user ${userId}`);
 
-      // Note: In production, you would need FIREBASE_CLIENT_ID and FIREBASE_CLIENT_SECRET
-      // For now, we'll log what would happen and return false to indicate refresh is needed
-      console.log(`[TokenService] Token refresh would be attempted here with refresh token`);
-      console.log(`[TokenService] This requires Firebase OAuth client credentials in environment`);
+      // Import Google OAuth2 module at runtime
+      const { google } = await import('googleapis');
       
-      // TODO: Implement actual refresh logic when Firebase OAuth credentials are available
-      // const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      //   body: new URLSearchParams({
-      //     client_id: process.env.FIREBASE_CLIENT_ID!,
-      //     client_secret: process.env.FIREBASE_CLIENT_SECRET!,
-      //     refresh_token: tokens.gmailRefreshToken,
-      //     grant_type: 'refresh_token'
-      //   })
-      // });
+      // Create OAuth2 client with correct Gmail API credentials (not Firebase)
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GMAIL_CLIENT_ID,
+        process.env.GMAIL_CLIENT_SECRET
+        // No redirect URI needed for refresh
+      );
 
-      return false; // Indicate that manual re-authorization is needed for now
+      // Set refresh token
+      oauth2Client.setCredentials({
+        refresh_token: tokens.gmailRefreshToken
+      });
+
+      // Request new access token using Google OAuth2 library
+      const { credentials } = await oauth2Client.refreshAccessToken();
+      
+      if (!credentials.access_token) {
+        console.warn(`[TokenService] Token refresh failed - no access token received for user ${userId}`);
+        return false;
+      }
+
+      // Update stored token with new access token and expiry
+      const success = await this.updateGmailToken(
+        userId, 
+        credentials.access_token,
+        credentials.expiry_date
+      );
+
+      if (success) {
+        console.log(`[TokenService] Successfully refreshed Gmail token for user ${userId}`);
+        return true;
+      } else {
+        console.warn(`[TokenService] Failed to store refreshed token for user ${userId}`);
+        return false;
+      }
     } catch (error) {
       console.error(`Error refreshing Gmail token for user ${userId}:`, error);
+      // Common errors: refresh token expired, revoked, or invalid
       return false;
     }
   }

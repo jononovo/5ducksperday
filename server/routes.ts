@@ -3488,7 +3488,17 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       
       if (!gmailToken) {
         console.log(`No valid Gmail token found for user ${userId}`);
-        res.status(401).json({ message: "Gmail authorization required" });
+        
+        // Check if we have refresh token for more specific error
+        const userTokens = await TokenService.getUserTokens(userId);
+        const hasRefreshToken = !!userTokens?.gmailRefreshToken;
+        
+        res.status(401).json({ 
+          message: "Gmail authorization required",
+          hasRefreshToken,
+          requiresReauth: !hasRefreshToken,
+          action: hasRefreshToken ? "token_refresh_failed" : "no_gmail_connection"
+        });
         return;
       }
 
