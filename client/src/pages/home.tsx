@@ -2842,19 +2842,7 @@ export default function Home() {
         onLoadSearch={handleLoadSavedSearch}
       />
 
-      {/* Strategy Chat Test Button - Fixed position */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <Button
-          onClick={() => {
-            const isMobile = window.innerWidth < 768;
-            setStrategyOverlayState(isMobile ? 'fullscreen' : 'sidebar');
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg border-2 border-blue-500"
-        >
-          <Target className="h-4 w-4 mr-2" />
-          Test Strategy Chat
-        </Button>
-      </div>
+
 
       {/* Notification System */}
       <NotificationToast
