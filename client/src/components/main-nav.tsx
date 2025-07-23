@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LogOut, User, Menu, LayoutDashboard, ListTodo, Mail, MessageCircle, Target } from "lucide-react";
+import { LogOut, User, Menu, LayoutDashboard, Mail, MessageCircle, Target } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useStrategyOverlay } from "@/lib/strategy-overlay-context";
@@ -105,12 +105,7 @@ export function MainNav() {
                     <span>Account</span>
                   </DropdownMenuItem>
                 </Link>
-                <Link href="/lists">
-                  <DropdownMenuItem>
-                    <ListTodo className="h-4 w-4 mr-2" />
-                    <span>Lists</span>
-                  </DropdownMenuItem>
-                </Link>
+
                 <Link href="/campaigns">
                   <DropdownMenuItem>
                     <Mail className="h-4 w-4 mr-2" />
