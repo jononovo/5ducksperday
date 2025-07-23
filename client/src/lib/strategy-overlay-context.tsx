@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
+import { StrategyOverlay } from '@/components/strategy-overlay';
 
 export type OverlayState = 'hidden' | 'minimized' | 'sidebar' | 'fullscreen';
 
@@ -30,6 +31,11 @@ export function StrategyOverlayProvider({ children }: { children: ReactNode }) {
       setState
     }}>
       {children}
+      {/* Render the overlay here so it's always available */}
+      <StrategyOverlay 
+        state={state} 
+        onStateChange={setState} 
+      />
     </StrategyOverlayContext.Provider>
   );
 }

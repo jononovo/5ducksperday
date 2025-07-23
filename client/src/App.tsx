@@ -16,6 +16,7 @@ import { SEOHead } from "@/components/ui/seo-head";
 import { MainNav } from "@/components/main-nav";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { StrategyOverlayProvider } from "@/lib/strategy-overlay-context";
+import { useStrategyOverlay } from "@/lib/strategy-overlay-context";
 import { StrategyOverlay } from "@/components/strategy-overlay";
 import "@/components/ui/loading-spinner.css";
 
@@ -55,9 +56,6 @@ const Changelog = lazy(() => import("@/pages/changelog"));
 function Router() {
   // Track page views when routes change
   useAnalytics();
-  
-  // Strategy overlay state management
-  const [overlayState, setOverlayState] = useState<'hidden' | 'minimized' | 'sidebar' | 'fullscreen'>('hidden');
   
   return (
     <>
@@ -244,11 +242,7 @@ function Router() {
         </Route>
       </Switch>
       
-      {/* Strategy Chat Overlay */}
-      <StrategyOverlay 
-        state={overlayState} 
-        onStateChange={setOverlayState} 
-      />
+      {/* Strategy Chat Overlay - will be rendered by StrategyOverlayProvider */}
     </>
   );
 }
