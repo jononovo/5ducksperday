@@ -4054,19 +4054,49 @@ High-level strategic guidance for email generation.`;
         try {
           const userId = getUserId(req);
           
-          if (result.type === 'product_summary') {
-            await storage.updateStrategicProfile?.(userId, { 
-              productAnalysisSummary: JSON.stringify(result.data) 
+          // Find or create in-progress profile for this strategy
+          const existingProfiles = await storage.getStrategicProfiles(userId);
+          let profileId = null;
+          
+          const matchingProfile = existingProfiles.find(profile => 
+            profile.status === 'in_progress' &&
+            profile.productService === productContext.productService &&
+            profile.customerFeedback === productContext.customerFeedback &&
+            profile.website === productContext.website
+          );
+          
+          if (matchingProfile) {
+            profileId = matchingProfile.id;
+          } else if (result.type === 'product_summary') {
+            // Create new in-progress profile when product summary is generated
+            const newProfile = await storage.createStrategicProfile({
+              userId,
+              businessType: 'product',
+              businessDescription: productContext.productService || 'Strategic Plan',
+              productService: productContext.productService,
+              customerFeedback: productContext.customerFeedback,
+              website: productContext.website,
+              targetCustomers: productContext.productService || 'Target audience',
+              status: 'in_progress'
             });
-          } else if (result.type === 'email_strategy') {
-            // Legacy email strategy - database updates handled by progressive endpoints
-            await storage.updateStrategicProfile?.(userId, { 
-              reportSalesTargetingGuidance: JSON.stringify(result.data)
-            });
-          } else if (result.type === 'sales_approach') {
-            await storage.updateStrategicProfile?.(userId, { 
-              reportSalesContextGuidance: JSON.stringify(result.data) 
-            });
+            profileId = newProfile.id;
+          }
+          
+          // Update profile with generated content
+          if (profileId) {
+            if (result.type === 'product_summary') {
+              await storage.updateStrategicProfile(profileId, { 
+                productAnalysisSummary: JSON.stringify(result.data) 
+              });
+            } else if (result.type === 'email_strategy') {
+              await storage.updateStrategicProfile(profileId, { 
+                reportSalesTargetingGuidance: JSON.stringify(result.data)
+              });
+            } else if (result.type === 'sales_approach') {
+              await storage.updateStrategicProfile(profileId, { 
+                reportSalesContextGuidance: JSON.stringify(result.data) 
+              });
+            }
           }
         } catch (dbError) {
           console.warn('Failed to save report to database:', dbError);
@@ -4175,9 +4205,17 @@ Return only the final boundary statement, no additional text.`;
       if (req.user) {
         try {
           const userId = getUserId(req);
-          await storage.updateStrategicProfile?.(userId, { 
-            strategyHighLevelBoundary: finalBoundary
-          });
+          const existingProfiles = await storage.getStrategicProfiles(userId);
+          
+          const matchingProfile = existingProfiles.find(profile => 
+            profile.status === 'in_progress'
+          );
+          
+          if (matchingProfile) {
+            await storage.updateStrategicProfile(matchingProfile.id, { 
+              strategyHighLevelBoundary: finalBoundary
+            });
+          }
         } catch (dbError) {
           console.warn('Failed to save boundary to database:', dbError);
         }
@@ -4215,9 +4253,17 @@ Return only the final boundary statement, no additional text.`;
       if (req.user) {
         try {
           const userId = getUserId(req);
-          await storage.updateStrategicProfile?.(userId, { 
-            exampleSprintPlanningPrompt: sprintPrompt
-          });
+          const existingProfiles = await storage.getStrategicProfiles(userId);
+          
+          const matchingProfile = existingProfiles.find(profile => 
+            profile.status === 'in_progress'
+          );
+          
+          if (matchingProfile) {
+            await storage.updateStrategicProfile(matchingProfile.id, { 
+              exampleSprintPlanningPrompt: sprintPrompt
+            });
+          }
         } catch (dbError) {
           console.warn('Failed to save sprint prompt to database:', dbError);
         }
@@ -4254,20 +4300,27 @@ Return only the final boundary statement, no additional text.`;
       if (req.user) {
         try {
           const userId = getUserId(req);
+          const existingProfiles = await storage.getStrategicProfiles(userId);
           
-          // Format complete strategy report
-          const fullStrategy = {
-            title: "90-Day Email Strategy",
-            boundary,
-            sprintPrompt,
-            dailyQueries,
-            content: `## 1. TARGET BOUNDARY\n${boundary}\n\n## 2. SPRINT PROMPT\n${sprintPrompt}\n\n## 3. DAILY QUERIES\n${dailyQueries.join('\n')}`
-          };
+          const matchingProfile = existingProfiles.find(profile => 
+            profile.status === 'in_progress'
+          );
           
-          await storage.updateStrategicProfile?.(userId, { 
-            dailySearchQueries: JSON.stringify(dailyQueries),
-            reportSalesTargetingGuidance: JSON.stringify(fullStrategy)
-          });
+          if (matchingProfile) {
+            // Format complete strategy report
+            const fullStrategy = {
+              title: "90-Day Email Strategy",
+              boundary,
+              sprintPrompt,
+              dailyQueries,
+              content: `## 1. TARGET BOUNDARY\n${boundary}\n\n## 2. SPRINT PROMPT\n${sprintPrompt}\n\n## 3. DAILY QUERIES\n${dailyQueries.join('\n')}`
+            };
+            
+            await storage.updateStrategicProfile(matchingProfile.id, { 
+              dailySearchQueries: JSON.stringify(dailyQueries),
+              reportSalesTargetingGuidance: JSON.stringify(fullStrategy)
+            });
+          }
         } catch (dbError) {
           console.warn('Failed to save queries to database:', dbError);
         }
@@ -4559,26 +4612,41 @@ Respond in this exact JSON format:
   app.post('/api/strategic-profiles/save-from-chat', requireAuth, async (req, res) => {
     try {
       const userId = getUserId(req);
-      const chatData = req.body;
+      const formData = req.body;
       
-      // Extract strategy data from chat conversation
-      const profileData = {
-        userId,
-        businessType: chatData.businessType || 'product',
-        businessDescription: chatData.productService || 'Strategic Plan',
-        productService: chatData.productService,
-        customerFeedback: chatData.customerFeedback,
-        website: chatData.website,
-        targetCustomers: chatData.targetCustomers || 'Target audience',
-        productAnalysisSummary: chatData.productAnalysisSummary,
-        strategyHighLevelBoundary: chatData.strategyHighLevelBoundary,
-        dailySearchQueries: chatData.dailySearchQueries,
-        reportSalesContextGuidance: chatData.reportSalesContextGuidance,
-        status: 'completed'
-      };
+      // Get existing strategic profiles for this user
+      const existingProfiles = await storage.getStrategicProfiles(userId);
       
-      const savedProfile = await storage.createStrategicProfile(profileData);
-      res.json(savedProfile);
+      // Find the most recent profile that matches the form data (in-progress status)
+      const matchingProfile = existingProfiles.find(profile => 
+        profile.status === 'in_progress' &&
+        profile.productService === formData.productService &&
+        profile.customerFeedback === formData.customerFeedback &&
+        profile.website === formData.website
+      );
+      
+      if (matchingProfile) {
+        // Update existing profile to completed status
+        const updatedProfile = await storage.updateStrategicProfile(matchingProfile.id, {
+          status: 'completed'
+        });
+        res.json(updatedProfile);
+      } else {
+        // Create new profile if no matching in-progress profile found
+        const profileData = {
+          userId,
+          businessType: formData.businessType || 'product',
+          businessDescription: formData.productService || 'Strategic Plan',
+          productService: formData.productService,
+          customerFeedback: formData.customerFeedback,
+          website: formData.website,
+          targetCustomers: formData.productService || 'Target audience',
+          status: 'completed'
+        };
+        
+        const savedProfile = await storage.createStrategicProfile(profileData);
+        res.json(savedProfile);
+      }
     } catch (error) {
       console.error('Error saving strategic profile:', error);
       res.status(500).json({ 

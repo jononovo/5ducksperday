@@ -67,37 +67,13 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
     setCustomBoundaryInput(value);
   };
 
-  // Extract strategy data from chat messages
-  const extractStrategyData = () => {
-    // Find specific content in messages
-    const productSummary = messages.find(m => 
-      m.sender === 'ai' && m.content.includes('product analysis') || 
-      m.content.includes('Here\'s your product analysis')
-    )?.content;
-    
-    const boundaryContent = messages.find(m => 
-      m.sender === 'ai' && (m.content.includes('boundary') || m.content.includes('Target Boundary'))
-    )?.content;
-    
-    const dailyQueries = messages.find(m => 
-      m.sender === 'ai' && m.content.includes('daily search')
-    )?.content;
-    
-    const salesApproach = messages.find(m => 
-      m.sender === 'ai' && m.content.includes('sales approach') ||
-      m.content.includes('RELATIONSHIP INITIATION')
-    )?.content;
-
+  // Prepare form data for saving
+  const prepareFormData = () => {
     return {
       businessType,
       productService: formData.productService,
       customerFeedback: formData.customerFeedback,
-      website: formData.website,
-      targetCustomers: formData.productService || 'Target customers',
-      productAnalysisSummary: productSummary,
-      strategyHighLevelBoundary: boundaryContent,
-      dailySearchQueries: dailyQueries,
-      reportSalesContextGuidance: salesApproach
+      website: formData.website
     };
   };
 
@@ -131,8 +107,8 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
 
   // Handle save as product
   const handleSaveAsProduct = () => {
-    const strategyData = extractStrategyData();
-    saveStrategyMutation.mutate(strategyData);
+    const formData = prepareFormData();
+    saveStrategyMutation.mutate(formData);
   };
 
   // Handle restart strategy
