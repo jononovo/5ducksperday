@@ -59,8 +59,6 @@ import {
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 import { resolveMergeField, resolveAllMergeFields, hasMergeFields, type MergeFieldContext } from '@/lib/merge-field-resolver';
-import { useGmailProfile } from '@/hooks/use-gmail-profile';
-import { useGmailStatus } from '@/hooks/use-gmail-status';
 
 
 // Define interface for the saved state
@@ -230,9 +228,19 @@ export default function Outreach() {
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Use enhanced Gmail hooks
-  const { status: gmailStatus, refetch: refetchGmailStatus, isConnected } = useGmailStatus();
-  const { profile: gmailProfile, hasProfile } = useGmailProfile();
+  // Gmail authentication status query
+  const { data: gmailStatus, refetch: refetchGmailStatus } = useQuery({
+    queryKey: ["/api/gmail/auth-status"],
+    enabled: !!user, // Only check when user is authenticated
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Query to get Gmail user info (email and name)
+  const { data: gmailUserInfo } = useQuery({
+    queryKey: ['/api/gmail/user'],
+    enabled: !!user && !!gmailStatus?.authorized,
+  });
 
   // Memoized top 3 leadership contacts computation
   const topContacts = useMemo(() => 
@@ -1470,13 +1478,13 @@ export default function Outreach() {
                 />
                 <div className="absolute bottom-2 right-2 flex items-center gap-2">
                   {/* Gmail Status Badge */}
-                  {isConnected ? (
+                  {gmailStatus?.authorized ? (
                     <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-300">
                       <Mail className="w-3 h-3 mr-1" />
-                      {gmailProfile?.email 
-                        ? gmailProfile.email.length > 20 
-                          ? `${gmailProfile.email.substring(0, 20)}...`
-                          : gmailProfile.email
+                      {gmailUserInfo?.email 
+                        ? gmailUserInfo.email.length > 20 
+                          ? `${gmailUserInfo.email.substring(0, 20)}...`
+                          : gmailUserInfo.email
                         : 'Gmail Connected'
                       }
                     </Badge>
@@ -1495,12 +1503,12 @@ export default function Outreach() {
                   {/* Send Email Button */}
                   <Button
                     onClick={handleSendEmail}
-                    disabled={sendEmailMutation.isPending || !isConnected}
+                    disabled={sendEmailMutation.isPending || !gmailStatus?.authorized}
                     variant="outline"
                     className={cn(
                       "h-8 px-3 text-xs bg-white text-black border-black hover:bg-black hover:text-white hover:scale-105 transition-all duration-300 ease-out",
                       sendEmailMutation.isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500",
-                      !isConnected && "opacity-50 cursor-not-allowed"
+                      !gmailStatus?.authorized && "opacity-50 cursor-not-allowed"
                     )}
                   >
                     {sendEmailMutation.isPending ? (

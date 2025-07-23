@@ -394,8 +394,6 @@ export function registerRoutes(app: Express) {
       const protocol = process.env.OAUTH_PROTOCOL || (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
       const redirectUri = `${protocol}://${req.get('host')}/api/gmail/callback`;
       
-      console.log(`[Gmail OAuth] Generating auth URL with redirect URI: ${redirectUri}`);
-      
       // Create OAuth2 client
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
@@ -403,11 +401,11 @@ export function registerRoutes(app: Express) {
         redirectUri
       );
       
-      // Generate authentication URL with optimized scopes
+      // Generate authentication URL
       const scopes = [
-        'https://www.googleapis.com/auth/gmail.modify',        // Gmail API access (includes read + send)
-        'https://www.googleapis.com/auth/userinfo.email',      // OAuth2 email access  
-        'https://www.googleapis.com/auth/userinfo.profile'     // OAuth2 profile access
+        'https://www.googleapis.com/auth/gmail.readonly',
+        'https://www.googleapis.com/auth/gmail.send',
+        'https://www.googleapis.com/auth/gmail.modify'
       ];
       
       const authUrl = oauth2Client.generateAuthUrl({
@@ -441,55 +439,35 @@ export function registerRoutes(app: Express) {
       
       // Create OAuth2 client (use same redirect URI format as auth route)
       const protocol = process.env.OAUTH_PROTOCOL || (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
-      const redirectUri = `${protocol}://${req.get('host')}/api/gmail/callback`;
-      
-      console.log(`[Gmail OAuth Callback] Using redirect URI: ${redirectUri}`);
-      
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
-        redirectUri
+        `${protocol}://${req.get('host')}/api/gmail/callback`
       );
       
       // Exchange code for tokens
       const { tokens } = await oauth2Client.getToken(code as string);
       
-      // Set credentials for API calls
+      // Set credentials for Gmail API call
       oauth2Client.setCredentials(tokens);
       
-      // Fetch BOTH Gmail profile AND OAuth2 userinfo for comprehensive profile data
+      // Fetch user's Gmail profile information
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
-      const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+      const profile = await gmail.users.getProfile({ userId: 'me' });
       
-      const [gmailProfile, userinfoProfile] = await Promise.all([
-        gmail.users.getProfile({ userId: 'me' }),
-        oauth2.userinfo.get().catch(err => {
-          console.warn(`[Gmail OAuth] Failed to get userinfo profile: ${err.message}`);
-          return null;
-        })
-      ]);
-      
-      console.log(`[Gmail OAuth] Fetched enhanced profile for user ${userId}:`, {
-        gmailEmail: gmailProfile.data.emailAddress,
-        gmailThreadsTotal: gmailProfile.data.threadsTotal,
-        userInfoEmail: userinfoProfile?.data.email,
-        userInfoName: userinfoProfile?.data.name,
-        givenName: userinfoProfile?.data.given_name,
-        familyName: userinfoProfile?.data.family_name
+      console.log(`[Gmail OAuth] Fetched profile for user ${userId}:`, {
+        email: profile.data.emailAddress,
+        name: profile.data.displayName || profile.data.emailAddress
       });
       
-      // Store tokens and enhanced user info using TokenService
+      // Store tokens and user info using TokenService
       await TokenService.storeGmailTokens(userId, {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expiry_date: tokens.expiry_date
       }, {
-        email: gmailProfile.data.emailAddress!,
-        name: userinfoProfile?.data.name || gmailProfile.data.emailAddress!,
-        givenName: userinfoProfile?.data.given_name,
-        familyName: userinfoProfile?.data.family_name,
-        profilePicture: userinfoProfile?.data.picture,
-        verifiedEmail: userinfoProfile?.data.verified_email
+        email: profile.data.emailAddress!,
+        name: profile.data.displayName || profile.data.emailAddress!
       });
       
       // Send HTML that closes the pop-up and notifies parent window
@@ -3521,17 +3499,10 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
-      // Get Gmail profile for proper sender identity
-      const gmailUserInfo = await TokenService.getGmailUserInfo(userId);
-      const senderEmail = gmailUserInfo.email || (req.user as any)?.email;
-      const senderName = gmailUserInfo.name || (req.user as any)?.username || 'Your Name';
-
-      // Create email content with proper sender identity
+      // Create email content
       const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
-      const fromHeader = gmailUserInfo.name ? `${senderName} <${senderEmail}>` : senderEmail;
-      
       const messageParts = [
-        'From: ' + fromHeader,
+        'From: ' + req.user!.email,
         'To: ' + to,
         'Content-Type: text/html; charset=utf-8',
         'MIME-Version: 1.0',

@@ -11,9 +11,6 @@ export interface MergeFieldContext {
   } | null;
   sender?: {
     name?: string;
-    email?: string;
-    givenName?: string;
-    familyName?: string;
   };
 }
 
