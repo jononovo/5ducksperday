@@ -394,6 +394,8 @@ export function registerRoutes(app: Express) {
       const protocol = process.env.OAUTH_PROTOCOL || (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
       const redirectUri = `${protocol}://${req.get('host')}/api/gmail/callback`;
       
+      console.log(`[Gmail OAuth] Generating auth URL with redirect URI: ${redirectUri}`);
+      
       // Create OAuth2 client
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
@@ -439,10 +441,14 @@ export function registerRoutes(app: Express) {
       
       // Create OAuth2 client (use same redirect URI format as auth route)
       const protocol = process.env.OAUTH_PROTOCOL || (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
+      const redirectUri = `${protocol}://${req.get('host')}/api/gmail/callback`;
+      
+      console.log(`[Gmail OAuth Callback] Using redirect URI: ${redirectUri}`);
+      
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
-        `${protocol}://${req.get('host')}/api/gmail/callback`
+        redirectUri
       );
       
       // Exchange code for tokens
