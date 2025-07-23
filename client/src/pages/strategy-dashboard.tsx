@@ -56,7 +56,7 @@ export default function StrategyDashboard() {
     }
   }, [user, navigate]);
 
-  const { data: products = [], isLoading, error } = useQuery({
+  const { data: products = [], isLoading, error } = useQuery<StrategicProfile[]>({
     queryKey: ['/api/products'],
     enabled: !!user,
   });
@@ -84,26 +84,8 @@ export default function StrategyDashboard() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <Card className="max-w-md w-full mx-4">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="h-5 w-5" />
-              Error Loading Strategies
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-slate-600 mb-4">Unable to load your strategic plans. Please try again.</p>
-            <Button onClick={() => window.location.reload()} className="w-full">
-              Retry
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Show error message within the normal layout instead of replacing entire page
+  const hasError = error !== null;
 
   return (
     <>
@@ -128,7 +110,25 @@ export default function StrategyDashboard() {
               </Button>
             </div>
 
-            {products.length === 0 ? (
+            {hasError ? (
+              <Card className="text-center py-12">
+                <CardContent>
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <AlertCircle className="h-8 w-8 text-red-500" />
+                  </div>
+                  <h3 className="text-lg font-medium text-slate-900 mb-2">Error Loading Strategies</h3>
+                  <p className="text-slate-600 mb-6 max-w-md mx-auto">
+                    Unable to load your strategic plans. Please try again.
+                  </p>
+                  <Button 
+                    onClick={() => window.location.reload()}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    Retry
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : products.length === 0 ? (
               <Card className="text-center py-12">
                 <CardContent>
                   <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">

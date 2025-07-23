@@ -4532,6 +4532,22 @@ Respond in this exact JSON format:
     }
   });
 
+  // Products endpoint for Strategy Dashboard
+  app.get('/api/products', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      
+      // For now, return empty array - this can be connected to strategic profiles later
+      // The interface suggests these are strategic business plans/profiles
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to fetch products' 
+      });
+    }
+  });
+
   // Register credit routes
   registerCreditRoutes(app);
   
