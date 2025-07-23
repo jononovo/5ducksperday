@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { User, Settings, CreditCard, Package, ExternalLink, Mail } from "lucide-react";
+import { User, Settings, CreditCard, ExternalLink, Mail } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -260,24 +260,7 @@ ${profile?.username}`
           </CardContent>
         </Card>
 
-        {/* Products Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Products
-            </CardTitle>
-            <CardDescription>
-              Manage your subscriptions and features
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Product information will be available here soon.</p>
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Billing Section */}
         <Card>
