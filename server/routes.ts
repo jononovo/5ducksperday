@@ -4537,13 +4537,52 @@ Respond in this exact JSON format:
     try {
       const userId = getUserId(req);
       
-      // For now, return empty array - this can be connected to strategic profiles later
-      // The interface suggests these are strategic business plans/profiles
-      res.json([]);
+      // Fetch strategic profiles from storage
+      const profiles = await storage.getStrategicProfiles(userId);
+      
+      // Map to frontend interface (add 'name' field)
+      const mappedProfiles = profiles.map(profile => ({
+        ...profile,
+        name: profile.businessDescription || profile.productService || "Strategy Plan"
+      }));
+      
+      res.json(mappedProfiles);
     } catch (error) {
       console.error('Error fetching products:', error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : 'Failed to fetch products' 
+      });
+    }
+  });
+
+  // Save strategy chat as product
+  app.post('/api/strategic-profiles/save-from-chat', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const chatData = req.body;
+      
+      // Extract strategy data from chat conversation
+      const profileData = {
+        userId,
+        businessType: chatData.businessType || 'product',
+        businessDescription: chatData.productService || 'Strategic Plan',
+        productService: chatData.productService,
+        customerFeedback: chatData.customerFeedback,
+        website: chatData.website,
+        targetCustomers: chatData.targetCustomers || 'Target audience',
+        productAnalysisSummary: chatData.productAnalysisSummary,
+        strategyHighLevelBoundary: chatData.strategyHighLevelBoundary,
+        dailySearchQueries: chatData.dailySearchQueries,
+        reportSalesContextGuidance: chatData.reportSalesContextGuidance,
+        status: 'completed'
+      };
+      
+      const savedProfile = await storage.createStrategicProfile(profileData);
+      res.json(savedProfile);
+    } catch (error) {
+      console.error('Error saving strategic profile:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to save strategy' 
       });
     }
   });

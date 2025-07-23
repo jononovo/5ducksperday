@@ -2,7 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Target, Minimize2, Maximize2 } from "lucide-react";
+import { X, Target, Minimize2, Maximize2, Save, RotateCcw } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import "@/components/ui/loading-spinner.css";
 
 interface FormData {
@@ -43,6 +47,7 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
   const [boundarySelectionContext, setBoundarySelectionContext] = useState<any>(null);
   const [customBoundaryInput, setCustomBoundaryInput] = useState("");
   const [salesApproachContext, setSalesApproachContext] = useState<any>(null);
+  const [showCompletionChoice, setShowCompletionChoice] = useState(false);
   const messagesRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -60,6 +65,94 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
 
   const updateCustomBoundaryInput = (value: string) => {
     setCustomBoundaryInput(value);
+  };
+
+  // Extract strategy data from chat messages
+  const extractStrategyData = () => {
+    // Find specific content in messages
+    const productSummary = messages.find(m => 
+      m.sender === 'ai' && m.content.includes('product analysis') || 
+      m.content.includes('Here\'s your product analysis')
+    )?.content;
+    
+    const boundaryContent = messages.find(m => 
+      m.sender === 'ai' && (m.content.includes('boundary') || m.content.includes('Target Boundary'))
+    )?.content;
+    
+    const dailyQueries = messages.find(m => 
+      m.sender === 'ai' && m.content.includes('daily search')
+    )?.content;
+    
+    const salesApproach = messages.find(m => 
+      m.sender === 'ai' && m.content.includes('sales approach') ||
+      m.content.includes('RELATIONSHIP INITIATION')
+    )?.content;
+
+    return {
+      businessType,
+      productService: formData.productService,
+      customerFeedback: formData.customerFeedback,
+      website: formData.website,
+      targetCustomers: formData.productService || 'Target customers',
+      productAnalysisSummary: productSummary,
+      strategyHighLevelBoundary: boundaryContent,
+      dailySearchQueries: dailyQueries,
+      reportSalesContextGuidance: salesApproach
+    };
+  };
+
+  const { toast } = useToast();
+
+  // Save strategy mutation
+  const saveStrategyMutation = useMutation({
+    mutationFn: async (strategyData: any) => {
+      const res = await apiRequest("POST", "/api/strategic-profiles/save-from-chat", strategyData);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Strategy Saved",
+        description: "Your strategy has been saved as a product on your dashboard.",
+      });
+      // Invalidate products query to refresh dashboard
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      // Reset overlay state and close
+      handleRestart();
+      onStateChange('hidden');
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Save Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle save as product
+  const handleSaveAsProduct = () => {
+    const strategyData = extractStrategyData();
+    saveStrategyMutation.mutate(strategyData);
+  };
+
+  // Handle restart strategy
+  const handleRestart = () => {
+    setBusinessType(null);
+    setCurrentStep(1);
+    setFormData({
+      productService: "",
+      customerFeedback: "",
+      website: ""
+    });
+    setShowChat(false);
+    setMessages([]);
+    setIsLoading(false);
+    setUserInput("");
+    setBoundarySelectionMode(false);
+    setBoundarySelectionContext(null);
+    setCustomBoundaryInput("");
+    setSalesApproachContext(null);
+    setShowCompletionChoice(false);
   };
 
   // Auto-scroll to bottom when messages change
@@ -706,15 +799,7 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
         displayReport(data);
         
         setTimeout(() => {
-          const currentDomain = window.location.origin;
-          const finalMessage: Message = {
-            id: Date.now().toString(),
-            content: `Excellent! Your complete sales strategy is ready.<br><br>Go to <a href="${currentDomain}/app" target="_blank" style="color: #3b82f6; text-decoration: underline;">${currentDomain}/app</a> to start prospecting or get the PDF version.`,
-            sender: 'ai',
-            timestamp: new Date(),
-            isHTML: true
-          };
-          setMessages(prev => [...prev, finalMessage]);
+          setShowCompletionChoice(true);
         }, 1000);
       }
     } catch (error) {
@@ -1032,6 +1117,41 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
                     </div>
                   </div>
                 ))}
+
+                {/* Completion Choice UI */}
+                {showCompletionChoice && (
+                  <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6 space-y-4">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">🎉 Your strategy is complete!</h3>
+                      <p className="text-gray-600 mb-4">What would you like to do next?</p>
+                    </div>
+                    
+                    <div className="flex space-x-3">
+                      <Button
+                        onClick={handleSaveAsProduct}
+                        disabled={saveStrategyMutation.isPending}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        {saveStrategyMutation.isPending ? 'Saving...' : 'Save as Product'}
+                      </Button>
+                      
+                      <Button
+                        onClick={handleRestart}
+                        variant="outline"
+                        className="flex-1 border-gray-300 hover:bg-gray-50"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Restart Strategy
+                      </Button>
+                    </div>
+                    
+                    <p className="text-xs text-gray-500 text-center">
+                      Save to add this strategy to your dashboard, or restart to create a new one.
+                    </p>
+                  </div>
+                )}
+
                 {isLoading && (
                   <div className="flex justify-start">
                     <div className="bg-gray-100 p-3 rounded-lg">
