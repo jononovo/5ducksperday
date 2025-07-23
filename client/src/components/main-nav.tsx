@@ -117,17 +117,12 @@ export function MainNav() {
                     <span>Campaigns</span>
                   </DropdownMenuItem>
                 </Link>
-                {strategyOverlay && (
-                  <DropdownMenuItem 
-                    onClick={() => {
-                      const isMobile = window.innerWidth < 768;
-                      strategyOverlay.setState(isMobile ? 'fullscreen' : 'sidebar');
-                    }}
-                  >
+                <Link href="/strategy">
+                  <DropdownMenuItem>
                     <Target className="h-4 w-4 mr-2" />
-                    <span>Create Strategy</span>
+                    <span>Strategy</span>
                   </DropdownMenuItem>
-                )}
+                </Link>
               </DropdownMenuContent>
             </DropdownMenu>
           </>
