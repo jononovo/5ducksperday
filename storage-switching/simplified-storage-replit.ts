@@ -10,9 +10,10 @@ import type {
   InsertCampaignList, EmailTemplate, InsertEmailTemplate,
   SearchApproach, InsertSearchApproach, SearchTestResult, 
   InsertSearchTestResult, UserPreferences, InsertUserPreferences,
-  ContactFeedback, InsertContactFeedback
+  ContactFeedback, InsertContactFeedback,
+  StrategicProfile, InsertStrategicProfile
 } from "../shared/schema";
-import { IStorage } from '../server/storage/index';
+import { IStorage } from '../server/storage';
 
 // This class implementation intentionally ignores TypeScript errors to simplify the migration
 // @ts-ignore
@@ -1274,6 +1275,75 @@ export class ReplitStorage implements IStorage {
     }
     
     console.log('Migration from PostgreSQL to Replit DB completed successfully!');
+  }
+
+  // Strategic Profiles methods
+  async getStrategicProfiles(userId: number): Promise<StrategicProfile[]> {
+    const profileIds = await this.get<number[]>(`strategicProfiles:user:${userId}`) || [];
+    const profiles: StrategicProfile[] = [];
+    
+    for (const id of profileIds) {
+      const profile = await this.get<StrategicProfile>(`strategicProfile:${id}`);
+      if (profile) {
+        profiles.push(profile);
+      }
+    }
+    
+    return profiles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async createStrategicProfile(data: InsertStrategicProfile): Promise<StrategicProfile> {
+    const id = await this.getNextId('strategicProfile');
+    const now = new Date();
+    
+    const profile: StrategicProfile = {
+      ...data,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    await this.set(`strategicProfile:${id}`, profile);
+    
+    // Add to user's profiles index
+    const userProfiles = await this.get<number[]>(`strategicProfiles:user:${data.userId}`) || [];
+    if (!userProfiles.includes(id)) {
+      userProfiles.push(id);
+      await this.set(`strategicProfiles:user:${data.userId}`, userProfiles);
+    }
+    
+    return profile;
+  }
+
+  async updateStrategicProfile(id: number, data: Partial<StrategicProfile>): Promise<StrategicProfile> {
+    const existingProfile = await this.get<StrategicProfile>(`strategicProfile:${id}`);
+    if (!existingProfile) {
+      throw new Error(`Strategic profile with id ${id} not found`);
+    }
+    
+    const updatedProfile: StrategicProfile = {
+      ...existingProfile,
+      ...data,
+      updatedAt: new Date()
+    };
+    
+    await this.set(`strategicProfile:${id}`, updatedProfile);
+    return updatedProfile;
+  }
+
+  async deleteStrategicProfile(id: number): Promise<void> {
+    const profile = await this.get<StrategicProfile>(`strategicProfile:${id}`);
+    if (!profile) {
+      throw new Error(`Strategic profile with id ${id} not found`);
+    }
+    
+    // Remove from storage
+    await this.delete(`strategicProfile:${id}`);
+    
+    // Remove from user's profiles index
+    const userProfiles = await this.get<number[]>(`strategicProfiles:user:${profile.userId}`) || [];
+    const updatedUserProfiles = userProfiles.filter(profileId => profileId !== id);
+    await this.set(`strategicProfiles:user:${profile.userId}`, updatedUserProfiles);
   }
 }
 
