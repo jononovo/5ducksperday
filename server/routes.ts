@@ -33,7 +33,6 @@ import { registerCreditRoutes } from "./routes/credits";
 import { registerStripeRoutes } from "./routes/stripe";
 import { CreditService } from "./lib/credits";
 import { SearchType } from "./lib/credits/types";
-import { TokenService } from "./lib/tokens";
 import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow-service";
 import { logIncomingWebhook } from "./lib/webhook-logger";
 import { getEmailProvider } from "./services/emailService";
@@ -3499,10 +3498,22 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
+      // Get Gmail user info for proper sender identity
+      const gmailUserInfo = await TokenService.getGmailUserInfo(userId);
+      const senderName = gmailUserInfo?.name;
+      const senderEmail = gmailUserInfo?.email || req.user!.email;
+
+      // Format From header with display name (RFC 2822 compliant)
+      const fromHeader = senderName && senderName !== senderEmail
+        ? `From: ${senderName.includes(' ') || senderName.includes(',') || senderName.includes('"') 
+            ? `"${senderName.replace(/"/g, '\\"')}"` 
+            : senderName} <${senderEmail}>`
+        : `From: ${senderEmail}`;
+
       // Create email content
       const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
       const messageParts = [
-        'From: ' + req.user!.email,
+        fromHeader,
         'To: ' + to,
         'Content-Type: text/html; charset=utf-8',
         'MIME-Version: 1.0',

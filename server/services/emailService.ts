@@ -1,5 +1,6 @@
 import { MOCK_ACTIVE_CONTACTS, MOCK_EMAIL_THREADS } from "../mock/emailData";
 import type { Contact } from "@shared/schema";
+import { TokenService } from "../lib/tokens/index";
 
 // Email provider interface - will be implemented by different email services
 export interface EmailProvider {
@@ -430,9 +431,21 @@ export class GmailProvider implements EmailProvider {
         throw new Error('Contact not found or has no email');
       }
       
-      // 2. Create the raw email content
+      // 2. Get Gmail user info for proper sender identity
+      const gmailUserInfo = await TokenService.getGmailUserInfo(data.userId);
+      const senderName = gmailUserInfo?.name;
+      const senderEmail = gmailUserInfo?.email || userEmail;
+
+      // Format From header with display name (RFC 2822 compliant)
+      const fromHeader = senderName && senderName !== senderEmail
+        ? `From: ${senderName.includes(' ') || senderName.includes(',') || senderName.includes('"') 
+            ? `"${senderName.replace(/"/g, '\\"')}"` 
+            : senderName} <${senderEmail}>`
+        : `From: ${senderEmail}`;
+
+      // 3. Create the raw email content
       const email = [
-        `From: ${userEmail}`,
+        fromHeader,
         `To: ${contact.email}`,
         `Subject: ${data.subject}`,
         'Content-Type: text/plain; charset=utf-8',
@@ -440,7 +453,7 @@ export class GmailProvider implements EmailProvider {
         data.initialMessage || '' // Initial message content
       ].join('\r\n');
       
-      // 3. Send the email
+      // 4. Send the email
       const response = await this.gmail.users.messages.send({
         userId: 'me',
         requestBody: {
@@ -448,7 +461,7 @@ export class GmailProvider implements EmailProvider {
         }
       });
       
-      // 4. Return the thread data
+      // 5. Return the thread data
       return {
         id: parseInt(response.data.threadId || '0'),
         contactId: data.contactId,
@@ -482,12 +495,24 @@ export class GmailProvider implements EmailProvider {
       const headers = firstMessage.payload?.headers || [];
       const subject = headers.find(h => h.name === 'Subject')?.value || '(No Subject)';
       
-      // 3. Get user and contact emails
+      // 3. Get user and contact emails with proper sender identity
       const userEmail = await this.getUserEmail();
+      
+      // Get Gmail user info for proper sender identity
+      const gmailUserInfo = await TokenService.getGmailUserInfo(this.userId);
+      const senderName = gmailUserInfo?.name;
+      const senderEmail = gmailUserInfo?.email || userEmail;
+
+      // Format From header with display name (RFC 2822 compliant)
+      const fromHeader = senderName && senderName !== senderEmail
+        ? `From: ${senderName.includes(' ') || senderName.includes(',') || senderName.includes('"') 
+            ? `"${senderName.replace(/"/g, '\\"')}"` 
+            : senderName} <${senderEmail}>`
+        : `From: ${senderEmail}`;
       
       // 4. Create the raw email content
       const email = [
-        `From: ${userEmail}`,
+        fromHeader,
         `To: ${data.toEmail}`,
         `Subject: ${subject}`,
         `In-Reply-To: ${response.data.messages[0].id}`,

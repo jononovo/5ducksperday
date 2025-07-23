@@ -120,6 +120,8 @@
 
 ## Changelog
 
+- July 23, 2025. **Gmail Sender Name Implementation**: Successfully implemented automatic Gmail display name integration across all email sending functionality. Modified three locations: `/api/send-gmail` endpoint (main outreach), `createThread()` method (new conversations), and `createMessage()` method (replies) in `server/routes.ts` and `server/services/emailService.ts`. Emails now show "John Smith <user@gmail.com>" instead of just "user@gmail.com" as sender. Implementation uses existing `TokenService.getGmailUserInfo()` method with RFC 2822 compliant formatting, automatic quote handling for special characters, and graceful fallback to email-only format. Fixed duplicate TokenService import in routes.ts. Professional sender identity now maintained across all Gmail OAuth email sending.
+
 - July 23, 2025. **Account Page Products Section Removal**: Completely removed the "Products" section from `/account` page (client/src/pages/account.tsx lines 263-280). Removed Card container, CardHeader with Package icon and title/subtitle, CardContent with placeholder text "Product information will be available here soon", and cleaned up unused Package import from lucide-react. Account page now streamlined with only Profile and Billing sections for cleaner user experience.
 
 - July 23, 2025. **Navigation Menu Updates**: Renamed "Create Strategy" to "Strategy" in main dropdown menu and changed functionality from opening chat overlay to navigating to `/strategy` page using standard Link component. Completely removed "Lists" menu item from dropdown (lines 108-113) and cleaned up unused ListTodo import. Dropdown now contains: Logout, Build, Account, Campaigns, Strategy.
