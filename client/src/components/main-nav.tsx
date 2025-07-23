@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
-import { LogOut, User, Menu, LayoutDashboard, ListTodo, Mail, MessageCircle } from "lucide-react";
+import { LogOut, User, Menu, LayoutDashboard, ListTodo, Mail, MessageCircle, Target } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
+import { useStrategyOverlay } from "@/lib/strategy-overlay-context";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { CreditUpgradeDropdown } from "@/components/credit-upgrade-dropdown";
@@ -16,6 +17,7 @@ import {
 const navigation = [
   { name: "Search", href: "/app", icon: "dashboard" },
   { name: "Outreach", href: "/outreach", icon: "mail" },
+  { name: "Strategy", href: "/strategy", icon: "target" },
   // { name: "Replies", href: "/replies", icon: "message" }
 ];
 
@@ -26,6 +28,7 @@ export function MainNav() {
   let user = null;
   let logoutMutation = null;
   let openRegistrationModal = null;
+  let strategyOverlay = null;
   
   try {
     const auth = useAuth();
@@ -35,6 +38,9 @@ export function MainNav() {
     // Registration modal for login functionality
     const { openModal } = useRegistrationModal();
     openRegistrationModal = openModal;
+    
+    // Strategy overlay for chat trigger
+    strategyOverlay = useStrategyOverlay();
   } catch (error) {
     // MainNav is being rendered outside AuthProvider context
     // This is acceptable for public routes - just don't show user menu
@@ -61,6 +67,7 @@ export function MainNav() {
               <div className="flex items-center">
                 {item.icon === "dashboard" && <LayoutDashboard className="mr-1 h-4 w-4" />}
                 {item.icon === "mail" && <Mail className="mr-1 h-4 w-4" />}
+                {item.icon === "target" && <Target className="mr-1 h-4 w-4" />}
                 {item.icon === "message" && <MessageCircle className="mr-1 h-4 w-4" />}
                 <span className="md:inline hidden">{item.name}</span>
               </div>
@@ -110,6 +117,17 @@ export function MainNav() {
                     <span>Campaigns</span>
                   </DropdownMenuItem>
                 </Link>
+                {strategyOverlay && (
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      const isMobile = window.innerWidth < 768;
+                      strategyOverlay.setState(isMobile ? 'fullscreen' : 'sidebar');
+                    }}
+                  >
+                    <Target className="h-4 w-4 mr-2" />
+                    <span>Create Strategy</span>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </>
