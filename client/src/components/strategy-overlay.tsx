@@ -144,6 +144,13 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
     scrollToBottom();
   }, [messages]);
 
+  // Auto-scroll when completion choice appears
+  useEffect(() => {
+    if (showCompletionChoice) {
+      scrollToBottom();
+    }
+  }, [showCompletionChoice]);
+
   // Auto-focus input/textarea after step change
   useEffect(() => {
     if (!showChat && businessType && formRef.current) {
@@ -1102,11 +1109,11 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
                       <p className="text-gray-600 mb-4">What would you like to do next?</p>
                     </div>
                     
-                    <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+                    <div className="flex flex-col space-y-3">
                       <Button
                         onClick={handleSaveAsProduct}
                         disabled={saveStrategyMutation.isPending}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                        className="w-full bg-green-600 hover:bg-green-700 text-white"
                       >
                         <Save className="h-4 w-4 mr-2" />
                         {saveStrategyMutation.isPending ? 'Saving...' : 'Save as Product'}
@@ -1115,16 +1122,12 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
                       <Button
                         onClick={handleRestart}
                         variant="outline"
-                        className="flex-1 border-gray-300 hover:bg-gray-50"
+                        className="w-full border-gray-300 hover:bg-gray-50"
                       >
                         <RotateCcw className="h-4 w-4 mr-2" />
                         Restart Strategy
                       </Button>
                     </div>
-                    
-                    <p className="text-xs text-gray-500 text-center">
-                      Save to add this strategy to your dashboard, or restart to create a new one.
-                    </p>
                   </div>
                 )}
 
