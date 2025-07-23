@@ -1102,7 +1102,7 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
                       <p className="text-gray-600 mb-4">What would you like to do next?</p>
                     </div>
                     
-                    <div className="flex space-x-3">
+                    <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
                       <Button
                         onClick={handleSaveAsProduct}
                         disabled={saveStrategyMutation.isPending}
