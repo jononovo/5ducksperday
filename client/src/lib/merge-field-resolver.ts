@@ -12,6 +12,9 @@ export interface MergeFieldContext {
   sender?: {
     name?: string;
   };
+  userPreferences?: {
+    senderName?: string;
+  } | null;
 }
 
 // Default values for merge fields
@@ -33,7 +36,7 @@ const DEFAULT_VALUES: Record<string, string> = {
 };
 
 export function resolveMergeField(field: string, context: MergeFieldContext): string {
-  const { contact, company, sender } = context;
+  const { contact, company, sender, userPreferences } = context;
   
   switch (field) {
     case '{{company_name}}':
@@ -56,7 +59,7 @@ export function resolveMergeField(field: string, context: MergeFieldContext): st
       return nameParts.length > 1 ? nameParts[nameParts.length - 1] : 'Last';
     
     case '{{sender_name}}':
-      return sender?.name || DEFAULT_VALUES['{{sender_name}}'];
+      return userPreferences?.senderName || sender?.name || DEFAULT_VALUES['{{sender_name}}'];
     
     default:
       return DEFAULT_VALUES[field] || field;

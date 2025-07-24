@@ -161,6 +161,7 @@ export class ReplitStorage implements IStorage {
         id: await this.getNextId('userPrefs'),
         userId, 
         hasSeenTour: data.hasSeenTour ?? false,
+        senderName: data.senderName ?? null,
         createdAt: now, 
         updatedAt: now 
       };

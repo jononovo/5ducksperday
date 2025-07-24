@@ -37,6 +37,17 @@ import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow
 import { logIncomingWebhook } from "./lib/webhook-logger";
 import { getEmailProvider } from "./services/emailService";
 
+// RFC 2822 compliant email sender formatter
+function formatEmailSender(name: string | null, email: string): string {
+  if (!name?.trim()) return email;
+  
+  // Handle special characters per RFC 2822
+  const needsQuotes = /[()<>@,;:\\\".\[\] ]/.test(name);
+  const safeName = needsQuotes ? `"${name.replace(/"/g, '\\"')}"` : name;
+  
+  return `${safeName} <${email}>`;
+}
+
 // Global session storage for search results
 interface SearchSessionResult {
   sessionId: string;
@@ -2287,6 +2298,27 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
+  // Dedicated endpoint for updating sender name
+  app.post("/api/user/sender-name", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { senderName } = req.body;
+      
+      if (!senderName || typeof senderName !== 'string' || !senderName.trim()) {
+        res.status(400).json({ message: "Valid sender name is required" });
+        return;
+      }
+      
+      const preferences = await storage.updateUserPreferences(userId, { senderName: senderName.trim() });
+      res.json({ success: true, senderName: preferences.senderName });
+    } catch (error) {
+      console.error('Error updating sender name:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to update sender name"
+      });
+    }
+  });
+
   // Testing API endpoints for system health checks
   app.post("/api/test/auth", async (req, res) => {
     console.log('Auth test endpoint hit - sending JSON response');
@@ -3513,8 +3545,12 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const gmailUserInfo = await TokenService.getGmailUserInfo(userId);
       const senderEmail = gmailUserInfo?.email || req.user!.email;
 
-      // Format From header with email-only format (names will be collected via modal/dialog)
-      const fromHeader = `From: ${senderEmail}`;
+      // Get sender name from UserPreferences for professional email identity
+      const userPrefs = await storage.getUserPreferences(userId);
+      const senderName = userPrefs?.senderName || null;
+      
+      // Format From header with proper sender name or fallback to email-only
+      const fromHeader = `From: ${formatEmailSender(senderName, senderEmail)}`;
 
       // Create email content
       const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;

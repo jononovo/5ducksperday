@@ -432,8 +432,20 @@ export class GmailProvider implements EmailProvider {
       const gmailUserInfo = await TokenService.getGmailUserInfo(data.userId);
       const senderEmail = gmailUserInfo?.email || userEmail;
 
-      // Format From header with email-only format (names will be collected via modal/dialog)
-      const fromHeader = `From: ${senderEmail}`;
+      // Get sender name from UserPreferences for professional email identity
+      const userPrefs = await storage.getUserPreferences(data.userId);
+      const senderName = userPrefs?.senderName || null;
+      
+      // RFC 2822 compliant email sender formatter
+      const formatEmailSender = (name: string | null, email: string): string => {
+        if (!name?.trim()) return email;
+        const needsQuotes = /[()<>@,;:\\\".\[\] ]/.test(name);
+        const safeName = needsQuotes ? `"${name.replace(/"/g, '\\"')}"` : name;
+        return `${safeName} <${email}>`;
+      };
+
+      // Format From header with proper sender name or fallback to email-only
+      const fromHeader = `From: ${formatEmailSender(senderName, senderEmail)}`;
 
       // 3. Create the raw email content
       const email = [
@@ -494,8 +506,20 @@ export class GmailProvider implements EmailProvider {
       const gmailUserInfo = await TokenService.getGmailUserInfo(this.userId);
       const senderEmail = gmailUserInfo?.email || userEmail;
 
-      // Format From header with email-only format (names will be collected via modal/dialog)
-      const fromHeader = `From: ${senderEmail}`;
+      // Get sender name from UserPreferences for professional email identity
+      const userPrefs = await storage.getUserPreferences(this.userId);
+      const senderName = userPrefs?.senderName || null;
+      
+      // RFC 2822 compliant email sender formatter
+      const formatEmailSender = (name: string | null, email: string): string => {
+        if (!name?.trim()) return email;
+        const needsQuotes = /[()<>@,;:\\\".\[\] ]/.test(name);
+        const safeName = needsQuotes ? `"${name.replace(/"/g, '\\"')}"` : name;
+        return `${safeName} <${email}>`;
+      };
+
+      // Format From header with proper sender name or fallback to email-only
+      const fromHeader = `From: ${formatEmailSender(senderName, senderEmail)}`;
       
       // 4. Create the raw email content
       const email = [
