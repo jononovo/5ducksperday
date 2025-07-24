@@ -402,9 +402,8 @@ export function registerRoutes(app: Express) {
       
       // Generate authentication URL
       const scopes = [
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.send',
-        'https://www.googleapis.com/auth/gmail.modify'
+        'https://www.googleapis.com/auth/gmail.modify',
+        'https://www.googleapis.com/auth/userinfo.email'
       ];
       
       const authUrl = oauth2Client.generateAuthUrl({
@@ -447,16 +446,18 @@ export function registerRoutes(app: Express) {
       // Exchange code for tokens
       const { tokens } = await oauth2Client.getToken(code as string);
       
-      // Set credentials for Gmail API call
+      // Set credentials for OAuth userinfo call
       oauth2Client.setCredentials(tokens);
       
-      // Fetch user's Gmail profile information
-      const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
-      const profile = await gmail.users.getProfile({ userId: 'me' });
+      // Fetch user's email information via OAuth userinfo endpoint
+      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { 'Authorization': `Bearer ${tokens.access_token}` }
+      });
+      const userInfo = await userInfoResponse.json();
       
-      console.log(`[Gmail OAuth] Fetched profile for user ${userId}:`, {
-        email: profile.data.emailAddress,
-        name: profile.data.displayName || profile.data.emailAddress
+      console.log(`[Gmail OAuth] Fetched userinfo for user ${userId}:`, {
+        email: userInfo.email,
+        email_verified: userInfo.email_verified
       });
       
       // Store tokens and user info using TokenService
@@ -465,8 +466,8 @@ export function registerRoutes(app: Express) {
         refresh_token: tokens.refresh_token,
         expiry_date: tokens.expiry_date
       }, {
-        email: profile.data.emailAddress!,
-        name: profile.data.displayName || profile.data.emailAddress!
+        email: userInfo.email,
+        name: null  // Name will be collected via frontend modal/dialog
       });
       
       // Send HTML that closes the pop-up and notifies parent window
@@ -3508,17 +3509,12 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
-      // Get Gmail user info for proper sender identity
+      // Get Gmail user info for sender email identity
       const gmailUserInfo = await TokenService.getGmailUserInfo(userId);
-      const senderName = gmailUserInfo?.name;
       const senderEmail = gmailUserInfo?.email || req.user!.email;
 
-      // Format From header with display name (RFC 2822 compliant)
-      const fromHeader = senderName && senderName !== senderEmail
-        ? `From: ${senderName.includes(' ') || senderName.includes(',') || senderName.includes('"') 
-            ? `"${senderName.replace(/"/g, '\\"')}"` 
-            : senderName} <${senderEmail}>`
-        : `From: ${senderEmail}`;
+      // Format From header with email-only format (names will be collected via modal/dialog)
+      const fromHeader = `From: ${senderEmail}`;
 
       // Create email content
       const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;

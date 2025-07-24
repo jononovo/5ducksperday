@@ -164,11 +164,8 @@ export class GmailProvider implements EmailProvider {
   // Helper to get the user's email address
   private async getUserEmail() {
     try {
-      const response = await this.gmail.users.getProfile({
-        userId: 'me'
-      });
-      
-      return response.data.emailAddress || '';
+      const gmailUserInfo = await TokenService.getGmailUserInfo(this.userId);
+      return gmailUserInfo?.email || '';
     } catch (error) {
       console.error('Error getting user email:', error);
       return '';
@@ -431,17 +428,12 @@ export class GmailProvider implements EmailProvider {
         throw new Error('Contact not found or has no email');
       }
       
-      // 2. Get Gmail user info for proper sender identity
+      // 2. Get Gmail user info for sender email identity
       const gmailUserInfo = await TokenService.getGmailUserInfo(data.userId);
-      const senderName = gmailUserInfo?.name;
       const senderEmail = gmailUserInfo?.email || userEmail;
 
-      // Format From header with display name (RFC 2822 compliant)
-      const fromHeader = senderName && senderName !== senderEmail
-        ? `From: ${senderName.includes(' ') || senderName.includes(',') || senderName.includes('"') 
-            ? `"${senderName.replace(/"/g, '\\"')}"` 
-            : senderName} <${senderEmail}>`
-        : `From: ${senderEmail}`;
+      // Format From header with email-only format (names will be collected via modal/dialog)
+      const fromHeader = `From: ${senderEmail}`;
 
       // 3. Create the raw email content
       const email = [
@@ -498,17 +490,12 @@ export class GmailProvider implements EmailProvider {
       // 3. Get user and contact emails with proper sender identity
       const userEmail = await this.getUserEmail();
       
-      // Get Gmail user info for proper sender identity
+      // Get Gmail user info for sender email identity
       const gmailUserInfo = await TokenService.getGmailUserInfo(this.userId);
-      const senderName = gmailUserInfo?.name;
       const senderEmail = gmailUserInfo?.email || userEmail;
 
-      // Format From header with display name (RFC 2822 compliant)
-      const fromHeader = senderName && senderName !== senderEmail
-        ? `From: ${senderName.includes(' ') || senderName.includes(',') || senderName.includes('"') 
-            ? `"${senderName.replace(/"/g, '\\"')}"` 
-            : senderName} <${senderEmail}>`
-        : `From: ${senderEmail}`;
+      // Format From header with email-only format (names will be collected via modal/dialog)
+      const fromHeader = `From: ${senderEmail}`;
       
       // 4. Create the raw email content
       const email = [
