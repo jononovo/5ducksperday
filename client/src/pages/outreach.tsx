@@ -992,6 +992,7 @@ export default function Outreach() {
   };
 
   return (
+    <>
     <div className="w-full md:container md:mx-auto md:py-8">
       {/* Mobile Duck Header - Only visible on mobile when in compressed view with selected contact */}
       <div className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 transition-all duration-300 ${showExpandedView || !selectedContact ? 'hidden' : 'block'}`}>
@@ -1589,5 +1590,6 @@ export default function Outreach() {
         });
       }}
     />
+    </>
   );
 }
