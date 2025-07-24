@@ -1,0 +1,381 @@
+Gmail Scope Optimization Technical Roadmap
+Overview
+Complete implementation guide for Gmail OAuth scope optimization with user-controlled sender names. Reduces Gmail permissions from 3 scopes to 2, eliminates Gmail profile API dependencies, and provides clean UI for sender name collection.
+
+Phase 1: OAuth Scope Simplification
+1.1 Update OAuth Configuration
+File: server/routes.ts - Gmail auth endpoint
+
+Changes Required:
+
+// BEFORE: Multiple scopes including Gmail profile access
+const scopes = [
+  'https://www.googleapis.com/auth/gmail.modify',
+  'https://www.googleapis.com/auth/gmail.readonly', 
+  'https://www.googleapis.com/auth/userinfo.profile'
+];
+// AFTER: Minimal scopes only
+const scopes = [
+  'https://www.googleapis.com/auth/gmail.modify',
+  'https://www.googleapis.com/auth/userinfo.email'
+];
+Technical Notes:
+
+Remove gmail.readonly (redundant with gmail.modify)
+Replace userinfo.profile with userinfo.email (minimal data access)
+Update OAuth2 configuration to reflect new scope requirements
+Phase 2: Remove Gmail Profile Dependencies
+2.1 Replace Gmail API Profile Calls
+File: server/routes.ts - OAuth callback handler
+
+Remove:
+
+// Remove Gmail API profile fetching
+const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+const profile = await gmail.users.getProfile({ userId: 'me' });
+const gmailEmail = profile.data.emailAddress;
+Replace With:
+
+// Use OAuth2 userinfo endpoint instead
+const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+const userInfo = await oauth2.userinfo.get();
+const gmailEmail = userInfo.data.email;
+Technical Benefits:
+
+Eliminates Gmail API dependency for user info
+Uses standard OAuth2 userinfo endpoint
+Consistent with minimal permission philosophy
+Phase 3: TokenService Refactoring
+3.1 Update UserTokens Interface
+File: server/lib/tokens/types.ts
+
+Remove Deprecated Fields:
+
+export interface UserTokens {
+  // REMOVE these fields:
+  // gmailEmail?: string;
+  // gmailName?: string;
+  
+  // KEEP existing fields:
+  gmailAccessToken: string;
+  gmailRefreshToken: string;
+  expiresAt: number;
+  
+  // ADD new field:
+  senderName?: string;
+}
+3.2 Add Sender Name Management Methods
+File: server/lib/tokens/index.ts
+
+New Methods to Add:
+
+/**
+ * Get sender name from stored tokens
+ */
+static async getSenderName(userId: number): Promise<string | null> {
+  try {
+    const tokens = await this.getUserTokens(userId);
+    if (!tokens) return null;
+    return tokens.senderName || null;
+  } catch (error) {
+    console.error(`Error getting sender name for user ${userId}:`, error);
+    return null;
+  }
+}
+/**
+ * Update sender name for user
+ */
+static async updateSenderName(userId: number, senderName: string): Promise<void> {
+  try {
+    const tokens = await this.getUserTokens(userId);
+    if (!tokens) {
+      throw new Error(`No Gmail tokens found for user ${userId}`);
+    }
+    tokens.senderName = senderName.trim();
+    tokens.updatedAt = Date.now();
+    
+    await this.saveUserTokens(userId, tokens);
+  } catch (error) {
+    console.error(`Error updating sender name for user ${userId}:`, error);
+    throw error;
+  }
+}
+Phase 4: Create SenderNameDialog Component
+4.1 Create Dialog Component
+File: client/src/components/sender-name-dialog.tsx
+
+Complete Component Implementation:
+
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+interface SenderNameDialogProps {
+  open: boolean;
+  onSave: (senderName: string) => void;
+  onSkip: () => void;
+}
+export function SenderNameDialog({ open, onSave, onSkip }: SenderNameDialogProps) {
+  const [senderName, setSenderName] = useState('');
+  const handleSave = () => {
+    if (senderName.trim()) {
+      onSave(senderName.trim());
+      setSenderName('');
+    }
+  };
+  const handleSkip = () => {
+    setSenderName('');
+    onSkip();
+  };
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && senderName.trim()) {
+      handleSave();
+    }
+  };
+  return (
+    <Dialog open={open} onOpenChange={handleSkip}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Set Your Email Sender Name</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="senderName">
+              How would you like your name to appear when sending emails?
+            </Label>
+            <Input 
+              id="senderName"
+              placeholder="e.g., John Smith"
+              value={senderName}
+              onChange={(e) => setSenderName(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="w-full"
+              autoFocus
+            />
+            <p className="text-sm text-gray-500">
+              This will be displayed as "Your Name &lt;your@email.com&gt;" in outgoing emails.
+            </p>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={handleSkip}>
+              Skip (Use Email Only)
+            </Button>
+            <Button 
+              onClick={handleSave} 
+              disabled={!senderName.trim()}
+              className="min-w-[100px]"
+            >
+              Save Name
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+Phase 5: Update Email Sending Logic
+5.1 Update Main Email Endpoint
+File: server/routes.ts - /api/send-gmail endpoint
+
+Key Changes:
+
+// Replace Gmail profile fetching with stored sender name
+const senderName = await TokenService.getSenderName(userId);
+const senderEmail = req.user!.email; // Use database email
+// Format From header with RFC 2822 compliance
+const fromHeader = senderName && senderName.trim()
+  ? `${senderName.includes(' ') || senderName.includes(',') || senderName.includes('"') 
+      ? `"${senderName.replace(/"/g, '\\"')}"` 
+      : senderName} <${senderEmail}>`
+  : senderEmail;
+5.2 Update EmailService Methods
+File: server/services/emailService.ts
+
+Update Both Methods:
+
+createThread() method
+createMessage() method
+Pattern to Apply:
+
+// Get sender info from database and stored sender name
+const user = await storage.getUserById(this.userId);
+const senderName = await TokenService.getSenderName(this.userId);
+const senderEmail = user?.email || userEmail;
+// Format From header consistently
+const fromHeader = senderName && senderName.trim()
+  ? `From: ${senderName.includes(' ') || senderName.includes(',') || senderName.includes('"') 
+      ? `"${senderName.replace(/"/g, '\\"')}"` 
+      : senderName} <${senderEmail}>`
+  : `From: ${senderEmail}`;
+Phase 6: Add API Endpoints
+6.1 Sender Name Management Endpoints
+File: server/routes.ts
+
+Add Two Endpoints:
+
+// GET sender name
+app.get('/api/gmail/sender-name', requireAuth, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const senderName = await TokenService.getSenderName(userId);
+    
+    res.json({ senderName });
+  } catch (error) {
+    console.error('Error getting sender name:', error);
+    res.status(500).json({ error: 'Failed to get sender name' });
+  }
+});
+// POST sender name
+app.post('/api/gmail/sender-name', requireAuth, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const { senderName } = req.body;
+    if (!senderName || typeof senderName !== 'string' || !senderName.trim()) {
+      return res.status(400).json({ error: 'Valid sender name is required' });
+    }
+    await TokenService.updateSenderName(userId, senderName);
+    
+    res.json({ 
+      success: true, 
+      message: 'Sender name updated successfully',
+      senderName: senderName.trim()
+    });
+  } catch (error) {
+    console.error('Error updating sender name:', error);
+    res.status(500).json({ error: 'Failed to update sender name' });
+  }
+});
+Phase 7: Update OAuth Success Flow
+7.1 Modify Gmail Connection Handler
+File: client/src/pages/outreach.tsx (or equivalent)
+
+Add State Management:
+
+const [showSenderNameDialog, setShowSenderNameDialog] = useState(false);
+Update handleMessage Function:
+
+const handleMessage = (event: MessageEvent) => {
+  if (event.data.type === 'GMAIL_AUTH_SUCCESS') {
+    window.removeEventListener('message', handleMessage);
+    
+    // Show sender name dialog instead of immediate success
+    setShowSenderNameDialog(true);
+  }
+};
+Add Dialog Handlers:
+
+const handleSenderNameSave = async (senderName: string) => {
+  try {
+    const response = await apiRequest("POST", "/api/gmail/sender-name", { senderName });
+    if (!response.ok) {
+      throw new Error("Failed to save sender name");
+    }
+    
+    setShowSenderNameDialog(false);
+    refetchGmailStatus();
+    
+    toast({
+      title: "Gmail Connected Successfully",
+      description: `Sender name set to "${senderName}". You can now send emails via Gmail!`,
+    });
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: error instanceof Error ? error.message : "Failed to save sender name",
+      variant: "destructive",
+    });
+  }
+};
+const handleSenderNameSkip = () => {
+  setShowSenderNameDialog(false);
+  refetchGmailStatus();
+  
+  toast({
+    title: "Gmail Connected",
+    description: "You can now send emails via Gmail! (Using email address only)",
+  });
+};
+7.2 Add Dialog to JSX
+return (
+  <div>
+    {/* Existing component content */}
+    
+    {/* Add before closing div */}
+    <SenderNameDialog
+      open={showSenderNameDialog}
+      onSave={handleSenderNameSave}
+      onSkip={handleSenderNameSkip}
+    />
+  </div>
+);
+Phase 8: Update Merge Field Resolution
+8.1 Update Merge Field Resolver
+File: client/src/lib/merge-field-resolver.ts (if exists)
+
+Update sender_name Resolution:
+
+case '{{sender_name}}':
+  return sender?.name || DEFAULT_VALUES['{{sender_name}}'];
+8.2 Update Template Resolution
+File: Main template usage file
+
+Ensure Sender Name Context:
+
+const resolveContent = (content: string, contact: Contact | null) => {
+  // Get sender name from user context or stored preferences
+  const senderName = userSenderName || user?.email?.split('@')[0] || '{{sender_name}}';
+  
+  return content.replace(/\{\{sender_name\}\}/g, senderName);
+};
+Implementation Checklist
+Backend Changes
+ Update OAuth scopes configuration
+ Replace Gmail profile API calls with OAuth2 userinfo
+ Update TokenService interface and methods
+ Add sender name management API endpoints
+ Update all 3 email sending locations
+ Test token storage and retrieval
+Frontend Changes
+ Create SenderNameDialog component
+ Add dialog state management
+ Update OAuth success flow
+ Add dialog integration to main page
+ Update merge field resolution
+ Test complete user flow
+Testing Requirements
+ OAuth flow with new scopes
+ Sender name dialog appearance after OAuth
+ Sender name storage and retrieval
+ Email sending with proper From headers
+ Merge field resolution in templates
+ Skip functionality (email-only mode)
+Edge Cases to Handle
+ Missing sender name during email send
+ Invalid sender name characters
+ Long sender names (RFC 2822 limits)
+ Special characters requiring quotes
+ Fallback to email-only mode
+Key Technical Patterns
+1. RFC 2822 From Header Formatting:
+
+const fromHeader = senderName && senderName.trim()
+  ? `${senderName.includes(' ') || senderName.includes(',') || senderName.includes('"') 
+      ? `"${senderName.replace(/"/g, '\\"')}"` 
+      : senderName} <${senderEmail}>`
+  : senderEmail;
+2. Consistent Error Handling:
+
+try {
+  // operation
+} catch (error) {
+  console.error('Context-specific error message:', error);
+  // Appropriate error response/handling
+}
+3. Dialog State Management:
+
+// Show dialog after OAuth success, not immediate toast
+// Provide both save and skip options
+// Reset state after completion
+This roadmap provides complete implementation guidance for Gmail scope optimization with user-controlled sender names, ensuring minimal permissions while maintaining full functionality.
+
