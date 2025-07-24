@@ -132,7 +132,6 @@ export default function Outreach() {
   
   // Sender name dialog state
   const [showSenderNameDialog, setShowSenderNameDialog] = useState(false);
-  const [senderNameDialogShownForSession, setSenderNameDialogShownForSession] = useState(false);
 
   // Auto-resize functions
   const handleTextareaResize = () => {
@@ -251,14 +250,13 @@ export default function Outreach() {
   const { data: userPreferences } = useQuery({
     queryKey: ['/api/user/preferences'],
     enabled: !!user,
-    staleTime: 30 * 1000, // 30 seconds - faster cache refresh for sender name updates
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Trigger sender name dialog when Gmail is connected but no sender name is set
   useEffect(() => {
-    if (gmailStatus?.authorized && userPreferences && !userPreferences.senderName && !showSenderNameDialog && !senderNameDialogShownForSession) {
+    if (gmailStatus?.authorized && userPreferences && !userPreferences.senderName && !showSenderNameDialog) {
       setShowSenderNameDialog(true);
-      setSenderNameDialogShownForSession(true);
     }
   }, [gmailStatus?.authorized, userPreferences]);
 
@@ -1590,7 +1588,6 @@ export default function Outreach() {
           title: "Email Identity Set",
           description: "Your professional name will now appear in all outreach emails",
         });
-        setShowSenderNameDialog(false);
       }}
     />
     </>
