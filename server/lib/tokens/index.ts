@@ -154,7 +154,6 @@ export class TokenService {
       const existingTokens = await this.getUserTokens(userId);
       
       const tokens: UserTokens = {
-        firebaseIdToken: existingTokens?.firebaseIdToken || '',
         gmailAccessToken: gmailTokens.access_token,
         gmailRefreshToken: gmailTokens.refresh_token,
         tokenExpiry: gmailTokens.expiry_date || (Date.now() + (3600 * 1000)), // Default 1 hour
@@ -234,7 +233,7 @@ export class TokenService {
       const success = await this.updateGmailToken(
         userId, 
         credentials.access_token,
-        credentials.expiry_date
+        credentials.expiry_date || undefined
       );
 
       if (success) {

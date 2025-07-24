@@ -1,5 +1,4 @@
 export interface UserTokens {
-  firebaseIdToken: string;
   gmailAccessToken: string;
   gmailRefreshToken?: string;
   tokenExpiry: number;
