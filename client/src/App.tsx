@@ -47,7 +47,7 @@ const Terms = lazy(() => import("@/pages/terms"));
 
 const Blog = lazy(() => import("@/pages/blog"));
 const BlogPost = lazy(() => import("@/pages/blog-post"));
-const Contact = lazy(() => import("@/pages/contact"));
+
 const Support = lazy(() => import("@/pages/support"));
 const Levels = lazy(() => import("@/pages/levels"));
 const Privacy = lazy(() => import("@/pages/privacy"));
@@ -114,16 +114,7 @@ function Router() {
             </div>
           </Layout>
         </Route>
-        <Route path="/contact">
-          <Layout>
-            <MainNav />
-            <div className="flex-1">
-              <Suspense fallback={<LoadingScreen />}>
-                <Contact />
-              </Suspense>
-            </div>
-          </Layout>
-        </Route>
+
         <Route path="/support">
           <Layout>
             <MainNav />
