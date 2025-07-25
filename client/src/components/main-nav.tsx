@@ -17,7 +17,6 @@ import {
 const navigation = [
   { name: "Search", href: "/app", icon: "dashboard" },
   { name: "Outreach", href: "/outreach", icon: "mail" },
-  { name: "Strategy", href: "/strategy", icon: "target" },
   // { name: "Replies", href: "/replies", icon: "message" }
 ];
 

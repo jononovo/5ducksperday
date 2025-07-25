@@ -120,6 +120,8 @@
 
 ## Changelog
 
+- July 25, 2025. **Strategy Tab Removal from Main Navigation**: Removed Strategy tab from main horizontal navigation menu to simplify the interface. Strategy page remains accessible through the dropdown menu (hamburger menu) on the right side of the navigation bar. This reduces visual clutter in the main navigation while maintaining full functionality access. Files modified: `client/src/components/main-nav.tsx`.
+
 - July 25, 2025. **Landing Page Subtitle Enhancement**: Updated static landing page subtitle from "Find companies, contacts & their emails with a prompt 🎯" to "Start by finding companies, contacts & their emails with a prompt 🎯" for improved user guidance and call-to-action clarity. The addition of "Start by" creates a more instructional tone that better guides new users through the platform's primary value proposition. Files modified: `static/landing.html`.
 
 - July 25, 2025. **Privacy Policy Professional Email Standardization**: Updated all privacy-related contact emails from "quack@5ducks.ai" to "privacy@5ducks.ai" throughout privacy policy for more professional communication. Changed emails in California Privacy Rights section (line 280), GDPR Data Protection Officer contact (line 310), main Contact Us section (line 319), and general privacy rights section (line 212). Also standardized domain from ".com" to ".ai" for complete consistency. This enhances the serious, professional tone appropriate for privacy inquiries, data protection requests, and legal compliance matters. Files modified: `client/public/privacy.html`.
