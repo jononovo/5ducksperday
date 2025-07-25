@@ -120,6 +120,8 @@
 
 ## Changelog
 
+- July 25, 2025. **Landing Page Statistics Update**: Updated time savings statistic from "~48 Mins" to "~68 Mins" in main hero section statistics display. The three-column statistics layout now shows updated productivity metrics for users. Files modified: `static/landing.html`.
+
 - July 25, 2025. **Contact Page Vibe Coding Section Content Update**: Enhanced "About This App" section with comprehensive 8-point practical guide for building complex applications through vibe coding with Replit. Updated content includes detailed workflow strategies: pre-prompting, planning phases, multi-clone testing using Replit's Re-mix feature, GitHub branch management, and debugging cache conflicts. Added realistic expectations about time investment and senior developer comparison. Improved typography with numbered list formatting, smaller text size (`text-sm`), and enhanced readability through proper spacing and emphasis. Files modified: `static/contact.html`.
 
 - July 25, 2025. **"Change the World" Contact Card Implementation**: Added expandable contact card with Gaza advocacy messaging and credits bonus offer. Card features initial "How to feel better about yourself" button that expands to reveal larger "Speak up about Gaza! You won't regret it." button plus hidden text offering 3000 credits bonus for typing "free palestine" in search bar. Implements green color scheme for expanded content, maintains uniform spacing with other cards using existing `space-y-6` container, and includes JavaScript event listener for smooth interaction. Links to `/app` page for credits redemption. Files modified: `static/contact.html`.
