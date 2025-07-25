@@ -17,7 +17,6 @@ import {
 const navigation = [
   { name: "Search", href: "/app", icon: "dashboard" },
   { name: "Outreach", href: "/outreach", icon: "mail" },
-  { name: "Contact", href: "/contact", icon: "headphones", external: true }
   // { name: "Replies", href: "/replies", icon: "message" }
 ];
 
@@ -53,24 +52,6 @@ export function MainNav() {
         {navigation.map((item) => {
           const isActive = item.href === location || 
             (item.href === "/" && location === "/");
-
-          // Handle external links (like Contact page)
-          if (item.external) {
-            return (
-              <a
-                key={item.name}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground px-2 py-1.5 text-sm font-medium transition-colors"
-              >
-                <div className="flex items-center">
-                  {item.icon === "headphones" && <Headphones className="mr-1 h-4 w-4" />}
-                  <span className="md:inline hidden">{item.name}</span>
-                </div>
-              </a>
-            );
-          }
 
           return (
             <Link
@@ -136,6 +117,13 @@ export function MainNav() {
                     <span>Strategy</span>
                   </DropdownMenuItem>
                 </Link>
+                <DropdownMenuItem
+                  onClick={() => window.open('/contact', '_blank')}
+                  className="cursor-pointer"
+                >
+                  <Headphones className="h-4 w-4 mr-2" />
+                  <span>Contact</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </>
