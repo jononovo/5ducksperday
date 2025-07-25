@@ -220,6 +220,33 @@
                             What features will help you sell more better easier?
                         </p>
                     </div>
+
+                    <!-- Change the World Card -->
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 max-w-lg mx-auto">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Change the World</h3>
+                        
+                        <!-- Initial Button -->
+                        <button 
+                            id="change-world-btn" 
+                            class="w-full py-3 px-6 bg-gray-50 hover:bg-gray-200 text-gray-700 hover:text-gray-900 font-semibold rounded-lg mb-2 border border-gray-200 hover:border-gray-300 transition-all hover:scale-102"
+                        >
+                            How to feel better about yourself
+                        </button>
+                        
+                        <!-- Expanded Content (Hidden Initially) -->
+                        <div id="expanded-gaza-content" style="display: none;">
+                            <!-- Larger Gaza Button -->
+                            <button class="w-full py-4 px-8 bg-green-50 hover:bg-green-100 text-green-800 hover:text-green-900 font-bold rounded-lg mb-3 border border-green-300 hover:border-green-400 transition-all hover:scale-102 text-lg">
+                                Speak up about Gaza! You won't regret it.
+                            </button>
+                            
+                            <!-- Credits Bonus Text -->
+                            <p class="text-xs text-gray-500 mt-2">
+                                Get 3000 Credits Bonus by typing "free palestine" into the search bar 
+                                <a href="/app" class="text-blue-600 hover:text-blue-800 underline">here</a>.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -431,6 +458,18 @@
                     }, 2000);
                 });
             });
+
+            // Change the world button functionality
+            const changeWorldBtn = document.getElementById('change-world-btn');
+            if (changeWorldBtn) {
+                changeWorldBtn.addEventListener('click', function() {
+                    // Hide initial button
+                    this.style.display = 'none';
+                    
+                    // Show expanded content
+                    document.getElementById('expanded-gaza-content').style.display = 'block';
+                });
+            }
         });
     </script>
 </body>

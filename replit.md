@@ -120,6 +120,8 @@
 
 ## Changelog
 
+- July 25, 2025. **"Change the World" Contact Card Implementation**: Added expandable contact card with Gaza advocacy messaging and credits bonus offer. Card features initial "How to feel better about yourself" button that expands to reveal larger "Speak up about Gaza! You won't regret it." button plus hidden text offering 3000 credits bonus for typing "free palestine" in search bar. Implements green color scheme for expanded content, maintains uniform spacing with other cards using existing `space-y-6` container, and includes JavaScript event listener for smooth interaction. Links to `/app` page for credits redemption. Files modified: `static/contact.html`.
+
 - July 25, 2025. **Contact Card Spacing Uniformity**: Fixed inconsistent spacing between contact cards by moving all four cards into unified `space-y-6` container. Previously Cards 1-2 had 24px spacing, Card 2-3 had 48px gap, and Cards 3-4 had no margin. Now all cards have uniform 24px spacing using single container approach. Enhanced visual consistency and professional layout hierarchy. Files modified: `static/contact.html`.
 
 - July 25, 2025. **LinkedIn Button Positioning and Styling Enhancement**: Improved LinkedIn button integration by reducing spacing from `mt-2 pt-3` to `mt-1 pt-2` (8px closer to email button) and replaced prominent navy blue styling with subtle light blue design. Changed from `bg-blue-600 text-white` to `bg-blue-50 text-blue-700` with matching borders and hover states. Button now creates tighter visual grouping while maintaining professional appearance and brand recognition. Files modified: `static/contact.html`.
