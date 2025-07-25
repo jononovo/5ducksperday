@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - 5Ducks | Get in Touch</title>
+    <meta name="description" content="Get in touch with the 5Ducks team. We're here to help with your B2B prospecting needs and answer any questions about our platform.">
+    
+    <!-- Open Graph Tags -->
+    <meta property="og:title" content="Contact 5Ducks - Get Support & Answers">
+    <meta property="og:description" content="Get in touch with the 5Ducks team. We're here to help with your B2B prospecting needs and answer any questions about our platform.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://5ducks.com/contact">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'selector', // Use explicit selector mode
+            theme: {
+                extend: {}
+            }
+        }
+        
+        // Prevent dark mode activation
+        document.documentElement.classList.remove('dark');
+        
+        // Ensure dark class never gets added
+        new MutationObserver(() => {
+            document.documentElement.classList.remove('dark');
+        }).observe(document.documentElement, { attributes: true });
+    </script>
+    
+    <!-- Custom CSS -->
+    <style>
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .contact-card {
+            transition: all 0.3s ease;
+        }
+        
+        .contact-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+        }
+        
+        .form-input {
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <!-- Header -->
+    <header class="container mx-auto py-4 px-4">
+        <div class="flex justify-between items-center">
+            <a href="/" class="font-bold flex items-center text-3xl hover:opacity-80 transition-opacity">
+                <span class="text-gray-500">5</span>
+                <span class="text-gray-700">Ducks</span>
+                <div class="flex items-end ml-3">
+                    <span class="text-3xl">🐥</span>
+                    <span class="text-2xl md:inline hidden">🥚🥚🥚🥚</span>
+                </div>
+            </a>
+            
+            <div class="flex-1 flex justify-center">
+                <nav class="hidden md:block">
+                    <ul class="flex space-x-8">
+                        <li>
+                            <a href="/app" data-nav-item="search" class="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors border-b border-transparent hover:border-slate-400 py-1">
+                                Search
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/pricing" data-nav-item="pricing" class="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors border-b border-transparent hover:border-slate-400 py-1">
+                                Pricing
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/contact" data-nav-item="contact" class="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors border-b border-transparent hover:border-slate-400 py-1">
+                                Contact
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <a href="/outreach" class="px-4 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    Login
+                </a>
+                <div class="md:hidden relative">
+                    <button id="mobile-menu-btn" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                    <div id="mobile-menu" class="hidden absolute right-0 top-12 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-50">
+                        <a href="/app" data-nav-item="search" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                            Search
+                        </a>
+                        <a href="/pricing" data-nav-item="pricing" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                            Pricing
+                        </a>
+                        <a href="/contact" data-nav-item="contact" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                            Contact
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="text-center">
+                <!-- Main Greeting -->
+                <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                    Hey! So excited to hear from you 🎉
+                </h1>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+                    You are wonderful!
+                </p>
+
+                <!-- Email Buttons -->
+                <div class="space-y-6 mb-12">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 max-w-lg mx-auto">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Personal Contact</h3>
+                        <button 
+                            id="personal-email-btn" 
+                            class="w-full py-3 px-6 bg-gray-50 hover:bg-gray-200 text-gray-700 hover:text-gray-900 font-semibold rounded-lg mb-2 border border-gray-200 hover:border-gray-300 transition-all hover:scale-102"
+                        >
+                            📧 Click to Reveal Personal Email
+                        </button>
+                        <div id="personal-email-feedback" class="text-sm text-green-600 opacity-0 transition-opacity duration-300">
+                            Email address copied!
+                        </div>
+                        
+                        <!-- LinkedIn Connection -->
+                        <div class="mt-1 pt-2 border-t border-gray-100">
+                            <a 
+                                href="https://www.linkedin.com/in/jonathannovotny/" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center justify-center w-full px-6 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 font-semibold rounded-lg border border-blue-200 hover:border-blue-300 transition-all hover:scale-102"
+                            >
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                                </svg>
+                                Connect on LinkedIn
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 max-w-lg mx-auto">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">General Inquiries</h3>
+                        <button 
+                            id="general-email-btn" 
+                            class="w-full py-3 px-6 bg-gray-50 hover:bg-gray-200 text-gray-700 hover:text-gray-900 font-semibold rounded-lg mb-2 border border-gray-200 hover:border-gray-300 transition-all hover:scale-102"
+                        >
+                            📬 Click to Reveal General Email
+                        </button>
+                        <div id="general-email-feedback" class="text-sm text-green-600 opacity-0 transition-opacity duration-300">
+                            Email address copied!
+                        </div>
+                    </div>
+
+                    <!-- Submit Bugs Card -->
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 max-w-lg mx-auto">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Submit Bugs</h3>
+                        <button 
+                            id="bug-report-btn" 
+                            class="w-full py-3 px-6 bg-gray-50 hover:bg-gray-200 text-gray-700 hover:text-gray-900 font-semibold rounded-lg mb-2 border border-gray-200 hover:border-gray-300 transition-all hover:scale-102"
+                        >
+                            📋 Report a Bug
+                        </button>
+                        <div id="bug-report-feedback" class="text-sm text-green-600 opacity-0 transition-opacity duration-300">
+                            Email address copied!
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">
+                            Please include a screenshot and as much information as possible.
+                        </p>
+                    </div>
+
+                    <!-- Suggest Features Card -->
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 max-w-lg mx-auto">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Suggest Features</h3>
+                        <button 
+                            id="feature-request-btn" 
+                            class="w-full py-3 px-6 bg-gray-50 hover:bg-gray-200 text-gray-700 hover:text-gray-900 font-semibold rounded-lg mb-2 border border-gray-200 hover:border-gray-300 transition-all hover:scale-102"
+                        >
+                            💡 Share Your Ideas
+                        </button>
+                        <div id="feature-request-feedback" class="text-sm text-green-600 opacity-0 transition-opacity duration-300">
+                            Email address copied!
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">
+                            Can't wait to hear your ideas.<br/>
+                            <strong>Remember, our goal is to help you sell.</strong><br/>
+                            What features will help you sell more better easier?
+                        </p>
+                    </div>
+
+                    <!-- Change the World Card -->
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 max-w-lg mx-auto">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Change the World</h3>
+                        
+                        <!-- Initial Button -->
+                        <button 
+                            id="change-world-btn" 
+                            class="w-full py-3 px-6 bg-gray-50 hover:bg-gray-200 text-gray-700 hover:text-gray-900 font-semibold rounded-lg mb-2 border border-gray-200 hover:border-gray-300 transition-all hover:scale-102"
+                        >
+                            How to feel better about yourself
+                        </button>
+                        
+                        <!-- Expanded Content (Hidden Initially) -->
+                        <div id="expanded-gaza-content" style="display: none;">
+                            <!-- Larger Gaza Button -->
+                            <button class="w-full py-4 px-8 bg-green-50 hover:bg-green-100 text-green-800 hover:text-green-900 font-bold rounded-lg mb-3 border border-green-300 hover:border-green-400 transition-all hover:scale-102 text-lg">
+                                Speak up about Gaza! You won't regret it.
+                            </button>
+                            
+                            <!-- Credits Bonus Text -->
+                            <p class="text-xs text-gray-500 mt-2">
+                                Get 3000 Credits Bonus by typing "free palestine" into the search bar 
+                                <a href="/app" class="text-blue-600 hover:text-blue-800 underline">here</a>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- Vibe Coding Section -->
+                <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                        Interested in <span class="gradient-text">Vibe Coding</span>?
+                    </h2>
+                    <p class="text-lg text-gray-700 mb-6">
+                        Please reach out if you're interested in learning how to vibe code full applications!
+                    </p>
+                    
+                    <div class="bg-white rounded-xl p-6 text-left max-w-2xl mx-auto">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">About This App</h3>
+                        <div class="space-y-3 text-gray-700 text-sm leading-relaxed">
+                            <p>
+                                This entire application was <strong>100% vibe coded</strong> over a few months.
+                            </p>
+                            <p>
+                                It took way longer than expected (doesn't it always?), but the journey taught me a few tips. It was made exclusively with Replit. There are a few things you can do to improve the outcomes when working on a large application:
+                            </p>
+                            <ol class="list-decimal list-inside space-y-2 ml-4">
+                                <li><strong>Pre-prompting:</strong> Ask the agent to research certain features in areas of the application, but not change anything yet.</li>
+                                <li>Then ask for a detailed plan to implement the feature you were asking for, but not implement anything yet.</li>
+                                <li>If it's especially tricky and your application is a little messy (as mine was), ask it to check if the assumptions made were correct and if anything is going to break as a result of the plan.</li>
+                                <li>After checking the suggested flow, if you're OK with it, then let it run.</li>
+                                <li><strong>Clone the App and run the series of prompts in different tabs:</strong> For a feature that I'm not entirely sure how it should run or even how it should look, I will usually clone the app by using the "Re-mix" option within Replit, and then run the series of pre-prompts in three different clones of the app. And then see which one turns out best.</li>
+                                <li>I will then merge the one I like into GitHub and tell the other two that I reverted all their work and merged in a different branch and that they should familiarize themselves with the changes.</li>
+                                <li>I first revert to work using shell (something that Claude and ChatGPT taught me) and then merging a new branch once I've cleaned the branch that they were working on, to avoid conflicting code.</li>
+                                <li>When swapping branches and overwriting code within Replit many times the application, the Preview, and sometimes even the deployed version within a browser will show lots of conflicts. However, a day later or a few hours later some of these conflicts will not show anymore. So it is a bit challenging to figure out if something is actually broken or if there are just cache and cookie conflicts (even after doing a hard reset within Chrome for example).</li>
+                            </ol>
+                            <p class="mt-4">
+                                If you have any questions or you're interested in getting practical training or joining a cohort that I may train in how to build advanced or complex applications through vibe coding, just reach out to me above.
+                            </p>
+                            <p class="mt-4 font-medium">
+                                If I have anything to say on a high-level about all this, it would be this: <strong>This takes long!</strong> If you don't have eight hours a day (like I often did) then stick to making extremely simple apps. 
+                            </p>
+                            <p class="mt-2 font-medium">
+                                While vibe coding may seem like a magical opportunity, ultimately, senior developers can work faster than those even vibe coding at a high level with lots of tips and tricks. Because over time you will spend a lot of time trying to fix things as your code base gets messy, and senior developers will keep it clean.
+                            </p>
+                            <p class="mt-4 text-gray-600">
+                                Have an awesome day.<br/>
+                                <strong>Jon</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+        <div class="container mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="font-bold flex items-center text-xl">
+                        <span class="text-gray-500">5</span>
+                        <span class="text-gray-700">Ducks</span>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mt-4">
+                        5Ducks makes it easy for founders to build a $70k pipeline in only five minutes per day.
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Product</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>
+                            <a href="/pricing" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Pricing
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/levels" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Levels
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/blog" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Blog
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Company</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>
+                            <a href="/contact" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Contact
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/support" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Support
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/changelog" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Changelog
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/sitemap.xml" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Sitemap
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Legal</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>
+                            <a href="/privacy.html" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Privacy Policy
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/blog/tos" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Terms of Service
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <div class="text-sm text-slate-600 dark:text-slate-400">
+                    © 2025 5Ducks. All rights reserved.
+                </div>
+                <div class="flex items-center">
+                    <span class="text-sm text-slate-600 dark:text-slate-400 italic">
+                        Soli Deo Gloria
+                    </span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a
+                        href="https://www.linkedin.com/company/5ducks/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
+                    >
+                        LinkedIn
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Menu Functionality -->
+    <script src="/static/js/mobile-menu.js"></script>
+    
+    <!-- Active Menu State -->
+    <script src="/static/js/active-menu.js"></script>
+
+    <!-- Email Reveal & Copy Functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const personalEmailBtn = document.getElementById('personal-email-btn');
+            const generalEmailBtn = document.getElementById('general-email-btn');
+            const personalFeedback = document.getElementById('personal-email-feedback');
+            const generalFeedback = document.getElementById('general-email-feedback');
+
+            // Personal email functionality
+            personalEmailBtn.addEventListener('click', function() {
+                const email = 'jon@5ducks.ai';
+                navigator.clipboard.writeText(email).then(function() {
+                    personalEmailBtn.innerHTML = '📧 ' + email;
+                    personalEmailBtn.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
+                    personalEmailBtn.classList.remove('bg-gray-50', 'hover:bg-gray-100', 'text-gray-700', 'border-gray-200');
+                    
+                    personalFeedback.style.opacity = '1';
+                    setTimeout(() => {
+                        personalFeedback.style.opacity = '0';
+                    }, 2000);
+                });
+            });
+
+            // General email functionality
+            generalEmailBtn.addEventListener('click', function() {
+                const email = 'quack@5ducks.ai';
+                navigator.clipboard.writeText(email).then(function() {
+                    generalEmailBtn.innerHTML = '📬 ' + email;
+                    generalEmailBtn.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
+                    generalEmailBtn.classList.remove('bg-gray-50', 'hover:bg-gray-100', 'text-gray-700', 'border-gray-200');
+                    
+                    generalFeedback.style.opacity = '1';
+                    setTimeout(() => {
+                        generalFeedback.style.opacity = '0';
+                    }, 2000);
+                });
+            });
+
+            // Bug report functionality
+            const bugReportBtn = document.getElementById('bug-report-btn');
+            const bugReportFeedback = document.getElementById('bug-report-feedback');
+            
+            bugReportBtn.addEventListener('click', function() {
+                const email = 'quack@5ducks.ai';
+                navigator.clipboard.writeText(email).then(function() {
+                    bugReportBtn.innerHTML = '📋 ' + email;
+                    bugReportBtn.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
+                    bugReportBtn.classList.remove('bg-gray-50', 'hover:bg-gray-100', 'text-gray-700', 'border-gray-200');
+                    
+                    bugReportFeedback.style.opacity = '1';
+                    setTimeout(() => {
+                        bugReportFeedback.style.opacity = '0';
+                    }, 2000);
+                });
+            });
+
+            // Feature request functionality
+            const featureRequestBtn = document.getElementById('feature-request-btn');
+            const featureRequestFeedback = document.getElementById('feature-request-feedback');
+            
+            featureRequestBtn.addEventListener('click', function() {
+                const email = 'quack@5ducks.ai';
+                navigator.clipboard.writeText(email).then(function() {
+                    featureRequestBtn.innerHTML = '💡 ' + email;
+                    featureRequestBtn.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
+                    featureRequestBtn.classList.remove('bg-gray-50', 'hover:bg-gray-100', 'text-gray-700', 'border-gray-200');
+                    
+                    featureRequestFeedback.style.opacity = '1';
+                    setTimeout(() => {
+                        featureRequestFeedback.style.opacity = '0';
+                    }, 2000);
+                });
+            });
+
+            // Change the world button functionality
+            const changeWorldBtn = document.getElementById('change-world-btn');
+            if (changeWorldBtn) {
+                changeWorldBtn.addEventListener('click', function() {
+                    // Hide initial button
+                    this.style.display = 'none';
+                    
+                    // Show expanded content
+                    document.getElementById('expanded-gaza-content').style.display = 'block';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

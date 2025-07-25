@@ -13,6 +13,7 @@ import {
   PartyPopper,
   ExternalLink,
   Mail,
+  Lock,
   Type,
   FileText,
   Users,
@@ -1495,8 +1496,8 @@ export default function Outreach() {
                       size="sm"
                       className="h-8 px-3 text-xs bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
                     >
-                      <Mail className="w-3 h-3 mr-1" />
-                      Connect Gmail
+                      <Lock className="w-3 h-3 mr-1" />
+                      Secure Gmail Connect
                     </Button>
                   )}
                   

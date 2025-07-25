@@ -33,7 +33,6 @@ import { registerCreditRoutes } from "./routes/credits";
 import { registerStripeRoutes } from "./routes/stripe";
 import { CreditService } from "./lib/credits";
 import { SearchType } from "./lib/credits/types";
-import { TokenService } from "./lib/tokens";
 import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow-service";
 import { logIncomingWebhook } from "./lib/webhook-logger";
 import { getEmailProvider } from "./services/emailService";
@@ -369,6 +368,11 @@ export function registerRoutes(app: Express) {
     res.sendFile(path.join(__dirname, '../static/pricing/index.html'));
   });
   
+  // Serve the static contact page
+  app.get('/contact', (req, res) => {
+    res.sendFile(path.join(__dirname, '../static/contact.html'));
+  });
+  
 
   
   // Sitemap route
@@ -403,9 +407,9 @@ export function registerRoutes(app: Express) {
       
       // Generate authentication URL
       const scopes = [
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.send',
-        'https://www.googleapis.com/auth/gmail.modify'
+        'https://www.googleapis.com/auth/gmail.modify',
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile'
       ];
       
       const authUrl = oauth2Client.generateAuthUrl({
@@ -448,16 +452,19 @@ export function registerRoutes(app: Express) {
       // Exchange code for tokens
       const { tokens } = await oauth2Client.getToken(code as string);
       
-      // Set credentials for Gmail API call
+      // Set credentials for OAuth userinfo call
       oauth2Client.setCredentials(tokens);
       
-      // Fetch user's Gmail profile information
-      const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
-      const profile = await gmail.users.getProfile({ userId: 'me' });
+      // Fetch user's email information via OAuth userinfo endpoint
+      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { 'Authorization': `Bearer ${tokens.access_token}` }
+      });
+      const userInfo = await userInfoResponse.json();
       
-      console.log(`[Gmail OAuth] Fetched profile for user ${userId}:`, {
-        email: profile.data.emailAddress,
-        name: profile.data.displayName || profile.data.emailAddress
+      console.log(`[Gmail OAuth] Fetched userinfo for user ${userId}:`, {
+        email: userInfo.email,
+        name: userInfo.name,
+        email_verified: userInfo.email_verified
       });
       
       // Store tokens and user info using TokenService
@@ -466,8 +473,8 @@ export function registerRoutes(app: Express) {
         refresh_token: tokens.refresh_token,
         expiry_date: tokens.expiry_date
       }, {
-        email: profile.data.emailAddress!,
-        name: profile.data.displayName || profile.data.emailAddress!
+        email: userInfo.email,
+        name: userInfo.name
       });
       
       // Send HTML that closes the pop-up and notifies parent window
@@ -3489,7 +3496,17 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       
       if (!gmailToken) {
         console.log(`No valid Gmail token found for user ${userId}`);
-        res.status(401).json({ message: "Gmail authorization required" });
+        
+        // Check if we have refresh token for more specific error
+        const userTokens = await TokenService.getUserTokens(userId);
+        const hasRefreshToken = !!userTokens?.gmailRefreshToken;
+        
+        res.status(401).json({ 
+          message: "Gmail authorization required",
+          hasRefreshToken,
+          requiresReauth: !hasRefreshToken,
+          action: hasRefreshToken ? "token_refresh_failed" : "no_gmail_connection"
+        });
         return;
       }
 
@@ -3499,10 +3516,19 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
       const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
+      // Get Gmail user info for sender email identity
+      const gmailUserInfo = await TokenService.getGmailUserInfo(userId);
+      const senderEmail = gmailUserInfo?.email || req.user!.email;
+
+      // Format From header with professional display name format
+      const fromHeader = gmailUserInfo?.displayName 
+        ? `From: ${gmailUserInfo.displayName} <${senderEmail}>`
+        : `From: ${senderEmail}`;
+
       // Create email content
       const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
       const messageParts = [
-        'From: ' + req.user!.email,
+        fromHeader,
         'To: ' + to,
         'Content-Type: text/html; charset=utf-8',
         'MIME-Version: 1.0',
@@ -3592,7 +3618,13 @@ Then, on a new line, write the body of the email. Keep both subject and content 
     }
   });
 
-  // Strategic Onboarding Chat Endpoint
+  // ===============================================
+  // OLD HTML LANDING PAGE VERSION - DEPRECATED
+  // This is the old onboarding chat system used by the HTML landing page
+  // The new React Strategy Chat uses /api/onboarding/strategy-chat instead
+  // ===============================================
+  
+  // Strategic Onboarding Chat Endpoint (DEPRECATED - HTML Landing Page Version)
   app.post("/api/onboarding/chat", async (req, res) => {
     try {
       const { message, businessType, currentStep, profileData, conversationHistory, researchResults } = req.body;
@@ -4054,19 +4086,49 @@ High-level strategic guidance for email generation.`;
         try {
           const userId = getUserId(req);
           
-          if (result.type === 'product_summary') {
-            await storage.updateStrategicProfile?.(userId, { 
-              productAnalysisSummary: JSON.stringify(result.data) 
+          // Find or create in-progress profile for this strategy
+          const existingProfiles = await storage.getStrategicProfiles(userId);
+          let profileId = null;
+          
+          const matchingProfile = existingProfiles.find(profile => 
+            profile.status === 'in_progress' &&
+            profile.productService === productContext.productService &&
+            profile.customerFeedback === productContext.customerFeedback &&
+            profile.website === productContext.website
+          );
+          
+          if (matchingProfile) {
+            profileId = matchingProfile.id;
+          } else if (result.type === 'product_summary') {
+            // Create new in-progress profile when product summary is generated
+            const newProfile = await storage.createStrategicProfile({
+              userId,
+              businessType: 'product',
+              businessDescription: productContext.productService || 'Strategic Plan',
+              productService: productContext.productService,
+              customerFeedback: productContext.customerFeedback,
+              website: productContext.website,
+              targetCustomers: productContext.productService || 'Target audience',
+              status: 'in_progress'
             });
-          } else if (result.type === 'email_strategy') {
-            // Legacy email strategy - database updates handled by progressive endpoints
-            await storage.updateStrategicProfile?.(userId, { 
-              reportSalesTargetingGuidance: JSON.stringify(result.data)
-            });
-          } else if (result.type === 'sales_approach') {
-            await storage.updateStrategicProfile?.(userId, { 
-              reportSalesContextGuidance: JSON.stringify(result.data) 
-            });
+            profileId = newProfile.id;
+          }
+          
+          // Update profile with generated content
+          if (profileId) {
+            if (result.type === 'product_summary') {
+              await storage.updateStrategicProfile(profileId, { 
+                productAnalysisSummary: JSON.stringify(result.data) 
+              });
+            } else if (result.type === 'email_strategy') {
+              await storage.updateStrategicProfile(profileId, { 
+                reportSalesTargetingGuidance: JSON.stringify(result.data)
+              });
+            } else if (result.type === 'sales_approach') {
+              await storage.updateStrategicProfile(profileId, { 
+                reportSalesContextGuidance: JSON.stringify(result.data) 
+              });
+            }
           }
         } catch (dbError) {
           console.warn('Failed to save report to database:', dbError);
@@ -4175,9 +4237,17 @@ Return only the final boundary statement, no additional text.`;
       if (req.user) {
         try {
           const userId = getUserId(req);
-          await storage.updateStrategicProfile?.(userId, { 
-            strategyHighLevelBoundary: finalBoundary
-          });
+          const existingProfiles = await storage.getStrategicProfiles(userId);
+          
+          const matchingProfile = existingProfiles.find(profile => 
+            profile.status === 'in_progress'
+          );
+          
+          if (matchingProfile) {
+            await storage.updateStrategicProfile(matchingProfile.id, { 
+              strategyHighLevelBoundary: finalBoundary
+            });
+          }
         } catch (dbError) {
           console.warn('Failed to save boundary to database:', dbError);
         }
@@ -4215,9 +4285,17 @@ Return only the final boundary statement, no additional text.`;
       if (req.user) {
         try {
           const userId = getUserId(req);
-          await storage.updateStrategicProfile?.(userId, { 
-            exampleSprintPlanningPrompt: sprintPrompt
-          });
+          const existingProfiles = await storage.getStrategicProfiles(userId);
+          
+          const matchingProfile = existingProfiles.find(profile => 
+            profile.status === 'in_progress'
+          );
+          
+          if (matchingProfile) {
+            await storage.updateStrategicProfile(matchingProfile.id, { 
+              exampleSprintPlanningPrompt: sprintPrompt
+            });
+          }
         } catch (dbError) {
           console.warn('Failed to save sprint prompt to database:', dbError);
         }
@@ -4254,20 +4332,27 @@ Return only the final boundary statement, no additional text.`;
       if (req.user) {
         try {
           const userId = getUserId(req);
+          const existingProfiles = await storage.getStrategicProfiles(userId);
           
-          // Format complete strategy report
-          const fullStrategy = {
-            title: "90-Day Email Strategy",
-            boundary,
-            sprintPrompt,
-            dailyQueries,
-            content: `## 1. TARGET BOUNDARY\n${boundary}\n\n## 2. SPRINT PROMPT\n${sprintPrompt}\n\n## 3. DAILY QUERIES\n${dailyQueries.join('\n')}`
-          };
+          const matchingProfile = existingProfiles.find(profile => 
+            profile.status === 'in_progress'
+          );
           
-          await storage.updateStrategicProfile?.(userId, { 
-            dailySearchQueries: JSON.stringify(dailyQueries),
-            reportSalesTargetingGuidance: JSON.stringify(fullStrategy)
-          });
+          if (matchingProfile) {
+            // Format complete strategy report
+            const fullStrategy = {
+              title: "90-Day Email Strategy",
+              boundary,
+              sprintPrompt,
+              dailyQueries,
+              content: `## 1. TARGET BOUNDARY\n${boundary}\n\n## 2. SPRINT PROMPT\n${sprintPrompt}\n\n## 3. DAILY QUERIES\n${dailyQueries.join('\n')}`
+            };
+            
+            await storage.updateStrategicProfile(matchingProfile.id, { 
+              dailySearchQueries: JSON.stringify(dailyQueries),
+              reportSalesTargetingGuidance: JSON.stringify(fullStrategy)
+            });
+          }
         } catch (dbError) {
           console.warn('Failed to save queries to database:', dbError);
         }
@@ -4528,6 +4613,108 @@ Respond in this exact JSON format:
       console.error('Error updating user profile:', error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : 'Failed to update user profile' 
+      });
+    }
+  });
+
+  // Delete strategic profile endpoint (for React Strategy Chat restart)
+  app.delete('/api/strategic-profiles/:id', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const profileId = parseInt(req.params.id);
+
+      if (isNaN(profileId)) {
+        res.status(400).json({ message: 'Invalid profile ID' });
+        return;
+      }
+
+      // Verify profile belongs to user before deleting
+      const profiles = await storage.getStrategicProfiles(userId);
+      const profileToDelete = profiles.find(p => p.id === profileId);
+      
+      if (!profileToDelete) {
+        res.status(404).json({ message: 'Profile not found or access denied' });
+        return;
+      }
+
+      // Delete the profile
+      await storage.deleteStrategicProfile(profileId);
+      
+      res.json({ success: true, message: 'Profile deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting strategic profile:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to delete profile' 
+      });
+    }
+  });
+
+  // Products endpoint for Strategy Dashboard
+  app.get('/api/products', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      
+      // Fetch strategic profiles from storage
+      const profiles = await storage.getStrategicProfiles(userId);
+      
+      // Map to frontend interface (add 'name' field)
+      const mappedProfiles = profiles.map(profile => ({
+        ...profile,
+        name: profile.businessDescription || profile.productService || "Strategy Plan"
+      }));
+      
+      res.json(mappedProfiles);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to fetch products' 
+      });
+    }
+  });
+
+  // Save strategy chat as product
+  app.post('/api/strategic-profiles/save-from-chat', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const formData = req.body;
+      
+      // Get existing strategic profiles for this user
+      const existingProfiles = await storage.getStrategicProfiles(userId);
+      
+      // Find the most recent profile that matches the form data (in-progress status)
+      const matchingProfile = existingProfiles.find(profile => 
+        profile.status === 'in_progress' &&
+        profile.productService === formData.productService &&
+        profile.customerFeedback === formData.customerFeedback &&
+        profile.website === formData.website
+      );
+      
+      if (matchingProfile) {
+        // Update existing profile to completed status
+        const updatedProfile = await storage.updateStrategicProfile(matchingProfile.id, {
+          status: 'completed'
+        });
+        res.json(updatedProfile);
+      } else {
+        // Create new profile if no matching in-progress profile found
+        const profileData = {
+          userId,
+          businessType: formData.businessType || 'product',
+          businessDescription: formData.productService || 'Strategic Plan',
+          productService: formData.productService,
+          customerFeedback: formData.customerFeedback,
+          website: formData.website,
+          targetCustomers: formData.productService || 'Target audience',
+          status: 'completed'
+        };
+        
+        const savedProfile = await storage.createStrategicProfile(profileData);
+        res.json(savedProfile);
+      }
+    } catch (error) {
+      console.error('Error saving strategic profile:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to save strategy' 
       });
     }
   });

@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useNotifications } from "@/hooks/use-notifications";
+import { useStrategyOverlay } from "@/lib/strategy-overlay-context";
 import { NotificationToast } from "@/components/ui/notification-toast";
 import {
   ListPlus,
@@ -127,6 +128,7 @@ export default function Home() {
   const registrationModal = useRegistrationModal();
   const auth = useAuth();
   const { notificationState, triggerNotification, closeNotification } = useNotifications();
+  const { setState: setStrategyOverlayState } = useStrategyOverlay();
 
   // Check if user has already seen email tooltip
   useEffect(() => {
@@ -2839,6 +2841,8 @@ export default function Home() {
         onOpenChange={setSavedSearchesDrawerOpen}
         onLoadSearch={handleLoadSavedSearch}
       />
+
+
 
       {/* Notification System */}
       <NotificationToast

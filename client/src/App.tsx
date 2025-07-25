@@ -9,12 +9,16 @@ import { Layout, AppLayout } from "@/components/layout";
 import { SearchStrategyProvider } from "@/lib/search-strategy-context";
 import { RegistrationModalProvider } from "@/hooks/use-registration-modal";
 import { RegistrationModalContainer } from "@/components/registration-modal-container";
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { initGA } from "./lib/analytics";
 import { useAnalytics } from "./hooks/use-analytics";
 import { SEOHead } from "@/components/ui/seo-head";
 import { MainNav } from "@/components/main-nav";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { StrategyOverlayProvider } from "@/lib/strategy-overlay-context";
+import { useStrategyOverlay } from "@/lib/strategy-overlay-context";
+import { StrategyOverlay } from "@/components/strategy-overlay";
+import "@/components/ui/loading-spinner.css";
 
 // Immediate imports for landing pages and critical components
 import LandingPage from "@/pages/landing";
@@ -36,13 +40,14 @@ const ContactDetails = lazy(() => import("@/pages/contact-details"));
 const Testing = lazy(() => import("@/pages/testing"));
 const SubscriptionSuccess = lazy(() => import("@/pages/subscription-success"));
 const NotFound = lazy(() => import("@/pages/not-found"));
+const StrategyDashboard = lazy(() => import("@/pages/strategy-dashboard"));
 
 // Lazy imports for marketing pages
 const Terms = lazy(() => import("@/pages/terms"));
 
 const Blog = lazy(() => import("@/pages/blog"));
 const BlogPost = lazy(() => import("@/pages/blog-post"));
-const Contact = lazy(() => import("@/pages/contact"));
+
 const Support = lazy(() => import("@/pages/support"));
 const Levels = lazy(() => import("@/pages/levels"));
 const Privacy = lazy(() => import("@/pages/privacy"));
@@ -109,16 +114,7 @@ function Router() {
             </div>
           </Layout>
         </Route>
-        <Route path="/contact">
-          <Layout>
-            <MainNav />
-            <div className="flex-1">
-              <Suspense fallback={<LoadingScreen />}>
-                <Contact />
-              </Suspense>
-            </div>
-          </Layout>
-        </Route>
+
         <Route path="/support">
           <Layout>
             <MainNav />
@@ -212,6 +208,11 @@ function Router() {
                     <Testing />
                   </Suspense>
                 } />
+                <ProtectedRoute path="/strategy" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <StrategyDashboard />
+                  </Suspense>
+                } />
                 
                 {/* Subscription Success Page */}
                 <Route path="/subscription-success" component={() => 
@@ -231,6 +232,8 @@ function Router() {
           </AppLayout>
         </Route>
       </Switch>
+      
+      {/* Strategy Chat Overlay - will be rendered by StrategyOverlayProvider */}
     </>
   );
 }
@@ -251,11 +254,13 @@ function App() {
       <AuthProvider>
         <RegistrationModalProvider>
           <SearchStrategyProvider>
-            {/* Default SEO tags for the entire site */}
-            <SEOHead />
-            <Router />
-            <RegistrationModalContainer />
-            <Toaster />
+            <StrategyOverlayProvider>
+              {/* Default SEO tags for the entire site */}
+              <SEOHead />
+              <Router />
+              <RegistrationModalContainer />
+              <Toaster />
+            </StrategyOverlayProvider>
           </SearchStrategyProvider>
         </RegistrationModalProvider>
       </AuthProvider>

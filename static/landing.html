@@ -134,8 +134,18 @@
         <nav class="hidden md:block">
           <ul class="flex space-x-8">
             <li>
-              <a href="/pricing" class="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border-b border-transparent hover:border-slate-400 dark:hover:border-slate-600 py-1">
+              <a href="/app" data-nav-item="search" class="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border-b border-transparent hover:border-slate-400 dark:hover:border-slate-600 py-1">
+                Search
+              </a>
+            </li>
+            <li>
+              <a href="/pricing" data-nav-item="pricing" class="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border-b border-transparent hover:border-slate-400 dark:hover:border-slate-600 py-1">
                 Pricing
+              </a>
+            </li>
+            <li>
+              <a href="/contact" data-nav-item="contact" class="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border-b border-transparent hover:border-slate-400 dark:hover:border-slate-600 py-1">
+                Contact
               </a>
             </li>
           </ul>
@@ -153,8 +163,14 @@
             </svg>
           </button>
           <div id="mobile-menu" class="hidden absolute right-0 top-12 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-50">
-            <a href="/pricing" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <a href="/app" data-nav-item="search" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              Search
+            </a>
+            <a href="/pricing" data-nav-item="pricing" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
               Pricing
+            </a>
+            <a href="/contact" data-nav-item="contact" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              Contact
             </a>
           </div>
         </div>
@@ -178,7 +194,7 @@
         </h1>
         
         <p class="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-16 max-w-2xl mx-auto font-light">
-          <span>Find companies, contacts & their emails<br />with a prompt 🎯</span>
+          <span>Start by finding companies, contacts & their emails<br />with a prompt 🎯</span>
         </p>
 
         <!-- Search Input Section -->
@@ -234,7 +250,7 @@
         
         <div class="flex flex-nowrap justify-center space-x-2 md:space-x-8 my-10">
           <div class="text-center p-3 md:p-4">
-            <div class="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2 md:whitespace-nowrap">~48 Mins</div>
+            <div class="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2 md:whitespace-nowrap">~68 Mins</div>
             <div class="text-sm text-slate-500 dark:text-slate-400">Saved per Day</div>
           </div>
           <div class="text-center p-3 md:p-4">
@@ -293,8 +309,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z"/>
               </svg>
             </div>
-            <h3 class="text-xl font-semibold mb-2">Find all decision-maker's email</h3>
-            <p class="text-slate-600 dark:text-slate-400">with a single click or drill-down and only find those you want.</p>
+            <h3 class="text-xl font-semibold mb-2">Email all decision-makers directly</h3>
+            <p class="text-slate-600 dark:text-slate-400">With our personalized suggested emails for company and person.</p>
           </div>
         </div>
         
@@ -567,6 +583,9 @@
   
   <!-- Mobile Menu Functionality -->
   <script src="/static/js/mobile-menu.js"></script>
+  
+  <!-- Active Menu State -->
+  <script src="/static/js/active-menu.js"></script>
   
   <!-- Landing Page Interactions -->
   <script src="/static/js/landing.js"></script>

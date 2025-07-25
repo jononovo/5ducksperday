@@ -154,15 +154,14 @@ export class TokenService {
       const existingTokens = await this.getUserTokens(userId);
       
       const tokens: UserTokens = {
-        firebaseIdToken: existingTokens?.firebaseIdToken || '',
         gmailAccessToken: gmailTokens.access_token,
         gmailRefreshToken: gmailTokens.refresh_token,
         tokenExpiry: gmailTokens.expiry_date || (Date.now() + (3600 * 1000)), // Default 1 hour
-        scopes: ['https://www.googleapis.com/auth/gmail.send', 'https://www.googleapis.com/auth/gmail.modify'],
+        scopes: ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
         createdAt: existingTokens?.createdAt || Date.now(),
         updatedAt: Date.now(),
         gmailEmail: gmailUserInfo?.email,
-        gmailName: gmailUserInfo?.name
+        gmailDisplayName: gmailUserInfo?.name
       };
       
       await this.saveUserTokens(userId, tokens);
@@ -207,26 +206,46 @@ export class TokenService {
 
       console.log(`[TokenService] Attempting to refresh Gmail token for user ${userId}`);
 
-      // Note: In production, you would need FIREBASE_CLIENT_ID and FIREBASE_CLIENT_SECRET
-      // For now, we'll log what would happen and return false to indicate refresh is needed
-      console.log(`[TokenService] Token refresh would be attempted here with refresh token`);
-      console.log(`[TokenService] This requires Firebase OAuth client credentials in environment`);
+      // Import Google OAuth2 module at runtime
+      const { google } = await import('googleapis');
       
-      // TODO: Implement actual refresh logic when Firebase OAuth credentials are available
-      // const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      //   body: new URLSearchParams({
-      //     client_id: process.env.FIREBASE_CLIENT_ID!,
-      //     client_secret: process.env.FIREBASE_CLIENT_SECRET!,
-      //     refresh_token: tokens.gmailRefreshToken,
-      //     grant_type: 'refresh_token'
-      //   })
-      // });
+      // Create OAuth2 client with correct Gmail API credentials (not Firebase)
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GMAIL_CLIENT_ID,
+        process.env.GMAIL_CLIENT_SECRET
+        // No redirect URI needed for refresh
+      );
 
-      return false; // Indicate that manual re-authorization is needed for now
+      // Set refresh token
+      oauth2Client.setCredentials({
+        refresh_token: tokens.gmailRefreshToken
+      });
+
+      // Request new access token using Google OAuth2 library
+      const { credentials } = await oauth2Client.refreshAccessToken();
+      
+      if (!credentials.access_token) {
+        console.warn(`[TokenService] Token refresh failed - no access token received for user ${userId}`);
+        return false;
+      }
+
+      // Update stored token with new access token and expiry
+      const success = await this.updateGmailToken(
+        userId, 
+        credentials.access_token,
+        credentials.expiry_date || undefined
+      );
+
+      if (success) {
+        console.log(`[TokenService] Successfully refreshed Gmail token for user ${userId}`);
+        return true;
+      } else {
+        console.warn(`[TokenService] Failed to store refreshed token for user ${userId}`);
+        return false;
+      }
     } catch (error) {
       console.error(`Error refreshing Gmail token for user ${userId}:`, error);
+      // Common errors: refresh token expired, revoked, or invalid
       return false;
     }
   }
@@ -261,24 +280,28 @@ export class TokenService {
   }
 
   /**
-   * Get Gmail user info (email and name)
+   * Get Gmail user info (email and display name)
    */
-  static async getGmailUserInfo(userId: number): Promise<{ email: string | null; name: string | null }> {
+  static async getGmailUserInfo(userId: number): Promise<{ email: string | null; displayName: string | null }> {
     try {
       const tokens = await this.getUserTokens(userId);
       if (!tokens) {
         console.log(`[TokenService] No tokens found for user ${userId}`);
-        return { email: null, name: null };
+        return { email: null, displayName: null };
       }
 
-      console.log(`[TokenService] Retrieved Gmail user info for user ${userId}`);
-      return {
+      console.log(`[TokenService] Retrieved Gmail user info for user ${userId}:`, {
+        email: tokens.gmailEmail,
+        displayName: tokens.gmailDisplayName
+      });
+      
+      return { 
         email: tokens.gmailEmail || null,
-        name: tokens.gmailName || null
+        displayName: tokens.gmailDisplayName || null
       };
     } catch (error) {
       console.error(`Error getting Gmail user info for user ${userId}:`, error);
-      return { email: null, name: null };
+      return { email: null, displayName: null };
     }
   }
 

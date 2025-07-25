@@ -338,7 +338,7 @@ export function CreditUpgradeDropdown() {
           <Button 
             variant="link"
             size="sm"
-            onClick={() => console.log('Navigate to full details page')}
+            onClick={() => window.open('/pricing', '_blank')}
             className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 h-auto p-0 font-medium"
           >
             See full details and features →

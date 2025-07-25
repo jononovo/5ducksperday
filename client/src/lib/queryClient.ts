@@ -9,6 +9,9 @@ async function throwIfResNotOk(res: Response) {
 
 // Safely parse JSON with better error handling
 async function safeJsonParse(res: Response): Promise<any> {
+  // Clone the response first before any consumption
+  const clonedRes = res.clone();
+  
   try {
     return await res.json();
   } catch (error) {
@@ -19,12 +22,16 @@ async function safeJsonParse(res: Response): Promise<any> {
       error
     });
     
-    // Get the text content for debugging
-    const text = await res.clone().text();
-    console.error('Response that failed to parse:', {
-      text: text.substring(0, 500), // Log only first 500 chars to avoid huge logs
-      contentType: res.headers.get('content-type')
-    });
+    // Get the text content for debugging using the cloned response
+    try {
+      const text = await clonedRes.text();
+      console.error('Response that failed to parse:', {
+        text: text.substring(0, 500), // Log only first 500 chars to avoid huge logs
+        contentType: res.headers.get('content-type')
+      });
+    } catch (cloneError) {
+      console.error('Could not clone response for debugging:', cloneError);
+    }
     
     throw new Error(`Failed to parse JSON response: ${error instanceof Error ? error.message : 'Unknown parsing error'}`);
   }
