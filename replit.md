@@ -120,6 +120,8 @@
 
 ## Changelog
 
+- July 25, 2025. **Strategy Page Styling Unification**: Unified strategy page styling with search and outreach pages by removing flamboyant gradient backgrounds and button styling. Removed `bg-gradient-to-br from-slate-50 to-blue-50` gradient background and replaced flashy `bg-gradient-to-r from-blue-600 to-purple-600` Create Strategy button with standard primary button styling. Creates consistent visual hierarchy across all pages with cleaner, more professional appearance. Files modified: `client/src/pages/strategy-dashboard.tsx`.
+
 - July 25, 2025. **Landing Page Statistics Update**: Updated time savings statistic from "~48 Mins" to "~68 Mins" in main hero section statistics display. The three-column statistics layout now shows updated productivity metrics for users. Files modified: `static/landing.html`.
 
 - July 25, 2025. **Contact Page Vibe Coding Section Content Update**: Enhanced "About This App" section with comprehensive 8-point practical guide for building complex applications through vibe coding with Replit. Updated content includes detailed workflow strategies: pre-prompting, planning phases, multi-clone testing using Replit's Re-mix feature, GitHub branch management, and debugging cache conflicts. Added realistic expectations about time investment and senior developer comparison. Improved typography with numbered list formatting, smaller text size (`text-sm`), and enhanced readability through proper spacing and emphasis. Files modified: `static/contact.html`.

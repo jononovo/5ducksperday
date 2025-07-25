@@ -137,7 +137,7 @@ export default function StrategyDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-slate-600">Loading your strategies...</p>
@@ -156,7 +156,7 @@ export default function StrategyDashboard() {
         description="Manage your strategic sales plans, track progress, and execute 90-day implementation roadmaps"
       />
       
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
           {/* Strategic Plans Grid */}
@@ -165,7 +165,6 @@ export default function StrategyDashboard() {
               <h2 className="text-lg font-semibold text-slate-900">My Products</h2>
               <Button 
                 onClick={() => setState('sidebar')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               >
                 <Plus className="h-4 w-4 md:mr-2" />
                 <span className="hidden md:inline">Create Strategy</span>
@@ -184,7 +183,6 @@ export default function StrategyDashboard() {
                   </p>
                   <Button 
                     onClick={() => window.location.reload()}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   >
                     Retry
                   </Button>
@@ -202,7 +200,6 @@ export default function StrategyDashboard() {
                   </p>
                   <Button 
                     onClick={() => setState('sidebar')}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   >
                     <Plus className="h-4 w-4 md:mr-2" />
                     <span className="hidden md:inline">Create Your First Strategy</span>
