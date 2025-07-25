@@ -368,6 +368,11 @@ export function registerRoutes(app: Express) {
     res.sendFile(path.join(__dirname, '../static/pricing/index.html'));
   });
   
+  // Serve the static contact page
+  app.get('/contact', (req, res) => {
+    res.sendFile(path.join(__dirname, '../static/contact.html'));
+  });
+  
 
   
   // Sitemap route
