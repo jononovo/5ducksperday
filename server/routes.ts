@@ -403,7 +403,8 @@ export function registerRoutes(app: Express) {
       // Generate authentication URL
       const scopes = [
         'https://www.googleapis.com/auth/gmail.modify',
-        'https://www.googleapis.com/auth/userinfo.email'
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile'
       ];
       
       const authUrl = oauth2Client.generateAuthUrl({
@@ -457,6 +458,7 @@ export function registerRoutes(app: Express) {
       
       console.log(`[Gmail OAuth] Fetched userinfo for user ${userId}:`, {
         email: userInfo.email,
+        name: userInfo.name,
         email_verified: userInfo.email_verified
       });
       
@@ -467,7 +469,7 @@ export function registerRoutes(app: Express) {
         expiry_date: tokens.expiry_date
       }, {
         email: userInfo.email,
-        name: null  // Name will be collected via frontend modal/dialog
+        name: userInfo.name
       });
       
       // Send HTML that closes the pop-up and notifies parent window
@@ -3513,8 +3515,10 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const gmailUserInfo = await TokenService.getGmailUserInfo(userId);
       const senderEmail = gmailUserInfo?.email || req.user!.email;
 
-      // Format From header with email-only format (names will be collected via modal/dialog)
-      const fromHeader = `From: ${senderEmail}`;
+      // Format From header with professional display name format
+      const fromHeader = gmailUserInfo?.displayName 
+        ? `From: ${gmailUserInfo.displayName} <${senderEmail}>`
+        : `From: ${senderEmail}`;
 
       // Create email content
       const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;

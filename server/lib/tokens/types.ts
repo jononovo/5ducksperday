@@ -6,7 +6,7 @@ export interface UserTokens {
   createdAt: number;
   updatedAt: number;
   gmailEmail?: string;
-  // gmailName removed - user will provide via modal/dialog
+  gmailDisplayName?: string;
 }
 
 export interface TokenValidationResult {

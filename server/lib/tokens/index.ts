@@ -157,11 +157,11 @@ export class TokenService {
         gmailAccessToken: gmailTokens.access_token,
         gmailRefreshToken: gmailTokens.refresh_token,
         tokenExpiry: gmailTokens.expiry_date || (Date.now() + (3600 * 1000)), // Default 1 hour
-        scopes: ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/userinfo.email'],
+        scopes: ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
         createdAt: existingTokens?.createdAt || Date.now(),
         updatedAt: Date.now(),
-        gmailEmail: gmailUserInfo?.email
-        // gmailName removed - handled by frontend modal/dialog
+        gmailEmail: gmailUserInfo?.email,
+        gmailDisplayName: gmailUserInfo?.name
       };
       
       await this.saveUserTokens(userId, tokens);
@@ -280,24 +280,28 @@ export class TokenService {
   }
 
   /**
-   * Get Gmail user info (email only)
+   * Get Gmail user info (email and display name)
    */
-  static async getGmailUserInfo(userId: number): Promise<{ email: string | null }> {
+  static async getGmailUserInfo(userId: number): Promise<{ email: string | null; displayName: string | null }> {
     try {
       const tokens = await this.getUserTokens(userId);
       if (!tokens) {
         console.log(`[TokenService] No tokens found for user ${userId}`);
-        return { email: null };
+        return { email: null, displayName: null };
       }
 
-      console.log(`[TokenService] Retrieved Gmail user info for user ${userId}`);
-      return {
-        email: tokens.gmailEmail || null
-        // name removed - handled by frontend modal/dialog
+      console.log(`[TokenService] Retrieved Gmail user info for user ${userId}:`, {
+        email: tokens.gmailEmail,
+        displayName: tokens.gmailDisplayName
+      });
+      
+      return { 
+        email: tokens.gmailEmail || null,
+        displayName: tokens.gmailDisplayName || null
       };
     } catch (error) {
       console.error(`Error getting Gmail user info for user ${userId}:`, error);
-      return { email: null };
+      return { email: null, displayName: null };
     }
   }
 

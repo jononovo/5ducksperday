@@ -432,8 +432,10 @@ export class GmailProvider implements EmailProvider {
       const gmailUserInfo = await TokenService.getGmailUserInfo(data.userId);
       const senderEmail = gmailUserInfo?.email || userEmail;
 
-      // Format From header with email-only format (names will be collected via modal/dialog)
-      const fromHeader = `From: ${senderEmail}`;
+      // Format From header with professional display name format
+      const fromHeader = gmailUserInfo?.displayName 
+        ? `From: ${gmailUserInfo.displayName} <${senderEmail}>`
+        : `From: ${senderEmail}`;
 
       // 3. Create the raw email content
       const email = [
@@ -490,12 +492,14 @@ export class GmailProvider implements EmailProvider {
       // 3. Get user and contact emails with proper sender identity
       const userEmail = await this.getUserEmail();
       
-      // Get Gmail user info for sender email identity
+      // Get Gmail user info for sender email identity  
       const gmailUserInfo = await TokenService.getGmailUserInfo(this.userId);
       const senderEmail = gmailUserInfo?.email || userEmail;
 
-      // Format From header with email-only format (names will be collected via modal/dialog)
-      const fromHeader = `From: ${senderEmail}`;
+      // Format From header with professional display name format
+      const fromHeader = gmailUserInfo?.displayName 
+        ? `From: ${gmailUserInfo.displayName} <${senderEmail}>`
+        : `From: ${senderEmail}`;
       
       // 4. Create the raw email content
       const email = [
