@@ -120,6 +120,8 @@
 
 ## Changelog
 
+- July 25, 2025. **Contact Navigation Integration**: Added "Contact" menu item to all static page navigation systems. Desktop horizontal navigation now shows "Search | Pricing | Contact" while mobile hamburger menus include all three options. Contact links point to `/contact` and are consistently styled across landing, pricing, and contact pages. Completes unified navigation structure across all static pages for seamless user experience. Files modified: `static/landing.html`, `static/pricing/index.html`, `static/contact.html`.
+
 - July 25, 2025. **Personal Contact Page Implementation**: Created friendly, personal contact page with email reveal functionality and vibe coding story. Features "Hey! So excited to hear from you" greeting, two email reveal buttons (Personal: jon@5ducks.ai, General: quack@5ducks.ai) that copy addresses to clipboard with feedback messages. Includes LinkedIn profile link and "Vibe Coding" section describing how this app was 100% vibe coded over months with lessons learned. JavaScript handles email hiding from scrapers and clipboard copying. Maintains consistent header/footer styling with other static pages. Files modified: `static/contact.html`, `replit.md`.
 
 - July 25, 2025. **Search Menu Item Addition to Static Pages**: Added "Search" menu item to both desktop navigation and mobile dropdown menus on static landing and pricing pages. The Search link directs users to `/app` (main application page). Implemented consistently across both static pages with identical styling and responsive behavior. Desktop navigation now shows "Search | Pricing" while mobile hamburger menu includes both options. Files modified: `static/landing.html`, `static/pricing/index.html`.
