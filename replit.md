@@ -120,7 +120,7 @@
 
 ## Changelog
 
-- July 25, 2025. **LinkedIn Button Subtlety Enhancement**: Replaced prominent navy blue LinkedIn button with subtle styling matching email buttons. Changed from `bg-blue-600 text-white` to `bg-blue-50 text-blue-700` with light blue borders and hover states. LinkedIn button now blends with page design while maintaining brand recognition through professional blue color scheme. Creates visual harmony without disrupting button hierarchy. Files modified: `static/contact.html`.
+- July 25, 2025. **LinkedIn Button Positioning and Styling Enhancement**: Improved LinkedIn button integration by reducing spacing from `mt-2 pt-3` to `mt-1 pt-2` (8px closer to email button) and replaced prominent navy blue styling with subtle light blue design. Changed from `bg-blue-600 text-white` to `bg-blue-50 text-blue-700` with matching borders and hover states. Button now creates tighter visual grouping while maintaining professional appearance and brand recognition. Files modified: `static/contact.html`.
 
 - July 25, 2025. **Contact Page Title Positioning Standardization**: Fixed contact page title appearing lower than pricing page by reducing vertical padding from `py-16` to `py-12`. Contact page now has identical 48px top/bottom padding matching pricing page standard, moving title 16px higher for perfect visual alignment across static pages. Maintains consistent header-to-content spacing throughout site. Files modified: `static/contact.html`.
 
