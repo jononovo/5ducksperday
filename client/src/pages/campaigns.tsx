@@ -29,7 +29,7 @@ export default function Campaigns() {
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5" />
               Campaign Management
-              <Badge variant="default" className="ml-3 px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold">
+              <Badge variant="default" className="ml-3 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold">
                 Coming Soon
               </Badge>
             </CardTitle>
