@@ -195,8 +195,7 @@ const emailTemplateSchema = z.object({
 });
 
 const userPreferencesSchema = z.object({
-  userId: z.number(),
-  senderName: z.string().optional()
+  userId: z.number()
   // hasSeenTour field removed
 });
 

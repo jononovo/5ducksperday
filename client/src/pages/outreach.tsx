@@ -59,7 +59,6 @@ import {
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 import { resolveMergeField, resolveAllMergeFields, hasMergeFields, type MergeFieldContext } from '@/lib/merge-field-resolver';
-import { SenderNameDialog } from '@/components/SenderNameDialog';
 
 
 // Define interface for the saved state
@@ -129,9 +128,6 @@ export default function Outreach() {
   
   // Textarea refs for auto-resizing
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
-  
-  // Sender name dialog state
-  const [showSenderNameDialog, setShowSenderNameDialog] = useState(false);
 
   // Auto-resize functions
   const handleTextareaResize = () => {
@@ -245,20 +241,6 @@ export default function Outreach() {
     queryKey: ['/api/gmail/user'],
     enabled: !!user && !!gmailStatus?.authorized,
   });
-
-  // Query to get user preferences including sender name
-  const { data: userPreferences } = useQuery({
-    queryKey: ['/api/user/preferences'],
-    enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Trigger sender name dialog when Gmail is connected but no sender name is set
-  useEffect(() => {
-    if (gmailStatus?.authorized && userPreferences && !userPreferences.senderName && !showSenderNameDialog) {
-      setShowSenderNameDialog(true);
-    }
-  }, [gmailStatus?.authorized, userPreferences]);
 
   // Memoized top 3 leadership contacts computation
   const topContacts = useMemo(() => 
@@ -445,10 +427,7 @@ export default function Outreach() {
     } : null,
     sender: {
       name: 'Your Name'
-    },
-    userPreferences: userPreferences ? {
-      senderName: userPreferences.senderName || undefined,
-    } : null
+    }
   };
 
   // Custom merge field resolver for the highlighted components
@@ -992,7 +971,6 @@ export default function Outreach() {
   };
 
   return (
-    <>
     <div className="w-full md:container md:mx-auto md:py-8">
       {/* Mobile Duck Header - Only visible on mobile when in compressed view with selected contact */}
       <div className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 transition-all duration-300 ${showExpandedView || !selectedContact ? 'hidden' : 'block'}`}>
@@ -1578,18 +1556,5 @@ export default function Outreach() {
         </div>
       </div>
     </div>
-
-    {/* Sender Name Dialog */}
-    <SenderNameDialog
-      isOpen={showSenderNameDialog}
-      onClose={() => setShowSenderNameDialog(false)}
-      onSuccess={() => {
-        toast({
-          title: "Email Identity Set",
-          description: "Your professional name will now appear in all outreach emails",
-        });
-      }}
-    />
-    </>
   );
 }
