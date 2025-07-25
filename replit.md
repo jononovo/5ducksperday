@@ -120,6 +120,8 @@
 
 ## Changelog
 
+- July 25, 2025. **Contact Page Title Positioning Standardization**: Fixed contact page title appearing lower than pricing page by reducing vertical padding from `py-16` to `py-12`. Contact page now has identical 48px top/bottom padding matching pricing page standard, moving title 16px higher for perfect visual alignment across static pages. Maintains consistent header-to-content spacing throughout site. Files modified: `static/contact.html`.
+
 - July 25, 2025. **Contact Link Relocation to Dropdown Menu**: Moved Contact link from horizontal navigation bar to dropdown menu (hamburger menu) in upper right corner. Removed Contact item from navigation array, eliminated external link conditional rendering logic, and added Contact as new dropdown menu item after Strategy. Contact now appears in dropdown with Logout, Build, Account, Campaigns, Strategy, and Contact. Maintains same external link functionality using `window.open('/contact', '_blank')` with proper cursor styling. Horizontal navigation now shows clean "Search | Outreach" layout as intended. Files modified: `client/src/components/main-nav.tsx`.
 
 - July 25, 2025. **Landing Page Features Section Messaging Update**: Updated third feature card in "Find Ultra Niche Contacts" section to emphasize complete email workflow. Changed title from "Find all decision-maker's email" to "Email all decision-makers directly" and description from "with a single click or drill-down and only find those you want" to "With our personalized suggested emails for company and person." Shifts messaging from passive discovery to active engagement, highlighting platform's AI-powered personalized email generation for both company and individual targeting. Files modified: `static/landing.html`.
