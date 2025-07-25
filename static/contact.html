@@ -261,15 +261,32 @@
                     
                     <div class="bg-white rounded-xl p-6 text-left max-w-2xl mx-auto">
                         <h3 class="text-lg font-semibold text-gray-900 mb-3">About This App</h3>
-                        <div class="space-y-3 text-gray-700">
+                        <div class="space-y-3 text-gray-700 text-sm leading-relaxed">
                             <p>
                                 This entire application was <strong>100% vibe coded</strong> over a few months.
                             </p>
                             <p>
-                                It took way longer than expected (doesn't it always?), but the journey taught me countless lessons about building complex applications through pure creativity and intuition.
+                                It took way longer than expected (doesn't it always?), but the journey taught me a few tips. It was made exclusively with Replit. There are a few things you can do to improve the outcomes when working on a large application:
                             </p>
-                            <p>
-                                Now I have many tips and techniques for those who want to build something big like this via vibe coding. The key is knowing when to trust your instincts and when to step back and plan.
+                            <ol class="list-decimal list-inside space-y-2 ml-4">
+                                <li><strong>Pre-prompting:</strong> Ask the agent to research certain features in areas of the application, but not change anything yet.</li>
+                                <li>Then ask for a detailed plan to implement the feature you were asking for, but not implement anything yet.</li>
+                                <li>If it's especially tricky and your application is a little messy (as mine was), ask it to check if the assumptions made were correct and if anything is going to break as a result of the plan.</li>
+                                <li>After checking the suggested flow, if you're OK with it, then let it run.</li>
+                                <li>For a feature that I'm not entirely sure how it should run or even how it should look, I will usually clone the app by using the "Re-mix" option within Replit, and then run the series of pre-prompts in three different clones of the app. And then see which one turns out best.</li>
+                                <li>I will then merge the one I like into GitHub and tell the other two that I reverted all their work and merged in a different branch and that they should familiarize themselves with the changes.</li>
+                                <li>I first revert to work using shell (something that Claude and ChatGPT taught me) and then merging a new branch once I've cleaned the branch that they were working on, to avoid conflicting code.</li>
+                                <li>When swapping branches and overwriting code within Replit many times the application, the Preview, and sometimes even the deployed version within a browser will show lots of conflicts. However, a day later or a few hours later some of these conflicts will not show anymore. So it is a bit challenging to figure out if something is actually broken or if there are just cache and cookie conflicts (even after doing a hard reset within Chrome for example).</li>
+                            </ol>
+                            <p class="mt-4">
+                                If you have any questions or you're interested in getting practical training or joining a cohort that I may train in how to build advanced or complex applications through vibe coding, just reach out to me above.
+                            </p>
+                            <p class="mt-4 font-medium">
+                                If I have anything to say on a high-level about all this, it would be this: <strong>This takes long!</strong> If you don't have eight hours a day (like I often did) then stick to making extremely simple apps. While vibe coding may seem like a magical opportunity, ultimately, senior developers can work faster than those even vibe coding at a high level with lots of tips and tricks. Because over time you will spend a lot of time trying to fix things as your code base gets messy, and senior developers will keep it clean.
+                            </p>
+                            <p class="mt-4 text-gray-600">
+                                Have an awesome day.<br/>
+                                <strong>Jon</strong>
                             </p>
                         </div>
                     </div>
