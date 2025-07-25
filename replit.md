@@ -120,6 +120,8 @@
 
 ## Changelog
 
+- July 25, 2025. **Campaigns Coming Soon Badge Enhancement**: Added prominent "Coming Soon" badge to campaigns page header using platform's standard blue color scheme (bg-blue-500) instead of introducing inconsistent colors. Badge features increased padding (px-3 py-1), font-semibold weight, and hover effects for clear visibility while maintaining visual consistency with existing "Create Campaign" button. Replaced initial orange styling with blue to match platform design language. Fixed TypeScript errors for proper nullable date handling and removed non-existent properties. Files modified: `client/src/pages/campaigns.tsx`.
+
 - July 25, 2025. **Strategy Page Styling Unification**: Unified strategy page styling with search and outreach pages by removing flamboyant gradient backgrounds and button styling. Removed `bg-gradient-to-br from-slate-50 to-blue-50` gradient background and replaced flashy `bg-gradient-to-r from-blue-600 to-purple-600` Create Strategy button with standard primary button styling. Creates consistent visual hierarchy across all pages with cleaner, more professional appearance. Files modified: `client/src/pages/strategy-dashboard.tsx`.
 
 - July 25, 2025. **Landing Page Statistics Update**: Updated time savings statistic from "~48 Mins" to "~68 Mins" in main hero section statistics display. The three-column statistics layout now shows updated productivity metrics for users. Files modified: `static/landing.html`.
