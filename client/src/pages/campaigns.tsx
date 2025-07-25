@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import type { Campaign } from "@shared/schema";
 
 export default function Campaigns() {
-  const { data: campaigns = [] } = useQuery({
+  const { data: campaigns = [] } = useQuery<Campaign[]>({
     queryKey: ["/api/campaigns"],
   });
   const [, navigate] = useLocation();
@@ -28,6 +29,9 @@ export default function Campaigns() {
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5" />
               Campaign Management
+              <Badge variant="secondary" className="ml-2 text-xs">
+                Coming Soon
+              </Badge>
             </CardTitle>
             <Button onClick={() => navigate("/campaigns/new")}>
               <Plus className="w-4 h-4 mr-2" />
@@ -70,9 +74,9 @@ export default function Campaigns() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {format(new Date(campaign.createdAt), "MMM d, yyyy")}
+                    {campaign.createdAt ? format(new Date(campaign.createdAt), "MMM d, yyyy") : "—"}
                   </TableCell>
-                  <TableCell>{campaign.lists?.length || 0}</TableCell>
+                  <TableCell>0</TableCell>
                   <TableCell>{campaign.totalCompanies}</TableCell>
                 </TableRow>
               ))}
