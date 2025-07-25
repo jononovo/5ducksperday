@@ -86,17 +86,17 @@
                 <nav class="hidden md:block">
                     <ul class="flex space-x-8">
                         <li>
-                            <a href="/app" class="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors border-b border-transparent hover:border-slate-400 py-1">
+                            <a href="/app" data-nav-item="search" class="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors border-b border-transparent hover:border-slate-400 py-1">
                                 Search
                             </a>
                         </li>
                         <li>
-                            <a href="/pricing" class="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors border-b border-transparent hover:border-slate-400 py-1">
+                            <a href="/pricing" data-nav-item="pricing" class="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors border-b border-transparent hover:border-slate-400 py-1">
                                 Pricing
                             </a>
                         </li>
                         <li>
-                            <a href="/contact" class="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors border-b border-transparent hover:border-slate-400 py-1">
+                            <a href="/contact" data-nav-item="contact" class="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors border-b border-transparent hover:border-slate-400 py-1">
                                 Contact
                             </a>
                         </li>
@@ -115,13 +115,13 @@
                         </svg>
                     </button>
                     <div id="mobile-menu" class="hidden absolute right-0 top-12 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-50">
-                        <a href="/app" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        <a href="/app" data-nav-item="search" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                             Search
                         </a>
-                        <a href="/pricing" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        <a href="/pricing" data-nav-item="pricing" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                             Pricing
                         </a>
-                        <a href="/contact" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        <a href="/contact" data-nav-item="contact" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                             Contact
                         </a>
                     </div>
@@ -314,6 +314,9 @@
 
     <!-- Mobile Menu Functionality -->
     <script src="/static/js/mobile-menu.js"></script>
+    
+    <!-- Active Menu State -->
+    <script src="/static/js/active-menu.js"></script>
 
     <!-- Email Reveal & Copy Functionality -->
     <script>
