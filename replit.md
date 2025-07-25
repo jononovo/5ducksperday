@@ -120,6 +120,8 @@
 
 ## Changelog
 
+- July 25, 2025. **LinkedIn Button Subtlety Enhancement**: Replaced prominent navy blue LinkedIn button with subtle styling matching email buttons. Changed from `bg-blue-600 text-white` to `bg-blue-50 text-blue-700` with light blue borders and hover states. LinkedIn button now blends with page design while maintaining brand recognition through professional blue color scheme. Creates visual harmony without disrupting button hierarchy. Files modified: `static/contact.html`.
+
 - July 25, 2025. **Contact Page Title Positioning Standardization**: Fixed contact page title appearing lower than pricing page by reducing vertical padding from `py-16` to `py-12`. Contact page now has identical 48px top/bottom padding matching pricing page standard, moving title 16px higher for perfect visual alignment across static pages. Maintains consistent header-to-content spacing throughout site. Files modified: `static/contact.html`.
 
 - July 25, 2025. **Contact Link Relocation to Dropdown Menu**: Moved Contact link from horizontal navigation bar to dropdown menu (hamburger menu) in upper right corner. Removed Contact item from navigation array, eliminated external link conditional rendering logic, and added Contact as new dropdown menu item after Strategy. Contact now appears in dropdown with Logout, Build, Account, Campaigns, Strategy, and Contact. Maintains same external link functionality using `window.open('/contact', '_blank')` with proper cursor styling. Horizontal navigation now shows clean "Search | Outreach" layout as intended. Files modified: `client/src/components/main-nav.tsx`.
