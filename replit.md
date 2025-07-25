@@ -120,6 +120,8 @@
 
 ## Changelog
 
+- July 25, 2025. **Search Menu Item Addition to Static Pages**: Added "Search" menu item to both desktop navigation and mobile dropdown menus on static landing and pricing pages. The Search link directs users to `/app` (main application page). Implemented consistently across both static pages with identical styling and responsive behavior. Desktop navigation now shows "Search | Pricing" while mobile hamburger menu includes both options. Files modified: `static/landing.html`, `static/pricing/index.html`.
+
 - July 25, 2025. **Strategy Tab Removal from Main Navigation**: Removed Strategy tab from main horizontal navigation menu to simplify the interface. Strategy page remains accessible through the dropdown menu (hamburger menu) on the right side of the navigation bar. This reduces visual clutter in the main navigation while maintaining full functionality access. Files modified: `client/src/components/main-nav.tsx`.
 
 - July 25, 2025. **Landing Page Subtitle Enhancement**: Updated static landing page subtitle from "Find companies, contacts & their emails with a prompt 🎯" to "Start by finding companies, contacts & their emails with a prompt 🎯" for improved user guidance and call-to-action clarity. The addition of "Start by" creates a more instructional tone that better guides new users through the platform's primary value proposition. Files modified: `static/landing.html`.
