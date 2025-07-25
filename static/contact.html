@@ -168,6 +168,43 @@
                     </div>
                 </div>
 
+                <!-- Submit Bugs Card -->
+                <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 max-w-lg mx-auto">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Submit Bugs</h3>
+                    <button 
+                        id="bug-report-btn" 
+                        class="w-full py-3 px-6 bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold rounded-lg mb-2 border border-gray-200 transition-all"
+                    >
+                        📋 Report a Bug
+                    </button>
+                    <div id="bug-report-feedback" class="text-sm text-green-600 opacity-0 transition-opacity duration-300">
+                        Email address copied!
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        Please include a screenshot and as much information as possible.
+                    </p>
+                </div>
+
+                <!-- Suggest Features Card -->
+                <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 max-w-lg mx-auto">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Suggest Features</h3>
+                    <button 
+                        id="feature-request-btn" 
+                        class="w-full py-3 px-6 bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold rounded-lg mb-2 border border-gray-200 transition-all"
+                    >
+                        💡 Share Your Ideas
+                    </button>
+                    <div id="feature-request-feedback" class="text-sm text-green-600 opacity-0 transition-opacity duration-300">
+                        Email address copied!
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        Can't wait to hear your ideas.<br/>
+                        <strong>Remember, our goal is to help you sell.</strong><br/>
+                        What features will help you sell more better easier?
+                    </p>
+                </div>
+            </div>
+
                 <!-- LinkedIn -->
                 <div class="mb-12">
                     <a 
@@ -352,6 +389,42 @@
                     generalFeedback.style.opacity = '1';
                     setTimeout(() => {
                         generalFeedback.style.opacity = '0';
+                    }, 2000);
+                });
+            });
+
+            // Bug report functionality
+            const bugReportBtn = document.getElementById('bug-report-btn');
+            const bugReportFeedback = document.getElementById('bug-report-feedback');
+            
+            bugReportBtn.addEventListener('click', function() {
+                const email = 'quack@5ducks.ai';
+                navigator.clipboard.writeText(email).then(function() {
+                    bugReportBtn.innerHTML = '📋 ' + email;
+                    bugReportBtn.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
+                    bugReportBtn.classList.remove('bg-gray-50', 'hover:bg-gray-100', 'text-gray-700', 'border-gray-200');
+                    
+                    bugReportFeedback.style.opacity = '1';
+                    setTimeout(() => {
+                        bugReportFeedback.style.opacity = '0';
+                    }, 2000);
+                });
+            });
+
+            // Feature request functionality
+            const featureRequestBtn = document.getElementById('feature-request-btn');
+            const featureRequestFeedback = document.getElementById('feature-request-feedback');
+            
+            featureRequestBtn.addEventListener('click', function() {
+                const email = 'quack@5ducks.ai';
+                navigator.clipboard.writeText(email).then(function() {
+                    featureRequestBtn.innerHTML = '💡 ' + email;
+                    featureRequestBtn.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
+                    featureRequestBtn.classList.remove('bg-gray-50', 'hover:bg-gray-100', 'text-gray-700', 'border-gray-200');
+                    
+                    featureRequestFeedback.style.opacity = '1';
+                    setTimeout(() => {
+                        featureRequestFeedback.style.opacity = '0';
                     }, 2000);
                 });
             });
