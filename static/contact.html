@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - 5Ducks | Get in Touch</title>
+    <meta name="description" content="Get in touch with the 5Ducks team. We're here to help with your B2B prospecting needs and answer any questions about our platform.">
+    
+    <!-- Open Graph Tags -->
+    <meta property="og:title" content="Contact 5Ducks - Get Support & Answers">
+    <meta property="og:description" content="Get in touch with the 5Ducks team. We're here to help with your B2B prospecting needs and answer any questions about our platform.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://5ducks.com/contact">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'selector', // Use explicit selector mode
+            theme: {
+                extend: {}
+            }
+        }
+        
+        // Prevent dark mode activation
+        document.documentElement.classList.remove('dark');
+        
+        // Ensure dark class never gets added
+        new MutationObserver(() => {
+            document.documentElement.classList.remove('dark');
+        }).observe(document.documentElement, { attributes: true });
+    </script>
+    
+    <!-- Custom CSS -->
+    <style>
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .contact-card {
+            transition: all 0.3s ease;
+        }
+        
+        .contact-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+        }
+        
+        .form-input {
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <!-- Header -->
+    <header class="container mx-auto py-4 px-4">
+        <div class="flex justify-between items-center">
+            <a href="/" class="font-bold flex items-center text-3xl hover:opacity-80 transition-opacity">
+                <span class="text-gray-500">5</span>
+                <span class="text-gray-700">Ducks</span>
+                <div class="flex items-end ml-3">
+                    <span class="text-3xl">🐥</span>
+                    <span class="text-2xl md:inline hidden">🥚🥚🥚🥚</span>
+                </div>
+            </a>
+            
+            <div class="flex-1 flex justify-center">
+                <nav class="hidden md:block">
+                    <ul class="flex space-x-8">
+                        <li>
+                            <a href="/app" class="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors border-b border-transparent hover:border-slate-400 py-1">
+                                Search
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/pricing" class="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors border-b border-transparent hover:border-slate-400 py-1">
+                                Pricing
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <a href="/outreach" class="px-4 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    Login
+                </a>
+                <div class="md:hidden relative">
+                    <button id="mobile-menu-btn" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                    <div id="mobile-menu" class="hidden absolute right-0 top-12 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-50">
+                        <a href="/app" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                            Search
+                        </a>
+                        <a href="/pricing" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                            Pricing
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <!-- Header -->
+            <div class="text-center mb-16">
+                <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                    Get in <span class="gradient-text">Touch</span>
+                </h1>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Have questions about 5Ducks? Need help with your prospecting? We're here to help you build your $70k pipeline.
+                </p>
+            </div>
+
+            <!-- Contact Methods -->
+            <div class="grid md:grid-cols-3 gap-8 mb-16">
+                <!-- Email Support -->
+                <div class="contact-card bg-white rounded-2xl p-8 text-center border border-gray-100">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-2xl mb-6">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Email Support</h3>
+                    <p class="text-gray-600 mb-4">Get help with your account, billing, or technical questions.</p>
+                    <a href="mailto:support@5ducks.ai" class="text-blue-600 hover:text-blue-700 font-medium">
+                        support@5ducks.ai
+                    </a>
+                </div>
+
+                <!-- Privacy Inquiries -->
+                <div class="contact-card bg-white rounded-2xl p-8 text-center border border-gray-100">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-2xl mb-6">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Privacy & Legal</h3>
+                    <p class="text-gray-600 mb-4">Data protection, privacy rights, and legal compliance questions.</p>
+                    <a href="mailto:privacy@5ducks.ai" class="text-green-600 hover:text-green-700 font-medium">
+                        privacy@5ducks.ai
+                    </a>
+                </div>
+
+                <!-- Business Inquiries -->
+                <div class="contact-card bg-white rounded-2xl p-8 text-center border border-gray-100">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-2xl mb-6">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Business & Partnerships</h3>
+                    <p class="text-gray-600 mb-4">Enterprise inquiries, partnerships, and business development.</p>
+                    <a href="mailto:business@5ducks.ai" class="text-purple-600 hover:text-purple-700 font-medium">
+                        business@5ducks.ai
+                    </a>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="max-w-2xl mx-auto">
+                <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Send us a Message</h2>
+                    <form class="space-y-6">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="first-name" class="block text-sm font-medium text-gray-700 mb-2">
+                                    First Name
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="first-name" 
+                                    name="first-name" 
+                                    class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none"
+                                    required
+                                >
+                            </div>
+                            <div>
+                                <label for="last-name" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Last Name
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="last-name" 
+                                    name="last-name" 
+                                    class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                                Email Address
+                            </label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none"
+                                required
+                            >
+                        </div>
+
+                        <div>
+                            <label for="company" class="block text-sm font-medium text-gray-700 mb-2">
+                                Company (Optional)
+                            </label>
+                            <input 
+                                type="text" 
+                                id="company" 
+                                name="company" 
+                                class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">
+                                Subject
+                            </label>
+                            <select 
+                                id="subject" 
+                                name="subject" 
+                                class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none"
+                                required
+                            >
+                                <option value="">Select a topic</option>
+                                <option value="general">General Question</option>
+                                <option value="support">Technical Support</option>
+                                <option value="billing">Billing & Account</option>
+                                <option value="feature">Feature Request</option>
+                                <option value="partnership">Partnership Inquiry</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-gray-700 mb-2">
+                                Message
+                            </label>
+                            <textarea 
+                                id="message" 
+                                name="message" 
+                                rows="6" 
+                                class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none resize-none"
+                                placeholder="Tell us how we can help you..."
+                                required
+                            ></textarea>
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            class="btn-primary w-full py-4 px-6 text-white font-semibold rounded-lg"
+                        >
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="text-center mt-12">
+                <div class="inline-flex items-center px-4 py-2 bg-blue-50 rounded-full">
+                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-sm text-blue-800">We typically respond within 24 hours</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+        <div class="container mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="font-bold flex items-center text-xl">
+                        <span class="text-gray-500">5</span>
+                        <span class="text-gray-700">Ducks</span>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mt-4">
+                        5Ducks makes it easy for founders to build a $70k pipeline in only five minutes per day.
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Product</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>
+                            <a href="/pricing" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Pricing
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/levels" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Levels
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/blog" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Blog
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Company</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>
+                            <a href="/contact" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Contact
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/support" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Support
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/changelog" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Changelog
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/sitemap.xml" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Sitemap
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Legal</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>
+                            <a href="/privacy.html" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Privacy Policy
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/blog/tos" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                Terms of Service
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <div class="text-sm text-slate-600 dark:text-slate-400">
+                    © 2025 5Ducks. All rights reserved.
+                </div>
+                <div class="flex items-center">
+                    <span class="text-sm text-slate-600 dark:text-slate-400 italic">
+                        Soli Deo Gloria
+                    </span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a
+                        href="https://www.linkedin.com/company/5ducks/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
+                    >
+                        LinkedIn
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Menu Functionality -->
+    <script src="/static/js/mobile-menu.js"></script>
+</body>
+</html>
