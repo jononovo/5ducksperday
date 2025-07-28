@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, jsonb, timestamp, boolean, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, boolean, uuid, index } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 export const users = pgTable("users", {
@@ -10,17 +10,20 @@ export const users = pgTable("users", {
 });
 
 export const lists = pgTable("lists", {
-  id: serial("id").primaryKey(),
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("user_id").notNull().references(() => users.id),  
   listId: integer("list_id").notNull(),
   prompt: text("prompt").notNull(),
   resultCount: integer("result_count").notNull(),
-  customSearchTargets: text("custom_search_targets").array(),
-  createdAt: timestamp("created_at").defaultNow()
-});
+  customSearchTargets: jsonb("custom_search_targets").default('[]'),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_lists_user_id').on(table.userId),
+  index('idx_lists_list_id').on(table.listId),
+]);
 
 export const companies = pgTable("companies", {
-  id: serial("id").primaryKey(),
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("user_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   listId: integer("list_id"),  
@@ -34,22 +37,26 @@ export const companies = pgTable("companies", {
   linkedinProminence: integer("linkedin_prominence"),
   customerCount: integer("customer_count"),
   rating: integer("rating"),
-  services: text("services").array(),
-  validationPoints: text("validation_points").array(),
-  differentiation: text("differentiation").array(),
+  services: jsonb("services").default('[]'),
+  validationPoints: jsonb("validation_points").default('[]'),
+  differentiation: jsonb("differentiation").default('[]'),
   totalScore: integer("total_score"),
   snapshot: jsonb("snapshot"),
-  createdAt: timestamp("created_at").defaultNow()
-});
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_companies_user_id').on(table.userId),
+  index('idx_companies_list_id').on(table.listId),
+  index('idx_companies_name').on(table.name),
+]);
 
 export const contacts = pgTable("contacts", {
-  id: serial("id").primaryKey(),
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("user_id").notNull().references(() => users.id),
   companyId: integer("company_id").notNull(),
   name: text("name").notNull(),
   role: text("role"),
   email: text("email"),
-  alternativeEmails: text("alternative_emails").array(), // Added support for multiple email addresses
+  alternativeEmails: jsonb("alternative_emails").default('[]'),
   probability: integer("probability"),
   linkedinUrl: text("linkedin_url"),
   twitterHandle: text("twitter_handle"),
@@ -57,21 +64,27 @@ export const contacts = pgTable("contacts", {
   department: text("department"),
   location: text("location"),
   verificationSource: text("verification_source"),
-  lastEnriched: timestamp("last_enriched"),
+  lastEnriched: timestamp("last_enriched", { withTimezone: true }),
   nameConfidenceScore: integer("name_confidence_score"), 
   userFeedbackScore: integer("user_feedback_score"), 
   feedbackCount: integer("feedback_count").default(0), 
-  lastValidated: timestamp("last_validated"), 
-  createdAt: timestamp("created_at").defaultNow(),
-  completedSearches: text("completed_searches").array()
-});
+  lastValidated: timestamp("last_validated", { withTimezone: true }), 
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  completedSearches: jsonb("completed_searches").default('[]')
+}, (table) => [
+  index('idx_contacts_company_id').on(table.companyId),
+  index('idx_contacts_user_id').on(table.userId),
+  index('idx_contacts_email').on(table.email),
+]);
 
 export const contactFeedback = pgTable("contact_feedback", {
-  id: serial("id").primaryKey(),
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
   contactId: integer("contact_id").notNull(),
   feedbackType: text("feedback_type").notNull(), 
-  createdAt: timestamp("created_at").defaultNow()
-});
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_contact_feedback_contact_id').on(table.contactId),
+]);
 
 
 
