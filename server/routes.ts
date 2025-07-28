@@ -2004,19 +2004,39 @@ export function registerRoutes(app: Express) {
 
   // Email Templates
   app.get("/api/email-templates", requireAuth, async (req, res) => {
-    const userId = getUserId(req);
-    const templates = await storage.listEmailTemplates(userId);
-    res.json(templates);
+    try {
+      const userId = getUserId(req);
+      const templates = await storage.listEmailTemplates(userId);
+      res.json(templates);
+    } catch (error) {
+      console.log('Email templates endpoint error - likely missing table:', error instanceof Error ? error.message : error);
+      // If table doesn't exist, return empty array to allow outreach page to work
+      if (error instanceof Error && error.message.includes('relation "email_templates" does not exist')) {
+        res.json([]);
+        return;
+      }
+      // For other errors, return 500
+      res.status(500).json({ message: "Error loading email templates" });
+    }
   });
 
   app.get("/api/email-templates/:id", requireAuth, async (req, res) => {
-    const userId = getUserId(req);
-    const template = await storage.getEmailTemplate(parseInt(req.params.id), userId);
-    if (!template) {
-      res.status(404).json({ message: "Template not found" });
-      return;
+    try {
+      const userId = getUserId(req);
+      const template = await storage.getEmailTemplate(parseInt(req.params.id), userId);
+      if (!template) {
+        res.status(404).json({ message: "Template not found" });
+        return;
+      }
+      res.json(template);
+    } catch (error) {
+      console.log('Get email template error:', error instanceof Error ? error.message : error);
+      if (error instanceof Error && error.message.includes('relation "email_templates" does not exist')) {
+        res.status(404).json({ message: "Template not found" });
+        return;
+      }
+      res.status(500).json({ message: "Error loading email template" });
     }
-    res.json(template);
   });
 
   app.post("/api/email-templates", requireAuth, async (req, res) => {
