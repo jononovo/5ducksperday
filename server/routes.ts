@@ -62,15 +62,32 @@ global.searchSessions = global.searchSessions || new Map();
 
 // Helper function to safely get user ID from request
 function getUserId(req: express.Request): number {
+  console.log('getUserId() called:', {
+    path: req.path,
+    method: req.method,
+    sessionID: req.sessionID || 'none',
+    hasSession: !!req.session,
+    isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
+    hasUser: !!req.user,
+    userId: req.user ? (req.user as any).id : 'none',
+    hasFirebaseUser: !!(req as any).firebaseUser,
+    firebaseUserId: (req as any).firebaseUser ? (req as any).firebaseUser.id : 'none',
+    timestamp: new Date().toISOString()
+  });
+
   try {
     // First check if user is authenticated through session
     if (req.isAuthenticated && req.isAuthenticated() && req.user && (req.user as any).id) {
-      return (req.user as any).id;
+      const userId = (req.user as any).id;
+      console.log('User ID from session authentication:', userId);
+      return userId;
     }
     
     // Then check for Firebase authentication - this should now be properly set after the middleware fix
     if ((req as any).firebaseUser && (req as any).firebaseUser.id) {
-      return (req as any).firebaseUser.id;
+      const userId = (req as any).firebaseUser.id;
+      console.log('User ID from Firebase middleware:', userId);
+      return userId;
     }
   } catch (error) {
     console.error('Error accessing user ID:', error);
@@ -91,16 +108,26 @@ function getUserId(req: express.Request): number {
     return -1; // This ID won't match any real user, preventing data leakage
   }
   
-  console.log('No authenticated user found - using demo user ID for compatibility', {
+  console.warn('No authenticated user found - this should not happen for authenticated routes', {
     isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
     hasUser: !!req.user,
     hasFirebaseUser: !!(req as any).firebaseUser,
     path: req.path,
     method: req.method,
+    sessionID: req.sessionID || 'none',
     timestamp: new Date().toISOString()
   });
   
-  // For regular unauthenticated users, return demo user ID
+  // IMPORTANT: For authenticated routes, we should NOT fall back to demo user ID
+  // Instead, we should require proper authentication
+  if (req.path.startsWith('/api/companies') || req.path.startsWith('/api/lists') || req.path.startsWith('/api/contacts')) {
+    console.error('Authenticated route accessed without valid user ID - this will cause database errors');
+    // Return -1 to trigger foreign key constraint error rather than using wrong user data
+    return -1;
+  }
+  
+  // For legacy compatibility with non-authenticated routes only
+  console.log('Fallback to demo user ID for non-authenticated route');
   return 1;
 }
 
@@ -137,35 +164,55 @@ function calculateImprovement(results: any[]): string | null {
   }
 }
 
-// Authentication middleware
+// Authentication middleware with enhanced debugging
 function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
-  console.log('Auth check:', {
-    isAuthenticated: req.isAuthenticated(),
-    hasUser: !!req.user,
-    hasFirebaseUser: !!(req as any).firebaseUser,
+  console.log('requireAuth middleware check:', {
     path: req.path,
     method: req.method,
+    sessionID: req.sessionID || 'none',
+    isAuthenticated: req.isAuthenticated(),
+    hasUser: !!req.user,
+    userId: req.user ? (req.user as any).id : 'none',
+    hasFirebaseUser: !!(req as any).firebaseUser,
+    firebaseUserId: (req as any).firebaseUser ? (req as any).firebaseUser.id : 'none',
+    hasAuthHeader: !!req.headers.authorization,
+    timestamp: new Date().toISOString()
+  });
+
+  if (!req.isAuthenticated()) {
+    console.warn('Authentication required but user not authenticated:', {
+      path: req.path,
+      sessionID: req.sessionID || 'none',
+      timestamp: new Date().toISOString()
+    });
+    res.status(401).json({ 
+      message: "Authentication required",
+      details: "Please log in to access this resource"
+    });
+    return;
+  }
+  
+  // Verify user ID is available
+  const userId = (req.user as any)?.id;
+  if (!userId) {
+    console.error('Authenticated user missing ID:', {
+      hasUser: !!req.user,
+      user: req.user,
+      timestamp: new Date().toISOString()
+    });
+    res.status(500).json({ 
+      message: "Authentication error",
+      details: "User session invalid"
+    });
+    return;
+  }
+  
+  console.log('Authentication successful:', {
+    userId,
+    path: req.path,
     timestamp: new Date().toISOString()
   });
   
-  // In a production environment, we would require authentication
-  // For now, we'll still allow access but flag it for easier development
-  
-  // If we have either a session user or Firebase user, set proper user context
-  if (req.isAuthenticated() && req.user) {
-    // Already authenticated via session
-    next();
-    return;
-  }
-  
-  // Firebase token verification would have happened in middleware
-  if ((req as any).firebaseUser) {
-    // User authenticated via Firebase token
-    next();
-    return;
-  }
-  
-  // For development only - we'll still allow the request
   next();
 }
 
