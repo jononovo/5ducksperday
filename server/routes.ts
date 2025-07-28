@@ -185,36 +185,7 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
   next();
 }
 
-// Authentication middleware that allows demo user access for search routes
-function requireAuthOrDemo(req: express.Request, res: express.Response, next: express.NextFunction) {
-  console.log('requireAuthOrDemo middleware check:', {
-    path: req.path,
-    method: req.method,
-    sessionID: req.sessionID || 'none',
-    isAuthenticated: req.isAuthenticated(),
-    hasUser: !!req.user,
-    userId: req.user ? (req.user as any).id : 'none',
-    timestamp: new Date().toISOString()
-  });
 
-  if (req.isAuthenticated()) {
-    console.log('User authenticated - proceeding normally:', {
-      userId: (req.user as any)?.id,
-      path: req.path,
-      timestamp: new Date().toISOString()
-    });
-    return next();
-  }
-  
-  // Non-authenticated users allowed for demo functionality
-  // Route handler will use getUserId() which returns demo user ID (1)
-  console.log('Non-authenticated user proceeding with demo access:', {
-    path: req.path,
-    sessionID: req.sessionID || 'none',
-    timestamp: new Date().toISOString()
-  });
-  next();
-}
 
 // Generate static sitemap XML
 function generateSitemap(req: express.Request, res: express.Response) {
@@ -1003,7 +974,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Lists
-  app.get("/api/lists", requireAuthOrDemo, async (req, res) => {
+  app.get("/api/lists", async (req, res) => {
     const userId = getUserId(req);
     
     // Check if the user is authenticated with their own ID
@@ -1063,7 +1034,7 @@ export function registerRoutes(app: Express) {
     res.json(companies);
   });
 
-  app.post("/api/lists", requireAuthOrDemo, async (req, res) => {
+  app.post("/api/lists", async (req, res) => {
     const { companies, prompt, contactSearchConfig } = req.body;
 
     console.log(`POST /api/lists called with ${companies?.length || 0} companies`);
@@ -1713,7 +1684,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Contacts
-  app.get("/api/companies/:companyId/contacts", requireAuthOrDemo, async (req, res) => {
+  app.get("/api/companies/:companyId/contacts", async (req, res) => {
     try {
       const userId = getUserId(req);
       const companyId = parseInt(req.params.companyId);
