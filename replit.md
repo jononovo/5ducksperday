@@ -99,7 +99,9 @@
 - **Environment variables**: Replit Database access and API keys via environment
 
 ### Storage Strategy
-- **Currently only using the Key-value DB**: Although there is a switcher for when we want to move over to PostgreSQL
+- **PostgreSQL Migration Complete**: Successfully migrated from Replit Key-value Database to PostgreSQL for new users
+- **Hybrid Architecture**: PostgreSQL for search data (lists, companies, contacts), maintains backward compatibility
+- **Modern Schema**: Uses identity columns, JSONB fields, proper indexing, and foreign key constraints
 
 
 ## Deployment Configuration
@@ -119,6 +121,8 @@
 - Webhook verification is optional (fallback to unverified processing)
 
 ## Changelog
+
+- July 28, 2025. **PostgreSQL Migration Complete**: Successfully migrated search-related data storage from Replit Key-value Database to PostgreSQL for new users. Verified complete database schema with all tables (users, lists, companies, contacts, campaigns, templates, etc.) properly created with foreign key constraints, indexes, and JSONB fields. Full search workflow tested: user creation → list creation → company addition → contact discovery works end-to-end. Storage switcher configured to use PostgreSQL by default (`USE_REPLIT_DB = false`). Modern architecture ready for production with identity columns, proper timestamps, and data isolation. No backward compatibility needed per user requirements. Files modified: `storage-switching/1--storage-switcher.ts`, `server/index.ts`, `replit.md`.
 
 - July 25, 2025. **Static Footer Support Link Consolidation**: Updated all Support links in Company section to point to contact page instead of non-existent `/support` page. Changed href from `/support` to `/contact` across all three static pages while maintaining "Support" link text. Both Contact and Support links now lead to comprehensive contact page that serves as unified support hub with multiple contact methods (personal, general, bug reports, feature requests). Eliminates potential 404 errors and provides consistent user experience. Files modified: `static/landing.html`, `static/pricing/index.html`, `static/contact.html`.
 
