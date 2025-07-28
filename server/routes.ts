@@ -93,40 +93,9 @@ function getUserId(req: express.Request): number {
     console.error('Error accessing user ID:', error);
   }
   
-  // For routes that handle list/company data, we need to determine if this is:
-  // 1. A new user who should see demo data (return 1)
-  // 2. A user who just logged out and needs a clean state (don't return user 1's data)
-  
-  // Check for recent logout by looking at the logout timestamp in the session
-  const recentlyLoggedOut = (req.session as any)?.logoutTime && 
-    (Date.now() - (req.session as any).logoutTime < 60000); // Within last minute
-  
-  if (recentlyLoggedOut) {
-    // For recently logged out users, return a non-existent user ID
-    // This ensures they don't see the previous user's data
-    console.log('Recently logged out user - returning non-existent user ID');
-    return -1; // This ID won't match any real user, preventing data leakage
-  }
-  
-  console.warn('No authenticated user found - this should not happen for authenticated routes', {
-    isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
-    hasUser: !!req.user,
-    hasFirebaseUser: !!(req as any).firebaseUser,
-    path: req.path,
-    method: req.method,
-    sessionID: req.sessionID || 'none',
-    timestamp: new Date().toISOString()
-  });
-  
-  // IMPORTANT: For authenticated routes, we should NOT fall back to demo user ID
-  // Instead, we should require proper authentication
-  if (req.path.startsWith('/api/companies') || req.path.startsWith('/api/lists') || req.path.startsWith('/api/contacts')) {
-    console.error('Authenticated route accessed without valid user ID - this will cause database errors');
-    // Return -1 to trigger foreign key constraint error rather than using wrong user data
-    return -1;
-  }
-  
-  // For legacy compatibility with non-authenticated routes only
+  // For non-authenticated users, fall back to demo user ID (1)
+  // This allows non-registered users to use search functionality
+  // Demo user exists in PostgreSQL, so foreign key constraints work properly
   console.log('Fallback to demo user ID for non-authenticated route');
   return 1;
 }
