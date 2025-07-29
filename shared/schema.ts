@@ -6,7 +6,8 @@ export const users = pgTable("users", {
   username: text("username").notNull(),
   password: text("password").notNull(),
   email: text("email").notNull(),
-  createdAt: timestamp("created_at").defaultNow()
+  createdAt: timestamp("created_at").defaultNow(),
+  isGuest: boolean("is_guest").default(false)
 });
 
 export const lists = pgTable("lists", {
@@ -278,10 +279,14 @@ export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export const userSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters")
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  isGuest: z.boolean().optional()
 });
 
 export const insertUserSchema = userSchema;
+
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 
 /* 
 // ====================================================
