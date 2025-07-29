@@ -21,6 +21,38 @@ export default function Changelog() {
             <CardTitle>Changelog</CardTitle>
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none">
+            <h2>July 25, 2025</h2>
+            <ul>
+              <li>Added direct contact system with founder email access and dedicated support channels</li>
+              <li>Implemented bug reporting and feature request submission tools</li>
+              <li>Enhanced professional email identity - your name now appears on outbound emails</li>
+              <li>Improved Gmail session management with 90-day automatic authentication</li>
+              <li>Streamlined main navigation for better user experience</li>
+            </ul>
+
+            <h2>July 10, 2025</h2>
+            <ul>
+              <li>Launched complete account management dashboard with profile editing</li>
+              <li>Added Gmail integration for sending emails directly through the platform</li>
+              <li>Updated subscription plan names to "The Duckling" and "Mama Duck"</li>
+              <li>Implemented subscription and billing management tools</li>
+            </ul>
+
+            <h2>June 25, 2025</h2>
+            <ul>
+              <li>Enhanced platform stability and deployment reliability</li>
+              <li>Improved payment system flexibility - platform works even during payment maintenance</li>
+              <li>Added production-ready infrastructure for better uptime</li>
+            </ul>
+
+            <h2>June 15, 2025</h2>
+            <ul>
+              <li>Launched advanced email template system with personalization merge fields</li>
+              <li>Optimized mobile experience with touch-friendly interface design</li>
+              <li>Enhanced search settings with improved default configurations</li>
+              <li>Added email template library for saving and reusing successful approaches</li>
+            </ul>
+
             <h2>June 5, 2025</h2>
             <ul>
               <li>Launched AI-powered strategic onboarding system with interactive boundary selection</li>

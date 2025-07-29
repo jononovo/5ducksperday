@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Define path mappings for menu items
     const pathMappings = {
-        '/': 'search',           // Landing page maps to Search
-        '/app': 'search',        // App page also maps to Search
+        // '/': 'search',        // Removed: No highlighting for landing page
+        '/app': 'search',        // App page maps to Search
         '/pricing': 'pricing',
         '/contact': 'contact'
     };
