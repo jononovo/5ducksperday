@@ -1,0 +1,200 @@
+client:495 [vite] connecting...
+client:614 [vite] connected.
+chunk-RPCDYKBN.js?v=936a9f4a:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+firebase.ts:78 Starting Firebase initialization... {timestamp: '2025-07-29T20:49:59.822Z', domain: '88fbea2f-77b1-49b0-9a27-76d18098893f-00-1nfs1reo0b79x.janeway.replit.dev'}
+firebase.ts:18 Raw environment variables: {apiKey: '....aDbuzU', projectId: 'fire-5-ducks', appId: '....b133e8', mode: 'development', dev: true, …}
+firebase.ts:55 Firebase Configuration: {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: 'fire-5-ducks.firebaseapp.com', environment: 'development', …}
+firebase.ts:156 Firebase initialized successfully: {domain: '88fbea2f-77b1-49b0-9a27-76d18098893f-00-1nfs1reo0b79x.janeway.replit.dev', isAuth: true, isProvider: true, authDomain: 'fire-5-ducks.firebaseapp.com', timestamp: '2025-07-29T20:49:59.824Z'}
+use-auth.tsx:369 Setting up Firebase auth state listener
+use-auth.tsx:377 Firebase auth state changed: ale@codetribe.com
+firebase.ts:100 Firebase persistence set to LOCAL
+use-auth.tsx:299 Making backend sync request {endpoint: '/api/google-auth', domain: '88fbea2f-77b1-49b0-9a27-76d18098893f-00-1nfs1reo0b79x.janeway.replit.dev', selectedPlan: null, planSource: null, joinWaitlist: null}
+firebase.ts:128 Auth token set successfully: {uid: 'Zqq7kXq1ujY2c9hy8XHReEm3wRa2', email: 'ale@...', timestamp: '2025-07-29T20:50:00.008Z'}
+queryClient.ts:96  GET https://88fbea2f-77b1-49b0-9a27-76d18098893f-00-1nfs1reo0b79x.janeway.replit.dev/api/products 500 (Internal Server Error)
+(anonymous) @ queryClient.ts:96
+fetchFn @ @tanstack_react-query.js?v=936a9f4a:840
+run @ @tanstack_react-query.js?v=936a9f4a:494
+start @ @tanstack_react-query.js?v=936a9f4a:536
+fetch @ @tanstack_react-query.js?v=936a9f4a:926
+executeFetch_fn @ @tanstack_react-query.js?v=936a9f4a:2211
+onSubscribe @ @tanstack_react-query.js?v=936a9f4a:1898
+subscribe @ @tanstack_react-query.js?v=936a9f4a:24
+(anonymous) @ @tanstack_react-query.js?v=936a9f4a:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=936a9f4a:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=936a9f4a:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=936a9f4a:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=936a9f4a:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=936a9f4a:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=936a9f4a:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=936a9f4a:19447
+(anonymous) @ chunk-RPCDYKBN.js?v=936a9f4a:19328
+workLoop @ chunk-RPCDYKBN.js?v=936a9f4a:197
+flushWork @ chunk-RPCDYKBN.js?v=936a9f4a:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=936a9f4a:384
+queryClient.ts:108 Query error for /api/products: Error: 500: {"message":"column \"unique_attributes\" does not exist"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async queryClient.ts:105:7
+(anonymous) @ queryClient.ts:108
+await in (anonymous)
+fetchFn @ @tanstack_react-query.js?v=936a9f4a:840
+run @ @tanstack_react-query.js?v=936a9f4a:494
+start @ @tanstack_react-query.js?v=936a9f4a:536
+fetch @ @tanstack_react-query.js?v=936a9f4a:926
+executeFetch_fn @ @tanstack_react-query.js?v=936a9f4a:2211
+onSubscribe @ @tanstack_react-query.js?v=936a9f4a:1898
+subscribe @ @tanstack_react-query.js?v=936a9f4a:24
+(anonymous) @ @tanstack_react-query.js?v=936a9f4a:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=936a9f4a:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=936a9f4a:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=936a9f4a:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=936a9f4a:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=936a9f4a:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=936a9f4a:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=936a9f4a:19447
+(anonymous) @ chunk-RPCDYKBN.js?v=936a9f4a:19328
+workLoop @ chunk-RPCDYKBN.js?v=936a9f4a:197
+flushWork @ chunk-RPCDYKBN.js?v=936a9f4a:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=936a9f4a:384
+use-auth.tsx:339 Successfully synced with backend
+strategy-overlay.tsx:823 Business type selected: product
+strategy-overlay.tsx:828 Form completed: {productService: 'car', customerFeedback: 'nice', website: 'hyundai.com'}
+strategy-overlay.tsx:858 Error creating profile: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+handleNext @ strategy-overlay.tsx:858
+await in handleNext
+handleFormKeyPress @ strategy-overlay.tsx:930
+callCallback2 @ chunk-RPCDYKBN.js?v=936a9f4a:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=936a9f4a:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=936a9f4a:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=936a9f4a:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=936a9f4a:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=936a9f4a:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=936a9f4a:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=936a9f4a:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=936a9f4a:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=936a9f4a:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=936a9f4a:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=936a9f4a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=936a9f4a:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=936a9f4a:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=936a9f4a:5449
+strategy-overlay.tsx:545 Processing strategy chat with input: Generate product summary
+strategy-overlay.tsx:567 Strategy chat response: {type: 'product_summary', message: "Here's your product analysis summary:", phase: 'PRODUCT_SUMMARY', data: {…}}
+strategy-overlay.tsx:545 Processing strategy chat with input: Popular cafes in Lower East Side, NYC
+strategy-overlay.tsx:567 Strategy chat response: {type: 'conversation', message: 'Great! Is there an additional niche or another exa…-friendly popular cafes in Lower East Side, NYC."', phase: 'TARGET_COLLECTION'}
+strategy-overlay.tsx:545 Processing strategy chat with input: cafes in Lower East Side, NYC
+strategy-overlay.tsx:567 Strategy chat response: {type: 'progressive_strategy', message: "Perfect! Now I'll create your **strategic sales plan** step by step.", phase: 'TARGET_REFINEMENT', initialTarget: 'Popular cafes in Lower East Side, NYC', refinedTarget: 'cafes in Lower East Side, NYC', …}
+strategy-overlay.tsx:635 Calling boundary API with: {initialTarget: 'Popular cafes in Lower East Side, NYC', refinedTarget: 'cafes in Lower East Side, NYC', productContext: {…}}
+strategy-overlay.tsx:651 Boundary data received: {type: 'boundary_options', title: 'Target Boundary Options', content: Array(3), step: 1, totalSteps: 3, …}
+strategy-overlay.tsx:652 About to display boundary options...
+strategy-overlay.tsx:677 Displaying boundary options: {type: 'boundary_options', title: 'Target Boundary Options', content: Array(3), step: 1, totalSteps: 3, …}
+strategy-overlay.tsx:654 Boundary options displayed, returning to wait for selection
+queryClient.ts:46 API Request: POST /api/strategic-profiles/save-from-chat {hasData: true, timestamp: '2025-07-29T20:51:13.563Z'}
+queryClient.ts:62  POST https://88fbea2f-77b1-49b0-9a27-76d18098893f-00-1nfs1reo0b79x.janeway.replit.dev/api/strategic-profiles/save-from-chat 500 (Internal Server Error)
+apiRequest @ queryClient.ts:62
+mutationFn @ strategy-overlay.tsx:85
+fn @ @tanstack_react-query.js?v=936a9f4a:1189
+run @ @tanstack_react-query.js?v=936a9f4a:494
+start @ @tanstack_react-query.js?v=936a9f4a:536
+execute @ @tanstack_react-query.js?v=936a9f4a:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=936a9f4a:2630
+(anonymous) @ @tanstack_react-query.js?v=936a9f4a:3295
+handleSaveAsProduct @ strategy-overlay.tsx:111
+callCallback2 @ chunk-RPCDYKBN.js?v=936a9f4a:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=936a9f4a:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=936a9f4a:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=936a9f4a:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=936a9f4a:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=936a9f4a:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=936a9f4a:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=936a9f4a:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=936a9f4a:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=936a9f4a:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=936a9f4a:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=936a9f4a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=936a9f4a:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=936a9f4a:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=936a9f4a:5449
+queryClient.ts:72 API Request Error: POST /api/strategic-profiles/save-from-chat {error: '500: {"message":"column \\"unique_attributes\\" does not exist"}', timestamp: '2025-07-29T20:51:13.827Z'}
+apiRequest @ queryClient.ts:72
+await in apiRequest
+mutationFn @ strategy-overlay.tsx:85
+fn @ @tanstack_react-query.js?v=936a9f4a:1189
+run @ @tanstack_react-query.js?v=936a9f4a:494
+start @ @tanstack_react-query.js?v=936a9f4a:536
+execute @ @tanstack_react-query.js?v=936a9f4a:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=936a9f4a:2630
+(anonymous) @ @tanstack_react-query.js?v=936a9f4a:3295
+handleSaveAsProduct @ strategy-overlay.tsx:111
+callCallback2 @ chunk-RPCDYKBN.js?v=936a9f4a:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=936a9f4a:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=936a9f4a:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=936a9f4a:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=936a9f4a:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=936a9f4a:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=936a9f4a:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=936a9f4a:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=936a9f4a:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=936a9f4a:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=936a9f4a:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=936a9f4a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=936a9f4a:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=936a9f4a:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=936a9f4a:5449
+queryClient.ts:46 API Request: POST /api/strategic-profiles/save-from-chat {hasData: true, timestamp: '2025-07-29T20:51:23.434Z'}
+queryClient.ts:62  POST https://88fbea2f-77b1-49b0-9a27-76d18098893f-00-1nfs1reo0b79x.janeway.replit.dev/api/strategic-profiles/save-from-chat 500 (Internal Server Error)
+apiRequest @ queryClient.ts:62
+mutationFn @ strategy-overlay.tsx:85
+fn @ @tanstack_react-query.js?v=936a9f4a:1189
+run @ @tanstack_react-query.js?v=936a9f4a:494
+start @ @tanstack_react-query.js?v=936a9f4a:536
+execute @ @tanstack_react-query.js?v=936a9f4a:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=936a9f4a:2630
+(anonymous) @ @tanstack_react-query.js?v=936a9f4a:3295
+handleSaveAsProduct @ strategy-overlay.tsx:111
+callCallback2 @ chunk-RPCDYKBN.js?v=936a9f4a:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=936a9f4a:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=936a9f4a:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=936a9f4a:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=936a9f4a:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=936a9f4a:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=936a9f4a:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=936a9f4a:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=936a9f4a:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=936a9f4a:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=936a9f4a:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=936a9f4a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=936a9f4a:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=936a9f4a:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=936a9f4a:5449
+queryClient.ts:72 API Request Error: POST /api/strategic-profiles/save-from-chat {error: '500: {"message":"column \\"unique_attributes\\" does not exist"}', timestamp: '2025-07-29T20:51:23.661Z'}
+apiRequest @ queryClient.ts:72
+await in apiRequest
+mutationFn @ strategy-overlay.tsx:85
+fn @ @tanstack_react-query.js?v=936a9f4a:1189
+run @ @tanstack_react-query.js?v=936a9f4a:494
+start @ @tanstack_react-query.js?v=936a9f4a:536
+execute @ @tanstack_react-query.js?v=936a9f4a:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=936a9f4a:2630
+(anonymous) @ @tanstack_react-query.js?v=936a9f4a:3295
+handleSaveAsProduct @ strategy-overlay.tsx:111
+callCallback2 @ chunk-RPCDYKBN.js?v=936a9f4a:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=936a9f4a:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=936a9f4a:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=936a9f4a:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=936a9f4a:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=936a9f4a:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=936a9f4a:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=936a9f4a:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=936a9f4a:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=936a9f4a:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=936a9f4a:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=936a9f4a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=936a9f4a:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=936a9f4a:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=936a9f4a:5449
