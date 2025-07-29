@@ -3818,6 +3818,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
             // Create new profile
             await storage.createStrategicProfile?.({
               userId,
+              title: profileUpdate.businessDescription || profileData.businessDescription || "Strategy Plan",
               businessType,
               businessDescription: profileUpdate.businessDescription || profileData.businessDescription || "",
               targetCustomers: profileUpdate.targetCustomers || profileData.targetCustomers || "",
@@ -4138,6 +4139,7 @@ High-level strategic guidance for email generation.`;
             // Create new in-progress profile when product summary is generated
             const newProfile = await storage.createStrategicProfile({
               userId,
+              title: productContext.productService || 'Strategic Plan',
               businessType: 'product',
               businessDescription: productContext.productService || 'Strategic Plan',
               productService: productContext.productService,
@@ -4734,6 +4736,7 @@ Respond in this exact JSON format:
         // Create new profile if no matching in-progress profile found
         const profileData = {
           userId,
+          title: formData.businessDescription || formData.productService || 'Strategy Plan',
           businessType: formData.businessType || 'product',
           businessDescription: formData.productService || 'Strategic Plan',
           productService: formData.productService,

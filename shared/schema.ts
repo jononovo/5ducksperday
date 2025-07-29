@@ -338,6 +338,7 @@ export const webhookLogs = pgTable("webhook_logs", {
 export const strategicProfiles = pgTable("strategic_profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
   businessType: text("business_type").notNull(), // "product" or "service"
   businessDescription: text("business_description").notNull(),
   uniqueAttributes: text("unique_attributes").array(),
@@ -437,6 +438,7 @@ export const insertWebhookLogSchema = webhookLogSchema;
 
 // Strategic onboarding schemas
 export const strategicProfileSchema = z.object({
+  title: z.string().min(1, "Title is required"),
   businessType: z.enum(["product", "service"]),
   businessDescription: z.string().min(1, "Business description is required"),
   uniqueAttributes: z.array(z.string()).optional(),
