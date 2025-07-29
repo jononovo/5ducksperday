@@ -1015,7 +1015,7 @@ export function registerRoutes(app: Express) {
     res.json(list);
   });
 
-  app.get("/api/lists/:listId/companies", requireAuth, async (req, res) => {
+  app.get("/api/lists/:listId/companies", async (req, res) => {
     const isAuthenticated = req.isAuthenticated && req.isAuthenticated() && req.user;
     const listId = parseInt(req.params.listId);
     
@@ -2593,7 +2593,7 @@ Then, on a new line, write the body of the email. Keep both subject and content 
   });
 
   // Backend Email Search Orchestration Endpoint
-  app.post("/api/companies/find-all-emails", requireAuth, async (req, res) => {
+  app.post("/api/companies/find-all-emails", async (req, res) => {
     try {
       const userId = getUserId(req);
       const { companyIds, sessionId } = req.body;
