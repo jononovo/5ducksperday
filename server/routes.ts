@@ -18,10 +18,7 @@ import {
   insertCompanySchema, 
   insertContactSchema, 
   insertListSchema, 
-  insertCampaignSchema,
-  insertEmailTemplateSchema, 
-  insertEmailThreadSchema, 
-  insertEmailMessageSchema
+  insertEmailTemplateSchema
 } from "@shared/schema";
 import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
 import type { PerplexityMessage } from "./lib/perplexity";
@@ -34,7 +31,7 @@ import { registerStripeRoutes } from "./routes/stripe";
 import { CreditService } from "./lib/credits";
 import { SearchType } from "./lib/credits/types";
 import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow-service";
-import { logIncomingWebhook } from "./lib/webhook-logger";
+// import { logIncomingWebhook } from "./lib/webhook-logger"; // COMMENTED: webhook logging inactive
 import { getEmailProvider } from "./services/emailService";
 
 // Global session storage for search results

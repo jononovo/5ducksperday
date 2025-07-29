@@ -1,3 +1,9 @@
+/* 
+// ====================================================
+// INACTIVE FEATURE - CAMPAIGNS STORAGE (NOT CURRENTLY ACTIVE)
+// ====================================================
+// Uncomment when campaign functionality is activated
+
 import { PgDatabase } from 'drizzle-orm/pg-core';
 import { eq, max } from 'drizzle-orm';
 import {
@@ -10,7 +16,9 @@ import {
   campaignLists,
   lists
 } from '@shared/schema';
+*/
 
+/* INACTIVE: CampaignStorage class commented out
 export class CampaignStorage {
   constructor(private db: PgDatabase<any>) {}
 
@@ -104,3 +112,4 @@ export class CampaignStorage {
       .where(eq(campaigns.campaignId, campaignId));
   }
 }
+*/

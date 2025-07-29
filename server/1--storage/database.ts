@@ -1,7 +1,7 @@
 import { IStorage } from './index';
 import { CompanyStorage } from './companies';
 import { ContactStorage } from './contacts';
-import { CampaignStorage } from './campaigns';
+// import { CampaignStorage } from './campaigns'; // COMMENTED: campaigns inactive
 import { TemplateStorage } from './templates';
 import { UserStorage } from './users';
 import { db } from '../1--db';
@@ -10,14 +10,14 @@ import type { InsertUser, User } from '@shared/schema';
 export class DatabaseStorage implements IStorage {
   private readonly companyStorage: CompanyStorage;
   private readonly contactStorage: ContactStorage;
-  private readonly campaignStorage: CampaignStorage;
+  // private readonly campaignStorage: CampaignStorage; // COMMENTED: campaigns inactive
   private readonly templateStorage: TemplateStorage;
   private readonly userStorage: UserStorage;
 
   constructor() {
     this.companyStorage = new CompanyStorage(db);
     this.contactStorage = new ContactStorage(db);
-    this.campaignStorage = new CampaignStorage(db);
+    // this.campaignStorage = new CampaignStorage(db); // COMMENTED: campaigns inactive
     this.templateStorage = new TemplateStorage(db);
     this.userStorage = new UserStorage(db);
   }
@@ -50,12 +50,16 @@ export class DatabaseStorage implements IStorage {
   updateContact = (id: number, contact: any): Promise<any> => this.contactStorage.updateContact(id, contact);
   deleteContactsByCompany = (companyId: number, userId: number): Promise<void> => this.contactStorage.deleteContactsByCompany(companyId, userId);
 
+  /* COMMENTED: Campaign methods inactive
   // Campaigns (filtered by userId)
   getCampaign = (campaignId: number, userId: number): Promise<any> => this.campaignStorage.getCampaign(campaignId, userId);
   listCampaigns = (userId: number): Promise<any[]> => this.campaignStorage.listCampaigns(userId);
+  */
+  /* COMMENTED: More campaign methods inactive
   createCampaign = (campaign: any): Promise<any> => this.campaignStorage.createCampaign(campaign);
   updateCampaign = (id: number, campaign: any, userId: number): Promise<any> => this.campaignStorage.updateCampaign(id, campaign, userId);
   getNextCampaignId = () => this.campaignStorage.getNextCampaignId();
+  */
 
   // Email Templates (filtered by userId)
   getEmailTemplate = (id: number, userId: number): Promise<any> => this.templateStorage.getEmailTemplate(id, userId);

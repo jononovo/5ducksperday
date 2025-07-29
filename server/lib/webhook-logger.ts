@@ -1,6 +1,6 @@
 import { db } from "../1--db";
-import { webhookLogs } from "@shared/schema";
-import type { WebhookLog } from "@shared/schema";
+// import { webhookLogs } from "@shared/schema"; // COMMENTED: webhookLogs table inactive
+// import type { WebhookLog } from "@shared/schema"; // COMMENTED: webhookLogs type inactive
 import { eq, gte, sql } from "drizzle-orm";
 
 /**
