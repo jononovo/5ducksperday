@@ -33,6 +33,7 @@ export class DatabaseStorage implements IStorage {
   getList = (listId: number, userId: number): Promise<any> => this.companyStorage.getList(listId, userId);
   listLists = (userId: number): Promise<any[]> => this.companyStorage.listLists(userId);
   createList = (list: any): Promise<any> => this.companyStorage.createList(list);
+  updateList = (listId: number, data: any, userId: number): Promise<any> => this.companyStorage.updateList(listId, data, userId);
   getNextListId = () => this.companyStorage.getNextListId();
 
   // Companies (filtered by userId)
@@ -65,8 +66,36 @@ export class DatabaseStorage implements IStorage {
   getEmailTemplate = (id: number, userId: number): Promise<any> => this.templateStorage.getEmailTemplate(id, userId);
   listEmailTemplates = (userId: number): Promise<any[]> => this.templateStorage.listEmailTemplates(userId);
   createEmailTemplate = (template: any): Promise<any> => this.templateStorage.createEmailTemplate(template);
+  updateEmailTemplate = (id: number, template: any, userId: number): Promise<any> => this.templateStorage.updateEmailTemplate(id, template, userId);
+  deleteEmailTemplate = (id: number, userId: number): Promise<void> => this.templateStorage.deleteEmailTemplate(id, userId);
 
+  // Search Approaches (safe stubs for route compatibility)
+  getSearchApproach = async (id: number): Promise<any> => {
+    // Return default decision-maker strategy for compatibility
+    return { id, moduleType: 'decision_maker', active: true, name: 'Default Strategy' };
+  };
+  
+  listSearchApproaches = async (): Promise<any[]> => {
+    // Return default decision-maker approach for route compatibility
+    return [{ id: 1, moduleType: 'decision_maker', active: true, name: 'Default Strategy' }];
+  };
+  
+  createSearchTestResult = async (data: any): Promise<void> => {
+    // Silent no-op for route compatibility
+    console.log('Search test result stub called:', data.testId || 'unknown');
+  };
+  
+  getTestResultsByStrategy = async (strategyId: number, userId: number): Promise<any[]> => {
+    // Return empty array for route compatibility
+    return [];
+  };
 
+  // Strategic Profiles (placeholder - to be implemented if needed)
+  getStrategicProfile = async (id: number, userId: number): Promise<any> => undefined;
+  listStrategicProfiles = async (userId: number): Promise<any[]> => [];
+  createStrategicProfile = async (profile: any): Promise<any> => profile;
+  updateStrategicProfile = async (id: number, updates: any, userId: number): Promise<any> => updates;
+  deleteStrategicProfile = async (id: number, userId: number): Promise<void> => {};
 }
 
 // Create and export a single instance 
