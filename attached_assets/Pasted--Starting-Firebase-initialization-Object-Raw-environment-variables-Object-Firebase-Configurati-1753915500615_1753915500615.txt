@@ -1,0 +1,263 @@
+ Starting Firebase initialization... Object
+ Raw environment variables: Object
+ Firebase Configuration: Object
+ Firebase initialized successfully: Object
+ Setting up Firebase auth state listener
+ Firebase auth state changed: ale@codetribe.com
+ Firebase persistence set to LOCAL
+ Making backend sync request Object
+ Auth token set successfully: Object
+ PromptEditor received config update: Object
+ PromptEditor received config update: Object
+ No saved search state found or session data already restored
+ PromptEditor received config update: Object
+ PromptEditor received config update: Object
+ Successfully synced with backend
+ Registration success detected, triggering welcome notification
+ Extracted guest data: Object
+ Guest data cleared successfully
+ Restored guest query to input: free palestine
+ API Request: POST /api/notifications/trigger Object
+trigger:1  Failed to load resource: the server responded with a status of 409 ()
+ API Request Error: POST /api/notifications/trigger Object
+Zi @ index-CqsQLN6R.js:49
+ Failed to trigger notification: 
+triggerNotification @ home-BAfxHTmr.js:27
+ Saving search state: Object
+ `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ dialog-bkjkeq56.js:10
+ Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ dialog-bkjkeq56.js:10
+ `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ dialog-bkjkeq56.js:10
+ Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ dialog-bkjkeq56.js:10
+ Saving search state: Object
+prompt-editor-DbTspdR7.js:57 PromptEditor received config update: Object
+prompt-editor-DbTspdR7.js:57 PromptEditor received config update: Object
+home-BAfxHTmr.js:29 No saved search state found or session data already restored
+prompt-editor-DbTspdR7.js:57 PromptEditor received config update: Object
+prompt-editor-DbTspdR7.js:57 PromptEditor received config update: Object
+home-BAfxHTmr.js:29 No saved search state found or session data already restored
+prompt-editor-DbTspdR7.js:57 PromptEditor received config update: Object
+prompt-editor-DbTspdR7.js:57 PromptEditor received config update: Object
+home-BAfxHTmr.js:29 Registration success detected, triggering welcome notification
+home-BAfxHTmr.js:29 Extracted guest data: Object
+home-BAfxHTmr.js:29 Guest data cleared successfully
+home-BAfxHTmr.js:29 Restored guest query to input: edtech
+index-CqsQLN6R.js:49 API Request: POST /api/notifications/trigger Object
+api/notifications/trigger:1  Failed to load resource: the server responded with a status of 409 ()
+index-CqsQLN6R.js:49 API Request Error: POST /api/notifications/trigger Object
+Zi @ index-CqsQLN6R.js:49
+home-BAfxHTmr.js:27 Failed to trigger notification: Error: 409: {"shouldShow":false,"message":"Notification already shown or not found"}
+    at hN (index-CqsQLN6R.js:49:42832)
+    at async Zi (index-CqsQLN6R.js:49:43694)
+    at async triggerNotification (home-BAfxHTmr.js:27:4606)
+    at async s (home-BAfxHTmr.js:29:21079)
+triggerNotification @ home-BAfxHTmr.js:27
+home-BAfxHTmr.js:29 Saving search state: Object
+home-BAfxHTmr.js:29 Saving search state: Object
+prompt-editor-DbTspdR7.js:57 Analyzing search query...
+prompt-editor-DbTspdR7.js:57 Preparing to search for companies and contacts...
+prompt-editor-DbTspdR7.js:57 Initiating company search process...
+prompt-editor-DbTspdR7.js:57 Sending request to company discovery API...
+prompt-editor-DbTspdR7.js:57 [Session Management] Cleaning up active sessions before starting new search...
+home-BAfxHTmr.js:29 Created search session: search_1753915224691_e0caxoz0q for query: edtech in boston
+home-BAfxHTmr.js:29 [Session Cleanup] Found 1 active sessions, terminating...
+prompt-editor-DbTspdR7.js:57 Created session search_1753915224691_e0caxoz0q for query: edtech in boston
+prompt-editor-DbTspdR7.js:57 Quick search with strategy: 17
+index-CqsQLN6R.js:49 API Request: POST /api/companies/quick-search Object
+api/search-sessions/search_1753915224691_e0caxoz0q:1  Failed to load resource: the server responded with a status of 404 ()
+home-BAfxHTmr.js:29 Cleaned up session: search_1753915224691_e0caxoz0q
+home-BAfxHTmr.js:29 [Session Cleanup] Completed cleanup of 1 sessions
+prompt-editor-DbTspdR7.js:57 Processing company results...
+prompt-editor-DbTspdR7.js:57 Found 7 companies matching your search
+prompt-editor-DbTspdR7.js:57 Started polling for session search_1753915224691_e0caxoz0q completion
+home-BAfxHTmr.js:29 Companies received: 7
+prompt-editor-DbTspdR7.js:57 Starting contact discovery process...
+prompt-editor-DbTspdR7.js:57 Searching for key decision makers and contacts...
+prompt-editor-DbTspdR7.js:57 Sending comprehensive search request to API...
+prompt-editor-DbTspdR7.js:57 This process may take a moment while we find the most relevant contacts...
+index-CqsQLN6R.js:49 API Request: POST /api/companies/search Object
+company-table-DjbJe85u.js:1 CompanyTable received companies: Array(7)
+home-BAfxHTmr.js:29 Saving search state: Object
+dialog-bkjkeq56.js:10 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ dialog-bkjkeq56.js:10
+dialog-bkjkeq56.js:10 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ dialog-bkjkeq56.js:10
+prompt-editor-DbTspdR7.js:57 Contact discovery completed successfully
+prompt-editor-DbTspdR7.js:57 Found 57 contacts across 7 companies
+prompt-editor-DbTspdR7.js:57 Processing and organizing results...
+prompt-editor-DbTspdR7.js:57 Session search_1753915224691_e0caxoz0q completed with full results
+prompt-editor-DbTspdR7.js:57 [Database Sync] Invalidating cache to force fresh queries...
+prompt-editor-DbTspdR7.js:57 Search process completed!
+prompt-editor-DbTspdR7.js:57 [Database Sync] Cache invalidated, sending results to UI...
+home-BAfxHTmr.js:29 === PARENT COMPONENT: handleSearchResults called ===
+home-BAfxHTmr.js:29 Received query: edtech in boston
+home-BAfxHTmr.js:29 Received results count: 7
+home-BAfxHTmr.js:29 Current component state - query: edtech in boston
+home-BAfxHTmr.js:29 Current component state - results count: 7
+home-BAfxHTmr.js:29 Complete results received with contacts: 7
+home-BAfxHTmr.js:29 Companies reordered by contact count: Array(7)
+home-BAfxHTmr.js:29 === PARENT COMPONENT: State updated ===
+home-BAfxHTmr.js:29 New state - query: edtech in boston
+home-BAfxHTmr.js:29 New state - results count: 7
+home-BAfxHTmr.js:29 handleSearchResults completed
+home-BAfxHTmr.js:29 Companies with contacts: 6 of 7
+company-table-DjbJe85u.js:1 CompanyTable received companies: Array(7)
+company-table-DjbJe85u.js:1 Auto-expanding first company to show contacts: Bancroft School
+index-CqsQLN6R.js:49 API Request: POST /api/lists Object
+home-BAfxHTmr.js:29 Saving search state: Object
+home-BAfxHTmr.js:29 Saving search state: Object
+dialog-bkjkeq56.js:10 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ dialog-bkjkeq56.js:10
+dialog-bkjkeq56.js:10 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ dialog-bkjkeq56.js:10
+company-table-DjbJe85u.js:1 CompanyTable received companies: Array(7)
+home-BAfxHTmr.js:29 Saving search state: Object
+dialog-bkjkeq56.js:10 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ dialog-bkjkeq56.js:10
+dialog-bkjkeq56.js:10 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ dialog-bkjkeq56.js:10
+company-table-DjbJe85u.js:1 CompanyTable received companies: Array(7)
+home-BAfxHTmr.js:29 Saving search state: Object
+dialog-bkjkeq56.js:10 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ dialog-bkjkeq56.js:10
+dialog-bkjkeq56.js:10 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ dialog-bkjkeq56.js:10
+company-table-DjbJe85u.js:1 CompanyTable received companies: Array(7)
+home-BAfxHTmr.js:29 Saving search state: Object
+prompt-editor-DbTspdR7.js:57 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor-DbTspdR7.js:57 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+home-BAfxHTmr.js:29 Found localStorage data: {query: 'edtech in boston', resultsCount: 7, hasContacts: true, listId: 1030}
+home-BAfxHTmr.js:29 Refreshing contact data from database to preserve emails after navigation
+home-BAfxHTmr.js:29 Companies before refresh: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home-BAfxHTmr.js:29 NAVIGATION: Restoring search state and refreshing from database
+home-BAfxHTmr.js:29 Refreshing contact data from database for navigation persistence...
+index-CqsQLN6R.js:49 API Request: GET /api/companies/235/contacts?t=1753915378464 {hasData: false, timestamp: '2025-07-30T22:42:58.464Z'}
+index-CqsQLN6R.js:49 API Request: GET /api/companies/231/contacts?t=1753915378465 {hasData: false, timestamp: '2025-07-30T22:42:58.465Z'}
+index-CqsQLN6R.js:49 API Request: GET /api/companies/230/contacts?t=1753915378465 {hasData: false, timestamp: '2025-07-30T22:42:58.465Z'}
+index-CqsQLN6R.js:49 API Request: GET /api/companies/232/contacts?t=1753915378465 {hasData: false, timestamp: '2025-07-30T22:42:58.465Z'}
+index-CqsQLN6R.js:49 API Request: GET /api/companies/233/contacts?t=1753915378465 {hasData: false, timestamp: '2025-07-30T22:42:58.465Z'}
+index-CqsQLN6R.js:49 API Request: GET /api/companies/229/contacts?t=1753915378465 {hasData: false, timestamp: '2025-07-30T22:42:58.465Z'}
+index-CqsQLN6R.js:49 API Request: GET /api/companies/234/contacts?t=1753915378465 {hasData: false, timestamp: '2025-07-30T22:42:58.465Z'}
+prompt-editor-DbTspdR7.js:57 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+company-table-DjbJe85u.js:1 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+company-table-DjbJe85u.js:1 Auto-expanding first company to show contacts: Framework® Homeownership
+home-BAfxHTmr.js:29 Registration success detected, triggering welcome notification
+home-BAfxHTmr.js:29 Extracted guest data: {originalQuery: 'edtech in boston'}
+home-BAfxHTmr.js:29 Guest data cleared successfully
+home-BAfxHTmr.js:29 Restored guest query to input: edtech in boston
+index-CqsQLN6R.js:49 API Request: POST /api/notifications/trigger {hasData: true, timestamp: '2025-07-30T22:42:58.588Z'}
+home-BAfxHTmr.js:29 Refreshed 16 contacts for Tech Goes Home: (16) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home-BAfxHTmr.js:29 Refreshed 3 contacts for Framework® Homeownership: (3) [{…}, {…}, {…}]
+home-BAfxHTmr.js:29 Refreshed 0 contacts for Moonami: []
+home-BAfxHTmr.js:29 Refreshed 19 contacts for Bancroft School: (19) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home-BAfxHTmr.js:29 Refreshed 12 contacts for Online Learning Consortium: (12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home-BAfxHTmr.js:29 Refreshed 4 contacts for Cognitive Genetics: (4) [{…}, {…}, {…}, {…}]
+home-BAfxHTmr.js:29 Refreshed 3 contacts for Labster: (3) [{…}, {…}, {…}]
+home-BAfxHTmr.js:29 Contact data refresh completed from database
+home-BAfxHTmr.js:29 NAVIGATION: Database refresh completed with 0 emails
+home-BAfxHTmr.js:29 NAVIGATION: Companies after refresh: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+company-table-DjbJe85u.js:1 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+company-table-DjbJe85u.js:1 Auto-expanding first company to show contacts: Framework® Homeownership
+index-CqsQLN6R.js:49  POST https://5ducks.ai/api/notifications/trigger 409 (Conflict)
+Zi @ index-CqsQLN6R.js:49
+triggerNotification @ home-BAfxHTmr.js:27
+s @ home-BAfxHTmr.js:29
+(anonymous) @ index-CqsQLN6R.js:1766
+setTimeout
+(anonymous) @ index-CqsQLN6R.js:1766
+dh @ index-CqsQLN6R.js:41
+ra @ index-CqsQLN6R.js:41
+fw @ index-CqsQLN6R.js:41
+wi @ index-CqsQLN6R.js:39
+TF @ index-CqsQLN6R.js:41
+Ni @ index-CqsQLN6R.js:41
+NP @ index-CqsQLN6R.js:41
+_ @ index-CqsQLN6R.js:26
+F @ index-CqsQLN6R.js:26
+index-CqsQLN6R.js:49 API Request Error: POST /api/notifications/trigger {error: '409: {"shouldShow":false,"message":"Notification already shown or not found"}', timestamp: '2025-07-30T22:42:58.972Z'}
+Zi @ index-CqsQLN6R.js:49
+await in Zi
+triggerNotification @ home-BAfxHTmr.js:27
+s @ home-BAfxHTmr.js:29
+(anonymous) @ index-CqsQLN6R.js:1766
+setTimeout
+(anonymous) @ index-CqsQLN6R.js:1766
+dh @ index-CqsQLN6R.js:41
+ra @ index-CqsQLN6R.js:41
+fw @ index-CqsQLN6R.js:41
+wi @ index-CqsQLN6R.js:39
+TF @ index-CqsQLN6R.js:41
+Ni @ index-CqsQLN6R.js:41
+NP @ index-CqsQLN6R.js:41
+_ @ index-CqsQLN6R.js:26
+F @ index-CqsQLN6R.js:26
+home-BAfxHTmr.js:27 Failed to trigger notification: Error: 409: {"shouldShow":false,"message":"Notification already shown or not found"}
+    at hN (index-CqsQLN6R.js:49:42832)
+    at async Zi (index-CqsQLN6R.js:49:43694)
+    at async triggerNotification (home-BAfxHTmr.js:27:4606)
+    at async s (home-BAfxHTmr.js:29:21079)
+triggerNotification @ home-BAfxHTmr.js:27
+await in triggerNotification
+s @ home-BAfxHTmr.js:29
+(anonymous) @ index-CqsQLN6R.js:1766
+setTimeout
+(anonymous) @ index-CqsQLN6R.js:1766
+dh @ index-CqsQLN6R.js:41
+ra @ index-CqsQLN6R.js:41
+fw @ index-CqsQLN6R.js:41
+wi @ index-CqsQLN6R.js:39
+TF @ index-CqsQLN6R.js:41
+Ni @ index-CqsQLN6R.js:41
+NP @ index-CqsQLN6R.js:41
+_ @ index-CqsQLN6R.js:26
+F @ index-CqsQLN6R.js:26
+dialog-bkjkeq56.js:10 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ dialog-bkjkeq56.js:10
+dh @ index-CqsQLN6R.js:41
+ra @ index-CqsQLN6R.js:41
+TF @ index-CqsQLN6R.js:41
+Ni @ index-CqsQLN6R.js:41
+fw @ index-CqsQLN6R.js:41
+wi @ index-CqsQLN6R.js:39
+(anonymous) @ index-CqsQLN6R.js:41
+dialog-bkjkeq56.js:10 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ dialog-bkjkeq56.js:10
+dh @ index-CqsQLN6R.js:41
+ra @ index-CqsQLN6R.js:41
+TF @ index-CqsQLN6R.js:41
+Ni @ index-CqsQLN6R.js:41
+fw @ index-CqsQLN6R.js:41
+wi @ index-CqsQLN6R.js:39
+(anonymous) @ index-CqsQLN6R.js:41
+home-BAfxHTmr.js:29 Saving search state: {query: 'edtech in boston', resultsCount: 7, listId: null, companies: Array(7)}
