@@ -1,0 +1,81 @@
+Deep Technical Analysis: How TypeScript Errors & Global State Affect Email Search
+Based on my investigation, here's exactly how these technical factors could cause your email search to behave differently than the source code:
+
+1. TypeScript Compilation Errors Impact
+Development Server Architecture:
+Runtime: Uses tsx (TypeScript execution engine) via "dev": "tsx server/index.ts"
+Compilation: TypeScript config has "noEmit": true and "incremental": true
+Error Handling: tsx attempts to transpile TypeScript on-the-fly, but with 83 errors...
+Critical Problem: Partial Compilation
+When tsx encounters TypeScript errors, it employs "best effort compilation":
+
+// Your Current Code (lines 2758-2761)
+const [apolloResults, perplexityResults] = await Promise.all([
+  searchApolloContacts([contact1, contact2].filter(Boolean)),
+  searchPerplexityContacts([contact1, contact3].filter(Boolean))
+]);
+But tsx might compile it as:
+
+// Compiled JavaScript (with type errors)
+const [apolloResults, perplexityResults] = await Promise.all([
+  searchApolloContacts([contact1, contact2].filter(Boolean)),
+  searchPerplexityContacts([contact1, contact3].filter(Boolean))
+]);
+// ^ This works, but surrounding error-prone code might not
+Specific Email Search Vulnerabilities:
+Line 2878: Property 'getSearchApproach' does not exist - Could cause fallback to basic search
+Lines 2703-2704: Array type errors in email orchestration logic
+Lines 3274, 3290: Missing parameters could break contact processing
+Result: The email search falls back to simpler logic when sophisticated functions fail to compile properly.
+
+2. Global Server State Persistence
+Memory Architecture:
+// server/routes.ts
+declare global {
+  var searchSessions: Map<string, SearchSessionResult>;
+}
+global.searchSessions = global.searchSessions || new Map();
+The Caching Problem:
+The global.searchSessions Map persists across all requests and survives code reloads. Here's the critical issue:
+
+// Email Search Orchestration (lines 2614-2622)
+if (sessionId) {
+  const session = global.searchSessions?.get(sessionId);
+  if (session) {
+    session.emailSearchStatus = 'running';
+    global.searchSessions.set(sessionId, session);
+  }
+}
+How Old Logic Persists:
+Session Contains Function References: Sessions might cache function closures or callback references from previous code versions
+Strategy State: emailSearchStatus and processing state could reference old orchestration logic
+Contact Processing Cache: The Map contains processed contact data with old search strategy decisions
+Specific Email Search Impact:
+// Current sophisticated logic (lines 2756-2761)
+// Tier 1 & 2: Run Apollo and Perplexity in parallel
+const [apolloResults, perplexityResults] = await Promise.all([
+  searchApolloContacts([contact1, contact2].filter(Boolean)),
+  searchPerplexityContacts([contact1, contact3].filter(Boolean))
+]);
+But global.searchSessions might contain:
+
+Old session data expecting different contact assignment logic
+Cached processing state from simpler sequential search
+Session flags indicating "Hunter-first" instead of "Apollo+Perplexity parallel"
+3. Runtime Behavior Discrepancy Mechanism
+The Complete Flow:
+TypeScript Errors → tsx does partial compilation → Some sophisticated functions become undefined
+Global Sessions → Old session state influences orchestration decisions
+Error Handling → Code falls back to working (but simpler) email search paths
+Result → You see basic email search instead of sophisticated tiered strategy
+Evidence in Your Logs:
+The logs show credit deductions for "company contacts_emails search" at exactly 240 credits - this matches the sophisticated search cost structure, but the actual behavior might be using cached simple logic.
+
+4. Solution Requirements:
+To fix this discrepancy, you need:
+
+Fix TypeScript Errors: Resolve the 83 compilation errors so tsx can properly compile sophisticated logic
+Clear Global State: Reset global.searchSessions to eliminate cached old orchestration state
+Verify Runtime: Ensure the compiled JavaScript matches your TypeScript source
+The root cause is that Node.js global state + TypeScript compilation errors create a "hybrid runtime" where some new code runs but falls back to old cached logic when sophisticated functions fail to compile properly.
+
