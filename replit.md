@@ -7,6 +7,13 @@
 Preferred communication style: Simple, everyday language.
 Mobile UI preference: Compact, space-efficient design with seamless header-to-content transitions.
 
+## Recent Changes
+**July 31, 2025**: Documentation consolidation and accuracy improvements
+- Updated DEPLOYMENT.md with correct PostgreSQL terminology and database setup instructions
+- Fixed table count accuracy in setup guides (15 tables, not 8)
+- Removed duplicate setup instructions to eliminate confusion
+- Added database recovery section for deleted database scenarios
+
 ## System Architecture
 The application features a **React SPA frontend** with TypeScript, Vite, Tailwind CSS (using shadcn/ui), TanStack Query, React Router, and Radix UI. The **backend** is built with Express.js and TypeScript, utilizing Replit Database for key-value data and Passport.js with Firebase Auth for authentication.
 

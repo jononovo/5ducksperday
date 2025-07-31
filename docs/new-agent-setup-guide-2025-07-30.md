@@ -14,7 +14,7 @@ This setup creates 8 PostgreSQL tables while preserving the key-value storage fo
 ```bash
 npx drizzle-kit push --url "$DATABASE_URL" --schema "./shared/schema.ts" --dialect postgresql
 ```
-*Creates 8 tables: users, companies, contacts, lists, email_templates, strategic_profiles, user_preferences, search_sessions*
+*Creates 15 tables: users, lists, companies, contacts, contactFeedback, campaigns, campaignLists, emailTemplates, userPreferences, emailThreads, emailMessages, webhookLogs, strategicProfiles, onboardingChats, prospectDeliveries*
 
 ### Step 2: Demo Data Population
 ```bash
@@ -43,7 +43,7 @@ npx tsx scripts/setup-demo-data.ts
 
 ## Success Verification
 After setup you should have:
-- ✅ 8 PostgreSQL tables created
+- ✅ 15 PostgreSQL tables created
 - ✅ Demo user (ID=1) for non-registered users
 - ✅ 4 professional email templates  
 - ✅ App running on port 5000
