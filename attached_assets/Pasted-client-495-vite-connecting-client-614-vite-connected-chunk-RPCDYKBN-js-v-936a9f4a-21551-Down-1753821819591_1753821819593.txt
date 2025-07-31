@@ -1,0 +1,39 @@
+client:495 [vite] connecting...
+client:614 [vite] connected.
+chunk-RPCDYKBN.js?v=936a9f4a:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+firebase.ts:78 Starting Firebase initialization... Object
+firebase.ts:18 Raw environment variables: Object
+firebase.ts:55 Firebase Configuration: Object
+firebase.ts:156 Firebase initialized successfully: Object
+use-auth.tsx:369 Setting up Firebase auth state listener
+use-auth.tsx:377 Firebase auth state changed: ale@codetribe.com
+firebase.ts:100 Firebase persistence set to LOCAL
+use-auth.tsx:299 Making backend sync request Object
+firebase.ts:128 Auth token set successfully: Object
+api/products:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+queryClient.ts:108 Query error for /api/products: Error: 500: {"message":"column \"business_type\" does not exist"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async queryClient.ts:105:7
+(anonymous) @ queryClient.ts:108
+use-auth.tsx:339 Successfully synced with backend
+strategy-overlay.tsx:823 Business type selected: product
+strategy-overlay.tsx:828 Form completed: Object
+strategy-overlay.tsx:858 Error creating profile: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+handleNext @ strategy-overlay.tsx:858
+strategy-overlay.tsx:545 Processing strategy chat with input: Generate product summary
+strategy-overlay.tsx:567 Strategy chat response: Object
+strategy-overlay.tsx:545 Processing strategy chat with input: Popular cafes in Lower East Side, NYC
+strategy-overlay.tsx:567 Strategy chat response: Object
+strategy-overlay.tsx:545 Processing strategy chat with input: cafes in Lower East Side, NYC
+strategy-overlay.tsx:567 Strategy chat response: Object
+strategy-overlay.tsx:545 Processing strategy chat with input: ok
+strategy-overlay.tsx:567 Strategy chat response: Object
+strategy-overlay.tsx:635 Calling boundary API with: Object
+strategy-overlay.tsx:651 Boundary data received: Object
+strategy-overlay.tsx:652 About to display boundary options...
+strategy-overlay.tsx:677 Displaying boundary options: Object
+strategy-overlay.tsx:654 Boundary options displayed, returning to wait for selection
+queryClient.ts:46 API Request: POST /api/strategic-profiles/save-from-chat Object
+api/strategic-profiles/save-from-chat:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+queryClient.ts:72 API Request Error: POST /api/strategic-profiles/save-from-chat Object
+apiRequest @ queryClient.ts:72

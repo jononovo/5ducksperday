@@ -1,0 +1,34 @@
+index-CFFQE9mN.js:1764 Starting Firebase initialization... Object
+index-CFFQE9mN.js:1764 Raw environment variables: Object
+index-CFFQE9mN.js:1764 Firebase Configuration: Object
+index-CFFQE9mN.js:1766 Firebase initialized successfully: Object
+index-CFFQE9mN.js:1766 Setting up Firebase auth state listener
+index-CFFQE9mN.js:1766 Firebase auth state changed: jon@codetribe.com
+index-CFFQE9mN.js:1766 Firebase persistence set to LOCAL
+index-CFFQE9mN.js:1766 Making backend sync request Object
+index-CFFQE9mN.js:1766 Auth token set successfully: Object
+index-CFFQE9mN.js:1766 Successfully synced with backend
+api/products:1  Failed to load resource: the server responded with a status of 500 ()
+index-CFFQE9mN.js:49 Query error for /api/products: Error: 500: {"message":"relation \"strategic_profiles\" does not exist"}
+    at hN (index-CFFQE9mN.js:49:42832)
+    at async index-CFFQE9mN.js:49:44096
+(anonymous) @ index-CFFQE9mN.js:49
+index-CFFQE9mN.js:1868 Business type selected: product
+index-CFFQE9mN.js:1868 Form completed: Object
+index-CFFQE9mN.js:1868 Error creating profile: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+ul @ index-CFFQE9mN.js:1868
+index-CFFQE9mN.js:1828 Processing strategy chat with input: Generate product summary
+index-CFFQE9mN.js:1828 Strategy chat response: Object
+index-CFFQE9mN.js:1828 Processing strategy chat with input: Popular cafes in Lower East Side, NYC
+index-CFFQE9mN.js:1828 Strategy chat response: Object
+index-CFFQE9mN.js:1828 Processing strategy chat with input: cafes in Lower East Side, NYC
+index-CFFQE9mN.js:1828 Strategy chat response: Object
+index-CFFQE9mN.js:1828 Calling boundary API with: Object
+index-CFFQE9mN.js:1828 Boundary data received: Object
+index-CFFQE9mN.js:1828 About to display boundary options...
+index-CFFQE9mN.js:1828 Displaying boundary options: Object
+index-CFFQE9mN.js:1828 Boundary options displayed, returning to wait for selection
+index-CFFQE9mN.js:49 API Request: POST /api/strategic-profiles/save-from-chat Object
+api/strategic-profiles/save-from-chat:1  Failed to load resource: the server responded with a status of 500 ()
+index-CFFQE9mN.js:49 API Request Error: POST /api/strategic-profiles/save-from-chat Object
+Xi @ index-CFFQE9mN.js:49

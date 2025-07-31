@@ -1,15 +1,12 @@
 import { 
-  userPreferences, lists, companies, contacts, campaigns, emailTemplates, users,
-  emailThreads, emailMessages, strategicProfiles, onboardingChats,
+  userPreferences, lists, companies, contacts, emailTemplates, users,
+  strategicProfiles, onboardingChats,
   type UserPreferences, type InsertUserPreferences,
   type List, type InsertList,
   type Company, type InsertCompany,
   type Contact, type InsertContact,
-  type Campaign, type InsertCampaign,
   type EmailTemplate, type InsertEmailTemplate,
   type User, type InsertUser,
-  type EmailThread, type InsertEmailThread,
-  type EmailMessage, type InsertEmailMessage,
   type StrategicProfile, type InsertStrategicProfile,
   type OnboardingChat, type InsertOnboardingChat
 } from "@shared/schema";

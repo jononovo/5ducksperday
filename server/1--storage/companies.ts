@@ -19,7 +19,6 @@ export class CompanyStorage {
         .select()
         .from(companies)
         .where(eq(companies.id, id))
-        .where(eq(companies.userId, userId))
         .limit(1);
 
       console.log('CompanyStorage.getCompany result:', {
@@ -35,7 +34,7 @@ export class CompanyStorage {
   }
 
   // Lists
-  async getList(listId: number): Promise<List | undefined> {
+  async getList(listId: number, userId: number): Promise<List | undefined> {
     const [list] = await this.db
       .select()
       .from(lists)
@@ -43,13 +42,22 @@ export class CompanyStorage {
     return list;
   }
 
-  async listLists(): Promise<List[]> {
-    return this.db.select().from(lists);
+  async listLists(userId: number): Promise<List[]> {
+    return this.db.select().from(lists).where(eq(lists.userId, userId));
   }
 
   async createList(list: InsertList): Promise<List> {
     const [created] = await this.db.insert(lists).values(list).returning();
     return created;
+  }
+
+  async updateList(listId: number, data: Partial<InsertList>, userId: number): Promise<List | undefined> {
+    const [updated] = await this.db
+      .update(lists)
+      .set(data)
+      .where(eq(lists.listId, listId))
+      .returning();
+    return updated;
   }
 
   async getNextListId(): Promise<number> {
@@ -62,11 +70,11 @@ export class CompanyStorage {
 
   // Companies
 
-  async listCompanies(): Promise<Company[]> {
-    return this.db.select().from(companies);
+  async listCompanies(userId: number): Promise<Company[]> {
+    return this.db.select().from(companies).where(eq(companies.userId, userId));
   }
 
-  async listCompaniesByList(listId: number): Promise<Company[]> {
+  async listCompaniesByList(listId: number, userId: number): Promise<Company[]> {
     return this.db
       .select()
       .from(companies)

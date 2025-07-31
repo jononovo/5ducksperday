@@ -30,7 +30,7 @@ export class ContactStorage {
     }
   }
 
-  async listContactsByCompany(companyId: number): Promise<Contact[]> {
+  async listContactsByCompany(companyId: number, userId: number): Promise<Contact[]> {
     return this.db
       .select()
       .from(contacts)
@@ -57,7 +57,7 @@ export class ContactStorage {
     return updated;
   }
 
-  async deleteContactsByCompany(companyId: number): Promise<void> {
+  async deleteContactsByCompany(companyId: number, userId: number): Promise<void> {
     await this.db
       .delete(contacts)
       .where(eq(contacts.companyId, companyId));

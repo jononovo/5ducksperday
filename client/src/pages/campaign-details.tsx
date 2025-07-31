@@ -22,8 +22,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Campaign, InsertCampaign } from "@shared/schema";
-import { insertCampaignSchema } from "@shared/schema";
+// Campaign functionality is currently inactive
+// import type { Campaign, InsertCampaign } from "@shared/schema";
+// import { insertCampaignSchema } from "@shared/schema";
 
 export default function CampaignDetails() {
   const [, params] = useRoute("/campaigns/:id");
@@ -32,8 +33,9 @@ export default function CampaignDetails() {
   const queryClient = useQueryClient();
   const isNew = params?.id === "new";
 
-  const form = useForm<InsertCampaign>({
-    resolver: zodResolver(insertCampaignSchema),
+  // Campaign functionality is currently inactive - using basic form
+  const form = useForm({
+    // resolver: zodResolver(insertCampaignSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -44,7 +46,7 @@ export default function CampaignDetails() {
     },
   });
 
-  const { data: campaign } = useQuery<Campaign>({
+  const { data: campaign } = useQuery({
     queryKey: [`/api/campaigns/${params?.id}`],
     enabled: !isNew,
   });

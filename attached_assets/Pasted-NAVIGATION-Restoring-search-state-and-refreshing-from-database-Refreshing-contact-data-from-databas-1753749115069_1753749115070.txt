@@ -1,0 +1,47 @@
+NAVIGATION: Restoring search state and refreshing from database
+Refreshing contact data from database for navigation persistence...
+API Request: GET /api/companies/137/contacts?t=1753749088403 
+Object {hasData: false, timestamp: "2025-07-29T00:31:28.403Z"}
+API Request: GET /api/companies/135/contacts?t=1753749088404 
+Object {hasData: false, timestamp: "2025-07-29T00:31:28.404Z"}
+API Request: GET /api/companies/136/contacts?t=1753749088404 
+Object {hasData: false, timestamp: "2025-07-29T00:31:28.404Z"}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: "", …}
+PromptEditor received config update: 
+Object {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: "", …}
+Query error for /api/search-approaches: 
+Error {}
+
+Refreshed 10 contacts for Pager Health: 
+(10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Refreshed 6 contacts for Cityblock Health: 
+(6) [{…}, {…}, {…}, {…}, {…}, {…}]
+Refreshed 5 contacts for Zocdoc: 
+(5) [{…}, {…}, {…}, {…}, {…}]
+Contact data refresh completed from database
+NAVIGATION: Database refresh completed with 0 emails
+NAVIGATION: Companies after refresh: 
+(3) [{…}, {…}, {…}]
+CompanyTable received companies: 
+(3) [{…}, {…}, {…}]
+Auto-expanding first company to show contacts: Pager Health
+Saving search state: 
+Object {query: "Health-tech SaaS in Brooklyn", resultsCount: 3, listId: 1016, companies: Array(3)}
+`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+Query error for /api/lists/1015/companies: 
+Error {}
+
+`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+Query error for /api/lists/1015/companies: 
+Error {}

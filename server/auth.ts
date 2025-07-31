@@ -8,6 +8,7 @@ import { storage } from "./storage";
 import { User, User as SelectUser } from "@shared/schema";
 import admin from "firebase-admin";
 import { TokenService, UserTokens } from "./lib/tokens";
+import MemoryStore from "memorystore";
 
 // Extend the session type to include gmailToken
 declare module 'express-session' {
@@ -126,16 +127,31 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
 }
 
 export function setupAuth(app: Express) {
+  // Create persistent session store
+  const MemoryStoreSession = MemoryStore(session);
+  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'temporary-secret-key',
     resave: false,
     saveUninitialized: false,
+    store: new MemoryStoreSession({
+      checkPeriod: 86400000, // prune expired entries every 24h
+      ttl: 7 * 24 * 60 * 60 * 1000, // 7 days TTL
+      max: 500 // Maximum number of sessions
+    }),
     cookie: {
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     }
   };
+
+  console.log('Setting up persistent session store:', {
+    environment: process.env.NODE_ENV,
+    sessionTTL: '7 days',
+    cookieSecure: sessionSettings.cookie?.secure,
+    timestamp: new Date().toISOString()
+  });
 
   app.use(session(sessionSettings));
   app.use(passport.initialize());
@@ -211,6 +227,18 @@ export function setupAuth(app: Express) {
 
   // Add Firebase token verification to all authenticated routes
   app.use(async (req, res, next) => {
+    // Enhanced session debugging
+    console.log('Session middleware check:', {
+      sessionID: req.sessionID || 'none',
+      isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
+      hasUser: !!req.user,
+      userId: req.user ? (req.user as any).id : 'none',
+      path: req.path,
+      method: req.method,
+      hasAuthHeader: !!req.headers.authorization,
+      timestamp: new Date().toISOString()
+    });
+
     if (!req.isAuthenticated()) {
       const firebaseUser = await verifyFirebaseToken(req);
       if (firebaseUser) {
@@ -219,10 +247,19 @@ export function setupAuth(app: Express) {
         
         // Also log the user in to create a session - WAIT for completion
         req.login(firebaseUser, (err) => {
-          if (err) return next(err);
-          console.log('Firebase user logged in:', {
+          if (err) {
+            console.error('Session creation failed:', {
+              error: err.message,
+              userId: firebaseUser.id,
+              timestamp: new Date().toISOString()
+            });
+            return next(err);
+          }
+          
+          console.log('Firebase user session created successfully:', {
             id: firebaseUser.id,
             email: firebaseUser.email?.split('@')[0] + '@...',
+            sessionID: req.sessionID,
             timestamp: new Date().toISOString()
           });
           next(); // Only call next() after login completes
@@ -234,6 +271,11 @@ export function setupAuth(app: Express) {
       }
     } else {
       // Already authenticated via session
+      console.log('User already authenticated via session:', {
+        userId: (req.user as any)?.id,
+        sessionID: req.sessionID,
+        timestamp: new Date().toISOString()
+      });
       next();
     }
   });

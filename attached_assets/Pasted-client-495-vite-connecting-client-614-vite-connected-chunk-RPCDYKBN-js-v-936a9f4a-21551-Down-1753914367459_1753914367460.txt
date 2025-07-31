@@ -1,0 +1,416 @@
+client:495 [vite] connecting...
+client:614 [vite] connected.
+chunk-RPCDYKBN.js?v=936a9f4a:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+firebase.ts:78 Starting Firebase initialization... {timestamp: '2025-07-30T22:23:57.539Z', domain: '88fbea2f-77b1-49b0-9a27-76d18098893f-00-1nfs1reo0b79x.janeway.replit.dev'}
+firebase.ts:18 Raw environment variables: {apiKey: '....aDbuzU', projectId: 'fire-5-ducks', appId: '....b133e8', mode: 'development', dev: true, …}
+firebase.ts:55 Firebase Configuration: {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: 'fire-5-ducks.firebaseapp.com', environment: 'development', …}
+firebase.ts:156 Firebase initialized successfully: {domain: '88fbea2f-77b1-49b0-9a27-76d18098893f-00-1nfs1reo0b79x.janeway.replit.dev', isAuth: true, isProvider: true, authDomain: 'fire-5-ducks.firebaseapp.com', timestamp: '2025-07-30T22:23:57.540Z'}
+use-auth.tsx:369 Setting up Firebase auth state listener
+use-auth.tsx:377 Firebase auth state changed: jon@5ducks.ai
+firebase.ts:100 Firebase persistence set to LOCAL
+use-auth.tsx:299 Making backend sync request {endpoint: '/api/google-auth', domain: '88fbea2f-77b1-49b0-9a27-76d18098893f-00-1nfs1reo0b79x.janeway.replit.dev', selectedPlan: null, planSource: null, joinWaitlist: null}
+firebase.ts:128 Auth token set successfully: {uid: 'mG2rEdiQ7GhQVExp3XIm4YaPyoz2', email: 'jon@...', timestamp: '2025-07-30T22:23:57.687Z'}
+use-auth.tsx:339 Successfully synced with backend
+home.tsx:447 No saved search state found or session data already restored
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+home.tsx:453 Registration success detected, triggering welcome notification
+home.tsx:462 Extracted guest data: {originalQuery: 'Recently exited startups in nyc'}
+home.tsx:484 Guest data cleared successfully
+home.tsx:489 Restored guest query to input: Recently exited startups in nyc
+queryClient.ts:46 API Request: POST /api/notifications/trigger {hasData: true, timestamp: '2025-07-30T22:23:58.227Z'}
+queryClient.ts:62  POST https://88fbea2f-77b1-49b0-9a27-76d18098893f-00-1nfs1reo0b79x.janeway.replit.dev/api/notifications/trigger 409 (Conflict)
+apiRequest @ queryClient.ts:62
+triggerNotification @ use-notifications.tsx:43
+handleRegistrationSuccess @ home.tsx:495
+(anonymous) @ use-registration-modal.tsx:64
+setTimeout
+(anonymous) @ use-registration-modal.tsx:63
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=936a9f4a:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=936a9f4a:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=936a9f4a:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=936a9f4a:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=936a9f4a:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=936a9f4a:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=936a9f4a:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19432
+commitRoot @ chunk-RPCDYKBN.js?v=936a9f4a:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=936a9f4a:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18718
+workLoop @ chunk-RPCDYKBN.js?v=936a9f4a:197
+flushWork @ chunk-RPCDYKBN.js?v=936a9f4a:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=936a9f4a:384
+queryClient.ts:72 API Request Error: POST /api/notifications/trigger {error: '409: {"shouldShow":false,"message":"Notification already shown or not found"}', timestamp: '2025-07-30T22:23:58.361Z'}
+apiRequest @ queryClient.ts:72
+await in apiRequest
+triggerNotification @ use-notifications.tsx:43
+handleRegistrationSuccess @ home.tsx:495
+(anonymous) @ use-registration-modal.tsx:64
+setTimeout
+(anonymous) @ use-registration-modal.tsx:63
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=936a9f4a:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=936a9f4a:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=936a9f4a:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=936a9f4a:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=936a9f4a:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=936a9f4a:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=936a9f4a:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19432
+commitRoot @ chunk-RPCDYKBN.js?v=936a9f4a:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=936a9f4a:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18718
+workLoop @ chunk-RPCDYKBN.js?v=936a9f4a:197
+flushWork @ chunk-RPCDYKBN.js?v=936a9f4a:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=936a9f4a:384
+use-notifications.tsx:63 Failed to trigger notification: Error: 409: {"shouldShow":false,"message":"Notification already shown or not found"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:69:5)
+    at async triggerNotification (use-notifications.tsx:43:24)
+    at async handleRegistrationSuccess (home.tsx:495:9)
+triggerNotification @ use-notifications.tsx:63
+await in triggerNotification
+handleRegistrationSuccess @ home.tsx:495
+(anonymous) @ use-registration-modal.tsx:64
+setTimeout
+(anonymous) @ use-registration-modal.tsx:63
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=936a9f4a:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=936a9f4a:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=936a9f4a:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=936a9f4a:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=936a9f4a:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=936a9f4a:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=936a9f4a:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19432
+commitRoot @ chunk-RPCDYKBN.js?v=936a9f4a:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=936a9f4a:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18718
+workLoop @ chunk-RPCDYKBN.js?v=936a9f4a:197
+flushWork @ chunk-RPCDYKBN.js?v=936a9f4a:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=936a9f4a:384
+chunk-SBQHIHL3.js?v=936a9f4a:324 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ chunk-SBQHIHL3.js?v=936a9f4a:324
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=936a9f4a:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=936a9f4a:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=936a9f4a:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=936a9f4a:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=936a9f4a:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=936a9f4a:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19416
+commitRoot @ chunk-RPCDYKBN.js?v=936a9f4a:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=936a9f4a:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=936a9f4a:18627
+chunk-SBQHIHL3.js?v=936a9f4a:338 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ chunk-SBQHIHL3.js?v=936a9f4a:338
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=936a9f4a:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=936a9f4a:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=936a9f4a:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=936a9f4a:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=936a9f4a:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=936a9f4a:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19416
+commitRoot @ chunk-RPCDYKBN.js?v=936a9f4a:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=936a9f4a:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=936a9f4a:18627
+home.tsx:537 Saving search state: {query: 'Recently exited startups in nyc', resultsCount: undefined, listId: null, companies: undefined}
+quick-templates.tsx:65 QuickTemplates - Loaded templates: []
+quick-templates.tsx:65 QuickTemplates - Loaded templates: []
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+outreach.tsx:270 Prefetching contacts for companies 0 to 3 (current: 0)
+queryClient.ts:46 API Request: GET /api/companies/217/contacts {hasData: false, timestamp: '2025-07-30T22:24:06.854Z'}
+queryClient.ts:46 API Request: GET /api/companies/219/contacts {hasData: false, timestamp: '2025-07-30T22:24:06.854Z'}
+queryClient.ts:46 API Request: GET /api/companies/221/contacts {hasData: false, timestamp: '2025-07-30T22:24:06.855Z'}
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+outreach.tsx:270 Prefetching contacts for companies 0 to 4 (current: 1)
+queryClient.ts:46 API Request: GET /api/companies/218/contacts {hasData: false, timestamp: '2025-07-30T22:24:08.081Z'}
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+outreach.tsx:270 Prefetching contacts for companies 0 to 5 (current: 2)
+queryClient.ts:46 API Request: GET /api/companies/220/contacts {hasData: false, timestamp: '2025-07-30T22:24:08.445Z'}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+home.tsx:447 No saved search state found or session data already restored
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+home.tsx:453 Registration success detected, triggering welcome notification
+home.tsx:462 Extracted guest data: {originalQuery: 'Recently exited startups in nyc'}
+home.tsx:484 Guest data cleared successfully
+home.tsx:489 Restored guest query to input: Recently exited startups in nyc
+queryClient.ts:46 API Request: POST /api/notifications/trigger {hasData: true, timestamp: '2025-07-30T22:24:09.688Z'}
+queryClient.ts:62  POST https://88fbea2f-77b1-49b0-9a27-76d18098893f-00-1nfs1reo0b79x.janeway.replit.dev/api/notifications/trigger 409 (Conflict)
+apiRequest @ queryClient.ts:62
+triggerNotification @ use-notifications.tsx:43
+handleRegistrationSuccess @ home.tsx:495
+(anonymous) @ use-registration-modal.tsx:64
+setTimeout
+(anonymous) @ use-registration-modal.tsx:63
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=936a9f4a:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=936a9f4a:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=936a9f4a:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=936a9f4a:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=936a9f4a:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=936a9f4a:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=936a9f4a:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19432
+commitRoot @ chunk-RPCDYKBN.js?v=936a9f4a:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=936a9f4a:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18718
+workLoop @ chunk-RPCDYKBN.js?v=936a9f4a:197
+flushWork @ chunk-RPCDYKBN.js?v=936a9f4a:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=936a9f4a:384
+queryClient.ts:72 API Request Error: POST /api/notifications/trigger {error: '409: {"shouldShow":false,"message":"Notification already shown or not found"}', timestamp: '2025-07-30T22:24:09.945Z'}
+apiRequest @ queryClient.ts:72
+await in apiRequest
+triggerNotification @ use-notifications.tsx:43
+handleRegistrationSuccess @ home.tsx:495
+(anonymous) @ use-registration-modal.tsx:64
+setTimeout
+(anonymous) @ use-registration-modal.tsx:63
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=936a9f4a:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=936a9f4a:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=936a9f4a:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=936a9f4a:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=936a9f4a:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=936a9f4a:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=936a9f4a:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19432
+commitRoot @ chunk-RPCDYKBN.js?v=936a9f4a:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=936a9f4a:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18718
+workLoop @ chunk-RPCDYKBN.js?v=936a9f4a:197
+flushWork @ chunk-RPCDYKBN.js?v=936a9f4a:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=936a9f4a:384
+use-notifications.tsx:63 Failed to trigger notification: Error: 409: {"shouldShow":false,"message":"Notification already shown or not found"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:69:5)
+    at async triggerNotification (use-notifications.tsx:43:24)
+    at async handleRegistrationSuccess (home.tsx:495:9)
+triggerNotification @ use-notifications.tsx:63
+await in triggerNotification
+handleRegistrationSuccess @ home.tsx:495
+(anonymous) @ use-registration-modal.tsx:64
+setTimeout
+(anonymous) @ use-registration-modal.tsx:63
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=936a9f4a:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=936a9f4a:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=936a9f4a:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=936a9f4a:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=936a9f4a:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=936a9f4a:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=936a9f4a:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=936a9f4a:19432
+commitRoot @ chunk-RPCDYKBN.js?v=936a9f4a:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=936a9f4a:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=936a9f4a:18718
+workLoop @ chunk-RPCDYKBN.js?v=936a9f4a:197
+flushWork @ chunk-RPCDYKBN.js?v=936a9f4a:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=936a9f4a:384
+home.tsx:537 Saving search state: {query: 'Recently exited startups in nyc', resultsCount: undefined, listId: null, companies: undefined}
+home.tsx:537 Saving search state: {query: 'Recently exited startups in  bo', resultsCount: undefined, listId: null, companies: undefined}
+home.tsx:537 Saving search state: {query: 'Recently exited startups in  boston', resultsCount: undefined, listId: null, companies: undefined}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: false, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: false, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: 'finance', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: false, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: true, customSearchTarget: 'finance', …}
+prompt-editor.tsx:911 Analyzing search query...
+prompt-editor.tsx:912 Preparing to search for companies, contacts, and emails...
+prompt-editor.tsx:588 Initiating company search process...
+prompt-editor.tsx:589 Sending request to company discovery API...
+prompt-editor.tsx:592 [Session Management] Cleaning up active sessions before starting new search...
+search-session-manager.ts:38 Created search session: search_1753914261150_eem7qf21g for query: Recently exited startups in  boston
+search-session-manager.ts:271 [Session Cleanup] Found 1 active sessions, terminating...
+prompt-editor.tsx:603 Created session search_1753914261150_eem7qf21g for query: Recently exited startups in  boston
+prompt-editor.tsx:606 Quick search with strategy: 17
+queryClient.ts:46 API Request: POST /api/companies/quick-search {hasData: true, timestamp: '2025-07-30T22:24:21.151Z'}
+search-session-manager.ts:276  DELETE https://88fbea2f-77b1-49b0-9a27-76d18098893f-00-1nfs1reo0b79x.janeway.replit.dev/api/search-sessions/search_1753914261150_eem7qf21g 404 (Not Found)
+cleanupActiveSessions @ search-session-manager.ts:276
+createSession @ search-session-manager.ts:41
+mutationFn @ prompt-editor.tsx:596
+await in mutationFn
+fn @ @tanstack_react-query.js?v=936a9f4a:1189
+run @ @tanstack_react-query.js?v=936a9f4a:494
+start @ @tanstack_react-query.js?v=936a9f4a:536
+execute @ @tanstack_react-query.js?v=936a9f4a:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=936a9f4a:2630
+(anonymous) @ @tanstack_react-query.js?v=936a9f4a:3295
+handleSearch @ prompt-editor.tsx:921
+callCallback2 @ chunk-RPCDYKBN.js?v=936a9f4a:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=936a9f4a:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=936a9f4a:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=936a9f4a:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=936a9f4a:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=936a9f4a:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=936a9f4a:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=936a9f4a:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=936a9f4a:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=936a9f4a:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=936a9f4a:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=936a9f4a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=936a9f4a:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=936a9f4a:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=936a9f4a:5449
+search-session-manager.ts:242 Cleaned up session: search_1753914261150_eem7qf21g
+search-session-manager.ts:291 [Session Cleanup] Completed cleanup of 1 sessions
+prompt-editor.tsx:622 Processing company results...
+prompt-editor.tsx:623 Found 7 companies matching your search
+prompt-editor.tsx:634 Started polling for session search_1753914261150_eem7qf21g completion
+home.tsx:811 Companies received: 7
+prompt-editor.tsx:757 Starting contact discovery process...
+prompt-editor.tsx:758 Searching for key decision makers and contacts...
+prompt-editor.tsx:761 Sending comprehensive search request to API...
+prompt-editor.tsx:762 This process may take a moment while we find the most relevant contacts...
+queryClient.ts:46 API Request: POST /api/companies/search {hasData: true, timestamp: '2025-07-30T22:24:26.710Z'}
+company-table.tsx:73 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:537 Saving search state: {query: 'Recently exited startups in  boston', resultsCount: 7, listId: null, companies: Array(7)}
+prompt-editor.tsx:778 Contact discovery completed successfully
+prompt-editor.tsx:779 Found 48 contacts across 7 companies
+prompt-editor.tsx:781 Processing and organizing results...
+prompt-editor.tsx:790 Session search_1753914261150_eem7qf21g completed with full results
+prompt-editor.tsx:795 [Database Sync] Invalidating cache to force fresh queries...
+prompt-editor.tsx:828 Search process completed!
+prompt-editor.tsx:805 [Database Sync] Cache invalidated, sending results to UI...
+home.tsx:825 === PARENT COMPONENT: handleSearchResults called ===
+home.tsx:826 Received query: Recently exited startups in  boston
+home.tsx:827 Received results count: 7
+home.tsx:828 Current component state - query: Recently exited startups in  boston
+home.tsx:829 Current component state - results count: 7
+home.tsx:830 Complete results received with contacts: 7
+home.tsx:849 Companies reordered by contact count: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:858 === PARENT COMPONENT: State updated ===
+home.tsx:859 New state - query: Recently exited startups in  boston
+home.tsx:860 New state - results count: 7
+home.tsx:861 handleSearchResults completed
+home.tsx:871 Companies with contacts: 6 of 7
+home.tsx:2062 Starting backend email orchestration for 7 companies
+queryClient.ts:46 API Request: POST /api/companies/find-all-emails {hasData: true, timestamp: '2025-07-30T22:24:53.522Z'}
+company-table.tsx:73 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+company-table.tsx:198 Auto-expanding first company to show contacts: Liquid AI
+queryClient.ts:46 API Request: POST /api/lists {hasData: true, timestamp: '2025-07-30T22:24:54.525Z'}
+home.tsx:537 Saving search state: {query: 'Recently exited startups in  boston', resultsCount: 7, listId: 1029, companies: Array(7)}
+home.tsx:2084 Backend orchestration completed: {companiesProcessed: 7, contactsProcessed: 24, emailsFound: 13, sourceBreakdown: {…}}
+home.tsx:2105 EMAIL SEARCH COMPLETE: Starting complete database reload to ensure email persistence
+home.tsx:2112 Cleared all localStorage state
+home.tsx:2118 Fetching complete fresh data from database...
+home.tsx:331 Refreshing contact data from database for navigation persistence...
+queryClient.ts:46 API Request: GET /api/companies/222/contacts?t=1753914304520 {hasData: false, timestamp: '2025-07-30T22:25:04.520Z'}
+ API Request: GET /api/companies/223/contacts?t=1753914304520 {hasData: false, timestamp: '2025-07-30T22:25:04.520Z'}
+ API Request: GET /api/companies/227/contacts?t=1753914304520 {hasData: false, timestamp: '2025-07-30T22:25:04.520Z'}
+ API Request: GET /api/companies/224/contacts?t=1753914304521 {hasData: false, timestamp: '2025-07-30T22:25:04.521Z'}
+ API Request: GET /api/companies/226/contacts?t=1753914304521 {hasData: false, timestamp: '2025-07-30T22:25:04.521Z'}
+ API Request: GET /api/companies/225/contacts?t=1753914304521 {hasData: false, timestamp: '2025-07-30T22:25:04.521Z'}
+ API Request: GET /api/companies/228/contacts?t=1753914304521 {hasData: false, timestamp: '2025-07-30T22:25:04.521Z'}
+ Refreshed 7 contacts for TrialSpark: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ Refreshed 11 contacts for Liquid AI: (11) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ Refreshed 0 contacts for 7 Traits Genomics: []
+ Refreshed 9 contacts for Benchling: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ Refreshed 7 contacts for Pillar VC: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ Refreshed 4 contacts for Fluent BioSciences: (4) [{…}, {…}, {…}, {…}]
+ Refreshed 10 contacts for Dataiku: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ Contact data refresh completed from database
+ Database reload completed with 11 emails found
+ Complete state saved to localStorage with 11 emails
+ Email search completion: Database reload approach successful
+ No existing list to update - email results will be available for manual save
+ API Request: GET /api/companies/222/contacts {hasData: false, timestamp: '2025-07-30T22:25:04.695Z'}
+ API Request: GET /api/companies/223/contacts {hasData: false, timestamp: '2025-07-30T22:25:04.695Z'}
+ API Request: GET /api/companies/227/contacts {hasData: false, timestamp: '2025-07-30T22:25:04.696Z'}
+ API Request: GET /api/companies/224/contacts {hasData: false, timestamp: '2025-07-30T22:25:04.696Z'}
+ API Request: GET /api/companies/226/contacts {hasData: false, timestamp: '2025-07-30T22:25:04.696Z'}
+ API Request: GET /api/companies/225/contacts {hasData: false, timestamp: '2025-07-30T22:25:04.697Z'}
+ API Request: GET /api/companies/228/contacts {hasData: false, timestamp: '2025-07-30T22:25:04.697Z'}
+ CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ finishSearchWithoutSave: Updated localStorage with refreshed data
+ CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ Auto-expanding first company to show contacts: Liquid AI
+ Saving search state: {query: 'Recently exited startups in  boston', resultsCount: 7, listId: 1029, companies: Array(7)}
+ `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ chunk-SBQHIHL3.js:324
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+commitRootImpl @ chunk-RPCDYKBN.js:19416
+commitRoot @ chunk-RPCDYKBN.js:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+(anonymous) @ chunk-RPCDYKBN.js:18627
+ Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ chunk-SBQHIHL3.js:338
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+commitRootImpl @ chunk-RPCDYKBN.js:19416
+commitRoot @ chunk-RPCDYKBN.js:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+(anonymous) @ chunk-RPCDYKBN.js:18627
+ CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ Saving search state: {query: 'Recently exited startups in seattle', resultsCount: 7, listId: 1028, companies: Array(7)}
+ `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+(anonymous) @ chunk-SBQHIHL3.js:324
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+commitRootImpl @ chunk-RPCDYKBN.js:19416
+commitRoot @ chunk-RPCDYKBN.js:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+(anonymous) @ chunk-RPCDYKBN.js:18627
+ Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ chunk-SBQHIHL3.js:338
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+commitRootImpl @ chunk-RPCDYKBN.js:19416
+commitRoot @ chunk-RPCDYKBN.js:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+(anonymous) @ chunk-RPCDYKBN.js:18627
+ CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ Saving search state: {query: 'Recently exited startups in  boston', resultsCount: 7, listId: 1029, companies: Array(7)}

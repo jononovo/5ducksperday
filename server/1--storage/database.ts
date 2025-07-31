@@ -1,7 +1,7 @@
 import { IStorage } from './index';
 import { CompanyStorage } from './companies';
 import { ContactStorage } from './contacts';
-import { CampaignStorage } from './campaigns';
+// import { CampaignStorage } from './campaigns'; // COMMENTED: campaigns inactive
 import { TemplateStorage } from './templates';
 import { UserStorage } from './users';
 import { db } from '../1--db';
@@ -10,14 +10,14 @@ import type { InsertUser, User } from '@shared/schema';
 export class DatabaseStorage implements IStorage {
   private readonly companyStorage: CompanyStorage;
   private readonly contactStorage: ContactStorage;
-  private readonly campaignStorage: CampaignStorage;
+  // private readonly campaignStorage: CampaignStorage; // COMMENTED: campaigns inactive
   private readonly templateStorage: TemplateStorage;
   private readonly userStorage: UserStorage;
 
   constructor() {
     this.companyStorage = new CompanyStorage(db);
     this.contactStorage = new ContactStorage(db);
-    this.campaignStorage = new CampaignStorage(db);
+    // this.campaignStorage = new CampaignStorage(db); // COMMENTED: campaigns inactive
     this.templateStorage = new TemplateStorage(db);
     this.userStorage = new UserStorage(db);
   }
@@ -33,6 +33,7 @@ export class DatabaseStorage implements IStorage {
   getList = (listId: number, userId: number): Promise<any> => this.companyStorage.getList(listId, userId);
   listLists = (userId: number): Promise<any[]> => this.companyStorage.listLists(userId);
   createList = (list: any): Promise<any> => this.companyStorage.createList(list);
+  updateList = (listId: number, data: any, userId: number): Promise<any> => this.companyStorage.updateList(listId, data, userId);
   getNextListId = () => this.companyStorage.getNextListId();
 
   // Companies (filtered by userId)
@@ -50,19 +51,51 @@ export class DatabaseStorage implements IStorage {
   updateContact = (id: number, contact: any): Promise<any> => this.contactStorage.updateContact(id, contact);
   deleteContactsByCompany = (companyId: number, userId: number): Promise<void> => this.contactStorage.deleteContactsByCompany(companyId, userId);
 
+  /* COMMENTED: Campaign methods inactive
   // Campaigns (filtered by userId)
   getCampaign = (campaignId: number, userId: number): Promise<any> => this.campaignStorage.getCampaign(campaignId, userId);
   listCampaigns = (userId: number): Promise<any[]> => this.campaignStorage.listCampaigns(userId);
+  */
+  /* COMMENTED: More campaign methods inactive
   createCampaign = (campaign: any): Promise<any> => this.campaignStorage.createCampaign(campaign);
   updateCampaign = (id: number, campaign: any, userId: number): Promise<any> => this.campaignStorage.updateCampaign(id, campaign, userId);
   getNextCampaignId = () => this.campaignStorage.getNextCampaignId();
+  */
 
   // Email Templates (filtered by userId)
   getEmailTemplate = (id: number, userId: number): Promise<any> => this.templateStorage.getEmailTemplate(id, userId);
   listEmailTemplates = (userId: number): Promise<any[]> => this.templateStorage.listEmailTemplates(userId);
   createEmailTemplate = (template: any): Promise<any> => this.templateStorage.createEmailTemplate(template);
+  updateEmailTemplate = (id: number, template: any, userId: number): Promise<any> => this.templateStorage.updateEmailTemplate(id, template, userId);
+  deleteEmailTemplate = (id: number, userId: number): Promise<void> => this.templateStorage.deleteEmailTemplate(id, userId);
 
+  // Search Approaches (safe stubs for route compatibility)
+  getSearchApproach = async (id: number): Promise<any> => {
+    // Return default decision-maker strategy for compatibility
+    return { id, moduleType: 'decision_maker', active: true, name: 'Default Strategy' };
+  };
+  
+  listSearchApproaches = async (): Promise<any[]> => {
+    // Return default decision-maker approach for route compatibility
+    return [{ id: 1, moduleType: 'decision_maker', active: true, name: 'Default Strategy' }];
+  };
+  
+  createSearchTestResult = async (data: any): Promise<void> => {
+    // Silent no-op for route compatibility
+    console.log('Search test result stub called:', data.testId || 'unknown');
+  };
+  
+  getTestResultsByStrategy = async (strategyId: number, userId: number): Promise<any[]> => {
+    // Return empty array for route compatibility
+    return [];
+  };
 
+  // Strategic Profiles (placeholder - to be implemented if needed)
+  getStrategicProfile = async (id: number, userId: number): Promise<any> => undefined;
+  listStrategicProfiles = async (userId: number): Promise<any[]> => [];
+  createStrategicProfile = async (profile: any): Promise<any> => profile;
+  updateStrategicProfile = async (id: number, updates: any, userId: number): Promise<any> => updates;
+  deleteStrategicProfile = async (id: number, userId: number): Promise<void> => {};
 }
 
 // Create and export a single instance 

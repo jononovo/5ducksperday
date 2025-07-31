@@ -6,8 +6,7 @@ export const users = pgTable("users", {
   username: text("username").notNull(),
   password: text("password").notNull(),
   email: text("email").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  isGuest: boolean("is_guest").default(false)
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 export const lists = pgTable("lists", {
@@ -78,12 +77,6 @@ export const contacts = pgTable("contacts", {
   index('idx_contacts_email').on(table.email),
 ]);
 
-/* 
-// ====================================================
-// INACTIVE FEATURE - CONTACT FEEDBACK (NOT CURRENTLY PUSHED)
-// ====================================================
-// Uncomment when contact rating functionality is activated
-
 export const contactFeedback = pgTable("contact_feedback", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   contactId: integer("contact_id").notNull(),
@@ -92,15 +85,8 @@ export const contactFeedback = pgTable("contact_feedback", {
 }, (table) => [
   index('idx_contact_feedback_contact_id').on(table.contactId),
 ]);
-*/
 
 
-
-/* 
-// ====================================================
-// INACTIVE FEATURE - CAMPAIGNS (NOT CURRENTLY PUSHED)
-// ====================================================
-// Uncomment when campaign functionality is activated
 
 export const campaigns = pgTable("campaigns", {
   id: serial("id").primaryKey(),
@@ -120,7 +106,6 @@ export const campaignLists = pgTable("campaign_lists", {
   listId: integer("list_id").notNull(),
   createdAt: timestamp("created_at").defaultNow()
 });
-*/
 
 export const emailTemplates = pgTable("email_templates", {
   id: serial("id").primaryKey(),
@@ -191,18 +176,15 @@ const contactSchema = z.object({
   completedSearches: z.array(z.string()).optional()
 });
 
-/* INACTIVE FEATURE SCHEMA - CONTACT FEEDBACK
 const contactFeedbackSchema = z.object({
   contactId: z.number(),
   feedbackType: z.enum(['excellent', 'ok', 'terrible'])
 });
-*/
 
 
 
 
 
-/* INACTIVE FEATURE SCHEMAS - CAMPAIGNS
 const campaignSchema = z.object({
   campaignId: z.number().min(2001),
   name: z.string().min(1, "Campaign name is required"),
@@ -216,7 +198,6 @@ const campaignListSchema = z.object({
   campaignId: z.number(),
   listId: z.number()
 });
-*/
 
 const emailTemplateSchema = z.object({
   name: z.string().min(1, "Template name is required"),
@@ -240,17 +221,14 @@ export const insertListSchema = listSchema.extend({
 });
 export const insertCompanySchema = companySchema;
 export const insertContactSchema = contactSchema;
-/* INACTIVE FEATURE INSERT SCHEMAS - CAMPAIGNS & CONTACT FEEDBACK
 export const insertCampaignSchema = campaignSchema.extend({
   userId: z.number()
 });
 export const insertCampaignListSchema = campaignListSchema;
-export const insertContactFeedbackSchema = contactFeedbackSchema;
-*/
-
 export const insertEmailTemplateSchema = emailTemplateSchema.extend({
   userId: z.number()
 });
+export const insertContactFeedbackSchema = contactFeedbackSchema;
 export const insertUserPreferencesSchema = userPreferencesSchema;
 
 export type List = typeof lists.$inferSelect;
@@ -259,17 +237,14 @@ export type Company = typeof companies.$inferSelect;
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
 export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
-/* INACTIVE FEATURE TYPES - CAMPAIGNS & CONTACT FEEDBACK
 export type Campaign = typeof campaigns.$inferSelect;
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 export type CampaignList = typeof campaignLists.$inferSelect;
 export type InsertCampaignList = z.infer<typeof insertCampaignListSchema>;
-export type ContactFeedback = typeof contactFeedback.$inferSelect;
-export type InsertContactFeedback = z.infer<typeof insertContactFeedbackSchema>;
-*/
-
 export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
+export type ContactFeedback = typeof contactFeedback.$inferSelect;
+export type InsertContactFeedback = z.infer<typeof insertContactFeedbackSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 
@@ -279,21 +254,13 @@ export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export const userSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  isGuest: z.boolean().optional()
+  password: z.string().min(6, "Password must be at least 6 characters")
 });
 
 export const insertUserSchema = userSchema;
 
-export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-
-/* 
-// ====================================================
-// INACTIVE FEATURE - EMAIL CONVERSATIONS & WEBHOOKS (NOT CURRENTLY PUSHED)
-// ====================================================
-// Uncomment when email conversation tracking and webhook logging is activated
-
+// Add webhook logs table for N8N workflow integration
+// Email conversation tables
 export const emailThreads = pgTable("email_threads", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
@@ -332,13 +299,11 @@ export const webhookLogs = pgTable("webhook_logs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
-*/
 
 // Strategic onboarding tables
 export const strategicProfiles = pgTable("strategic_profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  title: text("title").notNull(),
   businessType: text("business_type").notNull(), // "product" or "service"
   businessDescription: text("business_description").notNull(),
   uniqueAttributes: text("unique_attributes").array(),
@@ -378,12 +343,6 @@ export const onboardingChats = pgTable("onboarding_chats", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
-/* 
-// ====================================================
-// INACTIVE FEATURE - PROSPECT DELIVERIES (NOT CURRENTLY PUSHED)
-// ====================================================
-// Uncomment when scheduled prospect delivery functionality is activated
-
 export const prospectDeliveries = pgTable("prospect_deliveries", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
@@ -394,7 +353,6 @@ export const prospectDeliveries = pgTable("prospect_deliveries", {
   prospectCount: integer("prospect_count").default(0),
   createdAt: timestamp("created_at").defaultNow()
 });
-*/
 
 // Define Schema for webhook logs
 // Email conversation schemas
@@ -438,7 +396,6 @@ export const insertWebhookLogSchema = webhookLogSchema;
 
 // Strategic onboarding schemas
 export const strategicProfileSchema = z.object({
-  title: z.string().min(1, "Title is required"),
   businessType: z.enum(["product", "service"]),
   businessDescription: z.string().min(1, "Business description is required"),
   uniqueAttributes: z.array(z.string()).optional(),
@@ -477,7 +434,6 @@ export const onboardingChatSchema = z.object({
   isComplete: z.boolean().default(false)
 });
 
-/* INACTIVE FEATURE SCHEMA - PROSPECT DELIVERIES
 export const prospectDeliverySchema = z.object({
   profileId: z.number(),
   searchPrompt: z.string().min(1, "Search prompt is required"),
@@ -485,11 +441,6 @@ export const prospectDeliverySchema = z.object({
   status: z.enum(["scheduled", "delivered", "failed"]).default("scheduled"),
   prospectCount: z.number().default(0)
 });
-
-export const insertProspectDeliverySchema = prospectDeliverySchema.extend({
-  userId: z.number()
-});
-*/
 
 export const insertStrategicProfileSchema = strategicProfileSchema.extend({
   userId: z.number()
@@ -499,22 +450,26 @@ export const insertOnboardingChatSchema = onboardingChatSchema.extend({
   userId: z.number()
 });
 
-/* INACTIVE FEATURE TYPES - EMAIL CONVERSATIONS, WEBHOOKS & PROSPECT DELIVERIES
+export const insertProspectDeliverySchema = prospectDeliverySchema.extend({
+  userId: z.number()
+});
+
 export type EmailThread = typeof emailThreads.$inferSelect;
 export type InsertEmailThread = z.infer<typeof insertEmailThreadSchema>;
 export type EmailMessage = typeof emailMessages.$inferSelect;
 export type InsertEmailMessage = z.infer<typeof insertEmailMessageSchema>;
 export type WebhookLog = typeof webhookLogs.$inferSelect;
 export type InsertWebhookLog = z.infer<typeof insertWebhookLogSchema>;
-export type ProspectDelivery = typeof prospectDeliveries.$inferSelect;
-export type InsertProspectDelivery = z.infer<typeof insertProspectDeliverySchema>;
-*/
 
 // Strategic onboarding types
 export type StrategicProfile = typeof strategicProfiles.$inferSelect;
 export type InsertStrategicProfile = z.infer<typeof insertStrategicProfileSchema>;
 export type OnboardingChat = typeof onboardingChats.$inferSelect;
 export type InsertOnboardingChat = z.infer<typeof insertOnboardingChatSchema>;
+export type ProspectDelivery = typeof prospectDeliveries.$inferSelect;
+export type InsertProspectDelivery = z.infer<typeof insertProspectDeliverySchema>;
 
-
+// Add User type
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 
