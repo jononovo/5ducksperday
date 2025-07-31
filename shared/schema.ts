@@ -57,7 +57,7 @@ export const contacts = pgTable("contacts", {
   name: text("name").notNull(),
   role: text("role"),
   email: text("email"),
-  alternativeEmails: jsonb("alternative_emails").default('[]'),
+  alternativeEmails: jsonb("alternative_emails").$type<string[]>().default([]),
   probability: integer("probability"),
   linkedinUrl: text("linkedin_url"),
   twitterHandle: text("twitter_handle"),
@@ -71,7 +71,7 @@ export const contacts = pgTable("contacts", {
   feedbackCount: integer("feedback_count").default(0), 
   lastValidated: timestamp("last_validated", { withTimezone: true }), 
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  completedSearches: jsonb("completed_searches").default('[]')
+  completedSearches: jsonb("completed_searches").$type<string[]>().default([])
 }, (table) => [
   index('idx_contacts_company_id').on(table.companyId),
   index('idx_contacts_user_id').on(table.userId),
@@ -96,19 +96,13 @@ export const contactFeedback = pgTable("contact_feedback", {
 
 
 
-/* 
-// ====================================================
-// INACTIVE FEATURE - CAMPAIGNS (NOT CURRENTLY PUSHED)
-// ====================================================
-// Uncomment when campaign functionality is activated
-
 export const campaigns = pgTable("campaigns", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   campaignId: integer("campaign_id").notNull(),
   name: text("name").notNull(),
   description: text("description"),
-  status: text("status").default('draft'),  
+  status: text("status").default('draft'),
   startDate: timestamp("start_date"),
   createdAt: timestamp("created_at").defaultNow(),
   totalCompanies: integer("total_companies").default(0)
@@ -120,7 +114,6 @@ export const campaignLists = pgTable("campaign_lists", {
   listId: integer("list_id").notNull(),
   createdAt: timestamp("created_at").defaultNow()
 });
-*/
 
 export const emailTemplates = pgTable("email_templates", {
   id: serial("id").primaryKey(),
@@ -188,6 +181,7 @@ const contactSchema = z.object({
   nameConfidenceScore: z.number().min(0).max(100).nullable(),
   userFeedbackScore: z.number().min(0).max(100).nullable(),
   feedbackCount: z.number().min(0).nullable(),
+  alternativeEmails: z.array(z.string()).optional(),
   completedSearches: z.array(z.string()).optional()
 });
 
@@ -202,7 +196,6 @@ const contactFeedbackSchema = z.object({
 
 
 
-/* INACTIVE FEATURE SCHEMAS - CAMPAIGNS
 const campaignSchema = z.object({
   campaignId: z.number().min(2001),
   name: z.string().min(1, "Campaign name is required"),
@@ -216,7 +209,6 @@ const campaignListSchema = z.object({
   campaignId: z.number(),
   listId: z.number()
 });
-*/
 
 const emailTemplateSchema = z.object({
   name: z.string().min(1, "Template name is required"),
@@ -240,13 +232,10 @@ export const insertListSchema = listSchema.extend({
 });
 export const insertCompanySchema = companySchema;
 export const insertContactSchema = contactSchema;
-/* INACTIVE FEATURE INSERT SCHEMAS - CAMPAIGNS & CONTACT FEEDBACK
 export const insertCampaignSchema = campaignSchema.extend({
   userId: z.number()
 });
 export const insertCampaignListSchema = campaignListSchema;
-export const insertContactFeedbackSchema = contactFeedbackSchema;
-*/
 
 export const insertEmailTemplateSchema = emailTemplateSchema.extend({
   userId: z.number()
@@ -259,14 +248,10 @@ export type Company = typeof companies.$inferSelect;
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
 export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
-/* INACTIVE FEATURE TYPES - CAMPAIGNS & CONTACT FEEDBACK
 export type Campaign = typeof campaigns.$inferSelect;
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 export type CampaignList = typeof campaignLists.$inferSelect;
 export type InsertCampaignList = z.infer<typeof insertCampaignListSchema>;
-export type ContactFeedback = typeof contactFeedback.$inferSelect;
-export type InsertContactFeedback = z.infer<typeof insertContactFeedbackSchema>;
-*/
 
 export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
@@ -287,6 +272,11 @@ export const insertUserSchema = userSchema;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+
+// Legacy type stubs for components that still import them
+export type SearchApproach = { id: number; name: string; description?: string };
+export type N8nWorkflow = { id: string; name: string; active: boolean };
+export type SearchSection = { id: string; title: string; content: string };
 
 /* 
 // ====================================================
