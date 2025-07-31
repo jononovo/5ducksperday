@@ -1,0 +1,2410 @@
+~/workspace$ npx tsc --noEmit
+client/src/components/company-table.tsx:401:23 - error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+
+401                       {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+402                         <div className="text-xs text-muted-foreground opacity-75 mt-1">
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+... 
+408                         </div>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+409                       )}
+    ~~~~~~~~~~~~~~~~~~~~~~~~
+
+client/src/components/company-table.tsx:401:79 - error TS2339: Property 'length' does not exist on type '{}'.
+
+401                       {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                                                                                  ~~~~~~
+
+client/src/components/company-table.tsx:403:54 - error TS2339: Property 'map' does not exist on type '{}'.
+
+403                           {contact.alternativeEmails.map((altEmail, index) => (
+                                                         ~~~
+
+client/src/components/company-table.tsx:403:59 - error TS7006: Parameter 'altEmail' implicitly has an 'any' type.
+
+403                           {contact.alternativeEmails.map((altEmail, index) => (
+                                                              ~~~~~~~~
+
+client/src/components/company-table.tsx:403:69 - error TS7006: Parameter 'index' implicitly has an 'any' type.
+
+403                           {contact.alternativeEmails.map((altEmail, index) => (
+                                                                        ~~~~~
+
+client/src/components/contact-action-column.tsx:78:66 - error TS2339: Property 'includes' does not exist on type '{}'.
+
+78     contact: (c: ContactWithCompanyInfo) => c.completedSearches?.includes('contact_enrichment') || false,
+                                                                    ~~~~~~~~
+
+client/src/components/contact-action-column.tsx:79:65 - error TS2339: Property 'includes' does not exist on type '{}'.
+
+79     hunter: (c: ContactWithCompanyInfo) => c.completedSearches?.includes('hunter') || false,
+                                                                   ~~~~~~~~
+
+client/src/components/contact-action-column.tsx:80:68 - error TS2339: Property 'includes' does not exist on type '{}'.
+
+80     aeroLeads: (c: ContactWithCompanyInfo) => c.completedSearches?.includes('aeroleads') || false,
+                                                                      ~~~~~~~~
+
+client/src/components/contact-action-column.tsx:81:65 - error TS2339: Property 'includes' does not exist on type '{}'.
+
+81     apollo: (c: ContactWithCompanyInfo) => c.completedSearches?.includes('apollo_search') || false
+                                                                   ~~~~~~~~
+
+client/src/components/search-strategies.tsx:20:15 - error TS2305: Module '"@shared/schema"' has no exported member 'SearchApproach'.
+
+20 import type { SearchApproach } from "@shared/schema";
+                 ~~~~~~~~~~~~~~
+
+client/src/components/strategy-overlay.tsx:391:125 - error TS7006: Parameter 'q' implicitly has an 'any' type.
+
+391             dailyQueries: Array.isArray(queriesData.content) ? queriesData.content : queriesData.content.split('\n').filter(q => q.trim())
+                                                                                                                                ~
+
+client/src/components/strategy-performance-chart.tsx:27:5 - error TS2769: No overload matches this call.
+  Overload 1 of 3, '(options: DefinedInitialDataOptions<PerformanceData, Error, PerformanceData, QueryKey>, queryClient?: QueryClient | undefined): DefinedUseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'onError' does not exist in type 'DefinedInitialDataOptions<PerformanceData, Error, PerformanceData, QueryKey>'.
+  Overload 2 of 3, '(options: UndefinedInitialDataOptions<PerformanceData, Error, PerformanceData, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'onError' does not exist in type 'UndefinedInitialDataOptions<PerformanceData, Error, PerformanceData, QueryKey>'.
+  Overload 3 of 3, '(options: UseQueryOptions<PerformanceData, Error, PerformanceData, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'onError' does not exist in type 'UseQueryOptions<PerformanceData, Error, PerformanceData, QueryKey>'.
+
+27     onError: () => {
+       ~~~~~~~
+
+
+client/src/components/strategy-performance-chart.tsx:37:15 - error TS2339: Property 'dates' does not exist on type 'NonNullable<TQueryFnData>'.
+
+37     if (data?.dates && data?.scores) {
+                 ~~~~~
+
+client/src/components/strategy-performance-chart.tsx:37:30 - error TS2339: Property 'scores' does not exist on type 'NonNullable<TQueryFnData>'.
+
+37     if (data?.dates && data?.scores) {
+                                ~~~~~~
+
+client/src/components/strategy-performance-chart.tsx:39:34 - error TS2339: Property 'dates' does not exist on type 'NonNullable<TQueryFnData>'.
+
+39       const formattedData = data.dates.map((date, index) => ({
+                                    ~~~~~
+
+client/src/components/strategy-performance-chart.tsx:39:45 - error TS7006: Parameter 'date' implicitly has an 'any' type.
+
+39       const formattedData = data.dates.map((date, index) => ({
+                                               ~~~~
+
+client/src/components/strategy-performance-chart.tsx:39:51 - error TS7006: Parameter 'index' implicitly has an 'any' type.
+
+39       const formattedData = data.dates.map((date, index) => ({
+                                                     ~~~~~
+
+client/src/components/strategy-performance-chart.tsx:41:21 - error TS2339: Property 'scores' does not exist on type 'NonNullable<TQueryFnData>'.
+
+41         score: data.scores[index],
+                       ~~~~~~
+
+client/src/components/workflow-header.tsx:6:10 - error TS2305: Module '"@shared/schema"' has no exported member 'N8nWorkflow'.
+
+6 import { N8nWorkflow } from "@shared/schema";
+           ~~~~~~~~~~~
+
+client/src/lib/list-utils.ts:18:50 - error TS2339: Property 'length' does not exist on type '{}'.
+
+18   if (customSearchTargets && customSearchTargets.length > 0) {
+                                                    ~~~~~~
+
+client/src/lib/list-utils.ts:19:46 - error TS2339: Property 'join' does not exist on type '{}'.
+
+19     const customLabels = customSearchTargets.join('+');
+                                                ~~~~
+
+client/src/lib/list-utils.ts:36:50 - error TS2339: Property 'length' does not exist on type '{}'.
+
+36   if (customSearchTargets && customSearchTargets.length > 0) {
+                                                    ~~~~~~
+
+client/src/lib/list-utils.ts:37:43 - error TS2339: Property 'join' does not exist on type '{}'.
+
+37     customLabel = `+${customSearchTargets.join('+')}`;
+                                             ~~~~
+
+client/src/lib/search-sections.ts:1:15 - error TS2305: Module '"@shared/schema"' has no exported member 'SearchSection'.
+
+1 import type { SearchSection } from "@shared/schema";
+                ~~~~~~~~~~~~~
+
+client/src/pages/build.tsx:14:15 - error TS2305: Module '"@shared/schema"' has no exported member 'SearchApproach'.
+
+14 import type { SearchApproach } from "@shared/schema";
+                 ~~~~~~~~~~~~~~
+
+client/src/pages/build.tsx:93:20 - error TS2339: Property 'testId' does not exist on type 'TestResult'.
+
+93         id: result.testId || `test-${result.id}`,
+                      ~~~~~~
+
+client/src/pages/build.tsx:95:30 - error TS2339: Property 'metadata' does not exist on type 'TestResult'.
+
+95         strategyName: result.metadata?.strategyName || "Unknown Strategy",
+                                ~~~~~~~~
+
+client/src/pages/build.tsx:102:27 - error TS2339: Property 'createdAt' does not exist on type 'TestResult'.
+
+102         timestamp: result.createdAt || new Date().toISOString()
+                              ~~~~~~~~~
+
+client/src/pages/campaign-details.tsx:55:30 - error TS2304: Cannot find name 'InsertCampaign'.
+
+55     mutationFn: async (data: InsertCampaign) => {
+                                ~~~~~~~~~~~~~~
+
+client/src/pages/campaign-details.tsx:96:27 - error TS2304: Cannot find name 'InsertCampaign'.
+
+96   const onSubmit = (data: InsertCampaign) => {
+                             ~~~~~~~~~~~~~~
+
+client/src/pages/campaign-details.tsx:115:69 - error TS2339: Property 'campaignId' does not exist on type '{}'.
+
+115             {isNew ? "Create Campaign" : `Edit Campaign ${campaign?.campaignId}`}
+                                                                        ~~~~~~~~~~
+
+client/src/pages/campaigns.tsx:16:15 - error TS2305: Module '"@shared/schema"' has no exported member 'Campaign'.
+
+16 import type { Campaign } from "@shared/schema";
+                 ~~~~~~~~
+
+client/src/pages/company-details.tsx:60:5 - error TS2769: No overload matches this call.
+  Overload 1 of 3, '(options: DefinedInitialDataOptions<{ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; }, Error, { ...; }, QueryKey>, queryClient?: QueryClient | undefined): DefinedUseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'DefinedInitialDataOptions<{ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; }, Error, { ...; }, QueryKey>'.
+  Overload 2 of 3, '(options: UndefinedInitialDataOptions<{ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; }, Error, { ...; }, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UndefinedInitialDataOptions<{ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; }, Error, { ...; }, QueryKey>'.
+  Overload 3 of 3, '(options: UseQueryOptions<{ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; }, Error, { ...; }, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UseQueryOptions<{ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; }, Error, { ...; }, QueryKey>'.
+
+60     cacheTime: 0, // Don't cache the response
+       ~~~~~~~~~
+
+
+client/src/pages/company-details.tsx:70:5 - error TS2769: No overload matches this call.
+  Overload 1 of 3, '(options: DefinedInitialDataOptions<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }[], Error, { ...; }[], QueryKey>, queryClient?: QueryClient | undefined): DefinedUseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'DefinedInitialDataOptions<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }[], Error, { ...; }[], QueryKey>'.
+  Overload 2 of 3, '(options: UndefinedInitialDataOptions<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }[], Error, { ...; }[], QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UndefinedInitialDataOptions<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }[], Error, { ...; }[], QueryKey>'.
+  Overload 3 of 3, '(options: UseQueryOptions<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }[], Error, { ...; }[], QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UseQueryOptions<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }[], Error, { ...; }[], QueryKey>'.
+
+70     cacheTime: 0,
+       ~~~~~~~~~
+
+
+client/src/pages/company-details.tsx:79:45 - error TS2339: Property 'id' does not exist on type 'NonNullable<TQueryFnData>'.
+
+79     fetchedCompany: company ? { id: company.id, name: company.name } : null,
+                                               ~~
+
+client/src/pages/company-details.tsx:79:63 - error TS2339: Property 'name' does not exist on type 'NonNullable<TQueryFnData>'.
+
+79     fetchedCompany: company ? { id: company.id, name: company.name } : null,
+                                                                 ~~~~
+
+client/src/pages/company-details.tsx:80:29 - error TS2339: Property 'length' does not exist on type 'never[] | TQueryFnData'.
+  Property 'length' does not exist on type 'TQueryFnData'.
+
+80     contactsCount: contacts.length,
+                               ~~~~~~
+
+client/src/pages/company-details.tsx:81:24 - error TS2339: Property 'map' does not exist on type 'never[] | TQueryFnData'.
+  Property 'map' does not exist on type 'TQueryFnData'.
+
+81     contacts: contacts.map(c => ({ id: c.id, name: c.name }))
+                          ~~~
+
+client/src/pages/company-details.tsx:81:28 - error TS7006: Parameter 'c' implicitly has an 'any' type.
+
+81     contacts: contacts.map(c => ({ id: c.id, name: c.name }))
+                              ~
+
+client/src/pages/company-details.tsx:152:22 - error TS2339: Property 'ranking' does not exist on type 'NonNullable<TQueryFnData>'.
+
+152       value: company.ranking || 0,
+                         ~~~~~~~
+
+client/src/pages/company-details.tsx:157:22 - error TS2339: Property 'size' does not exist on type 'NonNullable<TQueryFnData>'.
+
+157       value: company.size || 0,
+                         ~~~~
+
+client/src/pages/company-details.tsx:162:22 - error TS2339: Property 'linkedinProminence' does not exist on type 'NonNullable<TQueryFnData>'.
+
+162       value: company.linkedinProminence || 0,
+                         ~~~~~~~~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:167:22 - error TS2339: Property 'customerCount' does not exist on type 'NonNullable<TQueryFnData>'.
+
+167       value: company.customerCount || 0,
+                         ~~~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:173:47 - error TS2339: Property 'ranking' does not exist on type 'NonNullable<TQueryFnData>'.
+
+173     { name: "Website Ranking", value: company.ranking || 0 },
+                                                  ~~~~~~~
+
+client/src/pages/company-details.tsx:174:46 - error TS2339: Property 'linkedinProminence' does not exist on type 'NonNullable<TQueryFnData>'.
+
+174     { name: "LinkedIn Score", value: company.linkedinProminence || 0 },
+                                                 ~~~~~~~~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:175:45 - error TS2339: Property 'customerCount' does not exist on type 'NonNullable<TQueryFnData>'.
+
+175     { name: "Customer Base", value: company.customerCount || 0 },
+                                                ~~~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:176:38 - error TS2339: Property 'rating' does not exist on type 'NonNullable<TQueryFnData>'.
+
+176     { name: "Rating", value: company.rating || 0 },
+                                         ~~~~~~
+
+client/src/pages/company-details.tsx:206:68 - error TS2339: Property 'name' does not exist on type 'NonNullable<TQueryFnData>'.
+
+206                 <CardTitle className="text-2xl font-bold">{company.name}</CardTitle>
+                                                                       ~~~~
+
+client/src/pages/company-details.tsx:207:26 - error TS2339: Property 'description' does not exist on type 'NonNullable<TQueryFnData>'.
+
+207                 {company.description && (
+                             ~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:209:30 - error TS2339: Property 'description' does not exist on type 'NonNullable<TQueryFnData>'.
+
+209                     {company.description}
+                                 ~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:215:34 - error TS2339: Property 'totalScore' does not exist on type 'NonNullable<TQueryFnData>'.
+
+215                 variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}
+                                     ~~~~~~~~~~
+
+client/src/pages/company-details.tsx:215:56 - error TS2339: Property 'totalScore' does not exist on type 'NonNullable<TQueryFnData>'.
+
+215                 variant={company.totalScore && company.totalScore > 70 ? "default" : "secondary"}
+                                                           ~~~~~~~~~~
+
+client/src/pages/company-details.tsx:217:33 - error TS2339: Property 'totalScore' does not exist on type 'NonNullable<TQueryFnData>'.
+
+217                 Score: {company.totalScore ?? 'N/A'}
+                                    ~~~~~~~~~~
+
+client/src/pages/company-details.tsx:266:27 - error TS2339: Property 'map' does not exist on type 'never[] | TQueryFnData'.
+  Property 'map' does not exist on type 'TQueryFnData'.
+
+266                 {contacts.map((contact) => (
+                              ~~~
+
+client/src/pages/company-details.tsx:266:32 - error TS7006: Parameter 'contact' implicitly has an 'any' type.
+
+266                 {contacts.map((contact) => (
+                                   ~~~~~~~
+
+client/src/pages/company-details.tsx:283:19 - error TS2339: Property 'services' does not exist on type 'NonNullable<TQueryFnData>'.
+
+283         {(company.services?.length > 0 || company.validationPoints?.length > 0) && (
+                      ~~~~~~~~
+
+client/src/pages/company-details.tsx:283:51 - error TS2339: Property 'validationPoints' does not exist on type 'NonNullable<TQueryFnData>'.
+
+283         {(company.services?.length > 0 || company.validationPoints?.length > 0) && (
+                                                      ~~~~~~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:285:22 - error TS2339: Property 'services' does not exist on type 'NonNullable<TQueryFnData>'.
+
+285             {company.services && company.services.length > 0 && (
+                         ~~~~~~~~
+
+client/src/pages/company-details.tsx:285:42 - error TS2339: Property 'services' does not exist on type 'NonNullable<TQueryFnData>'.
+
+285             {company.services && company.services.length > 0 && (
+                                             ~~~~~~~~
+
+client/src/pages/company-details.tsx:292:30 - error TS2339: Property 'services' does not exist on type 'NonNullable<TQueryFnData>'.
+
+292                     {company.services.map((service, index) => (
+                                 ~~~~~~~~
+
+client/src/pages/company-details.tsx:292:44 - error TS7006: Parameter 'service' implicitly has an 'any' type.
+
+292                     {company.services.map((service, index) => (
+                                               ~~~~~~~
+
+client/src/pages/company-details.tsx:292:53 - error TS7006: Parameter 'index' implicitly has an 'any' type.
+
+292                     {company.services.map((service, index) => (
+                                                        ~~~~~
+
+client/src/pages/company-details.tsx:302:22 - error TS2339: Property 'validationPoints' does not exist on type 'NonNullable<TQueryFnData>'.
+
+302             {company.validationPoints && company.validationPoints.length > 0 && (
+                         ~~~~~~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:302:50 - error TS2339: Property 'validationPoints' does not exist on type 'NonNullable<TQueryFnData>'.
+
+302             {company.validationPoints && company.validationPoints.length > 0 && (
+                                                     ~~~~~~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:309:30 - error TS2339: Property 'validationPoints' does not exist on type 'NonNullable<TQueryFnData>'.
+
+309                     {company.validationPoints.map((point, index) => (
+                                 ~~~~~~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:309:52 - error TS7006: Parameter 'point' implicitly has an 'any' type.
+
+309                     {company.validationPoints.map((point, index) => (
+                                                       ~~~~~
+
+client/src/pages/company-details.tsx:309:59 - error TS7006: Parameter 'index' implicitly has an 'any' type.
+
+309                     {company.validationPoints.map((point, index) => (
+                                                              ~~~~~
+
+client/src/pages/company-details.tsx:334:26 - error TS2339: Property 'website' does not exist on type 'NonNullable<TQueryFnData>'.
+
+334                 {company.website ? (
+                             ~~~~~~~
+
+client/src/pages/company-details.tsx:336:35 - error TS2339: Property 'website' does not exist on type 'NonNullable<TQueryFnData>'.
+
+336                     href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
+                                      ~~~~~~~
+
+client/src/pages/company-details.tsx:336:72 - error TS2339: Property 'website' does not exist on type 'NonNullable<TQueryFnData>'.
+
+336                     href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
+                                                                           ~~~~~~~
+
+client/src/pages/company-details.tsx:336:101 - error TS2339: Property 'website' does not exist on type 'NonNullable<TQueryFnData>'.
+
+336                     href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
+                                                                                                        ~~~~~~~
+
+client/src/pages/company-details.tsx:341:30 - error TS2339: Property 'website' does not exist on type 'NonNullable<TQueryFnData>'.
+
+341                     {company.website}
+                                 ~~~~~~~
+
+client/src/pages/company-details.tsx:350:26 - error TS2339: Property 'alternativeProfileUrl' does not exist on type 'NonNullable<TQueryFnData>'.
+
+350                 {company.alternativeProfileUrl ? (
+                             ~~~~~~~~~~~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:352:35 - error TS2339: Property 'alternativeProfileUrl' does not exist on type 'NonNullable<TQueryFnData>'.
+
+352                     href={company.alternativeProfileUrl}
+                                      ~~~~~~~~~~~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:357:30 - error TS2339: Property 'alternativeProfileUrl' does not exist on type 'NonNullable<TQueryFnData>'.
+
+357                     {company.alternativeProfileUrl}
+                                 ~~~~~~~~~~~~~~~~~~~~~
+
+client/src/pages/company-details.tsx:363:24 - error TS2339: Property 'age' does not exist on type 'NonNullable<TQueryFnData>'.
+
+363               {company.age && (
+                           ~~~
+
+client/src/pages/company-details.tsx:367:34 - error TS2339: Property 'age' does not exist on type 'NonNullable<TQueryFnData>'.
+
+367                   <span>{company.age} years</span>
+                                     ~~~
+
+client/src/pages/contact-details.tsx:43:5 - error TS2769: No overload matches this call.
+  Overload 1 of 3, '(options: DefinedInitialDataOptions<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }, Error, { ...; }, QueryKey>, queryClient?: QueryClient | undefined): DefinedUseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'DefinedInitialDataOptions<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }, Error, { ...; }, QueryKey>'.
+  Overload 2 of 3, '(options: UndefinedInitialDataOptions<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }, Error, { ...; }, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UndefinedInitialDataOptions<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }, Error, { ...; }, QueryKey>'.
+  Overload 3 of 3, '(options: UseQueryOptions<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }, Error, { ...; }, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UseQueryOptions<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }, Error, { ...; }, QueryKey>'.
+
+43     cacheTime: 0, // Don't cache the response
+       ~~~~~~~~~
+
+
+client/src/pages/contact-details.tsx:50:43 - error TS2339: Property 'companyId' does not exist on type 'NonNullable<TQueryFnData>'.
+
+50     queryKey: [`/api/companies/${contact?.companyId}`],
+                                             ~~~~~~~~~
+
+client/src/pages/contact-details.tsx:51:25 - error TS2339: Property 'companyId' does not exist on type 'NonNullable<TQueryFnData>'.
+
+51     enabled: !!contact?.companyId,
+                           ~~~~~~~~~
+
+client/src/pages/contact-details.tsx:53:5 - error TS2769: No overload matches this call.
+  Overload 1 of 3, '(options: DefinedInitialDataOptions<{ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; }, Error, { ...; }, QueryKey>, queryClient?: QueryClient | undefined): DefinedUseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'DefinedInitialDataOptions<{ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; }, Error, { ...; }, QueryKey>'.
+  Overload 2 of 3, '(options: UndefinedInitialDataOptions<{ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; }, Error, { ...; }, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UndefinedInitialDataOptions<{ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; }, Error, { ...; }, QueryKey>'.
+  Overload 3 of 3, '(options: UseQueryOptions<{ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; }, Error, { ...; }, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UseQueryOptions<{ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; }, Error, { ...; }, QueryKey>'.
+
+53     cacheTime: 0,
+       ~~~~~~~~~
+
+
+client/src/pages/contact-details.tsx:120:30 - error TS2339: Property 'name' does not exist on type 'NonNullable<TQueryFnData>'.
+
+120                     {contact.name}
+                                 ~~~~
+
+client/src/pages/contact-details.tsx:123:30 - error TS2339: Property 'role' does not exist on type 'NonNullable<TQueryFnData>'.
+
+123                     {contact.role} at {company?.name}
+                                 ~~~~
+
+client/src/pages/contact-details.tsx:123:49 - error TS2339: Property 'name' does not exist on type 'NonNullable<TQueryFnData>'.
+
+123                     {contact.role} at {company?.name}
+                                                    ~~~~
+
+client/src/pages/contact-details.tsx:127:28 - error TS2339: Property 'probability' does not exist on type 'NonNullable<TQueryFnData>'.
+
+127                   (contact.probability || 0) >= 90 ? "default" :
+                               ~~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:128:28 - error TS2339: Property 'probability' does not exist on type 'NonNullable<TQueryFnData>'.
+
+128                   (contact.probability || 0) >= 70 ? "secondary" : "outline"
+                               ~~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:130:28 - error TS2339: Property 'probability' does not exist on type 'NonNullable<TQueryFnData>'.
+
+130                   {contact.probability || 0}% match
+                               ~~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:152:32 - error TS2339: Property 'email' does not exist on type 'NonNullable<TQueryFnData>'.
+
+152                       {contact.email || "Not available"}
+                                   ~~~~~
+
+client/src/pages/contact-details.tsx:155:42 - error TS2339: Property 'alternativeEmails' does not exist on type 'NonNullable<TQueryFnData>'.
+
+155                   {Array.isArray(contact.alternativeEmails) && contact.alternativeEmails.length > 0 && (
+                                             ~~~~~~~~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:155:72 - error TS2339: Property 'alternativeEmails' does not exist on type 'NonNullable<TQueryFnData>'.
+
+155                   {Array.isArray(contact.alternativeEmails) && contact.alternativeEmails.length > 0 && (
+                                                                           ~~~~~~~~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:164:34 - error TS2339: Property 'alternativeEmails' does not exist on type 'NonNullable<TQueryFnData>'.
+
+164                         {contact.alternativeEmails.map((email, index) => (
+                                     ~~~~~~~~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:164:57 - error TS7006: Parameter 'email' implicitly has an 'any' type.
+
+164                         {contact.alternativeEmails.map((email, index) => (
+                                                            ~~~~~
+
+client/src/pages/contact-details.tsx:164:64 - error TS7006: Parameter 'index' implicitly has an 'any' type.
+
+164                         {contact.alternativeEmails.map((email, index) => (
+                                                                   ~~~~~
+
+client/src/pages/contact-details.tsx:180:41 - error TS2339: Property 'phoneNumber' does not exist on type 'NonNullable<TQueryFnData>'.
+
+180                     <TableCell>{contact.phoneNumber || "Not available"}</TableCell>
+                                            ~~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:189:41 - error TS2339: Property 'department' does not exist on type 'NonNullable<TQueryFnData>'.
+
+189                     <TableCell>{contact.department || "Not available"}</TableCell>
+                                            ~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:198:41 - error TS2339: Property 'location' does not exist on type 'NonNullable<TQueryFnData>'.
+
+198                     <TableCell>{contact.location || "Not available"}</TableCell>
+                                            ~~~~~~~~
+
+client/src/pages/contact-details.tsx:208:32 - error TS2339: Property 'linkedinUrl' does not exist on type 'NonNullable<TQueryFnData>'.
+
+208                       {contact.linkedinUrl ? (
+                                   ~~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:210:41 - error TS2339: Property 'linkedinUrl' does not exist on type 'NonNullable<TQueryFnData>'.
+
+210                           href={contact.linkedinUrl}
+                                            ~~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:230:32 - error TS2339: Property 'twitterHandle' does not exist on type 'NonNullable<TQueryFnData>'.
+
+230                       {contact.twitterHandle ? (
+                                   ~~~~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:232:64 - error TS2339: Property 'twitterHandle' does not exist on type 'NonNullable<TQueryFnData>'.
+
+232                           href={`https://twitter.com/${contact.twitterHandle}`}
+                                                                   ~~~~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:237:37 - error TS2339: Property 'twitterHandle' does not exist on type 'NonNullable<TQueryFnData>'.
+
+237                           @{contact.twitterHandle}
+                                        ~~~~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:261:64 - error TS2339: Property 'name' does not exist on type 'NonNullable<TQueryFnData>'.
+
+261                     <h3 className="font-medium">About {company.name}</h3>
+                                                                   ~~~~
+
+client/src/pages/contact-details.tsx:263:32 - error TS2339: Property 'size' does not exist on type 'NonNullable<TQueryFnData>'.
+
+263                       {company.size} employees • Score: {company.totalScore ?? 'N/A'}
+                                   ~~~~
+
+client/src/pages/contact-details.tsx:263:66 - error TS2339: Property 'totalScore' does not exist on type 'NonNullable<TQueryFnData>'.
+
+263                       {company.size} employees • Score: {company.totalScore ?? 'N/A'}
+                                                                     ~~~~~~~~~~
+
+client/src/pages/contact-details.tsx:267:28 - error TS2339: Property 'services' does not exist on type 'NonNullable<TQueryFnData>'.
+
+267                   {company.services && company.services.length > 0 && (
+                               ~~~~~~~~
+
+client/src/pages/contact-details.tsx:267:48 - error TS2339: Property 'services' does not exist on type 'NonNullable<TQueryFnData>'.
+
+267                   {company.services && company.services.length > 0 && (
+                                                   ~~~~~~~~
+
+client/src/pages/contact-details.tsx:271:34 - error TS2339: Property 'services' does not exist on type 'NonNullable<TQueryFnData>'.
+
+271                         {company.services.map((service, index) => (
+                                     ~~~~~~~~
+
+client/src/pages/contact-details.tsx:271:48 - error TS7006: Parameter 'service' implicitly has an 'any' type.
+
+271                         {company.services.map((service, index) => (
+                                                   ~~~~~~~
+
+client/src/pages/contact-details.tsx:271:57 - error TS7006: Parameter 'index' implicitly has an 'any' type.
+
+271                         {company.services.map((service, index) => (
+                                                            ~~~~~
+
+client/src/pages/contact-details.tsx:282:67 - error TS2339: Property 'id' does not exist on type 'NonNullable<TQueryFnData>'.
+
+282                     onClick={() => navigate(`/companies/${company.id}`)}
+                                                                      ~~
+
+client/src/pages/home.tsx:1122:39 - error TS2339: Property 'includes' does not exist on type '{}'.
+
+1122     return contact.completedSearches?.includes('contact_enrichment') || false;
+                                           ~~~~~~~~
+
+client/src/pages/home.tsx:1279:25 - error TS2345: Argument of type '{ contacts: { id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }[]; ... 19 more ...; snapshot: unknown; }[]' is not assignable to parameter of type 'SetStateAction<CompanyWithContacts[] | null>'.
+  Type '{ contacts: { id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }[]; ... 19 more ...; snapshot: unknown; }[]' is not assignable to type 'CompanyWithContacts[]'.
+    Type '{ contacts: { id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }[]; ... 19 more ...; snapshot: unknown; }' is not assignable to type 'CompanyWithContacts'.
+      Types of property 'contacts' are incompatible.
+        Type '{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }[]' is not assignable to type 'ContactWithCompanyInfo[]'.
+          Property 'companyName' is missing in type '{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }' but required in type 'ContactWithCompanyInfo'.
+
+1279       setCurrentResults(companiesWithContacts);
+                             ~~~~~~~~~~~~~~~~~~~~~
+
+  client/src/lib/results-analysis/prospect-filtering.ts:4:3
+    4   companyName: string;
+        ~~~~~~~~~~~
+    'companyName' is declared here.
+
+client/src/pages/home.tsx:1605:39 - error TS2339: Property 'includes' does not exist on type '{}'.
+
+1605     return contact.completedSearches?.includes('aeroleads_search') || false;
+                                           ~~~~~~~~
+
+client/src/pages/home.tsx:1621:39 - error TS2339: Property 'includes' does not exist on type '{}'.
+
+1621     return contact.completedSearches?.includes('hunter_search') || false;
+                                           ~~~~~~~~
+
+client/src/pages/home.tsx:1637:39 - error TS2339: Property 'includes' does not exist on type '{}'.
+
+1637     return contact.completedSearches?.includes('apollo_search') || false;
+                                           ~~~~~~~~
+
+client/src/pages/home.tsx:2478:21 - error TS2719: Type 'SourceBreakdown | undefined' is not assignable to type 'SourceBreakdown | undefined'. Two different types with this name exist, but they are unrelated.
+  Type 'SourceBreakdown' is missing the following properties from type 'SourceBreakdown': Perplexity, Apollo, Hunter
+
+2478                     sourceBreakdown={lastSourceBreakdown || undefined}
+                         ~~~~~~~~~~~~~~~
+
+  client/src/components/email-search-summary.tsx:16:3
+    16   sourceBreakdown?: SourceBreakdown;
+         ~~~~~~~~~~~~~~~
+    The expected type comes from property 'sourceBreakdown' which is declared here on type 'IntrinsicAttributes & EmailSearchSummaryProps'
+
+client/src/pages/home.tsx:2707:33 - error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+
+2707                                 {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2708                                   <div className="flex flex-col gap-0.5 mt-1">
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ... 
+2714                                   </div>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2715                                 )}
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+client/src/pages/home.tsx:2707:89 - error TS2339: Property 'length' does not exist on type '{}'.
+
+2707                                 {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                                                                                             ~~~~~~
+
+client/src/pages/home.tsx:2709:64 - error TS2339: Property 'map' does not exist on type '{}'.
+
+2709                                     {contact.alternativeEmails.map((email, i) => (
+                                                                    ~~~
+
+client/src/pages/home.tsx:2709:69 - error TS7006: Parameter 'email' implicitly has an 'any' type.
+
+2709                                     {contact.alternativeEmails.map((email, i) => (
+                                                                         ~~~~~
+
+client/src/pages/home.tsx:2709:76 - error TS7006: Parameter 'i' implicitly has an 'any' type.
+
+2709                                     {contact.alternativeEmails.map((email, i) => (
+                                                                                ~
+
+client/src/pages/home.tsx:2743:29 - error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+
+2743                             {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2744                               <div className="text-xs text-muted-foreground opacity-75 mt-1">
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ... 
+2750                               </div>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2751                             )}
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+client/src/pages/home.tsx:2743:85 - error TS2339: Property 'length' does not exist on type '{}'.
+
+2743                             {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                                                                                         ~~~~~~
+
+client/src/pages/home.tsx:2745:60 - error TS2339: Property 'map' does not exist on type '{}'.
+
+2745                                 {contact.alternativeEmails.map((altEmail, index) => (
+                                                                ~~~
+
+client/src/pages/home.tsx:2745:65 - error TS7006: Parameter 'altEmail' implicitly has an 'any' type.
+
+2745                                 {contact.alternativeEmails.map((altEmail, index) => (
+                                                                     ~~~~~~~~
+
+client/src/pages/home.tsx:2745:75 - error TS7006: Parameter 'index' implicitly has an 'any' type.
+
+2745                                 {contact.alternativeEmails.map((altEmail, index) => (
+                                                                               ~~~~~
+
+client/src/pages/list-details.tsx:48:25 - error TS2322: Type 'unknown' is not assignable to type '({ id: number; name: string; size: number | null; description: string | null; createdAt: Date | null; userId: number; listId: number | null; age: number | null; website: string | null; ... 10 more ...; snapshot: unknown; } & { ...; })[]'.
+
+48           <CompanyTable companies={companies} handleCompanyView={handleCompanyView} />
+                           ~~~~~~~~~
+
+  client/src/components/company-table.tsx:46:3
+    46   companies: Array<Company & { contacts?: ContactWithCompanyInfo[] }>;
+         ~~~~~~~~~
+    The expected type comes from property 'companies' which is declared here on type 'IntrinsicAttributes & CompanyTableProps'
+
+client/src/pages/outreach.tsx:243:39 - error TS2339: Property 'authorized' does not exist on type '{}'.
+
+243     enabled: !!user && !!gmailStatus?.authorized,
+                                          ~~~~~~~~~~
+
+client/src/pages/outreach.tsx:1482:33 - error TS2339: Property 'authorized' does not exist on type '{}'.
+
+1482                   {gmailStatus?.authorized ? (
+                                     ~~~~~~~~~~
+
+client/src/pages/outreach.tsx:1485:39 - error TS2339: Property 'email' does not exist on type '{}'.
+
+1485                       {gmailUserInfo?.email
+                                           ~~~~~
+
+client/src/pages/outreach.tsx:1486:41 - error TS2339: Property 'email' does not exist on type '{}'.
+
+1486                         ? gmailUserInfo.email.length > 20
+                                             ~~~~~
+
+client/src/pages/outreach.tsx:1487:46 - error TS2339: Property 'email' does not exist on type '{}'.
+
+1487                           ? `${gmailUserInfo.email.substring(0, 20)}...`
+                                                  ~~~~~
+
+client/src/pages/outreach.tsx:1488:43 - error TS2339: Property 'email' does not exist on type '{}'.
+
+1488                           : gmailUserInfo.email
+                                               ~~~~~
+
+client/src/pages/outreach.tsx:1507:76 - error TS2339: Property 'authorized' does not exist on type '{}'.
+
+1507                     disabled={sendEmailMutation.isPending || !gmailStatus?.authorized}
+                                                                                ~~~~~~~~~~
+
+client/src/pages/outreach.tsx:1512:37 - error TS2339: Property 'authorized' does not exist on type '{}'.
+
+1512                       !gmailStatus?.authorized && "opacity-50 cursor-not-allowed"
+                                         ~~~~~~~~~~
+
+client/src/pages/planning.tsx:127:88 - error TS2339: Property 'content' does not exist on type 'Response'.
+
+127             content: `Perfect! I've confirmed your target boundary: "${confirmResponse.content}"`,
+                                                                                           ~~~~~~~
+
+client/src/pages/planning.tsx:147:87 - error TS2339: Property 'content' does not exist on type 'Response'.
+
+147             content: `Great! I've refined your custom boundary to: "${confirmResponse.content}"`,
+                                                                                          ~~~~~~~
+
+server/1--db.ts:3:16 - error TS7016: Could not find a declaration file for module 'ws'. '/home/runner/workspace/node_modules/ws/wrapper.mjs' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/ws` if it exists or add a new declaration (.d.ts) file containing `declare module 'ws';`
+
+3 import ws from "ws";
+                 ~~~~
+
+server/1--storage/companies.ts:85:62 - error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: { name: string | SQL<unknown> | Placeholder<string, any>; userId: number | SQL<unknown> | Placeholder<string, any>; size?: number | SQL<unknown> | Placeholder<string, any> | null | undefined; ... 15 more ...; snapshot?: unknown; }): PgInsertBase<...>', gave the following error.
+    Argument of type '{ name: string; size: number | null; description: string | null; listId: number | null; age: number | null; website: string | null; alternativeProfileUrl: string | null; defaultContactEmail: string | null; ... 8 more ...; snapshot: Record<...> | null; }' is not assignable to parameter of type '{ name: string | SQL<unknown> | Placeholder<string, any>; userId: number | SQL<unknown> | Placeholder<string, any>; size?: number | SQL<unknown> | Placeholder<string, any> | null | undefined; ... 15 more ...; snapshot?: unknown; }'.
+      Property 'userId' is missing in type '{ name: string; size: number | null; description: string | null; listId: number | null; age: number | null; website: string | null; alternativeProfileUrl: string | null; defaultContactEmail: string | null; ... 8 more ...; snapshot: Record<...> | null; }' but required in type '{ name: string | SQL<unknown> | Placeholder<string, any>; userId: number | SQL<unknown> | Placeholder<string, any>; size?: number | SQL<unknown> | Placeholder<string, any> | null | undefined; ... 15 more ...; snapshot?: unknown; }'.
+  Overload 2 of 2, '(values: { name: string | SQL<unknown> | Placeholder<string, any>; userId: number | SQL<unknown> | Placeholder<string, any>; size?: number | SQL<unknown> | Placeholder<string, any> | null | undefined; ... 15 more ...; snapshot?: unknown; }[]): PgInsertBase<...>', gave the following error.
+    Argument of type '{ name: string; size: number | null; description: string | null; listId: number | null; age: number | null; website: string | null; alternativeProfileUrl: string | null; defaultContactEmail: string | null; ... 8 more ...; snapshot: Record<...> | null; }' is not assignable to parameter of type '{ name: string | SQL<unknown> | Placeholder<string, any>; userId: number | SQL<unknown> | Placeholder<string, any>; size?: number | SQL<unknown> | Placeholder<string, any> | null | undefined; ... 15 more ...; snapshot?: unknown; }[]'.
+      Type '{ name: string; size: number | null; description: string | null; listId: number | null; age: number | null; website: string | null; alternativeProfileUrl: string | null; defaultContactEmail: string | null; ... 8 more ...; snapshot: Record<...> | null; }' is missing the following properties from type '{ name: string | SQL<unknown> | Placeholder<string, any>; userId: number | SQL<unknown> | Placeholder<string, any>; size?: number | SQL<unknown> | Placeholder<string, any> | null | undefined; ... 15 more ...; snapshot?: unknown; }[]': length, pop, push, concat, and 35 more.
+
+85     const [created] = await this.db.insert(companies).values(company).returning();
+                                                                ~~~~~~~
+
+
+server/1--storage/contacts.ts:19:10 - error TS2339: Property 'where' does not exist on type 'Omit<PgSelectBase<"contacts", { id: PgColumn<{ name: "id"; tableName: "contacts"; dataType: "number"; columnType: "PgInteger"; data: number; driverParam: string | number; notNull: true; hasDefault: true; isPrimaryKey: true; ... 5 more ...; generated: undefined; }, {}, {}>; ... 19 more ...; completedSearches: PgColum...'.
+
+19         .where(eq(contacts.userId, userId));
+            ~~~~~
+
+server/1--storage/contacts.ts:41:61 - error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: { name: string | SQL<unknown> | Placeholder<string, any>; userId: number | SQL<unknown> | Placeholder<string, any>; companyId: number | SQL<unknown> | Placeholder<...>; ... 16 more ...; completedSearches?: unknown; }): PgInsertBase<...>', gave the following error.
+    Argument of type '{ role: string | null; name: string; email: string | null; location: string | null; companyId: number; probability: number | null; linkedinUrl: string | null; twitterHandle: string | null; ... 6 more ...; completedSearches?: string[] | undefined; }' is not assignable to parameter of type '{ name: string | SQL<unknown> | Placeholder<string, any>; userId: number | SQL<unknown> | Placeholder<string, any>; companyId: number | SQL<unknown> | Placeholder<...>; ... 16 more ...; completedSearches?: unknown; }'.
+      Property 'userId' is missing in type '{ role: string | null; name: string; email: string | null; location: string | null; companyId: number; probability: number | null; linkedinUrl: string | null; twitterHandle: string | null; ... 6 more ...; completedSearches?: string[] | undefined; }' but required in type '{ name: string | SQL<unknown> | Placeholder<string, any>; userId: number | SQL<unknown> | Placeholder<string, any>; companyId: number | SQL<unknown> | Placeholder<...>; ... 16 more ...; completedSearches?: unknown; }'.
+  Overload 2 of 2, '(values: { name: string | SQL<unknown> | Placeholder<string, any>; userId: number | SQL<unknown> | Placeholder<string, any>; companyId: number | SQL<unknown> | Placeholder<...>; ... 16 more ...; completedSearches?: unknown; }[]): PgInsertBase<...>', gave the following error.
+    Argument of type '{ role: string | null; name: string; email: string | null; location: string | null; companyId: number; probability: number | null; linkedinUrl: string | null; twitterHandle: string | null; ... 6 more ...; completedSearches?: string[] | undefined; }' is not assignable to parameter of type '{ name: string | SQL<unknown> | Placeholder<string, any>; userId: number | SQL<unknown> | Placeholder<string, any>; companyId: number | SQL<unknown> | Placeholder<...>; ... 16 more ...; completedSearches?: unknown; }[]'.
+      Type '{ role: string | null; name: string; email: string | null; location: string | null; companyId: number; probability: number | null; linkedinUrl: string | null; twitterHandle: string | null; ... 6 more ...; completedSearches?: string[] | undefined; }' is missing the following properties from type '{ name: string | SQL<unknown> | Placeholder<string, any>; userId: number | SQL<unknown> | Placeholder<string, any>; companyId: number | SQL<unknown> | Placeholder<...>; ... 16 more ...; completedSearches?: unknown; }[]': length, pop, push, concat, and 35 more.
+
+41     const [created] = await this.db.insert(contacts).values(contact).returning();
+                                                               ~~~~~~~
+
+
+server/1--storage/contacts.ts:126:30 - error TS2304: Cannot find name 'sql'.
+
+126           completedSearches: sql`array_append(COALESCE(${contacts.completedSearches}, ARRAY[]::text[]), 'aeroleads_search')`
+                                 ~~~
+
+server/1--storage/contacts.ts:139:28 - error TS2304: Cannot find name 'sql'.
+
+139         completedSearches: sql`array_append(COALESCE(${contacts.completedSearches}, ARRAY[]::text[]), 'aeroleads_search')`,
+                               ~~~
+
+server/1--storage/database.ts:18:46 - error TS2345: Argument of type 'NeonDatabase<typeof import("/home/runner/workspace/shared/schema")> & { $client: Pool; }' is not assignable to parameter of type 'PgDatabase<any, Record<string, never>, ExtractTablesWithRelations<Record<string, never>>>'.
+  The types of '_.schema' are incompatible between these types.
+    Type 'ExtractTablesWithRelations<typeof import("/home/runner/workspace/shared/schema")> | undefined' is not assignable to type 'ExtractTablesWithRelations<Record<string, never>> | undefined'.
+      Type 'ExtractTablesWithRelations<typeof import("/home/runner/workspace/shared/schema")>' is not assignable to type 'ExtractTablesWithRelations<Record<string, never>>'.
+        Property 'users' is incompatible with index signature.
+          Type '{ tsName: "users"; dbName: "users"; columns: { id: PgColumn<{ name: "id"; tableName: "users"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, {}>; ... 4 more ...; isGuest: PgColumn<...>; }; relations: never; ...' is not assignable to type '{ tsName: string; dbName: never; columns: never; relations: Record<string, Relation<string>>; primaryKey: AnyColumn[]; }'.
+            Types of property 'dbName' are incompatible.
+              Type 'string' is not assignable to type 'never'.
+
+18     this.companyStorage = new CompanyStorage(db);
+                                                ~~
+
+server/1--storage/database.ts:19:46 - error TS2345: Argument of type 'NeonDatabase<typeof import("/home/runner/workspace/shared/schema")> & { $client: Pool; }' is not assignable to parameter of type 'PgDatabase<any, Record<string, never>, ExtractTablesWithRelations<Record<string, never>>>'.
+  The types of '_.schema' are incompatible between these types.
+    Type 'ExtractTablesWithRelations<typeof import("/home/runner/workspace/shared/schema")> | undefined' is not assignable to type 'ExtractTablesWithRelations<Record<string, never>> | undefined'.
+      Type 'ExtractTablesWithRelations<typeof import("/home/runner/workspace/shared/schema")>' is not assignable to type 'ExtractTablesWithRelations<Record<string, never>>'.
+        Property 'users' is incompatible with index signature.
+          Type '{ tsName: "users"; dbName: "users"; columns: { id: PgColumn<{ name: "id"; tableName: "users"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, {}>; ... 4 more ...; isGuest: PgColumn<...>; }; relations: never; ...' is not assignable to type '{ tsName: string; dbName: never; columns: never; relations: Record<string, Relation<string>>; primaryKey: AnyColumn[]; }'.
+            Types of property 'dbName' are incompatible.
+              Type 'string' is not assignable to type 'never'.
+
+19     this.contactStorage = new ContactStorage(db);
+                                                ~~
+
+server/1--storage/database.ts:21:48 - error TS2345: Argument of type 'NeonDatabase<typeof import("/home/runner/workspace/shared/schema")> & { $client: Pool; }' is not assignable to parameter of type 'PgDatabase<any, Record<string, never>, ExtractTablesWithRelations<Record<string, never>>>'.
+  The types of '_.schema' are incompatible between these types.
+    Type 'ExtractTablesWithRelations<typeof import("/home/runner/workspace/shared/schema")> | undefined' is not assignable to type 'ExtractTablesWithRelations<Record<string, never>> | undefined'.
+      Type 'ExtractTablesWithRelations<typeof import("/home/runner/workspace/shared/schema")>' is not assignable to type 'ExtractTablesWithRelations<Record<string, never>>'.
+        Property 'users' is incompatible with index signature.
+          Type '{ tsName: "users"; dbName: "users"; columns: { id: PgColumn<{ name: "id"; tableName: "users"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, {}>; ... 4 more ...; isGuest: PgColumn<...>; }; relations: never; ...' is not assignable to type '{ tsName: string; dbName: never; columns: never; relations: Record<string, Relation<string>>; primaryKey: AnyColumn[]; }'.
+            Types of property 'dbName' are incompatible.
+              Type 'string' is not assignable to type 'never'.
+
+21     this.templateStorage = new TemplateStorage(db);
+                                                  ~~
+
+server/1--storage/database.ts:22:40 - error TS2345: Argument of type 'NeonDatabase<typeof import("/home/runner/workspace/shared/schema")> & { $client: Pool; }' is not assignable to parameter of type 'PgDatabase<any, Record<string, never>, ExtractTablesWithRelations<Record<string, never>>>'.
+  The types of '_.schema' are incompatible between these types.
+    Type 'ExtractTablesWithRelations<typeof import("/home/runner/workspace/shared/schema")> | undefined' is not assignable to type 'ExtractTablesWithRelations<Record<string, never>> | undefined'.
+      Type 'ExtractTablesWithRelations<typeof import("/home/runner/workspace/shared/schema")>' is not assignable to type 'ExtractTablesWithRelations<Record<string, never>>'.
+        Property 'users' is incompatible with index signature.
+          Type '{ tsName: "users"; dbName: "users"; columns: { id: PgColumn<{ name: "id"; tableName: "users"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, {}>; ... 4 more ...; isGuest: PgColumn<...>; }; relations: never; ...' is not assignable to type '{ tsName: string; dbName: never; columns: never; relations: Record<string, Relation<string>>; primaryKey: AnyColumn[]; }'.
+            Types of property 'dbName' are incompatible.
+              Type 'string' is not assignable to type 'never'.
+
+22     this.userStorage = new UserStorage(db);
+                                          ~~
+
+server/1--storage/searchTestResults.ts:3:10 - error TS2305: Module '"../../shared/schema"' has no exported member 'searchTestResults'.
+
+3 import { searchTestResults, InsertSearchTestResult, SearchTestResult } from "../../shared/schema";
+           ~~~~~~~~~~~~~~~~~
+
+server/1--storage/searchTestResults.ts:3:29 - error TS2305: Module '"../../shared/schema"' has no exported member 'InsertSearchTestResult'.
+
+3 import { searchTestResults, InsertSearchTestResult, SearchTestResult } from "../../shared/schema";
+                              ~~~~~~~~~~~~~~~~~~~~~~
+
+server/1--storage/searchTestResults.ts:3:53 - error TS2305: Module '"../../shared/schema"' has no exported member 'SearchTestResult'.
+
+3 import { searchTestResults, InsertSearchTestResult, SearchTestResult } from "../../shared/schema";
+                                                      ~~~~~~~~~~~~~~~~
+
+server/1--storage/searchTestResults.ts:44:8 - error TS2339: Property 'where' does not exist on type 'Omit<PgSelectBase<any, any, "single", any, false, "where", any[], any>, "where">'.
+
+44       .where(eq(searchTestResults.userId, userId))
+          ~~~~~
+
+server/auth.ts:596:29 - error TS2339: Property 'name' does not exist on type '{ email: string | null; displayName: string | null; }'.
+
+596         hasName: !!userInfo.name,
+                                ~~~~
+
+server/index.ts:79:26 - error TS2339: Property 'initializeDefaultSearchApproaches' does not exist on type 'IStorage'.
+
+79       if (typeof storage.initializeDefaultSearchApproaches === 'function') {
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/index.ts:80:23 - error TS2339: Property 'initializeDefaultSearchApproaches' does not exist on type 'IStorage'.
+
+80         await storage.initializeDefaultSearchApproaches();
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/api/openai-client.ts:196:80 - error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+
+196   const match = content.match(/## 1\. TARGET BOUNDARY\s*\n(.*?)(?=\n\n|\n##|$)/s);
+                                                                                   ~
+
+server/lib/api/openai-client.ts:201:78 - error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+
+201   const match = content.match(/## 2\. SPRINT PROMPT\s*\n(.*?)(?=\n\n|\n##|$)/s);
+                                                                                 ~
+
+server/lib/api/openai-client.ts:206:64 - error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+
+206   const match = content.match(/## 3\. DAILY QUERIES\s*\n(.*?)$/s);
+                                                                   ~
+
+server/lib/email-utils.ts:30:28 - error TS2461: Type '{}' is not an array type.
+
+30     alternativeEmails: [...(existingContact.alternativeEmails || []), newEmail]
+                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/results-analysis/company-analysis.ts:98:36 - error TS2339: Property 'length' does not exist on type '{}'.
+
+98   if (companyData.differentiation?.length) {
+                                      ~~~~~~
+
+server/lib/results-analysis/company-analysis.ts:99:51 - error TS2339: Property 'length' does not exist on type '{}'.
+
+99     score += Math.min(companyData.differentiation.length * 5, 15);
+                                                     ~~~~~~
+
+server/lib/results-analysis/company-analysis.ts:103:29 - error TS2339: Property 'length' does not exist on type '{}'.
+
+103   if (companyData.services?.length) {
+                                ~~~~~~
+
+server/lib/results-analysis/company-analysis.ts:104:44 - error TS2339: Property 'length' does not exist on type '{}'.
+
+104     score += Math.min(companyData.services.length * 3, 15);
+                                               ~~~~~~
+
+server/lib/results-analysis/company-parser.ts:22:51 - error TS2461: Type '{}' is not an array type.
+
+22         const uniqueDifferentiators = new Set([...companyData.differentiation]);
+                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/results-analysis/company-parser.ts:44:48 - error TS2461: Type '{}' is not an array type.
+
+44             const uniqueServices = new Set([...companyData.services]);
+                                                  ~~~~~~~~~~~~~~~~~~~~
+
+server/lib/results-analysis/company-parser.ts:65:46 - error TS2461: Type '{}' is not an array type.
+
+65           const uniqueServices = new Set([...companyData.services]);
+                                                ~~~~~~~~~~~~~~~~~~~~
+
+server/lib/results-analysis/company-parser.ts:68:22 - error TS7006: Parameter 's' implicitly has an 'any' type.
+
+68             .forEach(s => uniqueServices.add(s));
+                        ~
+
+server/lib/results-analysis/company-parser.ts:75:55 - error TS2461: Type '{}' is not an array type.
+
+75             const uniqueDifferentiators = new Set([...companyData.differentiation]);
+                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/results-analysis/company-parser.ts:78:24 - error TS7006: Parameter 'p' implicitly has an 'any' type.
+
+78               .forEach(p => uniqueDifferentiators.add(p));
+                          ~
+
+server/lib/results-analysis/company-parser.ts:93:51 - error TS2339: Property 'slice' does not exist on type '{}'.
+
+93       companyData.services = companyData.services.slice(0, 5);
+                                                     ~~~~~
+
+server/lib/results-analysis/company-parser.ts:96:65 - error TS2339: Property 'slice' does not exist on type '{}'.
+
+96       companyData.differentiation = companyData.differentiation.slice(0, 3);
+                                                                   ~~~~~
+
+server/lib/results-analysis/contact-analysis.ts:2:10 - error TS2305: Module '"./contact-name-validation"' has no exported member 'validateNameLocally'.
+
+2 import { validateNameLocally } from "./contact-name-validation";
+           ~~~~~~~~~~~~~~~~~~~
+
+server/lib/results-analysis/contact-analysis.ts:3:65 - error TS2307: Cannot find module './score-combination' or its corresponding type declarations.
+
+3 import { type ValidationOptions, combineValidationScores } from "./score-combination";
+                                                                  ~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/results-analysis/contact-score-combination.ts:65:31 - error TS2802: Type 'RegExpStringIterator<RegExpExecArray>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+
+65   const companyMentions = [...normalizedContext.matchAll(new RegExp(normalizedCompany, 'gi'))];
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/results-analysis/prospect-filtering.ts:3:11 - error TS2430: Interface 'ContactWithCompanyInfo' incorrectly extends interface '{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }'.
+  Types of property 'companyId' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+
+3 interface ContactWithCompanyInfo extends Contact {
+            ~~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/search-logic/contact-discovery/enhanced-contact-finder.ts:305:75 - error TS2345: Argument of type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>[]' is not assignable to parameter of type '{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }[]'.
+  Type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>' is not assignable to type '{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }'.
+    Types of property 'id' are incompatible.
+      Type 'number | undefined' is not assignable to type 'number'.
+        Type 'undefined' is not assignable to type 'number'.
+
+305         const customScoredContacts = await applyCustomRoleAffinityScoring(optimizedContacts, {
+                                                                              ~~~~~~~~~~~~~~~~~
+
+server/lib/search-logic/contact-discovery/enhanced-contact-finder.ts:338:73 - error TS2345: Argument of type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>[]' is not assignable to parameter of type '{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }[]'.
+  Type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>' is not assignable to type '{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }'.
+    Types of property 'id' are incompatible.
+      Type 'number | undefined' is not assignable to type 'number'.
+        Type 'undefined' is not assignable to type 'number'.
+
+338       const customScoredContacts = await applyCustomRoleAffinityScoring(sortedContacts, {
+                                                                            ~~~~~~~~~~~~~~
+
+server/lib/search-logic/deep-searches/email-discovery/website-email-search.ts:26:11 - error TS2783: 'searchDate' is specified more than once, so this usage will be overwritten.
+
+26           searchDate: new Date().toISOString(),
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  server/lib/search-logic/deep-searches/email-discovery/website-email-search.ts:29:11
+    29           ...result.metadata
+                 ~~~~~~~~~~~~~~~~~~
+    This spread always overwrites this property.
+
+server/lib/search-logic/deep-searches/subsections.ts:1:15 - error TS2305: Module '"@shared/schema"' has no exported member 'SearchSection'.
+
+1 import type { SearchSection } from '@shared/schema';
+                ~~~~~~~~~~~~~
+
+server/lib/search-logic/email-discovery/index.ts:1:35 - error TS2307: Cannot find module '../../shared/types' or its corresponding type declarations.
+
+1 import type { SearchModule } from '../../shared/types';
+                                    ~~~~~~~~~~~~~~~~~~~~
+
+server/lib/search-logic/email-discovery/strategies/enhanced-pattern-prediction.ts:50:69 - error TS2339: Property 'role' does not exist on type '{ name: string; email?: string | undefined; }'.
+
+50         const validationResult = validateName(contact.name, contact.role || '', companyName, {
+                                                                       ~~~~
+
+server/lib/search-logic/email-discovery/strategies/enhanced-pattern-prediction.ts:77:32 - error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+
+77       const uniqueEmails = [...new Set(predictedEmails)];
+                                  ~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/search-logic/email-discovery/strategies/pattern-prediction.ts:4:10 - error TS2459: Module '"../../../results-analysis/email-extraction-format"' declares 'generatePossibleEmails' locally, but it is not exported.
+
+4 import { generatePossibleEmails } from '../../../results-analysis/email-extraction-format';
+           ~~~~~~~~~~~~~~~~~~~~~~
+
+  server/lib/results-analysis/email-extraction-format.ts:3:52
+    3 import { isPlaceholderEmail, isValidBusinessEmail, generatePossibleEmails, extractDomainFromContext } from "./email-analysis";
+                                                         ~~~~~~~~~~~~~~~~~~~~~~
+    'generatePossibleEmails' is declared here.
+
+server/lib/search-logic/email-discovery/strategies/pattern-prediction.ts:56:69 - error TS2339: Property 'role' does not exist on type '{ name: string; email?: string | undefined; }'.
+
+56         const validationResult = validateName(contact.name, contact.role || '', companyName, {
+                                                                       ~~~~
+
+server/lib/search-logic/email-discovery/strategies/public-directory.ts:3:10 - error TS2459: Module '"../../../results-analysis/email-extraction-format"' declares 'extractDomainFromContext' locally, but it is not exported.
+
+3 import { extractDomainFromContext } from '../../../results-analysis/email-extraction-format';
+           ~~~~~~~~~~~~~~~~~~~~~~~~
+
+  server/lib/results-analysis/email-extraction-format.ts:3:76
+    3 import { isPlaceholderEmail, isValidBusinessEmail, generatePossibleEmails, extractDomainFromContext } from "./email-analysis";
+                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~
+    'extractDomainFromContext' is declared here.
+
+server/lib/search-logic/email-enrichment/service.ts:36:43 - error TS2554: Expected 2 arguments, but got 1.
+
+36             const contact = await storage.getContact(item.contactId);
+                                             ~~~~~~~~~~
+
+  server/storage.ts:265:32
+    265   async getContact(id: number, userId: number): Promise<Contact | undefined> {
+                                       ~~~~~~~~~~~~~~
+    An argument for 'userId' was not provided.
+
+server/lib/search-logic/email-enrichment/service.ts:44:38 - error TS2461: Type '{}' is not an array type.
+
+44               completedSearches: [...(contact.completedSearches || []), 'contact_enrichment'],
+                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/search-logic/email-enrichment/service.ts:92:36 - error TS2554: Expected 2 arguments, but got 1.
+
+92     const contacts = await storage.listContactsByCompany(companyId);
+                                      ~~~~~~~~~~~~~~~~~~~~~
+
+  server/storage.ts:253:50
+    253   async listContactsByCompany(companyId: number, userId: number): Promise<Contact[]> {
+                                                         ~~~~~~~~~~~~~~
+    An argument for 'userId' was not provided.
+
+server/lib/search-logic/email-enrichment/service.ts:101:35 - error TS2554: Expected 2 arguments, but got 1.
+
+101     const company = await storage.getCompany(companyId);
+                                      ~~~~~~~~~~
+
+  server/storage.ts:217:32
+    217   async getCompany(id: number, userId: number): Promise<Company | undefined> {
+                                       ~~~~~~~~~~~~~~
+    An argument for 'userId' was not provided.
+
+server/lib/search-logic/post-search-enrichment/queue.ts:55:41 - error TS2554: Expected 2 arguments, but got 1.
+
+55           const contact = await storage.getContact(item.contactId);
+                                           ~~~~~~~~~~
+
+  server/storage.ts:265:32
+    265   async getContact(id: number, userId: number): Promise<Contact | undefined> {
+                                       ~~~~~~~~~~~~~~
+    An argument for 'userId' was not provided.
+
+server/lib/search-logic/post-search-enrichment/queue.ts:61:41 - error TS2554: Expected 2 arguments, but got 1.
+
+61           const company = await storage.getCompany(item.companyId);
+                                           ~~~~~~~~~~
+
+  server/storage.ts:217:32
+    217   async getCompany(id: number, userId: number): Promise<Company | undefined> {
+                                       ~~~~~~~~~~~~~~
+    An argument for 'userId' was not provided.
+
+server/lib/search-logic/post-search-enrichment/queue.ts:73:38 - error TS2461: Type '{}' is not an array type.
+
+73               completedSearches: [...(contact.completedSearches || []), 'contact_enrichment'],
+                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/search-logic/post-search-enrichment/service.ts:14:38 - error TS2554: Expected 2 arguments, but got 1.
+
+14         contactIds.map(id => storage.getContact(id))
+                                        ~~~~~~~~~~
+
+  server/storage.ts:265:32
+    265   async getContact(id: number, userId: number): Promise<Contact | undefined> {
+                                       ~~~~~~~~~~~~~~
+    An argument for 'userId' was not provided.
+
+server/lib/search-logic/shared/types.ts:1:15 - error TS2305: Module '"@shared/schema"' has no exported member 'SearchModuleConfig'.
+
+1 import type { SearchModuleConfig, SearchSection } from "@shared/schema";
+                ~~~~~~~~~~~~~~~~~~
+
+server/lib/search-logic/shared/types.ts:1:35 - error TS2305: Module '"@shared/schema"' has no exported member 'SearchSection'.
+
+1 import type { SearchModuleConfig, SearchSection } from "@shared/schema";
+                                    ~~~~~~~~~~~~~
+
+server/lib/search-logic/shared/utils.ts:24:38 - error TS2339: Property 'validationRules' does not exist on type '{ id: string; label: string; description: string; implementation: EmailSearchStrategy; defaultEnabled: boolean; } | { id: string; label: string; description: string; implementation: EmailSearchStrategy; defaultEnabled?: undefined; } | { ...; } | { ...; }'.
+  Property 'validationRules' does not exist on type '{ id: string; label: string; description: string; implementation: EmailSearchStrategy; defaultEnabled: boolean; }'.
+
+24       const validationRules = config.validationRules;
+                                        ~~~~~~~~~~~~~~~
+
+server/lib/search-modules.ts:1:15 - error TS2305: Module '"@shared/schema"' has no exported member 'SearchModuleConfig'.
+
+1 import type { SearchModuleConfig, SearchSequence, SearchImplementation } from '@shared/schema';
+                ~~~~~~~~~~~~~~~~~~
+
+server/lib/search-modules.ts:1:35 - error TS2305: Module '"@shared/schema"' has no exported member 'SearchSequence'.
+
+1 import type { SearchModuleConfig, SearchSequence, SearchImplementation } from '@shared/schema';
+                                    ~~~~~~~~~~~~~~
+
+server/lib/search-modules.ts:1:51 - error TS2305: Module '"@shared/schema"' has no exported member 'SearchImplementation'.
+
+1 import type { SearchModuleConfig, SearchSequence, SearchImplementation } from '@shared/schema';
+                                                    ~~~~~~~~~~~~~~~~~~~~
+
+server/lib/search-modules.ts:2:10 - error TS2724: '"./results-analysis/contact-name-validation"' has no exported member named 'validateNames'. Did you mean 'validateName'?
+
+2 import { validateNames, extractContacts } from './results-analysis/contact-name-validation';
+           ~~~~~~~~~~~~~
+
+  server/lib/results-analysis/contact-name-validation.ts:216:17
+    216 export function validateName(
+                        ~~~~~~~~~~~~
+    'validateName' is declared here.
+
+server/lib/search-modules.ts:256:3 - error TS2322: Type '{ type: string; defaultPrompt: string; technicalPrompt: string; responseStructure: { size: string; services: string; marketPosition: string; differentiators: string; }; } | { type: string; defaultPrompt: string; technicalPrompt: string; responseStructure: { ...; }; validationRules: { ...; }; } | { ...; } | { ...; } ...' is not assignable to type '{ type: string; defaultPrompt: string; technicalPrompt: string; responseStructure: { size: string; services: string; marketPosition: string; differentiators: string; }; } | { type: string; defaultPrompt: string; technicalPrompt: string; responseStructure: { ...; }; validationRules: { ...; }; } | { ...; } | { ...; }'.
+  Type '{ type: string; defaultPrompt: string; technicalPrompt: string; responseStructure: { validatedEmails: string; validationMetrics: string; }; defaultEnabledFor: string[]; }' is not assignable to type '{ type: string; defaultPrompt: string; technicalPrompt: string; responseStructure: { size: string; services: string; marketPosition: string; differentiators: string; }; } | { type: string; defaultPrompt: string; technicalPrompt: string; responseStructure: { ...; }; validationRules: { ...; }; } | { ...; } | { ...; }'.
+    Type '{ type: string; defaultPrompt: string; technicalPrompt: string; responseStructure: { validatedEmails: string; validationMetrics: string; }; defaultEnabledFor: string[]; }' is not assignable to type '{ type: string; defaultPrompt: string; technicalPrompt: string; responseStructure: { sources: { name: string; type: string; contacts: { name: string; role: string; email: string; }[]; }[]; }; defaultEnabledFor: string[]; }'.
+      Types of property 'responseStructure' are incompatible.
+        Property 'sources' is missing in type '{ validatedEmails: string; validationMetrics: string; }' but required in type '{ sources: { name: string; type: string; contacts: { name: string; role: string; email: string; }[]; }[]; }'.
+
+256   return module;
+      ~~~~~~
+
+  server/lib/search-modules.ts:185:5
+    185     sources: [
+            ~~~~~~~~~~
+    186       {
+        ~~~~~~~
+    ... 
+    196       }
+        ~~~~~~~
+    197     ]
+        ~~~~~
+    'sources' is declared here.
+
+server/lib/search-modules.ts:296:59 - error TS2345: Argument of type '{ name: string; website: string | null; description: string | null; }' is not assignable to parameter of type 'string'.
+
+296         if (searchOptions.ignoreFranchises && isFranchise(name)) continue;
+                                                              ~~~~
+
+server/lib/search-modules.ts:297:71 - error TS2345: Argument of type '{ name: string; website: string | null; description: string | null; }' is not assignable to parameter of type 'string'.
+
+297         if (searchOptions.locallyHeadquartered && !isLocalHeadquarter(name)) continue;
+                                                                          ~~~~
+
+server/lib/search-modules.ts:308:52 - error TS2345: Argument of type '{ name: string; website: string | null; description: string | null; }' is not assignable to parameter of type 'string'.
+
+308           const basicResult = await analyzeCompany(name, basicPrompt, null, null);
+                                                       ~~~~
+
+server/lib/search-modules.ts:312:65 - error TS2345: Argument of type '{ name: string; website: string | null; description: string | null; }' is not assignable to parameter of type 'string'.
+
+312           const analysisResults = await this.executeSubsearches(name, config);
+                                                                    ~~~~
+
+server/lib/search-modules.ts:323:15 - error TS2322: Type 'string | { name: string; website: string | null; description: string | null; }' is not assignable to type 'string | undefined'.
+  Type '{ name: string; website: string | null; description: string | null; }' is not assignable to type 'string'.
+
+323               name,
+                  ~~~~
+
+server/lib/search-modules.ts:328:30 - error TS2538: Type '{ name: string; website: string | null; description: string | null; }' cannot be used as an index type.
+
+328             validationScores[name] = totalScore;
+                                 ~~~~
+
+server/lib/search-modules.ts:361:62 - error TS2339: Property 'length' does not exist on type '{}'.
+
+361       company.name && ((company.services && company.services.length > 0) || company.description)
+                                                                 ~~~~~~
+
+server/lib/search-modules.ts:394:26 - error TS18046: 'section' is of type 'unknown'.
+
+394         .find(section => section.searches.some(search => search.id === searchId));
+                             ~~~~~~~
+
+server/lib/search-modules.ts:394:48 - error TS7006: Parameter 'search' implicitly has an 'any' type.
+
+394         .find(section => section.searches.some(search => search.id === searchId));
+                                                   ~~~~~~
+
+server/lib/search-modules.ts:397:32 - error TS2339: Property 'searches' does not exist on type '{}'.
+
+397         const search = section.searches.find(s => s.id === searchId);
+                                   ~~~~~~~~
+
+server/lib/search-modules.ts:397:46 - error TS7006: Parameter 's' implicitly has an 'any' type.
+
+397         const search = section.searches.find(s => s.id === searchId);
+                                                 ~
+
+server/lib/search-modules.ts:468:30 - error TS18046: 'section' is of type 'unknown'.
+
+468             .find(section => section.searches.some(search => search.id === searchId));
+                                 ~~~~~~~
+
+server/lib/search-modules.ts:468:52 - error TS7006: Parameter 'search' implicitly has an 'any' type.
+
+468             .find(section => section.searches.some(search => search.id === searchId));
+                                                       ~~~~~~
+
+server/lib/search-modules.ts:470:57 - error TS2339: Property 'id' does not exist on type '{}'.
+
+470           if (section && !processedSections.has(section.id)) {
+                                                            ~~
+
+server/lib/search-modules.ts:471:43 - error TS2339: Property 'id' does not exist on type '{}'.
+
+471             processedSections.add(section.id);
+                                              ~~
+
+server/lib/search-modules.ts:474:45 - error TS2339: Property 'searches' does not exist on type '{}'.
+
+474             const enabledSearches = section.searches
+                                                ~~~~~~~~
+
+server/lib/search-modules.ts:475:23 - error TS7006: Parameter 'search' implicitly has an 'any' type.
+
+475               .filter(search => subsearches[search.id])
+                          ~~~~~~
+
+server/lib/search-modules.ts:476:23 - error TS7006: Parameter 'search' implicitly has an 'any' type.
+
+476               .filter(search => search.implementation);
+                          ~~~~~~
+
+server/lib/search-modules.ts:628:19 - error TS2353: Object literal may only specify known properties, and 'manuallyExtracted' does not exist in type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>'.
+
+628                   manuallyExtracted: true
+                      ~~~~~~~~~~~~~~~~~
+
+server/lib/search-modules.ts:665:19 - error TS2353: Object literal may only specify known properties, and 'manuallyExtracted' does not exist in type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>'.
+
+665                   manuallyExtracted: true
+                      ~~~~~~~~~~~~~~~~~
+
+server/lib/search-modules.ts:723:13 - error TS2345: Argument of type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>[]' is not assignable to parameter of type 'Partial<Contact>[]'.
+  Type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>' is not assignable to type 'Partial<Contact>'.
+    Types of property 'completedSearches' are incompatible.
+      Type 'unknown' is not assignable to type 'string[] | null | undefined'.
+
+723             extractedContacts,
+                ~~~~~~~~~~~~~~~~~
+
+server/lib/search-modules.ts:772:13 - error TS2345: Argument of type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>[]' is not assignable to parameter of type 'Partial<Contact>[]'.
+  Type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>' is not assignable to type 'Partial<Contact>'.
+    Types of property 'completedSearches' are incompatible.
+      Type 'unknown' is not assignable to type 'string[] | null | undefined'.
+
+772             extractedContacts,
+                ~~~~~~~~~~~~~~~~~
+
+server/lib/search-modules.ts:924:64 - error TS2345: Argument of type '{ companyName: string; companyWebsite: string | null | undefined; companyDomain: string | undefined; existingContacts: { name: string | undefined; role: string | undefined; email: string | undefined; }[]; config: SearchModuleConfig; options: { ...; }; }' is not assignable to parameter of type 'EmailSearchContext & SearchContext'.
+  Type '{ companyName: string; companyWebsite: string | null | undefined; companyDomain: string | undefined; existingContacts: { name: string | undefined; role: string | undefined; email: string | undefined; }[]; config: SearchModuleConfig; options: { ...; }; }' is not assignable to type 'EmailSearchContext'.
+    Types of property 'companyWebsite' are incompatible.
+      Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+        Type 'null' is not assignable to type 'string | undefined'.
+
+924             const result = await search.implementation.execute(context);
+                                                                   ~~~~~~~
+
+server/lib/search-modules.ts:925:24 - error TS2339: Property 'emails' does not exist on type 'EmailSearchResult | SearchResult[]'.
+  Property 'emails' does not exist on type 'SearchResult[]'.
+
+925             if (result.emails?.length > 0) {
+                           ~~~~~~
+
+server/lib/search-modules.ts:929:44 - error TS2339: Property 'emails' does not exist on type 'EmailSearchResult | SearchResult[]'.
+  Property 'emails' does not exist on type 'SearchResult[]'.
+
+929                 for (const email of result.emails) {
+                                               ~~~~~~
+
+server/lib/search-modules.ts:940:23 - error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+
+940                       name: null, // Could be enriched later
+                          ~~~~
+
+server/lib/search-modules.ts:951:51 - error TS2339: Property 'emails' does not exist on type 'EmailSearchResult | SearchResult[]'.
+  Property 'emails' does not exist on type 'SearchResult[]'.
+
+951                 const preValidatedEmails = result.emails.filter(email => {
+                                                      ~~~~~~
+
+server/lib/search-modules.ts:951:65 - error TS7006: Parameter 'email' implicitly has an 'any' type.
+
+951                 const preValidatedEmails = result.emails.filter(email => {
+                                                                    ~~~~~
+
+server/lib/search-modules.ts:959:52 - error TS2339: Property 'metadata' does not exist on type 'EmailSearchResult | SearchResult[]'.
+  Property 'metadata' does not exist on type 'SearchResult[]'.
+
+959                     const validationScore = result.metadata?.validationScore || 50;
+                                                       ~~~~~~~~
+
+server/lib/search-modules.ts:964:23 - error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+
+964                       name: null, // Could be enriched later
+                          ~~~~
+
+server/lib/search-modules.ts:1222:22 - error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ company_overview: () => CompanyOverviewModule; decision_maker: () => DecisionMakerModule; email_discovery: () => EmailDiscoveryModule; local_sources: () => LocalSourcesModule; }'.
+
+1222       const module = MODULE_REGISTRY[moduleType]();
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/search-modules.ts:1224:31 - error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ company_overview: { minimumConfidence: number; companyNamePenalty: number; requireVerification: boolean; }; decision_maker: { minimumConfidence: number; nameValidation: { minimumScore: number; businessTermPenalty: number; requireRole: boolean; }; }; email_discovery: { ...; }; } | { ...; } | { ...; } | { ...; }'.
+
+1224       const validationRules = VALIDATION_STRATEGIES[validationStrategy][moduleType];
+                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/search-modules.ts:1337:13 - error TS2353: Object literal may only specify known properties, and 'verifiedAt' does not exist in type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>'.
+
+1337             verifiedAt: new Date()
+                 ~~~~~~~~~~
+
+server/lib/search-modules.ts:1366:15 - error TS2339: Property 'verifiedAt' does not exist on type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>'.
+
+1366       contact.verifiedAt
+                   ~~~~~~~~~~
+
+server/lib/search-modules.ts:1390:39 - error TS2339: Property 'verifiedAt' does not exist on type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>'.
+
+1390           verifiedAt: matchingContact.verifiedAt || prevContact.verifiedAt
+                                           ~~~~~~~~~~
+
+server/lib/search-modules.ts:1390:65 - error TS2339: Property 'verifiedAt' does not exist on type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>'.
+
+1390           verifiedAt: matchingContact.verifiedAt || prevContact.verifiedAt
+                                                                     ~~~~~~~~~~
+
+server/lib/search-modules.ts:1488:15 - error TS2353: Object literal may only specify known properties, and 'verifiedAt' does not exist in type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>'.
+
+1488               verifiedAt: new Date(),
+                   ~~~~~~~~~~
+
+server/lib/search-modules.ts:1501:15 - error TS2353: Object literal may only specify known properties, and 'score' does not exist in type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>'.
+
+1501               score: adjustedScore,
+                   ~~~~~
+
+server/lib/search-modules.ts:1562:39 - error TS2339: Property 'verifiedAt' does not exist on type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>'.
+
+1562           verifiedAt: matchingContact.verifiedAt || prevContact.verifiedAt,
+                                           ~~~~~~~~~~
+
+server/lib/search-modules.ts:1562:65 - error TS2339: Property 'verifiedAt' does not exist on type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>'.
+
+1562           verifiedAt: matchingContact.verifiedAt || prevContact.verifiedAt,
+                                                                     ~~~~~~~~~~
+
+server/lib/search-modules.ts:1563:39 - error TS2339: Property 'enrichedAt' does not exist on type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>'.
+
+1563           enrichedAt: matchingContact.enrichedAt || prevContact.enrichedAt
+                                           ~~~~~~~~~~
+
+server/lib/search-modules.ts:1563:65 - error TS2339: Property 'enrichedAt' does not exist on type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>'.
+
+1563           enrichedAt: matchingContact.enrichedAt || prevContact.enrichedAt
+                                                                     ~~~~~~~~~~
+
+server/lib/test-runner.ts:1:25 - error TS2307: Cannot find module '../../storage-switching/storage-switcher' or its corresponding type declarations.
+
+1 import { storage } from "../../storage-switching/storage-switcher";
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/lib/webhook-logger.ts:26:21 - error TS2304: Cannot find name 'webhookLogs'.
+
+26     await db.insert(webhookLogs).values({
+                       ~~~~~~~~~~~
+
+server/lib/webhook-logger.ts:65:21 - error TS2304: Cannot find name 'webhookLogs'.
+
+65     await db.insert(webhookLogs).values({
+                       ~~~~~~~~~~~
+
+server/lib/webhook-logger.ts:102:21 - error TS2304: Cannot find name 'webhookLogs'.
+
+102     await db.update(webhookLogs)
+                        ~~~~~~~~~~~
+
+server/lib/webhook-logger.ts:114:17 - error TS2304: Cannot find name 'webhookLogs'.
+
+114       .where(eq(webhookLogs.requestId, requestId));
+                    ~~~~~~~~~~~
+
+server/lib/webhook-logger.ts:137:13 - error TS2304: Cannot find name 'webhookLogs'.
+
+137       .from(webhookLogs)
+                ~~~~~~~~~~~
+
+server/lib/webhook-logger.ts:138:18 - error TS2304: Cannot find name 'webhookLogs'.
+
+138       .where(gte(webhookLogs.createdAt, cutoffDate))
+                     ~~~~~~~~~~~
+
+server/lib/webhook-logger.ts:139:22 - error TS2304: Cannot find name 'webhookLogs'.
+
+139       .orderBy(sql`${webhookLogs.createdAt} DESC`);
+                         ~~~~~~~~~~~
+
+server/routes.ts:346:42 - error TS2802: Type 'MapIterator<[string, SearchSessionResult]>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+
+346       for (const [sessionId, session] of global.searchSessions.entries()) {
+                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:487:9 - error TS2322: Type 'string | null | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+
+487         access_token: tokens.access_token,
+            ~~~~~~~~~~~~
+
+  server/lib/tokens/index.ts:146:5
+    146     access_token: string;
+            ~~~~~~~~~~~~
+    The expected type comes from property 'access_token' which is declared here on type '{ access_token: string; refresh_token?: string | undefined; expiry_date?: number | undefined; }'
+
+server/routes.ts:488:9 - error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+
+488         refresh_token: tokens.refresh_token,
+            ~~~~~~~~~~~~~
+
+  server/lib/tokens/index.ts:147:5
+    147     refresh_token?: string;
+            ~~~~~~~~~~~~~
+    The expected type comes from property 'refresh_token' which is declared here on type '{ access_token: string; refresh_token?: string | undefined; expiry_date?: number | undefined; }'
+
+server/routes.ts:489:9 - error TS2322: Type 'number | null | undefined' is not assignable to type 'number | undefined'.
+  Type 'null' is not assignable to type 'number | undefined'.
+
+489         expiry_date: tokens.expiry_date
+            ~~~~~~~~~~~
+
+  server/lib/tokens/index.ts:148:5
+    148     expiry_date?: number;
+            ~~~~~~~~~~~
+    The expected type comes from property 'expiry_date' which is declared here on type '{ access_token: string; refresh_token?: string | undefined; expiry_date?: number | undefined; }'
+
+server/routes.ts:686:13 - error TS2304: Cannot find name 'logIncomingWebhook'.
+
+686       await logIncomingWebhook(searchId, req.body, req.headers as Record<string, string>);
+                ~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:707:15 - error TS2353: Object literal may only specify known properties, and 'industry' does not exist in type '{ name: string; size: number | null; description: string | null; listId: number | null; age: number | null; website: string | null; alternativeProfileUrl: string | null; defaultContactEmail: string | null; ... 8 more ...; snapshot: Record<...> | null; }'.
+
+707               industry: company.industry || null,
+                  ~~~~~~~~
+
+server/routes.ts:759:21 - error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type '{ name: string; size: number | null; description: string | null; listId: number | null; age: number | null; website: string | null; alternativeProfileUrl: string | null; defaultContactEmail: string | null; ... 8 more ...; snapshot: Record<...> | null; }'.
+
+759                     userId: userId
+                        ~~~~~~
+
+server/routes.ts:759:29 - error TS2304: Cannot find name 'userId'.
+
+759                     userId: userId
+                                ~~~~~~
+
+server/routes.ts:778:17 - error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type '{ role: string | null; name: string; email: string | null; location: string | null; companyId: number; probability: number | null; linkedinUrl: string | null; twitterHandle: string | null; ... 6 more ...; completedSearches?: string[] | undefined; }'.
+
+778                 userId: userId,
+                    ~~~~~~
+
+server/routes.ts:778:25 - error TS2304: Cannot find name 'userId'.
+
+778                 userId: userId,
+                            ~~~~~~
+
+server/routes.ts:891:17 - error TS2304: Cannot find name 'userId'.
+
+891         userId: userId,
+                    ~~~~~~
+
+server/routes.ts:908:58 - error TS2339: Property 'name' does not exist on type 'never'.
+
+908         additionalParams.strategyName = selectedStrategy.name;
+                                                             ~~~~
+
+server/routes.ts:909:60 - error TS2339: Property 'config' does not exist on type 'never'.
+
+909         additionalParams.strategyConfig = selectedStrategy.config;
+                                                               ~~~~~~
+
+server/routes.ts:910:63 - error TS2339: Property 'responseStructure' does not exist on type 'never'.
+
+910         additionalParams.responseStructure = selectedStrategy.responseStructure;
+                                                                  ~~~~~~~~~~~~~~~~~
+
+server/routes.ts:1019:9 - error TS7034: Variable 'companies' implicitly has type 'any[]' in some locations where its type cannot be determined.
+
+1019     let companies = [];
+             ~~~~~~~~~
+
+server/routes.ts:1031:14 - error TS7005: Variable 'companies' implicitly has an 'any[]' type.
+
+1031     res.json(companies);
+                  ~~~~~~~~~
+
+server/routes.ts:1109:85 - error TS2339: Property 'name' does not exist on type '{ id: number; createdAt: Date | null; userId: number; listId: number; prompt: string; resultCount: number; customSearchTargets: unknown; }'.
+
+1109       console.log(`Found existing list ${listId} for user ${userId}: ${existingList.name}`);
+                                                                                         ~~~~
+
+server/routes.ts:1290:13 - error TS2353: Object literal may only specify known properties, and 'industry' does not exist in type '{ name: string; size: number | null; description: string | null; listId: number | null; age: number | null; website: string | null; alternativeProfileUrl: string | null; defaultContactEmail: string | null; ... 8 more ...; snapshot: Record<...> | null; }'.
+
+1290             industry: null,
+                 ~~~~~~~~
+
+server/routes.ts:1306:14 - error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+
+1306       global.searchCache = global.searchCache || new Map();
+                  ~~~~~~~~~~~
+
+server/routes.ts:1306:35 - error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+
+1306       global.searchCache = global.searchCache || new Map();
+                                       ~~~~~~~~~~~
+
+server/routes.ts:1307:14 - error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+
+1307       global.searchCache.set(cacheKey, {
+                  ~~~~~~~~~~~
+
+server/routes.ts:1335:20 - error TS1252: Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'. Modules are automatically in strict mode.
+
+1335           function mapSearchTypeToCredits(frontendSearchType: string): SearchType {
+                        ~~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:1403:14 - error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+
+1403       global.searchCache = global.searchCache || new Map();
+                  ~~~~~~~~~~~
+
+server/routes.ts:1403:35 - error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+
+1403       global.searchCache = global.searchCache || new Map();
+                                       ~~~~~~~~~~~
+
+server/routes.ts:1407:29 - error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+
+1407       const cached = global.searchCache.get(cacheKey);
+                                 ~~~~~~~~~~~
+
+server/routes.ts:1410:53 - error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+
+1410       console.log(`[Full Search] Cache has ${global.searchCache.size} entries`);
+                                                         ~~~~~~~~~~~
+
+server/routes.ts:1441:24 - error TS1252: Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'. Modules are automatically in strict mode.
+
+1441         async function processBatch<T, R>(items: T[], processor: (item: T) => Promise<R>, batchSize: number = 4): Promise<R[]> {
+                            ~~~~~~~~~~~~
+
+server/routes.ts:1455:33 - error TS18046: 'existingCompany' is of type 'unknown'.
+
+1455             const companyName = existingCompany.name;
+                                     ~~~~~~~~~~~~~~~
+
+server/routes.ts:1456:36 - error TS18046: 'existingCompany' is of type 'unknown'.
+
+1456             const companyWebsite = existingCompany.website;
+                                        ~~~~~~~~~~~~~~~
+
+server/routes.ts:1457:40 - error TS18046: 'existingCompany' is of type 'unknown'.
+
+1457             const companyDescription = existingCompany.description;
+                                            ~~~~~~~~~~~~~~~
+
+server/routes.ts:1558:30 - error TS18046: 'existingCompany' is of type 'unknown'.
+
+1558                   companyId: existingCompany.id,
+                                  ~~~~~~~~~~~~~~~
+
+server/routes.ts:1572:19 - error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type '{ role: string | null; name: string; email: string | null; location: string | null; companyId: number; probability: number | null; linkedinUrl: string | null; twitterHandle: string | null; ... 6 more ...; completedSearches?: string[] | undefined; }'.
+
+1572                   userId: userId
+                       ~~~~~~
+
+server/routes.ts:1577:22 - error TS2698: Spread types may only be created from object types.
+
+1577             return { ...updatedCompany || existingCompany, contacts: createdContacts };
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:1607:62 - error TS2345: Argument of type '{ name: any; website: any; description: any; }' is not assignable to parameter of type '{ name: string; size: number | null; description: string | null; listId: number | null; age: number | null; website: string | null; alternativeProfileUrl: string | null; defaultContactEmail: string | null; ... 8 more ...; snapshot: Record<...> | null; }'.
+  Type '{ name: any; website: any; description: any; }' is missing the following properties from type '{ name: string; size: number | null; description: string | null; listId: number | null; age: number | null; website: string | null; alternativeProfileUrl: string | null; defaultContactEmail: string | null; ... 8 more ...; snapshot: Record<...> | null; }': size, listId, age, alternativeProfileUrl, and 10 more.
+
+1607           const createdCompany = await storage.createCompany({
+                                                                  ~
+1608             name: companyName,
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ... 
+1610             description: companyDescription,
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1611           });
+     ~~~~~~~~~~~
+
+server/routes.ts:1722:40 - error TS2339: Property 'listSearchApproaches' does not exist on type 'DatabaseStorage'.
+
+1722       const approaches = await storage.listSearchApproaches();
+                                            ~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:1723:53 - error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+1723       const decisionMakerApproach = approaches.find(a =>
+                                                         ~
+
+server/routes.ts:1762:65 - error TS2339: Property 'length' does not exist on type '{}'.
+
+1762           if (!industry && company.services && company.services.length > 0) {
+                                                                     ~~~~~~
+
+server/routes.ts:1763:52 - error TS2339: Property 'join' does not exist on type '{}'.
+
+1763             const serviceString = company.services.join(' ').toLowerCase();
+                                                        ~~~~
+
+server/routes.ts:1796:50 - error TS2769: No overload matches this call.
+  Overload 1 of 2, '(predicate: (value: Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }>, index: number, array: Partial<...>[]) => value is Partial<...>, thisArg?: any): Partial<...>[]', gave the following error.
+    Argument of type '(contact: Contact) => boolean | ""' is not assignable to parameter of type '(value: Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }>, index: number, array: Partial<...>[]) => value is Partial<...>'.
+      Types of parameters 'contact' and 'value' are incompatible.
+        Type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>' is not assignable to type '{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }'.
+          Types of property 'id' are incompatible.
+            Type 'number | undefined' is not assignable to type 'number'.
+              Type 'undefined' is not assignable to type 'number'.
+  Overload 2 of 2, '(predicate: (value: Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }>, index: number, array: Partial<...>[]) => unknown, thisArg?: any): Partial<...>[]', gave the following error.
+    Argument of type '(contact: Contact) => boolean | ""' is not assignable to parameter of type '(value: Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }>, index: number, array: Partial<...>[]) => unknown'.
+      Types of parameters 'contact' and 'value' are incompatible.
+        Type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>' is not assignable to type '{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }'.
+          Types of property 'id' are incompatible.
+            Type 'number | undefined' is not assignable to type 'number'.
+              Type 'undefined' is not assignable to type 'number'.
+
+1796         const validContacts = newContacts.filter((contact: Contact) =>
+                                                      ~~~~~~~~~~~~~~~~~~~~~
+1797           contact.name &&
+     ~~~~~~~~~~~~~~~~~~~~~~~~~
+1798           contact.name !== "Unknown" &&
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1799           (!contact.probability || contact.probability >= 40) // Filter out contacts with low confidence/probability scores
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+server/routes.ts:1804:29 - error TS2345: Argument of type '(contact: Contact) => Promise<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; ... 12 more ...; completedSearches: unknown; }>' is not assignable to parameter of type '(value: Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; ... 11 more ...; completedSearches: unknown; }>, index: number, array: Partial<...>[]) => Promise<...>'.
+  Types of parameters 'contact' and 'value' are incompatible.
+    Type 'Partial<{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }>' is not assignable to type '{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }'.
+      Types of property 'id' are incompatible.
+        Type 'number | undefined' is not assignable to type 'number'.
+          Type 'undefined' is not assignable to type 'number'.
+
+1804           validContacts.map(async (contact: Contact) => {
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:1812:15 - error TS2353: Object literal may only specify known properties, and 'priority' does not exist in type '{ role: string | null; name: string; email: string | null; location: string | null; companyId: number; probability: number | null; linkedinUrl: string | null; twitterHandle: string | null; ... 6 more ...; completedSearches?: string[] | undefined; }'.
+
+1812               priority: contact.priority ?? null,
+                   ~~~~~~~~
+
+server/routes.ts:1812:33 - error TS2339: Property 'priority' does not exist on type '{ id: number; role: string | null; name: string; email: string | null; location: string | null; createdAt: Date | null; userId: number; companyId: number; alternativeEmails: unknown; probability: number | null; ... 10 more ...; completedSearches: unknown; }'.
+
+1812               priority: contact.priority ?? null,
+                                     ~~~~~~~~
+
+server/routes.ts:1937:26 - error TS2339: Property 'error' does not exist on type '{ success: boolean; data: any; }'.
+
+1937           errors: result.error.errors
+                              ~~~~~
+
+server/routes.ts:2214:32 - error TS2461: Type '{}' is not an array type.
+
+2214         completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:2232:113 - error TS2339: Property 'length' does not exist on type '{}'.
+
+2232         emailFound = !!(emailUpdates.email || (emailUpdates.alternativeEmails && emailUpdates.alternativeEmails.length > 0));
+                                                                                                                     ~~~~~~
+
+server/routes.ts:2294:94 - error TS2554: Expected 2 arguments, but got 3.
+
+2294       const queueId = await postSearchEnrichmentService.startEnrichment(companyId, searchId, contactIds);
+                                                                                                  ~~~~~~~~~~
+
+server/routes.ts:2573:31 - error TS2554: Expected 1-2 arguments, but got 0.
+
+2573         const emailProvider = getEmailProvider();
+                                   ~~~~~~~~~~~~~~~~
+
+  server/services/emailService.ts:583:34
+    583 export function getEmailProvider(userId: number, accessToken?: string): EmailProvider {
+                                         ~~~~~~~~~~~~~~
+    An argument for 'userId' was not provided.
+
+server/routes.ts:2703:44 - error TS2461: Type '{}' is not an array type.
+
+2703                     completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:2704:22 - error TS2554: Expected 2 arguments, but got 3.
+
+2704                   }, userId);
+                          ~~~~~~
+
+server/routes.ts:2878:38 - error TS2339: Property 'getSearchApproach' does not exist on type 'DatabaseStorage'.
+
+2878       const approach = await storage.getSearchApproach(strategyId);
+                                          ~~~~~~~~~~~~~~~~~
+
+server/routes.ts:2989:19 - error TS2304: Cannot find name 'userId'.
+
+2989           userId: userId,
+                       ~~~~~~
+
+server/routes.ts:3027:23 - error TS2339: Property 'createSearchTestResult' does not exist on type 'DatabaseStorage'.
+
+3027         await storage.createSearchTestResult(testData);
+                           ~~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:3054:38 - error TS2339: Property 'getSearchApproach' does not exist on type 'DatabaseStorage'.
+
+3054       const approach = await storage.getSearchApproach(Number(strategyId));
+                                          ~~~~~~~~~~~~~~~~~
+
+server/routes.ts:3149:25 - error TS2339: Property 'createSearchTestResult' does not exist on type 'DatabaseStorage'.
+
+3149           await storage.createSearchTestResult({
+                             ~~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:3186:39 - error TS2339: Property 'getTestResultsByStrategy' does not exist on type 'DatabaseStorage'.
+
+3186         recentResults = await storage.getTestResultsByStrategy(Number(strategyId), 4);
+                                           ~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:3195:54 - error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+3195         recentTests: recentResults.slice(0, 5).sort((a, b) =>
+                                                          ~
+
+server/routes.ts:3195:57 - error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+3195         recentTests: recentResults.slice(0, 5).sort((a, b) =>
+                                                             ~
+
+server/routes.ts:3200:67 - error TS7006: Parameter 'r' implicitly has an 'any' type.
+
+3200           averageOverallScore: calculateAverage(recentResults.map(r => r.overallScore)),
+                                                                       ~
+
+server/routes.ts:3274:83 - error TS2554: Expected 2 arguments, but got 3.
+
+3274         const updatedContact = await storage.updateContact(contactId, updateData, userId);
+                                                                                       ~~~~~~
+
+server/routes.ts:3286:34 - error TS2461: Type '{}' is not an array type.
+
+3286           completedSearches: [...(contact.completedSearches || []), 'hunter_search'],
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:3290:83 - error TS2554: Expected 2 arguments, but got 3.
+
+3290         const updatedContact = await storage.updateContact(contactId, updateData, userId);
+                                                                                       ~~~~~~
+
+server/routes.ts:3369:83 - error TS2554: Expected 2 arguments, but got 3.
+
+3369         const updatedContact = await storage.updateContact(contactId, updateData, userId);
+                                                                                       ~~~~~~
+
+server/routes.ts:3381:34 - error TS2461: Type '{}' is not an array type.
+
+3381           completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:3385:83 - error TS2554: Expected 2 arguments, but got 3.
+
+3385         const updatedContact = await storage.updateContact(contactId, updateData, userId);
+                                                                                       ~~~~~~
+
+server/routes.ts:3466:32 - error TS2461: Type '{}' is not an array type.
+
+3466         completedSearches: [...(contact.completedSearches || []), 'aeroleads_search'],
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:3734:54 - error TS7006: Parameter 'msg' implicitly has an 'any' type.
+
+3734         const userMessages = previousMessages.filter(msg => msg.sender === 'user');
+                                                          ~~~
+
+server/routes.ts:3735:52 - error TS7006: Parameter 'msg' implicitly has an 'any' type.
+
+3735         const aiMessages = previousMessages.filter(msg => msg.sender === 'ai' && !msg.content.includes("Perfect! So you're selling"));
+                                                        ~~~
+
+server/routes.ts:3747:15 - error TS2322: Type '"assistant"' is not assignable to type '"system"'.
+
+3747               role: "assistant" as const,
+                   ~~~~
+
+  server/routes.ts:3724:11
+    3724           role: "system" as const,
+                   ~~~~~~~~~~~~~~~~~~~~~~~
+    The expected type comes from property 'role' which is declared here on type '{ role: "system"; content: string; }'
+
+server/routes.ts:3753:15 - error TS2322: Type '"user"' is not assignable to type '"system"'.
+
+3753               role: "user" as const,
+                   ~~~~
+
+  server/routes.ts:3724:11
+    3724           role: "system" as const,
+                   ~~~~~~~~~~~~~~~~~~~~~~~
+    The expected type comes from property 'role' which is declared here on type '{ role: "system"; content: string; }'
+
+server/routes.ts:3763:9 - error TS2322: Type '"user"' is not assignable to type '"system"'.
+
+3763         role: "user" as const,
+             ~~~~
+
+  server/routes.ts:3724:11
+    3724           role: "system" as const,
+                   ~~~~~~~~~~~~~~~~~~~~~~~
+    The expected type comes from property 'role' which is declared here on type '{ role: "system"; content: string; }'
+
+server/routes.ts:3792:44 - error TS2304: Cannot find name 'extractAttributes'.
+
+3792           profileUpdate.uniqueAttributes = extractAttributes(message);
+                                                ~~~~~~~~~~~~~~~~~
+
+server/routes.ts:3800:39 - error TS2304: Cannot find name 'extractMarketNiche'.
+
+3800           profileUpdate.marketNiche = extractMarketNiche(message);
+                                           ~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:3806:41 - error TS2304: Cannot find name 'generateSearchPrompts'.
+
+3806           profileUpdate.searchPrompts = generateSearchPrompts(profileData, businessType);
+                                             ~~~~~~~~~~~~~~~~~~~~~
+
+server/routes.ts:3920:16 - error TS18046: 'error' is of type 'unknown'.
+
+3920         error: error.message
+                    ~~~~~
+
+server/routes.ts:3939:59 - error TS7006: Parameter 'msg' implicitly has an 'any' type.
+
+3939       const hasProductSummary = conversationHistory?.some(msg =>
+                                                               ~~~
+
+server/routes.ts:3948:58 - error TS7006: Parameter 'msg' implicitly has an 'any' type.
+
+3948       const hasEmailStrategy = conversationHistory?.some(msg =>
+                                                              ~~~
+
+server/routes.ts:3952:58 - error TS7006: Parameter 'msg' implicitly has an 'any' type.
+
+3952       const hasSalesApproach = conversationHistory?.some(msg =>
+                                                              ~~~
+
+server/routes.ts:3958:58 - error TS7006: Parameter 'msg' implicitly has an 'any' type.
+
+3958       const targetMessages = conversationHistory?.filter(msg =>
+                                                              ~~~
+
+server/routes.ts:3994:55 - error TS7006: Parameter 'm' implicitly has an 'any' type.
+
+3994         conversationHistory: conversationHistory?.map(m => ({ sender: m.sender, contentStart: m.content?.substring(0, 50) }))
+                                                           ~
+
+server/routes.ts:4032:37 - error TS7006: Parameter 'msg' implicitly has an 'any' type.
+
+4032         conversationHistory.forEach(msg => {
+                                         ~~~
+
+server/routes.ts:4124:36 - error TS2345: Argument of type '{ role: string; content: string; }[]' is not assignable to parameter of type 'ChatCompletionMessageParam[]'.
+  Type '{ role: string; content: string; }' is not assignable to type 'ChatCompletionMessageParam'.
+    Property 'name' is missing in type '{ role: string; content: string; }' but required in type 'ChatCompletionFunctionMessageParam'.
+
+4124         result = await queryOpenAI(messages, productContext);
+                                        ~~~~~~~~
+
+  node_modules/openai/resources/chat/completions/completions.d.ts:640:5
+    640     name: string;
+            ~~~~
+    'name' is declared here.
+
+server/routes.ts:4508:16 - error TS18046: 'error' is of type 'unknown'.
+
+4508         error: error.message
+                    ~~~~~
+
+server/routes.ts:4758:67 - error TS2345: Argument of type '{ userId: number; title: any; businessType: any; businessDescription: any; productService: any; customerFeedback: any; website: any; targetCustomers: any; status: string; }' is not assignable to parameter of type '{ title: string; status: "in_progress" | "completed"; userId: number; businessType: "product" | "service"; businessDescription: string; targetCustomers: string; website?: string | undefined; ... 16 more ...; searchPrompts?: string[] | undefined; }'.
+  Types of property 'status' are incompatible.
+    Type 'string' is not assignable to type '"in_progress" | "completed"'.
+
+4758         const savedProfile = await storage.createStrategicProfile(profileData);
+                                                                       ~~~~~~~~~~~
+
+server/routes/stripe.ts:21:7 - error TS2322: Type '"2025-03-31.basil"' is not assignable to type '"2025-05-28.basil"'.
+
+21       apiVersion: "2025-03-31.basil",
+         ~~~~~~~~~~
+
+server/routes/stripe.ts:165:27 - error TS2339: Property 'email' does not exist on type 'Response<Customer | DeletedCustomer>'.
+  Property 'email' does not exist on type 'DeletedCustomer & { lastResponse: { headers: { [key: string]: string; }; requestId: string; statusCode: number; apiVersion?: string | undefined; idempotencyKey?: string | undefined; stripeAccount?: string | undefined; }; }'.
+
+165           email: customer.email,
+                              ~~~~~
+
+server/routes/stripe.ts:166:29 - error TS2339: Property 'created' does not exist on type 'Response<Customer | DeletedCustomer>'.
+  Property 'created' does not exist on type 'DeletedCustomer & { lastResponse: { headers: { [key: string]: string; }; requestId: string; statusCode: number; apiVersion?: string | undefined; idempotencyKey?: string | undefined; stripeAccount?: string | undefined; }; }'.
+
+166           created: customer.created
+                                ~~~~~~~
+
+server/routes/stripe.ts:172:35 - error TS2339: Property 'current_period_end' does not exist on type 'Subscription'.
+
+172           current_period_end: sub.current_period_end,
+                                      ~~~~~~~~~~~~~~~~~~
+
+server/routes/stripe.ts:203:40 - error TS2339: Property 'current_period_end' does not exist on type 'Response<Subscription>'.
+
+203         currentPeriodEnd: subscription.current_period_end * 1000, // Convert to milliseconds
+                                           ~~~~~~~~~~~~~~~~~~
+
+server/services/emailService.ts:2:15 - error TS2300: Duplicate identifier 'Contact'.
+
+2 import type { Contact } from "@shared/schema";
+                ~~~~~~~
+
+server/services/emailService.ts:89:15 - error TS2300: Duplicate identifier 'Contact'.
+
+89 import type { Contact } from "@shared/schema";
+                 ~~~~~~~
+
+server/services/emailService.ts:179:38 - error TS2339: Property 'listContacts' does not exist on type 'DatabaseStorage'.
+
+179       const contacts = await storage.listContacts(this.userId);
+                                         ~~~~~~~~~~~~
+
+server/services/emailService.ts:182:28 - error TS7006: Parameter 'contact' implicitly has an 'any' type.
+
+182       return contacts.find(contact => contact.email === email);
+                               ~~~~~~~
+
+server/services/emailService.ts:193:38 - error TS2339: Property 'listContacts' does not exist on type 'DatabaseStorage'.
+
+193       const contacts = await storage.listContacts(userId);
+                                         ~~~~~~~~~~~~
+
+server/services/emailService.ts:207:24 - error TS7006: Parameter 'contact' implicitly has an 'any' type.
+
+207       contacts.forEach(contact => {
+                           ~~~~~~~
+
+server/services/emailService.ts:256:13 - error TS7034: Variable 'contact' implicitly has type 'any' in some locations where its type cannot be determined.
+
+256         let contact = null;
+                ~~~~~~~
+
+server/services/emailService.ts:268:61 - error TS7005: Variable 'contact' implicitly has an 'any' type.
+
+268           if (contact && !activeContacts.some(c => c.id === contact.id)) {
+                                                                ~~~~~~~
+
+server/storage.ts:51:68 - error TS2304: Cannot find name 'EmailThread'.
+
+51   listThreadsByContact(contactId: number, userId: number): Promise<EmailThread[]>;
+                                                                      ~~~~~~~~~~~
+
+server/storage.ts:52:50 - error TS2304: Cannot find name 'EmailThread'.
+
+52   getThread(id: number, userId: number): Promise<EmailThread | undefined>;
+                                                    ~~~~~~~~~~~
+
+server/storage.ts:53:22 - error TS2304: Cannot find name 'InsertEmailThread'.
+
+53   createThread(data: InsertEmailThread): Promise<EmailThread>;
+                        ~~~~~~~~~~~~~~~~~
+
+server/storage.ts:53:50 - error TS2304: Cannot find name 'EmailThread'.
+
+53   createThread(data: InsertEmailThread): Promise<EmailThread>;
+                                                    ~~~~~~~~~~~
+
+server/storage.ts:54:42 - error TS2304: Cannot find name 'EmailThread'.
+
+54   updateThread(id: number, data: Partial<EmailThread>): Promise<EmailThread>;
+                                            ~~~~~~~~~~~
+
+server/storage.ts:54:65 - error TS2304: Cannot find name 'EmailThread'.
+
+54   updateThread(id: number, data: Partial<EmailThread>): Promise<EmailThread>;
+                                                                   ~~~~~~~~~~~
+
+server/storage.ts:55:51 - error TS2304: Cannot find name 'EmailMessage'.
+
+55   listMessagesByThread(threadId: number): Promise<EmailMessage[]>;
+                                                     ~~~~~~~~~~~~
+
+server/storage.ts:56:41 - error TS2304: Cannot find name 'EmailMessage'.
+
+56   getThreadMessage(id: number): Promise<EmailMessage | undefined>;
+                                           ~~~~~~~~~~~~
+
+server/storage.ts:57:23 - error TS2304: Cannot find name 'InsertEmailMessage'.
+
+57   createMessage(data: InsertEmailMessage): Promise<EmailMessage>;
+                         ~~~~~~~~~~~~~~~~~~
+
+server/storage.ts:57:52 - error TS2304: Cannot find name 'EmailMessage'.
+
+57   createMessage(data: InsertEmailMessage): Promise<EmailMessage>;
+                                                      ~~~~~~~~~~~~
+
+server/storage.ts:61:42 - error TS2304: Cannot find name 'Campaign'.
+
+61   listCampaigns(userId: number): Promise<Campaign[]>;
+                                            ~~~~~~~~
+
+server/storage.ts:62:52 - error TS2304: Cannot find name 'Campaign'.
+
+62   getCampaign(id: number, userId: number): Promise<Campaign | undefined>;
+                                                      ~~~~~~~~
+
+server/storage.ts:64:24 - error TS2304: Cannot find name 'InsertCampaign'.
+
+64   createCampaign(data: InsertCampaign): Promise<Campaign>;
+                          ~~~~~~~~~~~~~~
+
+server/storage.ts:64:49 - error TS2304: Cannot find name 'Campaign'.
+
+64   createCampaign(data: InsertCampaign): Promise<Campaign>;
+                                                   ~~~~~~~~
+
+server/storage.ts:65:44 - error TS2304: Cannot find name 'Campaign'.
+
+65   updateCampaign(id: number, data: Partial<Campaign>, userId: number): Promise<Campaign>;
+                                              ~~~~~~~~
+
+server/storage.ts:65:80 - error TS2304: Cannot find name 'Campaign'.
+
+65   updateCampaign(id: number, data: Partial<Campaign>, userId: number): Promise<Campaign>;
+                                                                                  ~~~~~~~~
+
+server/storage.ts:82:7 - error TS2420: Class 'DatabaseStorage' incorrectly implements interface 'IStorage'.
+  Type 'DatabaseStorage' is missing the following properties from type 'IStorage': listActiveContactsWithThreads, listThreadsByContact, getThread, createThread, and 5 more.
+
+82 class DatabaseStorage implements IStorage {
+         ~~~~~~~~~~~~~~~
+
+server/storage.ts:154:8 - error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: { userId: number | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<string, any> | undefined; createdAt?: Date | SQL<...> | Placeholder<...> | null | undefined; updatedAt?: Date | ... 3 more ... | undefined; }): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'hasSeenTour' does not exist in type '{ userId: number | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<string, any> | undefined; createdAt?: Date | SQL<...> | Placeholder<...> | null | undefined; updatedAt?: Date | ... 3 more ... | undefined; }'.
+  Overload 2 of 2, '(values: { userId: number | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<string, any> | undefined; createdAt?: Date | SQL<...> | Placeholder<...> | null | undefined; updatedAt?: Date | ... 3 more ... | undefined; }[]): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'userId' does not exist in type '{ userId: number | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<string, any> | undefined; createdAt?: Date | SQL<...> | Placeholder<...> | null | undefined; updatedAt?: Date | ... 3 more ... | undefined; }[]'.
+
+154       .values({ userId, hasSeenTour: false })
+           ~~~~~~
+
+
+server/storage.ts:313:48 - error TS2304: Cannot find name 'Campaign'.
+
+313   async listCampaigns(userId: number): Promise<Campaign[]> {
+                                                   ~~~~~~~~
+
+server/storage.ts:314:29 - error TS2304: Cannot find name 'campaigns'.
+
+314     return db.select().from(campaigns).where(eq(campaigns.userId, userId));
+                                ~~~~~~~~~
+
+server/storage.ts:314:49 - error TS2304: Cannot find name 'campaigns'.
+
+314     return db.select().from(campaigns).where(eq(campaigns.userId, userId));
+                                                    ~~~~~~~~~
+
+server/storage.ts:317:58 - error TS2304: Cannot find name 'Campaign'.
+
+317   async getCampaign(id: number, userId: number): Promise<Campaign | undefined> {
+                                                             ~~~~~~~~
+
+server/storage.ts:320:13 - error TS2304: Cannot find name 'campaigns'.
+
+320       .from(campaigns)
+                ~~~~~~~~~
+
+server/storage.ts:321:21 - error TS2304: Cannot find name 'campaigns'.
+
+321       .where(and(eq(campaigns.campaignId, id), eq(campaigns.userId, userId)));
+                        ~~~~~~~~~
+
+server/storage.ts:321:51 - error TS2304: Cannot find name 'campaigns'.
+
+321       .where(and(eq(campaigns.campaignId, id), eq(campaigns.userId, userId)));
+                                                      ~~~~~~~~~
+
+server/storage.ts:326:47 - error TS2304: Cannot find name 'campaigns'.
+
+326     const [result] = await db.select({ maxId: campaigns.campaignId }).from(campaigns);
+                                                  ~~~~~~~~~
+
+server/storage.ts:326:76 - error TS2304: Cannot find name 'campaigns'.
+
+326     const [result] = await db.select({ maxId: campaigns.campaignId }).from(campaigns);
+                                                                               ~~~~~~~~~
+
+server/storage.ts:330:30 - error TS2304: Cannot find name 'InsertCampaign'.
+
+330   async createCampaign(data: InsertCampaign): Promise<Campaign> {
+                                 ~~~~~~~~~~~~~~
+
+server/storage.ts:330:55 - error TS2304: Cannot find name 'Campaign'.
+
+330   async createCampaign(data: InsertCampaign): Promise<Campaign> {
+                                                          ~~~~~~~~
+
+server/storage.ts:331:40 - error TS2304: Cannot find name 'campaigns'.
+
+331     const [campaign] = await db.insert(campaigns).values(data as any).returning();
+                                           ~~~~~~~~~
+
+server/storage.ts:335:50 - error TS2304: Cannot find name 'Campaign'.
+
+335   async updateCampaign(id: number, data: Partial<Campaign>, userId: number): Promise<Campaign> {
+                                                     ~~~~~~~~
+
+server/storage.ts:335:86 - error TS2304: Cannot find name 'Campaign'.
+
+335   async updateCampaign(id: number, data: Partial<Campaign>, userId: number): Promise<Campaign> {
+                                                                                         ~~~~~~~~
+
+server/storage.ts:336:39 - error TS2304: Cannot find name 'campaigns'.
+
+336     const [updated] = await db.update(campaigns)
+                                          ~~~~~~~~~
+
+server/storage.ts:338:21 - error TS2304: Cannot find name 'campaigns'.
+
+338       .where(and(eq(campaigns.campaignId, id), eq(campaigns.userId, userId)))
+                        ~~~~~~~~~
+
+server/storage.ts:338:51 - error TS2304: Cannot find name 'campaigns'.
+
+338       .where(and(eq(campaigns.campaignId, id), eq(campaigns.userId, userId)))
+                                                      ~~~~~~~~~
+
+storage-switching/1--storage-switcher.ts:13:14 - error TS2322: Type 'DatabaseStorage | ReplitStorage' is not assignable to type 'IStorage'.
+  Type 'ReplitStorage' is missing the following properties from type 'IStorage': getStrategicProfile, listStrategicProfiles
+
+13 export const storage: IStorage = USE_REPLIT_DB ? replitStorage : pgStorage;
+                ~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:9:27 - error TS2305: Module '"../shared/schema"' has no exported member 'Campaign'.
+
+9   Contact, InsertContact, Campaign, InsertCampaign, CampaignList,
+                            ~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:9:37 - error TS2724: '"../shared/schema"' has no exported member named 'InsertCampaign'. Did you mean 'InsertCompany'?
+
+9   Contact, InsertContact, Campaign, InsertCampaign, CampaignList,
+                                      ~~~~~~~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:9:53 - error TS2305: Module '"../shared/schema"' has no exported member 'CampaignList'.
+
+9   Contact, InsertContact, Campaign, InsertCampaign, CampaignList,
+                                                      ~~~~~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:10:3 - error TS2305: Module '"../shared/schema"' has no exported member 'InsertCampaignList'.
+
+10   InsertCampaignList, EmailTemplate, InsertEmailTemplate,
+     ~~~~~~~~~~~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:11:3 - error TS2305: Module '"../shared/schema"' has no exported member 'SearchApproach'.
+
+11   SearchApproach, InsertSearchApproach, SearchTestResult,
+     ~~~~~~~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:11:19 - error TS2305: Module '"../shared/schema"' has no exported member 'InsertSearchApproach'.
+
+11   SearchApproach, InsertSearchApproach, SearchTestResult,
+                     ~~~~~~~~~~~~~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:11:41 - error TS2305: Module '"../shared/schema"' has no exported member 'SearchTestResult'.
+
+11   SearchApproach, InsertSearchApproach, SearchTestResult,
+                                           ~~~~~~~~~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:12:3 - error TS2305: Module '"../shared/schema"' has no exported member 'InsertSearchTestResult'.
+
+12   InsertSearchTestResult, UserPreferences, InsertUserPreferences,
+     ~~~~~~~~~~~~~~~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:13:3 - error TS2305: Module '"../shared/schema"' has no exported member 'ContactFeedback'.
+
+13   ContactFeedback, InsertContactFeedback,
+     ~~~~~~~~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:13:20 - error TS2305: Module '"../shared/schema"' has no exported member 'InsertContactFeedback'.
+
+13   ContactFeedback, InsertContactFeedback,
+                      ~~~~~~~~~~~~~~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:163:27 - error TS2339: Property 'hasSeenTour' does not exist on type 'Partial<{ userId: number; }>'.
+
+163         hasSeenTour: data.hasSeenTour ?? false,
+                              ~~~~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:179:49 - error TS2353: Object literal may only specify known properties, and 'hasSeenTour' does not exist in type 'Partial<{ userId: number; }>'.
+
+179     return this.updateUserPreferences(userId, { hasSeenTour: false });
+                                                    ~~~~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:319:17 - error TS2339: Property 'userId' does not exist on type '{ name: string; size: number | null; description: string | null; listId: number | null; age: number | null; website: string | null; alternativeProfileUrl: string | null; defaultContactEmail: string | null; ... 8 more ...; snapshot: Record<...> | null; }'.
+
+319     if (company.userId) {
+                    ~~~~~~
+
+storage-switching/simplified-storage-replit.ts:320:80 - error TS2339: Property 'userId' does not exist on type '{ name: string; size: number | null; description: string | null; listId: number | null; age: number | null; website: string | null; alternativeProfileUrl: string | null; defaultContactEmail: string | null; ... 8 more ...; snapshot: Record<...> | null; }'.
+
+320       const userCompanies = await this.get<number[]>(`companies:user:${company.userId}`) || [];
+                                                                                   ~~~~~~
+
+storage-switching/simplified-storage-replit.ts:322:48 - error TS2339: Property 'userId' does not exist on type '{ name: string; size: number | null; description: string | null; listId: number | null; age: number | null; website: string | null; alternativeProfileUrl: string | null; defaultContactEmail: string | null; ... 8 more ...; snapshot: Record<...> | null; }'.
+
+322       await this.set(`companies:user:${company.userId}`, userCompanies);
+                                                   ~~~~~~
+
+storage-switching/simplified-storage-replit.ts:409:17 - error TS2339: Property 'userId' does not exist on type '{ role: string | null; name: string; email: string | null; location: string | null; companyId: number; probability: number | null; linkedinUrl: string | null; twitterHandle: string | null; ... 6 more ...; completedSearches?: string[] | undefined; }'.
+
+409     if (contact.userId) {
+                    ~~~~~~
+
+storage-switching/simplified-storage-replit.ts:410:78 - error TS2339: Property 'userId' does not exist on type '{ role: string | null; name: string; email: string | null; location: string | null; companyId: number; probability: number | null; linkedinUrl: string | null; twitterHandle: string | null; ... 6 more ...; completedSearches?: string[] | undefined; }'.
+
+410       const userContacts = await this.get<number[]>(`contacts:user:${contact.userId}`) || [];
+                                                                                 ~~~~~~
+
+storage-switching/simplified-storage-replit.ts:412:47 - error TS2339: Property 'userId' does not exist on type '{ role: string | null; name: string; email: string | null; location: string | null; companyId: number; probability: number | null; linkedinUrl: string | null; twitterHandle: string | null; ... 6 more ...; completedSearches?: string[] | undefined; }'.
+
+412       await this.set(`contacts:user:${contact.userId}`, userContacts);
+                                                  ~~~~~~
+
+storage-switching/simplified-storage-replit.ts:777:36 - error TS2554: Expected 2 arguments, but got 1.
+
+777       const companies = await this.listCompaniesByList(list.id);
+                                       ~~~~~~~~~~~~~~~~~~~
+
+  storage-switching/simplified-storage-replit.ts:204:45
+    204   async listCompaniesByList(listId: number, userId: number): Promise<Company[]> {
+                                                    ~~~~~~~~~~~~~~
+    An argument for 'userId' was not provided.
+
+storage-switching/simplified-storage-replit.ts:934:5 - error TS2322: Type 'string' is not assignable to type 'Date'.
+
+934     contact.lastValidated = new Date().toISOString();
+        ~~~~~~~~~~~~~~~~~~~~~
+
+storage-switching/simplified-storage-replit.ts:1292:45 - error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number | Date'.
+      Type 'null' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number'.
+      Type 'null' is not assignable to type 'string | number'.
+
+1292     return profiles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                                                 ~~~~~~~~~~~
+
+
+storage-switching/simplified-storage-replit.ts:1292:79 - error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number | Date'.
+      Type 'null' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number'.
+      Type 'null' is not assignable to type 'string | number'.
+
+1292     return profiles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                                                                                   ~~~~~~~~~~~
+
+
+storage-switching/simplified-storage-replit.ts:1299:11 - error TS2322: Type '{ id: number; createdAt: Date; updatedAt: Date; title: string; status: "in_progress" | "completed"; userId: number; businessType: "product" | "service"; businessDescription: string; ... 18 more ...; searchPrompts?: string[] | undefined; }' is not assignable to type '{ title: string; id: number; status: string | null; createdAt: Date | null; userId: number; website: string | null; updatedAt: Date | null; businessType: string; businessDescription: string; ... 17 more ...; searchPrompts: string[] | null; }'.
+  Types of property 'website' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | null'.
+      Type 'undefined' is not assignable to type 'string | null'.
+
+1299     const profile: StrategicProfile = {
+               ~~~~~~~
+
+
+Found 405 errors in 52 files.
+
+Errors  Files
+     5  client/src/components/company-table.tsx:401
+     4  client/src/components/contact-action-column.tsx:78
+     1  client/src/components/search-strategies.tsx:20
+     1  client/src/components/strategy-overlay.tsx:391
+     7  client/src/components/strategy-performance-chart.tsx:27
+     1  client/src/components/workflow-header.tsx:6
+     4  client/src/lib/list-utils.ts:18
+     1  client/src/lib/search-sections.ts:1
+     4  client/src/pages/build.tsx:14
+     3  client/src/pages/campaign-details.tsx:55
+     1  client/src/pages/campaigns.tsx:16
+    45  client/src/pages/company-details.tsx:60
+    33  client/src/pages/contact-details.tsx:43
+    16  client/src/pages/home.tsx:1122
+     1  client/src/pages/list-details.tsx:48
+     8  client/src/pages/outreach.tsx:243
+     2  client/src/pages/planning.tsx:127
+     1  server/1--db.ts:3
+     1  server/1--storage/companies.ts:85
+     4  server/1--storage/contacts.ts:19
+     4  server/1--storage/database.ts:18
+     4  server/1--storage/searchTestResults.ts:3
+     1  server/auth.ts:596
+     2  server/index.ts:79
+     3  server/lib/api/openai-client.ts:196
+     1  server/lib/email-utils.ts:30
+     4  server/lib/results-analysis/company-analysis.ts:98
+     8  server/lib/results-analysis/company-parser.ts:22
+     2  server/lib/results-analysis/contact-analysis.ts:2
+     1  server/lib/results-analysis/contact-score-combination.ts:65
+     1  server/lib/results-analysis/prospect-filtering.ts:3
+     2  server/lib/search-logic/contact-discovery/enhanced-contact-finder.ts:305
+     1  server/lib/search-logic/deep-searches/email-discovery/website-email-search.ts:26
+     1  server/lib/search-logic/deep-searches/subsections.ts:1
+     1  server/lib/search-logic/email-discovery/index.ts:1
+     2  server/lib/search-logic/email-discovery/strategies/enhanced-pattern-prediction.ts:50
+     2  server/lib/search-logic/email-discovery/strategies/pattern-prediction.ts:4
+     1  server/lib/search-logic/email-discovery/strategies/public-directory.ts:3
+     4  server/lib/search-logic/email-enrichment/service.ts:36
+     3  server/lib/search-logic/post-search-enrichment/queue.ts:55
+     1  server/lib/search-logic/post-search-enrichment/service.ts:14
+     2  server/lib/search-logic/shared/types.ts:1
+     1  server/lib/search-logic/shared/utils.ts:24
+    47  server/lib/search-modules.ts:1
+     1  server/lib/test-runner.ts:1
+     7  server/lib/webhook-logger.ts:26
+    83  server/routes.ts:346
+     5  server/routes/stripe.ts:21
+     8  server/services/emailService.ts:2
+    35  server/storage.ts:51
+     1  storage-switching/1--storage-switcher.ts:13
+    23  storage-switching/simplified-storage-replit.ts:9
