@@ -60,6 +60,7 @@ import {
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 import { resolveMergeField, resolveAllMergeFields, hasMergeFields, type MergeFieldContext } from '@/lib/merge-field-resolver';
+import { useEmailGeneration } from "@/email-content-generation/useOutreachGeneration";
 
 
 // Define interface for the saved state
@@ -256,7 +257,20 @@ export default function Outreach() {
     selectedContactId ? topContacts.find(contact => contact.id === selectedContactId) || topContacts[0] : topContacts[0]
   , [topContacts, selectedContactId]);
 
-
+  // Email generation hook
+  const { generateEmail, isGenerating } = useEmailGeneration({
+    selectedContact,
+    selectedCompany,
+    emailPrompt,
+    emailSubject,
+    emailContent,
+    toEmail,
+    setEmailSubject,
+    setOriginalEmailSubject,
+    setToEmail,
+    setEmailContent,
+    setOriginalEmailContent
+  });
 
   // Adjacent company prefetching for instant navigation
   useEffect(() => {
@@ -637,68 +651,7 @@ export default function Outreach() {
     }, 1000);
   };
 
-  const generateEmailMutation = useMutation({
-    mutationFn: async () => {
-      const selectedContact = contacts.find(c => c.id === selectedContactId);
-      const payload = {
-        emailPrompt,
-        contact: selectedContact || null,
-        company: selectedCompany,
-        toEmail,
-        emailSubject
-      };
-      const res = await apiRequest("POST", "/api/generate-email", payload);
-      return res.json();
-    },
-    onSuccess: (data) => {
-      // Set the subject if empty and update content
-      if (!emailSubject) {
-        setEmailSubject(data.subject);
-        setOriginalEmailSubject(data.subject);
-      }
-      // Set the email if a contact is selected and has an email
-      const selectedContact = contacts.find(c => c.id === selectedContactId);
-      if (selectedContact?.email && !toEmail) {
-        setToEmail(selectedContact.email);
-      }
-      const newContent = `${data.content}\n\n${emailContent}`;
-      setEmailContent(newContent);
-      setOriginalEmailContent(newContent);
-      toast({
-        title: "Email Generated",
-        description: "New content has been added above the existing email.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Generation Failed",
-        description: error instanceof Error ? error.message : "Failed to generate email content",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleGenerateEmail = () => {
-    if (!selectedCompany) {
-      toast({
-        title: "No Company Selected",
-        description: "Please select a company first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!emailPrompt) {
-      toast({
-        title: "No Prompt Provided",
-        description: "Please enter an email creation prompt",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    generateEmailMutation.mutate();
-  };
+  // Email generation logic is now handled by the useEmailGeneration hook
 
   const handleCopyContact = (contact: Contact, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering the parent button click
@@ -1420,17 +1373,17 @@ export default function Outreach() {
                     </Tooltip>
                   </TooltipProvider>
                   <Button 
-                    onClick={handleGenerateEmail} 
+                    onClick={generateEmail} 
                     variant="yellow"
-                    disabled={generateEmailMutation.isPending}
+                    disabled={isGenerating}
                     className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
                   >
-                    {generateEmailMutation.isPending ? (
+                    {isGenerating ? (
                       <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                     ) : (
                       <Wand2 className="w-3 h-3 mr-1" />
                     )}
-                    {generateEmailMutation.isPending ? "Generating..." : "Generate Email"}
+                    {isGenerating ? "Generating..." : "Generate Email"}
                   </Button>
                 </div>
               </div>

@@ -33,6 +33,7 @@ import { SearchType } from "./lib/credits/types";
 import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow-service";
 // import { logIncomingWebhook } from "./lib/webhook-logger"; // COMMENTED: webhook logging inactive
 import { getEmailProvider } from "./services/emailService";
+import { registerEmailGenerationRoutes } from "./email-content-generation/routes";
 
 // Global session storage for search results
 interface SearchSessionResult {
@@ -2107,64 +2108,8 @@ export function registerRoutes(app: Express) {
 
   // Leave the search approaches endpoints without auth since they are system-wide
 
-  
-
-  
-
-  
-
-
-  // Keep other existing routes with requireAuth
-  app.post("/api/generate-email", requireAuth, async (req, res) => {
-    const { emailPrompt, contact, company } = req.body;
-
-    if (!emailPrompt || !company) {
-      res.status(400).json({ message: "Missing required parameters" });
-      return;
-    }
-
-    try {
-      // Construct the prompt for Perplexity
-      const messages: PerplexityMessage[] = [
-        {
-          role: "system",
-          content: "You are a professional business email writer. Write personalized, engaging emails that are concise and effective. Focus on building genuine connections while maintaining professionalism."
-        },
-        {
-          role: "user",
-          content: `Write a business email based on this context:
-
-Prompt: ${emailPrompt}
-
-Company: ${company.name}
-${company.size ? `Size: ${company.size} employees` : ''}
-${company.services ? `Services: ${company.services.join(', ')}` : ''}
-
-${contact ? `Recipient: ${contact.name}${contact.role ? ` (${contact.role})` : ''}` : 'No specific recipient selected'}
-
-First, provide a short, engaging subject line prefixed with "Subject: ".
-Then, on a new line, write the body of the email. Keep both subject and content concise and professional.`
-        }
-      ];
-
-      const response = await queryPerplexity(messages);
-
-      // Split response into subject and content
-      const parts = response.split('\n').filter(line => line.trim());
-      const subjectLine = parts[0].replace(/^Subject:\s*/i, '').trim();
-      const content = parts.slice(1).join('\n').trim();
-
-      res.json({
-        subject: subjectLine,
-        content: content
-      });
-    } catch (error) {
-      console.error('Email generation error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred during email generation"
-      });
-    }
-  });
+  // Register modular email generation routes
+  registerEmailGenerationRoutes(app, requireAuth);
 
   app.post("/api/contacts/:contactId/enrich", requireAuth, async (req, res) => {
     try {
