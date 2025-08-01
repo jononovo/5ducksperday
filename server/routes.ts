@@ -3405,8 +3405,13 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const searchResult = await orchestrator.executeApolloSearch(contact, company, apolloApiKey);
       
       if (searchResult.success) {
-        // Handle email updates with unified deduplication logic
-        const updateData: any = { ...searchResult.contact };
+        // Handle email updates with unified deduplication logic - only include search result fields (no ID)
+        const updateData: any = {
+          email: searchResult.contact.email,
+          role: searchResult.contact.role,
+          completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
+          lastValidated: new Date()
+        };
         
         if (searchResult.contact.email) {
           const { mergeEmailData } = await import('./lib/email-utils');
@@ -3423,9 +3428,8 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
         res.json(updatedContact);
       } else {
-        // Update contact to mark search as completed even if failed
+        // Update contact to mark search as completed even if failed - only include specific fields (no ID)
         const updateData = {
-          ...contact,
           completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
           lastValidated: new Date()
         };
