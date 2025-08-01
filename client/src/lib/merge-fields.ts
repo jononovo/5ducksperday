@@ -7,8 +7,8 @@ export interface MergeFieldItem {
 export const MERGE_FIELDS: MergeFieldItem[] = [
   {
     value: "{{company_name}}",
-    label: "Company Name",
-    description: "Company or business name"
+    label: "Contact's Company Name",
+    description: "Contact's company or business name"
   },
   {
     value: "{{contact_role}}",
@@ -17,8 +17,13 @@ export const MERGE_FIELDS: MergeFieldItem[] = [
   },
   {
     value: "{{sender_name}}",
-    label: "Sender Name",
-    description: "Your name as the sender"
+    label: "Sender Full Name",
+    description: "Your full name as the sender"
+  },
+  {
+    value: "{{sender_first_name}}",
+    label: "Sender First Name",
+    description: "Your first name"
   },
   {
     value: "{{first_name}}",

@@ -12,10 +12,13 @@ export function registerEmailGenerationRoutes(app: Express, requireAuth: any) {
     }
 
     try {
+      const userId = (req.user as any).id;
+      
       const request: EmailGenerationRequest = {
         emailPrompt,
         contact: contact || null,
         company,
+        userId,
         toEmail: req.body.toEmail,
         emailSubject: req.body.emailSubject
       };

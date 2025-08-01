@@ -61,6 +61,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { resolveMergeField, resolveAllMergeFields, hasMergeFields, type MergeFieldContext } from '@/lib/merge-field-resolver';
 import { useEmailGeneration } from "@/email-content-generation/useOutreachGeneration";
+import { resolveFrontendSenderNames } from "@/email-content-generation/outreach-utils";
 
 
 // Define interface for the saved state
@@ -402,7 +403,10 @@ export default function Outreach() {
     }
   };
 
-  // Content resolution utility functions
+  // Resolve sender names for current user
+  const senderNames = resolveFrontendSenderNames(user);
+
+  // Content resolution utility functions (DEPRECATED - using merge field system instead)
   const resolveContent = (content: string, contact: Contact | null) => {
     if (!contact || isEditMode) return content; // Show raw in edit mode
     
@@ -415,7 +419,8 @@ export default function Outreach() {
       .replace(/\{\{first_name\}\}/g, firstName || '{{first_name}}')
       .replace(/\{\{last_name\}\}/g, lastName || '{{last_name}}')
       .replace(/\{\{contact_role\}\}/g, contact.role || '{{contact_role}}')
-      .replace(/\{\{sender_name\}\}/g, user?.email?.split('@')[0] || '{{sender_name}}');
+      .replace(/\{\{sender_name\}\}/g, senderNames.fullName || '{{sender_name}}')
+      .replace(/\{\{sender_first_name\}\}/g, senderNames.firstName || '{{sender_first_name}}');
   };
 
   const highlightMergeFields = (content: string) => {
@@ -430,7 +435,7 @@ export default function Outreach() {
   // Get the currently selected contact for merge field resolution
   const currentSelectedContact = selectedContactId ? contacts?.find(c => c.id === selectedContactId) : null;
 
-  // Create merge field context
+  // Create merge field context using resolved sender names
   const mergeFieldContext: MergeFieldContext = {
     contact: currentSelectedContact ? {
       name: currentSelectedContact.name,
@@ -441,7 +446,8 @@ export default function Outreach() {
       name: selectedCompany.name,
     } : null,
     sender: {
-      name: 'Your Name'
+      name: senderNames.fullName,
+      firstName: senderNames.firstName
     }
   };
 

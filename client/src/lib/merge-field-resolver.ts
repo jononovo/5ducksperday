@@ -11,12 +11,14 @@ export interface MergeFieldContext {
   } | null;
   sender?: {
     name?: string;
+    firstName?: string;
   };
 }
 
 // Default values for merge fields
 const DEFAULT_VALUES: Record<string, string> = {
-  '{{sender_name}}': 'Your Name',
+  '{{sender_name}}': 'User',
+  '{{sender_first_name}}': 'User',
   '{{personal_intro}}': 'Personal introduction',
   '{{custom_proposal}}': 'Custom proposal',
   '{{product1_name}}': 'Product Name',
@@ -57,6 +59,9 @@ export function resolveMergeField(field: string, context: MergeFieldContext): st
     
     case '{{sender_name}}':
       return sender?.name || DEFAULT_VALUES['{{sender_name}}'];
+    
+    case '{{sender_first_name}}':
+      return sender?.firstName || sender?.name?.split(' ')[0] || 'User';
     
     default:
       return DEFAULT_VALUES[field] || field;

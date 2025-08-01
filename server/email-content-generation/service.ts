@@ -1,6 +1,7 @@
 import { queryPerplexity } from "../lib/api/perplexity-client";
 import type { PerplexityMessage } from "../lib/perplexity";
 import type { EmailGenerationRequest, EmailGenerationResponse, EmailGenerationContext } from "./types";
+import { resolveSenderNames } from "../lib/name-resolver";
 
 /**
  * Email Content Generation Service
@@ -8,7 +9,10 @@ import type { EmailGenerationRequest, EmailGenerationResponse, EmailGenerationCo
  */
 
 export async function generateEmailContent(request: EmailGenerationRequest): Promise<EmailGenerationResponse> {
-  const { emailPrompt, contact, company } = request;
+  const { emailPrompt, contact, company, userId } = request;
+
+  // Resolve sender names for the current user
+  const senderNames = await resolveSenderNames(userId);
 
   // Construct the prompt for Perplexity
   const messages: PerplexityMessage[] = [
@@ -18,7 +22,7 @@ export async function generateEmailContent(request: EmailGenerationRequest): Pro
     },
     {
       role: "user", 
-      content: buildEmailPrompt({ contact, company, userPrompt: emailPrompt })
+      content: buildEmailPrompt({ contact, company, userPrompt: emailPrompt, senderNames })
     }
   ];
 
@@ -29,11 +33,18 @@ export async function generateEmailContent(request: EmailGenerationRequest): Pro
 }
 
 function buildEmailPrompt(context: EmailGenerationContext): string {
-  const { contact, company, userPrompt } = context;
+  const { contact, company, userPrompt, senderNames } = context;
   
   return `Write a business email based on this context:
 
 Prompt: ${userPrompt}
+
+Available merge fields for personalization:
+- {{first_name}} - Contact's first name
+- {{contact_name}} - Contact's full name  
+- {{company_name}} - Contact's company name
+- {{sender_first_name}} - Your first name: "${senderNames?.firstName || 'User'}"
+- {{sender_name}} - Your full name: "${senderNames?.fullName || 'User'}"
 
 Company: ${company.name}
 ${company.description ? `About: ${company.description}` : ''}
@@ -44,7 +55,8 @@ First, provide a short, engaging subject line prefixed with "Subject: ".
 Then, on a new line, write the body of the email. 
  - Keep both subject and content concise.
  - Add generous white space between paragraphs (use double line breaks)
- - Add extra line spacing after the signature.`;
+ - Add extra line spacing after the signature.
+ - Use merge fields like {{sender_name}} or {{sender_first_name}} in signatures when appropriate.`;
 }
 
 function parseEmailResponse(response: string): EmailGenerationResponse {
