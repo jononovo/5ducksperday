@@ -18,9 +18,8 @@ export class CreditService {
     const key = this.getCreditKey(userId);
     
     try {
-      console.log(`[CreditService] Getting credits for user ${userId} with key: ${key}`);
+      console.log(`[CreditService] Getting credits for user ${userId}`);
       const creditsData = await db.get(key);
-      console.log(`[CreditService] Raw DB data for user ${userId}:`, creditsData);
       
       let credits: UserCredits | undefined;
       
@@ -29,7 +28,7 @@ export class CreditService {
           // Extract value from Replit DB response wrapper format
           const rawData = creditsData.value || creditsData;
           credits = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-          console.log(`[CreditService] Parsed credits for user ${userId}:`, credits);
+          console.log(`[CreditService] Loaded credits for user ${userId}: balance=${credits?.currentBalance}, transactions=${credits?.transactions?.length || 0}`);
         } catch (parseError) {
           console.error(`Error parsing credits data for user ${userId}:`, parseError);
           credits = undefined;
@@ -56,13 +55,13 @@ export class CreditService {
           updatedAt: Date.now()
         };
         
-        console.log(`[CreditService] Saving initial credits for user ${userId}:`, initialCredits);
+        console.log(`[CreditService] Creating initial credits for user ${userId}: 250 credits`);
         await db.set(key, JSON.stringify(initialCredits));
-        console.log(`[CreditService] Successfully saved initial credits for user ${userId}`);
+        console.log(`[CreditService] Successfully created initial credits for user ${userId}`);
         return initialCredits;
       }
       
-      console.log(`[CreditService] Returning existing credits for user ${userId}:`, credits);
+      console.log(`[CreditService] Returning credits for user ${userId}: balance=${credits.currentBalance}`);
       return credits;
     } catch (error) {
       console.error(`Error getting credits for user ${userId}:`, error);
