@@ -64,7 +64,17 @@ import { useEmailGeneration } from "@/email-content-generation/useOutreachGenera
 import { resolveFrontendSenderNames } from "@/email-content-generation/outreach-utils";
 
 
-// Define interface for the saved state
+// Define interfaces
+interface GmailStatus {
+  authorized: boolean;
+  hasValidToken: boolean;
+}
+
+interface GmailUserInfo {
+  email: string;
+  name?: string;
+}
+
 interface SavedOutreachState {
   selectedListId?: string;
   selectedContactId: number | null;
@@ -232,7 +242,7 @@ export default function Outreach() {
   });
 
   // Gmail authentication status query
-  const { data: gmailStatus, refetch: refetchGmailStatus } = useQuery({
+  const { data: gmailStatus, refetch: refetchGmailStatus } = useQuery<GmailStatus>({
     queryKey: ["/api/gmail/auth-status"],
     enabled: !!user, // Only check when user is authenticated
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -240,7 +250,7 @@ export default function Outreach() {
   });
 
   // Query to get Gmail user info (email and name)
-  const { data: gmailUserInfo } = useQuery({
+  const { data: gmailUserInfo } = useQuery<GmailUserInfo>({
     queryKey: ['/api/gmail/user'],
     enabled: !!user && !!gmailStatus?.authorized,
   });
