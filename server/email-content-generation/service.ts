@@ -36,8 +36,7 @@ function buildEmailPrompt(context: EmailGenerationContext): string {
 Prompt: ${userPrompt}
 
 Company: ${company.name}
-${company.size ? `Size: ${company.size} employees` : ''}
-${company.services && Array.isArray(company.services) ? `Services: ${company.services.join(', ')}` : ''}
+${company.description ? `About: ${company.description}` : ''}
 
 ${contact ? `Recipient: ${contact.name}${contact.role ? ` (${contact.role})` : ''}` : 'No specific recipient selected'}
 
