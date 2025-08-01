@@ -14,7 +14,7 @@ export async function generateEmailContent(request: EmailGenerationRequest): Pro
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: "You are a professional business email writer. Write personalized, engaging emails that are concise and effective. Focus on building genuine connections while maintaining professionalism."
+      content: "You are a friendly business email writer. Write personalized, conversational emails that feel genuine and approachable while remaining business-appropriate. Use a warm, casual tone that builds authentic connections."
     },
     {
       role: "user", 
@@ -42,7 +42,10 @@ ${company.services && Array.isArray(company.services) ? `Services: ${company.ser
 ${contact ? `Recipient: ${contact.name}${contact.role ? ` (${contact.role})` : ''}` : 'No specific recipient selected'}
 
 First, provide a short, engaging subject line prefixed with "Subject: ".
-Then, on a new line, write the body of the email. Keep both subject and content concise and professional.`;
+Then, on a new line, write the body of the email. 
+ - Keep both subject and content concise.
+ - Add generous white space between paragraphs (use double line breaks)
+ - Add extra line spacing after the signature.`;
 }
 
 function parseEmailResponse(response: string): EmailGenerationResponse {
