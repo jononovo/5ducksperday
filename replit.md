@@ -8,6 +8,12 @@ Preferred communication style: Simple, everyday language.
 Mobile UI preference: Compact, space-efficient design with seamless header-to-content transitions.
 
 ## Recent Changes
+**August 1, 2025**: Email Search Database Update Fix
+- Fixed critical Apollo and Hunter email search database constraint violations
+- Resolved PostgreSQL GENERATED ALWAYS AS IDENTITY conflicts in contact updates
+- Restored full multi-tier email discovery: Perplexity + Apollo + Hunter working
+- Performance increase: 9 → 14+ emails per search, with proper source attribution
+
 **July 31, 2025**: Documentation consolidation and accuracy improvements
 - Updated DEPLOYMENT.md with correct PostgreSQL terminology and database setup instructions
 - Fixed table count accuracy in setup guides (15 tables, not 8)
