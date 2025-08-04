@@ -33,6 +33,7 @@ import { SearchType } from "./lib/credits/types";
 import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow-service";
 // import { logIncomingWebhook } from "./lib/webhook-logger"; // COMMENTED: webhook logging inactive
 import { getEmailProvider } from "./services/emailService";
+import { registerEmailGenerationRoutes } from "./email-content-generation/routes";
 
 // Global session storage for search results
 interface SearchSessionResult {
@@ -2107,64 +2108,8 @@ export function registerRoutes(app: Express) {
 
   // Leave the search approaches endpoints without auth since they are system-wide
 
-  
-
-  
-
-  
-
-
-  // Keep other existing routes with requireAuth
-  app.post("/api/generate-email", requireAuth, async (req, res) => {
-    const { emailPrompt, contact, company } = req.body;
-
-    if (!emailPrompt || !company) {
-      res.status(400).json({ message: "Missing required parameters" });
-      return;
-    }
-
-    try {
-      // Construct the prompt for Perplexity
-      const messages: PerplexityMessage[] = [
-        {
-          role: "system",
-          content: "You are a professional business email writer. Write personalized, engaging emails that are concise and effective. Focus on building genuine connections while maintaining professionalism."
-        },
-        {
-          role: "user",
-          content: `Write a business email based on this context:
-
-Prompt: ${emailPrompt}
-
-Company: ${company.name}
-${company.size ? `Size: ${company.size} employees` : ''}
-${company.services ? `Services: ${company.services.join(', ')}` : ''}
-
-${contact ? `Recipient: ${contact.name}${contact.role ? ` (${contact.role})` : ''}` : 'No specific recipient selected'}
-
-First, provide a short, engaging subject line prefixed with "Subject: ".
-Then, on a new line, write the body of the email. Keep both subject and content concise and professional.`
-        }
-      ];
-
-      const response = await queryPerplexity(messages);
-
-      // Split response into subject and content
-      const parts = response.split('\n').filter(line => line.trim());
-      const subjectLine = parts[0].replace(/^Subject:\s*/i, '').trim();
-      const content = parts.slice(1).join('\n').trim();
-
-      res.json({
-        subject: subjectLine,
-        content: content
-      });
-    } catch (error) {
-      console.error('Email generation error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred during email generation"
-      });
-    }
-  });
+  // Register modular email generation routes
+  registerEmailGenerationRoutes(app, requireAuth);
 
   app.post("/api/contacts/:contactId/enrich", requireAuth, async (req, res) => {
     try {
@@ -2604,12 +2549,16 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const userId = getUserId(req);
       const { companyIds, sessionId } = req.body;
       
+      console.log(`🔍 [EMAIL ORCHESTRATION START] User ${userId} requesting email search for companies:`, companyIds);
+      console.log(`🔍 [EMAIL ORCHESTRATION] Session ID:`, sessionId);
+      
       if (!companyIds || !Array.isArray(companyIds) || companyIds.length === 0) {
+        console.log(`❌ [EMAIL ORCHESTRATION ERROR] Invalid companyIds:`, companyIds);
         res.status(400).json({ message: "companyIds array is required" });
         return;
       }
       
-
+      console.log(`🔍 [EMAIL ORCHESTRATION] Processing ${companyIds.length} companies for user ${userId}`);
       
       // Mark email search as started in session if sessionId provided
       if (sessionId) {
@@ -2634,40 +2583,57 @@ Then, on a new line, write the body of the email. Keep both subject and content 
         await delay(index * 400);
         
         try {
+          console.log(`🏢 [COMPANY ${index + 1}] Starting email search for company ID: ${companyId} (after ${index * 400}ms delay)`);
+          
           const company = await storage.getCompany(companyId, userId);
           if (!company) {
-            console.log(`Company ${companyId} not found, skipping`);
+            console.log(`❌ [COMPANY ${index + 1}] Company ${companyId} not found, skipping`);
             return { processed: 0, emailsFound: 0, result: null };
           }
           
-          console.log(`Processing emails for company: ${company.name} (started after ${index * 400}ms delay)`);
+          console.log(`🏢 [COMPANY ${index + 1}] Processing emails for company: ${company.name}`);
           
           // Get current contacts for this company
           const contacts = await storage.listContactsByCompany(company.id, userId);
+          console.log(`📋 [COMPANY ${index + 1}] Found ${contacts.length} total contacts for ${company.name}`);
           
           // Filter to contacts needing emails (top 3 contacts without emails)
-          const topContacts = contacts
+          const allTop3 = contacts
             .sort((a, b) => (b.probability || 0) - (a.probability || 0))
-            .slice(0, 3)
-            .filter(contact => !contact.email || contact.email.length <= 5);
+            .slice(0, 3);
+            
+          console.log(`📋 [COMPANY ${index + 1}] Top 3 contacts for ${company.name}:`, 
+            allTop3.map(c => ({ name: c.name, email: c.email, hasValidEmail: c.email && c.email.length > 5 })));
+          
+          const topContacts = allTop3.filter(contact => !contact.email || contact.email.length <= 5);
+          
+          console.log(`📧 [COMPANY ${index + 1}] Contacts needing emails: ${topContacts.length} of ${allTop3.length} for ${company.name}`);
+          console.log(`📧 [COMPANY ${index + 1}] Contacts needing emails:`, topContacts.map(c => ({ name: c.name, currentEmail: c.email })));
           
           if (topContacts.length === 0) {
-            console.log(`No contacts need email search for ${company.name}`);
+            console.log(`✅ [COMPANY ${index + 1}] No contacts need email search for ${company.name} - all have valid emails`);
             return { processed: 0, emailsFound: 0, result: null };
           }
           
           // Helper function: Search multiple contacts with Apollo
           const searchApolloContacts = async (contacts: Contact[]) => {
+            console.log(`🔍 [APOLLO SEARCH] Starting Apollo search for ${contacts.length} contacts in ${company.name}`);
+            console.log(`🔍 [APOLLO SEARCH] Contacts to search:`, contacts.map(c => ({ id: c.id, name: c.name })));
+            
             let emailsFound = 0;
             let contactsProcessed = 0;
             const sources = [];
             
             for (const contact of contacts) {
               try {
+                console.log(`🔍 [APOLLO] Searching contact ${contact.id} (${contact.name}) in ${company.name}`);
+                
                 const apolloResponse = await fetch(`http://localhost:5000/api/contacts/${contact.id}/apollo`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', 'Authorization': req.headers.authorization || '' }
                 });
+                
+                console.log(`🔍 [APOLLO] Response for ${contact.name}: status ${apolloResponse.status}`);
                 
                 const apolloData = await apolloResponse.json();
                 if (apolloResponse.status === 200 || apolloResponse.status === 422) {
@@ -2675,28 +2641,40 @@ Then, on a new line, write the body of the email. Keep both subject and content 
                   if (contactData.email && contactData.email.length > 5) {
                     emailsFound++;
                     sources.push(`Apollo-${contact.name}`);
-                    console.log(`Apollo found email for ${contact.name}: ${contactData.email}`);
+                    console.log(`✅ [APOLLO SUCCESS] Found email for ${contact.name}: ${contactData.email}`);
+                  } else {
+                    console.log(`❌ [APOLLO] No email found for ${contact.name}`);
                   }
                   contactsProcessed++;
+                } else {
+                  console.log(`❌ [APOLLO ERROR] Unexpected status ${apolloResponse.status} for ${contact.name}:`, apolloData);
                 }
               } catch (error) {
-                console.error(`Apollo search failed for contact ${contact.id}:`, error);
+                console.error(`❌ [APOLLO ERROR] Search failed for contact ${contact.id} (${contact.name}):`, error);
                 contactsProcessed++;
               }
             }
             
+            console.log(`🔍 [APOLLO COMPLETE] Processed ${contactsProcessed} contacts, found ${emailsFound} emails`);
             return { emailsFound, contactsProcessed, sources };
           };
 
           // Helper function: Search multiple contacts with Perplexity  
           const searchPerplexityContacts = async (contacts: Contact[]) => {
+            console.log(`🧠 [PERPLEXITY SEARCH] Starting Perplexity search for ${contacts.length} contacts in ${company.name}`);
+            console.log(`🧠 [PERPLEXITY SEARCH] Contacts to search:`, contacts.map(c => ({ id: c.id, name: c.name })));
+            
             let emailsFound = 0;
             let contactsProcessed = 0;
             const sources = [];
             
             for (const contact of contacts) {
               try {
+                console.log(`🧠 [PERPLEXITY] Searching contact ${contact.id} (${contact.name}) at ${company.name}`);
+                
                 const enrichedDetails = await searchContactDetails(contact.name, company.name);
+                console.log(`🧠 [PERPLEXITY] Response for ${contact.name}:`, { email: enrichedDetails?.email, hasValidEmail: enrichedDetails?.email && enrichedDetails.email.length > 5 });
+                
                 if (enrichedDetails && enrichedDetails.email && enrichedDetails.email.length > 5) {
                   await storage.updateContact(contact.id, {
                     ...enrichedDetails,
@@ -2704,15 +2682,18 @@ Then, on a new line, write the body of the email. Keep both subject and content 
                   }, userId);
                   emailsFound++;
                   sources.push(`Perplexity-${contact.name}`);
-                  console.log(`Perplexity found email for ${contact.name}: ${enrichedDetails.email}`);
+                  console.log(`✅ [PERPLEXITY SUCCESS] Found email for ${contact.name}: ${enrichedDetails.email}`);
+                } else {
+                  console.log(`❌ [PERPLEXITY] No email found for ${contact.name}`);
                 }
                 contactsProcessed++;
               } catch (error) {
-                console.error(`Perplexity search failed for contact ${contact.id}:`, error);
+                console.error(`❌ [PERPLEXITY ERROR] Search failed for contact ${contact.id} (${contact.name}):`, error);
                 contactsProcessed++;
               }
             }
             
+            console.log(`🧠 [PERPLEXITY COMPLETE] Processed ${contactsProcessed} contacts, found ${emailsFound} emails`);
             return { emailsFound, contactsProcessed, sources };
           };
 
@@ -2753,8 +2734,16 @@ Then, on a new line, write the body of the email. Keep both subject and content 
           const contact2 = topContacts[1]; // Second highest  
           const contact3 = topContacts[2]; // Third highest
 
+          console.log(`🎯 [CONTACT ASSIGNMENT] For ${company.name}:`);
+          console.log(`🎯 Contact 1 (Apollo + Perplexity):`, contact1 ? { id: contact1.id, name: contact1.name } : 'None');
+          console.log(`🎯 Contact 2 (Apollo only):`, contact2 ? { id: contact2.id, name: contact2.name } : 'None');
+          console.log(`🎯 Contact 3 (Perplexity only):`, contact3 ? { id: contact3.id, name: contact3.name } : 'None');
+
           // Tier 1 & 2: Run Apollo and Perplexity in parallel
-          console.log(`Starting parallel search - Apollo: contacts 1&2, Perplexity: contacts 1&3 for ${company.name}`);
+          console.log(`🚀 [PARALLEL SEARCH START] Starting parallel search for ${company.name}`);
+          console.log(`🚀 Apollo will search:`, [contact1, contact2].filter(Boolean).map(c => c.name));
+          console.log(`🚀 Perplexity will search:`, [contact1, contact3].filter(Boolean).map(c => c.name));
+          
           const [apolloResults, perplexityResults] = await Promise.all([
             searchApolloContacts([contact1, contact2].filter(Boolean)),
             searchPerplexityContacts([contact1, contact3].filter(Boolean))
@@ -2764,9 +2753,12 @@ Then, on a new line, write the body of the email. Keep both subject and content 
           const combinedContactsProcessed = apolloResults.contactsProcessed + perplexityResults.contactsProcessed;
           const combinedSources = [...apolloResults.sources, ...perplexityResults.sources];
 
+          console.log(`📊 [PARALLEL RESULTS] ${company.name} - Combined: ${combinedEmailsFound} emails, ${combinedContactsProcessed} searches`);
+          console.log(`📊 [PARALLEL SOURCES] ${company.name} - Sources:`, combinedSources);
+
           // Early return if emails found
           if (combinedEmailsFound > 0) {
-            console.log(`Parallel search success for ${company.name}: ${combinedEmailsFound} emails found`);
+            console.log(`✅ [PARALLEL SUCCESS] ${company.name}: ${combinedEmailsFound} emails found - skipping Hunter fallback`);
             return {
               processed: combinedContactsProcessed,
               emailsFound: combinedEmailsFound,
@@ -2780,7 +2772,8 @@ Then, on a new line, write the body of the email. Keep both subject and content 
           }
 
           // Tier 3: Hunter only if no emails found in Tiers 1 & 2
-          console.log(`No emails found in parallel search, trying Hunter for ${company.name}`);
+          console.log(`🎯 [HUNTER FALLBACK] No emails found in parallel search, trying Hunter for ${company.name}`);
+          console.log(`🎯 Hunter will search:`, [contact1, contact2].filter(Boolean).map(c => c.name));
           const hunterResults = await searchHunterContacts([contact1, contact2].filter(Boolean));
           
           return {
@@ -3262,8 +3255,13 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const searchResult = await orchestrator.executeHunterSearch(contact, company, hunterApiKey);
       
       if (searchResult.success) {
-        // Handle email updates with unified deduplication logic
-        const updateData: any = { ...searchResult.contact };
+        // Handle email updates with unified deduplication logic - only include search result fields (no ID)
+        const updateData: any = {
+          email: searchResult.contact.email,
+          role: searchResult.contact.role,
+          completedSearches: [...(contact.completedSearches || []), 'hunter_search'],
+          lastValidated: new Date()
+        };
         
         if (searchResult.contact.email) {
           const { mergeEmailData } = await import('./lib/email-utils');
@@ -3280,9 +3278,8 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
         res.json(updatedContact);
       } else {
-        // Update contact to mark search as completed even if failed
+        // Update contact to mark search as completed even if failed - only include specific fields (no ID)
         const updateData = {
-          ...contact,
           completedSearches: [...(contact.completedSearches || []), 'hunter_search'],
           lastValidated: new Date()
         };
@@ -3357,8 +3354,13 @@ Then, on a new line, write the body of the email. Keep both subject and content 
       const searchResult = await orchestrator.executeApolloSearch(contact, company, apolloApiKey);
       
       if (searchResult.success) {
-        // Handle email updates with unified deduplication logic
-        const updateData: any = { ...searchResult.contact };
+        // Handle email updates with unified deduplication logic - only include search result fields (no ID)
+        const updateData: any = {
+          email: searchResult.contact.email,
+          role: searchResult.contact.role,
+          completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
+          lastValidated: new Date()
+        };
         
         if (searchResult.contact.email) {
           const { mergeEmailData } = await import('./lib/email-utils');
@@ -3375,9 +3377,8 @@ Then, on a new line, write the body of the email. Keep both subject and content 
 
         res.json(updatedContact);
       } else {
-        // Update contact to mark search as completed even if failed
+        // Update contact to mark search as completed even if failed - only include specific fields (no ID)
         const updateData = {
-          ...contact,
           completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
           lastValidated: new Date()
         };

@@ -1,0 +1,208 @@
+Complete Email Search Technical Flow
+Here's the exact code sequence from trigger to completion:
+
+🚀 Phase 1: Frontend Initiation
+File: client/src/pages/home.tsx
+
+// Line ~1850 - Email search trigger detection
+const companiesNeedingEmails = updatedResults.filter(company => 
+  !getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)
+);
+// Line ~1870 - Extract company IDs for backend
+const companyIds = companiesNeedingEmails.map(company => company.id);
+// Line ~1880 - Call backend orchestration
+const response = await apiRequest("POST", "/api/companies/find-all-emails", {
+  companyIds,
+  searchConfig: {},
+  sessionId: currentSessionId
+});
+🎯 Phase 2: Backend Email Orchestration Entry
+File: server/routes.ts
+
+// Line 2602 - Main orchestration endpoint
+app.post("/api/companies/find-all-emails", async (req, res) => {
+  
+  // Line 2604-2610 - Parameter validation
+  const userId = getUserId(req);
+  const { companyIds, sessionId } = req.body;
+  if (!companyIds || !Array.isArray(companyIds)) {
+    res.status(400).json({ message: "companyIds array required" });
+    return;
+  }
+  // Line 2632 - Individual company processing function
+  const processCompany = async (companyId: number, index: number) => {
+    await delay(index * 400); // Staggered execution
+    
+    // Line 2637 - Get company data
+    const company = await storage.getCompany(companyId, userId);
+    
+    // Line 2646 - Get current contacts
+    const contacts = await storage.listContactsByCompany(company.id, userId);
+    
+    // Line 2649-2652 - Filter top 3 contacts needing emails
+    const topContacts = contacts
+      .sort((a, b) => (b.probability || 0) - (a.probability || 0))
+      .slice(0, 3)
+      .filter(contact => !contact.email || contact.email.length <= 5);
+⚡ Phase 3: Multi-Tier Search Execution
+File: server/routes.ts (continued)
+
+// Line 2660-2689 - Apollo search helper function
+const searchApolloContacts = async (contacts: Contact[]) => {
+  for (const contact of contacts) {
+    const apolloResponse = await fetch(`http://localhost:5000/api/contacts/${contact.id}/apollo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': req.headers.authorization }
+    });
+  }
+};
+// Line 2692-2717 - Perplexity search helper function  
+const searchPerplexityContacts = async (contacts: Contact[]) => {
+  for (const contact of contacts) {
+    const enrichedDetails = await searchContactDetails(contact.name, company.name);
+    await storage.updateContact(contact.id, {
+      ...enrichedDetails,
+      completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
+    }, userId);
+  }
+};
+// Line 2720-2749 - Hunter search helper function
+const searchHunterContacts = async (contacts: Contact[]) => {
+  for (const contact of contacts) {
+    const hunterResponse = await fetch(`http://localhost:5000/api/contacts/${contact.id}/hunter`, {
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json', 'Authorization': req.headers.authorization }
+    });
+  }
+};
+// Line 2758-2761 - Parallel execution (Tier 1 & 2)
+const [apolloResults, perplexityResults] = await Promise.all([
+  searchApolloContacts([contact1, contact2].filter(Boolean)),
+  searchPerplexityContacts([contact1, contact3].filter(Boolean))
+]);
+// Line 2784 - Fallback execution (Tier 3)
+const hunterResults = await searchHunterContacts([contact1, contact2].filter(Boolean));
+🔍 Phase 4: Individual Search Strategy Implementations
+A) Website Crawler Strategy
+File: server/lib/search-logic/email-discovery/strategies/website-crawler.ts
+
+// Line 9-37 - Email extraction from HTML
+async function extractEmailsFromHtml(html: string, domain: string): Promise<Set<string>> {
+  const emailRegex = /[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/g;
+  const matches = pageText.match(emailRegex) || [];
+  
+  matches.forEach(email => {
+    if (isValidBusinessEmail(lowercaseEmail)) {
+      foundEmails.add(lowercaseEmail);
+    }
+  });
+}
+// Line 69-125 - Main crawler execution
+export const websiteCrawlerStrategy: EmailSearchStrategy = {
+  async execute(context: EmailSearchContext): Promise<EmailSearchResult> {
+    for (let depth = 0; depth < maxDepth && pagesToCrawl.length > 0; depth++) {
+      const response = await axios.get(currentPage, { timeout: context.timeout || 10000 });
+      const foundEmails = await extractEmailsFromHtml(response.data, domain);
+    }
+  }
+};
+B) Pattern Prediction Strategy
+File: server/lib/search-logic/email-discovery/strategies/pattern-prediction.ts
+
+// Line 7-14 - Email format definitions
+const EMAIL_FORMATS = [
+  (first: string, last: string) => `${first}.${last}`,
+  (first: string, last: string) => `${first[0]}${last}`,
+  (first: string, last: string) => `${first}${last[0]}`,
+  // ... 3 more formats
+];
+// Line 21-101 - Pattern prediction execution
+export const patternPredictionStrategy: EmailSearchStrategy = {
+  async execute(context: EmailSearchContext): Promise<EmailSearchResult> {
+    for (const contact of existingContacts) {
+      const validationResult = validateName(contact.name, contact.role || '', companyName);
+      if (validationResult.score >= 50) {
+        const possibleEmails = generatePossibleEmails(contact.name, companyDomain);
+        for (const email of possibleEmails) {
+          if (validateEmailPattern(email) >= 70 && !isPlaceholderEmail(email)) {
+            predictedEmails.push(email);
+          }
+        }
+      }
+    }
+  }
+};
+✅ Phase 5: Email Validation Pipeline
+File: server/lib/results-analysis/email-analysis.ts
+
+// Line 36-62 - Business email validation
+export function isValidBusinessEmail(email: string): boolean {
+  const businessPatterns = [
+    /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/,
+    /^(?!support|info|sales|contact|help|admin).*@/i
+  ];
+  
+  const personalDomains = ['@gmail.com', '@yahoo.com', '@hotmail.com'];
+  const isPersonalDomain = personalDomains.some(domain => 
+    email.toLowerCase().endsWith(domain)
+  );
+  
+  return isValidPattern && !isPersonalDomain;
+}
+// Line 64-101 - Email pattern scoring  
+export function validateEmailPattern(email: string): number {
+  let score = 0;
+  
+  if (/^[a-z]+\.[a-z]+@/i.test(email)) { // firstname.lastname
+    score += 20;
+  }
+  
+  if (!/^(info|contact|support|sales)@/i.test(email)) {
+    score += 20;
+  }
+  
+  return Math.min(100, score);
+}
+💾 Phase 6: Data Persistence & Response
+File: server/routes.ts (completion)
+
+// Line 2804-2830 - Results collection
+const companyResults = await Promise.all(
+  companyIds.map((companyId, index) => processCompany(companyId, index))
+);
+const sourceBreakdown = { Perplexity: 0, Apollo: 0, Hunter: 0 };
+for (const { processed, emailsFound, result } of companyResults) {
+  totalProcessed += processed;
+  totalEmailsFound += emailsFound;
+  if (result) results.push(result);
+}
+// Line 2846-2855 - Final response
+res.json({
+  success: true,
+  summary: {
+    companiesProcessed: companyIds.length,
+    contactsProcessed: totalProcessed,
+    emailsFound: totalEmailsFound,
+    sourceBreakdown
+  },
+  results
+});
+🔄 Phase 7: Frontend Response Processing
+File: client/src/pages/home.tsx
+
+// Line ~1890 - Process backend response
+const data = await response.json();
+console.log(`Backend orchestration completed:`, data.summary);
+// Line ~1900 - Update UI state
+setLastEmailSearchCount(data.summary.emailsFound);
+setLastSourceBreakdown(data.summary.sourceBreakdown);
+// Line ~1910 - Complete reload approach
+console.log('EMAIL SEARCH COMPLETE: Starting complete database reload');
+await finishSearchWithoutSave();
+🎯 Critical Integration Points
+Apollo API: server/routes.ts:2667 → fetch('/api/contacts/${contact.id}/apollo')
+Perplexity AI: server/routes.ts:2699 → searchContactDetails(contact.name, company.name)
+Hunter.io: server/routes.ts:2727 → fetch('/api/contacts/${contact.id}/hunter')
+Email Discovery Service: server/lib/search-logic/email-discovery/service.ts:15-50
+Email Validation: server/lib/results-analysis/email-analysis.ts:64-101
+This exact sequence ensures proper email discovery execution across all integrated systems.
