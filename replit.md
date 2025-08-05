@@ -21,6 +21,7 @@ The application features a **React SPA frontend** built with TypeScript, Vite, T
 - **Search Orchestration:** An enhanced search orchestrator includes retry logic, error handling, and real-time status tracking via webhooks.
 - **Email Generation System:** Features a sophisticated system providing 42 unique email combinations derived from 7 distinct tones and 6 offer strategies (Hormozi, Formula, 1-on-1, Guarantee, Shiny, Study). Email content generation is modularized for maintainability.
 - **Email Content Handling:** Preserves paragraph spacing from AI responses in generated emails.
+- **Product Offers Generation:** Complete 6-strategy offer generation system with proper routing fix (Aug 2025) that bypasses boundary API for "Generate product offers" input. Includes clean UX flow that hides generation button after successful completion.
 
 ## External Dependencies
 - **Perplexity API**: Company research and contact discovery.

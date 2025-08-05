@@ -575,6 +575,7 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
           // Show completion choice only after product offers are displayed
           if (data.type === 'product_offers') {
             setTimeout(() => {
+              setShowProductOffersChoice(false); // Hide the generate button
               setShowCompletionChoice(true);
             }, 1000);
           }
