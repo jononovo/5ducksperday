@@ -187,8 +187,8 @@ export default function Outreach() {
     const textarea = promptTextareaRef.current;
     if (textarea) {
       textarea.style.height = 'auto';
-      // Reduced max height to prevent overlap with bottom buttons
-      const newHeight = Math.min(textarea.scrollHeight, 60); // 60px max (3 lines)
+      // Allow more expansion while maintaining proper button clearance
+      const newHeight = Math.min(textarea.scrollHeight, 120); // 120px max (content + button space)
       textarea.style.height = `${newHeight}px`;
     }
   };
@@ -1471,9 +1471,9 @@ export default function Outreach() {
                     handlePromptTextareaResize();
                   }}
                   className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
-                  style={{ minHeight: '32px', maxHeight: '60px' }}
+                  style={{ minHeight: '32px', maxHeight: '120px' }}
                 />
-                  <div className="absolute bottom-2 left-2 flex items-center gap-2">
+                  <div className="absolute bottom-1 left-2 flex items-center gap-2">
                     {/* Product Selection */}
                     <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen}>
                       <PopoverTrigger asChild>
