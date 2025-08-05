@@ -3,6 +3,7 @@ import type { PerplexityMessage } from "../lib/perplexity";
 import type { EmailGenerationRequest, EmailGenerationResponse, EmailGenerationContext } from "./types";
 import { resolveSenderNames } from "../lib/name-resolver";
 import { getToneConfig } from "./tone-configs";
+import { getOfferConfig } from "./offer-configs";
 
 /**
  * Email Content Generation Service
@@ -10,25 +11,39 @@ import { getToneConfig } from "./tone-configs";
  */
 
 export async function generateEmailContent(request: EmailGenerationRequest): Promise<EmailGenerationResponse> {
-  const { emailPrompt, contact, company, userId, tone = 'default' } = request;
+  const { emailPrompt, contact, company, userId, tone = 'default', offerStrategy = 'none' } = request;
 
   // Resolve sender names for the current user
   const senderNames = await resolveSenderNames(userId);
   
   // Get tone configuration
   const toneConfig = getToneConfig(tone);
+  
+  // Get offer strategy configuration (can be null)
+  const offerConfig = getOfferConfig(offerStrategy);
 
-  // Construct the prompt for Perplexity
-  const messages: PerplexityMessage[] = [
-    {
-      role: "system",
-      content: `${toneConfig.systemPersonality}.
+  // Build system prompt with tone and optional offer strategy
+  let systemContent = `${toneConfig.systemPersonality}.
 
 GREETING INSTRUCTIONS: ${toneConfig.greetingStyle}
 WRITING STYLE: ${toneConfig.writingStyle}
 CLOSING INSTRUCTIONS: ${toneConfig.closingStyle}
 
-${toneConfig.additionalInstructions}`
+${toneConfig.additionalInstructions}`;
+
+  // Add offer strategy instructions only if not 'none'
+  if (offerConfig) {
+    systemContent += `
+
+SUBJECT LINE STRATEGY: ${offerConfig.subjectInstructions}
+OFFER APPROACH: ${offerConfig.bodyInstructions}`;
+  }
+
+  // Construct the prompt for Perplexity
+  const messages: PerplexityMessage[] = [
+    {
+      role: "system",
+      content: systemContent
     },
     {
       role: "user", 
