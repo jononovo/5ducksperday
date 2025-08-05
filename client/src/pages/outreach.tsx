@@ -318,7 +318,7 @@ export default function Outreach() {
 
   const handleGenerateEmail = () => {
     // Check if there's existing content
-    if (emailSubject.trim() || emailContent.trim()) {
+    if (emailSubject.trim() || emailContent.trim() || toEmail.trim()) {
       setGenerateConfirmDialogOpen(true);
     } else {
       performGeneration();

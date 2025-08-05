@@ -15,7 +15,10 @@ Mobile UI preference: Compact, space-efficient design with seamless header-to-co
 - Updated subject replacement to always replace (not just when empty) for consistency
 - Enhanced success message: "AI generated content has replaced all email fields"
 - Dialog message: "Loading this AI generated content, will replace all content currently in fields on this page"
-- Comprehensive user protection: shows confirmation when existing content detected in subject or body fields
+- **CRITICAL SAFETY**: Email address field now always clears/replaces to prevent accidental sends to wrong recipient
+- Email field logic: contact has email = populate, contact has no email = clear field (prevents accidents)
+- Enhanced confirmation dialog to detect existing content in email address field too
+- Comprehensive user protection: shows confirmation when existing content detected in subject, body, OR email fields
 - Zero disruption to empty field scenarios - direct generation when no existing content
 
 **August 5, 2025**: UI Polish - Gift Icon & Optional Clarity ✅ IMPLEMENTED

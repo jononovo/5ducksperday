@@ -70,9 +70,11 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
       setEmailSubject(data.subject);
       setOriginalEmailSubject(data.subject);
       
-      // Auto-fill email if contact has email and field is empty
-      if (shouldAutoFillEmail(selectedContact, toEmail)) {
-        setToEmail(selectedContact!.email!);
+      // Always set email field to match selected contact (prevents accidental sends)
+      if (selectedContact?.email) {
+        setToEmail(selectedContact.email);
+      } else {
+        setToEmail(''); // Clear field if contact has no email
       }
       
       // Format and set content
