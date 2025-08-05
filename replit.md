@@ -8,6 +8,14 @@ Preferred communication style: Simple, everyday language.
 Mobile UI preference: Compact, space-efficient design with seamless header-to-content transitions.
 
 ## Recent Changes
+**August 5, 2025**: Email Context Clarity Enhancement ✅ IMPLEMENTED
+- Fixed AI company confusion by clarifying prompt context labels
+- Changed "Company:" to "TARGET COMPANY:" and "Recipient:" to "TARGET CONTACT:" in email generation prompts
+- Updated merge field descriptions to distinguish target vs sender context clearly
+- Enhanced UI labels: "Contact's Company Name" → "Target Company Name" for better user clarity
+- Zero breaking changes - all existing templates and workflows remain functional
+- Eliminates AI incorrectly assuming sender works at target company
+
 **August 5, 2025**: Modular Tone Configuration Architecture ✅ TESTED
 - Refactored tone system into clean, maintainable modular architecture
 - Created dedicated `tone-configs.ts` file separating configuration from business logic

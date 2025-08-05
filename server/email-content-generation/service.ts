@@ -50,16 +50,16 @@ function buildEmailPrompt(context: EmailGenerationContext): string {
 Prompt: ${userPrompt}
 
 Available merge fields for personalization:
-- {{first_name}} - Contact's first name
-- {{contact_name}} - Contact's full name  
-- {{company_name}} - Contact's company name
+- {{first_name}} - Target contact's first name
+- {{contact_name}} - Target contact's full name  
+- {{company_name}} - Target company name
 - {{sender_first_name}} - Your first name: "${senderNames?.firstName || 'User'}"
 - {{sender_name}} - Your full name: "${senderNames?.fullName || 'User'}"
 
-Company: ${company.name}
+TARGET COMPANY: ${company.name}
 ${company.description ? `About: ${company.description}` : ''}
 
-${contact ? `Recipient: ${contact.name}${contact.role ? ` (${contact.role})` : ''}` : 'No specific recipient selected'}
+${contact ? `TARGET CONTACT: ${contact.name}${contact.role ? ` (${contact.role})` : ''}` : 'No specific target contact selected'}
 
 Structure your email with:
 1. An engaging greeting following the greeting style instructions
