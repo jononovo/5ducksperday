@@ -1393,7 +1393,7 @@ export default function Outreach() {
                           title="Select email tone"
                         >
                           <Palette className="w-3 h-3" />
-                          <span>{TONE_OPTIONS.find(t => t.id === selectedTone)?.name || 'Default'}</span>
+                          <span>{TONE_OPTIONS.find(t => t.id === selectedTone)?.name || 'Casual'}</span>
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="w-72 p-0" align="start">

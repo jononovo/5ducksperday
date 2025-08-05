@@ -22,13 +22,13 @@ export const TONE_OPTIONS: ToneOption[] = [
   },
   {
     id: 'default',
-    name: 'Default',
-    description: 'Casual - not trying too hard and nonchalant'
+    name: 'Casual',
+    description: 'Not trying too hard and nonchalant'
   },
   {
     id: 'direct',
-    name: 'Direct but Professional', 
-    description: 'Confident and polite'
+    name: 'Professional', 
+    description: 'Direct but Professional - Confident and polite'
   },
   {
     id: 'abrupt',
