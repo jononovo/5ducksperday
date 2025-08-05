@@ -1470,7 +1470,7 @@ export default function Outreach() {
                     setOriginalEmailPrompt(e.target.value);
                     handlePromptTextareaResize();
                   }}
-                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-7 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
                   style={{ minHeight: '32px', maxHeight: '120px' }}
                 />
                   <div className="absolute bottom-1 left-2 flex items-center gap-2">
