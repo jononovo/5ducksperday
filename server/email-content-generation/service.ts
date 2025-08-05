@@ -60,10 +60,10 @@ Then, on a new line, write the body of the email.
 }
 
 function parseEmailResponse(response: string): EmailGenerationResponse {
-  // Split response into subject and content
-  const parts = response.split('\n').filter(line => line.trim());
-  const subjectLine = parts[0].replace(/^Subject:\s*/i, '').trim();
-  const content = parts.slice(1).join('\n').trim();
+  // Split response into subject and content, preserving spacing
+  const lines = response.split('\n');
+  const subjectLine = lines[0].replace(/^Subject:\s*/i, '').trim();
+  const content = lines.slice(1).join('\n').trim();
 
   return {
     subject: subjectLine,
