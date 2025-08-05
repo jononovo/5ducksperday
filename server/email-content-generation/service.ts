@@ -17,7 +17,7 @@ const TONE_CONFIGS: Record<string, ToneConfig> = {
     greetingStyle: 'Use fun, casual greetings like "Hey there!" or "What\'s up!" or "Howdy!"',
     writingStyle: 'Be irreverent and amusing while still getting the point across. Use humor, casual language, and don\'t be afraid to be a little silly',
     closingStyle: 'End with playful sign-offs like "Cheers!" or "Talk soon!" or "Catch ya later!"',
-    additionalInstructions: 'Keep it lighthearted but professional enough for business. Make people smile while delivering your message.'
+    additionalInstructions: 'Keep it lighthearted. Make people smile while delivering your message.'
   },
   friendly: {
     id: 'friendly',
@@ -27,17 +27,17 @@ const TONE_CONFIGS: Record<string, ToneConfig> = {
     greetingStyle: 'Use warm greetings like "Hi there!" or "Hello!" or "Good morning/afternoon!"',
     writingStyle: 'Mix in Southern charm and hospitality. Be genuinely friendly and approachable with authentic interest in helping',
     closingStyle: 'Use friendly closings like "Best regards," or "Warmly," or "Take care,"',
-    additionalInstructions: 'Channel that sweet Southern approach while staying professional. Show genuine care and interest.'
+    additionalInstructions: 'Channel that sweet Southern approach. Show genuine care and interest.'
   },
   default: {
     id: 'default',
     name: 'Default',
     description: 'Casual - not trying too hard and nonchalant.',
-    systemPersonality: 'You are a friendly business email writer. Write personalized, conversational emails that feel genuine and approachable while remaining business-appropriate.',
+    systemPersonality: 'You are a friendly business email writer. Write personalized, conversational emails that feel genuine and approachable.',
     greetingStyle: 'Use casual, natural greetings like "Hi" or "Hello" or "Good morning"',
     writingStyle: 'Strike a balance - not trying too hard, nonchalant but professional. Keep it casual and authentic',
-    closingStyle: 'Use standard professional closings like "Best regards," or "Thanks," or "Looking forward to hearing from you,"',
-    additionalInstructions: 'Use a warm, casual tone that builds authentic connections without being overly formal or casual.'
+    closingStyle: 'Use cool, casual or poetic closings',
+    additionalInstructions: 'Use a warm, casual tone that builds authentic connections.'
   },
   direct: {
     id: 'direct',
@@ -53,21 +53,21 @@ const TONE_CONFIGS: Record<string, ToneConfig> = {
     id: 'abrupt',
     name: 'Abrupt',
     description: 'Sometimes effective in getting leadership attention.',
-    systemPersonality: 'You are a concise, no-nonsense business email writer. Write brief, direct emails that cut through noise and demand attention.',
-    greetingStyle: 'Skip lengthy greetings - use just "Hello" or jump straight to the point',
-    writingStyle: 'Use short sentences and brief paragraphs. Cut through noise with confident, direct language',
-    closingStyle: 'Use brief closings like "Thanks," or "Regards," or just your name',
-    additionalInstructions: 'Be very brief and direct. Use short sentences that busy executives will respect and respond to.'
+    systemPersonality: 'You are a concise, no-nonsense business email writer. Write rude, brief and direct emails that cut through noise and demand attention.',
+    greetingStyle: 'Skip lengthy greetings - use just "Hi" or jump straight to the point',
+    writingStyle: 'Use short sentences and brief paragraphs. Cut through noise with confident, direct language',Recommend a next step that is extremely specific: Example: "I may in the area in the last week of [this or next month]. We could meet then or sync up Tuesday AM."
+    closingStyle: 'Use extremely brief closings like "Regards," and sometimes just the first letter of your name ("J." instest of Jonathan), instead of your full name.',
+    additionalInstructions: 'Be ruthlessly brief in presenting your key business utility. Use short sentences that busy executives will respond to.'
   },
   beast: {
     id: 'beast',
     name: 'BEAST MODE',
     description: 'Impossible to ignore. Ranges wild to insane.',
-    systemPersonality: 'You are an intense, high-energy business email writer who creates impossible-to-ignore emails. Write with bold language and compelling urgency.',
+    systemPersonality: 'You are an intense, high-energy business email writer who creates impossible-to-ignore emails. Write with bold language and craft an offer that has enormous urgency.',
     greetingStyle: 'Use high-energy greetings like "Hey!" or "Listen up!" or jump straight into intense opening statements',
     writingStyle: 'Be bold, intense, and use exciting energy. Create compelling urgency with strong language that grabs attention immediately',
-    closingStyle: 'Use powerful closings like "Let\'s make this happen!" or "Ready to dominate!" or "Time to execute!"',
-    additionalInstructions: 'Be professional but unforgettable. Use bold language, exciting energy, and create impossible-to-ignore urgency.'
+    closingStyle: 'Use powerful closings like "Let\'s make this happen!" ',
+    additionalInstructions: 'Be professional but unforgettable. Use bold language, exciting energy, and create offers with impossible-to-ignore urgency.'
   }
 };
 
