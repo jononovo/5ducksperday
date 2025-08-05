@@ -62,6 +62,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { resolveMergeField, resolveAllMergeFields, hasMergeFields, type MergeFieldContext } from '@/lib/merge-field-resolver';
 import { useEmailGeneration } from "@/email-content-generation/useOutreachGeneration";
 import { resolveFrontendSenderNames } from "@/email-content-generation/outreach-utils";
+import { TONE_OPTIONS, DEFAULT_TONE, type ToneOption } from "@/lib/tone-options";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 
 // Define interfaces
@@ -83,6 +89,7 @@ interface SavedOutreachState {
   toEmail: string;
   emailSubject: string;
   selectedCompanyIndex: number;
+  selectedTone: string;
   // Original content for merge field conversion
   originalEmailPrompt?: string;
   originalEmailContent?: string;
@@ -100,6 +107,8 @@ export default function Outreach() {
   const [currentContactIndex, setCurrentContactIndex] = useState(0);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [showExpandedView, setShowExpandedView] = useState(false);
+  const [selectedTone, setSelectedTone] = useState<string>(DEFAULT_TONE);
+  const [tonePopoverOpen, setTonePopoverOpen] = useState(false);
 
   // Refs for form inputs to handle merge field insertion
   const emailPromptRef = useRef<HTMLTextAreaElement>(null);
@@ -187,6 +196,7 @@ export default function Outreach() {
       setOriginalEmailPrompt(parsed.originalEmailPrompt || parsed.emailPrompt);
       setOriginalEmailContent(parsed.originalEmailContent || parsed.emailContent);
       setOriginalEmailSubject(parsed.originalEmailSubject || parsed.emailSubject || "");
+      setSelectedTone(parsed.selectedTone || DEFAULT_TONE);
     }
   }, []);
 
@@ -200,12 +210,13 @@ export default function Outreach() {
       toEmail,
       emailSubject,
       selectedCompanyIndex,
+      selectedTone,
       originalEmailPrompt,
       originalEmailContent,
       originalEmailSubject
     };
     localStorage.setItem('outreachState', JSON.stringify(stateToSave));
-  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, selectedCompanyIndex, originalEmailPrompt, originalEmailContent, originalEmailSubject]);
+  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, selectedCompanyIndex, selectedTone, originalEmailPrompt, originalEmailContent, originalEmailSubject]);
 
   // Scroll compression effect
   useEffect(() => {
@@ -276,6 +287,7 @@ export default function Outreach() {
     emailSubject,
     emailContent,
     toEmail,
+    tone: selectedTone,
     setEmailSubject,
     setOriginalEmailSubject,
     setToEmail,
@@ -1371,6 +1383,43 @@ export default function Outreach() {
                   className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
                   style={{ minHeight: '32px', maxHeight: '100px' }}
                 />
+                  <div className="absolute bottom-2 left-2 flex items-center gap-2">
+                    {/* Tone Selection */}
+                    <Popover open={tonePopoverOpen} onOpenChange={setTonePopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <button 
+                          className="p-1 rounded hover:bg-accent transition-colors"
+                          title="Select email tone"
+                        >
+                          🎭
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64 p-0" align="start">
+                        <div className="p-3 border-b">
+                          <h4 className="font-medium text-sm">Email Tone</h4>
+                          <p className="text-xs text-muted-foreground">Choose the personality for your email</p>
+                        </div>
+                        <div className="p-1">
+                          {TONE_OPTIONS.map((tone) => (
+                            <button
+                              key={tone.id}
+                              className={cn(
+                                "w-full text-left p-2 rounded hover:bg-accent transition-colors",
+                                selectedTone === tone.id && "bg-accent"
+                              )}
+                              onClick={() => {
+                                setSelectedTone(tone.id);
+                                setTonePopoverOpen(false);
+                              }}
+                            >
+                              <div className="font-medium text-sm">{tone.name}</div>
+                              <div className="text-xs text-muted-foreground">{tone.description}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                   <div className="absolute bottom-2 right-2 flex items-center gap-2">
                     <TooltipProvider>
                       <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
