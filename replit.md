@@ -13,7 +13,9 @@ Mobile UI preference: Compact, space-efficient design with seamless header-to-co
 - Added tone parameter to useEmailGeneration hook interface and payload construction
 - Implemented professional Palette icon tone selector using lucide-react (replacing emoji)
 - Created enhanced popover UI with clear visual hierarchy and better differentiation
-- Added left-border accent and checkmark indicators for selected tone
+- Implemented clickable button format showing selected tone name: [🎨 Default]
+- Compact single-line format for tone descriptions to save space
+- Removed blue left-border accent, keeping clean checkmark indicators for selection
 - 6 tone options available: Silly, Friendly, Default, Direct, Abrupt, BEAST MODE
 - Follows established UI pattern: left=options, right=primary action (Generate Email button)
 - Added tone state persistence to localStorage with outreach form state
