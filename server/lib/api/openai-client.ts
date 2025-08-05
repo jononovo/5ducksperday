@@ -5,7 +5,7 @@ import type { PerplexityMessage } from '../perplexity';
 
 let openaiClient: OpenAI | null = null;
 
-function getOpenAIClient(): OpenAI {
+export function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -255,11 +255,11 @@ High-level strategic guidance for email generation.`;
   };
 }
 
-// Product offer generation function
+// Product offer generation function - now using OpenAI for consistency
 async function generateProductOffer(offerId: string, productContext: any, salesContext: any): Promise<any> {
-  const { OFFER_CONFIGS } = await import('../../email-content-generation/offer-configs.js');
+  const { OFFER_CONFIGS } = await import('../../email-content-generation/offer-configs');
   
-  // Define offer options directly to avoid client-side import
+  // Define offer options directly
   const OFFER_OPTIONS = [
     { id: 'hormozi', name: 'Hormozi', description: 'Benefit stacking that makes price negligible' },
     { id: 'oneOnOne', name: '1-on-1', description: '15 minutes personalized guidance and FREE setup' },
@@ -276,8 +276,8 @@ async function generateProductOffer(offerId: string, productContext: any, salesC
     throw new Error(`Offer configuration not found for: ${offerId}`);
   }
   
-  const perplexityPrompt = `
-Create an ultra-compelling ${offerOption.name} strategy for: ${productContext.productService}
+  // Use OpenAI for offer generation instead of Perplexity
+  const openaiPrompt = `Create an ultra-compelling ${offerOption.name} strategy for: ${productContext.productService}
 
 PRODUCT CONTEXT:
 - Service: ${productContext.productService}
@@ -295,10 +295,16 @@ ${offerConfig.actionableStructure}
 
 Generate a highly specific, compelling offer using this framework. Make it irresistible for their exact product/service. Maximum 150 words.`;
 
-  const result = await queryPerplexity([
-    { role: "system", content: `You are an expert in ${offerOption.name} offer strategies. Create compelling, product-specific offers.` },
-    { role: "user", content: perplexityPrompt }
-  ]);
+  const response = await getOpenAIClient().chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      { role: "system", content: `You are an expert in ${offerOption.name} offer strategies. Create compelling, product-specific offers.` },
+      { role: "user", content: openaiPrompt }
+    ],
+    temperature: 0.7
+  });
+
+  const result = response.choices[0]?.message?.content || '';
 
   return {
     id: offerId,
@@ -308,9 +314,11 @@ Generate a highly specific, compelling offer using this framework. Make it irres
   };
 }
 
-// Generate all product offers in parallel
-export async function generateAllProductOffers(productContext: any, salesContext: any): Promise<any[]> {
-  // Define offer options directly
+// Generate all product offers using OpenAI conversation threading
+export async function generateAllProductOffers(productContext: any, salesContext: any, conversationHistory?: any[]): Promise<any[]> {
+  const { OFFER_CONFIGS } = await import('../../email-content-generation/offer-configs');
+  
+  // Define offer options
   const OFFER_OPTIONS = [
     { id: 'hormozi', name: 'Hormozi', description: 'Benefit stacking that makes price negligible' },
     { id: 'oneOnOne', name: '1-on-1', description: '15 minutes personalized guidance and FREE setup' },
@@ -320,13 +328,65 @@ export async function generateAllProductOffers(productContext: any, salesContext
     { id: 'coldEmailFormula', name: 'Formula', description: '5-part proven framework with 37% open rate' }
   ];
   
-  // Get all offer IDs
-  const offerIds = OFFER_OPTIONS.map(opt => opt.id);
+  // Create comprehensive context for offers generation
+  const offerPrompt = `Based on our previous conversation about the product and sales approach, generate 6 compelling offer strategies:
+
+PRODUCT CONTEXT:
+- Service: ${productContext.productService}
+- Customer Feedback: ${productContext.customerFeedback}
+- Website: ${productContext.website}
+
+SALES APPROACH CONTEXT:
+${salesContext}
+
+Please generate one compelling offer for each of these 6 strategies:
+
+1. HORMOZI STRATEGY: ${OFFER_CONFIGS.hormozi.actionableStructure}
+
+2. 1-ON-1 STRATEGY: ${OFFER_CONFIGS.oneOnOne.actionableStructure}
+
+3. GUARANTEE STRATEGY: ${OFFER_CONFIGS.ifWeCant.actionableStructure}
+
+4. SHINY FREE STRATEGY: ${OFFER_CONFIGS.shinyFree.actionableStructure}
+
+5. CASE STUDY STRATEGY: ${OFFER_CONFIGS.caseStudy.actionableStructure}
+
+6. FORMULA STRATEGY: ${OFFER_CONFIGS.coldEmailFormula.actionableStructure}
+
+Format each offer as:
+### [Strategy Name] Strategy
+[Compelling offer content - maximum 150 words]
+
+Make each offer highly specific to the product and irresistible to the target market.`;
+
+  // Build conversation messages with context
+  const messages: ChatCompletionMessageParam[] = [
+    { role: "system", content: "You are an expert sales strategist. Generate compelling, product-specific offers based on the established context." },
+    { role: "user", content: offerPrompt }
+  ];
+
+  const response = await getOpenAIClient().chat.completions.create({
+    model: "gpt-4o",
+    messages,
+    temperature: 0.7
+  });
+
+  const result = response.choices[0]?.message?.content || '';
   
-  // Generate all offers in parallel for speed
-  const offers = await Promise.all(
-    offerIds.map(offerId => generateProductOffer(offerId, productContext, salesContext))
-  );
+  // Parse the response into individual offers
+  const offers = OFFER_OPTIONS.map(option => {
+    // Extract content for each strategy from the response
+    const strategyRegex = new RegExp(`### ${option.name} Strategy\\s*([\\s\\S]*?)(?=### |$)`, 'i');
+    const match = result.match(strategyRegex);
+    const content = match ? match[1].trim() : `Compelling ${option.name} strategy for ${productContext.productService}`;
+    
+    return {
+      id: option.id,
+      name: option.name,
+      title: `${option.name} Strategy`,
+      content: content
+    };
+  });
   
   return offers;
 }

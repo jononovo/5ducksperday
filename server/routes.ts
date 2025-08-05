@@ -4082,7 +4082,7 @@ PHASE-SPECIFIC INSTRUCTIONS:
           );
           const salesContext = salesApproachMessage?.content || 'sales approach context';
           
-          const offers = await generateAllProductOffers(productContext, salesContext);
+          const offers = await generateAllProductOffers(productContext, salesContext, conversationHistory);
           
           // Format offers for display
           const offersContent = offers.map(offer => 
@@ -4110,9 +4110,8 @@ PHASE-SPECIFIC INSTRUCTIONS:
         console.log('Handling sales approach generation directly');
         
         try {
-          const { queryPerplexity } = await import('./lib/api/perplexity-client.js');
-          
-          const perplexityPrompt = `
+          // Use OpenAI for sales approach generation for consistency
+          const openaiPrompt = `
 Create a strategic email approach guide (max 200 words) for ${productContext.productService}.
 
 Format exactly as:
@@ -4131,10 +4130,20 @@ Format exactly as:
 
 High-level strategic guidance for email generation.`;
 
-          const content = await queryPerplexity([
-            { role: "system", content: "You are a sales strategy expert. Create structured, high-level email approach guidance." },
-            { role: "user", content: perplexityPrompt }
-          ]);
+          // Use OpenAI directly for consistency with the overall system
+          const OpenAI = await import('openai');
+          const openaiClient = new OpenAI.default({ apiKey: process.env.OPENAI_API_KEY });
+          
+          const response = await openaiClient.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+              { role: "system", content: "You are a sales strategy expert. Create structured, high-level email approach guidance." },
+              { role: "user", content: openaiPrompt }
+            ],
+            temperature: 0.7
+          });
+
+          const content = response.choices[0]?.message?.content || '';
           
           const salesApproachData = {
             title: "Sales Approach Strategy",
