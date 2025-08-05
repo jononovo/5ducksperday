@@ -28,6 +28,15 @@ Mobile UI preference: Compact, space-efficient design with seamless header-to-co
 - Maintains established UI pattern with clearer communication about feature optional nature
 - Updated tone selector label from "BEAST MODE" to "BEAST" for cleaner presentation
 
+**August 5, 2025**: Complete Extended Framework Documentation ✅ IMPLEMENTED
+- Added comprehensive extended frameworks for all 6 offer strategies with detailed theory and psychology
+- 1-on-1 Strategy: Personal connection psychology, reciprocity factors, conversion best practices
+- Shiny FREE Strategy: Psychology of free resources, reciprocity obligation, industry-specific examples
+- If We Can't Strategy: Risk reversal psychology, guarantee types, backup offer examples
+- Case Study Strategy: Social proof psychology, credibility factors, follow-up strategies
+- All frameworks stored for reference/documentation but only actionable structures sent to AI (token efficiency)
+- Maintains sophisticated strategy system: 7 tones × 6 strategies = 42 unique email combinations
+
 **August 5, 2025**: Cold Email Formula Strategy Integration ✅ IMPLEMENTED
 - Added proven Cold Email Formula strategy with 37% open rate and 7% reply rate performance metrics
 - Comprehensive 5-part framework: Subject (Company + Service), Opening (Personal + Service Question), Pain (Frustration Picture), Solution (Founder + Results), Question (A or B Choice)
