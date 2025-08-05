@@ -13,6 +13,7 @@ Mobile UI preference: Compact, space-efficient design with seamless header-to-co
 - Enhanced popover description with "Optional:" prefix for immediate user clarity
 - Improved visual consistency - Gift icon better represents offer/present concept than chart icon
 - Maintains established UI pattern with clearer communication about feature optional nature
+- Updated tone selector label from "BEAST MODE" to "BEAST" for cleaner presentation
 
 **August 5, 2025**: Enhanced Offer Strategies with Framework Theory ✅ IMPLEMENTED
 - Enhanced offer strategies with detailed frameworks, actionable structures, and fallback suggestions

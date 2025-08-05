@@ -37,7 +37,7 @@ export const TONE_OPTIONS: ToneOption[] = [
   },
   {
     id: 'beast',
-    name: 'BEAST MODE',
+    name: 'BEAST',
     description: 'Impossible to ignore. Ranges wild to insane'
   },
   {
