@@ -16,7 +16,7 @@ Mobile UI preference: Compact, space-efficient design with seamless header-to-co
 - Implemented clickable button format showing selected tone name: [🎨 Default]
 - Compact single-line format for tone descriptions to save space
 - Removed blue left-border accent, keeping clean checkmark indicators for selection
-- 6 tone options available: Silly, Friendly, Default, Direct, Abrupt, BEAST MODE
+- 7 tone options available: Silly, Friendly, Casual, Professional, Abrupt, BEAST MODE, Gen-Z
 - Follows established UI pattern: left=options, right=primary action (Generate Email button)
 - Added tone state persistence to localStorage with outreach form state
 - Zero disruption to existing workflow - tone selection is discoverable but non-intrusive

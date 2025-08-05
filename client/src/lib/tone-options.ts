@@ -39,6 +39,11 @@ export const TONE_OPTIONS: ToneOption[] = [
     id: 'beast',
     name: 'BEAST MODE',
     description: 'Impossible to ignore. Ranges wild to insane'
+  },
+  {
+    id: 'genz',
+    name: 'Gen-Z',
+    description: 'Text-style messaging with smart business focus'
   }
 ];
 

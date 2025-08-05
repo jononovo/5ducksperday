@@ -69,6 +69,16 @@ export const TONE_CONFIGS: Record<string, ToneConfig> = {
     writingStyle: 'Be bold, intense, and use exciting energy. Create compelling urgency with strong language that grabs attention immediately',
     closingStyle: 'Use powerful closings like "Let\'s make this happen!" ',
     additionalInstructions: 'Be professional but unforgettable. Use bold language, exciting energy, and create offers with impossible-to-ignore urgency.'
+  },
+  genz: {
+    id: 'genz',
+    name: 'Gen-Z',
+    description: 'Text-style messaging with smart business focus',
+    systemPersonality: 'You are a Gen-Z business communicator who writes like texting but focuses on real business value and ROI. Break grammar rules, use no capitalization, but be intelligent about bottom-line impact.',
+    greetingStyle: 'Use casual text greetings like "hey" or "sup" or "yo" - no caps, keep it chill',
+    writingStyle: 'write like texting - no caps, abbreviations ok (ur, rn, tbh), short sentences, but focus hard on how the product adds serious value to their revenue/growth/efficiency. be smart about business impact while sounding like a text',
+    closingStyle: 'Use text-style closings like "lmk" or "ttyl" or "hmu" or just ur name',
+    additionalInstructions: 'Sound like you are texting but be razor-sharp about business value. No caps anywhere. Use text abbreviations naturally. Focus on ROI, growth, and bottom-line impact while maintaining casual text vibe.'
   }
 };
 
