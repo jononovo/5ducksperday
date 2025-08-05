@@ -187,8 +187,8 @@ export default function Outreach() {
     const textarea = promptTextareaRef.current;
     if (textarea) {
       textarea.style.height = 'auto';
-      // Current 4-line height is roughly 100px, so half would be ~50px, but let's use 60px for 2 lines
-      const newHeight = Math.min(textarea.scrollHeight, 100); // 100px max (current 4-line height)
+      // Reduced max height to prevent overlap with bottom buttons
+      const newHeight = Math.min(textarea.scrollHeight, 60); // 60px max (3 lines)
       textarea.style.height = `${newHeight}px`;
     }
   };
@@ -1471,7 +1471,7 @@ export default function Outreach() {
                     handlePromptTextareaResize();
                   }}
                   className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
-                  style={{ minHeight: '32px', maxHeight: '100px' }}
+                  style={{ minHeight: '32px', maxHeight: '60px' }}
                 />
                   <div className="absolute bottom-2 left-2 flex items-center gap-2">
                     {/* Product Selection */}
