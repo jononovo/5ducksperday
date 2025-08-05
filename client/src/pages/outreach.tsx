@@ -23,7 +23,8 @@ import {
   X,
   Palette,
   TrendingUp,
-  Gift
+  Gift,
+  Plus
 } from "lucide-react";
 import {
   Select,
@@ -36,7 +37,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; // Import Input component
 import { cn } from "@/lib/utils";
-import type { List, Company, Contact } from "@shared/schema";
+import type { List, Company, Contact, StrategicProfile } from "@shared/schema";
 import { generateShortListDisplayName } from "@/lib/list-utils";
 import { useState, useEffect, useMemo, useRef } from "react";
 import QuickTemplates from "@/components/quick-templates";
@@ -105,6 +106,7 @@ interface SavedOutreachState {
   selectedCompanyIndex: number;
   selectedTone: string;
   selectedOfferStrategy: string;
+  selectedProduct: number | null;
   // Original content for merge field conversion
   originalEmailPrompt?: string;
   originalEmailContent?: string;
@@ -123,6 +125,8 @@ export default function Outreach() {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [showExpandedView, setShowExpandedView] = useState(false);
   const [selectedTone, setSelectedTone] = useState<string>(DEFAULT_TONE);
+  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
+  const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [tonePopoverOpen, setTonePopoverOpen] = useState(false);
   const [selectedOfferStrategy, setSelectedOfferStrategy] = useState<string>(DEFAULT_OFFER);
   const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
@@ -216,6 +220,7 @@ export default function Outreach() {
       setOriginalEmailSubject(parsed.originalEmailSubject || parsed.emailSubject || "");
       setSelectedTone(parsed.selectedTone || DEFAULT_TONE);
       setSelectedOfferStrategy(parsed.selectedOfferStrategy || DEFAULT_OFFER);
+      setSelectedProduct(parsed.selectedProduct || null);
     }
   }, []);
 
@@ -231,12 +236,13 @@ export default function Outreach() {
       selectedCompanyIndex,
       selectedTone,
       selectedOfferStrategy,
+      selectedProduct,
       originalEmailPrompt,
       originalEmailContent,
       originalEmailSubject
     };
     localStorage.setItem('outreachState', JSON.stringify(stateToSave));
-  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, selectedCompanyIndex, selectedTone, selectedOfferStrategy, originalEmailPrompt, originalEmailContent, originalEmailSubject]);
+  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, selectedCompanyIndex, selectedTone, selectedOfferStrategy, selectedProduct, originalEmailPrompt, originalEmailContent, originalEmailSubject]);
 
   // Scroll compression effect
   useEffect(() => {
@@ -284,6 +290,14 @@ export default function Outreach() {
   const { data: gmailUserInfo } = useQuery<GmailUserInfo>({
     queryKey: ['/api/gmail/user'],
     enabled: !!user && !!gmailStatus?.authorized,
+  });
+
+  // Query to get user's strategic profiles (products)
+  const { data: products = [] } = useQuery<StrategicProfile[]>({
+    queryKey: ['/api/products'],
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
   // Memoized top 3 leadership contacts computation
@@ -459,6 +473,47 @@ export default function Outreach() {
       });
     }
   };
+
+  // Handle product selection and insert context into email prompt
+  const handleSelectProduct = (product: StrategicProfile) => {
+    setSelectedProduct(product.id);
+    setProductPopoverOpen(false);
+    
+    // Create product context lines
+    const productContext = [];
+    if (product.productService) {
+      productContext.push(`Product: ${product.productService}`);
+    }
+    if (product.customerFeedback) {
+      productContext.push(`What customers like: ${product.customerFeedback}`);
+    }
+    if (product.website) {
+      productContext.push(`Website: ${product.website}`);
+    }
+    
+    // Insert at the beginning of email prompt with line breaks
+    const existingPrompt = emailPrompt.trim();
+    const newPrompt = productContext.length > 0 
+      ? productContext.join('\n') + (existingPrompt ? '\n\n' + existingPrompt : '')
+      : existingPrompt;
+    
+    setEmailPrompt(newPrompt);
+    setOriginalEmailPrompt(newPrompt);
+    
+    // Auto-resize prompt field
+    setTimeout(() => {
+      handlePromptTextareaResize();
+    }, 0);
+  };
+
+  // Clear product selection
+  const handleClearProduct = () => {
+    setSelectedProduct(null);
+    setProductPopoverOpen(false);
+  };
+
+  // Find selected product for display
+  const selectedProductData = products.find(p => p.id === selectedProduct);
 
   // Resolve sender names for current user
   const senderNames = resolveFrontendSenderNames(user);
@@ -1419,6 +1474,82 @@ export default function Outreach() {
                   style={{ minHeight: '32px', maxHeight: '100px' }}
                 />
                   <div className="absolute bottom-2 left-2 flex items-center gap-2">
+                    {/* Product Selection */}
+                    <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <button 
+                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors text-xs text-muted-foreground"
+                          title="Add product context"
+                        >
+                          <Plus className="w-3 h-3" />
+                          {selectedProductData ? (
+                            <span className="max-w-20 truncate">{selectedProductData.title || selectedProductData.productService || 'Product'}</span>
+                          ) : (
+                            <span>Product</span>
+                          )}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-0" align="start">
+                        <div className="p-4 border-b bg-muted/30">
+                          <div className="flex items-center gap-2">
+                            <Plus className="w-4 h-4 text-primary" />
+                            <h4 className="font-semibold text-sm">Product Context</h4>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Add your product details to personalize emails</p>
+                        </div>
+                        <div className="p-2 max-h-64 overflow-y-auto">
+                          {products.length === 0 ? (
+                            <div className="p-4 text-center text-muted-foreground text-sm">
+                              <p>No products created yet.</p>
+                              <p className="text-xs mt-1">Create one in Strategy Dashboard</p>
+                            </div>
+                          ) : (
+                            <>
+                              {selectedProductData && (
+                                <button
+                                  className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors border-b mb-2"
+                                  onClick={handleClearProduct}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="text-xs">
+                                      <span className="font-medium text-muted-foreground">Clear Selection</span>
+                                    </div>
+                                    <X className="w-3 h-3 text-muted-foreground" />
+                                  </div>
+                                </button>
+                              )}
+                              {products.map((product) => (
+                                <button
+                                  key={product.id}
+                                  className={cn(
+                                    "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
+                                    selectedProduct === product.id && "bg-accent"
+                                  )}
+                                  onClick={() => handleSelectProduct(product)}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="text-xs flex-1 min-w-0">
+                                      <div className="font-medium truncate">
+                                        {product.title || product.productService || 'Untitled Product'}
+                                      </div>
+                                      {product.productService && product.title !== product.productService && (
+                                        <div className="text-muted-foreground truncate mt-0.5">
+                                          {product.productService}
+                                        </div>
+                                      )}
+                                    </div>
+                                    {selectedProduct === product.id && (
+                                      <Check className="w-3 h-3 text-primary flex-shrink-0 ml-2" />
+                                    )}
+                                  </div>
+                                </button>
+                              ))}
+                            </>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
                     {/* Tone Selection */}
                     <Popover open={tonePopoverOpen} onOpenChange={setTonePopoverOpen}>
                       <PopoverTrigger asChild>
