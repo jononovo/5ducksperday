@@ -20,7 +20,8 @@ import {
   User,
   Menu,
   Info,
-  X
+  X,
+  Palette
 } from "lucide-react";
 import {
   Select,
@@ -1391,29 +1392,37 @@ export default function Outreach() {
                           className="p-1 rounded hover:bg-accent transition-colors"
                           title="Select email tone"
                         >
-                          🎭
+                          <Palette className="w-3 h-3 text-muted-foreground" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-64 p-0" align="start">
-                        <div className="p-3 border-b">
-                          <h4 className="font-medium text-sm">Email Tone</h4>
-                          <p className="text-xs text-muted-foreground">Choose the personality for your email</p>
+                      <PopoverContent className="w-72 p-0" align="start">
+                        <div className="p-4 border-b bg-muted/30">
+                          <div className="flex items-center gap-2">
+                            <Palette className="w-4 h-4 text-primary" />
+                            <h4 className="font-semibold text-sm">Email Tone</h4>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Choose the personality for your email</p>
                         </div>
-                        <div className="p-1">
+                        <div className="p-2">
                           {TONE_OPTIONS.map((tone) => (
                             <button
                               key={tone.id}
                               className={cn(
-                                "w-full text-left p-2 rounded hover:bg-accent transition-colors",
-                                selectedTone === tone.id && "bg-accent"
+                                "w-full text-left p-3 rounded-md hover:bg-accent transition-colors border-l-2 border-transparent",
+                                selectedTone === tone.id && "bg-accent border-l-primary"
                               )}
                               onClick={() => {
                                 setSelectedTone(tone.id);
                                 setTonePopoverOpen(false);
                               }}
                             >
-                              <div className="font-medium text-sm">{tone.name}</div>
-                              <div className="text-xs text-muted-foreground">{tone.description}</div>
+                              <div className="flex items-center justify-between">
+                                <div className="font-medium text-sm">{tone.name}</div>
+                                {selectedTone === tone.id && (
+                                  <Check className="w-3 h-3 text-primary" />
+                                )}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">{tone.description}</div>
                             </button>
                           ))}
                         </div>
