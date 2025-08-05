@@ -24,7 +24,7 @@ import {
   Palette,
   TrendingUp,
   Gift,
-  Plus
+  Box
 } from "lucide-react";
 import {
   Select,
@@ -506,8 +506,8 @@ export default function Outreach() {
     }, 0);
   };
 
-  // Clear product selection
-  const handleClearProduct = () => {
+  // Handle "None" selection (clear product)
+  const handleSelectNone = () => {
     setSelectedProduct(null);
     setProductPopoverOpen(false);
   };
@@ -1479,72 +1479,75 @@ export default function Outreach() {
                       <PopoverTrigger asChild>
                         <button 
                           className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors text-xs text-muted-foreground"
-                          title="Add product context"
+                          title="Select product context"
                         >
-                          <Plus className="w-3 h-3" />
-                          {selectedProductData ? (
+                          <Box className="w-3 h-3" />
+                          {selectedProductData && (
                             <span className="max-w-20 truncate">{selectedProductData.title || selectedProductData.productService || 'Product'}</span>
-                          ) : (
-                            <span>Product</span>
                           )}
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-80 p-0" align="start">
+                      <PopoverContent className="w-72 p-0" align="start">
                         <div className="p-4 border-b bg-muted/30">
                           <div className="flex items-center gap-2">
-                            <Plus className="w-4 h-4 text-primary" />
+                            <Box className="w-4 h-4 text-primary" />
                             <h4 className="font-semibold text-sm">Product Context</h4>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">Add your product details to personalize emails</p>
+                          <p className="text-xs text-muted-foreground mt-1">Optional: Add specific product details to your email</p>
                         </div>
-                        <div className="p-2 max-h-64 overflow-y-auto">
+                        <div className="p-2">
+                          {/* None Option */}
+                          <button
+                            className={cn(
+                              "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
+                              selectedProduct === null && "bg-accent"
+                            )}
+                            onClick={handleSelectNone}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="text-xs">
+                                <span className="font-medium">None</span>
+                                <span className="text-muted-foreground"> - No specific product context</span>
+                              </div>
+                              {selectedProduct === null && (
+                                <Check className="w-3 h-3 text-primary" />
+                              )}
+                            </div>
+                          </button>
+                          
+                          {/* Product Options */}
                           {products.length === 0 ? (
                             <div className="p-4 text-center text-muted-foreground text-sm">
                               <p>No products created yet.</p>
                               <p className="text-xs mt-1">Create one in Strategy Dashboard</p>
                             </div>
                           ) : (
-                            <>
-                              {selectedProductData && (
-                                <button
-                                  className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors border-b mb-2"
-                                  onClick={handleClearProduct}
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <div className="text-xs">
-                                      <span className="font-medium text-muted-foreground">Clear Selection</span>
+                            products.map((product) => (
+                              <button
+                                key={product.id}
+                                className={cn(
+                                  "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
+                                  selectedProduct === product.id && "bg-accent"
+                                )}
+                                onClick={() => handleSelectProduct(product)}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="text-xs flex-1 min-w-0">
+                                    <div className="font-medium truncate">
+                                      {product.title || product.productService || 'Untitled Product'}
                                     </div>
-                                    <X className="w-3 h-3 text-muted-foreground" />
-                                  </div>
-                                </button>
-                              )}
-                              {products.map((product) => (
-                                <button
-                                  key={product.id}
-                                  className={cn(
-                                    "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                                    selectedProduct === product.id && "bg-accent"
-                                  )}
-                                  onClick={() => handleSelectProduct(product)}
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <div className="text-xs flex-1 min-w-0">
-                                      <div className="font-medium truncate">
-                                        {product.title || product.productService || 'Untitled Product'}
+                                    {product.productService && product.title !== product.productService && (
+                                      <div className="text-muted-foreground truncate mt-0.5">
+                                        {product.productService}
                                       </div>
-                                      {product.productService && product.title !== product.productService && (
-                                        <div className="text-muted-foreground truncate mt-0.5">
-                                          {product.productService}
-                                        </div>
-                                      )}
-                                    </div>
-                                    {selectedProduct === product.id && (
-                                      <Check className="w-3 h-3 text-primary flex-shrink-0 ml-2" />
                                     )}
                                   </div>
-                                </button>
-                              ))}
-                            </>
+                                  {selectedProduct === product.id && (
+                                    <Check className="w-3 h-3 text-primary" />
+                                  )}
+                                </div>
+                              </button>
+                            ))
                           )}
                         </div>
                       </PopoverContent>
