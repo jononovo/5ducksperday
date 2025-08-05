@@ -1,14 +1,15 @@
-import { queryPerplexity } from "../lib/api/perplexity-client";
-import type { PerplexityMessage } from "../lib/perplexity";
-import type { EmailGenerationRequest, EmailGenerationResponse, EmailGenerationContext, ToneConfig } from "./types";
-import { resolveSenderNames } from "../lib/name-resolver";
+export interface ToneConfig {
+  id: string;
+  name: string;
+  description: string;
+  systemPersonality: string;
+  greetingStyle: string;
+  writingStyle: string;
+  closingStyle: string;
+  additionalInstructions: string;
+}
 
-/**
- * Email Content Generation Service
- * Handles AI-powered email generation with tone selection
- */
-
-const TONE_CONFIGS: Record<string, ToneConfig> = {
+export const TONE_CONFIGS: Record<string, ToneConfig> = {
   silly: {
     id: 'silly',
     name: 'Silly',
@@ -55,7 +56,7 @@ const TONE_CONFIGS: Record<string, ToneConfig> = {
     description: 'Sometimes effective in getting leadership attention.',
     systemPersonality: 'You are a concise, no-nonsense business email writer. Write rude, brief and direct emails that cut through noise and demand attention.',
     greetingStyle: 'Skip lengthy greetings - use just "Hi" or jump straight to the point',
-    writingStyle: 'Use short sentences and brief paragraphs. Cut through noise with confident, direct language. Recommend a next step that is extremely specific, like "I may be in the area in the last week of [this or next month]. We could meet then or sync up Tuesday AM."',
+    writingStyle: 'Use short sentences and brief paragraphs. Cut through noise with confident, direct language. Recommend a next step that is extremely specific: Example: "I may in the area in the last week of [this or next month]. We could meet then or sync up Tuesday AM."',
     closingStyle: 'Use extremely brief closings like "Regards," and sometimes just the first letter of your name ("J." instead of Jonathan), instead of your full name.',
     additionalInstructions: 'Be ruthlessly brief in presenting your key business utility. Use short sentences that busy executives will respond to.'
   },
@@ -66,79 +67,23 @@ const TONE_CONFIGS: Record<string, ToneConfig> = {
     systemPersonality: 'You are an intense, high-energy business email writer who creates impossible-to-ignore emails. Write with bold language and craft an offer that has enormous urgency.',
     greetingStyle: 'Use high-energy greetings like "Hey!" or "Listen up!" or jump straight into intense opening statements',
     writingStyle: 'Be bold, intense, and use exciting energy. Create compelling urgency with strong language that grabs attention immediately',
-    closingStyle: 'Use powerful closings like "Let\'s make this happen!" ',
+    closingStyle: 'Use powerful closings like "Let\'s make this happen!"',
     additionalInstructions: 'Be professional but unforgettable. Use bold language, exciting energy, and create offers with impossible-to-ignore urgency.'
   }
 };
 
-export async function generateEmailContent(request: EmailGenerationRequest): Promise<EmailGenerationResponse> {
-  const { emailPrompt, contact, company, userId, tone = 'default' } = request;
-
-  // Get tone configuration
-  const toneConfig = TONE_CONFIGS[tone] || TONE_CONFIGS.default;
-
-  // Resolve sender names for the current user
-  const senderNames = await resolveSenderNames(userId);
-
-  // Construct the prompt for Perplexity
-  const messages: PerplexityMessage[] = [
-    {
-      role: "system",
-      content: toneConfig.systemPersonality
-    },
-    {
-      role: "user", 
-      content: buildEmailPrompt({ contact, company, userPrompt: emailPrompt, senderNames }, toneConfig)
-    }
-  ];
-
-  const response = await queryPerplexity(messages);
-
-  // Parse subject and content from AI response
-  return parseEmailResponse(response);
+export function getToneConfig(toneId: string = 'default'): ToneConfig {
+  const config = TONE_CONFIGS[toneId];
+  if (!config) {
+    console.warn(`Unknown tone ID: ${toneId}, falling back to default`);
+    return TONE_CONFIGS.default;
+  }
+  return config;
 }
 
-function buildEmailPrompt(context: EmailGenerationContext, toneConfig: ToneConfig): string {
-  const { contact, company, userPrompt, senderNames } = context;
-  
-  return `Write a business email based on this context:
-
-Prompt: ${userPrompt}
-
-Style Guidelines:
-- Greeting: ${toneConfig.greetingStyle}
-- Writing: ${toneConfig.writingStyle}
-- Closing: ${toneConfig.closingStyle}
-- Additional: ${toneConfig.additionalInstructions}
-
-Available merge fields for personalization:
-- {{first_name}} - Contact's first name
-- {{contact_name}} - Contact's full name  
-- {{company_name}} - Contact's company name
-- {{sender_first_name}} - Your first name: "${senderNames?.firstName || 'User'}"
-- {{sender_name}} - Your full name: "${senderNames?.fullName || 'User'}"
-
-Company: ${company.name}
-${company.description ? `About: ${company.description}` : ''}
-
-${contact ? `Recipient: ${contact.name}${contact.role ? ` (${contact.role})` : ''}` : 'No specific recipient selected'}
-
-First, provide a short, engaging subject line prefixed with "Subject: ".
-Then, on a new line, write the body of the email. 
- - Keep both subject and content concise.
- - Add generous white space between paragraphs (use double line breaks)
- - Add extra line spacing after the signature.
- - Use merge fields like {{sender_name}} or {{sender_first_name}} in signatures when appropriate.`;
-}
-
-function parseEmailResponse(response: string): EmailGenerationResponse {
-  // Split response into subject and content, preserving spacing
-  const lines = response.split('\n');
-  const subjectLine = lines[0].replace(/^Subject:\s*/i, '').trim();
-  const content = lines.slice(1).join('\n').trim();
-
-  return {
-    subject: subjectLine,
-    content: content
-  };
-}
+// Export for frontend consumption
+export const TONE_OPTIONS = Object.values(TONE_CONFIGS).map(config => ({
+  id: config.id,
+  name: config.name,
+  description: config.description
+}));
