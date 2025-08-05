@@ -1817,7 +1817,7 @@ export default function Outreach() {
           <AlertDialogHeader>
             <AlertDialogTitle>Generate AI Email</AlertDialogTitle>
             <AlertDialogDescription>
-              Loading this AI generated content, will replace all content currently in fields on this page.
+              This will replace all content in email subject and body fields.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
