@@ -1,0 +1,45 @@
+interface ToneConfig {
+  id: string;
+  name: string;
+  description: string;
+  systemMessage: string;
+}
+
+const TONE_CONFIGS = [
+  {
+    id: 'silly',
+    name: 'Silly', 
+    description: 'Goofy and irreverent. Not taking life too seriously.',
+    systemMessage: 'You are a playful, goofy business email writer. Write emails that are irreverent and fun while still being professional enough for business. Don\'t take yourself too seriously - add humor, unexpected phrases, and a light-hearted approach that makes people smile.'
+  },
+  {
+    id: 'friendly',
+    name: 'Friendly',
+    description: 'Sweet Southern approach.',
+    systemMessage: 'You are a warm, friendly business email writer with genuine Southern charm. Write emails that feel like they\'re coming from someone who truly cares. Use warm language, show authentic interest, and create that "neighbor helping neighbor" feeling with a touch of Southern hospitality.'
+  },
+  {
+    id: 'default', 
+    name: 'Default',
+    description: 'Casual - not trying too hard and nonchalant.',
+    systemMessage: 'You are a friendly business email writer. Write personalized, conversational emails that feel genuine and approachable while remaining business-appropriate. Use a warm, casual tone that builds authentic connections.' // Current system message
+  },
+  {
+    id: 'direct',
+    name: 'Direct but Professional',
+    description: 'Confident and polite.',
+    systemMessage: 'You are a direct, confident business email writer. Write emails that are polite but get straight to the point. Use clear, professional language that respects the recipient\'s time while maintaining courtesy and respect.'
+  },
+  {
+    id: 'abrupt',
+    name: 'Abrupt', 
+    description: 'Sometimes effective in getting leadership attention.',
+    systemMessage: 'You are a concise, no-nonsense business email writer. Write brief, direct emails that cut through noise and demand attention. Use short sentences, clear asks, and confident language that busy executives will respect.'
+  },
+  {
+    id: 'beast',
+    name: 'BEAST MODE',
+    description: 'Impossible to ignore. Ranges wild to insane.',
+    systemMessage: 'You are an intense, high-energy business email writer who creates impossible-to-ignore emails. Write with bold language, exciting energy, and compelling urgency that grabs attention immediately. Be professional but unforgettable.'
+  }
+]
