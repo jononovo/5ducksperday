@@ -36,7 +36,13 @@ ${toneConfig.additionalInstructions}`;
     systemContent += `
 
 SUBJECT LINE STRATEGY: ${offerConfig.subjectInstructions}
-OFFER APPROACH: ${offerConfig.bodyInstructions}`;
+OFFER STRUCTURE: ${offerConfig.actionableStructure}`;
+    
+    // Add fallback suggestions if available
+    if (offerConfig.fallbackSuggestions) {
+      systemContent += `
+FALLBACK OPTIONS: ${offerConfig.fallbackSuggestions}`;
+    }
   }
 
   // Construct the prompt for Perplexity

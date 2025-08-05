@@ -8,7 +8,9 @@ export interface OfferConfig {
   name: string;
   description: string;
   subjectInstructions: string;
-  bodyInstructions: string;
+  framework?: string;              // Optional theory (for docs/tooltips, NOT sent to AI)
+  actionableStructure: string;     // Specific format instructions sent to AI
+  fallbackSuggestions?: string;    // Optional defaults when context is unclear
 }
 
 export const OFFER_CONFIGS: Record<string, OfferConfig> = {
@@ -17,35 +19,43 @@ export const OFFER_CONFIGS: Record<string, OfferConfig> = {
     name: 'Hormozi',
     description: 'Benefit stacking that makes price negligible',
     subjectInstructions: 'Create subject lines that focus on irresistible value stacks and outcomes',
-    bodyInstructions: 'Use Alex Hormozi\'s approach: Stack multiple high-value benefits, bonuses, and guarantees to make the price seem negligible compared to the total value offered. Focus on what they get, not what they pay.'
+    framework: 'Alex Hormozi\'s ethos centers on maximizing perceived value while minimizing perceived risk and effort. Formula: (Desirable Results + Trust) / (Time + Risk + Effort). The goal is to make saying no feel irrational.',
+    actionableStructure: 'Structure as value stacking: "Instead of [current pain/inefficiency], get [3 specific stackable benefits] with [concrete guarantee] in [timeline]." Focus on overwhelming value vs cost.',
+    fallbackSuggestions: 'When business context unclear, suggest: 30-50% efficiency improvement + cost reduction guarantee + risk-free 30-day trial period.'
   },
   oneOnOne: {
     id: 'oneOnOne',
     name: '1-on-1',
     description: '15 minutes personalized guidance and FREE setup',
     subjectInstructions: 'Emphasize personal, one-on-one attention and free setup value',
-    bodyInstructions: 'Offer 15 minutes of personalized guidance plus a FREE setup of the system, test drive, or demo. Make it feel exclusive and tailored to their specific needs.'
+    actionableStructure: 'Offer personal consultation format: "15 minutes of personalized guidance + FREE [setup/audit/demo] tailored to [their specific situation]." Make it feel exclusive and high-touch.',
+    fallbackSuggestions: 'When unclear about their needs, offer: free system audit + personalized recommendations + complimentary setup assistance.'
   },
   ifWeCant: {
     id: 'ifWeCant',
     name: 'If we can\'t',
     description: 'Guarantee-based with compelling backup offer',
     subjectInstructions: 'Lead with confidence and guarantee, create urgency',
-    bodyInstructions: 'Structure as "You\'re probably [problem statement]. If we can\'t [deliver specific result like "shave off at least 15% of your current bill"], we will immediately offer you [compelling backup like "2 free tickets to the latest Broadway show"]."'
+    framework: 'Confidence-based selling that removes all perceived risk by offering compelling alternatives if primary promise fails.',
+    actionableStructure: 'Structure as confidence guarantee: "You\'re probably [problem statement]. If we can\'t [deliver specific measurable result], we will immediately [compelling backup offer that\'s valuable but different]."',
+    fallbackSuggestions: 'When specific metrics unclear, suggest: 15-20% improvement + money-back guarantee + valuable alternative like free consulting hours or premium resource access.'
   },
   shinyFree: {
     id: 'shinyFree',
     name: 'Shiny FREE',
     description: 'Free valuable resources like cheat sheets, API keys',
     subjectInstructions: 'Highlight the FREE valuable resource in subject line',
-    bodyInstructions: 'Lead with "Can I send you a FREE [valuable resource]?" Options include: industry index, comparison chart, cheat sheet, API key, exclusive list, or insider guide. Make the free item genuinely valuable and relevant.'
+    actionableStructure: 'Lead with valuable free offer: "Can I send you a FREE [industry-specific valuable resource]?" Make the free item genuinely valuable and immediately useful.',
+    fallbackSuggestions: 'When industry unclear, offer: comprehensive comparison guide + industry benchmarks + exclusive access to tools or data.'
   },
   caseStudy: {
     id: 'caseStudy',
     name: 'Case Study',
     description: 'Social proof with specific company results',
     subjectInstructions: 'Reference the case study company or impressive results in subject',
-    bodyInstructions: 'Lead with "We worked with [Company XYZ] and they said: [specific quote or result]... what do you think about this?" Use real, impressive outcomes and let social proof do the selling.'
+    framework: 'Leverage social proof and peer validation by showcasing specific, relatable success stories that create desire and trust.',
+    actionableStructure: 'Structure with social proof: "We worked with [Company XYZ] and they achieved [specific result/quote]... what do you think about applying this to [their situation]?" Use credible, impressive outcomes.',
+    fallbackSuggestions: 'When lacking specific case studies, create plausible industry examples: similar-sized company + relevant improvement metrics + applicable business benefit.'
   }
 };
 

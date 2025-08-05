@@ -8,6 +8,15 @@ Preferred communication style: Simple, everyday language.
 Mobile UI preference: Compact, space-efficient design with seamless header-to-content transitions.
 
 ## Recent Changes
+**August 5, 2025**: Enhanced Offer Strategies with Framework Theory ✅ IMPLEMENTED
+- Enhanced offer strategies with detailed frameworks, actionable structures, and fallback suggestions
+- Framework theory stored for documentation/tooltips but NOT sent to AI (optimizes token usage)
+- Each strategy now includes: theory framework (optional), actionable structure, fallback suggestions
+- Hormozi strategy enhanced with specific value stacking formula and benefit suggestions
+- Token-optimized prompts: only actionable instructions sent to AI, theory kept for user education
+- Maintains 35 unique email combinations (7 tones × 5 strategies) with better specificity
+- Modular architecture allows easy expansion and theory documentation without API overhead
+
 **August 5, 2025**: Complete Offer Strategies System Implementation ✅ IMPLEMENTED
 - Successfully implemented comprehensive offer strategies system alongside existing 7-tone system
 - Created modular backend architecture: offer-configs, conditional processing, service integration
