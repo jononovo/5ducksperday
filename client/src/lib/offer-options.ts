@@ -39,6 +39,11 @@ export const OFFER_OPTIONS: OfferOption[] = [
     id: 'caseStudy',
     name: 'Case Study',
     description: 'Social proof with specific company results'
+  },
+  {
+    id: 'coldEmailFormula',
+    name: 'Cold Email Formula',
+    description: '5-part proven framework with 37% open rate'
   }
 ];
 

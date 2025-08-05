@@ -73,6 +73,55 @@ Core Principles Behind the Offers:
     framework: 'Leverage social proof and peer validation by showcasing specific, relatable success stories that create desire and trust.',
     actionableStructure: 'Structure with social proof: "We worked with [Company XYZ] and they achieved [specific result/quote]... what do you think about applying this to [their situation]?" Use credible, impressive outcomes.',
     fallbackSuggestions: 'When lacking specific case studies, create plausible industry examples: similar-sized company + relevant improvement metrics + applicable business benefit.'
+  },
+  coldEmailFormula: {
+    id: 'coldEmailFormula',
+    name: 'Cold Email Formula',
+    description: '5-part proven framework with 37% open rate',
+    subjectInstructions: 'Use simple, close-to-home format: "COMPANY" + "SERVICE" approach',
+    framework: `# Cold Email Formula 
+
+The 5 part cold email
+With a 37% open rate and 7% reply rate.
+
+Took 2-3 months and 5–6+ tests to get here. 
+It's not perfect (it never is). 
+But it's a game of inches.
+
+1. Subject – ask yourself what resonates with your customers.
+The simplest, closest-to-home stuff often works. 
+Pull them in but don't pull a fast one on them.
+
+e.g. "COMPANY" + "SERVICE"
+
+2. Opening – personalize at scale with a question that ties to your service. 
+Personalization doesn't need to be this massive research project.
+Find a common pattern that speaks to each customer uniquely.
+
+e.g. "PERSONAL" + "SERVICE QUESTION"
+
+3. Pain – make them feel the pain.
+Paint the picture of their day-to-day frustration. 
+Keep it short, but don't be afraid to dig into it.
+More pain, more gain ;)
+
+e.g. "PAIN" + "OTHER RESPONSIBILITIES"
+
+4. Solution – If you're the founder sending the email.
+Lead with being with the founder (shoutout Alana Branston for the push here)
+Drop a clear glimpse of what your product actually does (not just "it's a CRM"). 
+Bonus points if you can tie with results (1 stat is fine).
+
+e.g. "FOUNDER" + "YOUR COMPANY". "SERVICE" + "CLIENTS" + "RESULTS" 
+
+5. Question – end with a question, but not a yes/no. 
+Push it with an A or B choice (shoutout Zayd Syed Ali for this tip).
+
+e.g. "Want me to send over A or B?"
+
+BONUS: Break the mold - GIFs or diagrams can sometimes trigger spam filters. But if you're sending hyper-targeted batches, a little visual goes a long way.`,
+    actionableStructure: 'Follow 5-part structure: 1) Subject: [Company + Service], 2) Opening: [Personal question tied to service], 3) Pain: [Day-to-day frustration picture], 4) Solution: [Founder + company + clear service description + results], 5) Question: [A or B choice, not yes/no]',
+    fallbackSuggestions: 'When context unclear: use industry pain points + founder introduction + service efficiency stats + choice between demo/consultation options.'
   }
 };
 
