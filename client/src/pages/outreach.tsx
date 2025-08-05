@@ -1500,7 +1500,7 @@ export default function Outreach() {
                             <Box className="w-4 h-4 text-primary" />
                             <h4 className="font-semibold text-sm">Product Context</h4>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">Optional: Insert from your existing product list</p>
+                          <p className="text-xs text-muted-foreground mt-1">Insert from your existing product list</p>
                         </div>
                         <div className="p-2">
                           {/* None Option */}
