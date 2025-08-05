@@ -1470,7 +1470,7 @@ export default function Outreach() {
                     setOriginalEmailPrompt(e.target.value);
                     handlePromptTextareaResize();
                   }}
-                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-7 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
                   style={{ minHeight: '32px', maxHeight: '120px' }}
                 />
                   <div className="absolute bottom-1 left-2 flex items-center gap-2">
@@ -1478,7 +1478,7 @@ export default function Outreach() {
                     <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen}>
                       <PopoverTrigger asChild>
                         <button 
-                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors text-xs text-muted-foreground"
+                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
                           title="Select product context"
                         >
                           <Box className="w-3 h-3" />
@@ -1557,7 +1557,7 @@ export default function Outreach() {
                     <Popover open={tonePopoverOpen} onOpenChange={setTonePopoverOpen}>
                       <PopoverTrigger asChild>
                         <button 
-                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors text-xs text-muted-foreground"
+                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
                           title="Select email tone"
                         >
                           <Palette className="w-3 h-3" />
@@ -1604,7 +1604,7 @@ export default function Outreach() {
                     <Popover open={offerPopoverOpen} onOpenChange={setOfferPopoverOpen}>
                       <PopoverTrigger asChild>
                         <button 
-                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors text-xs text-muted-foreground"
+                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
                           title="Select offer strategy"
                         >
                           <Gift className="w-3 h-3" />
