@@ -77,7 +77,7 @@ Best Practices:
   },
   ifWeCant: {
     id: 'ifWeCant',
-    name: 'If we can\'t',
+    name: 'Guarantee',
     description: 'Guarantee-based with compelling backup offer',
     subjectInstructions: 'Lead with confidence and guarantee, create urgency',
     framework: `# "If We Can't" Guarantee Strategy
@@ -132,7 +132,7 @@ Psychological Triggers:
   },
   shinyFree: {
     id: 'shinyFree',
-    name: 'Shiny FREE',
+    name: 'Shiny',
     description: 'Free valuable resources like cheat sheets, API keys',
     subjectInstructions: 'Highlight the FREE valuable resource in subject line',
     framework: `# Shiny FREE Resource Strategy
@@ -175,7 +175,7 @@ Examples by Industry:
   },
   caseStudy: {
     id: 'caseStudy',
-    name: 'Case Study',
+    name: 'Study',
     description: 'Social proof with specific company results',
     subjectInstructions: 'Reference the case study company or impressive results in subject',
     framework: `# Case Study Social Proof Strategy
@@ -232,7 +232,7 @@ When You Lack Case Studies:
   },
   coldEmailFormula: {
     id: 'coldEmailFormula',
-    name: 'Cold Email Formula',
+    name: 'Formula',
     description: '5-part proven framework with 37% open rate',
     subjectInstructions: 'Use simple, close-to-home format: "COMPANY" + "SERVICE" approach',
     framework: `# Cold Email Formula 

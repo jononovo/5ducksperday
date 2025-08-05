@@ -19,7 +19,7 @@ The application features a **React SPA frontend** built with TypeScript, Vite, T
 - **Authentication:** Firebase Authentication secures user login, complemented by session-based authentication via Passport.js.
 - **UI/UX:** A consistent design language, utilizing Tailwind CSS and shadcn/ui, ensures a professional and unified aesthetic. Emphasis is placed on clear navigation, responsive design, and intuitive user flows. Color schemes prioritize blues, grays, and greens.
 - **Search Orchestration:** An enhanced search orchestrator includes retry logic, error handling, and real-time status tracking via webhooks.
-- **Email Generation System:** Features a sophisticated system providing 42 unique email combinations derived from 7 distinct tones and 6 offer strategies (Hormozi, Cold Email Formula, 1-on-1, If We Can't, Shiny FREE, Case Study). Email content generation is modularized for maintainability.
+- **Email Generation System:** Features a sophisticated system providing 42 unique email combinations derived from 7 distinct tones and 6 offer strategies (Hormozi, Formula, 1-on-1, Guarantee, Shiny, Study). Email content generation is modularized for maintainability.
 - **Email Content Handling:** Preserves paragraph spacing from AI responses in generated emails.
 
 ## External Dependencies
