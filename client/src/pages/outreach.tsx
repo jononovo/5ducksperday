@@ -72,6 +72,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 // Define interfaces
@@ -116,6 +126,7 @@ export default function Outreach() {
   const [tonePopoverOpen, setTonePopoverOpen] = useState(false);
   const [selectedOfferStrategy, setSelectedOfferStrategy] = useState<string>(DEFAULT_OFFER);
   const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
+  const [generateConfirmDialogOpen, setGenerateConfirmDialogOpen] = useState(false);
 
   // Refs for form inputs to handle merge field insertion
   const emailPromptRef = useRef<HTMLTextAreaElement>(null);
@@ -289,7 +300,7 @@ export default function Outreach() {
   , [topContacts, selectedContactId]);
 
   // Email generation hook
-  const { generateEmail, isGenerating } = useEmailGeneration({
+  const { generateEmail: performGeneration, isGenerating } = useEmailGeneration({
     selectedContact,
     selectedCompany,
     emailPrompt,
@@ -304,6 +315,20 @@ export default function Outreach() {
     setEmailContent,
     setOriginalEmailContent
   });
+
+  const handleGenerateEmail = () => {
+    // Check if there's existing content
+    if (emailSubject.trim() || emailContent.trim()) {
+      setGenerateConfirmDialogOpen(true);
+    } else {
+      performGeneration();
+    }
+  };
+
+  const handleConfirmGenerate = () => {
+    performGeneration();
+    setGenerateConfirmDialogOpen(false);
+  };
 
   // Adjacent company prefetching for instant navigation
   useEffect(() => {
@@ -1508,7 +1533,7 @@ export default function Outreach() {
                     </Tooltip>
                   </TooltipProvider>
                   <Button 
-                    onClick={generateEmail} 
+                    onClick={handleGenerateEmail} 
                     variant="yellow"
                     disabled={isGenerating}
                     className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
@@ -1644,6 +1669,26 @@ export default function Outreach() {
           </div>
         </div>
       </div>
+
+      {/* Generate Email Confirmation Dialog */}
+      <AlertDialog open={generateConfirmDialogOpen} onOpenChange={setGenerateConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Generate AI Email</AlertDialogTitle>
+            <AlertDialogDescription>
+              Loading this AI generated content, will replace all content currently in fields on this page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setGenerateConfirmDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmGenerate}>
+              Generate Email
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

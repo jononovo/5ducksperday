@@ -66,11 +66,9 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
       return generateEmailApi(payload);
     },
     onSuccess: (data: EmailGenerationResponse) => {
-      // Auto-fill subject if empty
-      if (shouldAutoFillSubject(emailSubject)) {
-        setEmailSubject(data.subject);
-        setOriginalEmailSubject(data.subject);
-      }
+      // Always replace subject with generated subject
+      setEmailSubject(data.subject);
+      setOriginalEmailSubject(data.subject);
       
       // Auto-fill email if contact has email and field is empty
       if (shouldAutoFillEmail(selectedContact, toEmail)) {
@@ -84,7 +82,7 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
       
       toast({
         title: "Email Generated",
-        description: "New content has been added above the existing email.",
+        description: "AI generated content has replaced all email fields.",
       });
     },
     onError: (error: Error) => {

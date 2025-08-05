@@ -58,9 +58,7 @@ export function shouldAutoFillEmail(contact: Contact | null, currentToEmail: str
 }
 
 export function formatGeneratedContent(newContent: string, existingContent: string): string {
-  return existingContent 
-    ? `${newContent}\n\n${existingContent}`
-    : newContent;
+  return newContent; // Always replace content instead of appending
 }
 
 export function validateEmailGenerationRequest(
