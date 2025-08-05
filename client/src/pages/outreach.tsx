@@ -22,7 +22,8 @@ import {
   Info,
   X,
   Palette,
-  TrendingUp
+  TrendingUp,
+  Gift
 } from "lucide-react";
 import {
   Select,
@@ -1447,7 +1448,7 @@ export default function Outreach() {
                           className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors text-xs text-muted-foreground"
                           title="Select offer strategy"
                         >
-                          <TrendingUp className="w-3 h-3" />
+                          <Gift className="w-3 h-3" />
                           {selectedOfferStrategy !== 'none' && (
                             <span>{OFFER_OPTIONS.find(o => o.id === selectedOfferStrategy)?.name}</span>
                           )}
@@ -1456,10 +1457,10 @@ export default function Outreach() {
                       <PopoverContent className="w-72 p-0" align="start">
                         <div className="p-4 border-b bg-muted/30">
                           <div className="flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4 text-primary" />
+                            <Gift className="w-4 h-4 text-primary" />
                             <h4 className="font-semibold text-sm">Offer Strategy</h4>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">Choose your offer approach</p>
+                          <p className="text-xs text-muted-foreground mt-1">Optional: Structure your offer for maximum impact</p>
                         </div>
                         <div className="p-2">
                           {OFFER_OPTIONS.map((offer) => (

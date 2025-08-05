@@ -8,6 +8,12 @@ Preferred communication style: Simple, everyday language.
 Mobile UI preference: Compact, space-efficient design with seamless header-to-content transitions.
 
 ## Recent Changes
+**August 5, 2025**: UI Polish - Gift Icon & Optional Clarity ✅ IMPLEMENTED
+- Replaced TrendingUp icon with Gift icon for better visual representation of offers
+- Enhanced popover description with "Optional:" prefix for immediate user clarity
+- Improved visual consistency - Gift icon better represents offer/present concept than chart icon
+- Maintains established UI pattern with clearer communication about feature optional nature
+
 **August 5, 2025**: Enhanced Offer Strategies with Framework Theory ✅ IMPLEMENTED
 - Enhanced offer strategies with detailed frameworks, actionable structures, and fallback suggestions
 - Framework theory stored for documentation/tooltips but NOT sent to AI (optimizes token usage)
