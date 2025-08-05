@@ -373,12 +373,30 @@ Make each offer highly specific to the product and irresistible to the target ma
 
   const result = response.choices[0]?.message?.content || '';
   
-  // Parse the response into individual offers
+  // Parse the response into individual offers with improved fallback handling
   const offers = OFFER_OPTIONS.map(option => {
-    // Extract content for each strategy from the response
-    const strategyRegex = new RegExp(`### ${option.name} Strategy\\s*([\\s\\S]*?)(?=### |$)`, 'i');
-    const match = result.match(strategyRegex);
-    const content = match ? match[1].trim() : `Compelling ${option.name} strategy for ${productContext.productService}`;
+    // Extract content for each strategy from the response with multiple regex patterns
+    let content = '';
+    
+    // Try different patterns to extract content
+    const patterns = [
+      new RegExp(`### ${option.name} Strategy\\s*([\\s\\S]*?)(?=### |$)`, 'i'),
+      new RegExp(`\\*\\*${option.name.toUpperCase()}\\s+STRATEGY\\*\\*[:\\s]*([\\s\\S]*?)(?=\\*\\*|$)`, 'i'),
+      new RegExp(`${option.name}[\\s:]*([\\s\\S]*?)(?=\\n\\n|\\n[A-Z]|$)`, 'i')
+    ];
+    
+    for (const pattern of patterns) {
+      const match = result.match(pattern);
+      if (match && match[1] && match[1].trim().length > 20) {
+        content = match[1].trim();
+        break;
+      }
+    }
+    
+    // If no good match found, generate a simple fallback
+    if (!content || content.length < 20) {
+      content = `Create a compelling ${option.name.toLowerCase()} offer strategy for ${productContext.productService} that highlights key benefits and creates urgency for potential customers.`;
+    }
     
     return {
       id: option.id,

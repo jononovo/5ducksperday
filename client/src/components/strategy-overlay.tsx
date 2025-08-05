@@ -569,8 +569,15 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
         const data = await response.json();
         console.log('Strategy chat response:', data);
         
-        if (data.type === 'product_summary' || data.type === 'email_strategy' || data.type === 'sales_approach') {
+        if (data.type === 'product_summary' || data.type === 'email_strategy' || data.type === 'sales_approach' || data.type === 'product_offers') {
           displayReport(data);
+          
+          // Show completion choice only after product offers are displayed
+          if (data.type === 'product_offers') {
+            setTimeout(() => {
+              setShowCompletionChoice(true);
+            }, 1000);
+          }
         } else if (data.type === 'progressive_strategy') {
           const aiMessage: Message = {
             id: Date.now().toString(),
@@ -729,6 +736,29 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
   const displayReport = (reportData: any) => {
     setMessages(prev => prev.filter(msg => !msg.isLoading));
     
+    // Handle product offers specially with better formatting
+    if (reportData.type === 'product_offers') {
+      const offersHtml = `
+        <div class="report-container bg-blue-50 border border-blue-200 rounded-lg p-4 my-3">
+          <h3 class="font-bold text-lg text-blue-800 mb-2">${reportData.message}</h3>
+          <div class="report-content text-gray-700">
+            ${renderMarkdown(reportData.data.content)}
+          </div>
+        </div>`;
+      
+      const offersMessage: Message = {
+        id: Date.now().toString(),
+        content: offersHtml,
+        sender: 'ai',
+        timestamp: new Date(),
+        isHTML: true
+      };
+      
+      setMessages(prev => [...prev, offersMessage]);
+      return;
+    }
+    
+    // Handle other report types normally
     const reportHtml = `
       <div class="report-container bg-blue-50 border border-blue-200 rounded-lg p-4 my-3">
         <h3 class="font-bold text-lg text-blue-800 mb-2">${reportData.message}</h3>
@@ -777,6 +807,7 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
 
   const generateProductOffers = async () => {
     try {
+      // Show loading spinner below the button
       const loadingMessage: Message = {
         id: Date.now().toString(),
         content: `<div class="flex items-center space-x-2"><div class="loading-spinner"></div><span>Creating your product offer strategies...</span></div>`,
@@ -787,35 +818,9 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
       };
       setMessages(prev => [...prev, loadingMessage]);
       
-      const token = localStorage.getItem('authToken');
-      const response = await fetch('/api/onboarding/strategy-chat', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          userInput: 'Generate product offers',
-          productContext: {
-            productService: formData?.productService,
-            customerFeedback: formData?.customerFeedback,
-            website: formData?.website
-          },
-          conversationHistory: messages.map(m => ({
-            sender: m.sender,
-            content: m.content
-          }))
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        displayReport(data);
-        
-        setTimeout(() => {
-          setShowCompletionChoice(true);
-        }, 1000);
-      }
+      // Use the existing handleStrategyChatMessage function instead of duplicate API call
+      await handleStrategyChatMessage('Generate product offers');
+      
     } catch (error) {
       console.error('Product offers generation error:', error);
     }
