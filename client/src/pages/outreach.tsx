@@ -508,15 +508,15 @@ export default function Outreach() {
 
   // Handle "None" selection (clear product)
   const handleSelectNone = () => {
+    // Only clear if a product was actually selected
+    if (selectedProduct !== null) {
+      setEmailPrompt('');
+      setOriginalEmailPrompt('');
+      setTimeout(() => handlePromptTextareaResize(), 0);
+    }
+    
     setSelectedProduct(null);
     setProductPopoverOpen(false);
-    
-    // Clear the prompt field completely
-    setEmailPrompt('');
-    setOriginalEmailPrompt('');
-    
-    // Trigger resize to shrink back to minimum height
-    setTimeout(() => handlePromptTextareaResize(), 0);
   };
 
   // Find selected product for display
