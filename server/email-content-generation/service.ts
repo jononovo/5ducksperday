@@ -13,13 +13,6 @@ import { getOfferConfig } from "./offer-configs";
 export async function generateEmailContent(request: EmailGenerationRequest): Promise<EmailGenerationResponse> {
   const { emailPrompt, contact, company, userId, tone = 'default', offerStrategy = 'none' } = request;
 
-  console.log('🔍 SERVICE DIAGNOSTICS:', {
-    receivedOfferStrategy: offerStrategy,
-    receivedTone: tone,
-    hasContact: !!contact,
-    companyName: company?.name
-  });
-
   // Resolve sender names for the current user
   const senderNames = await resolveSenderNames(userId);
   
@@ -28,54 +21,22 @@ export async function generateEmailContent(request: EmailGenerationRequest): Pro
   
   // Get offer strategy configuration (can be null)
   const offerConfig = getOfferConfig(offerStrategy);
-  
-  console.log('🔍 CONFIG DIAGNOSTICS:', {
-    toneConfigFound: !!toneConfig,
-    offerConfigFound: !!offerConfig,
-    offerConfigId: offerConfig?.id,
-    offerConfigName: offerConfig?.name
-  });
 
-  // Build system prompt with tone and optional offer strategy
+  // Build integrated writing style with optional offer strategy
+  let writingStyle = toneConfig.writingStyle;
+  if (offerConfig) {
+    writingStyle += ` When presenting your value proposition, ${offerConfig.actionableStructure}`;
+  }
+
+  // Build system prompt with integrated instructions
   let systemContent = `${toneConfig.systemPersonality}.
 
 GREETING INSTRUCTIONS: ${toneConfig.greetingStyle}
-WRITING STYLE: ${toneConfig.writingStyle}
+WRITING STYLE: ${writingStyle}
 CLOSING INSTRUCTIONS: ${toneConfig.closingStyle}
 
 ${toneConfig.additionalInstructions}`;
 
-  // Add offer strategy instructions only if not 'none'
-  if (offerConfig) {
-    systemContent += `
-
-SUBJECT LINE STRATEGY: ${offerConfig.subjectInstructions}
-OFFER STRUCTURE: ${offerConfig.actionableStructure}`;
-    
-    // Add fallback suggestions if available
-    if (offerConfig.fallbackSuggestions) {
-      systemContent += `
-FALLBACK OPTIONS: ${offerConfig.fallbackSuggestions}`;
-    }
-    
-    console.log('🔍 OFFER STRATEGY ADDED:', {
-      strategyId: offerConfig.id,
-      hasSubjectInstructions: !!offerConfig.subjectInstructions,
-      hasFallbackSuggestions: !!offerConfig.fallbackSuggestions,
-      actionableStructureLength: offerConfig.actionableStructure.length
-    });
-  } else {
-    console.log('🔍 NO OFFER STRATEGY: offerConfig is null/undefined');
-  }
-
-  // Log the complete system prompt being sent to AI
-  console.log('🔍 COMPLETE SYSTEM PROMPT:', {
-    promptLength: systemContent.length,
-    hasOfferStrategy: systemContent.includes('OFFER STRUCTURE:'),
-    hasSubjectStrategy: systemContent.includes('SUBJECT LINE STRATEGY:'),
-    hasFallbackOptions: systemContent.includes('FALLBACK OPTIONS:')
-  });
-  
   // Construct the prompt for Perplexity
   const messages: PerplexityMessage[] = [
     {
