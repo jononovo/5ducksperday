@@ -19,7 +19,24 @@ export const OFFER_CONFIGS: Record<string, OfferConfig> = {
     name: 'Hormozi',
     description: 'Benefit stacking that makes price negligible',
     subjectInstructions: 'Create subject lines that focus on irresistible value stacks and outcomes',
-    framework: 'Alex Hormozi\'s ethos centers on maximizing perceived value while minimizing perceived risk and effort. Formula: (Desirable Results + Trust) / (Time + Risk + Effort). The goal is to make saying no feel irrational.',
+    framework: `Alex Hormozi's ethos around creating an "offer they can't resist" centers on maximizing perceived value while minimizing perceived risk and effort for the customer. The core idea is to make the offer so compelling that saying no feels irrational.
+
+Summary of His Framework:
+Hormozi often uses this formula:
+(Desirable Results + Trust) / (Time + Risk + Effort) = Value
+
+The goal is to increase the top half (desirable results and trust) and minimize the bottom half (time, difficulty, risk).
+
+Succinct Examples:
+• Business Coaching: Instead of "12-week coaching program," offer "We implement your client acquisition system for you and guarantee 10 high-ticket clients in 90 days—or you don't pay."
+• Weight Loss Program: Rather than "access to fitness classes," offer "Lose 15lbs in 8 weeks, with a coach, meal plan, and refund guarantee."
+• Marketing SaaS: Instead of "email automation tool," present "A done-for-you email system that books you 5–10 qualified appointments a month, or your subscription is free."
+
+Core Principles Behind the Offers:
+• Guarantees reduce risk.
+• Done-for-you or speedy results reduce effort and time delay.
+• Clear outcomes increase perceived value.
+• Social proof or results claims raise trust.`,
     actionableStructure: 'Structure as value stacking: "Instead of [current pain/inefficiency], get [3 specific stackable benefits] with [concrete guarantee] in [timeline]." Focus on overwhelming value vs cost.',
     fallbackSuggestions: 'When business context unclear, suggest: 30-50% efficiency improvement + cost reduction guarantee + risk-free 30-day trial period.'
   },
