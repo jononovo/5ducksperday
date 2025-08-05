@@ -4054,7 +4054,7 @@ PHASE-SPECIFIC INSTRUCTIONS:
         shouldTrigger: currentPhase === 'EMAIL_STRATEGY' && hasRefinedTarget 
       });
       
-      if (currentPhase === 'EMAIL_STRATEGY' && hasRefinedTarget && userInput !== 'Generate sales approach') {
+      if (currentPhase === 'EMAIL_STRATEGY' && hasRefinedTarget && userInput !== 'Generate sales approach' && userInput !== 'Generate product offers') {
         const initialTarget = targetMessages[0]?.content || '';
         const refinedTarget = isCurrentInputTarget ? userInput : (targetMessages[1]?.content || '');
         
