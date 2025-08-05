@@ -37,7 +37,7 @@ Core Principles Behind the Offers:
 • Done-for-you or speedy results reduce effort and time delay.
 • Clear outcomes increase perceived value.
 • Social proof or results claims raise trust.`,
-    actionableStructure: 'Structure as value stacking with bullet points: "Instead of [current pain/inefficiency], get [3 specific stackable benefits] with [concrete guarantee] in [timeline]." Focus on overwhelming value vs cost.',
+    actionableStructure: 'Structure as value stacking with emoji or attractive bullet points: "Instead of [current pain/inefficiency], get [3 specific stackable benefits] with [concrete guarantee] in [timeline]." Focus on overwhelming value vs cost.',
     fallbackSuggestions: 'When business context unclear, suggest: 30-50% efficiency improvement + cost reduction guarantee + risk-free 30-day trial period.'
   },
   oneOnOne: {
