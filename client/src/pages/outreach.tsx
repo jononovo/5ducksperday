@@ -1462,7 +1462,7 @@ export default function Outreach() {
               {/* Email Prompt Field */}
               <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
                 <Textarea
-                  ref={emailPromptRef}
+                  ref={promptTextareaRef}
                   placeholder="Sell dog-grooming services"
                   value={getDisplayValue(emailPrompt, originalEmailPrompt)}
                   onChange={(e) => {
