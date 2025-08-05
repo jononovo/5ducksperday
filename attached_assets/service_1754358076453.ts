@@ -3,57 +3,36 @@ import type { PerplexityMessage } from "../lib/perplexity";
 import type { EmailGenerationRequest, EmailGenerationResponse, EmailGenerationContext } from "./types";
 import { resolveSenderNames } from "../lib/name-resolver";
 import { getToneConfig } from "./tone-configs";
-import { getOfferConfig } from "./offer-configs";
 
 /**
  * Email Content Generation Service
- * Handles AI-powered email generation with tone selection
+ * Handles AI-powered email generation using Perplexity API
  */
 
 export async function generateEmailContent(request: EmailGenerationRequest): Promise<EmailGenerationResponse> {
-  const { emailPrompt, contact, company, userId, tone = 'default', offerStrategy = 'none' } = request;
+  const { emailPrompt, contact, company, userId, tone = 'default' } = request;
 
   // Resolve sender names for the current user
   const senderNames = await resolveSenderNames(userId);
   
   // Get tone configuration
   const toneConfig = getToneConfig(tone);
-  
-  // Get offer strategy configuration (can be null)
-  const offerConfig = getOfferConfig(offerStrategy);
-
-  // Build system prompt with tone and optional offer strategy
-  let systemContent = `${toneConfig.systemPersonality}.
-
-GREETING INSTRUCTIONS: ${toneConfig.greetingStyle}
-WRITING STYLE: ${toneConfig.writingStyle}
-CLOSING INSTRUCTIONS: ${toneConfig.closingStyle}
-
-${toneConfig.additionalInstructions}`;
-
-  // Add offer strategy instructions only if not 'none'
-  if (offerConfig) {
-    systemContent += `
-
-SUBJECT LINE STRATEGY: ${offerConfig.subjectInstructions}
-OFFER STRUCTURE: ${offerConfig.actionableStructure}`;
-    
-    // Add fallback suggestions if available
-    if (offerConfig.fallbackSuggestions) {
-      systemContent += `
-FALLBACK OPTIONS: ${offerConfig.fallbackSuggestions}`;
-    }
-  }
 
   // Construct the prompt for Perplexity
   const messages: PerplexityMessage[] = [
     {
       role: "system",
-      content: systemContent
+      content: `${toneConfig.systemPersonality}.
+
+GREETING INSTRUCTIONS: ${toneConfig.greetingStyle}
+WRITING STYLE: ${toneConfig.writingStyle}
+CLOSING INSTRUCTIONS: ${toneConfig.closingStyle}
+
+${toneConfig.additionalInstructions}`
     },
     {
       role: "user", 
-      content: buildEmailPrompt({ contact, company, userPrompt: emailPrompt, senderNames })
+      content: buildEmailPrompt({ contact, company, userPrompt: emailPrompt, senderNames, tone })
     }
   ];
 
@@ -71,16 +50,16 @@ function buildEmailPrompt(context: EmailGenerationContext): string {
 Prompt: ${userPrompt}
 
 Available merge fields for personalization:
-- {{first_name}} - Target contact's first name
-- {{contact_name}} - Target contact's full name  
-- {{company_name}} - Target company name
+- {{first_name}} - Contact's first name
+- {{contact_name}} - Contact's full name  
+- {{company_name}} - Contact's company name
 - {{sender_first_name}} - Your first name: "${senderNames?.firstName || 'User'}"
 - {{sender_name}} - Your full name: "${senderNames?.fullName || 'User'}"
 
-TARGET COMPANY: ${company.name}
+Company: ${company.name}
 ${company.description ? `About: ${company.description}` : ''}
 
-${contact ? `TARGET CONTACT: ${contact.name}${contact.role ? ` (${contact.role})` : ''}` : 'No specific target contact selected'}
+${contact ? `Recipient: ${contact.name}${contact.role ? ` (${contact.role})` : ''}` : 'No specific recipient selected'}
 
 Structure your email with:
 1. An engaging greeting following the greeting style instructions

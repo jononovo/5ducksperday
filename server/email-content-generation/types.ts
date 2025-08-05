@@ -8,6 +8,8 @@ export interface EmailGenerationRequest {
   userId: number;
   toEmail?: string;
   emailSubject?: string;
+  tone?: string;
+  offerStrategy?: string;
 }
 
 export interface EmailGenerationResponse {

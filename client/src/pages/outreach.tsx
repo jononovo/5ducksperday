@@ -20,7 +20,10 @@ import {
   User,
   Menu,
   Info,
-  X
+  X,
+  Palette,
+  TrendingUp,
+  Gift
 } from "lucide-react";
 import {
   Select,
@@ -62,6 +65,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { resolveMergeField, resolveAllMergeFields, hasMergeFields, type MergeFieldContext } from '@/lib/merge-field-resolver';
 import { useEmailGeneration } from "@/email-content-generation/useOutreachGeneration";
 import { resolveFrontendSenderNames } from "@/email-content-generation/outreach-utils";
+import { TONE_OPTIONS, DEFAULT_TONE, type ToneOption } from "@/lib/tone-options";
+import { OFFER_OPTIONS, DEFAULT_OFFER, type OfferOption } from "@/lib/offer-options";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 
 // Define interfaces
@@ -83,6 +93,8 @@ interface SavedOutreachState {
   toEmail: string;
   emailSubject: string;
   selectedCompanyIndex: number;
+  selectedTone: string;
+  selectedOfferStrategy: string;
   // Original content for merge field conversion
   originalEmailPrompt?: string;
   originalEmailContent?: string;
@@ -100,6 +112,10 @@ export default function Outreach() {
   const [currentContactIndex, setCurrentContactIndex] = useState(0);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [showExpandedView, setShowExpandedView] = useState(false);
+  const [selectedTone, setSelectedTone] = useState<string>(DEFAULT_TONE);
+  const [tonePopoverOpen, setTonePopoverOpen] = useState(false);
+  const [selectedOfferStrategy, setSelectedOfferStrategy] = useState<string>(DEFAULT_OFFER);
+  const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
 
   // Refs for form inputs to handle merge field insertion
   const emailPromptRef = useRef<HTMLTextAreaElement>(null);
@@ -187,6 +203,8 @@ export default function Outreach() {
       setOriginalEmailPrompt(parsed.originalEmailPrompt || parsed.emailPrompt);
       setOriginalEmailContent(parsed.originalEmailContent || parsed.emailContent);
       setOriginalEmailSubject(parsed.originalEmailSubject || parsed.emailSubject || "");
+      setSelectedTone(parsed.selectedTone || DEFAULT_TONE);
+      setSelectedOfferStrategy(parsed.selectedOfferStrategy || DEFAULT_OFFER);
     }
   }, []);
 
@@ -200,12 +218,14 @@ export default function Outreach() {
       toEmail,
       emailSubject,
       selectedCompanyIndex,
+      selectedTone,
+      selectedOfferStrategy,
       originalEmailPrompt,
       originalEmailContent,
       originalEmailSubject
     };
     localStorage.setItem('outreachState', JSON.stringify(stateToSave));
-  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, selectedCompanyIndex, originalEmailPrompt, originalEmailContent, originalEmailSubject]);
+  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, selectedCompanyIndex, selectedTone, selectedOfferStrategy, originalEmailPrompt, originalEmailContent, originalEmailSubject]);
 
   // Scroll compression effect
   useEffect(() => {
@@ -276,6 +296,8 @@ export default function Outreach() {
     emailSubject,
     emailContent,
     toEmail,
+    tone: selectedTone,
+    offerStrategy: selectedOfferStrategy,
     setEmailSubject,
     setOriginalEmailSubject,
     setToEmail,
@@ -1371,6 +1393,103 @@ export default function Outreach() {
                   className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
                   style={{ minHeight: '32px', maxHeight: '100px' }}
                 />
+                  <div className="absolute bottom-2 left-2 flex items-center gap-2">
+                    {/* Tone Selection */}
+                    <Popover open={tonePopoverOpen} onOpenChange={setTonePopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <button 
+                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors text-xs text-muted-foreground"
+                          title="Select email tone"
+                        >
+                          <Palette className="w-3 h-3" />
+                          <span>{TONE_OPTIONS.find(t => t.id === selectedTone)?.name || 'Casual'}</span>
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72 p-0" align="start">
+                        <div className="p-4 border-b bg-muted/30">
+                          <div className="flex items-center gap-2">
+                            <Palette className="w-4 h-4 text-primary" />
+                            <h4 className="font-semibold text-sm">Email Tone</h4>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Choose the personality for your email</p>
+                        </div>
+                        <div className="p-2">
+                          {TONE_OPTIONS.map((tone) => (
+                            <button
+                              key={tone.id}
+                              className={cn(
+                                "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
+                                selectedTone === tone.id && "bg-accent"
+                              )}
+                              onClick={() => {
+                                setSelectedTone(tone.id);
+                                setTonePopoverOpen(false);
+                              }}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="text-xs">
+                                  <span className="font-medium">{tone.name}</span>
+                                  <span className="text-muted-foreground"> - {tone.description}</span>
+                                </div>
+                                {selectedTone === tone.id && (
+                                  <Check className="w-3 h-3 text-primary" />
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
+                    {/* Offer Strategy Selection */}
+                    <Popover open={offerPopoverOpen} onOpenChange={setOfferPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <button 
+                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors text-xs text-muted-foreground"
+                          title="Select offer strategy"
+                        >
+                          <Gift className="w-3 h-3" />
+                          {selectedOfferStrategy !== 'none' && (
+                            <span>{OFFER_OPTIONS.find(o => o.id === selectedOfferStrategy)?.name}</span>
+                          )}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72 p-0" align="start">
+                        <div className="p-4 border-b bg-muted/30">
+                          <div className="flex items-center gap-2">
+                            <Gift className="w-4 h-4 text-primary" />
+                            <h4 className="font-semibold text-sm">Offer Strategy</h4>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Optional: Structure your offer for maximum impact</p>
+                        </div>
+                        <div className="p-2">
+                          {OFFER_OPTIONS.map((offer) => (
+                            <button
+                              key={offer.id}
+                              className={cn(
+                                "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
+                                selectedOfferStrategy === offer.id && "bg-accent"
+                              )}
+                              onClick={() => {
+                                setSelectedOfferStrategy(offer.id);
+                                setOfferPopoverOpen(false);
+                              }}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="text-xs">
+                                  <span className="font-medium">{offer.name}</span>
+                                  <span className="text-muted-foreground"> - {offer.description}</span>
+                                </div>
+                                {selectedOfferStrategy === offer.id && (
+                                  <Check className="w-3 h-3 text-primary" />
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                   <div className="absolute bottom-2 right-2 flex items-center gap-2">
                     <TooltipProvider>
                       <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>

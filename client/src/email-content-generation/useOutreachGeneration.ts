@@ -22,6 +22,8 @@ interface UseEmailGenerationProps {
   emailSubject: string;
   emailContent: string;
   toEmail: string;
+  tone?: string;
+  offerStrategy?: string;
   
   // State setters
   setEmailSubject: (subject: string) => void;
@@ -41,6 +43,8 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
     emailSubject,
     emailContent,
     toEmail,
+    tone = 'default',
+    offerStrategy = 'none',
     setEmailSubject,
     setOriginalEmailSubject,
     setToEmail,
@@ -54,6 +58,8 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
         emailPrompt,
         contact: selectedContact,
         company: selectedCompany!,
+        tone,
+        offerStrategy,
         toEmail,
         emailSubject
       };

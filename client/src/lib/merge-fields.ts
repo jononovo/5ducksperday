@@ -7,13 +7,13 @@ export interface MergeFieldItem {
 export const MERGE_FIELDS: MergeFieldItem[] = [
   {
     value: "{{company_name}}",
-    label: "Contact's Company Name",
-    description: "Contact's company or business name"
+    label: "Target Company Name",
+    description: "The company you're reaching out to"
   },
   {
     value: "{{contact_role}}",
-    label: "Contact Role",
-    description: "Contact's job title or position"
+    label: "Target Contact Role",
+    description: "Target contact's job title or position"
   },
   {
     value: "{{sender_name}}",
@@ -22,18 +22,18 @@ export const MERGE_FIELDS: MergeFieldItem[] = [
   },
   {
     value: "{{sender_first_name}}",
-    label: "Sender First Name",
+    label: "Sender First Name", 
     description: "Your first name"
   },
   {
     value: "{{first_name}}",
-    label: "First Name",
-    description: "Contact's first name"
+    label: "Target First Name",
+    description: "Target contact's first name"
   },
   {
     value: "{{last_name}}",
-    label: "Last Name",
-    description: "Contact's last name"
+    label: "Target Last Name",
+    description: "Target contact's last name"
   },
   {
     value: "{{personal_intro}}",

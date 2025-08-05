@@ -6,6 +6,8 @@ export interface EmailGenerationPayload {
   company: Company;
   toEmail?: string;
   emailSubject?: string;
+  tone?: string;
+  offerStrategy?: string;
 }
 
 export interface EmailGenerationResponse {
