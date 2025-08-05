@@ -48,6 +48,7 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
   const [customBoundaryInput, setCustomBoundaryInput] = useState("");
   const [salesApproachContext, setSalesApproachContext] = useState<any>(null);
   const [showCompletionChoice, setShowCompletionChoice] = useState(false);
+  const [showProductOffersChoice, setShowProductOffersChoice] = useState(false);
   const messagesRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -495,12 +496,14 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
     (window as any).selectCustomBoundary = selectCustomBoundary;
     (window as any).updateCustomBoundaryInput = updateCustomBoundaryInput;
     (window as any).generateSalesApproach = generateSalesApproach;
+    (window as any).generateProductOffers = generateProductOffers;
     
     return () => {
       delete (window as any).selectBoundaryOption;
       delete (window as any).selectCustomBoundary;
       delete (window as any).updateCustomBoundaryInput;
       delete (window as any).generateSalesApproach;
+      delete (window as any).generateProductOffers;
     };
   }, [boundarySelectionContext, boundarySelectionMode, customBoundaryInput]);
 
@@ -772,6 +775,52 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
 
 
 
+  const generateProductOffers = async () => {
+    try {
+      const loadingMessage: Message = {
+        id: Date.now().toString(),
+        content: `<div class="flex items-center space-x-2"><div class="loading-spinner"></div><span>Creating your product offer strategies...</span></div>`,
+        sender: 'ai',
+        timestamp: new Date(),
+        isHTML: true,
+        isLoading: true
+      };
+      setMessages(prev => [...prev, loadingMessage]);
+      
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('/api/onboarding/strategy-chat', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          userInput: 'Generate product offers',
+          productContext: {
+            productService: formData?.productService,
+            customerFeedback: formData?.customerFeedback,
+            website: formData?.website
+          },
+          conversationHistory: messages.map(m => ({
+            sender: m.sender,
+            content: m.content
+          }))
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        displayReport(data);
+        
+        setTimeout(() => {
+          setShowCompletionChoice(true);
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Product offers generation error:', error);
+    }
+  };
+
   const generateSalesApproach = async () => {
     try {
       const loadingMessage: Message = {
@@ -810,7 +859,7 @@ export function StrategyOverlay({ state, onStateChange }: StrategyOverlayProps) 
         displayReport(data);
         
         setTimeout(() => {
-          setShowCompletionChoice(true);
+          setShowProductOffersChoice(true);
         }, 1000);
       }
     } catch (error) {
@@ -1130,6 +1179,22 @@ Give me 5 seconds. I'm **building a product summary** so I can understand what y
                 ))}
 
                 {/* Completion Choice UI */}
+                {showProductOffersChoice && (
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6 space-y-4">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">🎯 Ready for compelling offers!</h3>
+                      <p className="text-gray-600 mb-4">Let's create 6 irresistible product offer strategies.</p>
+                    </div>
+                    
+                    <Button
+                      onClick={generateProductOffers}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Generate Product Offers
+                    </Button>
+                  </div>
+                )}
+
                 {showCompletionChoice && (
                   <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6 space-y-4">
                     <div className="text-center">

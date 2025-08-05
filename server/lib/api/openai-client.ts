@@ -17,7 +17,7 @@ function getOpenAIClient(): OpenAI {
 }
 
 interface FunctionCallResult {
-  type: 'conversation' | 'product_summary' | 'email_strategy' | 'sales_approach' | 'progressive_strategy';
+  type: 'conversation' | 'product_summary' | 'email_strategy' | 'sales_approach' | 'progressive_strategy' | 'product_offers';
   message: string;
   data?: any;
   initialTarget?: string;
@@ -255,6 +255,82 @@ High-level strategic guidance for email generation.`;
   };
 }
 
+// Product offer generation function
+async function generateProductOffer(offerId: string, productContext: any, salesContext: any): Promise<any> {
+  const { OFFER_CONFIGS } = await import('../../email-content-generation/offer-configs.js');
+  
+  // Define offer options directly to avoid client-side import
+  const OFFER_OPTIONS = [
+    { id: 'hormozi', name: 'Hormozi', description: 'Benefit stacking that makes price negligible' },
+    { id: 'oneOnOne', name: '1-on-1', description: '15 minutes personalized guidance and FREE setup' },
+    { id: 'ifWeCant', name: 'Guarantee', description: 'Guarantee-based with compelling backup offer' },
+    { id: 'shinyFree', name: 'Shiny', description: 'Free valuable resources like cheat sheets, API keys' },
+    { id: 'caseStudy', name: 'Study', description: 'Social proof with specific company results' },
+    { id: 'coldEmailFormula', name: 'Formula', description: '5-part proven framework with 37% open rate' }
+  ];
+  
+  const offerConfig = OFFER_CONFIGS[offerId];
+  const offerOption = OFFER_OPTIONS.find(opt => opt.id === offerId);
+  
+  if (!offerConfig || !offerOption) {
+    throw new Error(`Offer configuration not found for: ${offerId}`);
+  }
+  
+  const perplexityPrompt = `
+Create an ultra-compelling ${offerOption.name} strategy for: ${productContext.productService}
+
+PRODUCT CONTEXT:
+- Service: ${productContext.productService}
+- Customer Feedback: ${productContext.customerFeedback}
+- Website: ${productContext.website}
+
+SALES CONTEXT: 
+${salesContext}
+
+OFFER FRAMEWORK:
+${offerConfig.framework}
+
+INSTRUCTIONS:
+${offerConfig.actionableStructure}
+
+Generate a highly specific, compelling offer using this framework. Make it irresistible for their exact product/service. Maximum 150 words.`;
+
+  const result = await queryPerplexity([
+    { role: "system", content: `You are an expert in ${offerOption.name} offer strategies. Create compelling, product-specific offers.` },
+    { role: "user", content: perplexityPrompt }
+  ]);
+
+  return {
+    id: offerId,
+    name: offerOption.name,
+    title: `${offerOption.name} Strategy`,
+    content: result.trim()
+  };
+}
+
+// Generate all product offers in parallel
+export async function generateAllProductOffers(productContext: any, salesContext: any): Promise<any[]> {
+  // Define offer options directly
+  const OFFER_OPTIONS = [
+    { id: 'hormozi', name: 'Hormozi', description: 'Benefit stacking that makes price negligible' },
+    { id: 'oneOnOne', name: '1-on-1', description: '15 minutes personalized guidance and FREE setup' },
+    { id: 'ifWeCant', name: 'Guarantee', description: 'Guarantee-based with compelling backup offer' },
+    { id: 'shinyFree', name: 'Shiny', description: 'Free valuable resources like cheat sheets, API keys' },
+    { id: 'caseStudy', name: 'Study', description: 'Social proof with specific company results' },
+    { id: 'coldEmailFormula', name: 'Formula', description: '5-part proven framework with 37% open rate' }
+  ];
+  
+  // Get all offer IDs
+  const offerIds = OFFER_OPTIONS.map(opt => opt.id);
+  
+  // Generate all offers in parallel for speed
+  const offers = await Promise.all(
+    offerIds.map(offerId => generateProductOffer(offerId, productContext, salesContext))
+  );
+  
+  return offers;
+}
+
 export async function queryOpenAI(
   messages: ChatCompletionMessageParam[],
   productContext: any
@@ -326,6 +402,27 @@ export async function queryOpenAI(
               required: ["strategyContext", "productContext"]
             }
           }
+        },
+        {
+          type: "function",
+          function: {
+            name: "generateProductOffers",
+            description: "Generate 6 compelling product offer strategies after sales approach is complete",
+            parameters: {
+              type: "object",
+              properties: {
+                salesContext: {
+                  type: "string",
+                  description: "Sales approach content for context"
+                },
+                productContext: {
+                  type: "object",
+                  description: "Product context"
+                }
+              },
+              required: ["salesContext", "productContext"]
+            }
+          }
         }
       ],
       temperature: 0.1,
@@ -362,6 +459,23 @@ export async function queryOpenAI(
           type: 'sales_approach',
           message: "Here's your sales approach strategy:",
           data: approach
+        };
+      } else if (functionName === 'generateProductOffers') {
+        const offers = await generateAllProductOffers(productContext, functionArgs.salesContext);
+        
+        // Format offers for display
+        const offersContent = offers.map(offer => 
+          `### ${offer.title}\n${offer.content}`
+        ).join('\n\n');
+        
+        return {
+          type: 'product_offers',
+          message: "🎯 Product Offer Strategies",
+          data: {
+            title: "Product Offer Strategies",
+            content: `## Product Offer Strategies\n\n${offersContent}`,
+            offers: offers
+          }
         };
       }
     }

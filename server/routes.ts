@@ -4069,6 +4069,42 @@ PHASE-SPECIFIC INSTRUCTIONS:
         };
         
         console.log('Progressive strategy result object:', result);
+      } else if (userInput === 'Generate product offers') {
+        // Handle product offers generation specifically
+        console.log('Handling product offers generation directly');
+        
+        try {
+          const { generateAllProductOffers } = await import('./lib/api/openai-client.js');
+          
+          // Get sales approach context from conversation history
+          const salesApproachMessage = conversationHistory?.find(msg => 
+            msg.sender === 'ai' && msg.content?.includes('Sales Approach Strategy')
+          );
+          const salesContext = salesApproachMessage?.content || 'sales approach context';
+          
+          const offers = await generateAllProductOffers(productContext, salesContext);
+          
+          // Format offers for display
+          const offersContent = offers.map(offer => 
+            `### ${offer.title}\n${offer.content}`
+          ).join('\n\n');
+          
+          result = {
+            type: 'product_offers',
+            message: "🎯 Product Offer Strategies",
+            data: {
+              title: "Product Offer Strategies", 
+              content: `## Product Offer Strategies\n\n${offersContent}`,
+              offers: offers
+            }
+          };
+        } catch (error) {
+          console.error('Product offers generation error:', error);
+          result = {
+            type: 'conversation',
+            message: "I encountered an issue generating your product offers. Let me try a different approach."
+          };
+        }
       } else if (userInput === 'Generate sales approach') {
         // Handle sales approach generation specifically
         console.log('Handling sales approach generation directly');
@@ -4174,6 +4210,10 @@ High-level strategic guidance for email generation.`;
             } else if (result.type === 'sales_approach') {
               await storage.updateStrategicProfile(profileId, { 
                 reportSalesContextGuidance: JSON.stringify(result.data) 
+              });
+            } else if (result.type === 'product_offers') {
+              await storage.updateStrategicProfile(profileId, { 
+                productOfferStrategies: JSON.stringify(result.data)
               });
             }
           }

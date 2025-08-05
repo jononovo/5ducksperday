@@ -349,6 +349,7 @@ export const strategicProfiles = pgTable("strategic_profiles", {
   productAnalysisSummary: text("product_analysis_summary"), // AI-generated product profile summary
   reportSalesContextGuidance: text("report_sales_context_guidance"), // AI-generated context for cold email approach
   reportSalesTargetingGuidance: text("report_sales_targeting_guidance"), // AI-generated targeting recommendations
+  productOfferStrategies: text("product_offer_strategies"), // JSON array of 6 offer strategies
   dailySearchQueries: text("daily_search_queries"), // JSON array of 8 daily search queries from strategy
   strategicPlan: jsonb("strategic_plan").default({}),
   searchPrompts: text("search_prompts").array(),
