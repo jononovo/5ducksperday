@@ -1,6 +1,17 @@
 import type { Contact, Company } from "@shared/schema";
 import type { SenderNames } from "../lib/name-resolver";
 
+export interface ToneConfig {
+  id: string;
+  name: string;
+  description: string;
+  systemPersonality: string;
+  greetingStyle: string;
+  writingStyle: string;
+  closingStyle: string;
+  additionalInstructions: string;
+}
+
 export interface EmailGenerationRequest {
   emailPrompt: string;
   contact: Contact | null;
@@ -8,6 +19,7 @@ export interface EmailGenerationRequest {
   userId: number;
   toEmail?: string;
   emailSubject?: string;
+  tone?: string;
 }
 
 export interface EmailGenerationResponse {

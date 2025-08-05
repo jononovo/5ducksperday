@@ -8,6 +8,13 @@ Preferred communication style: Simple, everyday language.
 Mobile UI preference: Compact, space-efficient design with seamless header-to-content transitions.
 
 ## Recent Changes
+**August 5, 2025**: Granular Email Tone System Implementation
+- Implemented comprehensive tone selection system with 6 distinct tones (Silly, Friendly, Default, Direct, Abrupt, BEAST MODE)
+- Created granular tone configuration with specific instructions for greetings, writing style, closings, and additional guidance
+- Enhanced prompt construction with targeted style guidelines instead of generic system messages
+- Added backwards-compatible tone parameter to email generation API
+- Maintained all existing functionality while enabling precise personality control for email generation
+
 **August 4, 2025**: Email Content Spacing Fix
 - Fixed email content parsing to preserve paragraph spacing from AI responses
 - Removed line filtering that was stripping all empty lines and cramping email text
