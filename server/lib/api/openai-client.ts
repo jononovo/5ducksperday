@@ -357,7 +357,7 @@ Format each offer as:
 ### [Strategy Name] Strategy
 [Compelling offer content - maximum 150 words]
 
-Make each offer highly specific to the product and irresistible to the target market.`;
+Create a list of 5 different ultra-specific, generous and exaggerated offer options for each of the 6 offer types/strategies.`;
 
   // Build conversation messages with context
   const messages: ChatCompletionMessageParam[] = [
