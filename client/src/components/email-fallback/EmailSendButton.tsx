@@ -161,32 +161,48 @@ export function EmailSendButton({
     );
   }
 
-  // If Gmail not authenticated, show dropdown with options
+  // If Gmail not authenticated, show split button with dropdown
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            disabled={disabled || isProcessing}
-            variant="outline"
-            className={cn(
-              "h-8 px-3 text-xs bg-white text-black border-black hover:bg-black hover:text-white hover:scale-105 transition-all duration-300 ease-out",
-              disabled && "opacity-50 cursor-not-allowed",
-              className
-            )}
-          >
-            {isProcessing ? (
-              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-            ) : (
-              <>
-                <Send className="w-3 h-3 mr-1" />
-                {getButtonText()}
-                <ChevronDown className="w-3 h-3 ml-1" />
-              </>
-            )}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+      <div className={cn("inline-flex rounded-md shadow-sm", className)}>
+        {/* Main Button - Direct action to default email app */}
+        <Button
+          onClick={() => handleFallbackSend('mailto')}
+          disabled={disabled || isProcessing}
+          variant="outline"
+          className={cn(
+            "h-8 px-3 text-xs bg-white text-black border-black hover:bg-black hover:text-white transition-all duration-300 ease-out",
+            "rounded-r-none border-r-0",
+            disabled && "opacity-50 cursor-not-allowed"
+          )}
+        >
+          {isProcessing ? (
+            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+          ) : (
+            <>
+              <Send className="w-3 h-3 mr-1" />
+              {getButtonText()}
+            </>
+          )}
+        </Button>
+
+        {/* Dropdown Button - Shows menu with all options */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              disabled={disabled || isProcessing}
+              variant="outline"
+              className={cn(
+                "h-8 px-2 text-xs bg-white text-black border-black hover:bg-black hover:text-white transition-all duration-300 ease-out",
+                "rounded-l-none border-l border-gray-300",
+                disabled && "opacity-50 cursor-not-allowed"
+              )}
+              aria-label="More email options"
+            >
+              <ChevronDown className="w-3 h-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuItem 
             onClick={() => handleFallbackSend('mailto')}
             className="cursor-pointer"
@@ -225,6 +241,7 @@ export function EmailSendButton({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      </div>
 
       {/* Platform Notification Modal */}
       {platformNotification && (
