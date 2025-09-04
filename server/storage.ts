@@ -1,6 +1,6 @@
 import { 
   userPreferences, lists, companies, contacts, emailTemplates, users,
-  strategicProfiles, onboardingChats, userEmailPreferences,
+  strategicProfiles, userEmailPreferences, campaigns,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type List, type InsertList,
@@ -9,7 +9,7 @@ import {
   type EmailTemplate, type InsertEmailTemplate,
   type User, type InsertUser,
   type StrategicProfile, type InsertStrategicProfile,
-  type OnboardingChat, type InsertOnboardingChat
+  type Campaign, type InsertCampaign
 } from "@shared/schema";
 import { db } from "./1--db";
 import { eq, and, or, sql, desc } from "drizzle-orm";
@@ -47,16 +47,16 @@ export interface IStorage {
   updateContact(id: number, data: Partial<Contact>): Promise<Contact>;
   deleteContactsByCompany(companyId: number, userId: number): Promise<void>;
 
-  // Email Conversations
-  listActiveContactsWithThreads(userId: number): Promise<(Contact & { lastMessage: string, lastMessageDate: Date, unread: boolean })[]>;
-  listThreadsByContact(contactId: number, userId: number): Promise<EmailThread[]>;
-  getThread(id: number, userId: number): Promise<EmailThread | undefined>;
-  createThread(data: InsertEmailThread): Promise<EmailThread>;
-  updateThread(id: number, data: Partial<EmailThread>): Promise<EmailThread>;
-  listMessagesByThread(threadId: number): Promise<EmailMessage[]>;
-  getThreadMessage(id: number): Promise<EmailMessage | undefined>;
-  createMessage(data: InsertEmailMessage): Promise<EmailMessage>;
-  markThreadMessagesAsRead(threadId: number): Promise<void>;
+  // Email Conversations (inactive - commented out)
+  // listActiveContactsWithThreads(userId: number): Promise<(Contact & { lastMessage: string, lastMessageDate: Date, unread: boolean })[]>;
+  // listThreadsByContact(contactId: number, userId: number): Promise<EmailThread[]>;
+  // getThread(id: number, userId: number): Promise<EmailThread | undefined>;
+  // createThread(data: InsertEmailThread): Promise<EmailThread>;
+  // updateThread(id: number, data: Partial<EmailThread>): Promise<EmailThread>;
+  // listMessagesByThread(threadId: number): Promise<EmailMessage[]>;
+  // getThreadMessage(id: number): Promise<EmailMessage | undefined>;
+  // createMessage(data: InsertEmailMessage): Promise<EmailMessage>;
+  // markThreadMessagesAsRead(threadId: number): Promise<void>;
   
   // Campaigns
   listCampaigns(userId: number): Promise<Campaign[]>;
