@@ -7,6 +7,7 @@ import {
   formatGeneratedContent,
   validateEmailGenerationRequest 
 } from "./outreach-utils";
+import { applySmartReplacements } from "./smart-replacements";
 import type { EmailGenerationPayload, EmailGenerationResponse } from "./types";
 import type { Contact, Company } from "@shared/schema";
 
@@ -66,9 +67,17 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
       return generateEmailApi(payload);
     },
     onSuccess: (data: EmailGenerationResponse) => {
-      // Always replace subject with generated subject
-      setEmailSubject(data.subject);
-      setOriginalEmailSubject(data.subject);
+      // Apply smart replacements to convert exact name matches to merge fields
+      const processed = applySmartReplacements(
+        data.content,
+        data.subject,
+        selectedContact,
+        selectedCompany
+      );
+      
+      // Set the processed subject with merge fields
+      setEmailSubject(processed.subject);
+      setOriginalEmailSubject(processed.subject);
       
       // Always set email field to match selected contact (prevents accidental sends)
       if (selectedContact?.email) {
@@ -77,8 +86,8 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
         setToEmail(''); // Clear field if contact has no email
       }
       
-      // Format and set content
-      const newContent = formatGeneratedContent(data.content, emailContent);
+      // Format and set the processed content with merge fields
+      const newContent = formatGeneratedContent(processed.content, emailContent);
       setEmailContent(newContent);
       setOriginalEmailContent(newContent);
       
