@@ -812,6 +812,19 @@ export default function Outreach() {
     if (contact.email) {
       setToEmail(contact.email);
       setSelectedContactId(contact.id);
+      
+      // Update company index if contact is from different company
+      const contactCompanyIndex = companies.findIndex(c => c.id === contact.companyId);
+      if (contactCompanyIndex !== -1 && contactCompanyIndex !== selectedCompanyIndex) {
+        setCurrentCompanyIndex(contactCompanyIndex);
+      }
+      
+      // Update contact index in the list
+      const contactIndex = topContacts.findIndex(c => c.id === contact.id);
+      if (contactIndex !== -1) {
+        setCurrentContactIndex(contactIndex);
+      }
+      
       toast({
         title: "Email populated",
         description: `${contact.name}'s email added to recipient field`,
@@ -829,6 +842,12 @@ export default function Outreach() {
       // Auto-populate email if available
       if (highestProbabilityContact.email && !toEmail) {
         setToEmail(highestProbabilityContact.email);
+      }
+      
+      // Update company index if contact is from different company
+      const contactCompanyIndex = companies.findIndex(c => c.id === highestProbabilityContact.companyId);
+      if (contactCompanyIndex !== -1 && contactCompanyIndex !== selectedCompanyIndex) {
+        setCurrentCompanyIndex(contactCompanyIndex);
       }
     }
   }, [topContacts, selectedContactId, toEmail]);
@@ -1298,6 +1317,24 @@ export default function Outreach() {
                         )}
                         onClick={() => {
                           setSelectedContactId(contact.id);
+                          
+                          // Update email field
+                          if (contact.email) {
+                            setToEmail(contact.email);
+                          }
+                          
+                          // Update company index if contact is from different company
+                          const contactCompanyIndex = companies.findIndex(c => c.id === contact.companyId);
+                          if (contactCompanyIndex !== -1 && contactCompanyIndex !== selectedCompanyIndex) {
+                            setCurrentCompanyIndex(contactCompanyIndex);
+                          }
+                          
+                          // Update contact index in the list
+                          const contactIndex = topContacts.findIndex(c => c.id === contact.id);
+                          if (contactIndex !== -1) {
+                            setCurrentContactIndex(contactIndex);
+                          }
+                          
                           // On mobile, immediately collapse after contact selection
                           if (typeof window !== 'undefined' && window.innerWidth < 768) { // md breakpoint
                             setIsMobileExpanded(false);

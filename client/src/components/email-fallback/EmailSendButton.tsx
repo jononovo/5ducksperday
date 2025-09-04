@@ -12,8 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 import { environmentDetector } from '@/services/email-fallback/environment-detector';
 import { EmailLinkGenerator } from '@/services/email-fallback/email-link-generator';
 import { EmailOptions } from '@/services/email-fallback/email-link-generator';
-import { PlatformNotificationModal } from './PlatformNotificationModal';
-import { EmailFallbackModal } from './EmailFallbackModal';
+// Modal components are not yet implemented
+// import { PlatformNotificationModal } from './PlatformNotificationModal';
+// import { EmailFallbackModal } from './EmailFallbackModal';
 import { cn } from '@/lib/utils';
 import { resolveAllMergeFields } from '@/lib/merge-field-resolver';
 import type { Contact, Company } from '@shared/schema';
@@ -65,8 +66,7 @@ export function EmailSendButton({
       email: contact.email || undefined
     },
     company: {
-      name: company.name,
-      website: company.website || undefined
+      name: company.name
     },
     sender: { name: user?.username || user?.email || 'Sender' }
   }) : subject;
@@ -78,8 +78,7 @@ export function EmailSendButton({
       email: contact.email || undefined
     },
     company: {
-      name: company.name,
-      website: company.website || undefined
+      name: company.name
     },
     sender: { name: user?.username || user?.email || 'Sender' }
   }) : body;
@@ -278,22 +277,21 @@ export function EmailSendButton({
       </DropdownMenu>
       </div>
 
-      {/* Platform Notification Modal */}
-      {platformNotification && (
+      {/* Modal components not yet implemented */}
+      {/* {platformNotification && (
         <PlatformNotificationModal
           open={showPlatformNotification}
           onOpenChange={setShowPlatformNotification}
           notification={platformNotification}
         />
-      )}
+      )} */}
 
-      {/* Fallback Options Modal */}
-      <EmailFallbackModal
+      {/* <EmailFallbackModal
         open={showFallbackModal}
         onOpenChange={setShowFallbackModal}
         emailOptions={emailOptions}
         onSelectMethod={handleFallbackSend}
-      />
+      /> */}
     </>
   );
 }
