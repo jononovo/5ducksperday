@@ -1762,6 +1762,8 @@ export default function Outreach() {
                     to={toEmail}
                     subject={emailSubject}
                     body={emailContent}
+                    contact={selectedContact}
+                    company={selectedCompany}
                     isGmailAuthenticated={gmailStatus?.authorized}
                     onSendViaGmail={handleSendEmail}
                     isPending={sendEmailMutation.isPending}

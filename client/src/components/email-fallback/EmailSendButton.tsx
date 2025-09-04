@@ -15,6 +15,9 @@ import { EmailOptions } from '@/services/email-fallback/email-link-generator';
 import { PlatformNotificationModal } from './PlatformNotificationModal';
 import { EmailFallbackModal } from './EmailFallbackModal';
 import { cn } from '@/lib/utils';
+import { resolveAllMergeFields } from '@/lib/merge-field-resolver';
+import type { Contact, Company } from '@shared/schema';
+import { useAuth } from '@/hooks/use-auth';
 
 interface EmailSendButtonProps {
   to: string;
@@ -22,6 +25,8 @@ interface EmailSendButtonProps {
   body: string;
   cc?: string;
   bcc?: string;
+  contact?: Contact;
+  company?: Company;
   isGmailAuthenticated?: boolean;
   onSendViaGmail?: () => void;
   isPending?: boolean;
@@ -36,6 +41,8 @@ export function EmailSendButton({
   body,
   cc,
   bcc,
+  contact,
+  company,
   isGmailAuthenticated = false,
   onSendViaGmail,
   isPending = false,
@@ -44,12 +51,40 @@ export function EmailSendButton({
   disabled = false
 }: EmailSendButtonProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [showPlatformNotification, setShowPlatformNotification] = useState(false);
   const [showFallbackModal, setShowFallbackModal] = useState(false);
   const [platformNotification, setPlatformNotification] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const emailOptions: EmailOptions = { to, subject, body, cc, bcc };
+  // Resolve merge fields if contact and company are provided
+  const resolvedSubject = contact && company ? resolveAllMergeFields(subject, {
+    contact: {
+      name: contact.name,
+      role: contact.role || undefined,
+      email: contact.email || undefined
+    },
+    company: {
+      name: company.name,
+      website: company.website || undefined
+    },
+    sender: { name: user?.username || user?.email || 'Sender' }
+  }) : subject;
+
+  const resolvedBody = contact && company ? resolveAllMergeFields(body, {
+    contact: {
+      name: contact.name,
+      role: contact.role || undefined,
+      email: contact.email || undefined
+    },
+    company: {
+      name: company.name,
+      website: company.website || undefined
+    },
+    sender: { name: user?.username || user?.email || 'Sender' }
+  }) : body;
+
+  const emailOptions: EmailOptions = { to, subject: resolvedSubject, body: resolvedBody, cc, bcc };
   const env = environmentDetector.detect();
 
   useEffect(() => {

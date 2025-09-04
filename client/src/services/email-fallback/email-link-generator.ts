@@ -22,18 +22,25 @@ export class EmailLinkGenerator {
    * Respects character limits and encodes special characters
    */
   static generateMailtoLink(options: EmailOptions): string {
-    const params = new URLSearchParams();
+    // Build parameters manually with proper encoding for mailto links
+    const params: string[] = [];
     
-    if (options.cc) params.append('cc', options.cc);
-    if (options.bcc) params.append('bcc', options.bcc);
-    if (options.subject) params.append('subject', options.subject);
+    if (options.cc) {
+      params.push(`cc=${encodeURIComponent(options.cc)}`);
+    }
+    if (options.bcc) {
+      params.push(`bcc=${encodeURIComponent(options.bcc)}`);
+    }
+    if (options.subject) {
+      params.push(`subject=${encodeURIComponent(options.subject)}`);
+    }
     if (options.body) {
       // Ensure proper line breaks in body
       const formattedBody = this.formatEmailBody(options.body);
-      params.append('body', formattedBody);
+      params.push(`body=${encodeURIComponent(formattedBody)}`);
     }
     
-    const queryString = params.toString();
+    const queryString = params.join('&');
     const mailtoLink = `mailto:${options.to}${queryString ? '?' + queryString : ''}`;
     
     // Check character limit
@@ -140,19 +147,22 @@ export class EmailLinkGenerator {
       const truncatedBody = options.body.substring(0, availableForBody / 3); // Account for encoding
       const truncatedOptions = { ...options, body: truncatedBody + '...' };
       
-      const params = new URLSearchParams();
-      if (truncatedOptions.cc) params.append('cc', truncatedOptions.cc);
-      if (truncatedOptions.bcc) params.append('bcc', truncatedOptions.bcc);
-      if (truncatedOptions.subject) params.append('subject', truncatedOptions.subject);
-      params.append('body', this.formatEmailBody(truncatedOptions.body));
+      // Build params manually with proper encoding
+      const params: string[] = [];
+      if (truncatedOptions.cc) params.push(`cc=${encodeURIComponent(truncatedOptions.cc)}`);
+      if (truncatedOptions.bcc) params.push(`bcc=${encodeURIComponent(truncatedOptions.bcc)}`);
+      if (truncatedOptions.subject) params.push(`subject=${encodeURIComponent(truncatedOptions.subject)}`);
       
-      return `mailto:${truncatedOptions.to}?${params.toString()}`;
+      const formattedBody = this.formatEmailBody(truncatedOptions.body);
+      params.push(`body=${encodeURIComponent(formattedBody)}`);
+      
+      return `mailto:${truncatedOptions.to}?${params.join('&')}`;
     }
     
     // If still too long, just include recipient and subject
-    const minimalParams = new URLSearchParams();
-    if (options.subject) minimalParams.append('subject', options.subject);
-    return `mailto:${options.to}?${minimalParams.toString()}`;
+    const minimalParams: string[] = [];
+    if (options.subject) minimalParams.push(`subject=${encodeURIComponent(options.subject)}`);
+    return `mailto:${options.to}${minimalParams.length > 0 ? '?' + minimalParams.join('&') : ''}`;
   }
   
   /**
