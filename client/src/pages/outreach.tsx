@@ -133,6 +133,8 @@ export default function Outreach() {
   const [selectedOfferStrategy, setSelectedOfferStrategy] = useState<string>(DEFAULT_OFFER);
   const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
   const [generateConfirmDialogOpen, setGenerateConfirmDialogOpen] = useState(false);
+  const [productChangeDialogOpen, setProductChangeDialogOpen] = useState(false);
+  const [pendingProduct, setPendingProduct] = useState<StrategicProfile | null>(null);
 
   // Refs for form inputs to handle merge field insertion
   const emailPromptRef = useRef<HTMLTextAreaElement>(null);
@@ -478,6 +480,21 @@ export default function Outreach() {
 
   // Handle product selection and insert context into email prompt
   const handleSelectProduct = (product: StrategicProfile) => {
+    // Check if there's existing content in the prompt
+    if (emailPrompt.trim() && selectedProduct !== product.id) {
+      // Store the pending product and show confirmation dialog
+      setPendingProduct(product);
+      setProductChangeDialogOpen(true);
+      setProductPopoverOpen(false);
+      return;
+    }
+    
+    // No existing content or same product, proceed directly
+    applyProductSelection(product);
+  };
+
+  // Apply the product selection (used after confirmation or direct selection)
+  const applyProductSelection = (product: StrategicProfile) => {
     setSelectedProduct(product.id);
     setProductPopoverOpen(false);
     
@@ -493,11 +510,8 @@ export default function Outreach() {
       productContext.push(`Website: ${product.website}`);
     }
     
-    // Insert at the beginning of email prompt with line breaks
-    const existingPrompt = emailPrompt.trim();
-    const newPrompt = productContext.length > 0 
-      ? productContext.join('\n') + (existingPrompt ? '\n\n' + existingPrompt : '')
-      : existingPrompt;
+    // REPLACE the email prompt completely (not append)
+    const newPrompt = productContext.join('\n');
     
     setEmailPrompt(newPrompt);
     setOriginalEmailPrompt(newPrompt);
@@ -508,9 +522,39 @@ export default function Outreach() {
     }, 0);
   };
 
+  // Handle product change confirmation
+  const handleConfirmProductChange = () => {
+    if (pendingProduct) {
+      applyProductSelection(pendingProduct);
+    } else {
+      // Handle "None" selection - clear the prompt
+      setEmailPrompt('');
+      setOriginalEmailPrompt('');
+      setSelectedProduct(null);
+      setTimeout(() => handlePromptTextareaResize(), 0);
+    }
+    setPendingProduct(null);
+    setProductChangeDialogOpen(false);
+  };
+
+  // Handle product change cancellation
+  const handleCancelProductChange = () => {
+    setPendingProduct(null);
+    setProductChangeDialogOpen(false);
+  };
+
   // Handle "None" selection (clear product)
   const handleSelectNone = () => {
-    // Only clear if a product was actually selected
+    // Check if there's existing content in the prompt
+    if (emailPrompt.trim() && selectedProduct !== null) {
+      // Store null as pending and show confirmation dialog
+      setPendingProduct(null);
+      setProductChangeDialogOpen(true);
+      setProductPopoverOpen(false);
+      return;
+    }
+    
+    // No existing content, proceed directly
     if (selectedProduct !== null) {
       setEmailPrompt('');
       setOriginalEmailPrompt('');
@@ -1853,6 +1897,26 @@ export default function Outreach() {
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmGenerate}>
               Generate Email
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Product Change Confirmation Dialog */}
+      <AlertDialog open={productChangeDialogOpen} onOpenChange={setProductChangeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change Product</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will replace the current email prompt with the new product details. Continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelProductChange}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmProductChange}>
+              OK
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
