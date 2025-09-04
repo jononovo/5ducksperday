@@ -135,6 +135,21 @@ export const userPreferences = pgTable("user_preferences", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+// Email sending preferences for fallback system
+export const userEmailPreferences = pgTable("user_email_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  preferredMethod: text("preferred_method").default('smart-default'), // 'smart-default' | 'gmail' | 'outlook' | 'default-app' | 'ask-always'
+  hasSeenFirstTimeModal: boolean("has_seen_first_time_modal").default(false),
+  hasSeenIOSNotification: boolean("has_seen_ios_notification").default(false),
+  hasSeenAndroidNotification: boolean("has_seen_android_notification").default(false),
+  successCount: integer("success_count").default(0),
+  failureCount: integer("failure_count").default(0),
+  lastUsedMethod: text("last_used_method"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 
 
 // N8N Workflow tables have been removed
@@ -223,6 +238,16 @@ const userPreferencesSchema = z.object({
   // hasSeenTour field removed
 });
 
+const userEmailPreferencesSchema = z.object({
+  preferredMethod: z.enum(['smart-default', 'gmail', 'outlook', 'default-app', 'ask-always']).default('smart-default'),
+  hasSeenFirstTimeModal: z.boolean().default(false),
+  hasSeenIOSNotification: z.boolean().default(false),
+  hasSeenAndroidNotification: z.boolean().default(false),
+  successCount: z.number().default(0),
+  failureCount: z.number().default(0),
+  lastUsedMethod: z.string().optional()
+});
+
 
 
 // N8N Workflow schemas have been removed
@@ -241,6 +266,9 @@ export const insertEmailTemplateSchema = emailTemplateSchema.extend({
   userId: z.number()
 });
 export const insertUserPreferencesSchema = userPreferencesSchema;
+export const insertUserEmailPreferencesSchema = userEmailPreferencesSchema.extend({
+  userId: z.number()
+});
 
 export type List = typeof lists.$inferSelect;
 export type InsertList = z.infer<typeof insertListSchema>;
@@ -257,6 +285,8 @@ export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
+export type UserEmailPreferences = typeof userEmailPreferences.$inferSelect;
+export type InsertUserEmailPreferences = z.infer<typeof insertUserEmailPreferencesSchema>;
 
 // N8N workflow types have been removed
 

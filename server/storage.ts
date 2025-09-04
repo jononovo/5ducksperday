@@ -1,7 +1,8 @@
 import { 
   userPreferences, lists, companies, contacts, emailTemplates, users,
-  strategicProfiles, onboardingChats,
+  strategicProfiles, onboardingChats, userEmailPreferences,
   type UserPreferences, type InsertUserPreferences,
+  type UserEmailPreferences, type InsertUserEmailPreferences,
   type List, type InsertList,
   type Company, type InsertCompany,
   type Contact, type InsertContact,
@@ -70,7 +71,10 @@ export interface IStorage {
   createEmailTemplate(data: InsertEmailTemplate): Promise<EmailTemplate>;
   updateEmailTemplate(id: number, data: InsertEmailTemplate): Promise<EmailTemplate>;
 
-
+  // User Email Preferences
+  getUserEmailPreferences(userId: number): Promise<UserEmailPreferences | undefined>;
+  createUserEmailPreferences(data: InsertUserEmailPreferences): Promise<UserEmailPreferences>;
+  updateUserEmailPreferences(userId: number, data: Partial<UserEmailPreferences>): Promise<UserEmailPreferences | undefined>;
 
   // Strategic Profiles
   getStrategicProfiles(userId: number): Promise<StrategicProfile[]>;
@@ -423,6 +427,32 @@ class DatabaseStorage implements IStorage {
       console.error('Error updating email template:', error);
       throw error;
     }
+  }
+
+  // User Email Preferences methods
+  async getUserEmailPreferences(userId: number): Promise<UserEmailPreferences | undefined> {
+    const [prefs] = await db
+      .select()
+      .from(userEmailPreferences)
+      .where(eq(userEmailPreferences.userId, userId));
+    return prefs;
+  }
+
+  async createUserEmailPreferences(data: InsertUserEmailPreferences): Promise<UserEmailPreferences> {
+    const [prefs] = await db
+      .insert(userEmailPreferences)
+      .values(data)
+      .returning();
+    return prefs;
+  }
+
+  async updateUserEmailPreferences(userId: number, data: Partial<UserEmailPreferences>): Promise<UserEmailPreferences | undefined> {
+    const [prefs] = await db
+      .update(userEmailPreferences)
+      .set(data)
+      .where(eq(userEmailPreferences.userId, userId))
+      .returning();
+    return prefs;
   }
 
   // Strategic Profiles methods

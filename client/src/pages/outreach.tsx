@@ -83,6 +83,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { EmailSendButton } from "@/components/email-fallback/EmailSendButton";
+import { useEmailFallback } from "@/hooks/useEmailFallback";
 
 
 // Define interfaces
@@ -1755,31 +1757,17 @@ export default function Outreach() {
                     </Button>
                   )}
                   
-                  {/* Send Email Button */}
-                  <Button
-                    onClick={handleSendEmail}
-                    disabled={sendEmailMutation.isPending || !gmailStatus?.authorized}
-                    variant="outline"
-                    className={cn(
-                      "h-8 px-3 text-xs bg-white text-black border-black hover:bg-black hover:text-white hover:scale-105 transition-all duration-300 ease-out",
-                      sendEmailMutation.isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500",
-                      !gmailStatus?.authorized && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    {sendEmailMutation.isPending ? (
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                    ) : sendEmailMutation.isSuccess ? (
-                      <>
-                        <PartyPopper className="w-3 h-3 mr-1" />
-                        Sent Email
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-3 h-3 mr-1" />
-                        Send Email
-                      </>
-                    )}
-                  </Button>
+                  {/* Send Email Button with Fallback */}
+                  <EmailSendButton
+                    to={toEmail}
+                    subject={emailSubject}
+                    body={emailContent}
+                    isGmailAuthenticated={gmailStatus?.authorized}
+                    onSendViaGmail={handleSendEmail}
+                    isPending={sendEmailMutation.isPending}
+                    isSuccess={sendEmailMutation.isSuccess}
+                    className="h-8 px-3 text-xs"
+                  />
                 </div>
               </div>
 

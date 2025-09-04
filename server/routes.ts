@@ -4713,6 +4713,71 @@ Respond in this exact JSON format:
     }
   });
 
+  // Email preferences endpoints
+  app.get('/api/email-preferences', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      
+      // Get or create email preferences
+      let preferences = await storage.getUserEmailPreferences(userId);
+      
+      if (!preferences) {
+        // Create default preferences
+        preferences = await storage.createUserEmailPreferences({
+          userId,
+          preferredMethod: 'smart-default',
+          hasSeenFirstTimeModal: false,
+          hasSeenIOSNotification: false,
+          hasSeenAndroidNotification: false,
+          successCount: 0,
+          failureCount: 0
+        });
+      }
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error('Error fetching email preferences:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to fetch email preferences' 
+      });
+    }
+  });
+
+  app.put('/api/email-preferences', requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const updates = req.body;
+      
+      // Remove userId from updates if present (we use the authenticated user's ID)
+      delete updates.userId;
+      
+      // Update preferences
+      const updatedPreferences = await storage.updateUserEmailPreferences(userId, updates);
+      
+      if (!updatedPreferences) {
+        // Create if doesn't exist
+        const newPreferences = await storage.createUserEmailPreferences({
+          userId,
+          preferredMethod: 'smart-default',
+          hasSeenFirstTimeModal: false,
+          hasSeenIOSNotification: false,
+          hasSeenAndroidNotification: false,
+          successCount: 0,
+          failureCount: 0,
+          ...updates
+        });
+        res.json(newPreferences);
+      } else {
+        res.json(updatedPreferences);
+      }
+    } catch (error) {
+      console.error('Error updating email preferences:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to update email preferences' 
+      });
+    }
+  });
+
   // Delete strategic profile endpoint (for React Strategy Chat restart)
   app.delete('/api/strategic-profiles/:id', requireAuth, async (req, res) => {
     try {
