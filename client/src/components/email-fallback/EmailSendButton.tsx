@@ -8,6 +8,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { environmentDetector } from '@/services/email-fallback/environment-detector';
 import { EmailLinkGenerator } from '@/services/email-fallback/email-link-generator';
@@ -57,6 +63,8 @@ export function EmailSendButton({
   const [showFallbackModal, setShowFallbackModal] = useState(false);
   const [platformNotification, setPlatformNotification] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [validationError, setValidationError] = useState(false);
+  const [showErrorTooltip, setShowErrorTooltip] = useState(false);
 
   // Resolve merge fields if contact and company are provided
   const resolvedSubject = contact && company ? resolveAllMergeFields(subject, {
@@ -94,8 +102,34 @@ export function EmailSendButton({
     }
   }, []);
 
+  // Validate email fields
+  const validateFields = () => {
+    // Check both subject and body have content
+    const hasContent = resolvedBody?.trim() && resolvedSubject?.trim();
+    
+    if (!hasContent) {
+      // Trigger error state
+      setValidationError(true);
+      setShowErrorTooltip(true);
+      
+      // Reset after 2 seconds
+      setTimeout(() => {
+        setValidationError(false);
+        setShowErrorTooltip(false);
+      }, 2000);
+      
+      return false;
+    }
+    return true;
+  };
+
   // Handle send via authenticated Gmail
   const handleGmailSend = () => {
+    // Validate before sending
+    if (!validateFields()) {
+      return;
+    }
+    
     if (onSendViaGmail) {
       onSendViaGmail();
     }
@@ -103,6 +137,11 @@ export function EmailSendButton({
 
   // Handle fallback email methods
   const handleFallbackSend = async (method: 'mailto' | 'gmail' | 'outlook' | 'yahoo' | 'copy') => {
+    // Validate before processing
+    if (!validateFields()) {
+      return;
+    }
+    
     setIsProcessing(true);
 
     try {
@@ -167,66 +206,80 @@ export function EmailSendButton({
   // If Gmail is authenticated, show simple button
   if (isGmailAuthenticated) {
     return (
-      <Button
-        onClick={handleGmailSend}
-        disabled={disabled || isPending}
-        variant="outline"
-        className={cn(
-          "h-8 px-3 text-xs border transition-all duration-300 ease-out",
-          // Better visibility: green theme when there's content, subtle when empty
-          body?.trim() ? 
-            "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600 hover:scale-105" :
-            "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
-          isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500",
-          disabled && "opacity-50 cursor-not-allowed",
-          className
-        )}
-      >
-        {isPending ? (
-          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-        ) : isSuccess ? (
-          <>
-            <Mail className="w-3 h-3 mr-1" />
-            Sent Email
-          </>
-        ) : (
-          <>
-            <Send className="w-3 h-3 mr-1" />
-            Send Email
-          </>
-        )}
-      </Button>
+      <TooltipProvider>
+        <Tooltip open={showErrorTooltip}>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={handleGmailSend}
+              disabled={disabled || isPending}
+              variant="outline"
+              className={cn(
+                "h-8 px-3 text-xs border transition-all duration-300 ease-out",
+                // Better visibility: green theme when there's content, subtle when empty
+                body?.trim() ? 
+                  "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600 hover:scale-105" :
+                  "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
+                isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500",
+                validationError && "shake-animation border-red-500 border-2",
+                disabled && "opacity-50 cursor-not-allowed",
+                className
+              )}
+            >
+              {isPending ? (
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              ) : isSuccess ? (
+                <>
+                  <Mail className="w-3 h-3 mr-1" />
+                  Sent Email
+                </>
+              ) : (
+                <>
+                  <Send className="w-3 h-3 mr-1" />
+                  Send Email
+                </>
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Please add content to email body and subject before sending</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 
   // If Gmail not authenticated, show split button with dropdown
   return (
     <>
-      <div className={cn("inline-flex rounded-md shadow-sm", className)}>
-        {/* Main Button - Direct action to default email app */}
-        <Button
-          onClick={() => handleFallbackSend('mailto')}
-          disabled={disabled || isProcessing}
-          variant="outline"
-          className={cn(
-            "h-8 px-3 text-xs border transition-all duration-300 ease-out",
-            // Better visibility: green theme when there's content, subtle when empty
-            body?.trim() ? 
-              "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
-              "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
-            "rounded-r-none border-r-0",
-            disabled && "opacity-50 cursor-not-allowed"
-          )}
-        >
-          {isProcessing ? (
-            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-          ) : (
-            <>
-              <Send className="w-3 h-3 mr-1" />
-              {getButtonText()}
-            </>
-          )}
-        </Button>
+      <TooltipProvider>
+        <Tooltip open={showErrorTooltip}>
+          <TooltipTrigger asChild>
+            <div className={cn("inline-flex rounded-md shadow-sm", className)}>
+              {/* Main Button - Direct action to default email app */}
+              <Button
+                onClick={() => handleFallbackSend('mailto')}
+                disabled={disabled || isProcessing}
+                variant="outline"
+                className={cn(
+                  "h-8 px-3 text-xs border transition-all duration-300 ease-out",
+                  // Better visibility: green theme when there's content, subtle when empty
+                  body?.trim() ? 
+                    "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
+                    "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
+                  "rounded-r-none border-r-0",
+                  validationError && "shake-animation border-red-500 border-2",
+                  disabled && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                {isProcessing ? (
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                ) : (
+                  <>
+                    <Send className="w-3 h-3 mr-1" />
+                    {getButtonText()}
+                  </>
+                )}
+              </Button>
 
         {/* Dropdown Button - Shows menu with all options */}
         <DropdownMenu>
@@ -286,8 +339,14 @@ export function EmailSendButton({
             More Options...
           </DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
-      </div>
+              </DropdownMenu>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Please add content to email body and subject before sending</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       {/* Modal components not yet implemented */}
       {/* {platformNotification && (
