@@ -50,10 +50,12 @@ interface CompanyTableProps {
   handleAeroLeadsSearch?: (contactId: number) => void;
   handleApolloSearch?: (contactId: number) => void;
   handleEnrichContact?: (contactId: number) => void;
+  handleComprehensiveEmailSearch?: (contactId: number) => void;
   pendingHunterIds?: Set<number>;
   pendingAeroLeadsIds?: Set<number>;
   pendingApolloIds?: Set<number>;
   pendingContactIds?: Set<number>;
+  pendingComprehensiveSearchIds?: Set<number>;
 }
 
 export default function CompanyTable({ 
@@ -63,10 +65,12 @@ export default function CompanyTable({
   handleAeroLeadsSearch,
   handleApolloSearch,
   handleEnrichContact,
+  handleComprehensiveEmailSearch,
   pendingHunterIds,
   pendingAeroLeadsIds,
   pendingApolloIds,
-  pendingContactIds
+  pendingContactIds,
+  pendingComprehensiveSearchIds
 }: CompanyTableProps) {
   // Move console logging to useEffect to avoid React warnings about state updates during render
   useEffect(() => {
@@ -360,12 +364,27 @@ export default function CompanyTable({
                           <TooltipProvider delayDuration={300}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span className="text-muted-foreground">
-                                  <Mail className="h-4 w-4 text-gray-400" />
-                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-4 w-4 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleComprehensiveEmailSearch?.(contact.id);
+                                  }}
+                                  disabled={pendingComprehensiveSearchIds?.has(contact.id)}
+                                >
+                                  <Mail className={`h-4 w-4 ${
+                                    pendingComprehensiveSearchIds?.has(contact.id) 
+                                      ? "animate-spin text-blue-500" 
+                                      : "text-gray-400 hover:text-blue-500 transition-colors"
+                                  }`} />
+                                </Button>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="text-xs">
-                                <p>Use "Action" icons on this row to find this email. 👉🏼</p>
+                                <p>{pendingComprehensiveSearchIds?.has(contact.id) 
+                                  ? "Searching for email..." 
+                                  : "Click to search all sources for email"}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -387,12 +406,27 @@ export default function CompanyTable({
                           <TooltipProvider delayDuration={300}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span className="text-muted-foreground">
-                                  <Mail className="h-4 w-4 text-gray-400" />
-                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-4 w-4 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleComprehensiveEmailSearch?.(contact.id);
+                                  }}
+                                  disabled={pendingComprehensiveSearchIds?.has(contact.id)}
+                                >
+                                  <Mail className={`h-4 w-4 ${
+                                    pendingComprehensiveSearchIds?.has(contact.id) 
+                                      ? "animate-spin text-blue-500" 
+                                      : "text-gray-400 hover:text-blue-500 transition-colors"
+                                  }`} />
+                                </Button>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="text-xs">
-                                <p>Use "Action" icons on this row to find this email. 👉🏼</p>
+                                <p>{pendingComprehensiveSearchIds?.has(contact.id) 
+                                  ? "Searching for email..." 
+                                  : "Click to search all sources for email"}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>

@@ -121,6 +121,7 @@ export default function Home() {
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
+  const [pendingComprehensiveSearchIds, setPendingComprehensiveSearchIds] = useState<Set<number>>(new Set());
   const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -2459,6 +2460,144 @@ export default function Home() {
     
     apolloMutation.mutate({ contactId, searchContext });
   };
+
+  // Comprehensive Email Search - Apollo → Perplexity → Hunter
+  const handleComprehensiveEmailSearch = async (contactId: number) => {
+    // Check if already searching
+    if (pendingComprehensiveSearchIds.has(contactId)) return;
+    
+    // Get contact data from current results
+    const contact = currentResults?.flatMap(c => c.contacts || []).find(ct => ct.id === contactId);
+    if (!contact) return;
+    
+    // Skip if email already exists
+    if (contact.email) {
+      toast({
+        title: "Email Already Found",
+        description: `This contact already has an email: ${contact.email}`,
+      });
+      return;
+    }
+    
+    // Check credits (need up to 60 for all three searches)
+    try {
+      const creditsResponse = await apiRequest("GET", "/api/credits");
+      const creditsData = await creditsResponse.json();
+      
+      if (creditsData.balance < 60) {
+        toast({
+          title: "Insufficient Credits",
+          description: `You need up to 60 credits for comprehensive search. Current balance: ${creditsData.balance}`,
+          variant: "destructive",
+        });
+        return;
+      }
+    } catch (error) {
+      console.error('Credit check failed:', error);
+    }
+    
+    // Add to pending set
+    setPendingComprehensiveSearchIds(prev => new Set(prev).add(contactId));
+    
+    toast({
+      title: "Comprehensive Search Started",
+      description: "Searching Apollo, Perplexity, and Hunter for email...",
+    });
+    
+    try {
+      // 1. Try Apollo first
+      if (!contact.completedSearches?.includes('apollo_search')) {
+        await handleApolloSearch(contactId, 'automated');
+        // Wait for result
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Check if email was found
+        const response = await apiRequest("GET", `/api/contacts/${contactId}`);
+        const updatedContact = await response.json();
+        if (updatedContact.email) {
+          setPendingComprehensiveSearchIds(prev => {
+            const next = new Set(prev);
+            next.delete(contactId);
+            return next;
+          });
+          toast({
+            title: "Email Found!",
+            description: `Found email via Apollo: ${updatedContact.email}`,
+            variant: "default",
+          });
+          // Refresh the display
+          queryClient.invalidateQueries({ queryKey: [`/api/companies/${updatedContact.companyId}/contacts`] });
+          return;
+        }
+      }
+      
+      // 2. Try Perplexity AI if Apollo didn't find email
+      if (!contact.completedSearches?.includes('contact_enrichment')) {
+        await handleEnrichContact(contactId);
+        // Wait for result
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Check if email was found
+        const response = await apiRequest("GET", `/api/contacts/${contactId}`);
+        const updatedContact = await response.json();
+        if (updatedContact.email) {
+          setPendingComprehensiveSearchIds(prev => {
+            const next = new Set(prev);
+            next.delete(contactId);
+            return next;
+          });
+          toast({
+            title: "Email Found!",
+            description: `Found email via Perplexity: ${updatedContact.email}`,
+            variant: "default",
+          });
+          // Refresh the display
+          queryClient.invalidateQueries({ queryKey: [`/api/companies/${updatedContact.companyId}/contacts`] });
+          return;
+        }
+      }
+      
+      // 3. Try Hunter as last resort
+      if (!contact.completedSearches?.includes('hunter_search')) {
+        await handleHunterSearch(contactId, 'automated');
+        // Wait for result
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Check if email was found
+        const response = await apiRequest("GET", `/api/contacts/${contactId}`);
+        const updatedContact = await response.json();
+        if (updatedContact.email) {
+          toast({
+            title: "Email Found!",
+            description: `Found email via Hunter: ${updatedContact.email}`,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "No Email Found",
+            description: "Searched all sources but couldn't find an email address",
+            variant: "destructive",
+          });
+        }
+        // Refresh the display
+        queryClient.invalidateQueries({ queryKey: [`/api/companies/${updatedContact.companyId}/contacts`] });
+      }
+    } catch (error) {
+      console.error('Comprehensive search error:', error);
+      toast({
+        title: "Search Error",
+        description: "An error occurred during the comprehensive search",
+        variant: "destructive",
+      });
+    } finally {
+      // Remove from pending
+      setPendingComprehensiveSearchIds(prev => {
+        const next = new Set(prev);
+        next.delete(contactId);
+        return next;
+      });
+    }
+  };
   
   // Functions for checkbox selection
   const handleCheckboxChange = (contactId: number) => {
@@ -2731,10 +2870,12 @@ export default function Home() {
                       handleAeroLeadsSearch={handleAeroLeadsSearch}
                       handleApolloSearch={handleApolloSearch}
                       handleEnrichContact={handleEnrichContact}
+                      handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
                       pendingHunterIds={pendingHunterIds}
                       pendingAeroLeadsIds={pendingAeroLeadsIds}
                       pendingApolloIds={pendingApolloIds}
-                    pendingContactIds={pendingContactIds}
+                      pendingContactIds={pendingContactIds}
+                      pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
                   />
                   </Suspense>
                 </div>
