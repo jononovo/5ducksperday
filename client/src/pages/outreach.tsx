@@ -1304,7 +1304,12 @@ export default function Outreach() {
                       setCurrentCompanyIndex(0); // Reset company index when changing list
                     }}
                   >
-                    <SelectTrigger className="w-full h-12 px-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 hover:border-blue-300 hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 font-medium">
+                    <SelectTrigger className={cn(
+                      "w-full h-12 px-4 transition-all duration-200 font-medium",
+                      !selectedListId 
+                        ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 hover:border-blue-300 hover:from-blue-100 hover:to-indigo-100"
+                        : "bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                    )}>
                       <SelectValue placeholder="Select a list to start" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1323,11 +1328,21 @@ export default function Outreach() {
                   
                   {/* Enhanced Navigation Row */}
                   {companies.length > 0 && (
-                    <div className="flex items-center justify-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className={cn(
+                      "flex items-center justify-center gap-2 p-3 rounded-lg border transition-all duration-200",
+                      selectedListId && !selectedContactId 
+                        ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
+                        : "bg-gray-50 border-gray-200"
+                    )}>
                       <Button
                         variant="outline"
                         size="default"
-                        className="h-10 w-10 p-0 bg-white border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md"
+                        className={cn(
+                          "h-10 w-10 p-0 bg-white border-2 transition-all duration-200 shadow-sm hover:shadow-md",
+                          selectedListId && !selectedContactId
+                            ? "border-blue-300 hover:border-blue-500 hover:bg-blue-100"
+                            : "border-gray-300 hover:border-gray-400 hover:bg-gray-100"
+                        )}
                         onClick={handlePrevCompany}
                         disabled={selectedCompanyIndex === 0}
                       >
@@ -1335,19 +1350,33 @@ export default function Outreach() {
                       </Button>
                       
                       <div className="flex items-center gap-2 px-4">
-                        <Building2 className="w-5 h-5 text-gray-600" />
+                        <Building2 className={cn(
+                          "w-5 h-5",
+                          selectedListId && !selectedContactId ? "text-blue-600" : "text-gray-600"
+                        )} />
                         <div className="text-center">
-                          <span className="text-base font-semibold text-gray-800">
+                          <span className={cn(
+                            "text-base font-semibold",
+                            selectedListId && !selectedContactId ? "text-blue-800" : "text-gray-800"
+                          )}>
                             {selectedCompanyIndex + 1} of {companies.length}
                           </span>
-                          <p className="text-xs text-gray-500">Companies</p>
+                          <p className={cn(
+                            "text-xs",
+                            selectedListId && !selectedContactId ? "text-blue-600" : "text-gray-500"
+                          )}>Companies</p>
                         </div>
                       </div>
                       
                       <Button
                         variant="outline"
                         size="default"
-                        className="h-10 w-10 p-0 bg-white border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md"
+                        className={cn(
+                          "h-10 w-10 p-0 bg-white border-2 transition-all duration-200 shadow-sm hover:shadow-md",
+                          selectedListId && !selectedContactId
+                            ? "border-blue-300 hover:border-blue-500 hover:bg-blue-100"
+                            : "border-gray-300 hover:border-gray-400 hover:bg-gray-100"
+                        )}
                         onClick={handleNextCompany}
                         disabled={selectedCompanyIndex === companies.length - 1}
                       >
