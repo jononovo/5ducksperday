@@ -1136,16 +1136,6 @@ export default function Outreach() {
   // Use the shared comprehensive email search hook
   const { handleComprehensiveEmailSearch: comprehensiveSearchHook, pendingSearchIds: pendingComprehensiveSearchIds } = useComprehensiveEmailSearch({
     onContactUpdate: async (updatedContact) => {
-      // Update the contact in companiesData
-      setCompaniesData(prev => {
-        return prev.map(company => ({
-          ...company,
-          contacts: company.contacts?.map(contact =>
-            contact.id === updatedContact.id ? updatedContact : contact
-          )
-        }));
-      });
-      
       // Force immediate update of the query cache to trigger re-render
       const queryKey = [`/api/companies/${selectedCompany?.id}/contacts`];
       
