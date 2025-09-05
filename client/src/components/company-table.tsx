@@ -374,11 +374,11 @@ export default function CompanyTable({
                                       e.stopPropagation();
                                       handleComprehensiveEmailSearch?.(contact.id);
                                     }}
-                                    disabled={pendingComprehensiveSearchIds?.has(contact.id) || contact.completedSearches?.includes('comprehensive_search')}
+                                    disabled={pendingComprehensiveSearchIds?.has(contact.id)}
                                   >
                                     {contact.completedSearches?.includes('comprehensive_search') && !contact.email ? (
                                       <div className="flex items-center gap-0.5">
-                                        <Mail className="h-4 w-4 text-gray-400" />
+                                        <Mail className="h-4 w-4 text-gray-400 hover:text-blue-500 transition-colors" />
                                         <Ban className="text-gray-400" style={{ width: '10px', height: '10px' }} />
                                       </div>
                                     ) : (
@@ -394,7 +394,7 @@ export default function CompanyTable({
                               <TooltipContent side="top" className="text-xs">
                                 <p>{
                                   contact.completedSearches?.includes('comprehensive_search') && !contact.email
-                                    ? "Search complete. No results found."
+                                    ? "Search complete. No results found. Click to search again."
                                     : pendingComprehensiveSearchIds?.has(contact.id) 
                                     ? "Searching for email..." 
                                     : "Click to search all sources for email"
@@ -429,11 +429,11 @@ export default function CompanyTable({
                                       e.stopPropagation();
                                       handleComprehensiveEmailSearch?.(contact.id);
                                     }}
-                                    disabled={pendingComprehensiveSearchIds?.has(contact.id) || contact.completedSearches?.includes('comprehensive_search')}
+                                    disabled={pendingComprehensiveSearchIds?.has(contact.id)}
                                   >
                                     {contact.completedSearches?.includes('comprehensive_search') && !contact.email ? (
                                       <div className="flex items-center gap-0.5">
-                                        <Mail className="h-4 w-4 text-gray-400" />
+                                        <Mail className="h-4 w-4 text-gray-400 hover:text-blue-500 transition-colors" />
                                         <Ban className="text-gray-400" style={{ width: '10px', height: '10px' }} />
                                       </div>
                                     ) : (
@@ -449,7 +449,7 @@ export default function CompanyTable({
                               <TooltipContent side="top" className="text-xs">
                                 <p>{
                                   contact.completedSearches?.includes('comprehensive_search') && !contact.email
-                                    ? "Search complete. No results found."
+                                    ? "Search complete. No results found. Click to search again."
                                     : pendingComprehensiveSearchIds?.has(contact.id) 
                                     ? "Searching for email..." 
                                     : "Click to search all sources for email"
