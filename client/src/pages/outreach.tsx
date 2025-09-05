@@ -1360,12 +1360,14 @@ export default function Outreach() {
                         onClick={handlePrevCompany}
                         disabled={selectedCompanyIndex === 0}
                       >
-                        <ChevronLeft className={cn(
-                          "w-8 h-8",
-                          selectedListId && !selectedContactId
-                            ? "text-blue-300"
-                            : "text-gray-300"
-                        )} />
+                        <ChevronLeft 
+                          className={cn(
+                            selectedListId && !selectedContactId
+                              ? "text-blue-300"
+                              : "text-gray-300"
+                          )}
+                          style={{ width: '48px', height: '48px' }}
+                        />
                       </Button>
                       
                       <div className="flex items-center gap-2 px-4">
@@ -1399,12 +1401,14 @@ export default function Outreach() {
                         onClick={handleNextCompany}
                         disabled={selectedCompanyIndex === companies.length - 1}
                       >
-                        <ChevronRight className={cn(
-                          "w-8 h-8",
-                          selectedListId && !selectedContactId
-                            ? "text-blue-300"
-                            : "text-gray-300"
-                        )} />
+                        <ChevronRight 
+                          className={cn(
+                            selectedListId && !selectedContactId
+                              ? "text-blue-300"
+                              : "text-gray-300"
+                          )}
+                          style={{ width: '48px', height: '48px' }}
+                        />
                       </Button>
                     </div>
                   )}
