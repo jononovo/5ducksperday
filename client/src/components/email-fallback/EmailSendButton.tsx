@@ -220,7 +220,7 @@ export function EmailSendButton({
                   "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600 hover:scale-105" :
                   "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
                 isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500",
-                validationError && "shake-animation border-red-500 border-2",
+                validationError && "shake-animation",
                 disabled && "opacity-50 cursor-not-allowed",
                 className
               )}
@@ -267,7 +267,7 @@ export function EmailSendButton({
                     "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
                     "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
                   "rounded-r-none border-r-0",
-                  validationError && "shake-animation border-red-500 border-2",
+                  validationError && "shake-animation",
                   disabled && "opacity-50 cursor-not-allowed"
                 )}
               >
