@@ -2649,7 +2649,19 @@ export default function Home() {
         } else {
           // Mark comprehensive search as complete even though no email was found
           try {
-            await apiRequest("POST", `/api/contacts/${contactId}/comprehensive-search-complete`, {});
+            const response = await apiRequest("POST", `/api/contacts/${contactId}/comprehensive-search-complete`, {});
+            const markedContact = await response.json();
+            
+            // Update the contact in currentResults to show the prohibitory sign
+            setCurrentResults(prev => {
+              if (!prev) return null;
+              return prev.map(company => ({
+                ...company,
+                contacts: company.contacts?.map(contact =>
+                  contact.id === markedContact.id ? markedContact : contact
+                )
+              }));
+            });
           } catch (error) {
             console.error('Failed to mark comprehensive search as complete:', error);
           }
@@ -2668,7 +2680,19 @@ export default function Home() {
       
       // Mark comprehensive search as complete even on error
       try {
-        await apiRequest("POST", `/api/contacts/${contactId}/comprehensive-search-complete`, {});
+        const response = await apiRequest("POST", `/api/contacts/${contactId}/comprehensive-search-complete`, {});
+        const markedContact = await response.json();
+        
+        // Update the contact in currentResults to show the prohibitory sign
+        setCurrentResults(prev => {
+          if (!prev) return null;
+          return prev.map(company => ({
+            ...company,
+            contacts: company.contacts?.map(contact =>
+              contact.id === markedContact.id ? markedContact : contact
+            )
+          }));
+        });
       } catch (markError) {
         console.error('Failed to mark comprehensive search as complete:', markError);
       }
