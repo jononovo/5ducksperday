@@ -3635,7 +3635,7 @@ export function registerRoutes(app: Express) {
       }
 
       // Validate search type
-      const validSearchTypes = ['apollo', 'hunter', 'aeroleads', 'perplexity'];
+      const validSearchTypes = ['apollo', 'hunter', 'aeroleads', 'perplexity', 'comprehensive'];
       if (!validSearchTypes.includes(searchType)) {
         res.status(400).json({ message: "Invalid search type" });
         return;
