@@ -230,7 +230,7 @@ export default function CompanyTable({
                   aria-label="Select all companies and contacts"
                 />
               </TableHead>
-              <TableHead>Name</TableHead>
+              <TableHead>Company Name</TableHead>
               <TableHead className="hidden md:table-cell">Details</TableHead>
               <TableHead className="hidden md:table-cell">Score</TableHead>
               <TableHead>Actions</TableHead>

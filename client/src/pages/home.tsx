@@ -2429,27 +2429,6 @@ export default function Home() {
           {/* Companies Analysis Section - Moved to top */}
           {currentResults && currentResults.length > 0 ? (
             <Card className="w-full fluffy-gradient-bg">
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Companies Analysis</CardTitle>
-                  {currentResults && (
-                    <Button
-                      variant="outline"
-                      onClick={handleSaveList}
-                      disabled={autoCreateListMutation.isPending || updateListMutation.isPending}
-                      className="opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                    >
-                      <ListPlus className="mr-2 h-4 w-4" />
-                      {currentListId && isSaved ? "Saved" : currentListId ? "Update List" : "Save as List"}
-                    </Button>
-                  )}
-                </div>
-                {lastExecutedQuery && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Search: {lastExecutedQuery}
-                  </p>
-                )}
-              </CardHeader>
               
               {/* Contact Discovery Report - with reduced padding */}
               {contactReportVisible && (
@@ -2494,9 +2473,10 @@ export default function Home() {
                 </div>
               )}
               
-              {/* Mini Search Menu */}
+              {/* Action buttons menu */}
               {currentResults && currentResults.length > 0 && (
-                <div className="px-6 pb-3 flex items-center gap-2">
+                <div className="px-6 py-3 flex items-center justify-between border-b">
+                  <div className="flex items-center gap-2">
                   <div className="relative">
                     <Button 
                       variant="outline" 
@@ -2606,6 +2586,18 @@ export default function Home() {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+                  </div>
+                  
+                  {/* Save button moved here */}
+                  <Button
+                    variant="outline"
+                    onClick={handleSaveList}
+                    disabled={autoCreateListMutation.isPending || updateListMutation.isPending}
+                    className="opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                  >
+                    <ListPlus className="mr-2 h-4 w-4" />
+                    {currentListId && isSaved ? "Saved" : currentListId ? "Update List" : "Save as List"}
+                  </Button>
                 </div>
               )}
               
