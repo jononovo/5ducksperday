@@ -1334,11 +1334,41 @@ export default function Outreach() {
                   {/* Enhanced Navigation Row */}
                   {companies.length > 0 && (
                     <div className={cn(
-                      "flex items-center justify-center gap-2 p-3 rounded-lg border transition-all duration-200",
+                      "p-3 rounded-lg border transition-all duration-200",
                       selectedListId && !selectedContactId 
                         ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
                         : "bg-white border-gray-200"
                     )}>
+                      {/* Company Name */}
+                      {selectedCompany && (
+                        <div className="flex justify-between items-center mb-3">
+                          <h2 className="text-lg font-medium text-gray-700">{selectedCompany.name}</h2>
+                          <TooltipProvider delayDuration={500}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 w-7 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    console.log('Company view button clicked:', { id: selectedCompany.id, name: selectedCompany.name });
+                                    setLocation(`/companies/${selectedCompany.id}`);
+                                  }}
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Open company page</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      )}
+                      
+                      {/* Navigation Controls */}
+                      <div className="flex items-center justify-center gap-2">
                       <Button
                         variant="outline"
                         size="default"
@@ -1387,41 +1417,13 @@ export default function Outreach() {
                       >
                         <ChevronRight className="w-6 h-6" />
                       </Button>
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
             </div>
             <div className="px-6 pb-6 md:px-6 md:pb-6">
-              
-              {/* Company Name Header */}
-              {selectedCompany && (
-                <div className="flex justify-between items-center mb-4 pb-3 border-b">
-                  <h2 className="text-xl font-semibold">{selectedCompany.name}</h2>
-                  <TooltipProvider delayDuration={500}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            console.log('Company view button clicked:', { id: selectedCompany.id, name: selectedCompany.name });
-                            setLocation(`/companies/${selectedCompany.id}`);
-                          }}
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Open company page</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              )}
-
               {/* Key Members Section */}
               {topContacts && topContacts.length > 0 && (
                 <div className="space-y-2">
