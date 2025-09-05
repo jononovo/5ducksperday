@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global focus styles - Light blue instead of harsh black */
+*:focus {
+  outline: 2px solid rgb(147, 197, 253) !important; /* light-blue-300 */
+  outline-offset: 1px;
+}
+
+*:focus-visible {
+  outline: 2px solid rgb(147, 197, 253) !important; /* light-blue-300 */
+  outline-offset: 1px;
+}
+
 /* iOS Safari auto-zoom prevention - mobile only */
 .mobile-input-text-fix {
   font-size: 16px;
