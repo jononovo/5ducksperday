@@ -207,6 +207,17 @@
   75% { transform: translateY(-10px) rotate(-3deg); }
 }
 
+/* Button shake animation for validation errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.shake-animation {
+  animation: shake 0.4s ease-in-out;
+}
+
 /* Dance animations */
 @keyframes disco-bounce {
   0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
