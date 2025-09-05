@@ -930,12 +930,14 @@ export default function Outreach() {
   };
 
   const handlePrevCompany = () => {
-    // Find previous company with contacts
-    for (let i = selectedCompanyIndex - 1; i >= 0; i--) {
-      const company = companies[i];
+    // Find previous company with contacts, wrapping around to end
+    const totalCompanies = companies.length;
+    for (let offset = 1; offset < totalCompanies; offset++) {
+      const prevIndex = (selectedCompanyIndex - offset + totalCompanies) % totalCompanies;
+      const company = companies[prevIndex];
       const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
       if (contacts.length > 0) {
-        setCurrentCompanyIndex(i);
+        setCurrentCompanyIndex(prevIndex);
         return;
       }
     }
@@ -1358,7 +1360,6 @@ export default function Outreach() {
                             : "border-gray-300 hover:border-gray-400 hover:bg-gray-100"
                         )}
                         onClick={handlePrevCompany}
-                        disabled={selectedCompanyIndex === 0}
                       >
                         <ChevronLeft 
                           className={cn(
@@ -1399,7 +1400,6 @@ export default function Outreach() {
                             : "border-gray-300 hover:border-gray-400 hover:bg-gray-100"
                         )}
                         onClick={handleNextCompany}
-                        disabled={selectedCompanyIndex === companies.length - 1}
                       >
                         <ChevronRight 
                           className={cn(
