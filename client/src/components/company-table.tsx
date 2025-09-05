@@ -376,9 +376,9 @@ export default function CompanyTable({
                                   disabled={pendingComprehensiveSearchIds?.has(contact.id) || contact.completedSearches?.includes('comprehensive_search')}
                                 >
                                   {contact.completedSearches?.includes('comprehensive_search') && !contact.email ? (
-                                    <div className="relative">
+                                    <div className="flex items-center gap-0.5">
                                       <Mail className="h-4 w-4 text-gray-400" />
-                                      <Ban className="h-2.5 w-2.5 absolute -right-0.5 -top-0.5 text-red-500" />
+                                      <Ban className="h-2 w-2 text-gray-400" />
                                     </div>
                                   ) : (
                                     <Mail className={`h-4 w-4 ${
@@ -429,9 +429,9 @@ export default function CompanyTable({
                                   disabled={pendingComprehensiveSearchIds?.has(contact.id) || contact.completedSearches?.includes('comprehensive_search')}
                                 >
                                   {contact.completedSearches?.includes('comprehensive_search') && !contact.email ? (
-                                    <div className="relative">
+                                    <div className="flex items-center gap-0.5">
                                       <Mail className="h-4 w-4 text-gray-400" />
-                                      <Ban className="h-2.5 w-2.5 absolute -right-0.5 -top-0.5 text-red-500" />
+                                      <Ban className="h-2 w-2 text-gray-400" />
                                     </div>
                                   ) : (
                                     <Mail className={`h-4 w-4 ${
