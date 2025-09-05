@@ -1366,7 +1366,7 @@ export default function Outreach() {
                               ? "text-blue-300"
                               : "text-gray-300"
                           )}
-                          style={{ width: '48px', height: '48px' }}
+                          style={{ width: '32px', height: '32px' }}
                         />
                       </Button>
                       
@@ -1407,7 +1407,7 @@ export default function Outreach() {
                               ? "text-blue-300"
                               : "text-gray-300"
                           )}
-                          style={{ width: '48px', height: '48px' }}
+                          style={{ width: '32px', height: '32px' }}
                         />
                       </Button>
                     </div>
