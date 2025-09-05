@@ -1337,7 +1337,7 @@ export default function Outreach() {
                       "flex items-center justify-center gap-2 p-3 rounded-lg border transition-all duration-200",
                       selectedListId && !selectedContactId 
                         ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
-                        : "bg-gray-50 border-gray-200"
+                        : "bg-white border-gray-200"
                     )}>
                       <Button
                         variant="outline"
