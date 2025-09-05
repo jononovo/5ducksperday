@@ -1150,15 +1150,15 @@ export default function Outreach() {
       return;
     }
     
-    // Check credits (need up to 60 for all three searches)
+    // Check credits (need 20 for comprehensive search)
     try {
       const creditsResponse = await apiRequest("GET", "/api/credits");
       const creditsData = await creditsResponse.json();
       
-      if (creditsData.balance < 60) {
+      if (creditsData.balance < 20) {
         toast({
           title: "Insufficient Credits",
-          description: `You need up to 60 credits for comprehensive search. Current balance: ${creditsData.balance}`,
+          description: `You need 20 credits for comprehensive search. Current balance: ${creditsData.balance}`,
           variant: "destructive",
         });
         return;
@@ -1183,6 +1183,24 @@ export default function Outreach() {
         const response = await apiRequest("GET", `/api/contacts/${contactId}`);
         const updatedContact = await response.json();
         if (updatedContact.email) {
+          // Bill credits once for the comprehensive search
+          try {
+            const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
+              contactId,
+              searchType: 'comprehensive',
+              emailFound: true
+            });
+            const creditResult = await creditResponse.json();
+            console.log('Comprehensive search credit billing result:', creditResult);
+            
+            // Refresh credits display
+            if (creditResult.success) {
+              queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+            }
+          } catch (creditError) {
+            console.error('Comprehensive search credit billing failed:', creditError);
+          }
+          
           setPendingComprehensiveSearchIds(prev => {
             const next = new Set(prev);
             next.delete(contactId);
@@ -1209,6 +1227,24 @@ export default function Outreach() {
         const response = await apiRequest("GET", `/api/contacts/${contactId}`);
         const updatedContact = await response.json();
         if (updatedContact.email) {
+          // Bill credits once for the comprehensive search
+          try {
+            const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
+              contactId,
+              searchType: 'comprehensive',
+              emailFound: true
+            });
+            const creditResult = await creditResponse.json();
+            console.log('Comprehensive search credit billing result:', creditResult);
+            
+            // Refresh credits display
+            if (creditResult.success) {
+              queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+            }
+          } catch (creditError) {
+            console.error('Comprehensive search credit billing failed:', creditError);
+          }
+          
           setPendingComprehensiveSearchIds(prev => {
             const next = new Set(prev);
             next.delete(contactId);
@@ -1234,7 +1270,26 @@ export default function Outreach() {
         // Check if email was found
         const response = await apiRequest("GET", `/api/contacts/${contactId}`);
         const updatedContact = await response.json();
+        
+        // Bill credits once for the comprehensive search if email was found
         if (updatedContact.email) {
+          try {
+            const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
+              contactId,
+              searchType: 'comprehensive',
+              emailFound: true
+            });
+            const creditResult = await creditResponse.json();
+            console.log('Comprehensive search credit billing result:', creditResult);
+            
+            // Refresh credits display
+            if (creditResult.success) {
+              queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+            }
+          } catch (creditError) {
+            console.error('Comprehensive search credit billing failed:', creditError);
+          }
+          
           toast({
             title: "Email Found!",
             description: `Found email via Hunter: ${updatedContact.email}`,

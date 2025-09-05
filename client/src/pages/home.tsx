@@ -989,7 +989,7 @@ export default function Home() {
 
 
   const enrichContactMutation = useMutation({
-    mutationFn: async ({ contactId, silent = false }: { contactId: number; silent?: boolean }) => {
+    mutationFn: async ({ contactId, silent = false, searchContext = 'manual' }: { contactId: number; silent?: boolean; searchContext?: 'manual' | 'automated' }) => {
       // Add this contact ID to the set of pending contacts
       setPendingContactIds(prev => {
         const newSet = new Set(prev);
@@ -997,11 +997,11 @@ export default function Home() {
         return newSet;
       });
       const response = await apiRequest("POST", `/api/contacts/${contactId}/enrich`);
-      return {data: await response.json(), contactId, silent};
+      return {data: await response.json(), contactId, silent, searchContext};
     },
     onSuccess: async (result) => {
-      // The data, contactId, and silent flag that was processed
-      const {data, contactId, silent = false} = result;
+      // The data, contactId, silent flag, and searchContext that was processed
+      const {data, contactId, silent = false, searchContext = 'manual'} = result;
       
       // Update the currentResults with the enriched contact - use a safer update pattern
       setCurrentResults(prev => {
@@ -1035,8 +1035,8 @@ export default function Home() {
         setIsSaved(false);
       }
 
-      // CREDIT BILLING ON EMAIL SUCCESS (same as other APIs)
-      if (data.email) {
+      // CREDIT BILLING ON EMAIL SUCCESS (only for manual searches, not automated/comprehensive)
+      if (data.email && searchContext === 'manual') {
         try {
           const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
             contactId,
@@ -1095,7 +1095,7 @@ export default function Home() {
   });
 
   // PRE-SEARCH CREDIT CHECK (same as other APIs)
-  const handleEnrichContact = async (contactId: number, silent: boolean = false) => {
+  const handleEnrichContact = async (contactId: number, silent: boolean = false, searchContext: 'manual' | 'automated' = 'manual') => {
     // Only prevent if this specific contact is already being processed
     if (pendingContactIds.has(contactId)) return;
     
@@ -1119,7 +1119,7 @@ export default function Home() {
       }
     }
     
-    enrichContactMutation.mutate({ contactId, silent });
+    enrichContactMutation.mutate({ contactId, silent, searchContext });
   };
 
   const isContactEnriched = (contact: Contact) => {
@@ -1361,8 +1361,8 @@ export default function Home() {
     onSuccess: async (result) => {
       const {data, contactId, searchContext, searchMetadata, emailFound, silent = false} = result;
       
-      // Process credit billing for successful email discoveries
-      if (emailFound) {
+      // Process credit billing for successful email discoveries (only for manual searches)
+      if (emailFound && searchContext === 'manual') {
         try {
           const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
             contactId,
@@ -2313,8 +2313,8 @@ export default function Home() {
     onSuccess: async (result) => {
       const {data, contactId, searchContext, searchMetadata, emailFound, silent = false} = result;
       
-      // Process credit billing for successful email discoveries
-      if (emailFound) {
+      // Process credit billing for successful email discoveries (only for manual searches)
+      if (emailFound && searchContext === 'manual') {
         try {
           const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
             contactId,
@@ -2495,15 +2495,15 @@ export default function Home() {
       return;
     }
     
-    // Check credits (need up to 60 for all three searches)
+    // Check credits (need 20 for comprehensive search)
     try {
       const creditsResponse = await apiRequest("GET", "/api/credits");
       const creditsData = await creditsResponse.json();
       
-      if (creditsData.balance < 60) {
+      if (creditsData.balance < 20) {
         toast({
           title: "Insufficient Credits",
-          description: `You need up to 60 credits for comprehensive search. Current balance: ${creditsData.balance}`,
+          description: `You need 20 credits for comprehensive search. Current balance: ${creditsData.balance}`,
           variant: "destructive",
         });
         return;
@@ -2528,6 +2528,24 @@ export default function Home() {
         const response = await apiRequest("GET", `/api/contacts/${contactId}`);
         const updatedContact = await response.json();
         if (updatedContact.email) {
+          // Bill credits once for the comprehensive search
+          try {
+            const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
+              contactId,
+              searchType: 'comprehensive',
+              emailFound: true
+            });
+            const creditResult = await creditResponse.json();
+            console.log('Comprehensive search credit billing result:', creditResult);
+            
+            // Refresh credits display
+            if (creditResult.success) {
+              queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+            }
+          } catch (creditError) {
+            console.error('Comprehensive search credit billing failed:', creditError);
+          }
+          
           setPendingComprehensiveSearchIds(prev => {
             const next = new Set(prev);
             next.delete(contactId);
@@ -2546,7 +2564,7 @@ export default function Home() {
       
       // 2. Try Perplexity AI if Apollo didn't find email
       if (!contact.completedSearches?.includes('contact_enrichment')) {
-        await handleEnrichContact(contactId, true); // Pass silent=true
+        await handleEnrichContact(contactId, true, 'automated'); // Pass silent=true and searchContext='automated'
         // Wait for result
         await new Promise(resolve => setTimeout(resolve, 3000));
         
@@ -2554,6 +2572,24 @@ export default function Home() {
         const response = await apiRequest("GET", `/api/contacts/${contactId}`);
         const updatedContact = await response.json();
         if (updatedContact.email) {
+          // Bill credits once for the comprehensive search
+          try {
+            const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
+              contactId,
+              searchType: 'comprehensive',
+              emailFound: true
+            });
+            const creditResult = await creditResponse.json();
+            console.log('Comprehensive search credit billing result:', creditResult);
+            
+            // Refresh credits display
+            if (creditResult.success) {
+              queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+            }
+          } catch (creditError) {
+            console.error('Comprehensive search credit billing failed:', creditError);
+          }
+          
           setPendingComprehensiveSearchIds(prev => {
             const next = new Set(prev);
             next.delete(contactId);
@@ -2579,7 +2615,26 @@ export default function Home() {
         // Check if email was found
         const response = await apiRequest("GET", `/api/contacts/${contactId}`);
         const updatedContact = await response.json();
+        
+        // Bill credits once for the comprehensive search if email was found
         if (updatedContact.email) {
+          try {
+            const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
+              contactId,
+              searchType: 'comprehensive',
+              emailFound: true
+            });
+            const creditResult = await creditResponse.json();
+            console.log('Comprehensive search credit billing result:', creditResult);
+            
+            // Refresh credits display
+            if (creditResult.success) {
+              queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+            }
+          } catch (creditError) {
+            console.error('Comprehensive search credit billing failed:', creditError);
+          }
+          
           toast({
             title: "Email Found!",
             description: `Found email via Hunter: ${updatedContact.email}`,
