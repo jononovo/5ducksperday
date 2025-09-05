@@ -301,8 +301,11 @@ class DatabaseStorage implements IStorage {
     const { cleanContactData } = await import('./lib/email-utils');
     const cleanedData = cleanContactData(data);
     
+    // Remove id field to prevent PostgreSQL error "column 'id' can only be updated to DEFAULT"
+    const { id: _, ...updateData } = cleanedData;
+    
     const [updated] = await db.update(contacts)
-      .set(cleanedData)
+      .set(updateData)
       .where(eq(contacts.id, id))
       .returning();
     return updated;

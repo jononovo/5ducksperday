@@ -56,7 +56,7 @@ export function useComprehensiveEmailSearch(options: UseComprehensiveEmailSearch
         await new Promise(resolve => setTimeout(resolve, 500));
         
         // Fetch updated contact
-        const updatedResponse = await apiRequest("GET", `/api/contacts/${contactId}`, {});
+        const updatedResponse = await apiRequest("GET", `/api/contacts/${contactId}`);
         const updatedContact = await updatedResponse.json();
         
         if (updatedContact.email) {
@@ -91,7 +91,7 @@ export function useComprehensiveEmailSearch(options: UseComprehensiveEmailSearch
         await new Promise(resolve => setTimeout(resolve, 500));
         
         // Fetch updated contact
-        const updatedResponse = await apiRequest("GET", `/api/contacts/${contactId}`, {});
+        const updatedResponse = await apiRequest("GET", `/api/contacts/${contactId}`);
         const updatedContact = await updatedResponse.json();
         
         if (updatedContact.email) {
@@ -125,7 +125,7 @@ export function useComprehensiveEmailSearch(options: UseComprehensiveEmailSearch
         await new Promise(resolve => setTimeout(resolve, 500));
         
         // Fetch updated contact
-        const updatedResponse = await apiRequest("GET", `/api/contacts/${contactId}`, {});
+        const updatedResponse = await apiRequest("GET", `/api/contacts/${contactId}`);
         const updatedContact = await updatedResponse.json();
         
         if (updatedContact.email) {
