@@ -3257,12 +3257,16 @@ export function registerRoutes(app: Express) {
       if (searchResult.success) {
         // Handle email updates with unified deduplication logic - only include search result fields (no ID)
         const updateData: any = {
-          email: searchResult.contact.email,
-          role: searchResult.contact.role,
           completedSearches: [...(contact.completedSearches || []), 'hunter_search'],
           lastValidated: new Date()
         };
+
+        // Only update role if it exists
+        if (searchResult.contact.role) {
+          updateData.role = searchResult.contact.role;
+        }
         
+        // Only update email if one was found
         if (searchResult.contact.email) {
           const { mergeEmailData } = await import('./lib/email-utils');
           const emailUpdates = mergeEmailData(contact, searchResult.contact.email);
@@ -3356,12 +3360,16 @@ export function registerRoutes(app: Express) {
       if (searchResult.success) {
         // Handle email updates with unified deduplication logic - only include search result fields (no ID)
         const updateData: any = {
-          email: searchResult.contact.email,
-          role: searchResult.contact.role,
           completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
           lastValidated: new Date()
         };
+
+        // Only update role if it exists
+        if (searchResult.contact.role) {
+          updateData.role = searchResult.contact.role;
+        }
         
+        // Only update email if one was found
         if (searchResult.contact.email) {
           const { mergeEmailData } = await import('./lib/email-utils');
           const emailUpdates = mergeEmailData(contact, searchResult.contact.email);
@@ -3461,9 +3469,8 @@ export function registerRoutes(app: Express) {
 
       console.log('AeroLeads search result:', result);
 
-      // Update the contact with the results, but preserve existing email if no new email found
+      // Update the contact with the results - only include fields that need updating
       const updateData: any = {
-        ...contact,
         completedSearches: [...(contact.completedSearches || []), 'aeroleads_search'],
         lastValidated: new Date()
       };
