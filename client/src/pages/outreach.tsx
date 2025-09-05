@@ -1295,53 +1295,66 @@ export default function Outreach() {
           <div className="md:border md:rounded-lg md:shadow-sm">
             <div className="p-6 md:pb-6">
               <div className="space-y-3">
-                {/* List Selection Row */}
-                <Select
-                  value={selectedListId}
-                  onValueChange={(value) => {
-                    setSelectedListId(value);
-                    setCurrentCompanyIndex(0); // Reset company index when changing list
-                  }}
-                >
-                  <SelectTrigger className="[&>span]:pl-2">
-                    <SelectValue placeholder="Select a list" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {lists.map((list: List) => (
-                      <SelectItem key={list.listId} value={list.listId.toString()}>
-                        {generateShortListDisplayName(list)} ({list.resultCount} companies)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                {/* Title + Navigation Row */}
-                <div className="flex items-center justify-center gap-3">
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="w-5 h-5" />
-                  </CardTitle>
+                {/* List Selection Row - Enhanced visibility */}
+                <div className="space-y-3">
+                  <Select
+                    value={selectedListId}
+                    onValueChange={(value) => {
+                      setSelectedListId(value);
+                      setCurrentCompanyIndex(0); // Reset company index when changing list
+                    }}
+                  >
+                    <SelectTrigger className="w-full h-12 px-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 hover:border-blue-300 hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 font-medium">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-5 h-5 text-blue-600" />
+                        <SelectValue placeholder="Select a list to start" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {lists.map((list: List) => (
+                        <SelectItem key={list.listId} value={list.listId.toString()}>
+                          <div className="flex items-center justify-between w-full">
+                            <span className="font-medium">{generateShortListDisplayName(list)}</span>
+                            <Badge variant="secondary" className="ml-2">
+                              {list.resultCount} companies
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Enhanced Navigation Row */}
                   {companies.length > 0 && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
                       <Button
                         variant="outline"
                         size="default"
-                        className="px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+                        className="h-10 w-10 p-0 bg-white border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md"
                         onClick={handlePrevCompany}
                         disabled={selectedCompanyIndex === 0}
                       >
-                        <ChevronLeft className="w-5 h-5" />
+                        <ChevronLeft className="w-6 h-6" />
                       </Button>
-                      <span className="text-sm text-muted-foreground font-medium">
-                        {selectedCompanyIndex + 1} of {companies.length}
-                      </span>
+                      
+                      <div className="flex items-center gap-2 px-4">
+                        <Building2 className="w-5 h-5 text-gray-600" />
+                        <div className="text-center">
+                          <span className="text-base font-semibold text-gray-800">
+                            {selectedCompanyIndex + 1} of {companies.length}
+                          </span>
+                          <p className="text-xs text-gray-500">Companies</p>
+                        </div>
+                      </div>
+                      
                       <Button
                         variant="outline"
                         size="default"
-                        className="px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+                        className="h-10 w-10 p-0 bg-white border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md"
                         onClick={handleNextCompany}
                         disabled={selectedCompanyIndex === companies.length - 1}
                       >
-                        <ChevronRight className="w-5 h-5" />
+                        <ChevronRight className="w-6 h-6" />
                       </Button>
                     </div>
                   )}
