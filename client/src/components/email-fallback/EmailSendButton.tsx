@@ -173,9 +173,9 @@ export function EmailSendButton({
         variant="outline"
         className={cn(
           "h-8 px-3 text-xs border transition-all duration-300 ease-out",
-          // Better visibility: gray background when there's content, subtle when empty
+          // Better visibility: green theme when there's content, subtle when empty
           body?.trim() ? 
-            "bg-gray-50 text-gray-900 border-gray-300 hover:bg-gray-900 hover:text-white hover:border-gray-900 hover:scale-105" :
+            "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600 hover:scale-105" :
             "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
           isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500",
           disabled && "opacity-50 cursor-not-allowed",
@@ -210,9 +210,9 @@ export function EmailSendButton({
           variant="outline"
           className={cn(
             "h-8 px-3 text-xs border transition-all duration-300 ease-out",
-            // Better visibility: gray background when there's content, subtle when empty
+            // Better visibility: green theme when there's content, subtle when empty
             body?.trim() ? 
-              "bg-gray-50 text-gray-900 border-gray-300 hover:bg-gray-900 hover:text-white hover:border-gray-900" :
+              "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
               "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
             "rounded-r-none border-r-0",
             disabled && "opacity-50 cursor-not-allowed"
@@ -236,9 +236,9 @@ export function EmailSendButton({
               variant="outline"
               className={cn(
                 "h-8 px-2 text-xs border transition-all duration-300 ease-out",
-                // Match the main button's visibility state
+                // Match the main button's green theme
                 body?.trim() ? 
-                  "bg-gray-50 text-gray-900 border-gray-300 hover:bg-gray-900 hover:text-white hover:border-gray-900" :
+                  "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
                   "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
                 "rounded-l-none border-l",
                 disabled && "opacity-50 cursor-not-allowed"
