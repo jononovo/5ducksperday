@@ -1296,6 +1296,13 @@ export default function Outreach() {
             variant: "default",
           });
         } else {
+          // Mark comprehensive search as complete even though no email was found
+          try {
+            await apiRequest("POST", `/api/contacts/${contactId}/comprehensive-search-complete`, {});
+          } catch (error) {
+            console.error('Failed to mark comprehensive search as complete:', error);
+          }
+          
           toast({
             title: "No Email Found",
             description: "Searched all sources but couldn't find an email address",
@@ -1307,6 +1314,14 @@ export default function Outreach() {
       }
     } catch (error) {
       console.error('Comprehensive search error:', error);
+      
+      // Mark comprehensive search as complete even on error
+      try {
+        await apiRequest("POST", `/api/contacts/${contactId}/comprehensive-search-complete`, {});
+      } catch (markError) {
+        console.error('Failed to mark comprehensive search as complete:', markError);
+      }
+      
       toast({
         title: "Search Error",
         description: "An error occurred during the comprehensive search",

@@ -3543,6 +3543,40 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Mark comprehensive search as complete (even if no email was found)
+  app.post("/api/contacts/:contactId/comprehensive-search-complete", requireAuth, async (req, res) => {
+    try {
+      const contactId = parseInt(req.params.contactId);
+      const userId = getUserId(req);
+      
+      const contact = await storage.getContact(contactId, userId);
+      if (!contact) {
+        res.status(404).json({ message: "Contact not found" });
+        return;
+      }
+
+      // Add 'comprehensive_search' to completedSearches array if not already there
+      const completedSearches = contact.completedSearches || [];
+      if (!completedSearches.includes('comprehensive_search')) {
+        completedSearches.push('comprehensive_search');
+        
+        const updatedContact = await storage.updateContact(contactId, {
+          completedSearches: completedSearches,
+          lastValidated: new Date()
+        }, userId);
+        
+        res.json(updatedContact);
+      } else {
+        res.json(contact);
+      }
+    } catch (error) {
+      console.error('Error marking comprehensive search as complete:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to mark search as complete"
+      });
+    }
+  });
+
   app.get("/api/enrichment/:queueId/status", async (req, res) => {
     try {
       const status = postSearchEnrichmentService.getEnrichmentStatus(req.params.queueId);

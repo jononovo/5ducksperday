@@ -23,7 +23,8 @@ import {
   ThumbsDown,
   Menu,
   Tag,
-  Sparkles
+  Sparkles,
+  Ban
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -372,19 +373,30 @@ export default function CompanyTable({
                                     e.stopPropagation();
                                     handleComprehensiveEmailSearch?.(contact.id);
                                   }}
-                                  disabled={pendingComprehensiveSearchIds?.has(contact.id)}
+                                  disabled={pendingComprehensiveSearchIds?.has(contact.id) || contact.completedSearches?.includes('comprehensive_search')}
                                 >
-                                  <Mail className={`h-4 w-4 ${
-                                    pendingComprehensiveSearchIds?.has(contact.id) 
-                                      ? "animate-spin text-blue-500" 
-                                      : "text-gray-400 hover:text-blue-500 transition-colors"
-                                  }`} />
+                                  {contact.completedSearches?.includes('comprehensive_search') && !contact.email ? (
+                                    <div className="relative">
+                                      <Mail className="h-4 w-4 text-gray-400" />
+                                      <Ban className="h-2.5 w-2.5 absolute -right-0.5 -top-0.5 text-red-500" />
+                                    </div>
+                                  ) : (
+                                    <Mail className={`h-4 w-4 ${
+                                      pendingComprehensiveSearchIds?.has(contact.id) 
+                                        ? "animate-spin text-blue-500" 
+                                        : "text-gray-400 hover:text-blue-500 transition-colors"
+                                    }`} />
+                                  )}
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="text-xs">
-                                <p>{pendingComprehensiveSearchIds?.has(contact.id) 
-                                  ? "Searching for email..." 
-                                  : "Click to search all sources for email"}</p>
+                                <p>{
+                                  contact.completedSearches?.includes('comprehensive_search') && !contact.email
+                                    ? "Search complete. No results found."
+                                    : pendingComprehensiveSearchIds?.has(contact.id) 
+                                    ? "Searching for email..." 
+                                    : "Click to search all sources for email"
+                                }</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -414,19 +426,30 @@ export default function CompanyTable({
                                     e.stopPropagation();
                                     handleComprehensiveEmailSearch?.(contact.id);
                                   }}
-                                  disabled={pendingComprehensiveSearchIds?.has(contact.id)}
+                                  disabled={pendingComprehensiveSearchIds?.has(contact.id) || contact.completedSearches?.includes('comprehensive_search')}
                                 >
-                                  <Mail className={`h-4 w-4 ${
-                                    pendingComprehensiveSearchIds?.has(contact.id) 
-                                      ? "animate-spin text-blue-500" 
-                                      : "text-gray-400 hover:text-blue-500 transition-colors"
-                                  }`} />
+                                  {contact.completedSearches?.includes('comprehensive_search') && !contact.email ? (
+                                    <div className="relative">
+                                      <Mail className="h-4 w-4 text-gray-400" />
+                                      <Ban className="h-2.5 w-2.5 absolute -right-0.5 -top-0.5 text-red-500" />
+                                    </div>
+                                  ) : (
+                                    <Mail className={`h-4 w-4 ${
+                                      pendingComprehensiveSearchIds?.has(contact.id) 
+                                        ? "animate-spin text-blue-500" 
+                                        : "text-gray-400 hover:text-blue-500 transition-colors"
+                                    }`} />
+                                  )}
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="text-xs">
-                                <p>{pendingComprehensiveSearchIds?.has(contact.id) 
-                                  ? "Searching for email..." 
-                                  : "Click to search all sources for email"}</p>
+                                <p>{
+                                  contact.completedSearches?.includes('comprehensive_search') && !contact.email
+                                    ? "Search complete. No results found."
+                                    : pendingComprehensiveSearchIds?.has(contact.id) 
+                                    ? "Searching for email..." 
+                                    : "Click to search all sources for email"
+                                }</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
