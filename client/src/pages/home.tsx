@@ -989,7 +989,7 @@ export default function Home() {
 
 
   const enrichContactMutation = useMutation({
-    mutationFn: async (contactId: number) => {
+    mutationFn: async ({ contactId, silent = false }: { contactId: number; silent?: boolean }) => {
       // Add this contact ID to the set of pending contacts
       setPendingContactIds(prev => {
         const newSet = new Set(prev);
@@ -997,11 +997,11 @@ export default function Home() {
         return newSet;
       });
       const response = await apiRequest("POST", `/api/contacts/${contactId}/enrich`);
-      return {data: await response.json(), contactId};
+      return {data: await response.json(), contactId, silent};
     },
     onSuccess: async (result) => {
-      // The data and the contactId that was processed
-      const {data, contactId} = result;
+      // The data, contactId, and silent flag that was processed
+      const {data, contactId, silent = false} = result;
       
       // Update the currentResults with the enriched contact - use a safer update pattern
       setCurrentResults(prev => {
@@ -1056,24 +1056,26 @@ export default function Home() {
         }
       }
       
-      // Only show notifications if we're not in a consolidated search
-      if (!isConsolidatedSearching && !isAutomatedSearchRef.current) {
-        toast({
-          title: "Email Search Complete",
-          description: `${data.name}: ${data.email 
-            ? "Successfully found email address."
-            : "No email found for this contact."}`,
-        });
-      } else if (isConsolidatedSearching && data.email) {
-        // During consolidated search, only show when we find an email
-        toast({
-          title: "Email Search Complete",
-          description: `${data.name}: Successfully found email address.`,
-        });
+      // Only show notifications if not silent
+      if (!silent) {
+        if (!isConsolidatedSearching && !isAutomatedSearchRef.current) {
+          toast({
+            title: "Email Search Complete",
+            description: `${data.name}: ${data.email 
+              ? "Successfully found email address."
+              : "No email found for this contact."}`,
+          });
+        } else if (isConsolidatedSearching && data.email) {
+          // During consolidated search, only show when we find an email
+          toast({
+            title: "Email Search Complete",
+            description: `${data.name}: Successfully found email address.`,
+          });
+        }
       }
     },
     onError: (error, variables) => {
-      const contactId = variables; // This will be the contactId that was passed to mutate
+      const { contactId, silent = false } = variables; // Destructure from variables
       
       // Remove this contact ID from the set of pending contacts
       setPendingContactIds(prev => {
@@ -1082,16 +1084,18 @@ export default function Home() {
         return newSet;
       });
       
-      toast({
-        title: "Email Search Failed",
-        description: error instanceof Error ? error.message : "Failed to find contact's email",
-        variant: "destructive",
-      });
+      if (!silent) {
+        toast({
+          title: "Email Search Failed",
+          description: error instanceof Error ? error.message : "Failed to find contact's email",
+          variant: "destructive",
+        });
+      }
     },
   });
 
   // PRE-SEARCH CREDIT CHECK (same as other APIs)
-  const handleEnrichContact = async (contactId: number) => {
+  const handleEnrichContact = async (contactId: number, silent: boolean = false) => {
     // Only prevent if this specific contact is already being processed
     if (pendingContactIds.has(contactId)) return;
     
@@ -1115,7 +1119,7 @@ export default function Home() {
       }
     }
     
-    enrichContactMutation.mutate(contactId);
+    enrichContactMutation.mutate({ contactId, silent });
   };
 
   const isContactEnriched = (contact: Contact) => {
@@ -1318,7 +1322,7 @@ export default function Home() {
 
   // Enhanced Hunter.io mutation with improved error handling
   const hunterMutation = useMutation({
-    mutationFn: async ({ contactId, searchContext = 'manual' }: { contactId: number; searchContext?: 'manual' | 'automated' }) => {
+    mutationFn: async ({ contactId, searchContext = 'manual', silent = false }: { contactId: number; searchContext?: 'manual' | 'automated'; silent?: boolean }) => {
       // Add this contact ID to the set of pending searches
       setPendingHunterIds(prev => {
         const newSet = new Set(prev);
@@ -1336,6 +1340,7 @@ export default function Home() {
           data: responseData.contact,
           contactId,
           searchContext,
+          silent,
           searchMetadata: responseData.searchMetadata,
           success: true,
           emailFound: false
@@ -1348,12 +1353,13 @@ export default function Home() {
         data: responseData,
         contactId,
         searchContext,
+        silent,
         success: true,
         emailFound: !!responseData.email
       };
     },
     onSuccess: async (result) => {
-      const {data, contactId, searchContext, searchMetadata, emailFound} = result;
+      const {data, contactId, searchContext, searchMetadata, emailFound, silent = false} = result;
       
       // Process credit billing for successful email discoveries
       if (emailFound) {
@@ -1443,25 +1449,27 @@ export default function Home() {
       });
       
       // Enhanced toast notifications with search metadata
-      if (searchContext === 'manual') {
-        const confidence = searchMetadata?.confidence || data.nameConfidenceScore;
-        const retryInfo = searchMetadata?.retryCount > 0 ? ` (${searchMetadata.retryCount + 1} attempts)` : '';
-        
-        toast({
-          title: "Hunter.io Search Complete",
-          description: `${data.name}: ${emailFound 
-            ? `Found email with ${confidence || 'unknown'} confidence${retryInfo}.`
-            : `No email found${retryInfo}.`}`,
-        });
-      } else if (searchContext === 'automated' && emailFound) {
-        toast({
-          title: "Email Found",
-          description: `${data.name}: Successfully found email address.`,
-        });
+      if (!silent) {
+        if (searchContext === 'manual') {
+          const confidence = searchMetadata?.confidence || data.nameConfidenceScore;
+          const retryInfo = searchMetadata?.retryCount > 0 ? ` (${searchMetadata.retryCount + 1} attempts)` : '';
+          
+          toast({
+            title: "Hunter.io Search Complete",
+            description: `${data.name}: ${emailFound 
+              ? `Found email with ${confidence || 'unknown'} confidence${retryInfo}.`
+              : `No email found${retryInfo}.`}`,
+          });
+        } else if (searchContext === 'automated' && emailFound) {
+          toast({
+            title: "Email Found",
+            description: `${data.name}: Successfully found email address.`,
+          });
+        }
       }
     },
     onError: (error, variables) => {
-      const { contactId, searchContext } = variables;
+      const { contactId, searchContext, silent = false } = variables;
       
       // Remove this contact ID from the set of pending searches
       setPendingHunterIds(prev => {
@@ -1471,23 +1479,25 @@ export default function Home() {
       });
       
       // Enhanced error handling with retry suggestions
-      if (searchContext === 'manual') {
-        const isRetryable = error instanceof Error && 
-          (error.message.includes('rate limit') || error.message.includes('network'));
-        
-        toast({
-          title: "Hunter.io Search Failed",
-          description: `${error instanceof Error ? error.message : "Failed to find contact email"}${
-            isRetryable ? ' - You can try again in a moment.' : ''
-          }`,
-          variant: "destructive",
-        });
+      if (!silent) {
+        if (searchContext === 'manual') {
+          const isRetryable = error instanceof Error && 
+            (error.message.includes('rate limit') || error.message.includes('network'));
+          
+          toast({
+            title: "Hunter.io Search Failed",
+            description: `${error instanceof Error ? error.message : "Failed to find contact email"}${
+              isRetryable ? ' - You can try again in a moment.' : ''
+            }`,
+            variant: "destructive",
+          });
+        }
       }
     },
   });
   
   // Handler for Hunter.io search with credit checking
-  const handleHunterSearch = async (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
+  const handleHunterSearch = async (contactId: number, searchContext: 'manual' | 'automated' = 'manual', silent: boolean = false) => {
     // Allow multiple searches to run in parallel
     if (pendingHunterIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
     
@@ -1511,7 +1521,7 @@ export default function Home() {
       }
     }
     
-    hunterMutation.mutate({ contactId, searchContext });
+    hunterMutation.mutate({ contactId, searchContext, silent });
   };
   
   // Add AeroLeads mutation with Set-based state management
@@ -2264,7 +2274,7 @@ export default function Home() {
   
   // Enhanced Apollo.io mutation with improved error handling
   const apolloMutation = useMutation({
-    mutationFn: async ({ contactId, searchContext = 'manual' }: { contactId: number; searchContext?: 'manual' | 'automated' }) => {
+    mutationFn: async ({ contactId, searchContext = 'manual', silent = false }: { contactId: number; searchContext?: 'manual' | 'automated'; silent?: boolean }) => {
       // Add this contact ID to the set of pending searches
       setPendingApolloIds(prev => {
         const newSet = new Set(prev);
@@ -2282,6 +2292,7 @@ export default function Home() {
           data: responseData.contact,
           contactId,
           searchContext,
+          silent,
           searchMetadata: responseData.searchMetadata,
           success: true,
           emailFound: false
@@ -2294,12 +2305,13 @@ export default function Home() {
         data: responseData,
         contactId,
         searchContext,
+        silent,
         success: true,
         emailFound: !!responseData.email
       };
     },
     onSuccess: async (result) => {
-      const {data, contactId, searchContext, searchMetadata, emailFound} = result;
+      const {data, contactId, searchContext, searchMetadata, emailFound, silent = false} = result;
       
       // Process credit billing for successful email discoveries
       if (emailFound) {
@@ -2389,26 +2401,28 @@ export default function Home() {
       });
       
       // Enhanced toast notifications with search metadata
-      if (searchContext === 'manual') {
-        const confidence = searchMetadata?.confidence || data.nameConfidenceScore;
-        const retryInfo = searchMetadata?.retryCount > 0 ? ` (${searchMetadata.retryCount + 1} attempts)` : '';
-        const additionalData = data.linkedinUrl || data.phoneNumber ? ' + profile data' : '';
-        
-        toast({
-          title: "Apollo.io Search Complete",
-          description: `${data.name}: ${emailFound 
-            ? `Found email with ${confidence || 'unknown'} confidence${additionalData}${retryInfo}.`
-            : `No email found${additionalData ? ', but found other profile data' : ''}${retryInfo}.`}`,
-        });
-      } else if (searchContext === 'automated' && emailFound) {
-        toast({
-          title: "Email Found",
-          description: `${data.name}: Successfully found email address.`,
-        });
+      if (!silent) {
+        if (searchContext === 'manual') {
+          const confidence = searchMetadata?.confidence || data.nameConfidenceScore;
+          const retryInfo = searchMetadata?.retryCount > 0 ? ` (${searchMetadata.retryCount + 1} attempts)` : '';
+          const additionalData = data.linkedinUrl || data.phoneNumber ? ' + profile data' : '';
+          
+          toast({
+            title: "Apollo.io Search Complete",
+            description: `${data.name}: ${emailFound 
+              ? `Found email with ${confidence || 'unknown'} confidence${additionalData}${retryInfo}.`
+              : `No email found${additionalData ? ', but found other profile data' : ''}${retryInfo}.`}`,
+          });
+        } else if (searchContext === 'automated' && emailFound) {
+          toast({
+            title: "Email Found",
+            description: `${data.name}: Successfully found email address.`,
+          });
+        }
       }
     },
     onError: (error, variables) => {
-      const { contactId, searchContext } = variables;
+      const { contactId, searchContext, silent = false } = variables;
       
       // Remove this contact ID from the set of pending searches
       setPendingApolloIds(prev => {
@@ -2418,23 +2432,25 @@ export default function Home() {
       });
       
       // Enhanced error handling with retry suggestions
-      if (searchContext === 'manual') {
-        const isRetryable = error instanceof Error && 
-          (error.message.includes('rate limit') || error.message.includes('network'));
-        
-        toast({
-          title: "Apollo.io Search Failed",
-          description: `${error instanceof Error ? error.message : "Failed to find contact email"}${
-            isRetryable ? ' - You can try again in a moment.' : ''
-          }`,
-          variant: "destructive",
-        });
+      if (!silent) {
+        if (searchContext === 'manual') {
+          const isRetryable = error instanceof Error && 
+            (error.message.includes('rate limit') || error.message.includes('network'));
+          
+          toast({
+            title: "Apollo.io Search Failed",
+            description: `${error instanceof Error ? error.message : "Failed to find contact email"}${
+              isRetryable ? ' - You can try again in a moment.' : ''
+            }`,
+            variant: "destructive",
+          });
+        }
       }
     },
   });
   
   // Handler for Apollo.io search with credit checking
-  const handleApolloSearch = async (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
+  const handleApolloSearch = async (contactId: number, searchContext: 'manual' | 'automated' = 'manual', silent: boolean = false) => {
     // Allow multiple searches to run in parallel
     if (pendingApolloIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
     
@@ -2458,7 +2474,7 @@ export default function Home() {
       }
     }
     
-    apolloMutation.mutate({ contactId, searchContext });
+    apolloMutation.mutate({ contactId, searchContext, silent });
   };
 
   // Comprehensive Email Search - Apollo → Perplexity → Hunter
@@ -2499,15 +2515,12 @@ export default function Home() {
     // Add to pending set
     setPendingComprehensiveSearchIds(prev => new Set(prev).add(contactId));
     
-    toast({
-      title: "Comprehensive Search Started",
-      description: "Searching Apollo, Perplexity, and Hunter for email...",
-    });
+    // No starting toast - the spinning icon is enough feedback
     
     try {
       // 1. Try Apollo first
       if (!contact.completedSearches?.includes('apollo_search')) {
-        await handleApolloSearch(contactId, 'automated');
+        await handleApolloSearch(contactId, 'automated', true); // Pass silent=true
         // Wait for result
         await new Promise(resolve => setTimeout(resolve, 3000));
         
@@ -2533,7 +2546,7 @@ export default function Home() {
       
       // 2. Try Perplexity AI if Apollo didn't find email
       if (!contact.completedSearches?.includes('contact_enrichment')) {
-        await handleEnrichContact(contactId);
+        await handleEnrichContact(contactId, true); // Pass silent=true
         // Wait for result
         await new Promise(resolve => setTimeout(resolve, 3000));
         
@@ -2559,7 +2572,7 @@ export default function Home() {
       
       // 3. Try Hunter as last resort
       if (!contact.completedSearches?.includes('hunter_search')) {
-        await handleHunterSearch(contactId, 'automated');
+        await handleHunterSearch(contactId, 'automated', true); // Pass silent=true
         // Wait for result
         await new Promise(resolve => setTimeout(resolve, 3000));
         

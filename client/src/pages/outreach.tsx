@@ -987,7 +987,7 @@ export default function Outreach() {
   };
 
   // Email enrichment handlers
-  const handleEnrichContact = async (contactId: number) => {
+  const handleEnrichContact = async (contactId: number, silent: boolean = false) => {
     setPendingContactIds(prev => new Set(prev).add(contactId));
     
     try {
@@ -1002,16 +1002,20 @@ export default function Outreach() {
         queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] 
       });
       
-      toast({
-        title: "Contact Enriched",
-        description: "Email search completed successfully",
-      });
+      if (!silent) {
+        toast({
+          title: "Contact Enriched",
+          description: "Email search completed successfully",
+        });
+      }
     } catch (error) {
-      toast({
-        title: "Enrichment Failed",
-        description: error instanceof Error ? error.message : "Failed to enrich contact",
-        variant: "destructive",
-      });
+      if (!silent) {
+        toast({
+          title: "Enrichment Failed",
+          description: error instanceof Error ? error.message : "Failed to enrich contact",
+          variant: "destructive",
+        });
+      }
     } finally {
       setPendingContactIds(prev => {
         const newSet = new Set(prev);
@@ -1021,7 +1025,7 @@ export default function Outreach() {
     }
   };
 
-  const handleHunterSearch = async (contactId: number) => {
+  const handleHunterSearch = async (contactId: number, silent: boolean = false) => {
     setPendingHunterIds(prev => new Set(prev).add(contactId));
     
     try {
@@ -1035,16 +1039,20 @@ export default function Outreach() {
         queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] 
       });
       
-      toast({
-        title: "Hunter Search Complete",
-        description: "Hunter.io email search completed",
-      });
+      if (!silent) {
+        toast({
+          title: "Hunter Search Complete",
+          description: "Hunter.io email search completed",
+        });
+      }
     } catch (error) {
-      toast({
-        title: "Hunter Search Failed",
-        description: error instanceof Error ? error.message : "Failed to search Hunter.io",
-        variant: "destructive",
-      });
+      if (!silent) {
+        toast({
+          title: "Hunter Search Failed",
+          description: error instanceof Error ? error.message : "Failed to search Hunter.io",
+          variant: "destructive",
+        });
+      }
     } finally {
       setPendingHunterIds(prev => {
         const newSet = new Set(prev);
@@ -1087,7 +1095,7 @@ export default function Outreach() {
     }
   };
 
-  const handleApolloSearch = async (contactId: number) => {
+  const handleApolloSearch = async (contactId: number, silent: boolean = false) => {
     setPendingApolloIds(prev => new Set(prev).add(contactId));
     
     try {
@@ -1101,16 +1109,20 @@ export default function Outreach() {
         queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] 
       });
       
-      toast({
-        title: "Apollo Search Complete",
-        description: "Apollo.io email search completed",
-      });
+      if (!silent) {
+        toast({
+          title: "Apollo Search Complete",
+          description: "Apollo.io email search completed",
+        });
+      }
     } catch (error) {
-      toast({
-        title: "Apollo Search Failed",
-        description: error instanceof Error ? error.message : "Failed to search Apollo.io",
-        variant: "destructive",
-      });
+      if (!silent) {
+        toast({
+          title: "Apollo Search Failed",
+          description: error instanceof Error ? error.message : "Failed to search Apollo.io",
+          variant: "destructive",
+        });
+      }
     } finally {
       setPendingApolloIds(prev => {
         const newSet = new Set(prev);
@@ -1158,15 +1170,12 @@ export default function Outreach() {
     // Add to pending set
     setPendingComprehensiveSearchIds(prev => new Set(prev).add(contactId));
     
-    toast({
-      title: "Comprehensive Search Started",
-      description: "Searching Apollo, Perplexity, and Hunter for email...",
-    });
+    // No starting toast - the spinning icon is enough feedback
     
     try {
       // 1. Try Apollo first
       if (!contact.completedSearches?.includes('apollo_search')) {
-        await handleApolloSearch(contactId);
+        await handleApolloSearch(contactId, true); // Pass silent=true
         // Wait for result
         await new Promise(resolve => setTimeout(resolve, 3000));
         
@@ -1192,7 +1201,7 @@ export default function Outreach() {
       
       // 2. Try Perplexity AI if Apollo didn't find email
       if (!contact.completedSearches?.includes('contact_enrichment')) {
-        await handleEnrichContact(contactId);
+        await handleEnrichContact(contactId, true); // Pass silent=true
         // Wait for result
         await new Promise(resolve => setTimeout(resolve, 3000));
         
@@ -1218,7 +1227,7 @@ export default function Outreach() {
       
       // 3. Try Hunter as last resort
       if (!contact.completedSearches?.includes('hunter_search')) {
-        await handleHunterSearch(contactId);
+        await handleHunterSearch(contactId, true); // Pass silent=true
         // Wait for result
         await new Promise(resolve => setTimeout(resolve, 3000));
         
