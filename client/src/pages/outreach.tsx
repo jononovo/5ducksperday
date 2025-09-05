@@ -24,7 +24,8 @@ import {
   Palette,
   TrendingUp,
   Gift,
-  Box
+  Box,
+  Loader2
 } from "lucide-react";
 import {
   Select,
@@ -46,7 +47,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
-import {Loader2} from "lucide-react";
 import { queryClient } from "@/lib/queryClient"; // Import queryClient
 import type { InsertEmailTemplate } from "@shared/schema"; // Import the type
 import { ContactActionColumn } from "@/components/contact-action-column";
@@ -151,6 +151,7 @@ export default function Outreach() {
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
+  const [pendingComprehensiveSearchIds, setPendingComprehensiveSearchIds] = useState<Set<number>>(new Set());
   
   // Copy feedback state tracking
   const [copiedContactIds, setCopiedContactIds] = useState<Set<number>>(new Set());
@@ -1119,6 +1120,144 @@ export default function Outreach() {
     }
   };
 
+  // Comprehensive Email Search - Apollo → Perplexity → Hunter
+  const handleComprehensiveEmailSearch = async (contactId: number) => {
+    // Check if already searching
+    if (pendingComprehensiveSearchIds.has(contactId)) return;
+    
+    // Get contact data from current list
+    const contact = contacts?.find(c => c.id === contactId);
+    if (!contact) return;
+    
+    // Skip if email already exists
+    if (contact.email) {
+      toast({
+        title: "Email Already Found",
+        description: `This contact already has an email: ${contact.email}`,
+      });
+      return;
+    }
+    
+    // Check credits (need up to 60 for all three searches)
+    try {
+      const creditsResponse = await apiRequest("GET", "/api/credits");
+      const creditsData = await creditsResponse.json();
+      
+      if (creditsData.balance < 60) {
+        toast({
+          title: "Insufficient Credits",
+          description: `You need up to 60 credits for comprehensive search. Current balance: ${creditsData.balance}`,
+          variant: "destructive",
+        });
+        return;
+      }
+    } catch (error) {
+      console.error('Credit check failed:', error);
+    }
+    
+    // Add to pending set
+    setPendingComprehensiveSearchIds(prev => new Set(prev).add(contactId));
+    
+    toast({
+      title: "Comprehensive Search Started",
+      description: "Searching Apollo, Perplexity, and Hunter for email...",
+    });
+    
+    try {
+      // 1. Try Apollo first
+      if (!contact.completedSearches?.includes('apollo_search')) {
+        await handleApolloSearch(contactId);
+        // Wait for result
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Check if email was found
+        const response = await apiRequest("GET", `/api/contacts/${contactId}`);
+        const updatedContact = await response.json();
+        if (updatedContact.email) {
+          setPendingComprehensiveSearchIds(prev => {
+            const next = new Set(prev);
+            next.delete(contactId);
+            return next;
+          });
+          toast({
+            title: "Email Found!",
+            description: `Found email via Apollo: ${updatedContact.email}`,
+            variant: "default",
+          });
+          // Refresh the display
+          queryClient.invalidateQueries({ queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] });
+          return;
+        }
+      }
+      
+      // 2. Try Perplexity AI if Apollo didn't find email
+      if (!contact.completedSearches?.includes('contact_enrichment')) {
+        await handleEnrichContact(contactId);
+        // Wait for result
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Check if email was found
+        const response = await apiRequest("GET", `/api/contacts/${contactId}`);
+        const updatedContact = await response.json();
+        if (updatedContact.email) {
+          setPendingComprehensiveSearchIds(prev => {
+            const next = new Set(prev);
+            next.delete(contactId);
+            return next;
+          });
+          toast({
+            title: "Email Found!",
+            description: `Found email via Perplexity: ${updatedContact.email}`,
+            variant: "default",
+          });
+          // Refresh the display
+          queryClient.invalidateQueries({ queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] });
+          return;
+        }
+      }
+      
+      // 3. Try Hunter as last resort
+      if (!contact.completedSearches?.includes('hunter_search')) {
+        await handleHunterSearch(contactId);
+        // Wait for result
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Check if email was found
+        const response = await apiRequest("GET", `/api/contacts/${contactId}`);
+        const updatedContact = await response.json();
+        if (updatedContact.email) {
+          toast({
+            title: "Email Found!",
+            description: `Found email via Hunter: ${updatedContact.email}`,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "No Email Found",
+            description: "Searched all sources but couldn't find an email address",
+            variant: "destructive",
+          });
+        }
+        // Refresh the display
+        queryClient.invalidateQueries({ queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] });
+      }
+    } catch (error) {
+      console.error('Comprehensive search error:', error);
+      toast({
+        title: "Search Error",
+        description: "An error occurred during the comprehensive search",
+        variant: "destructive",
+      });
+    } finally {
+      // Remove from pending
+      setPendingComprehensiveSearchIds(prev => {
+        const next = new Set(prev);
+        next.delete(contactId);
+        return next;
+      });
+    }
+  };
+
   return (
     <div className="w-full md:container md:mx-auto md:py-8">
       {/* Mobile Duck Header - Only visible on mobile when in compressed view with selected contact */}
@@ -1217,9 +1356,27 @@ export default function Outreach() {
                     <div className="text-xs text-muted-foreground mt-0 whitespace-nowrap overflow-hidden text-ellipsis pr-8">
                       {selectedContact.role}
                     </div>
-                    {selectedContact.email && (
+                    {selectedContact.email ? (
                       <div className="text-sm text-muted-foreground mt-2">
                         {selectedContact.email}
+                      </div>
+                    ) : (
+                      <div className="mt-2">
+                        <button
+                          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-blue-600 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleComprehensiveEmailSearch(selectedContact.id);
+                          }}
+                          disabled={pendingComprehensiveSearchIds.has(selectedContact.id)}
+                        >
+                          {pendingComprehensiveSearchIds.has(selectedContact.id) ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Mail className="w-4 h-4" />
+                          )}
+                          <span className="text-xs">Find email</span>
+                        </button>
                       </div>
                     )}
                     
@@ -1510,8 +1667,24 @@ export default function Outreach() {
                           {contact.role && (
                             <span className="block">{contact.role}</span>
                           )}
-                          {contact.email && (
+                          {contact.email ? (
                             <span className="block">{contact.email}</span>
+                          ) : (
+                            <button
+                              className="flex items-center gap-1.5 text-muted-foreground hover:text-blue-600 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleComprehensiveEmailSearch(contact.id);
+                              }}
+                              disabled={pendingComprehensiveSearchIds.has(contact.id)}
+                            >
+                              {pendingComprehensiveSearchIds.has(contact.id) ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Mail className="w-4 h-4" />
+                              )}
+                              <span className="text-xs">Find email</span>
+                            </button>
                           )}
                         </div>
                         {/* Copy button */}
