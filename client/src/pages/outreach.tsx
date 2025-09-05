@@ -174,6 +174,9 @@ export default function Outreach() {
   // Scroll compression state
   const [isScrolled, setIsScrolled] = useState(false);
   
+  // Gmail button hover state for expand/collapse
+  const [isGmailButtonHovered, setIsGmailButtonHovered] = useState(false);
+  
   // Textarea refs for auto-resizing
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -1827,15 +1830,33 @@ export default function Outreach() {
                       }
                     </Badge>
                   ) : (
-                    <Button
-                      onClick={handleGmailConnect}
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
-                    >
-                      <Lock className="w-3 h-3 mr-1" />
-                      Secure Gmail Connect
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={handleGmailConnect}
+                            onMouseEnter={() => setIsGmailButtonHovered(true)}
+                            onMouseLeave={() => setIsGmailButtonHovered(false)}
+                            variant="outline"
+                            size="sm"
+                            className={cn(
+                              "h-8 text-xs transition-all duration-300 ease-out overflow-hidden",
+                              isGmailButtonHovered 
+                                ? "px-3 bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100" 
+                                : "px-2 w-8 bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+                            )}
+                          >
+                            <Lock className="w-3 h-3 shrink-0" />
+                            {isGmailButtonHovered && (
+                              <span className="ml-1 whitespace-nowrap">Gmail API BETA</span>
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Connect via Gmail API so that your emails send automatically when you click send here.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                   
                   {/* Send Email Button with Fallback */}
