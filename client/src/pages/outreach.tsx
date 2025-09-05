@@ -1305,19 +1305,16 @@ export default function Outreach() {
                     }}
                   >
                     <SelectTrigger className="w-full h-12 px-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 hover:border-blue-300 hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 font-medium">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-5 h-5 text-blue-600" />
-                        <SelectValue placeholder="Select a list to start" />
-                      </div>
+                      <SelectValue placeholder="Select a list to start" />
                     </SelectTrigger>
                     <SelectContent>
                       {lists.map((list: List) => (
                         <SelectItem key={list.listId} value={list.listId.toString()}>
                           <div className="flex items-center justify-between w-full">
                             <span className="font-medium">{generateShortListDisplayName(list)}</span>
-                            <Badge variant="secondary" className="ml-2">
+                            <span className="text-sm text-muted-foreground ml-2">
                               {list.resultCount} companies
-                            </Badge>
+                            </span>
                           </div>
                         </SelectItem>
                       ))}
