@@ -1377,10 +1377,11 @@ export default function Home() {
       }
       
       // Update the contact in the results
+      let updatedResults: CompanyWithContacts[] | null = null;
       setCurrentResults(prev => {
         if (!prev) return null;
         
-        return prev.map(company => {
+        updatedResults = prev.map(company => {
           if (!company.contacts?.some(c => c.id === data.id)) {
             return company;
           }
@@ -1392,7 +1393,46 @@ export default function Home() {
             )
           };
         });
+        
+        return updatedResults;
       });
+      
+      // Immediately update localStorage to prevent losing emails on quick navigation
+      if (updatedResults) {
+        const stateToSave: SavedSearchState = {
+          currentQuery,
+          currentResults: updatedResults,
+          currentListId
+        };
+        localStorage.setItem('searchState', JSON.stringify(stateToSave));
+        sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
+        console.log('Hunter.io: Immediately saved email to localStorage for persistence');
+      }
+      
+      // If we have a saved list, update it in the database to ensure persistence
+      if (currentListId && updatedResults) {
+        console.log('Hunter.io: Updating list in database with new email');
+        // Use silent update without toast notification
+        apiRequest("PUT", `/api/lists/${currentListId}`, {
+          companies: updatedResults,
+          prompt: currentQuery,
+          contactSearchConfig: (() => {
+            const savedConfig = localStorage.getItem('contactSearchConfig');
+            if (savedConfig) {
+              try {
+                return JSON.parse(savedConfig);
+              } catch (error) {
+                return null;
+              }
+            }
+            return null;
+          })()
+        }).then(() => {
+          console.log('Hunter.io: List updated in database successfully');
+        }).catch(error => {
+          console.error('Hunter.io: Failed to update list in database:', error);
+        });
+      }
       
       // Remove this contact ID from the set of pending searches
       setPendingHunterIds(prev => {
@@ -1511,11 +1551,12 @@ export default function Home() {
       }
       
       // Update the contact in the results
+      let updatedResults: CompanyWithContacts[] | null = null;
       setCurrentResults(prev => {
         if (!prev) return null;
         
         // Only update the specific contact without affecting others
-        return prev.map(company => {
+        updatedResults = prev.map(company => {
           if (!company.contacts?.some(c => c.id === data.id)) {
             return company;
           }
@@ -1527,7 +1568,46 @@ export default function Home() {
             )
           };
         });
+        
+        return updatedResults;
       });
+      
+      // Immediately update localStorage to prevent losing emails on quick navigation
+      if (updatedResults) {
+        const stateToSave: SavedSearchState = {
+          currentQuery,
+          currentResults: updatedResults,
+          currentListId
+        };
+        localStorage.setItem('searchState', JSON.stringify(stateToSave));
+        sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
+        console.log('AeroLeads: Immediately saved email to localStorage for persistence');
+      }
+      
+      // If we have a saved list, update it in the database to ensure persistence
+      if (currentListId && updatedResults) {
+        console.log('AeroLeads: Updating list in database with new email');
+        // Use silent update without toast notification
+        apiRequest("PUT", `/api/lists/${currentListId}`, {
+          companies: updatedResults,
+          prompt: currentQuery,
+          contactSearchConfig: (() => {
+            const savedConfig = localStorage.getItem('contactSearchConfig');
+            if (savedConfig) {
+              try {
+                return JSON.parse(savedConfig);
+              } catch (error) {
+                return null;
+              }
+            }
+            return null;
+          })()
+        }).then(() => {
+          console.log('AeroLeads: List updated in database successfully');
+        }).catch(error => {
+          console.error('AeroLeads: Failed to update list in database:', error);
+        });
+      }
       
       // Remove this contact ID from the set of pending searches
       setPendingAeroLeadsIds(prev => {
@@ -2243,10 +2323,11 @@ export default function Home() {
       }
       
       // Update the contact in the results
+      let updatedResults: CompanyWithContacts[] | null = null;
       setCurrentResults(prev => {
         if (!prev) return null;
         
-        return prev.map(company => {
+        updatedResults = prev.map(company => {
           if (!company.contacts?.some(c => c.id === data.id)) {
             return company;
           }
@@ -2258,7 +2339,46 @@ export default function Home() {
             )
           };
         });
+        
+        return updatedResults;
       });
+      
+      // Immediately update localStorage to prevent losing emails on quick navigation
+      if (updatedResults) {
+        const stateToSave: SavedSearchState = {
+          currentQuery,
+          currentResults: updatedResults,
+          currentListId
+        };
+        localStorage.setItem('searchState', JSON.stringify(stateToSave));
+        sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
+        console.log('Apollo.io: Immediately saved email to localStorage for persistence');
+      }
+      
+      // If we have a saved list, update it in the database to ensure persistence
+      if (currentListId && updatedResults) {
+        console.log('Apollo.io: Updating list in database with new email');
+        // Use silent update without toast notification
+        apiRequest("PUT", `/api/lists/${currentListId}`, {
+          companies: updatedResults,
+          prompt: currentQuery,
+          contactSearchConfig: (() => {
+            const savedConfig = localStorage.getItem('contactSearchConfig');
+            if (savedConfig) {
+              try {
+                return JSON.parse(savedConfig);
+              } catch (error) {
+                return null;
+              }
+            }
+            return null;
+          })()
+        }).then(() => {
+          console.log('Apollo.io: List updated in database successfully');
+        }).catch(error => {
+          console.error('Apollo.io: Failed to update list in database:', error);
+        });
+      }
       
       // Remove this contact ID from the set of pending searches
       setPendingApolloIds(prev => {
