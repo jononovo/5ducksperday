@@ -307,9 +307,7 @@ export default function Build() {
   };
 
   const getScoreBadgeVariant = (score: number) => {
-    if (score >= 80) return "default";
-    if (score >= 60) return "secondary";
-    return "destructive";
+    return "secondary";
   };
 
   return (

@@ -2752,15 +2752,7 @@ export default function Home() {
                           </TableCell>
                           
                           <TableCell>
-                            <Badge
-                              variant={
-                                (contact.probability || 0) >= 90
-                                  ? "default"
-                                  : (contact.probability || 0) >= 70
-                                  ? "secondary"
-                                  : "outline"
-                              }
-                            >
+                            <Badge variant="secondary">
                               {contact.probability || 0}
                             </Badge>
                           </TableCell>

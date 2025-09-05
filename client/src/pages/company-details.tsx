@@ -269,7 +269,7 @@ export default function CompanyDetails() {
                     <TableCell>{contact.role}</TableCell>
                     <TableCell>{contact.email}</TableCell>
                     <TableCell>
-                      <Badge variant={contact.probability && contact.probability >= 90 ? "default" : "secondary"}>
+                      <Badge variant="secondary">
                         {contact.probability || 0}
                       </Badge>
                     </TableCell>
