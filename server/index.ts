@@ -74,18 +74,7 @@ app.get('/api/health', (_req, res) => {
     
     // Database already initialized through Drizzle
     
-    // Initialize default search approaches (only for Replit storage)
-    try {
-      if (typeof storage.initializeDefaultSearchApproaches === 'function') {
-        await storage.initializeDefaultSearchApproaches();
-        console.log('Default search approaches initialized successfully');
-      } else {
-        console.log('PostgreSQL storage: Default search approaches not needed for new users');
-      }
-    } catch (error) {
-      console.error('Error initializing default search approaches:', error);
-      // Continue with server startup even if this fails
-    }
+    // Storage initialization handled by individual storage implementations
 
     const server = registerRoutes(app);
 

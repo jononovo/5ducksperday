@@ -22,28 +22,20 @@ export async function generateEmailContent(request: EmailGenerationRequest): Pro
   // Get offer strategy configuration (can be null)
   const offerConfig = getOfferConfig(offerStrategy);
 
-  // Build system prompt with tone and optional offer strategy
+  // Build integrated writing style with optional offer strategy
+  let writingStyle = toneConfig.writingStyle;
+  if (offerConfig) {
+    writingStyle += ` When presenting your value proposition, ${offerConfig.actionableStructure}`;
+  }
+
+  // Build system prompt with integrated instructions
   let systemContent = `${toneConfig.systemPersonality}.
 
 GREETING INSTRUCTIONS: ${toneConfig.greetingStyle}
-WRITING STYLE: ${toneConfig.writingStyle}
+WRITING STYLE: ${writingStyle}
 CLOSING INSTRUCTIONS: ${toneConfig.closingStyle}
 
 ${toneConfig.additionalInstructions}`;
-
-  // Add offer strategy instructions only if not 'none'
-  if (offerConfig) {
-    systemContent += `
-
-SUBJECT LINE STRATEGY: ${offerConfig.subjectInstructions}
-OFFER STRUCTURE: ${offerConfig.actionableStructure}`;
-    
-    // Add fallback suggestions if available
-    if (offerConfig.fallbackSuggestions) {
-      systemContent += `
-FALLBACK OPTIONS: ${offerConfig.fallbackSuggestions}`;
-    }
-  }
 
   // Construct the prompt for Perplexity
   const messages: PerplexityMessage[] = [

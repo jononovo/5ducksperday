@@ -1,14 +1,15 @@
 import { 
   userPreferences, lists, companies, contacts, emailTemplates, users,
-  strategicProfiles, onboardingChats,
+  strategicProfiles, userEmailPreferences, campaigns,
   type UserPreferences, type InsertUserPreferences,
+  type UserEmailPreferences, type InsertUserEmailPreferences,
   type List, type InsertList,
   type Company, type InsertCompany,
   type Contact, type InsertContact,
   type EmailTemplate, type InsertEmailTemplate,
   type User, type InsertUser,
   type StrategicProfile, type InsertStrategicProfile,
-  type OnboardingChat, type InsertOnboardingChat
+  type Campaign, type InsertCampaign
 } from "@shared/schema";
 import { db } from "./1--db";
 import { eq, and, or, sql, desc } from "drizzle-orm";
@@ -46,16 +47,16 @@ export interface IStorage {
   updateContact(id: number, data: Partial<Contact>): Promise<Contact>;
   deleteContactsByCompany(companyId: number, userId: number): Promise<void>;
 
-  // Email Conversations
-  listActiveContactsWithThreads(userId: number): Promise<(Contact & { lastMessage: string, lastMessageDate: Date, unread: boolean })[]>;
-  listThreadsByContact(contactId: number, userId: number): Promise<EmailThread[]>;
-  getThread(id: number, userId: number): Promise<EmailThread | undefined>;
-  createThread(data: InsertEmailThread): Promise<EmailThread>;
-  updateThread(id: number, data: Partial<EmailThread>): Promise<EmailThread>;
-  listMessagesByThread(threadId: number): Promise<EmailMessage[]>;
-  getThreadMessage(id: number): Promise<EmailMessage | undefined>;
-  createMessage(data: InsertEmailMessage): Promise<EmailMessage>;
-  markThreadMessagesAsRead(threadId: number): Promise<void>;
+  // Email Conversations (inactive - commented out)
+  // listActiveContactsWithThreads(userId: number): Promise<(Contact & { lastMessage: string, lastMessageDate: Date, unread: boolean })[]>;
+  // listThreadsByContact(contactId: number, userId: number): Promise<EmailThread[]>;
+  // getThread(id: number, userId: number): Promise<EmailThread | undefined>;
+  // createThread(data: InsertEmailThread): Promise<EmailThread>;
+  // updateThread(id: number, data: Partial<EmailThread>): Promise<EmailThread>;
+  // listMessagesByThread(threadId: number): Promise<EmailMessage[]>;
+  // getThreadMessage(id: number): Promise<EmailMessage | undefined>;
+  // createMessage(data: InsertEmailMessage): Promise<EmailMessage>;
+  // markThreadMessagesAsRead(threadId: number): Promise<void>;
   
   // Campaigns
   listCampaigns(userId: number): Promise<Campaign[]>;
@@ -70,7 +71,10 @@ export interface IStorage {
   createEmailTemplate(data: InsertEmailTemplate): Promise<EmailTemplate>;
   updateEmailTemplate(id: number, data: InsertEmailTemplate): Promise<EmailTemplate>;
 
-
+  // User Email Preferences
+  getUserEmailPreferences(userId: number): Promise<UserEmailPreferences | undefined>;
+  createUserEmailPreferences(data: InsertUserEmailPreferences): Promise<UserEmailPreferences>;
+  updateUserEmailPreferences(userId: number, data: Partial<UserEmailPreferences>): Promise<UserEmailPreferences | undefined>;
 
   // Strategic Profiles
   getStrategicProfiles(userId: number): Promise<StrategicProfile[]>;
@@ -423,6 +427,32 @@ class DatabaseStorage implements IStorage {
       console.error('Error updating email template:', error);
       throw error;
     }
+  }
+
+  // User Email Preferences methods
+  async getUserEmailPreferences(userId: number): Promise<UserEmailPreferences | undefined> {
+    const [prefs] = await db
+      .select()
+      .from(userEmailPreferences)
+      .where(eq(userEmailPreferences.userId, userId));
+    return prefs;
+  }
+
+  async createUserEmailPreferences(data: InsertUserEmailPreferences): Promise<UserEmailPreferences> {
+    const [prefs] = await db
+      .insert(userEmailPreferences)
+      .values(data)
+      .returning();
+    return prefs;
+  }
+
+  async updateUserEmailPreferences(userId: number, data: Partial<UserEmailPreferences>): Promise<UserEmailPreferences | undefined> {
+    const [prefs] = await db
+      .update(userEmailPreferences)
+      .set(data)
+      .where(eq(userEmailPreferences.userId, userId))
+      .returning();
+    return prefs;
   }
 
   // Strategic Profiles methods

@@ -23,7 +23,8 @@ import {
   X,
   Palette,
   TrendingUp,
-  Gift
+  Gift,
+  Box
 } from "lucide-react";
 import {
   Select,
@@ -36,7 +37,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; // Import Input component
 import { cn } from "@/lib/utils";
-import type { List, Company, Contact } from "@shared/schema";
+import type { List, Company, Contact, StrategicProfile } from "@shared/schema";
 import { generateShortListDisplayName } from "@/lib/list-utils";
 import { useState, useEffect, useMemo, useRef } from "react";
 import QuickTemplates from "@/components/quick-templates";
@@ -72,6 +73,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { EmailSendButton } from "@/components/email-fallback/EmailSendButton";
+import { useEmailFallback } from "@/hooks/useEmailFallback";
 
 
 // Define interfaces
@@ -95,6 +108,7 @@ interface SavedOutreachState {
   selectedCompanyIndex: number;
   selectedTone: string;
   selectedOfferStrategy: string;
+  selectedProduct: number | null;
   // Original content for merge field conversion
   originalEmailPrompt?: string;
   originalEmailContent?: string;
@@ -113,9 +127,14 @@ export default function Outreach() {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [showExpandedView, setShowExpandedView] = useState(false);
   const [selectedTone, setSelectedTone] = useState<string>(DEFAULT_TONE);
+  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
+  const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [tonePopoverOpen, setTonePopoverOpen] = useState(false);
   const [selectedOfferStrategy, setSelectedOfferStrategy] = useState<string>(DEFAULT_OFFER);
   const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
+  const [generateConfirmDialogOpen, setGenerateConfirmDialogOpen] = useState(false);
+  const [productChangeDialogOpen, setProductChangeDialogOpen] = useState(false);
+  const [pendingProduct, setPendingProduct] = useState<StrategicProfile | null>(null);
 
   // Refs for form inputs to handle merge field insertion
   const emailPromptRef = useRef<HTMLTextAreaElement>(null);
@@ -172,8 +191,8 @@ export default function Outreach() {
     const textarea = promptTextareaRef.current;
     if (textarea) {
       textarea.style.height = 'auto';
-      // Current 4-line height is roughly 100px, so half would be ~50px, but let's use 60px for 2 lines
-      const newHeight = Math.min(textarea.scrollHeight, 100); // 100px max (current 4-line height)
+      // Allow more expansion while maintaining proper button clearance
+      const newHeight = Math.min(textarea.scrollHeight, 120); // 120px max (content + button space)
       textarea.style.height = `${newHeight}px`;
     }
   };
@@ -205,6 +224,7 @@ export default function Outreach() {
       setOriginalEmailSubject(parsed.originalEmailSubject || parsed.emailSubject || "");
       setSelectedTone(parsed.selectedTone || DEFAULT_TONE);
       setSelectedOfferStrategy(parsed.selectedOfferStrategy || DEFAULT_OFFER);
+      setSelectedProduct(parsed.selectedProduct || null);
     }
   }, []);
 
@@ -220,12 +240,13 @@ export default function Outreach() {
       selectedCompanyIndex,
       selectedTone,
       selectedOfferStrategy,
+      selectedProduct,
       originalEmailPrompt,
       originalEmailContent,
       originalEmailSubject
     };
     localStorage.setItem('outreachState', JSON.stringify(stateToSave));
-  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, selectedCompanyIndex, selectedTone, selectedOfferStrategy, originalEmailPrompt, originalEmailContent, originalEmailSubject]);
+  }, [selectedListId, selectedContactId, emailPrompt, emailContent, toEmail, emailSubject, selectedCompanyIndex, selectedTone, selectedOfferStrategy, selectedProduct, originalEmailPrompt, originalEmailContent, originalEmailSubject]);
 
   // Scroll compression effect
   useEffect(() => {
@@ -275,6 +296,14 @@ export default function Outreach() {
     enabled: !!user && !!gmailStatus?.authorized,
   });
 
+  // Query to get user's strategic profiles (products)
+  const { data: products = [] } = useQuery<StrategicProfile[]>({
+    queryKey: ['/api/products'],
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+
   // Memoized top 3 leadership contacts computation
   const topContacts = useMemo(() => 
     contacts
@@ -289,7 +318,7 @@ export default function Outreach() {
   , [topContacts, selectedContactId]);
 
   // Email generation hook
-  const { generateEmail, isGenerating } = useEmailGeneration({
+  const { generateEmail: performGeneration, isGenerating } = useEmailGeneration({
     selectedContact,
     selectedCompany,
     emailPrompt,
@@ -304,6 +333,20 @@ export default function Outreach() {
     setEmailContent,
     setOriginalEmailContent
   });
+
+  const handleGenerateEmail = () => {
+    // Check if there's existing content
+    if (emailSubject.trim() || emailContent.trim() || toEmail.trim()) {
+      setGenerateConfirmDialogOpen(true);
+    } else {
+      performGeneration();
+    }
+  };
+
+  const handleConfirmGenerate = () => {
+    performGeneration();
+    setGenerateConfirmDialogOpen(false);
+  };
 
   // Adjacent company prefetching for instant navigation
   useEffect(() => {
@@ -434,6 +477,96 @@ export default function Outreach() {
       });
     }
   };
+
+  // Handle product selection and insert context into email prompt
+  const handleSelectProduct = (product: StrategicProfile) => {
+    // Check if there's existing content in the prompt
+    if (emailPrompt.trim() && selectedProduct !== product.id) {
+      // Store the pending product and show confirmation dialog
+      setPendingProduct(product);
+      setProductChangeDialogOpen(true);
+      setProductPopoverOpen(false);
+      return;
+    }
+    
+    // No existing content or same product, proceed directly
+    applyProductSelection(product);
+  };
+
+  // Apply the product selection (used after confirmation or direct selection)
+  const applyProductSelection = (product: StrategicProfile) => {
+    setSelectedProduct(product.id);
+    setProductPopoverOpen(false);
+    
+    // Create product context lines
+    const productContext = [];
+    if (product.productService) {
+      productContext.push(`Product: ${product.productService}`);
+    }
+    if (product.customerFeedback) {
+      productContext.push(`What customers like: ${product.customerFeedback}`);
+    }
+    if (product.website) {
+      productContext.push(`Website: ${product.website}`);
+    }
+    
+    // REPLACE the email prompt completely (not append)
+    const newPrompt = productContext.join('\n');
+    
+    setEmailPrompt(newPrompt);
+    setOriginalEmailPrompt(newPrompt);
+    
+    // Auto-resize prompt field
+    setTimeout(() => {
+      handlePromptTextareaResize();
+    }, 0);
+  };
+
+  // Handle product change confirmation
+  const handleConfirmProductChange = () => {
+    if (pendingProduct) {
+      applyProductSelection(pendingProduct);
+    } else {
+      // Handle "None" selection - clear the prompt
+      setEmailPrompt('');
+      setOriginalEmailPrompt('');
+      setSelectedProduct(null);
+      setTimeout(() => handlePromptTextareaResize(), 0);
+    }
+    setPendingProduct(null);
+    setProductChangeDialogOpen(false);
+  };
+
+  // Handle product change cancellation
+  const handleCancelProductChange = () => {
+    setPendingProduct(null);
+    setProductChangeDialogOpen(false);
+  };
+
+  // Handle "None" selection (clear product)
+  const handleSelectNone = () => {
+    // Check if there's existing content in the prompt
+    if (emailPrompt.trim() && selectedProduct !== null) {
+      // Store null as pending and show confirmation dialog
+      setPendingProduct(null);
+      setProductChangeDialogOpen(true);
+      setProductPopoverOpen(false);
+      return;
+    }
+    
+    // No existing content, proceed directly
+    if (selectedProduct !== null) {
+      setEmailPrompt('');
+      setOriginalEmailPrompt('');
+      setTimeout(() => handlePromptTextareaResize(), 0);
+    }
+    
+    setSelectedProduct(null);
+    setProductPopoverOpen(false);
+  };
+
+  // Find selected product for display
+  const selectedProductData = products.find(p => p.id === selectedProduct);
 
   // Resolve sender names for current user
   const senderNames = resolveFrontendSenderNames(user);
@@ -723,6 +856,19 @@ export default function Outreach() {
     if (contact.email) {
       setToEmail(contact.email);
       setSelectedContactId(contact.id);
+      
+      // Update company index if contact is from different company
+      const contactCompanyIndex = companies.findIndex(c => c.id === contact.companyId);
+      if (contactCompanyIndex !== -1 && contactCompanyIndex !== selectedCompanyIndex) {
+        setCurrentCompanyIndex(contactCompanyIndex);
+      }
+      
+      // Update contact index in the list
+      const contactIndex = topContacts.findIndex(c => c.id === contact.id);
+      if (contactIndex !== -1) {
+        setCurrentContactIndex(contactIndex);
+      }
+      
       toast({
         title: "Email populated",
         description: `${contact.name}'s email added to recipient field`,
@@ -740,6 +886,12 @@ export default function Outreach() {
       // Auto-populate email if available
       if (highestProbabilityContact.email && !toEmail) {
         setToEmail(highestProbabilityContact.email);
+      }
+      
+      // Update company index if contact is from different company
+      const contactCompanyIndex = companies.findIndex(c => c.id === highestProbabilityContact.companyId);
+      if (contactCompanyIndex !== -1 && contactCompanyIndex !== selectedCompanyIndex) {
+        setCurrentCompanyIndex(contactCompanyIndex);
       }
     }
   }, [topContacts, selectedContactId, toEmail]);
@@ -1209,6 +1361,24 @@ export default function Outreach() {
                         )}
                         onClick={() => {
                           setSelectedContactId(contact.id);
+                          
+                          // Update email field
+                          if (contact.email) {
+                            setToEmail(contact.email);
+                          }
+                          
+                          // Update company index if contact is from different company
+                          const contactCompanyIndex = companies.findIndex(c => c.id === contact.companyId);
+                          if (contactCompanyIndex !== -1 && contactCompanyIndex !== selectedCompanyIndex) {
+                            setCurrentCompanyIndex(contactCompanyIndex);
+                          }
+                          
+                          // Update contact index in the list
+                          const contactIndex = topContacts.findIndex(c => c.id === contact.id);
+                          if (contactIndex !== -1) {
+                            setCurrentContactIndex(contactIndex);
+                          }
+                          
                           // On mobile, immediately collapse after contact selection
                           if (typeof window !== 'undefined' && window.innerWidth < 768) { // md breakpoint
                             setIsMobileExpanded(false);
@@ -1382,7 +1552,7 @@ export default function Outreach() {
               {/* Email Prompt Field */}
               <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
                 <Textarea
-                  ref={emailPromptRef}
+                  ref={promptTextareaRef}
                   placeholder="Sell dog-grooming services"
                   value={getDisplayValue(emailPrompt, originalEmailPrompt)}
                   onChange={(e) => {
@@ -1390,15 +1560,94 @@ export default function Outreach() {
                     setOriginalEmailPrompt(e.target.value);
                     handlePromptTextareaResize();
                   }}
-                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-6 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
-                  style={{ minHeight: '32px', maxHeight: '100px' }}
+                  className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  style={{ minHeight: '32px', maxHeight: '120px' }}
                 />
-                  <div className="absolute bottom-2 left-2 flex items-center gap-2">
+                  <div className="absolute bottom-1 left-2 flex items-center gap-2">
+                    {/* Product Selection */}
+                    <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <button 
+                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
+                          title="Select product context"
+                        >
+                          <Box className="w-3 h-3" />
+                          {selectedProductData && (
+                            <span className="max-w-20 truncate">{selectedProductData.title || selectedProductData.productService || 'Product'}</span>
+                          )}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72 p-0" align="start">
+                        <div className="p-4 border-b bg-muted/30">
+                          <div className="flex items-center gap-2">
+                            <Box className="w-4 h-4 text-primary" />
+                            <h4 className="font-semibold text-sm">Product Context</h4>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Insert from your existing product list</p>
+                        </div>
+                        <div className="p-2">
+                          {/* None Option */}
+                          <button
+                            className={cn(
+                              "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
+                              selectedProduct === null && "bg-accent"
+                            )}
+                            onClick={handleSelectNone}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="text-xs">
+                                <span className="font-medium">None</span>
+                                <span className="text-muted-foreground"> - No specific product context</span>
+                              </div>
+                              {selectedProduct === null && (
+                                <Check className="w-3 h-3 text-primary" />
+                              )}
+                            </div>
+                          </button>
+                          
+                          {/* Product Options */}
+                          {products.length === 0 ? (
+                            <div className="p-4 text-center text-muted-foreground text-sm">
+                              <p>No products created yet.</p>
+                              <p className="text-xs mt-1">Create one in Strategy Dashboard</p>
+                            </div>
+                          ) : (
+                            products.map((product) => (
+                              <button
+                                key={product.id}
+                                className={cn(
+                                  "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
+                                  selectedProduct === product.id && "bg-accent"
+                                )}
+                                onClick={() => handleSelectProduct(product)}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="text-xs flex-1 min-w-0">
+                                    <div className="font-medium truncate">
+                                      {product.title || product.productService || 'Untitled Product'}
+                                    </div>
+                                    {product.productService && product.title !== product.productService && (
+                                      <div className="text-muted-foreground truncate mt-0.5">
+                                        {product.productService}
+                                      </div>
+                                    )}
+                                  </div>
+                                  {selectedProduct === product.id && (
+                                    <Check className="w-3 h-3 text-primary" />
+                                  )}
+                                </div>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
                     {/* Tone Selection */}
                     <Popover open={tonePopoverOpen} onOpenChange={setTonePopoverOpen}>
                       <PopoverTrigger asChild>
                         <button 
-                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors text-xs text-muted-foreground"
+                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
                           title="Select email tone"
                         >
                           <Palette className="w-3 h-3" />
@@ -1445,7 +1694,7 @@ export default function Outreach() {
                     <Popover open={offerPopoverOpen} onOpenChange={setOfferPopoverOpen}>
                       <PopoverTrigger asChild>
                         <button 
-                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors text-xs text-muted-foreground"
+                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
                           title="Select offer strategy"
                         >
                           <Gift className="w-3 h-3" />
@@ -1508,7 +1757,7 @@ export default function Outreach() {
                     </Tooltip>
                   </TooltipProvider>
                   <Button 
-                    onClick={generateEmail} 
+                    onClick={handleGenerateEmail} 
                     variant="yellow"
                     disabled={isGenerating}
                     className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
@@ -1589,31 +1838,19 @@ export default function Outreach() {
                     </Button>
                   )}
                   
-                  {/* Send Email Button */}
-                  <Button
-                    onClick={handleSendEmail}
-                    disabled={sendEmailMutation.isPending || !gmailStatus?.authorized}
-                    variant="outline"
-                    className={cn(
-                      "h-8 px-3 text-xs bg-white text-black border-black hover:bg-black hover:text-white hover:scale-105 transition-all duration-300 ease-out",
-                      sendEmailMutation.isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500",
-                      !gmailStatus?.authorized && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    {sendEmailMutation.isPending ? (
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                    ) : sendEmailMutation.isSuccess ? (
-                      <>
-                        <PartyPopper className="w-3 h-3 mr-1" />
-                        Sent Email
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-3 h-3 mr-1" />
-                        Send Email
-                      </>
-                    )}
-                  </Button>
+                  {/* Send Email Button with Fallback */}
+                  <EmailSendButton
+                    to={toEmail}
+                    subject={emailSubject}
+                    body={emailContent}
+                    contact={selectedContact}
+                    company={selectedCompany}
+                    isGmailAuthenticated={gmailStatus?.authorized}
+                    onSendViaGmail={handleSendEmail}
+                    isPending={sendEmailMutation.isPending}
+                    isSuccess={sendEmailMutation.isSuccess}
+                    className="h-8 px-3 text-xs"
+                  />
                 </div>
               </div>
 
@@ -1644,6 +1881,46 @@ export default function Outreach() {
           </div>
         </div>
       </div>
+
+      {/* Generate Email Confirmation Dialog */}
+      <AlertDialog open={generateConfirmDialogOpen} onOpenChange={setGenerateConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Generate AI Email</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will replace all content in email subject and body fields.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setGenerateConfirmDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmGenerate}>
+              Generate Email
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Product Change Confirmation Dialog */}
+      <AlertDialog open={productChangeDialogOpen} onOpenChange={setProductChangeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change Product</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will replace the current email prompt with the new product details. Continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelProductChange}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmProductChange}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

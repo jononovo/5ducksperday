@@ -27,18 +27,23 @@ export const OFFER_OPTIONS: OfferOption[] = [
   },
   {
     id: 'ifWeCant',
-    name: 'If we can\'t',
+    name: 'Guarantee',
     description: 'Guarantee-based with compelling backup offer'
   },
   {
     id: 'shinyFree',
-    name: 'Shiny FREE',
+    name: 'Shiny',
     description: 'Free valuable resources like cheat sheets, API keys'
   },
   {
     id: 'caseStudy',
-    name: 'Case Study',
+    name: 'Study',
     description: 'Social proof with specific company results'
+  },
+  {
+    id: 'coldEmailFormula',
+    name: 'Formula',
+    description: '5-part proven framework with 37% open rate'
   }
 ];
 

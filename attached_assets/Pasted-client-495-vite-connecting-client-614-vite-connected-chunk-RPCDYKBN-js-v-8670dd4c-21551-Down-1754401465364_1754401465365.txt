@@ -1,0 +1,41 @@
+client:495 [vite] connecting...
+client:614 [vite] connected.
+chunk-RPCDYKBN.js?v=8670dd4c:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+firebase.ts:78 Starting Firebase initialization... {timestamp: '2025-08-05T13:43:27.581Z', domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev'}
+firebase.ts:18 Raw environment variables: {apiKey: '....aDbuzU', projectId: 'fire-5-ducks', appId: '....b133e8', mode: 'development', dev: true, …}
+firebase.ts:55 Firebase Configuration: {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: 'fire-5-ducks.firebaseapp.com', environment: 'development', …}
+firebase.ts:156 Firebase initialized successfully: {domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev', isAuth: true, isProvider: true, authDomain: 'fire-5-ducks.firebaseapp.com', timestamp: '2025-08-05T13:43:27.583Z'}
+use-auth.tsx:369 Setting up Firebase auth state listener
+use-auth.tsx:377 Firebase auth state changed: ale@codetribe.com
+firebase.ts:100 Firebase persistence set to LOCAL
+quick-templates.tsx:65 QuickTemplates - Loaded templates: []
+quick-templates.tsx:65 QuickTemplates - Loaded templates: []
+use-auth.tsx:299 Making backend sync request {endpoint: '/api/google-auth', domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev', selectedPlan: null, planSource: null, joinWaitlist: null}
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+firebase.ts:128 Auth token set successfully: {uid: 'Zqq7kXq1ujY2c9hy8XHReEm3wRa2', email: 'ale@...', timestamp: '2025-08-05T13:43:28.395Z'}
+outreach.tsx:342 Prefetching contacts for companies 2 to 6 (current: 5)
+queryClient.ts:46 API Request: GET /api/companies/39/contacts {hasData: false, timestamp: '2025-08-05T13:43:28.485Z'}
+queryClient.ts:46 API Request: GET /api/companies/37/contacts {hasData: false, timestamp: '2025-08-05T13:43:28.485Z'}
+queryClient.ts:46 API Request: GET /api/companies/36/contacts {hasData: false, timestamp: '2025-08-05T13:43:28.486Z'}
+queryClient.ts:46 API Request: GET /api/companies/42/contacts {hasData: false, timestamp: '2025-08-05T13:43:28.486Z'}
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+use-auth.tsx:339 Successfully synced with backend
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+queryClient.ts:46 API Request: POST /api/generate-email {hasData: true, timestamp: '2025-08-05T13:43:42.292Z'}
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+outreach.tsx:342 Prefetching contacts for companies 3 to 6 (current: 6)
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+queryClient.ts:46 API Request: POST /api/generate-email {hasData: true, timestamp: '2025-08-05T13:43:59.500Z'}
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]
+quick-templates.tsx:65 QuickTemplates - Loaded templates: (4) [{…}, {…}, {…}, {…}]

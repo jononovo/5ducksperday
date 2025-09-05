@@ -7,6 +7,7 @@ import {
   formatGeneratedContent,
   validateEmailGenerationRequest 
 } from "./outreach-utils";
+import { applySmartReplacements } from "./smart-replacements";
 import type { EmailGenerationPayload, EmailGenerationResponse } from "./types";
 import type { Contact, Company } from "@shared/schema";
 
@@ -66,25 +67,33 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
       return generateEmailApi(payload);
     },
     onSuccess: (data: EmailGenerationResponse) => {
-      // Auto-fill subject if empty
-      if (shouldAutoFillSubject(emailSubject)) {
-        setEmailSubject(data.subject);
-        setOriginalEmailSubject(data.subject);
+      // Apply smart replacements to convert exact name matches to merge fields
+      const processed = applySmartReplacements(
+        data.content,
+        data.subject,
+        selectedContact,
+        selectedCompany
+      );
+      
+      // Set the processed subject with merge fields
+      setEmailSubject(processed.subject);
+      setOriginalEmailSubject(processed.subject);
+      
+      // Always set email field to match selected contact (prevents accidental sends)
+      if (selectedContact?.email) {
+        setToEmail(selectedContact.email);
+      } else {
+        setToEmail(''); // Clear field if contact has no email
       }
       
-      // Auto-fill email if contact has email and field is empty
-      if (shouldAutoFillEmail(selectedContact, toEmail)) {
-        setToEmail(selectedContact!.email!);
-      }
-      
-      // Format and set content
-      const newContent = formatGeneratedContent(data.content, emailContent);
+      // Format and set the processed content with merge fields
+      const newContent = formatGeneratedContent(processed.content, emailContent);
       setEmailContent(newContent);
       setOriginalEmailContent(newContent);
       
       toast({
         title: "Email Generated",
-        description: "New content has been added above the existing email.",
+        description: "AI generated content has replaced all email fields.",
       });
     },
     onError: (error: Error) => {

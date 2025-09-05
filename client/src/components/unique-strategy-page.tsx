@@ -43,6 +43,7 @@ interface StrategicProfile {
   dailySearchQueries?: string;
   reportSalesContextGuidance?: string;
   reportSalesTargetingGuidance?: string;
+  productOfferStrategies?: string;
 }
 
 interface UniqueStrategyPageProps {
@@ -132,6 +133,8 @@ export function UniqueStrategyPage({ product, onClose }: UniqueStrategyPageProps
   const salesContext = parseJsonSafely(product.reportSalesContextGuidance);
   const salesTargeting = parseJsonSafely(product.reportSalesTargetingGuidance);
   const dailyQueries = parseArraySafely(product.dailySearchQueries);
+  const productOffers = parseJsonSafely(product.productOfferStrategies);
+  const offerStrategies = productOffers?.offers || [];
 
   return (
     <div className="bg-slate-50">
@@ -538,6 +541,74 @@ export function UniqueStrategyPage({ product, onClose }: UniqueStrategyPageProps
                   <div className="text-center py-8 text-slate-500">
                     <Search className="h-12 w-12 mx-auto mb-4 text-slate-300" />
                     <p>Daily search queries not yet generated</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Product Offers Card */}
+            <Card className="mt-6">
+              <CardHeader className="px-3 py-6 sm:px-6">
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="h-5 w-5" />
+                  Product Offer Strategies
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-3 py-6 pt-0 sm:px-6">
+                {offerStrategies.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                      {offerStrategies.map((offer: any, index: number) => (
+                        <div key={offer.id || index} className="p-4 bg-slate-50 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs font-medium text-slate-500">
+                                  {offer.name || 'Strategy'} Strategy
+                                </span>
+                              </div>
+                              <p className="text-sm text-slate-700 font-medium line-clamp-3">
+                                {offer.content || 'No content available'}
+                              </p>
+                            </div>
+                            
+                            <div className="flex items-center gap-1 ml-3">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => copyToClipboard(offer.content || '', `${offer.name || 'Strategy'} offer strategy`)}
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      <div className="text-sm text-slate-600">
+                        {offerStrategies.length} offer strategies available
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          const allOffersText = offerStrategies
+                            .map((offer: any) => `${offer.name || 'Strategy'} STRATEGY:\n${offer.content || ''}`)
+                            .join('\n\n---\n\n');
+                          copyToClipboard(allOffersText, 'All product offer strategies');
+                        }}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy All Offers
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    <Zap className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                    <p>Product offers not yet generated</p>
                   </div>
                 )}
               </CardContent>
