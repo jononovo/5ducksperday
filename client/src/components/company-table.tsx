@@ -378,7 +378,7 @@ export default function CompanyTable({
                                   {contact.completedSearches?.includes('comprehensive_search') && !contact.email ? (
                                     <div className="flex items-center gap-0.5">
                                       <Mail className="h-4 w-4 text-gray-400" />
-                                      <Ban className="h-2 w-2 text-gray-400" />
+                                      <Ban className="h-1 w-1 text-gray-400" />
                                     </div>
                                   ) : (
                                     <Mail className={`h-4 w-4 ${
@@ -431,7 +431,7 @@ export default function CompanyTable({
                                   {contact.completedSearches?.includes('comprehensive_search') && !contact.email ? (
                                     <div className="flex items-center gap-0.5">
                                       <Mail className="h-4 w-4 text-gray-400" />
-                                      <Ban className="h-2 w-2 text-gray-400" />
+                                      <Ban className="h-1 w-1 text-gray-400" />
                                     </div>
                                   ) : (
                                     <Mail className={`h-4 w-4 ${
