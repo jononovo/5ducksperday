@@ -1146,12 +1146,26 @@ export default function Outreach() {
         }));
       });
       
-      // Refresh the display
+      // Also update the query cache directly so the UI reflects the change immediately
+      queryClient.setQueryData<Contact[]>(
+        [`/api/companies/${selectedCompany?.id}/contacts`],
+        (oldData) => {
+          if (!oldData) return oldData;
+          return oldData.map(contact =>
+            contact.id === updatedContact.id ? updatedContact : contact
+          );
+        }
+      );
+      
+      // Then invalidate to fetch fresh data
       queryClient.invalidateQueries({ queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] });
     },
     onSearchComplete: (contactId, emailFound) => {
       if (!emailFound) {
         console.log('Comprehensive search complete, no email found for contact:', contactId);
+        
+        // Ensure the UI updates even when no email is found
+        queryClient.invalidateQueries({ queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] });
       }
     }
   });
