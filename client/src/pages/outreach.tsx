@@ -1339,34 +1339,6 @@ export default function Outreach() {
                         ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
                         : "bg-white border-gray-200"
                     )}>
-                      {/* Company Name */}
-                      {selectedCompany && (
-                        <div className="flex justify-between items-center mb-3">
-                          <h2 className="text-lg font-medium text-gray-700">{selectedCompany.name}</h2>
-                          <TooltipProvider delayDuration={500}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 w-7 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    console.log('Company view button clicked:', { id: selectedCompany.id, name: selectedCompany.name });
-                                    setLocation(`/companies/${selectedCompany.id}`);
-                                  }}
-                                >
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Open company page</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      )}
-                      
                       {/* Navigation Controls */}
                       <div className="flex items-center justify-center gap-2">
                       <Button
@@ -1418,6 +1390,34 @@ export default function Outreach() {
                         <ChevronRight className="w-6 h-6" />
                       </Button>
                       </div>
+                      
+                      {/* Company Name */}
+                      {selectedCompany && (
+                        <div className="flex justify-between items-center mt-3">
+                          <h2 className="text-lg font-medium text-gray-700">{selectedCompany.name}</h2>
+                          <TooltipProvider delayDuration={500}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 w-7 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    console.log('Company view button clicked:', { id: selectedCompany.id, name: selectedCompany.name });
+                                    setLocation(`/companies/${selectedCompany.id}`);
+                                  }}
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Open company page</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
