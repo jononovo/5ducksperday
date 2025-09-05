@@ -50,17 +50,21 @@ export function ComprehensiveSearchButton({
 
   if (displayMode === 'text') {
     // Outreach page style - text link
+    const buttonText = state === 'failed' ? 'No email found' : state === 'pending' ? 'Searching...' : 'Find email';
+    
     return (
       <button
         className={cn(
           "flex items-center gap-1.5 text-muted-foreground hover:text-blue-600 transition-colors",
+          state === 'failed' && "opacity-75",
           className
         )}
         onClick={handleClick}
         disabled={isPending}
+        title={tooltipMessage}
       >
         {renderIcon()}
-        <span className="text-xs">Find email</span>
+        <span className="text-xs">{buttonText}</span>
       </button>
     );
   }

@@ -70,6 +70,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ContactActionColumn } from "@/components/contact-action-column";
 import { SearchSessionManager } from "@/lib/search-session-manager";
 import { SavedSearchesDrawer } from "@/components/saved-searches-drawer";
+import { useComprehensiveEmailSearch } from "@/hooks/use-comprehensive-email-search";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -121,7 +122,6 @@ export default function Home() {
   const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
-  const [pendingComprehensiveSearchIds, setPendingComprehensiveSearchIds] = useState<Set<number>>(new Set());
   const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -130,6 +130,36 @@ export default function Home() {
   const auth = useAuth();
   const { notificationState, triggerNotification, closeNotification } = useNotifications();
   const { setState: setStrategyOverlayState } = useStrategyOverlay();
+  
+  // Use shared comprehensive email search hook
+  const { 
+    handleComprehensiveEmailSearch: comprehensiveSearchHook, 
+    pendingSearchIds: pendingComprehensiveSearchIds 
+  } = useComprehensiveEmailSearch({
+    onContactUpdate: (updatedContact) => {
+      // Update the contact in currentResults
+      setCurrentResults(prev => {
+        if (!prev) return null;
+        const updatedResults = prev.map(company => ({
+          ...company,
+          contacts: company.contacts?.map(contact =>
+            contact.id === updatedContact.id ? updatedContact : contact
+          )
+        }));
+        
+        // Save to localStorage for persistence
+        const stateToSave = {
+          currentQuery,
+          currentResults: updatedResults,
+          currentListId
+        };
+        localStorage.setItem('searchState', JSON.stringify(stateToSave));
+        sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
+        
+        return updatedResults;
+      });
+    }
+  });
 
   // Check if user has already seen email tooltip
   useEffect(() => {
@@ -2483,257 +2513,21 @@ export default function Home() {
     apolloMutation.mutate({ contactId, searchContext, silent });
   };
 
-  // Comprehensive Email Search - Apollo → Perplexity → Hunter
+  // Wrapper function for comprehensive email search using the shared hook
   const handleComprehensiveEmailSearch = async (contactId: number) => {
-    // Check if already searching
-    if (pendingComprehensiveSearchIds.has(contactId)) return;
-    
     // Get contact data from current results
     const contact = currentResults?.flatMap(c => c.contacts || []).find(ct => ct.id === contactId);
     if (!contact) return;
     
-    // Skip if email already exists
-    if (contact.email) {
-      toast({
-        title: "Email Already Found",
-        description: `This contact already has an email: ${contact.email}`,
-      });
-      return;
-    }
+    // Get company data for search context
+    const company = currentResults?.find(c => c.contacts?.some(ct => ct.id === contactId));
     
-    // Check credits (need 20 for comprehensive search)
-    try {
-      const creditsResponse = await apiRequest("GET", "/api/credits");
-      const creditsData = await creditsResponse.json();
-      
-      if (creditsData.balance < 20) {
-        toast({
-          title: "Insufficient Credits",
-          description: `You need 20 credits for comprehensive search. Current balance: ${creditsData.balance}`,
-          variant: "destructive",
-        });
-        return;
-      }
-    } catch (error) {
-      console.error('Credit check failed:', error);
-    }
-    
-    // Add to pending set
-    setPendingComprehensiveSearchIds(prev => new Set(prev).add(contactId));
-    
-    // No starting toast - the spinning icon is enough feedback
-    
-    try {
-      // 1. Try Apollo first
-      if (!contact.completedSearches?.includes('apollo_search')) {
-        await handleApolloSearch(contactId, 'automated', true); // Pass silent=true
-        // Wait for result
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        // Check if email was found
-        const response = await apiRequest("GET", `/api/contacts/${contactId}`);
-        const updatedContact = await response.json();
-        if (updatedContact.email) {
-          // Bill credits once for the comprehensive search
-          try {
-            const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
-              contactId,
-              searchType: 'comprehensive',
-              emailFound: true
-            });
-            const creditResult = await creditResponse.json();
-            console.log('Comprehensive search credit billing result:', creditResult);
-            
-            // Refresh credits display
-            if (creditResult.success) {
-              queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
-            }
-          } catch (creditError) {
-            console.error('Comprehensive search credit billing failed:', creditError);
-          }
-          
-          setPendingComprehensiveSearchIds(prev => {
-            const next = new Set(prev);
-            next.delete(contactId);
-            return next;
-          });
-          toast({
-            title: "Email Found!",
-            description: `Found email via Apollo: ${updatedContact.email}`,
-            variant: "default",
-          });
-          // Refresh the display
-          queryClient.invalidateQueries({ queryKey: [`/api/companies/${updatedContact.companyId}/contacts`] });
-          return;
-        }
-      }
-      
-      // 2. Try Perplexity AI if Apollo didn't find email
-      if (!contact.completedSearches?.includes('contact_enrichment')) {
-        await handleEnrichContact(contactId, true, 'automated'); // Pass silent=true and searchContext='automated'
-        // Wait for result
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        // Check if email was found
-        const response = await apiRequest("GET", `/api/contacts/${contactId}`);
-        const updatedContact = await response.json();
-        if (updatedContact.email) {
-          // Bill credits once for the comprehensive search
-          try {
-            const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
-              contactId,
-              searchType: 'comprehensive',
-              emailFound: true
-            });
-            const creditResult = await creditResponse.json();
-            console.log('Comprehensive search credit billing result:', creditResult);
-            
-            // Refresh credits display
-            if (creditResult.success) {
-              queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
-            }
-          } catch (creditError) {
-            console.error('Comprehensive search credit billing failed:', creditError);
-          }
-          
-          setPendingComprehensiveSearchIds(prev => {
-            const next = new Set(prev);
-            next.delete(contactId);
-            return next;
-          });
-          toast({
-            title: "Email Found!",
-            description: `Found email via Perplexity: ${updatedContact.email}`,
-            variant: "default",
-          });
-          // Refresh the display
-          queryClient.invalidateQueries({ queryKey: [`/api/companies/${updatedContact.companyId}/contacts`] });
-          return;
-        }
-      }
-      
-      // 3. Try Hunter as last resort
-      if (!contact.completedSearches?.includes('hunter_search')) {
-        await handleHunterSearch(contactId, 'automated', true); // Pass silent=true
-        // Wait for result
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        // Check if email was found
-        const response = await apiRequest("GET", `/api/contacts/${contactId}`);
-        const updatedContact = await response.json();
-        
-        // Bill credits once for the comprehensive search if email was found
-        if (updatedContact.email) {
-          try {
-            const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
-              contactId,
-              searchType: 'comprehensive',
-              emailFound: true
-            });
-            const creditResult = await creditResponse.json();
-            console.log('Comprehensive search credit billing result:', creditResult);
-            
-            // Refresh credits display
-            if (creditResult.success) {
-              queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
-            }
-          } catch (creditError) {
-            console.error('Comprehensive search credit billing failed:', creditError);
-          }
-          
-          toast({
-            title: "Email Found!",
-            description: `Found email via Hunter: ${updatedContact.email}`,
-            variant: "default",
-          });
-        } else {
-          // Mark comprehensive search as complete even though no email was found
-          try {
-            const response = await apiRequest("POST", `/api/contacts/${contactId}/comprehensive-search-complete`, {});
-            const markedContact = await response.json();
-            
-            // Update the contact in currentResults to show the prohibitory sign
-            setCurrentResults(prev => {
-              if (!prev) return null;
-              const updatedResults = prev.map(company => ({
-                ...company,
-                contacts: company.contacts?.map(contact =>
-                  contact.id === markedContact.id ? markedContact : contact
-                )
-              }));
-              
-              // Immediately save to localStorage to persist the completedSearches field
-              const stateToSave = {
-                currentQuery,
-                currentResults: updatedResults,
-                currentListId
-              };
-              localStorage.setItem('searchState', JSON.stringify(stateToSave));
-              sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
-              console.log('Immediately saved completedSearches to localStorage for contact:', markedContact.id);
-              
-              return updatedResults;
-            });
-          } catch (error) {
-            console.error('Failed to mark comprehensive search as complete:', error);
-          }
-          
-          toast({
-            title: "No Email Found",
-            description: "Searched all sources but couldn't find an email address",
-            variant: "destructive",
-          });
-        }
-        // Refresh the display
-        queryClient.invalidateQueries({ queryKey: [`/api/companies/${updatedContact.companyId}/contacts`] });
-      }
-    } catch (error) {
-      console.error('Comprehensive search error:', error);
-      
-      // Mark comprehensive search as complete even on error
-      try {
-        const response = await apiRequest("POST", `/api/contacts/${contactId}/comprehensive-search-complete`, {});
-        const markedContact = await response.json();
-        
-        // Update the contact in currentResults to show the prohibitory sign
-        setCurrentResults(prev => {
-          if (!prev) return null;
-          const updatedResults = prev.map(company => ({
-            ...company,
-            contacts: company.contacts?.map(contact =>
-              contact.id === markedContact.id ? markedContact : contact
-            )
-          }));
-          
-          // Immediately save to localStorage to persist the completedSearches field
-          const stateToSave = {
-            currentQuery,
-            currentResults: updatedResults,
-            currentListId
-          };
-          localStorage.setItem('searchState', JSON.stringify(stateToSave));
-          sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
-          console.log('Immediately saved completedSearches to localStorage for contact:', markedContact.id);
-          
-          return updatedResults;
-        });
-      } catch (markError) {
-        console.error('Failed to mark comprehensive search as complete:', markError);
-      }
-      
-      toast({
-        title: "Search Error",
-        description: "An error occurred during the comprehensive search",
-        variant: "destructive",
-      });
-    } finally {
-      // Remove from pending
-      setPendingComprehensiveSearchIds(prev => {
-        const next = new Set(prev);
-        next.delete(contactId);
-        return next;
-      });
-    }
+    // Call the shared hook function
+    await comprehensiveSearchHook(contactId, contact, {
+      companyName: company?.name,
+      companyWebsite: company?.website,
+      companyDescription: company?.description
+    });
   };
   
   // Functions for checkbox selection
