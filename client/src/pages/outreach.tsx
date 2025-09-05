@@ -1135,7 +1135,7 @@ export default function Outreach() {
 
   // Use the shared comprehensive email search hook
   const { handleComprehensiveEmailSearch: comprehensiveSearchHook, pendingSearchIds: pendingComprehensiveSearchIds } = useComprehensiveEmailSearch({
-    onContactUpdate: (updatedContact) => {
+    onContactUpdate: async (updatedContact) => {
       // Update the contact in companiesData
       setCompaniesData(prev => {
         return prev.map(company => ({
@@ -1146,26 +1146,33 @@ export default function Outreach() {
         }));
       });
       
-      // Also update the query cache directly so the UI reflects the change immediately
-      queryClient.setQueryData<Contact[]>(
-        [`/api/companies/${selectedCompany?.id}/contacts`],
-        (oldData) => {
-          if (!oldData) return oldData;
-          return oldData.map(contact =>
-            contact.id === updatedContact.id ? updatedContact : contact
-          );
-        }
-      );
+      // Force immediate update of the query cache to trigger re-render
+      const queryKey = [`/api/companies/${selectedCompany?.id}/contacts`];
       
-      // Then invalidate to fetch fresh data
-      queryClient.invalidateQueries({ queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] });
+      // First, update the cache data directly
+      queryClient.setQueryData<Contact[]>(queryKey, (oldData) => {
+        if (!oldData) return oldData;
+        return oldData.map(contact =>
+          contact.id === updatedContact.id ? updatedContact : contact
+        );
+      });
+      
+      // Then refetch to ensure we have the latest data from server
+      // Using refetchQueries instead of invalidateQueries for immediate update
+      await queryClient.refetchQueries({ 
+        queryKey,
+        exact: true 
+      });
     },
-    onSearchComplete: (contactId, emailFound) => {
+    onSearchComplete: async (contactId, emailFound) => {
       if (!emailFound) {
         console.log('Comprehensive search complete, no email found for contact:', contactId);
         
-        // Ensure the UI updates even when no email is found
-        queryClient.invalidateQueries({ queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] });
+        // Force immediate refetch when no email is found
+        await queryClient.refetchQueries({ 
+          queryKey: [`/api/companies/${selectedCompany?.id}/contacts`],
+          exact: true
+        });
       }
     }
   });
