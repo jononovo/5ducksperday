@@ -1405,7 +1405,7 @@ export default function Outreach() {
               {/* Company Name Header */}
               {selectedCompany && (
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-medium text-gray-700">{selectedCompany.name}</h2>
+                  <h2 className="text-lg font-medium text-gray-500">{selectedCompany.name}</h2>
                   <TooltipProvider delayDuration={500}>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -1531,9 +1531,9 @@ export default function Outreach() {
                 </div>
               )}
 
-              <div className="mt-6">
+              <div className="mt-4">
                 <div>
-                  <div className="pt-6">
+                  <div className="pt-3">
                     {selectedCompany ? (
                       <div className="border rounded-lg p-4 space-y-2">
                         {/* Company Description */}
