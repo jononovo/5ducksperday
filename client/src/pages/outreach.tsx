@@ -50,6 +50,7 @@ import { Badge } from "@/components/ui/badge";
 import { queryClient } from "@/lib/queryClient"; // Import queryClient
 import type { InsertEmailTemplate } from "@shared/schema"; // Import the type
 import { ContactActionColumn } from "@/components/contact-action-column";
+import { ComprehensiveSearchButton } from "@/components/comprehensive-email-search";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1475,21 +1476,12 @@ export default function Outreach() {
                       </div>
                     ) : (
                       <div className="mt-2">
-                        <button
-                          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-blue-600 transition-colors"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleComprehensiveEmailSearch(selectedContact.id);
-                          }}
-                          disabled={pendingComprehensiveSearchIds.has(selectedContact.id)}
-                        >
-                          {pendingComprehensiveSearchIds.has(selectedContact.id) ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Mail className="w-4 h-4" />
-                          )}
-                          <span className="text-xs">Find email</span>
-                        </button>
+                        <ComprehensiveSearchButton
+                          contact={selectedContact}
+                          onSearch={handleComprehensiveEmailSearch}
+                          isPending={pendingComprehensiveSearchIds.has(selectedContact.id)}
+                          displayMode="text"
+                        />
                       </div>
                     )}
                     
@@ -1783,21 +1775,12 @@ export default function Outreach() {
                           {contact.email ? (
                             <span className="block">{contact.email}</span>
                           ) : (
-                            <button
-                              className="flex items-center gap-1.5 text-muted-foreground hover:text-blue-600 transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleComprehensiveEmailSearch(contact.id);
-                              }}
-                              disabled={pendingComprehensiveSearchIds.has(contact.id)}
-                            >
-                              {pendingComprehensiveSearchIds.has(contact.id) ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Mail className="w-4 h-4" />
-                              )}
-                              <span className="text-xs">Find email</span>
-                            </button>
+                            <ComprehensiveSearchButton
+                              contact={contact}
+                              onSearch={handleComprehensiveEmailSearch}
+                              isPending={pendingComprehensiveSearchIds.has(contact.id)}
+                              displayMode="text"
+                            />
                           )}
                         </div>
                         {/* Copy button */}
