@@ -2836,16 +2836,45 @@ export function registerRoutes(app: Express) {
         }
       }
       
-      res.json({
-        success: true,
-        summary: {
-          companiesProcessed: companyIds.length,
-          contactsProcessed: totalProcessed,
-          emailsFound: totalEmailsFound,
-          sourceBreakdown
-        },
-        results
-      });
+      // Deduct credits for bulk email search (flat rate of 160 credits)
+      try {
+        const creditResult = await CreditService.deductCredits(
+          userId,
+          'email_search',  // Using the closest type, will use customAmount for 160
+          true,  // success = true
+          160    // Custom amount of 160 credits as requested
+        );
+        
+        console.log(`💳 [BULK EMAIL SEARCH] Deducted 160 credits for user ${userId}. New balance: ${creditResult.newBalance}`);
+        console.log(`💳 [BULK EMAIL SEARCH] Found ${totalEmailsFound} emails across ${companyIds.length} companies`);
+        
+        res.json({
+          success: true,
+          summary: {
+            companiesProcessed: companyIds.length,
+            contactsProcessed: totalProcessed,
+            emailsFound: totalEmailsFound,
+            sourceBreakdown,
+            creditsCharged: 160,
+            newCreditBalance: creditResult.newBalance
+          },
+          results
+        });
+      } catch (creditError) {
+        console.error('Failed to deduct credits for bulk email search:', creditError);
+        // Still return success even if credit deduction fails
+        res.json({
+          success: true,
+          summary: {
+            companiesProcessed: companyIds.length,
+            contactsProcessed: totalProcessed,
+            emailsFound: totalEmailsFound,
+            sourceBreakdown,
+            creditDeductionError: true
+          },
+          results
+        });
+      }
       
     } catch (error) {
       console.error('Backend email orchestration error:', error);

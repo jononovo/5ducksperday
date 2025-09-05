@@ -2186,11 +2186,17 @@ export default function Home() {
       setLastEmailSearchCount(data.summary.emailsFound);
       setLastSourceBreakdown(data.summary.sourceBreakdown);
       
-      // Complete search immediately
+      // Complete search immediately - show credit deduction if available
+      const creditInfo = data.summary.creditsCharged ? ` (${data.summary.creditsCharged} credits used)` : '';
       toast({
         title: "Email Search Complete",
-        description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies`,
+        description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies${creditInfo}`,
       });
+      
+      // Refresh credits display if credits were charged
+      if (data.summary.creditsCharged) {
+        await queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+      }
       
       // COMPLETE RELOAD APPROACH: Clear localStorage and reload fresh from database
       console.log('EMAIL SEARCH COMPLETE: Starting complete database reload to ensure email persistence');
