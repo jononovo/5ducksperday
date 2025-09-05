@@ -1302,14 +1302,20 @@ export default function Outreach() {
             const markedContact = await response.json();
             
             // Update the contact in companiesData to show the prohibitory sign
-            setCompaniesData(prev => 
-              prev.map(company => ({
+            setCompaniesData(prev => {
+              const updatedData = prev.map(company => ({
                 ...company,
                 contacts: company.contacts?.map(contact =>
                   contact.id === markedContact.id ? markedContact : contact
                 )
-              }))
-            );
+              }));
+              
+              // Note: Outreach page doesn't use localStorage for state persistence
+              // The completedSearches field is already updated in companiesData
+              console.log('Updated contact with completedSearches:', markedContact.id);
+              
+              return updatedData;
+            });
           } catch (error) {
             console.error('Failed to mark comprehensive search as complete:', error);
           }
@@ -1332,14 +1338,20 @@ export default function Outreach() {
         const markedContact = await response.json();
         
         // Update the contact in companiesData to show the prohibitory sign
-        setCompaniesData(prev => 
-          prev.map(company => ({
+        setCompaniesData(prev => {
+          const updatedData = prev.map(company => ({
             ...company,
             contacts: company.contacts?.map(contact =>
               contact.id === markedContact.id ? markedContact : contact
             )
-          }))
-        );
+          }));
+          
+          // Note: Outreach page doesn't use localStorage for state persistence
+          // The completedSearches field is already updated in companiesData
+          console.log('Updated contact with completedSearches:', markedContact.id);
+          
+          return updatedData;
+        });
       } catch (markError) {
         console.error('Failed to mark comprehensive search as complete:', markError);
       }

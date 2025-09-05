@@ -2655,12 +2655,24 @@ export default function Home() {
             // Update the contact in currentResults to show the prohibitory sign
             setCurrentResults(prev => {
               if (!prev) return null;
-              return prev.map(company => ({
+              const updatedResults = prev.map(company => ({
                 ...company,
                 contacts: company.contacts?.map(contact =>
                   contact.id === markedContact.id ? markedContact : contact
                 )
               }));
+              
+              // Immediately save to localStorage to persist the completedSearches field
+              const stateToSave = {
+                currentQuery,
+                currentResults: updatedResults,
+                currentListId
+              };
+              localStorage.setItem('searchState', JSON.stringify(stateToSave));
+              sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
+              console.log('Immediately saved completedSearches to localStorage for contact:', markedContact.id);
+              
+              return updatedResults;
             });
           } catch (error) {
             console.error('Failed to mark comprehensive search as complete:', error);
@@ -2686,12 +2698,24 @@ export default function Home() {
         // Update the contact in currentResults to show the prohibitory sign
         setCurrentResults(prev => {
           if (!prev) return null;
-          return prev.map(company => ({
+          const updatedResults = prev.map(company => ({
             ...company,
             contacts: company.contacts?.map(contact =>
               contact.id === markedContact.id ? markedContact : contact
             )
           }));
+          
+          // Immediately save to localStorage to persist the completedSearches field
+          const stateToSave = {
+            currentQuery,
+            currentResults: updatedResults,
+            currentListId
+          };
+          localStorage.setItem('searchState', JSON.stringify(stateToSave));
+          sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
+          console.log('Immediately saved completedSearches to localStorage for contact:', markedContact.id);
+          
+          return updatedResults;
         });
       } catch (markError) {
         console.error('Failed to mark comprehensive search as complete:', markError);
