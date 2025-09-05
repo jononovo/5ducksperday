@@ -1295,8 +1295,16 @@ export default function Outreach() {
           <div className="md:border md:rounded-lg md:shadow-sm">
             <div className="p-6 md:pb-6">
               <div className="space-y-3">
-                {/* List Selection Row - Enhanced visibility */}
-                <div className="space-y-3">
+                {/* Unified Navigation Container */}
+                <div className={cn(
+                  "rounded-lg border transition-all duration-200",
+                  !selectedListId 
+                    ? "border-2 border-blue-200"
+                    : selectedListId && !selectedContactId
+                      ? "border border-blue-200"
+                      : "border border-gray-200"
+                )}>
+                  {/* List Selection Dropdown */}
                   <Select
                     value={selectedListId}
                     onValueChange={(value) => {
@@ -1305,12 +1313,13 @@ export default function Outreach() {
                     }}
                   >
                     <SelectTrigger className={cn(
-                      "w-full h-12 transition-all duration-200 font-medium",
+                      "w-full h-12 transition-all duration-200 font-medium border-0 rounded-b-none",
                       !selectedListId 
-                        ? "px-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 hover:border-blue-300 hover:from-blue-100 hover:to-indigo-100"
-                        : "px-3 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50",
+                        ? "px-4 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100"
+                        : "px-3 bg-white hover:bg-gray-50",
                       // Hide the company count in the trigger display
-                      selectedListId && "[&_span.company-count]:hidden"
+                      selectedListId && "[&_span.company-count]:hidden",
+                      companies.length > 0 && "border-b"
                     )}>
                       <SelectValue placeholder="Select a list to start" />
                     </SelectTrigger>
@@ -1331,13 +1340,13 @@ export default function Outreach() {
                     </SelectContent>
                   </Select>
                   
-                  {/* Company Navigation - Merged with List Selection */}
+                  {/* Company Navigation */}
                   {companies.length > 0 && (
                     <div className={cn(
-                      "flex items-center justify-center gap-2 p-3 -mt-1 rounded-b-lg border border-t-0 transition-all duration-200",
+                      "flex items-center justify-center gap-2 p-3 rounded-b-lg transition-all duration-200",
                       selectedListId && !selectedContactId 
-                        ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
-                        : "bg-white border-gray-200"
+                        ? "bg-gradient-to-r from-blue-50 to-indigo-50"
+                        : "bg-white"
                     )}>
                       <Button
                         variant="outline"
