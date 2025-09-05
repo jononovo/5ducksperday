@@ -1331,16 +1331,14 @@ export default function Outreach() {
                     </SelectContent>
                   </Select>
                   
-                  {/* Enhanced Navigation Row */}
+                  {/* Company Navigation - Merged with List Selection */}
                   {companies.length > 0 && (
                     <div className={cn(
-                      "p-3 rounded-lg border transition-all duration-200",
+                      "flex items-center justify-center gap-2 p-3 -mt-1 rounded-b-lg border border-t-0 transition-all duration-200",
                       selectedListId && !selectedContactId 
                         ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
                         : "bg-white border-gray-200"
                     )}>
-                      {/* Navigation Controls */}
-                      <div className="flex items-center justify-center gap-2">
                       <Button
                         variant="outline"
                         size="default"
@@ -1389,41 +1387,40 @@ export default function Outreach() {
                       >
                         <ChevronRight className="w-6 h-6" />
                       </Button>
-                      </div>
-                      
-                      {/* Company Name */}
-                      {selectedCompany && (
-                        <div className="flex justify-between items-center mt-3">
-                          <h2 className="text-lg font-medium text-gray-700">{selectedCompany.name}</h2>
-                          <TooltipProvider delayDuration={500}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 w-7 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    console.log('Company view button clicked:', { id: selectedCompany.id, name: selectedCompany.name });
-                                    setLocation(`/companies/${selectedCompany.id}`);
-                                  }}
-                                >
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Open company page</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
               </div>
             </div>
             <div className="px-6 pb-6 md:px-6 md:pb-6">
+              {/* Company Name Header */}
+              {selectedCompany && (
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-medium text-gray-700">{selectedCompany.name}</h2>
+                  <TooltipProvider delayDuration={500}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log('Company view button clicked:', { id: selectedCompany.id, name: selectedCompany.name });
+                            setLocation(`/companies/${selectedCompany.id}`);
+                          }}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Open company page</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
+              
               {/* Key Members Section */}
               {topContacts && topContacts.length > 0 && (
                 <div className="space-y-2">
