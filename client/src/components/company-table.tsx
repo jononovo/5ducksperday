@@ -365,29 +365,31 @@ export default function CompanyTable({
                           <TooltipProvider delayDuration={300}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-4 w-4 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleComprehensiveEmailSearch?.(contact.id);
-                                  }}
-                                  disabled={pendingComprehensiveSearchIds?.has(contact.id) || contact.completedSearches?.includes('comprehensive_search')}
-                                >
-                                  {contact.completedSearches?.includes('comprehensive_search') && !contact.email ? (
-                                    <div className="flex items-center gap-0.5">
-                                      <Mail className="h-4 w-4 text-gray-400" />
-                                      <Ban className="h-1 w-1 text-gray-400" />
-                                    </div>
-                                  ) : (
-                                    <Mail className={`h-4 w-4 ${
-                                      pendingComprehensiveSearchIds?.has(contact.id) 
-                                        ? "animate-spin text-blue-500" 
-                                        : "text-gray-400 hover:text-blue-500 transition-colors"
-                                    }`} />
-                                  )}
-                                </Button>
+                                <span className="inline-block">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-4 w-4 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleComprehensiveEmailSearch?.(contact.id);
+                                    }}
+                                    disabled={pendingComprehensiveSearchIds?.has(contact.id) || contact.completedSearches?.includes('comprehensive_search')}
+                                  >
+                                    {contact.completedSearches?.includes('comprehensive_search') && !contact.email ? (
+                                      <div className="flex items-center gap-0.5">
+                                        <Mail className="h-4 w-4 text-gray-400" />
+                                        <Ban className="text-gray-400" style={{ width: '8px', height: '8px' }} />
+                                      </div>
+                                    ) : (
+                                      <Mail className={`h-4 w-4 ${
+                                        pendingComprehensiveSearchIds?.has(contact.id) 
+                                          ? "animate-spin text-blue-500" 
+                                          : "text-gray-400 hover:text-blue-500 transition-colors"
+                                      }`} />
+                                    )}
+                                  </Button>
+                                </span>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="text-xs">
                                 <p>{
@@ -418,29 +420,31 @@ export default function CompanyTable({
                           <TooltipProvider delayDuration={300}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-4 w-4 p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleComprehensiveEmailSearch?.(contact.id);
-                                  }}
-                                  disabled={pendingComprehensiveSearchIds?.has(contact.id) || contact.completedSearches?.includes('comprehensive_search')}
-                                >
-                                  {contact.completedSearches?.includes('comprehensive_search') && !contact.email ? (
-                                    <div className="flex items-center gap-0.5">
-                                      <Mail className="h-4 w-4 text-gray-400" />
-                                      <Ban className="h-1 w-1 text-gray-400" />
-                                    </div>
-                                  ) : (
-                                    <Mail className={`h-4 w-4 ${
-                                      pendingComprehensiveSearchIds?.has(contact.id) 
-                                        ? "animate-spin text-blue-500" 
-                                        : "text-gray-400 hover:text-blue-500 transition-colors"
-                                    }`} />
-                                  )}
-                                </Button>
+                                <span className="inline-block">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-4 w-4 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleComprehensiveEmailSearch?.(contact.id);
+                                    }}
+                                    disabled={pendingComprehensiveSearchIds?.has(contact.id) || contact.completedSearches?.includes('comprehensive_search')}
+                                  >
+                                    {contact.completedSearches?.includes('comprehensive_search') && !contact.email ? (
+                                      <div className="flex items-center gap-0.5">
+                                        <Mail className="h-4 w-4 text-gray-400" />
+                                        <Ban className="text-gray-400" style={{ width: '8px', height: '8px' }} />
+                                      </div>
+                                    ) : (
+                                      <Mail className={`h-4 w-4 ${
+                                        pendingComprehensiveSearchIds?.has(contact.id) 
+                                          ? "animate-spin text-blue-500" 
+                                          : "text-gray-400 hover:text-blue-500 transition-colors"
+                                      }`} />
+                                    )}
+                                  </Button>
+                                </span>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="text-xs">
                                 <p>{
