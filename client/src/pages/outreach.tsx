@@ -1305,19 +1305,24 @@ export default function Outreach() {
                     }}
                   >
                     <SelectTrigger className={cn(
-                      "w-full h-12 px-4 transition-all duration-200 font-medium",
+                      "w-full h-12 transition-all duration-200 font-medium",
                       !selectedListId 
-                        ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 hover:border-blue-300 hover:from-blue-100 hover:to-indigo-100"
-                        : "bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                        ? "px-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 hover:border-blue-300 hover:from-blue-100 hover:to-indigo-100"
+                        : "px-3 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50",
+                      // Hide the company count in the trigger display
+                      selectedListId && "[&_span.company-count]:hidden"
                     )}>
                       <SelectValue placeholder="Select a list to start" />
                     </SelectTrigger>
                     <SelectContent>
                       {lists.map((list: List) => (
-                        <SelectItem key={list.listId} value={list.listId.toString()}>
-                          <div className="flex items-center justify-between w-full">
+                        <SelectItem 
+                          key={list.listId} 
+                          value={list.listId.toString()}
+                        >
+                          <div className="flex items-center justify-between w-full pr-2">
                             <span className="font-medium">{generateShortListDisplayName(list)}</span>
-                            <span className="text-sm text-muted-foreground ml-2">
+                            <span className="company-count text-sm text-muted-foreground ml-4">
                               {list.resultCount} companies
                             </span>
                           </div>
