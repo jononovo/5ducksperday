@@ -2840,9 +2840,8 @@ export function registerRoutes(app: Express) {
       try {
         const creditResult = await CreditService.deductCredits(
           userId,
-          'email_search',  // Using the closest type, will use customAmount for 160
-          true,  // success = true
-          160    // Custom amount of 160 credits as requested
+          'email_search',  // This will deduct 160 credits as defined in CREDIT_COSTS
+          true  // success = true
         );
         
         console.log(`💳 [BULK EMAIL SEARCH] Deducted 160 credits for user ${userId}. New balance: ${creditResult.newBalance}`);
