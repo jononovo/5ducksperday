@@ -1352,7 +1352,7 @@ export default function Outreach() {
                         variant="outline"
                         size="default"
                         className={cn(
-                          "h-10 w-10 p-0 bg-white border-2 transition-all duration-200 shadow-sm hover:shadow-md",
+                          "h-12 w-12 p-0 bg-white border-2 transition-all duration-200 shadow-sm hover:shadow-md",
                           selectedListId && !selectedContactId
                             ? "border-blue-300 hover:border-blue-500 hover:bg-blue-100"
                             : "border-gray-300 hover:border-gray-400 hover:bg-gray-100"
@@ -1360,7 +1360,7 @@ export default function Outreach() {
                         onClick={handlePrevCompany}
                         disabled={selectedCompanyIndex === 0}
                       >
-                        <ChevronLeft className="w-6 h-6" />
+                        <ChevronLeft className="w-7 h-7" />
                       </Button>
                       
                       <div className="flex items-center gap-2 px-4">
@@ -1386,7 +1386,7 @@ export default function Outreach() {
                         variant="outline"
                         size="default"
                         className={cn(
-                          "h-10 w-10 p-0 bg-white border-2 transition-all duration-200 shadow-sm hover:shadow-md",
+                          "h-12 w-12 p-0 bg-white border-2 transition-all duration-200 shadow-sm hover:shadow-md",
                           selectedListId && !selectedContactId
                             ? "border-blue-300 hover:border-blue-500 hover:bg-blue-100"
                             : "border-gray-300 hover:border-gray-400 hover:bg-gray-100"
@@ -1394,7 +1394,7 @@ export default function Outreach() {
                         onClick={handleNextCompany}
                         disabled={selectedCompanyIndex === companies.length - 1}
                       >
-                        <ChevronRight className="w-6 h-6" />
+                        <ChevronRight className="w-7 h-7" />
                       </Button>
                     </div>
                   )}
