@@ -1548,11 +1548,21 @@ export default function Outreach() {
 
                       </div>
                     ) : (
-                      <p className="text-muted-foreground">
-                        {selectedListId
-                          ? "No companies found in this list"
-                          : "Select a list to view company details"}
-                      </p>
+                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 bg-gray-50/50">
+                        <div className="flex flex-col items-center justify-center text-center space-y-2">
+                          <Building2 className="w-12 h-12 text-gray-400" />
+                          <p className="text-muted-foreground font-medium">
+                            {selectedListId
+                              ? "No companies found in this list"
+                              : "Select a list to view company details"}
+                          </p>
+                          {!selectedListId && (
+                            <p className="text-sm text-muted-foreground">
+                              Choose a list from the dropdown above to start prospecting
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
