@@ -189,8 +189,8 @@ export function useComprehensiveEmailSearch(options: UseComprehensiveEmailSearch
         return next;
       });
       
-      // Invalidate queries to refresh the UI
-      queryClient.invalidateQueries({ queryKey: [`/api/contacts/${contactId}`] });
+      // Don't invalidate queries - the onContactUpdate callback handles cache updates
+      // This prevents unnecessary refetches that cause contacts to disappear/reorder
     }
   }, [pendingSearchIds, toast, options]);
 
