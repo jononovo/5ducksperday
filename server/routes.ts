@@ -36,6 +36,7 @@ import { getEmailProvider } from "./services/emailService";
 import { registerEmailGenerationRoutes } from "./email-content-generation/routes";
 import { registerGmailRoutes } from "./features/gmail-integration";
 import { registerHealthMonitoringRoutes } from "./features/health-monitoring";
+import { registerListsRoutes } from "./features/lists";
 
 // Global session storage for search results
 interface SearchSessionResult {
@@ -811,211 +812,10 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Lists
-  app.get("/api/lists", async (req, res) => {
-    const userId = getUserId(req);
-    
-    // Check if the user is authenticated with their own ID
-    const isAuthenticated = req.isAuthenticated && req.isAuthenticated() && req.user;
-    
-    // If authenticated, return only their lists
-    if (isAuthenticated) {
-      const lists = await storage.listLists(userId);
-      res.json(lists);
-    } else {
-      // For unauthenticated users, return only demo lists (userId = 1)
-      const demoLists = await storage.listLists(1);
-      res.json(demoLists);
-    }
-  });
 
-  app.get("/api/lists/:listId", requireAuth, async (req, res) => {
-    const isAuthenticated = req.isAuthenticated && req.isAuthenticated() && req.user;
-    const listId = parseInt(req.params.listId);
-    
-    let list = null;
-    
-    // First try to find the list for the authenticated user
-    if (isAuthenticated) {
-      list = await storage.getList(listId, req.user!.id);
-    }
-    
-    // If not found or not authenticated, check if it's a demo list
-    if (!list) {
-      list = await storage.getList(listId, 1); // Check demo user (ID 1)
-    }
-    
-    if (!list) {
-      res.status(404).json({ message: "List not found" });
-      return;
-    }
-    
-    res.json(list);
-  });
 
-  app.get("/api/lists/:listId/companies", async (req, res) => {
-    const isAuthenticated = req.isAuthenticated && req.isAuthenticated() && req.user;
-    const listId = parseInt(req.params.listId);
-    
-    let companies = [];
-    
-    // First try to find companies for the authenticated user's list
-    if (isAuthenticated) {
-      companies = await storage.listCompaniesByList(listId, req.user!.id);
-    }
-    
-    // If none found or not authenticated, check for demo list companies
-    if (companies.length === 0) {
-      companies = await storage.listCompaniesByList(listId, 1); // Check demo user (ID 1)
-    }
-    
-    res.json(companies);
-  });
 
-  app.post("/api/lists", async (req, res) => {
-    const { companies, prompt, contactSearchConfig } = req.body;
 
-    console.log(`POST /api/lists called with ${companies?.length || 0} companies`);
-  console.log('Call stack context:', new Error().stack?.split('\n')[2]); // Track where call originated
-
-    if (!Array.isArray(companies) || !prompt || typeof prompt !== 'string') {
-      res.status(400).json({ message: "Invalid request: companies must be an array and prompt must be a string" });
-      return;
-    }
-
-    try {
-      const userId = getUserId(req);
-      const listId = await storage.getNextListId();
-      
-      // Extract custom search targets from contactSearchConfig
-      const customSearchTargets: string[] = [];
-      if (contactSearchConfig) {
-        if (contactSearchConfig.enableCustomSearch && contactSearchConfig.customSearchTarget) {
-          customSearchTargets.push(contactSearchConfig.customSearchTarget);
-        }
-        if (contactSearchConfig.enableCustomSearch2 && contactSearchConfig.customSearchTarget2) {
-          customSearchTargets.push(contactSearchConfig.customSearchTarget2);
-        }
-      }
-      
-      const list = await storage.createList({
-        listId,
-        prompt,
-        resultCount: companies.length,
-        customSearchTargets: customSearchTargets.length > 0 ? customSearchTargets : null,
-        userId: userId
-      });
-
-      await Promise.all(
-        companies.map(company =>
-          storage.updateCompanyList(company.id, listId)
-        )
-      );
-
-      res.json(list);
-    } catch (error) {
-      console.error('List creation error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred"
-      });
-    }
-  });
-
-  // Update list endpoint
-  app.put("/api/lists/:listId", requireAuth, async (req, res) => {
-    try {
-      const userId = getUserId(req);
-      const listId = parseInt(req.params.listId);
-      const { companies, prompt, contactSearchConfig } = req.body;
-      
-      console.log(`PUT /api/lists/${listId} called by user ${userId} with ${companies?.length || 0} companies`);
-      
-      // Validate listId parameter
-      if (isNaN(listId)) {
-        console.log(`PUT request failed: Invalid listId ${req.params.listId}`);
-        return res.status(400).json({
-          message: "Invalid list ID"
-        });
-      }
-      
-      // Check if list exists and user has permission
-      const existingList = await storage.getList(listId, userId);
-      if (!existingList) {
-        console.log(`List update failed: List ${listId} not found for user ${userId}`);
-        return res.status(404).json({
-          message: "List not found or you don't have permission to update it"
-        });
-      }
-      
-      console.log(`Found existing list ${listId} for user ${userId}: ${existingList.name}`);
-      
-      // Validate companies array
-      if (!Array.isArray(companies)) {
-        return res.status(400).json({
-          message: "Companies must be an array"
-        });
-      }
-      
-      // Verify all companies belong to the user and exist
-      const companyValidation = await Promise.all(
-        companies.map(async (company) => {
-          if (!company.id || typeof company.id !== 'number') {
-            return { id: company.id, exists: false, error: 'Invalid company ID' };
-          }
-          const exists = await storage.getCompany(company.id, userId);
-          return { id: company.id, exists: !!exists };
-        })
-      );
-      
-      const invalidCompanies = companyValidation.filter(c => !c.exists);
-      if (invalidCompanies.length > 0) {
-        console.log(`List update failed: Invalid companies for user ${userId}:`, invalidCompanies.map(c => c.id));
-        return res.status(400).json({
-          message: `Invalid or unauthorized companies: ${invalidCompanies.map(c => c.id).join(', ')}`
-        });
-      }
-      
-      // Extract custom search targets (reuse existing logic)
-      const customSearchTargets: string[] = [];
-      if (contactSearchConfig) {
-        if (contactSearchConfig.enableCustomSearch && contactSearchConfig.customSearchTarget) {
-          customSearchTargets.push(contactSearchConfig.customSearchTarget);
-        }
-        if (contactSearchConfig.enableCustomSearch2 && contactSearchConfig.customSearchTarget2) {
-          customSearchTargets.push(contactSearchConfig.customSearchTarget2);
-        }
-      }
-      
-      // Update the list metadata
-      const updated = await storage.updateList(listId, {
-        prompt,
-        resultCount: companies.length,
-        customSearchTargets: customSearchTargets.length > 0 ? customSearchTargets : null
-      }, userId);
-      
-      if (!updated) {
-        console.log(`List update failed: updateList returned null for list ${listId}`);
-        return res.status(500).json({
-          message: "Failed to update list"
-        });
-      }
-      
-      // Update company associations (only after successful list update)
-      await Promise.all(
-        companies.map(company =>
-          storage.updateCompanyList(company.id, listId)
-        )
-      );
-      
-      console.log(`List ${listId} successfully updated with ${companies.length} companies`);
-      res.json(updated);
-    } catch (error) {
-      console.error('List update error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to update list"
-      });
-    }
-  });
 
   // Companies
   app.get("/api/companies", requireAuth, async (req, res) => {
@@ -1956,6 +1756,9 @@ export function registerRoutes(app: Express) {
   
   // Register modular health monitoring routes
   registerHealthMonitoringRoutes(app);
+  
+  // Register modular lists management routes
+  registerListsRoutes(app, requireAuth);
 
   app.post("/api/contacts/:contactId/enrich", requireAuth, async (req, res) => {
     try {
