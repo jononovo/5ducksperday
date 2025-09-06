@@ -82,6 +82,7 @@ interface SavedSearchState {
   currentQuery: string | null;
   currentResults: CompanyWithContacts[] | null;
   currentListId: number | null;
+  lastExecutedQuery?: string | null;
   emailSearchCompleted?: boolean;
   emailSearchTimestamp?: number;
   navigationRefreshTimestamp?: number;
@@ -151,7 +152,8 @@ export default function Home() {
         const stateToSave = {
           currentQuery,
           currentResults: updatedResults,
-          currentListId
+          currentListId,
+          lastExecutedQuery
         };
         localStorage.setItem('searchState', JSON.stringify(stateToSave));
         sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
@@ -325,7 +327,8 @@ export default function Home() {
           const stateToSave = {
             currentQuery,
             currentResults: refreshedResults,
-            currentListId
+            currentListId,
+            lastExecutedQuery
           };
           localStorage.setItem('searchState', JSON.stringify(stateToSave));
           sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
@@ -421,6 +424,7 @@ export default function Home() {
         setCurrentQuery(savedState.currentQuery);
         setCurrentResults(savedState.currentResults);
         setCurrentListId(savedState.currentListId);
+        setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
         
         // Always refresh contact data when restoring from localStorage to ensure emails are preserved
         console.log('Refreshing contact data from database to preserve emails after navigation');
@@ -437,6 +441,7 @@ export default function Home() {
         setCurrentQuery(savedState.currentQuery);
         setCurrentListId(savedState.currentListId);
         setCurrentResults(savedState.currentResults);
+        setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
         
         // Always refresh from database to ensure fresh data (including emails)
         refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
@@ -459,6 +464,7 @@ export default function Home() {
             currentQuery: savedState.currentQuery,
             currentResults: refreshedResults,
             currentListId: savedState.currentListId,
+            lastExecutedQuery: savedState.lastExecutedQuery || savedState.currentQuery,
             emailSearchCompleted: savedState.emailSearchCompleted || false,
             emailSearchTimestamp: savedState.emailSearchTimestamp || null,
             navigationRefreshTimestamp: Date.now()
@@ -563,7 +569,8 @@ export default function Home() {
         const stateToSave: SavedSearchState = {
           currentQuery,
           currentResults,
-          currentListId
+          currentListId,
+          lastExecutedQuery
         };
         console.log('Saving search state:', {
           query: currentQuery,
@@ -1440,7 +1447,8 @@ export default function Home() {
         const stateToSave: SavedSearchState = {
           currentQuery,
           currentResults: updatedResults,
-          currentListId
+          currentListId,
+          lastExecutedQuery
         };
         localStorage.setItem('searchState', JSON.stringify(stateToSave));
         sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
@@ -1619,7 +1627,8 @@ export default function Home() {
         const stateToSave: SavedSearchState = {
           currentQuery,
           currentResults: updatedResults,
-          currentListId
+          currentListId,
+          lastExecutedQuery
         };
         localStorage.setItem('searchState', JSON.stringify(stateToSave));
         sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
@@ -2018,7 +2027,8 @@ export default function Home() {
         const stateToSave = {
           currentQuery,
           currentResults: refreshedResults,
-          currentListId
+          currentListId,
+          lastExecutedQuery
         };
         const stateString = JSON.stringify(stateToSave);
         localStorage.setItem('searchState', stateString);
@@ -2075,7 +2085,8 @@ export default function Home() {
         const stateToSave = {
           currentQuery,
           currentResults: refreshedResults,
-          currentListId
+          currentListId,
+          lastExecutedQuery
         };
         const stateString = JSON.stringify(stateToSave);
         localStorage.setItem('searchState', stateString);
@@ -2261,6 +2272,7 @@ export default function Home() {
         currentQuery,
         currentResults: freshResults,
         currentListId,
+        lastExecutedQuery,
         emailSearchCompleted: true,
         emailSearchTimestamp: Date.now()
       };
@@ -2398,7 +2410,8 @@ export default function Home() {
         const stateToSave: SavedSearchState = {
           currentQuery,
           currentResults: updatedResults,
-          currentListId
+          currentListId,
+          lastExecutedQuery
         };
         localStorage.setItem('searchState', JSON.stringify(stateToSave));
         sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
