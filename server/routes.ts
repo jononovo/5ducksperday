@@ -35,6 +35,7 @@ import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow
 import { getEmailProvider } from "./services/emailService";
 import { registerEmailGenerationRoutes } from "./email-content-generation/routes";
 import { registerGmailRoutes } from "./features/gmail-integration";
+import { registerHealthMonitoringRoutes } from "./features/health-monitoring";
 
 // Global session storage for search results
 interface SearchSessionResult {
@@ -1952,6 +1953,9 @@ export function registerRoutes(app: Express) {
   
   // Register modular Gmail integration routes
   registerGmailRoutes(app, requireAuth);
+  
+  // Register modular health monitoring routes
+  registerHealthMonitoringRoutes(app);
 
   app.post("/api/contacts/:contactId/enrich", requireAuth, async (req, res) => {
     try {
@@ -2125,265 +2129,10 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Testing API endpoints for system health checks
-  app.post("/api/test/auth", async (req, res) => {
-    console.log('Auth test endpoint hit - sending JSON response');
-    res.setHeader('Content-Type', 'application/json');
-    try {
-      const tests: any = {};
 
-      // Test Firebase Authentication
-      tests.firebase = {
-        status: 'passed',
-        message: 'Firebase authentication operational'
-      };
 
-      // Test Backend Token Verification
-      if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
-        tests.tokenVerification = {
-          status: 'passed',
-          message: 'Token verification successful'
-        };
-      } else {
-        tests.tokenVerification = {
-          status: 'failed',
-          message: 'No valid token found in request'
-        };
-      }
 
-      // Test User Session Sync
-      tests.sessionSync = {
-        status: 'passed',
-        message: 'Session sync operational'
-      };
 
-      const allPassed = Object.values(tests).every((test: any) => test.status === 'passed');
-      
-      res.json({
-        message: allPassed ? "All auth tests passed" : "Some auth tests failed",
-        status: allPassed ? "healthy" : "warning",
-        tests
-      });
-    } catch (error) {
-      res.status(500).json({
-        error: "Auth test failed",
-        details: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
-
-  app.post("/api/test/database", async (req, res) => {
-    try {
-      const tests: any = {};
-
-      // Test PostgreSQL connection
-      try {
-        const testQuery = await storage.listCompanies(1);
-        tests.postgresql = {
-          status: 'passed',
-          message: `PostgreSQL connection successful`
-        };
-      } catch (error) {
-        tests.postgresql = {
-          status: 'failed',
-          message: 'PostgreSQL connection failed',
-          error: error instanceof Error ? error.message : String(error)
-        };
-      }
-
-      // Test demo data access
-      try {
-        const demoData = await storage.listCompanies(1);
-        tests.demoData = {
-          status: 'passed',
-          message: `Demo data accessible - found ${demoData.length} companies`
-        };
-      } catch (error) {
-        tests.demoData = {
-          status: 'failed',
-          message: 'Demo data access failed',
-          error: error instanceof Error ? error.message : String(error)
-        };
-      }
-
-      const allPassed = Object.values(tests).every((test: any) => test.status === 'passed');
-      
-      res.json({
-        message: allPassed ? "All database tests passed" : "Some database tests failed",
-        status: allPassed ? "healthy" : "warning",
-        tests
-      });
-    } catch (error) {
-      res.status(500).json({
-        error: "Database test failed",
-        details: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
-
-  // Unified test runner endpoint - serves both frontend and programmatic access
-  app.post("/api/test/run-all", async (req, res) => {
-    try {
-      const { TestRunner } = await import("./lib/test-runner");
-      const testRunner = new TestRunner();
-      const results = await testRunner.runAllTests();
-      
-      // Log full report for AI/developer visibility
-      console.log('=== TEST SUITE REPORT ===');
-      console.log(`Timestamp: ${results.timestamp}`);
-      console.log(`Duration: ${results.duration}ms`);
-      console.log(`Overall Status: ${results.overallStatus}`);
-      console.log(`Summary: ${results.summary.passed}/${results.summary.total} passed, ${results.summary.failed} failed, ${results.summary.warnings} warnings`);
-      console.log('Individual Tests:');
-      results.tests.forEach(test => {
-        console.log(`  ${test.name}: ${test.status}`);
-        if (test.subTests && Array.isArray(test.subTests)) {
-          test.subTests.forEach(subTest => {
-            console.log(`    - ${subTest.name}: ${subTest.status} - ${subTest.message}`);
-          });
-        }
-      });
-      console.log('=== END TEST REPORT ===');
-      
-      res.json(results);
-    } catch (error) {
-      console.error('Test runner error:', error);
-      res.status(500).json({
-        error: "Test runner failed",
-        details: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
-
-  app.post("/api/test/search", async (req, res) => {
-    try {
-      const tests: any = {};
-
-      // Test Company Overview Search
-      try {
-        const companyResult = await searchCompanies("Apple");
-        tests.companyOverview = {
-          status: companyResult && companyResult.length > 0 ? 'passed' : 'warning',
-          message: companyResult && companyResult.length > 0 
-            ? `Found ${companyResult.length} companies` 
-            : 'No companies found'
-        };
-      } catch (error) {
-        tests.companyOverview = {
-          status: 'failed',
-          message: 'Company overview search failed',
-          error: error instanceof Error ? error.message : String(error)
-        };
-      }
-
-      // Test Decision Maker Search
-      try {
-        const decisionMakerTest = await analyzeCompany("Apple Inc", "Find decision makers", null, null);
-        tests.decisionMaker = {
-          status: 'passed',
-          message: 'Decision maker search functional'
-        };
-      } catch (error) {
-        tests.decisionMaker = {
-          status: 'failed',
-          message: 'Decision maker search failed',
-          error: error instanceof Error ? error.message : String(error)
-        };
-      }
-
-      // Test Email Discovery
-      tests.emailDiscovery = {
-        status: 'passed',
-        message: 'Email discovery module available'
-      };
-
-      const allPassed = Object.values(tests).every((test: any) => test.status === 'passed');
-      
-      res.json({
-        message: allPassed ? "All search tests passed" : "Some search tests had issues",
-        status: allPassed ? "healthy" : "warning",
-        tests
-      });
-    } catch (error) {
-      res.status(500).json({
-        error: "Search test failed",
-        details: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
-
-  app.post("/api/test/health", async (req, res) => {
-    try {
-      const tests: any = {};
-
-      // Test Perplexity API
-      try {
-        await queryPerplexity([{
-          role: "user",
-          content: "Test connection"
-        }]);
-        tests.perplexity = {
-          status: 'passed',
-          message: 'Perplexity API responding'
-        };
-      } catch (error) {
-        tests.perplexity = {
-          status: 'failed',
-          message: 'Perplexity API not responding',
-          error: error instanceof Error ? error.message : String(error)
-        };
-      }
-
-      // Test AeroLeads API
-      const aeroLeadsKey = process.env.AEROLEADS_API_KEY;
-      tests.aeroleads = {
-        status: aeroLeadsKey ? 'passed' : 'failed',
-        message: aeroLeadsKey ? 'AeroLeads API key configured' : 'AeroLeads API key missing'
-      };
-
-      // Test Apollo API
-      const apolloKey = process.env.APOLLO_API_KEY;
-      tests.apollo = {
-        status: apolloKey ? 'passed' : 'failed',
-        message: apolloKey ? 'Apollo API key configured' : 'Apollo API key missing'
-      };
-
-      // Test Hunter API
-      const hunterKey = process.env.HUNTER_API_KEY;
-      tests.hunter = {
-        status: hunterKey ? 'passed' : 'failed',
-        message: hunterKey ? 'Hunter API key configured' : 'Hunter API key missing'
-      };
-
-      // Test Gmail API
-      try {
-        const emailProvider = getEmailProvider();
-        tests.gmail = {
-          status: emailProvider ? 'passed' : 'warning',
-          message: emailProvider ? 'Gmail service available' : 'Gmail service in test mode'
-        };
-      } catch (error) {
-        tests.gmail = {
-          status: 'warning',
-          message: 'Gmail API in verification process',
-          error: error instanceof Error ? error.message : String(error)
-        };
-      }
-
-      const allPassed = Object.values(tests).every((test: any) => test.status === 'passed');
-      
-      res.json({
-        message: allPassed ? "All API services healthy" : "Some API services have issues",
-        status: allPassed ? "healthy" : "warning",
-        tests
-      });
-    } catch (error) {
-      res.status(500).json({
-        error: "Health check failed",
-        details: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
 
   // Backend Email Search Orchestration Endpoint
   app.post("/api/companies/find-all-emails", async (req, res) => {
