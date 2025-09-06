@@ -34,6 +34,7 @@ import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow
 // import { logIncomingWebhook } from "./lib/webhook-logger"; // COMMENTED: webhook logging inactive
 import { getEmailProvider } from "./services/emailService";
 import { registerEmailGenerationRoutes } from "./email-content-generation/routes";
+import { registerGmailRoutes } from "./features/gmail-integration";
 
 // Global session storage for search results
 interface SearchSessionResult {
@@ -394,168 +395,6 @@ export function registerRoutes(app: Express) {
   // Sitemap route
   app.get('/sitemap.xml', generateSitemap);
   
-  // Gmail authorization routes
-  app.get('/api/gmail/auth', async (req, res) => {
-    try {
-      const userId = req.query.userId as string;
-      
-      // Validate user ID parameter
-      if (!userId || !userId.match(/^\d+$/)) {
-        return res.status(400).json({ error: 'Invalid user ID parameter' });
-      }
-      
-      // Validate user exists in database
-      const user = await storage.getUserById(parseInt(userId));
-      if (!user) {
-        return res.status(400).json({ error: 'User not found' });
-      }
-      
-      // Universal protocol detection - works with any domain
-      const protocol = process.env.OAUTH_PROTOCOL || (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
-      const redirectUri = `${protocol}://${req.get('host')}/api/gmail/callback`;
-      
-      // Create OAuth2 client
-      const oauth2Client = new google.auth.OAuth2(
-        process.env.GMAIL_CLIENT_ID,
-        process.env.GMAIL_CLIENT_SECRET,
-        redirectUri
-      );
-      
-      // Generate authentication URL
-      const scopes = [
-        'https://www.googleapis.com/auth/gmail.modify',
-        'https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile'
-      ];
-      
-      const authUrl = oauth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: scopes,
-        prompt: 'consent',
-        state: userId.toString()
-      });
-      
-      res.redirect(authUrl);
-    } catch (error) {
-      console.error('Gmail OAuth error:', error);
-      res.status(500).json({ error: 'Failed to start Gmail authorization' });
-    }
-  });
-  
-  app.get('/api/gmail/callback', async (req, res) => {
-    try {
-      const { code, state } = req.query;
-      
-      if (!code) {
-        return res.status(400).json({ error: 'Authorization code missing' });
-      }
-      
-      // Get user ID from state
-      const userId = parseInt(state as string, 10);
-      
-      if (isNaN(userId)) {
-        return res.status(400).json({ error: 'Invalid state parameter' });
-      }
-      
-      // Create OAuth2 client (use same redirect URI format as auth route)
-      const protocol = process.env.OAUTH_PROTOCOL || (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
-      const oauth2Client = new google.auth.OAuth2(
-        process.env.GMAIL_CLIENT_ID,
-        process.env.GMAIL_CLIENT_SECRET,
-        `${protocol}://${req.get('host')}/api/gmail/callback`
-      );
-      
-      // Exchange code for tokens
-      const { tokens } = await oauth2Client.getToken(code as string);
-      
-      // Set credentials for OAuth userinfo call
-      oauth2Client.setCredentials(tokens);
-      
-      // Fetch user's email information via OAuth userinfo endpoint
-      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: { 'Authorization': `Bearer ${tokens.access_token}` }
-      });
-      const userInfo = await userInfoResponse.json();
-      
-      console.log(`[Gmail OAuth] Fetched userinfo for user ${userId}:`, {
-        email: userInfo.email,
-        name: userInfo.name,
-        email_verified: userInfo.email_verified
-      });
-      
-      // Store tokens and user info using TokenService
-      await TokenService.storeGmailTokens(userId, {
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        expiry_date: tokens.expiry_date
-      }, {
-        email: userInfo.email,
-        name: userInfo.name
-      });
-      
-      // Send HTML that closes the pop-up and notifies parent window
-      res.send(`
-        <html>
-          <body>
-            <script>
-              // Close popup and notify parent window
-              if (window.opener) {
-                window.opener.postMessage({ type: 'GMAIL_AUTH_SUCCESS' }, '*');
-                window.close();
-              } else {
-                // Fallback: redirect to outreach page
-                window.location.href = '/outreach';
-              }
-            </script>
-            <p>Authentication successful. This window should close automatically.</p>
-          </body>
-        </html>
-      `);
-    } catch (error) {
-      console.error('Error handling Gmail callback:', error);
-      res.status(500).json({ error: 'Failed to complete Gmail authorization' });
-    }
-  });
-  
-  app.get('/api/gmail/status', requireAuth, async (req, res) => {
-    try {
-      const userId = (req as any).user.id;
-      
-      // Check if user has valid Gmail tokens
-      const hasValidAuth = await TokenService.hasValidGmailAuth(userId);
-      
-      res.json({
-        connected: hasValidAuth,
-        authUrl: hasValidAuth ? null : '/api/gmail/auth'
-      });
-    } catch (error) {
-      console.error('Error checking Gmail status:', error);
-      res.status(500).json({ error: 'Failed to check Gmail connection status' });
-    }
-  });
-  
-  app.get('/api/gmail/disconnect', requireAuth, async (req, res) => {
-    try {
-      const userId = (req as any).user.id;
-      
-      // Remove Gmail tokens from TokenService
-      await TokenService.deleteUserTokens(userId);
-      delete (req.session as any).gmailRefreshToken;
-      
-      // Save session
-      req.session.save(err => {
-        if (err) {
-          console.error('Error saving session:', err);
-          return res.status(500).json({ error: 'Failed to disconnect Gmail' });
-        }
-        
-        res.json({ success: true, message: 'Gmail disconnected successfully' });
-      });
-    } catch (error) {
-      console.error('Error disconnecting Gmail:', error);
-      res.status(500).json({ error: 'Failed to disconnect Gmail' });
-    }
-  });
   
   // Email conversations routes
   app.get('/api/replies/contacts', requireAuth, async (req, res) => {
@@ -2110,6 +1949,9 @@ export function registerRoutes(app: Express) {
 
   // Register modular email generation routes
   registerEmailGenerationRoutes(app, requireAuth);
+  
+  // Register modular Gmail integration routes
+  registerGmailRoutes(app, requireAuth);
 
   app.post("/api/contacts/:contactId/enrich", requireAuth, async (req, res) => {
     try {
@@ -3595,85 +3437,6 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/send-gmail", requireAuth, async (req, res) => {
-    try {
-      const { to, subject, content } = req.body;
-
-      if (!to || !subject || !content) {
-        res.status(400).json({ message: "Missing required email fields" });
-        return;
-      }
-
-      // Get Gmail token from TokenService (persistent storage)
-      const userId = (req.user as any).id;
-      const gmailToken = await TokenService.getGmailAccessToken(userId);
-      
-      if (!gmailToken) {
-        console.log(`No valid Gmail token found for user ${userId}`);
-        
-        // Check if we have refresh token for more specific error
-        const userTokens = await TokenService.getUserTokens(userId);
-        const hasRefreshToken = !!userTokens?.gmailRefreshToken;
-        
-        res.status(401).json({ 
-          message: "Gmail authorization required",
-          hasRefreshToken,
-          requiresReauth: !hasRefreshToken,
-          action: hasRefreshToken ? "token_refresh_failed" : "no_gmail_connection"
-        });
-        return;
-      }
-
-      // Create Gmail API client
-      const oauth2Client = new google.auth.OAuth2();
-      oauth2Client.setCredentials({ access_token: gmailToken });
-
-      const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
-
-      // Get Gmail user info for sender email identity
-      const gmailUserInfo = await TokenService.getGmailUserInfo(userId);
-      const senderEmail = gmailUserInfo?.email || req.user!.email;
-
-      // Format From header with professional display name format
-      const fromHeader = gmailUserInfo?.displayName 
-        ? `From: ${gmailUserInfo.displayName} <${senderEmail}>`
-        : `From: ${senderEmail}`;
-
-      // Create email content
-      const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
-      const messageParts = [
-        fromHeader,
-        'To: ' + to,
-        'Content-Type: text/html; charset=utf-8',
-        'MIME-Version: 1.0',
-        `Subject: ${utf8Subject}`,
-        '',
-        content,
-      ];
-      const message = messageParts.join('\n');
-
-      // The body needs to be base64url encoded
-      const encodedMessage = Buffer.from(message)
-        .toString('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
-
-      await gmail.users.messages.send({
-        userId: 'me',
-        requestBody: {
-          raw: encodedMessage,
-        },
-      });
-
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Gmail send error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to send email"
-      });
-    }
-  });
 
   // Individual Email Search Credit Deduction Endpoint
   app.post("/api/credits/deduct-individual-email", requireAuth, async (req, res) => {
