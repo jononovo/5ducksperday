@@ -491,6 +491,16 @@ export default function PromptEditor({
     }
   }, [initialPrompt, isFromLandingPage]);
 
+  // Sync query when initialPrompt changes (e.g., when loading saved searches)
+  useEffect(() => {
+    // Only sync if initialPrompt has meaningfully changed and is different from current query
+    // AND if this matches lastExecutedQuery (indicating a saved search was loaded)
+    if (initialPrompt && initialPrompt !== query && initialPrompt === lastExecutedQuery) {
+      setQuery(initialPrompt);
+      setInputHasChanged(false); // Reset input changed flag since we're loading a saved search
+    }
+  }, [initialPrompt, lastExecutedQuery]);
+
   // Handle tooltip dismissal
   useEffect(() => {
     const handleTooltipDismiss = async () => {
