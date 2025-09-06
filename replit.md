@@ -23,6 +23,7 @@ The application features a **React SPA frontend** built with TypeScript, Vite, T
 - **Email Content Handling:** Preserves paragraph spacing from AI responses in generated emails.
 - **Product Offers Generation:** Complete 6-strategy offer generation system with proper routing fix (Aug 2025) that bypasses boundary API for "Generate product offers" input. Includes clean UX flow that hides generation button after successful completion.
 - **Product Offers Display:** Product offers now display in the Implementation tab of strategy detail pages, positioned below Daily Search Queries with matching design patterns and copy functionality (Aug 2025).
+- **Search State Persistence:** Enhanced search input field synchronization to properly maintain query consistency between typed input and executed searches across page refreshes, ensuring displayed results always match the shown query (Sep 2025).
 
 ## External Dependencies
 - **Perplexity API**: Company research and contact discovery.
