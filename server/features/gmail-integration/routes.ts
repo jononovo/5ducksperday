@@ -1,5 +1,4 @@
-import { Router, Request, Response } from 'express';
-import { requireAuth } from '../../middleware/auth';
+import { Router, Request, Response, Application } from 'express';
 import { storage } from '../../storage';
 import { GmailOAuthService } from './oauth-service';
 import { 
@@ -11,7 +10,8 @@ import {
   SendGmailResponse 
 } from './types';
 
-const router = Router();
+export function registerGmailRoutes(app: Application, requireAuth: any) {
+  const router = Router();
 
 router.get('/auth', async (req: Request, res: Response) => {
   try {
@@ -140,4 +140,38 @@ router.get('/disconnect', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-export const gmailRouter = router;
+  app.use('/api/gmail', router);
+  
+  app.post('/api/send-gmail', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { to, subject, content } = req.body as SendGmailRequest;
+
+      if (!to || !subject || !content) {
+        res.status(400).json({ message: "Missing required email fields" });
+        return;
+      }
+
+      const userId = (req as any).user.id;
+      const userEmail = (req as any).user.email;
+      
+      try {
+        await GmailOAuthService.sendEmail(userId, userEmail, to, subject, content);
+        
+        const response: SendGmailResponse = { success: true };
+        res.json(response);
+      } catch (error: any) {
+        if (error.status === 401) {
+          console.log(`No valid Gmail token found for user ${userId}`);
+          res.status(401).json(error);
+          return;
+        }
+        throw error;
+      }
+    } catch (error) {
+      console.error('Gmail send error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to send email"
+      });
+    }
+  });
+}

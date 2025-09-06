@@ -1,4 +1,3 @@
-export { gmailRouter } from './routes';
-export { sendGmailRouter } from './send-gmail-route';
+export { registerGmailRoutes } from './routes';
 export { GmailOAuthService } from './oauth-service';
 export * from './types';
