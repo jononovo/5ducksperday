@@ -1,12 +1,47 @@
-import { Router } from 'express';
+import { Router, Request, Response, Application } from 'express';
 import { emailTemplatesService } from './service';
-import type { AuthenticatedRequest, EmailTemplatesRouteHandlers } from './types';
 import { insertEmailTemplateSchema } from '@shared/schema';
 
-const handlers: EmailTemplatesRouteHandlers = {
-  async list(req: AuthenticatedRequest, res) {
+// Helper function to safely get user ID from request
+function getUserId(req: Request): number {
+  console.log('EmailTemplates getUserId() called:', {
+    path: req.path,
+    method: req.method,
+    hasUser: !!(req as any).user,
+    userId: (req as any).user ? (req as any).user.id : 'none',
+    hasFirebaseUser: !!(req as any).firebaseUser,
+    firebaseUserId: (req as any).firebaseUser ? (req as any).firebaseUser.id : 'none',
+    timestamp: new Date().toISOString()
+  });
+
+  try {
+    // First check if user is authenticated through session
+    if ((req as any).isAuthenticated && (req as any).isAuthenticated() && (req as any).user && (req as any).user.id) {
+      const userId = (req as any).user.id;
+      console.log('EmailTemplates: User ID from session authentication:', userId);
+      return userId;
+    }
+    
+    // Then check for Firebase authentication
+    if ((req as any).firebaseUser && (req as any).firebaseUser.id) {
+      const userId = (req as any).firebaseUser.id;
+      console.log('EmailTemplates: User ID from Firebase authentication:', userId);
+      return userId;
+    }
+    
+    // If no authentication is found
+    console.log('EmailTemplates: No authentication found, defaulting to demo user ID 1');
+    return 1; // Default to demo user
+  } catch (error) {
+    console.error('EmailTemplates: Error getting user ID:', error);
+    return 1; // Default to demo user on error
+  }
+}
+
+const handlers = {
+  async list(req: Request, res: Response) {
     try {
-      const userId = req.user?.id || 1;
+      const userId = getUserId(req);
       console.log(`API: Listing email templates for user ${userId}`);
       
       const templates = await emailTemplatesService.listTemplates(userId);
@@ -22,10 +57,10 @@ const handlers: EmailTemplatesRouteHandlers = {
     }
   },
 
-  async get(req: AuthenticatedRequest, res) {
+  async get(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = req.user?.id || 1;
+      const userId = getUserId(req);
       
       const template = await emailTemplatesService.getTemplate(Number(id), userId);
       
@@ -43,9 +78,9 @@ const handlers: EmailTemplatesRouteHandlers = {
     }
   },
 
-  async create(req: AuthenticatedRequest, res) {
+  async create(req: Request, res: Response) {
     try {
-      const userId = req.user?.id || 1;
+      const userId = getUserId(req);
       const data = req.body;
       
       console.log('API: Creating email template:', {
@@ -76,10 +111,10 @@ const handlers: EmailTemplatesRouteHandlers = {
     }
   },
 
-  async update(req: AuthenticatedRequest, res) {
+  async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = req.user?.id || 1;
+      const userId = getUserId(req);
       const data = req.body;
       
       console.log('API: Updating email template:', {
@@ -113,10 +148,10 @@ const handlers: EmailTemplatesRouteHandlers = {
     }
   },
 
-  async delete(req: AuthenticatedRequest, res) {
+  async delete(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = req.user?.id || 1;
+      const userId = getUserId(req);
       
       console.log('API: Deleting email template:', {
         id,
@@ -136,23 +171,24 @@ const handlers: EmailTemplatesRouteHandlers = {
   }
 };
 
-export function createEmailTemplatesRouter(): Router {
+export function registerEmailTemplatesRoutes(app: Application, requireAuth: any) {
   const router = Router();
   
   // List all templates for the user
-  router.get('/email-templates', handlers.list);
+  router.get('/', requireAuth, handlers.list);
   
   // Get a specific template
-  router.get('/email-templates/:id', handlers.get);
+  router.get('/:id', requireAuth, handlers.get);
   
   // Create a new template
-  router.post('/email-templates', handlers.create);
+  router.post('/', requireAuth, handlers.create);
   
   // Update an existing template
-  router.put('/email-templates/:id', handlers.update);
+  router.put('/:id', requireAuth, handlers.update);
   
   // Delete a template
-  router.delete('/email-templates/:id', handlers.delete);
+  router.delete('/:id', requireAuth, handlers.delete);
   
-  return router;
+  // Register all routes under /api/email-templates
+  app.use('/api/email-templates', router);
 }

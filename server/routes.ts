@@ -37,6 +37,7 @@ import { registerEmailGenerationRoutes } from "./email-content-generation/routes
 import { registerGmailRoutes } from "./features/gmail-integration";
 import { registerHealthMonitoringRoutes } from "./features/health-monitoring";
 import { registerListsRoutes } from "./features/lists";
+import { registerEmailTemplatesRoutes } from "./features/email-templates";
 
 // Global session storage for search results
 interface SearchSessionResult {
@@ -1620,131 +1621,6 @@ export function registerRoutes(app: Express) {
     res.json(updated);
   });
 
-  // Email Templates
-  app.get("/api/email-templates", requireAuth, async (req, res) => {
-    try {
-      const userId = getUserId(req);
-      const templates = await storage.listEmailTemplates(userId);
-      res.json(templates);
-    } catch (error) {
-      console.log('Email templates endpoint error - likely missing table:', error instanceof Error ? error.message : error);
-      // If table doesn't exist, return empty array to allow outreach page to work
-      if (error instanceof Error && error.message.includes('relation "email_templates" does not exist')) {
-        res.json([]);
-        return;
-      }
-      // For other errors, return 500
-      res.status(500).json({ message: "Error loading email templates" });
-    }
-  });
-
-  app.get("/api/email-templates/:id", requireAuth, async (req, res) => {
-    try {
-      const userId = getUserId(req);
-      const template = await storage.getEmailTemplate(parseInt(req.params.id), userId);
-      if (!template) {
-        res.status(404).json({ message: "Template not found" });
-        return;
-      }
-      res.json(template);
-    } catch (error) {
-      console.log('Get email template error:', error instanceof Error ? error.message : error);
-      if (error instanceof Error && error.message.includes('relation "email_templates" does not exist')) {
-        res.status(404).json({ message: "Template not found" });
-        return;
-      }
-      res.status(500).json({ message: "Error loading email template" });
-    }
-  });
-
-  app.post("/api/email-templates", requireAuth, async (req, res) => {
-    try {
-      const userId = getUserId(req);
-      
-      console.log('POST /api/email-templates - Request body:', {
-        ...req.body,
-        userId: userId
-      });
-
-      const result = insertEmailTemplateSchema.safeParse({
-        ...req.body,
-        userId: userId,
-        category: req.body.category || 'general'
-      });
-
-      if (!result.success) {
-        console.error('Email template validation failed:', result.error.errors);
-        res.status(400).json({ 
-          message: "Invalid request body",
-          errors: result.error.errors
-        });
-        return;
-      }
-
-      console.log('Creating email template with validated data:', result.data);
-      const template = await storage.createEmailTemplate(result.data);
-      console.log('Created email template:', {
-        id: template.id,
-        name: template.name,
-        userId: template.userId
-      });
-
-      res.json(template);
-    } catch (error) {
-      console.error('Email template creation error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred"
-      });
-    }
-  });
-
-  app.put("/api/email-templates/:id", requireAuth, async (req, res) => {
-    try {
-      const userId = getUserId(req);
-      const templateId = parseInt(req.params.id);
-      
-      if (isNaN(templateId)) {
-        res.status(400).json({ message: "Invalid template ID" });
-        return;
-      }
-
-      console.log('PUT /api/email-templates - Request body:', {
-        ...req.body,
-        templateId,
-        userId: userId
-      });
-
-      const result = insertEmailTemplateSchema.safeParse({
-        ...req.body,
-        userId: userId,
-        category: req.body.category || 'general'
-      });
-
-      if (!result.success) {
-        console.error('Email template validation failed:', result.error.errors);
-        res.status(400).json({ 
-          message: "Invalid request body",
-          errors: result.error.errors
-        });
-        return;
-      }
-
-      console.log('Updating email template with validated data:', result.data);
-      const template = await storage.updateEmailTemplate(templateId, result.data);
-      console.log('Updated email template:', {
-        id: template.id,
-        name: template.name,
-        userId: template.userId
-      });
-
-      res.json(template);
-    } catch (error) {
-      console.error('Email template update error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred"
-      });
-    }
-  });
 
   // Leave the search approaches endpoints without auth since they are system-wide
 
@@ -1759,6 +1635,9 @@ export function registerRoutes(app: Express) {
   
   // Register modular lists management routes
   registerListsRoutes(app, requireAuth);
+  
+  // Register modular email templates routes
+  registerEmailTemplatesRoutes(app, requireAuth);
 
   app.post("/api/contacts/:contactId/enrich", requireAuth, async (req, res) => {
     try {
