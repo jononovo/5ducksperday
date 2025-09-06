@@ -1,0 +1,87 @@
+Modularization Plan for server/routes.ts
+  Step 1: Extract Gmail Integration Module (Easy - ~160 lines)
+Routes to move:
+* /api/gmail/auth
+* /api/gmail/callback
+* /api/gmail/status
+* /api/gmail/disconnect
+* /api/send-gmail
+Why first: Self-contained OAuth flow with clear boundaries. No complex dependencies on other routes.
+New structure:
+server/features/gmail-integration/
+├── routes.ts
+├── oauth-service.ts
+└── types.ts
+
+
+Step 2: Extract Testing & Health Checks Module (Easy - ~250 lines)
+Routes to move:
+* /api/test/auth
+* /api/test/database
+* /api/test/search
+* /api/test/health
+* /api/test/run-all
+Why second: Completely independent, no business logic dependencies. Used only for diagnostics.
+New structure:
+server/features/health-monitoring/
+├── routes.ts
+├── test-runner.ts
+└── health-checks.ts
+
+
+Step 3: Extract Lists Management Module (Medium - ~300 lines)
+Routes to move:
+* /api/lists (GET, POST)
+* /api/lists/:listId (GET, PUT)
+* /api/lists/:listId/companies
+Why third: Clear CRUD operations with defined schema. Some coupling with companies but manageable.
+New structure:
+server/features/lists/
+├── routes.ts
+├── service.ts
+└── types.ts
+
+
+Step 4: Extract Email Templates Module (Easy - ~130 lines)
+Routes to move:
+    * /api/email-templates (GET, POST)
+    * /api/email-templates/:id (GET, PUT)
+Why fourth: Simple CRUD with no complex dependencies. Already has a clear schema.
+New structure:
+server/features/email-templates/
+├── routes.ts
+├── service.ts
+└── types.ts
+
+
+Step 5: Extract Search Sessions Module (Medium - ~370 lines)
+Routes to move:
+* /api/search-sessions/:sessionId/status
+* /api/search-sessions/:sessionId (DELETE)
+* /api/search-sessions (DELETE - bulk cleanup)
+* Session management logic
+Why fifth: Important infrastructure that other modules depend on, but can be cleanly extracted.
+New structure:
+server/features/search-sessions/
+├── routes.ts
+├── session-manager.ts
+├── types.ts
+└── cache-service.ts
+
+
+Benefits of This Approach:
+1. Immediate Impact: Removes ~1210 lines (25%) from routes.ts in just 5 steps
+2. Low Risk: Each module is independent enough to extract without breaking others
+3. Clear Patterns: Establishes the feature folder pattern for future refactoring
+4. Testable: Each module can be tested in isolation
+5. Progressive: Can stop at any step if issues arise
+
+What Remains After These 5 Steps:
+The main routes.ts would still contain:
+* Core company/contact search functionality (the heart of the app)
+* Contact enrichment APIs
+* Campaign management
+* Strategic planning/onboarding flows
+These can be tackled in subsequent phases once the pattern is established and proven. 
+This plan prioritizes safety and practicality - starting with the most isolated, low-risk modules and progressively moving toward more interconnected features. Each step provides value on its own while building toward a fully modularized architecture.
+ 
