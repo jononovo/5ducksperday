@@ -466,21 +466,49 @@ export default function Outreach() {
   };
 
   const saveCurrentTemplate = () => {
-    if (editingTemplateId && editingTemplate && emailPrompt && emailContent) {
-      const templateData: InsertEmailTemplate = {
-        name: editingTemplate.name, // Preserve original template name
-        subject: emailSubject || editingTemplate.subject || "Email Template",
-        content: emailContent,
-        description: emailPrompt,
-        category: editingTemplate.category || "saved",
-        userId: user?.id || 1
-      };
-      
-      updateMutation.mutate({
-        id: editingTemplateId,
-        template: templateData
+    console.log('saveCurrentTemplate called with:', {
+      editingTemplateId,
+      hasEditingTemplate: !!editingTemplate,
+      emailPrompt,
+      emailContent,
+      emailSubject
+    });
+
+    // Check if we're in edit mode
+    if (!editingTemplateId || !editingTemplate) {
+      toast({
+        title: "No Template Selected",
+        description: "Please select a template to edit first",
+        variant: "destructive",
       });
+      return;
     }
+
+    // Only require content to be present (description/prompt can be empty)
+    if (!emailContent) {
+      toast({
+        title: "Missing Content",
+        description: "Template content cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const templateData: InsertEmailTemplate = {
+      name: editingTemplate.name, // Preserve original template name
+      subject: emailSubject || editingTemplate.subject || "Email Template",
+      content: emailContent,
+      description: emailPrompt || "", // Allow empty description
+      category: editingTemplate.category || "saved",
+      userId: user?.id || 1
+    };
+    
+    console.log('Attempting to update template with data:', templateData);
+    
+    updateMutation.mutate({
+      id: editingTemplateId,
+      template: templateData
+    });
   };
 
   // Handle product selection and insert context into email prompt
@@ -2056,6 +2084,7 @@ export default function Outreach() {
                   onExitEditMode={exitEditMode}
                   isMergeViewMode={isMergeViewMode}
                   onToggleMergeView={toggleMergeView}
+                  isSavingTemplate={updateMutation.isPending}
                 />
               </div>
             </div>
