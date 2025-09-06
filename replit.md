@@ -11,7 +11,7 @@ Mobile UI preference: Compact, space-efficient design with seamless header-to-co
 The application features a **React SPA frontend** built with TypeScript, Vite, Tailwind CSS (using shadcn/ui), TanStack Query, React Router, and Radix UI. The **backend** is developed with Express.js and TypeScript.
 
 **Key Architectural Decisions:**
-- **Modular API Design:** Distinct route handlers and business logic ensure maintainability. Feature-based folder structure with self-contained modules (e.g., server/features/gmail-integration) following the email-content-generation pattern.
+- **Modular API Design:** Distinct route handlers and business logic ensure maintainability. Feature-based folder structure with self-contained modules (e.g., server/features/gmail-integration, server/features/health-monitoring) following the email-content-generation pattern. Ongoing modularization reducing routes.ts from 4961 to 4472 lines (10% reduction).
 - **Hybrid Storage Architecture:** PostgreSQL is used for structured data (users, lists, companies, contacts, email_templates, strategic_profiles), while Replit Key-Value Database handles volatile data (credits, Gmail tokens, subscriptions, notifications).
 - **Multi-stage Search Process:** Orchestrates company discovery, contact extraction, and email enrichment using AI and external APIs.
 - **Intelligent Contact Discovery:** Includes confidence scoring and email validation through multiple providers.
