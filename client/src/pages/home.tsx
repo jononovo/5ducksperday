@@ -149,8 +149,10 @@ export default function Home() {
         }));
         
         // Save to localStorage for persistence
+        // Save lastExecutedQuery as currentQuery to ensure consistency
+        const queryToSave = lastExecutedQuery || currentQuery;
         const stateToSave = {
-          currentQuery,
+          currentQuery: queryToSave,
           currentResults: updatedResults,
           currentListId,
           lastExecutedQuery
@@ -324,8 +326,10 @@ export default function Home() {
           setCurrentResults(refreshedResults);
           
           // Update localStorage with refreshed data
+          // Save lastExecutedQuery as currentQuery to ensure consistency
+          const queryToSave = lastExecutedQuery || currentQuery;
           const stateToSave = {
-            currentQuery,
+            currentQuery: queryToSave,
             currentResults: refreshedResults,
             currentListId,
             lastExecutedQuery
@@ -460,8 +464,10 @@ export default function Home() {
           setCurrentResults(refreshedResults);
           
           // Update localStorage with complete fresh data
+          // Save lastExecutedQuery as currentQuery to ensure consistency
+          const queryToSave = savedState.lastExecutedQuery || savedState.currentQuery;
           const updatedState = {
-            currentQuery: savedState.currentQuery,
+            currentQuery: queryToSave,
             currentResults: refreshedResults,
             currentListId: savedState.currentListId,
             lastExecutedQuery: savedState.lastExecutedQuery || savedState.currentQuery,
@@ -566,14 +572,17 @@ export default function Home() {
       
       // Only save if we have meaningful data (prevents saving null states)
       if (currentQuery || (currentResults && currentResults.length > 0)) {
+        // Save lastExecutedQuery as currentQuery to ensure the saved query matches the results
+        // If no search has been executed yet, fall back to currentQuery
+        const queryToSave = lastExecutedQuery || currentQuery;
         const stateToSave: SavedSearchState = {
-          currentQuery,
+          currentQuery: queryToSave,
           currentResults,
           currentListId,
           lastExecutedQuery
         };
         console.log('Saving search state:', {
-          query: currentQuery,
+          query: queryToSave,
           resultsCount: currentResults?.length,
           listId: currentListId,
           companies: currentResults?.map(c => ({ id: c.id, name: c.name }))
@@ -594,7 +603,7 @@ export default function Home() {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [currentQuery, currentResults, currentListId]);
+  }, [currentQuery, currentResults, currentListId, lastExecutedQuery]);
 
 
 
@@ -1444,8 +1453,10 @@ export default function Home() {
       
       // Immediately update localStorage to prevent losing emails on quick navigation
       if (updatedResults) {
+        // Save lastExecutedQuery as currentQuery to ensure consistency
+        const queryToSave = lastExecutedQuery || currentQuery;
         const stateToSave: SavedSearchState = {
-          currentQuery,
+          currentQuery: queryToSave,
           currentResults: updatedResults,
           currentListId,
           lastExecutedQuery
@@ -1624,8 +1635,10 @@ export default function Home() {
       
       // Immediately update localStorage to prevent losing emails on quick navigation
       if (updatedResults) {
+        // Save lastExecutedQuery as currentQuery to ensure consistency
+        const queryToSave = lastExecutedQuery || currentQuery;
         const stateToSave: SavedSearchState = {
-          currentQuery,
+          currentQuery: queryToSave,
           currentResults: updatedResults,
           currentListId,
           lastExecutedQuery
@@ -2024,8 +2037,10 @@ export default function Home() {
         }, 100);
         
         // Update localStorage with fresh data
+        // Save lastExecutedQuery as currentQuery to ensure consistency
+        const queryToSave = lastExecutedQuery || currentQuery;
         const stateToSave = {
-          currentQuery,
+          currentQuery: queryToSave,
           currentResults: refreshedResults,
           currentListId,
           lastExecutedQuery
@@ -2082,8 +2097,10 @@ export default function Home() {
         }, 100);
         
         // Update localStorage with fresh data (simplified)
+        // Save lastExecutedQuery as currentQuery to ensure consistency
+        const queryToSave = lastExecutedQuery || currentQuery;
         const stateToSave = {
-          currentQuery,
+          currentQuery: queryToSave,
           currentResults: refreshedResults,
           currentListId,
           lastExecutedQuery
@@ -2268,8 +2285,10 @@ export default function Home() {
       setCurrentResults(freshResults);
       
       // Step 6: Save complete fresh state to localStorage (single authoritative save)
+      // Save lastExecutedQuery as currentQuery to ensure consistency
+      const queryToSave = lastExecutedQuery || currentQuery;
       const completeState = {
-        currentQuery,
+        currentQuery: queryToSave,
         currentResults: freshResults,
         currentListId,
         lastExecutedQuery,
@@ -2407,8 +2426,10 @@ export default function Home() {
       
       // Immediately update localStorage to prevent losing emails on quick navigation
       if (updatedResults) {
+        // Save lastExecutedQuery as currentQuery to ensure consistency
+        const queryToSave = lastExecutedQuery || currentQuery;
         const stateToSave: SavedSearchState = {
-          currentQuery,
+          currentQuery: queryToSave,
           currentResults: updatedResults,
           currentListId,
           lastExecutedQuery
