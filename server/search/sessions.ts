@@ -37,6 +37,44 @@ setInterval(cleanupSessions, 10 * 60 * 1000);
  * Register session management routes
  */
 export function registerSessionRoutes(app: Express) {
+  // Session status update endpoint
+  app.post("/api/sessions/:sessionId/status", (req: Request, res: Response) => {
+    try {
+      const sessionId = req.params.sessionId;
+      const { status } = req.body;
+      
+      // Get or create session
+      let session = global.searchSessions.get(sessionId);
+      if (!session) {
+        session = {
+          sessionId,
+          query: '',
+          status: status || 'testing',
+          timestamp: Date.now(),
+          ttl: 30 * 60 * 1000
+        };
+        global.searchSessions.set(sessionId, session);
+      } else {
+        session.status = status;
+        session.timestamp = Date.now();
+      }
+      
+      res.json({
+        success: true,
+        sessionId,
+        status: session.status,
+        message: `Session ${sessionId} status updated`
+      });
+      
+    } catch (error) {
+      console.error('Session status update error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to update session status"
+      });
+    }
+  });
+
   // Session status endpoint for polling
   app.get("/api/search-sessions/:sessionId/status", (req: Request, res: Response) => {
     try {
@@ -115,6 +153,29 @@ export function registerSessionRoutes(app: Express) {
       res.status(500).json({
         success: false,
         error: "Failed to terminate session"
+      });
+    }
+  });
+
+  // Session cleanup endpoint
+  app.post("/api/sessions/cleanup", (req: Request, res: Response) => {
+    try {
+      const before = global.searchSessions.size;
+      cleanupSessions();
+      const after = global.searchSessions.size;
+      const cleanedCount = before - after;
+      
+      res.json({
+        success: true,
+        cleanedCount,
+        message: `Cleaned up ${cleanedCount} expired sessions`
+      });
+      
+    } catch (error) {
+      console.error('Session cleanup error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to cleanup sessions"
       });
     }
   });

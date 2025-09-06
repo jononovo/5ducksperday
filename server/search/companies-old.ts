@@ -1,6 +1,6 @@
 /**
  * Company Search Module
- * Handles all company-related search operations
+ * Handles company search operations including quick search and full search with contacts
  */
 
 import { Express, Request, Response } from "express";
@@ -9,59 +9,64 @@ import { searchCompanies } from "../lib/search-logic";
 import { findKeyDecisionMakers } from "../lib/search-logic/contact-discovery/enhanced-contact-finder";
 import { CreditService } from "../lib/credits";
 import { SearchType } from "../lib/credits/types";
-import { SessionManager } from "./sessions";
 import type { 
+  CompanySearchRequest, 
   QuickSearchRequest, 
-  CompanySearchRequest,
-  SearchCache 
+  SearchCacheEntry,
+  CompanyWithContacts,
+  ContactSearchConfig 
 } from "./types";
+import { SessionManager } from "./sessions";
 
-// Ensure global searchCache exists
-if (!global.searchCache) {
-  global.searchCache = new Map<string, SearchCache>();
+// Cache for search results
+declare global {
+  var searchCache: Map<string, SearchCacheEntry>;
 }
 
+global.searchCache = global.searchCache || new Map();
+
 /**
- * Get user ID from request (auth or default to 1)
+ * Helper function to safely get user ID from request
  */
-export function getUserId(req: Request): number {
-  const isAuthenticated = (req as any).isAuthenticated && (req as any).isAuthenticated() && (req as any).user;
-  
-  if (isAuthenticated && (req as any).user) {
-    return (req as any).user.id;
-  }
-  
+function getUserId(req: Request): number {
   console.log('getUserId() called:', {
-    path: req.path.replace(/\d+/g, ':id'),
+    path: req.path,
     method: req.method,
-    sessionID: (req as any).sessionID,
+    sessionID: (req as any).sessionID || 'none',
     hasSession: !!(req as any).session,
-    isAuthenticated: isAuthenticated,
+    isAuthenticated: (req as any).isAuthenticated ? (req as any).isAuthenticated() : false,
     hasUser: !!(req as any).user,
-    userId: (req as any).user?.id || 'none',
+    userId: (req as any).user ? (req as any).user.id : 'none',
     hasFirebaseUser: !!(req as any).firebaseUser,
-    firebaseUserId: (req as any).firebaseUser?.id || 'none',
+    firebaseUserId: (req as any).firebaseUser ? (req as any).firebaseUser.id : 'none',
     timestamp: new Date().toISOString()
   });
-  
-  if ((req as any).user?.id) {
-    console.log(`User ID from session authentication: ${(req as any).user.id}`);
-    return (req as any).user.id;
+
+  try {
+    // First check if user is authenticated through session
+    if ((req as any).isAuthenticated && (req as any).isAuthenticated() && (req as any).user && (req as any).user.id) {
+      const userId = (req as any).user.id;
+      console.log('User ID from session authentication:', userId);
+      return userId;
+    }
+    
+    // Then check for Firebase authentication
+    if ((req as any).firebaseUser && (req as any).firebaseUser.id) {
+      const userId = (req as any).firebaseUser.id;
+      console.log('User ID from Firebase middleware:', userId);
+      return userId;
+    }
+  } catch (error) {
+    console.error('Error accessing user ID:', error);
   }
   
-  if ((req as any).firebaseUser?.id) {
-    console.log(`User ID from Firebase authentication: ${(req as any).firebaseUser.id}`);
-    return (req as any).firebaseUser.id;
-  }
-  
-  // This is a temporary fix to ensure the system works during testing
-  // In production, this should be handled more appropriately
-  console.log('Warning: No authenticated user found, using default user ID 1');
+  // For non-authenticated users, fall back to demo user ID (1)
+  console.log('Fallback to demo user ID for non-authenticated route');
   return 1;
 }
 
 /**
- * Process items in batches for rate limiting
+ * Process companies in parallel batches
  */
 async function processBatch<T, R>(items: T[], processor: (item: T) => Promise<R>, batchSize: number = 4): Promise<R[]> {
   const results: R[] = [];
@@ -87,7 +92,6 @@ function mapSearchTypeToCredits(frontendSearchType: string): SearchType {
 
 /**
  * Register company search routes
- * IMPORTANT: Specific routes MUST come before dynamic routes
  */
 export function registerCompanyRoutes(app: Express, requireAuth: any) {
   // List companies (allows unauthenticated access for demo)
@@ -103,6 +107,48 @@ export function registerCompanyRoutes(app: Express, requireAuth: any) {
       // For demo/unauthenticated users, return only the demo companies
       const demoCompanies = await storage.listCompanies(1); // Demo user ID = 1
       res.json(demoCompanies);
+    }
+  });
+
+  // Get company by ID (allows unauthenticated access for demo companies)
+  app.get("/api/companies/:id", async (req: Request, res: Response) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      const isAuthenticated = (req as any).isAuthenticated && (req as any).isAuthenticated() && (req as any).user;
+      
+      console.log('GET /api/companies/:id - Request params:', {
+        id: req.params.id,
+        isAuthenticated: isAuthenticated
+      });
+      
+      let company = null;
+      
+      // First try to find the company for the authenticated user
+      if (isAuthenticated) {
+        company = await storage.getCompany(companyId, (req as any).user!.id);
+      }
+      
+      // If not found or not authenticated, check if it's a demo company
+      if (!company) {
+        company = await storage.getCompany(companyId, 1); // Check demo user (ID 1)
+      }
+      
+      console.log('GET /api/companies/:id - Retrieved company:', {
+        requested: req.params.id,
+        found: company ? { id: company.id, name: company.name } : null,
+        isDemo: company && (!isAuthenticated || company.userId === 1)
+      });
+
+      if (!company) {
+        res.status(404).json({ message: "Company not found" });
+        return;
+      }
+      res.json(company);
+    } catch (error) {
+      console.error('Error fetching company:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
     }
   });
 
@@ -500,48 +546,6 @@ export function registerCompanyRoutes(app: Express, requireAuth: any) {
       console.error('Company search error:', error);
       res.status(500).json({
         message: error instanceof Error ? error.message : "An unexpected error occurred during company search"
-      });
-    }
-  });
-
-  // Get company by ID - MUST BE LAST because it has a dynamic :id parameter
-  app.get("/api/companies/:id", async (req: Request, res: Response) => {
-    try {
-      const companyId = parseInt(req.params.id);
-      const isAuthenticated = (req as any).isAuthenticated && (req as any).isAuthenticated() && (req as any).user;
-      
-      console.log('GET /api/companies/:id - Request params:', {
-        id: req.params.id,
-        isAuthenticated: isAuthenticated
-      });
-      
-      let company = null;
-      
-      // First try to find the company for the authenticated user
-      if (isAuthenticated) {
-        company = await storage.getCompany(companyId, (req as any).user!.id);
-      }
-      
-      // If not found or not authenticated, check if it's a demo company
-      if (!company) {
-        company = await storage.getCompany(companyId, 1); // Check demo user (ID 1)
-      }
-      
-      console.log('GET /api/companies/:id - Retrieved company:', {
-        requested: req.params.id,
-        found: company ? { id: company.id, name: company.name } : null,
-        isDemo: company && (!isAuthenticated || company.userId === 1)
-      });
-
-      if (!company) {
-        res.status(404).json({ message: "Company not found" });
-        return;
-      }
-      res.json(company);
-    } catch (error) {
-      console.error('Error fetching company:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred"
       });
     }
   });
