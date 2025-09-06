@@ -1136,10 +1136,10 @@ export default function Outreach() {
   // Use the shared comprehensive email search hook
   const { handleComprehensiveEmailSearch: comprehensiveSearchHook, pendingSearchIds: pendingComprehensiveSearchIds } = useComprehensiveEmailSearch({
     onContactUpdate: async (updatedContact) => {
-      // Force immediate update of the query cache to trigger re-render
+      // Only update the cache data directly without refetching
       const queryKey = [`/api/companies/${selectedCompany?.id}/contacts`];
       
-      // First, update the cache data directly
+      // Update the cache data directly to show the new email immediately
       queryClient.setQueryData<Contact[]>(queryKey, (oldData) => {
         if (!oldData) return oldData;
         return oldData.map(contact =>
@@ -1147,22 +1147,33 @@ export default function Outreach() {
         );
       });
       
-      // Then refetch to ensure we have the latest data from server
-      // Using refetchQueries instead of invalidateQueries for immediate update
-      await queryClient.refetchQueries({ 
-        queryKey,
-        exact: true 
-      });
+      // Don't refetch - just update the cache to avoid reordering/disappearing contacts
+      // The cache update above is sufficient to trigger a re-render with the new data
     },
     onSearchComplete: async (contactId, emailFound) => {
       if (!emailFound) {
         console.log('Comprehensive search complete, no email found for contact:', contactId);
         
-        // Force immediate refetch when no email is found
-        await queryClient.refetchQueries({ 
-          queryKey: [`/api/companies/${selectedCompany?.id}/contacts`],
-          exact: true
-        });
+        // Only update the specific contact in cache, don't refetch
+        const queryKey = [`/api/companies/${selectedCompany?.id}/contacts`];
+        
+        // Get the current contact from the server to ensure we have the latest state
+        try {
+          const response = await apiRequest("GET", `/api/contacts/${contactId}`);
+          if (response.ok) {
+            const updatedContact = await response.json();
+            
+            // Update only this contact in the cache
+            queryClient.setQueryData<Contact[]>(queryKey, (oldData) => {
+              if (!oldData) return oldData;
+              return oldData.map(contact =>
+                contact.id === contactId ? updatedContact : contact
+              );
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch updated contact:', error);
+        }
       }
     }
   });
