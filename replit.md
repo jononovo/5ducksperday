@@ -11,7 +11,7 @@ Mobile UI preference: Compact, space-efficient design with seamless header-to-co
 The application features a **React SPA frontend** built with TypeScript, Vite, Tailwind CSS (using shadcn/ui), TanStack Query, React Router, and Radix UI. The **backend** is developed with Express.js and TypeScript.
 
 **Key Architectural Decisions:**
-- **Modular API Design:** Distinct route handlers and business logic ensure maintainability. Feature-based folder structure with self-contained modules (e.g., server/features/gmail-integration, server/features/health-monitoring) following the email-content-generation pattern. Ongoing modularization reducing routes.ts from 4961 to 4472 lines (10% reduction).
+- **Modular API Design:** Distinct route handlers and business logic ensure maintainability. Feature-based folder structure with self-contained modules (e.g., server/features/gmail-integration, server/features/health-monitoring, server/features/lists) following the email-content-generation pattern. Ongoing modularization reducing routes.ts from 4961 to 4275 lines (14% reduction).
 - **Hybrid Storage Architecture:** PostgreSQL is used for structured data (users, lists, companies, contacts, email_templates, strategic_profiles), while Replit Key-Value Database handles volatile data (credits, Gmail tokens, subscriptions, notifications).
 - **Multi-stage Search Process:** Orchestrates company discovery, contact extraction, and email enrichment using AI and external APIs.
 - **Intelligent Contact Discovery:** Includes confidence scoring and email validation through multiple providers.
@@ -24,6 +24,7 @@ The application features a **React SPA frontend** built with TypeScript, Vite, T
 - **Product Offers Generation:** Complete 6-strategy offer generation system with proper routing fix (Aug 2025) that bypasses boundary API for "Generate product offers" input. Includes clean UX flow that hides generation button after successful completion.
 - **Product Offers Display:** Product offers now display in the Implementation tab of strategy detail pages, positioned below Daily Search Queries with matching design patterns and copy functionality (Aug 2025).
 - **Search State Persistence:** Enhanced search input field synchronization to properly maintain query consistency between typed input and executed searches across page refreshes, ensuring displayed results always match the shown query (Sep 2025).
+- **Lists Management Module:** Extracted lists functionality into self-contained module (Sep 2025), reducing 198 lines from main routes.ts. Module handles list CRUD operations, company associations, and demo list visibility for unauthenticated users.
 
 ## External Dependencies
 - **Perplexity API**: Company research and contact discovery.
