@@ -37,7 +37,7 @@ import { registerEmailGenerationRoutes } from "./email-content-generation/routes
 import { registerGmailRoutes } from "./features/gmail-integration";
 import { registerHealthMonitoringRoutes } from "./features/health-monitoring";
 import { registerListsRoutes } from "./features/lists";
-import { registerEmailTemplatesRoutes } from "./features/email-templates";
+import { registerEmailTemplatesRoutes } from "./email/email-templates";
 
 // Global session storage for search results
 interface SearchSessionResult {
