@@ -7,12 +7,12 @@ import { storage } from "./storage";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-import { searchCompanies, analyzeCompany } from "./lib/search-logic";
+import { searchCompanies, analyzeCompany } from "./search/core/company-search";
 import { extractContacts } from "./lib/perplexity";
 import { parseCompanyData } from "./lib/results-analysis/company-parser";
-import { queryPerplexity } from "./lib/api/perplexity-client";
+import { queryPerplexity } from "./search/core/perplexity-client";
 import { queryOpenAI, generateEmailStrategy, generateBoundary, generateBoundaryOptions, generateSprintPrompt, generateDailyQueries } from "./lib/api/openai-client";
-import { searchContactDetails } from "./lib/api-interactions";
+import { searchContactDetails } from "./search/enrichment/contact-details";
 import { google } from "googleapis";
 import { 
   insertCompanySchema, 
@@ -20,11 +20,11 @@ import {
   insertListSchema, 
   insertEmailTemplateSchema
 } from "@shared/schema";
-import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
+import { emailEnrichmentService } from "./search/enrichment/email/email-enrichment/service"; 
 import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
-import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
-import { findKeyDecisionMakers } from "./lib/search-logic/contact-discovery/enhanced-contact-finder";
+import { postSearchEnrichmentService } from "./search/enrichment/post-search/post-search-enrichment/service";
+import { findKeyDecisionMakers } from "./search/contacts/finder";
 import { TokenService } from "./lib/tokens/index";
 import { registerCreditRoutes } from "./routes/credits";
 import { registerStripeRoutes } from "./routes/stripe";
@@ -1523,6 +1523,10 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Search Quality Testing Endpoint
+  app.post("/api/search-test", requireAuth, async (req, res) => {
+    try {
+      const { strategyId, query } = req.body;
       
       if (!strategyId || !query) {
         res.status(400).json({ message: "Missing required parameters: strategyId and query are required" });
@@ -1693,6 +1697,11 @@ export function registerRoutes(app: Express) {
       res.status(500).json({
         message: error instanceof Error ? error.message : "An unexpected error occurred during search test"
       });
+    }
+  });
+  
+  // API endpoint designed for AI agents to run tests and get results
+  app.post("/api/agent/run-search-test", async (req, res) => {
     try {
       const { strategyId, query, saveToDatabase = true } = req.body;
       
@@ -1858,6 +1867,9 @@ export function registerRoutes(app: Express) {
     } catch (error) {
       console.error("[AI Agent] Error running search test:", error);
       res.status(500).json({ error: "Failed to run search test" });
+    }
+  });
+
   // Hunter.io email finder endpoint
   app.post("/api/contacts/:contactId/hunter", requireAuth, async (req, res) => {
     try {

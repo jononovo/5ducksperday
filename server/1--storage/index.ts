@@ -35,12 +35,6 @@ export interface IStorage {
   updateContact(id: number, contact: Partial<Contact>): Promise<Contact | undefined>;
   deleteContactsByCompany(companyId: number, userId: number): Promise<void>;
 
-  // Search Approaches (simplified stubs)
-  getSearchApproach(id: number): Promise<any>;
-  listSearchApproaches(): Promise<any[]>;
-  createSearchTestResult(data: any): Promise<void>;
-  getTestResultsByStrategy(strategyId: number, userId: number): Promise<any[]>;
-
   // Email Templates
   getEmailTemplate(id: number, userId: number): Promise<EmailTemplate | undefined>;
   listEmailTemplates(userId: number): Promise<EmailTemplate[]>;
