@@ -15,9 +15,7 @@ import { useAnalytics } from "./hooks/use-analytics";
 import { SEOHead } from "@/components/ui/seo-head";
 import { MainNav } from "@/components/main-nav";
 import { LoadingScreen } from "@/components/ui/loading-screen";
-import { StrategyOverlayProvider } from "@/lib/strategy-overlay-context";
-import { useStrategyOverlay } from "@/lib/strategy-overlay-context";
-import { StrategyOverlay } from "@/components/strategy-overlay";
+import { StrategyOverlayProvider, useStrategyOverlay } from "@/features/strategy-chat";
 import "@/components/ui/loading-spinner.css";
 
 // Immediate imports for landing pages and critical components
@@ -40,7 +38,7 @@ const ContactDetails = lazy(() => import("@/pages/contact-details"));
 const Testing = lazy(() => import("@/pages/testing"));
 const SubscriptionSuccess = lazy(() => import("@/pages/subscription-success"));
 const NotFound = lazy(() => import("@/pages/not-found"));
-const StrategyDashboard = lazy(() => import("@/pages/strategy-dashboard"));
+const StrategyDashboard = lazy(() => import("@/features/strategy-chat").then(module => ({ default: module.StrategyDashboard })));
 
 // Lazy imports for marketing pages
 const Terms = lazy(() => import("@/pages/terms"));
