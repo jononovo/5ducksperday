@@ -61,6 +61,29 @@ export function registerStrategicProfilesRoutes(app: Express, requireAuth: any) 
     }
   });
 
+  // Products endpoint for Strategy Dashboard
+  app.get('/api/products', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      
+      // Fetch strategic profiles from storage
+      const profiles = await storage.getStrategicProfiles(userId);
+      
+      // Map to frontend interface (add 'name' field)
+      const mappedProfiles = profiles.map(profile => ({
+        ...profile,
+        name: profile.businessDescription || profile.productService || "Strategy Plan"
+      }));
+      
+      res.json(mappedProfiles);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to fetch products' 
+      });
+    }
+  });
+
   // Save strategy chat as product
   app.post('/api/strategic-profiles/save-from-chat', requireAuth, async (req, res) => {
     try {
