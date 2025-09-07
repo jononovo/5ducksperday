@@ -143,13 +143,6 @@ export class HealthChecks {
       };
     }
 
-    // Test AeroLeads API
-    const aeroLeadsKey = process.env.AEROLEADS_API_KEY;
-    tests.aeroleads = {
-      status: aeroLeadsKey ? 'passed' : 'failed',
-      message: aeroLeadsKey ? 'AeroLeads API key configured' : 'AeroLeads API key missing'
-    };
-
     // Test Apollo API
     const apolloKey = process.env.APOLLO_API_KEY;
     tests.apollo = {

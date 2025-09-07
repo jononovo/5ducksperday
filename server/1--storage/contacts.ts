@@ -115,32 +115,4 @@ export class ContactStorage {
     });
   }
 
-  async updateContactWithAeroLeadsResult(
-    id: number,
-    result: { email: string | null; confidence: number }
-  ): Promise<Contact | undefined> {
-    if (!result.email) {
-      const [updated] = await this.db
-        .update(contacts)
-        .set({
-          completedSearches: sql`array_append(COALESCE(${contacts.completedSearches}, ARRAY[]::text[]), 'aeroleads_search')`
-        })
-        .where(eq(contacts.id, id))
-        .returning();
-      return updated;
-    }
-
-    const [updated] = await this.db
-      .update(contacts)
-      .set({
-        email: result.email,
-        // Use nameConfidenceScore since we don't have a separate email confidence column
-        nameConfidenceScore: result.confidence,
-        completedSearches: sql`array_append(COALESCE(${contacts.completedSearches}, ARRAY[]::text[]), 'aeroleads_search')`,
-        lastValidated: new Date(),
-      })
-      .where(eq(contacts.id, id))
-      .returning();
-    return updated;
-  }
 }
