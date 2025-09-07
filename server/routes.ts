@@ -702,121 +702,62 @@ export function registerRoutes(app: Express) {
         return;
       }
 
-      // Get any active decision-maker module approach
-      const approaches = await storage.listSearchApproaches();
-      const decisionMakerApproach = approaches.find(a =>
-        a.moduleType === 'decision_maker' && a.active
+      console.log('Starting contact discovery for company:', company.name);
+
+      // Direct call to find contacts - it has its own industry detection
+      const newContacts = await findKeyDecisionMakers(company.name, {
+        minimumConfidence: 30,
+        maxContacts: 10,
+        includeMiddleManagement: true,
+        prioritizeLeadership: true,
+        useMultipleQueries: true,
+        // Enable all search types for enrichment
+        enableCoreLeadership: true,
+        enableDepartmentHeads: true,
+        enableMiddleManagement: true,
+        enableCustomSearch: false,
+        customSearchTarget: ""
+      });
+      console.log('Contact finder results:', newContacts);
+
+      // Remove existing contacts
+      await storage.deleteContactsByCompany(companyId, userId);
+
+      // Create new contacts with only the essential fields and minimum confidence score
+      const validContacts = newContacts.filter((contact: Contact) => 
+        contact.name && 
+        contact.name !== "Unknown" && 
+        (!contact.probability || contact.probability >= 40) // Filter out contacts with low confidence/probability scores
+      );
+      console.log('Valid contacts for enrichment:', validContacts);
+
+      const createdContacts = await Promise.all(
+        validContacts.map(async (contact: Contact) => {
+          console.log(`Processing contact enrichment for: ${contact.name}`);
+
+          return storage.createContact({
+            companyId,
+            name: contact.name!,
+            role: contact.role || null,
+            email: contact.email || null,
+            priority: contact.priority ?? null,
+            linkedinUrl: null,
+            twitterHandle: null,
+            phoneNumber: null,
+            department: null,
+            location: null,
+            verificationSource: 'Decision-maker Analysis',
+            userId: userId
+          });
+        })
       );
 
-      if (!decisionMakerApproach) {
-        res.status(400).json({
-          message: "Decision-maker analysis approach is not configured"
-        });
-        return;
-      }
-
-      try {
-        console.log('Starting decision-maker analysis for company:', company.name);
-
-        // Perform decision-maker analysis with technical prompt
-        const analysisResult = await analyzeCompany(
-          company.name,
-          decisionMakerApproach.prompt,
-          decisionMakerApproach.technicalPrompt,
-          decisionMakerApproach.responseStructure
-        );
-        console.log('Decision-maker analysis result:', analysisResult);
-
-        // Extract contacts focusing on core fields only
-        // Determine industry from company name
-        let industry: string | undefined = undefined;
-        if (company.name) {
-          const nameLower = company.name.toLowerCase();
-          // Simple industry detection from company name
-          if (nameLower.includes('tech') || nameLower.includes('software')) {
-            industry = 'technology';
-          } else if (nameLower.includes('health') || nameLower.includes('medical')) {
-            industry = 'healthcare';
-          } else if (nameLower.includes('financ') || nameLower.includes('bank')) {
-            industry = 'financial';
-          } else if (nameLower.includes('consult')) {
-            industry = 'consulting';
-          } 
-          // Check for industry in company services if available
-          if (!industry && company.services && company.services.length > 0) {
-            const serviceString = company.services.join(' ').toLowerCase();
-            if (serviceString.includes('tech') || serviceString.includes('software') || serviceString.includes('development')) {
-              industry = 'technology';
-            } else if (serviceString.includes('health') || serviceString.includes('medical')) {
-              industry = 'healthcare';
-            } else if (serviceString.includes('financ') || serviceString.includes('bank')) {
-              industry = 'financial';
-            }
-          }
-        }
-        console.log(`Detected industry for contact enrichment: ${industry || 'unknown'}`);
-        
-        // Use enhanced contact finder for enrichment with default settings
-        const newContacts = await findKeyDecisionMakers(company.name, {
-          industry: industry,
-          minimumConfidence: 30,
-          maxContacts: 10,
-          includeMiddleManagement: true,
-          prioritizeLeadership: true,
-          useMultipleQueries: true,
-          // Enable all search types for enrichment
-          enableCoreLeadership: true,
-          enableDepartmentHeads: true,
-          enableMiddleManagement: true,
-          enableCustomSearch: false,
-          customSearchTarget: ""
-        });
-        console.log('Enhanced contact finder results:', newContacts);
-
-        // Remove existing contacts
-        await storage.deleteContactsByCompany(companyId, req.user!.id);
-
-        // Create new contacts with only the essential fields and minimum confidence score
-        const validContacts = newContacts.filter((contact: Contact) => 
-          contact.name && 
-          contact.name !== "Unknown" && 
-          (!contact.probability || contact.probability >= 40) // Filter out contacts with low confidence/probability scores
-        );
-        console.log('Valid contacts for enrichment:', validContacts);
-
-        const createdContacts = await Promise.all(
-          validContacts.map(async (contact: Contact) => {
-            console.log(`Processing contact enrichment for: ${contact.name}`);
-
-            return storage.createContact({
-              companyId,
-              name: contact.name!,
-              role: contact.role || null,
-              email: contact.email || null,
-              priority: contact.priority ?? null,
-              linkedinUrl: null,
-              twitterHandle: null,
-              phoneNumber: null,
-              department: null,
-              location: null,
-              verificationSource: 'Decision-maker Analysis',
-              userId: userId
-            });
-          })
-        );
-
-        console.log('Created contacts:', createdContacts);
-        res.json(createdContacts);
-      } catch (error) {
-        console.error('Contact enrichment error:', error);
-        res.status(500).json({
-          message: error instanceof Error ? error.message : "An unexpected error occurred during contact enrichment"
-        });
-      }
+      console.log('Created contacts:', createdContacts);
+      res.json(createdContacts);
     } catch (error) {
       console.error('Contact enrichment error:', error);
       res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred during contact enrichment"
+        message: error instanceof Error ? error.message : "Failed to enrich contacts"
       });
     }
   });
