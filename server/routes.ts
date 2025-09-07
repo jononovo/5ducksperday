@@ -30,7 +30,6 @@ import { registerCreditRoutes } from "./routes/credits";
 import { registerStripeRoutes } from "./routes/stripe";
 import { CreditService } from "./lib/credits";
 import { SearchType } from "./lib/credits/types";
-import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow-service";
 import { getEmailProvider } from "./services/emailService";
 import { registerEmailGenerationRoutes } from "./email-content-generation/routes";
 import { registerGmailRoutes } from "./features/gmail-integration";
