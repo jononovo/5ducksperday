@@ -28,8 +28,6 @@ import Auth from "@/pages/auth";
 const Home = lazy(() => import("@/pages/home"));
 const Account = lazy(() => import("@/pages/account"));
 // Lists functionality moved to drawer in Home page
-const Campaigns = lazy(() => import("@/pages/campaigns"));
-const CampaignDetails = lazy(() => import("@/pages/campaign-details"));
 const Outreach = lazy(() => import("@/pages/outreach"));
 const Replies = lazy(() => import("@/pages/replies"));
 const CompanyDetails = lazy(() => import("@/pages/company-details"));
@@ -170,16 +168,6 @@ function Router() {
                   </Suspense>
                 } />
                 {/* Lists routes removed - functionality moved to drawer in Home page */}
-                <ProtectedRoute path="/campaigns" component={() => 
-                  <Suspense fallback={<LoadingScreen />}>
-                    <Campaigns />
-                  </Suspense>
-                } />
-                <ProtectedRoute path="/campaigns/:id" component={() => 
-                  <Suspense fallback={<LoadingScreen />}>
-                    <CampaignDetails />
-                  </Suspense>
-                } />
                 <ProtectedRoute path="/outreach" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Outreach />

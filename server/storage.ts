@@ -1,6 +1,6 @@
 import { 
   userPreferences, lists, companies, contacts, emailTemplates, users,
-  strategicProfiles, userEmailPreferences, campaigns,
+  strategicProfiles, userEmailPreferences,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type List, type InsertList,
@@ -8,8 +8,7 @@ import {
   type Contact, type InsertContact,
   type EmailTemplate, type InsertEmailTemplate,
   type User, type InsertUser,
-  type StrategicProfile, type InsertStrategicProfile,
-  type Campaign, type InsertCampaign
+  type StrategicProfile, type InsertStrategicProfile
 } from "@shared/schema";
 import { db } from "./1--db";
 import { eq, and, or, sql, desc } from "drizzle-orm";
@@ -58,12 +57,6 @@ export interface IStorage {
   // createMessage(data: InsertEmailMessage): Promise<EmailMessage>;
   // markThreadMessagesAsRead(threadId: number): Promise<void>;
   
-  // Campaigns
-  listCampaigns(userId: number): Promise<Campaign[]>;
-  getCampaign(id: number, userId: number): Promise<Campaign | undefined>;
-  getNextCampaignId(): Promise<number>;
-  createCampaign(data: InsertCampaign): Promise<Campaign>;
-  updateCampaign(id: number, data: Partial<Campaign>, userId: number): Promise<Campaign>;
 
   // Email Templates
   listEmailTemplates(userId: number): Promise<EmailTemplate[]>;
@@ -316,36 +309,6 @@ class DatabaseStorage implements IStorage {
       .where(and(eq(contacts.companyId, companyId), eq(contacts.userId, userId)));
   }
 
-  // Campaigns
-  async listCampaigns(userId: number): Promise<Campaign[]> {
-    return db.select().from(campaigns).where(eq(campaigns.userId, userId));
-  }
-
-  async getCampaign(id: number, userId: number): Promise<Campaign | undefined> {
-    const [campaign] = await db
-      .select()
-      .from(campaigns)
-      .where(and(eq(campaigns.campaignId, id), eq(campaigns.userId, userId)));
-    return campaign;
-  }
-
-  async getNextCampaignId(): Promise<number> {
-    const [result] = await db.select({ maxId: campaigns.campaignId }).from(campaigns);
-    return (result?.maxId || 2000) + 1;
-  }
-
-  async createCampaign(data: InsertCampaign): Promise<Campaign> {
-    const [campaign] = await db.insert(campaigns).values(data as any).returning();
-    return campaign;
-  }
-
-  async updateCampaign(id: number, data: Partial<Campaign>, userId: number): Promise<Campaign> {
-    const [updated] = await db.update(campaigns)
-      .set(data)
-      .where(and(eq(campaigns.campaignId, id), eq(campaigns.userId, userId)))
-      .returning();
-    return updated;
-  }
 
   // Email Templates
   async listEmailTemplates(userId: number): Promise<EmailTemplate[]> {
