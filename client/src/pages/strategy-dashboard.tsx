@@ -40,8 +40,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { SEOHead } from "@/components/ui/seo-head";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { UniqueStrategyPage } from "@/components/unique-strategy-page";
-import { useStrategyOverlay } from "@/lib/strategy-overlay-context";
+import { UniqueStrategyPage, useStrategyOverlay } from "@/features/strategy-chat";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
