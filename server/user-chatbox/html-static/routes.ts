@@ -6,7 +6,7 @@
 
 import { Express } from "express";
 import { storage } from "../../storage";
-import { queryPerplexity } from "../../lib/perplexity";
+import { queryPerplexity } from "../../lib/api/perplexity-client";
 import type { PerplexityMessage } from "../../lib/perplexity";
 
 // Helper function to safely get user ID from request
