@@ -11,5 +11,8 @@ export { StrategyOverlayProvider, useStrategyOverlay } from './contexts/Strategy
 // Service exports
 export * from './services';
 
+// Hook exports
+export * from './hooks';
+
 // Type exports
 export * from './types';
