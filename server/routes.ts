@@ -39,6 +39,7 @@ import { registerHealthMonitoringRoutes } from "./features/health-monitoring";
 import { registerListsRoutes } from "./features/lists";
 import { registerEmailTemplatesRoutes } from "./email/email-templates";
 import { registerSearchRoutes, SessionManager } from "./search";
+import { registerSitemapRoutes } from "./features/sitemap";
 
 
 
@@ -169,76 +170,6 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
 
 
 
-// Generate static sitemap XML
-function generateSitemap(req: express.Request, res: express.Response) {
-  try {
-    // Use the production base URL for 5Ducks
-    const baseUrl = 'https://5ducks.ai';
-    
-    // Create a static sitemap with all known pages
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${baseUrl}</loc>
-    <changefreq>monthly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/app</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/pricing</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/blog</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/levels</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/contact</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/privacy</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/terms</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/companies</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/contacts</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-</urlset>`;
-
-    // Set headers and send response
-    res.header('Content-Type', 'application/xml');
-    res.send(xml);
-  } catch (error) {
-    console.error('Error generating sitemap:', error);
-    res.status(500).send('Error generating sitemap');
-  }
-}
-
 export function registerRoutes(app: Express) {
   // Register modular search routes (sessions and companies)
   registerSearchRoutes(app, requireAuth);
@@ -262,9 +193,6 @@ export function registerRoutes(app: Express) {
   });
   
 
-  
-  // Sitemap route
-  app.get('/sitemap.xml', generateSitemap);
   
   
   // Email conversations routes
@@ -863,6 +791,9 @@ export function registerRoutes(app: Express) {
   
   // Register modular email templates routes
   registerEmailTemplatesRoutes(app, requireAuth);
+  
+  // Register modular sitemap routes
+  registerSitemapRoutes(app);
 
   app.post("/api/companies/:companyId/enrich-top-prospects", requireAuth, async (req, res) => {
     try {

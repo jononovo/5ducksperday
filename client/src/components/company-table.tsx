@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import {
   Table,
   TableBody,
@@ -68,6 +69,8 @@ export default function CompanyTable({
   pendingContactIds,
   pendingComprehensiveSearchIds
 }: CompanyTableProps) {
+  const [, setLocation] = useLocation();
+  
   // Move console logging to useEffect to avoid React warnings about state updates during render
   useEffect(() => {
     console.log('CompanyTable received companies:', 
@@ -407,8 +410,7 @@ export default function CompanyTable({
                     <ContactActionColumn
                       contact={contact}
                       handleContactView={(id) => {
-                        console.log("View contact", id);
-                        // Add contact view handler if needed
+                        setLocation(`/contacts/${id}`);
                       }}
                       handleEnrichContact={handleEnrichContact}
                       handleHunterSearch={handleHunterSearch}
