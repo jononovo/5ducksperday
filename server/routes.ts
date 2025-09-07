@@ -20,7 +20,7 @@ import {
   insertListSchema, 
   insertEmailTemplateSchema
 } from "@shared/schema";
-import { emailEnrichmentService } from "./search/enrichment/email/email-enrichment/service"; 
+ 
 import type { PerplexityMessage } from "./lib/perplexity";
 import type { Contact } from "@shared/schema";
 import { postSearchEnrichmentService } from "./search/enrichment/post-search/post-search-enrichment/service";
