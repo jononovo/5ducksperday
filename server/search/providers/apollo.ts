@@ -12,11 +12,13 @@ async function searchApolloDirect(contact: any, company: any, apiKey: string): P
   try {
     const axios = (await import('axios')).default;
     const response = await axios.post('https://api.apollo.io/v1/people/match', {
-      api_key: apiKey,
       name: contact.name,
       organization_name: company.name,
       domain: company.website
     }, {
+      headers: {
+        'X-Api-Key': apiKey
+      },
       timeout: 20000
     });
 
