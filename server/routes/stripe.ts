@@ -18,7 +18,7 @@ function getStripe(): Stripe {
     }
     
     stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2025-03-31.basil",
+      apiVersion: "2025-05-28.basil",
     });
   }
   
@@ -162,14 +162,14 @@ export function registerStripeRoutes(app: express.Express) {
       res.json({
         customer: {
           id: customer.id,
-          email: customer.email,
-          created: customer.created
+          email: (customer as any).email || null,
+          created: (customer as any).created || null
         },
         subscriptions: subscriptions.data.map(sub => ({
           id: sub.id,
           status: sub.status,
           created: sub.created,
-          current_period_end: sub.current_period_end,
+          current_period_end: (sub as any).current_period_end,
           metadata: sub.metadata
         }))
       });
@@ -200,7 +200,7 @@ export function registerStripeRoutes(app: express.Express) {
         status: subscription.status,
         currentPlan: credits.currentPlan,
         subscriptionId: subscription.id,
-        currentPeriodEnd: subscription.current_period_end * 1000, // Convert to milliseconds
+        currentPeriodEnd: (subscription as any).current_period_end * 1000, // Convert to milliseconds
         cancelAtPeriodEnd: subscription.cancel_at_period_end
       });
 
