@@ -1,4 +1,4 @@
-import { MOCK_ACTIVE_CONTACTS, MOCK_EMAIL_THREADS } from "../mock/emailData";
+import { MOCK_ACTIVE_CONTACTS, MOCK_EMAIL_THREADS } from "../email-replies/example_email_threads/emailData";
 import type { Contact } from "@shared/schema";
 import { TokenService } from "../lib/tokens/index";
 
