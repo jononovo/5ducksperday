@@ -96,25 +96,6 @@ export const contactFeedback = pgTable("contact_feedback", {
 
 
 
-export const campaigns = pgTable("campaigns", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  campaignId: integer("campaign_id").notNull(),
-  name: text("name").notNull(),
-  description: text("description"),
-  status: text("status").default('draft'),
-  startDate: timestamp("start_date"),
-  createdAt: timestamp("created_at").defaultNow(),
-  totalCompanies: integer("total_companies").default(0)
-});
-
-export const campaignLists = pgTable("campaign_lists", {
-  id: serial("id").primaryKey(),
-  campaignId: integer("campaign_id").notNull(),
-  listId: integer("list_id").notNull(),
-  createdAt: timestamp("created_at").defaultNow()
-});
-
 export const emailTemplates = pgTable("email_templates", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
@@ -211,20 +192,6 @@ const contactFeedbackSchema = z.object({
 
 
 
-const campaignSchema = z.object({
-  campaignId: z.number().min(2001),
-  name: z.string().min(1, "Campaign name is required"),
-  description: z.string().nullable(),
-  status: z.enum(['draft', 'active', 'completed', 'paused']).default('draft'),
-  startDate: z.string().nullable(),
-  totalCompanies: z.number().default(0)
-});
-
-const campaignListSchema = z.object({
-  campaignId: z.number(),
-  listId: z.number()
-});
-
 const emailTemplateSchema = z.object({
   name: z.string().min(1, "Template name is required"),
   subject: z.string().min(1, "Subject is required"),
@@ -257,11 +224,6 @@ export const insertListSchema = listSchema.extend({
 });
 export const insertCompanySchema = companySchema;
 export const insertContactSchema = contactSchema;
-export const insertCampaignSchema = campaignSchema.extend({
-  userId: z.number()
-});
-export const insertCampaignListSchema = campaignListSchema;
-
 export const insertEmailTemplateSchema = emailTemplateSchema.extend({
   userId: z.number()
 });
@@ -276,11 +238,6 @@ export type Company = typeof companies.$inferSelect;
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
 export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
-export type Campaign = typeof campaigns.$inferSelect;
-export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
-export type CampaignList = typeof campaignLists.$inferSelect;
-export type InsertCampaignList = z.infer<typeof insertCampaignListSchema>;
-
 export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;
