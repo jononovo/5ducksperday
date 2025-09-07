@@ -8,6 +8,7 @@ import { registerSessionRoutes } from "./sessions";
 import { registerCompanyRoutes } from "./companies";
 import { registerContactRoutes } from "./contacts";
 import { registerOrchestratorRoutes } from "./orchestrator";
+import { registerTestingRoutes } from "./testing";
 
 /**
  * Register all search-related routes
@@ -24,6 +25,9 @@ export function registerSearchRoutes(app: Express, requireAuth: any) {
   
   // Register orchestrator routes
   registerOrchestratorRoutes(app, requireAuth);
+  
+  // Register testing routes
+  registerTestingRoutes(app, requireAuth);
 }
 
 // Re-export types for convenience
