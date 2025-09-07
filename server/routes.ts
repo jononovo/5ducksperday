@@ -305,10 +305,6 @@ export function registerRoutes(app: Express) {
   });
 
   
-  // Simple ping endpoint for keep-alive mechanism
-  app.get("/api/ping", (req, res) => {
-    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
-  });
 
   // Session status endpoint for polling
   app.get("/api/search-sessions/:sessionId/status", (req, res) => {
