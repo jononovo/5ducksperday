@@ -3,7 +3,7 @@
  */
 
 import { storage } from '../storage';
-import { CreditService } from '../lib/credits';
+import { CreditService } from '../features/billing/credits/service';
 import type { 
   ProfileUpdateRequest, 
   ProfileResponse,

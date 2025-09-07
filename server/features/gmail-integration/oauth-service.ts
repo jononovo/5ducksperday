@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import { TokenService } from '../../lib/tokens';
+import { TokenService } from '../billing/tokens/service';
 import { GmailUserInfo } from './types';
 
 export class GmailOAuthService {

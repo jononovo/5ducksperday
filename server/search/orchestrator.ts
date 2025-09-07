@@ -6,7 +6,7 @@
 
 import { Express, Request, Response } from "express";
 import { storage } from "../storage";
-import { CreditService } from "../lib/credits";
+import { CreditService } from "../features/billing/credits/service";
 import { getUserId } from "./utils";
 import { searchContactDetails } from "./enrichment/contact-details";
 import type { Contact } from "./types";

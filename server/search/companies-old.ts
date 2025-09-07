@@ -7,8 +7,8 @@ import { Express, Request, Response } from "express";
 import { storage } from "../storage";
 import { searchCompanies } from "../lib/search-logic";
 import { findKeyDecisionMakers } from "../lib/search-logic/contact-discovery/enhanced-contact-finder";
-import { CreditService } from "../lib/credits";
-import { SearchType } from "../lib/credits/types";
+import { CreditService } from "../features/billing/credits/service";
+import { SearchType } from "../features/billing/credits/types";
 import type { 
   CompanySearchRequest, 
   QuickSearchRequest, 

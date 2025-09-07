@@ -7,7 +7,8 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User, User as SelectUser } from "@shared/schema";
 import admin from "firebase-admin";
-import { TokenService, UserTokens } from "./lib/tokens";
+import { TokenService } from "./features/billing/tokens/service";
+import { UserTokens } from "./features/billing/tokens/types";
 import MemoryStore from "memorystore";
 
 // Extend the session type to include gmailToken

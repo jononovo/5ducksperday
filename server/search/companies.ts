@@ -7,8 +7,8 @@ import { Express, Request, Response } from "express";
 import { storage } from "../storage";
 import { searchCompanies } from "./core/company-search";
 import { findKeyDecisionMakers } from "./contacts/finder";
-import { CreditService } from "../lib/credits";
-import { SearchType } from "../lib/credits/types";
+import { CreditService } from "../features/billing/credits/service";
+import { SearchType } from "../features/billing/credits/types";
 import { SessionManager } from "./sessions";
 import rateLimit from "express-rate-limit";
 import type { 

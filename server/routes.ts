@@ -25,10 +25,10 @@ import {
 import type { Contact } from "@shared/schema";
 // import { postSearchEnrichmentService } from "./search/enrichment/post-search/post-search-enrichment/service"; // File doesn't exist
 import { findKeyDecisionMakers } from "./search/contacts/finder";
-import { TokenService } from "./lib/tokens/index";
+import { TokenService } from "./features/billing/tokens/service";
 import { registerBillingRoutes } from "./features/billing/routes";
-import { CreditService } from "./lib/credits";
-import { SearchType } from "./lib/credits/types";
+import { CreditService } from "./features/billing/credits/service";
+import { SearchType } from "./features/billing/credits/types";
 import { getEmailProvider } from "./services/emailService";
 import { registerEmailGenerationRoutes } from "./email-content-generation/routes";
 import { registerGmailRoutes } from "./features/gmail-integration";
