@@ -15,24 +15,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 
 interface SearchSettingsDrawerProps {
-  targetUrl?: string;
-  setTargetUrl?: (url: string) => void;
-  resultsUrl?: string;
-  setResultsUrl?: (url: string) => void;
-  customSelected?: boolean;
-  isCustomLoading?: boolean;
-  handleCustomWorkflowSearch?: () => void;
 }
 
-export default function SearchSettingsDrawer({ 
-  targetUrl,
-  setTargetUrl,
-  resultsUrl,
-  setResultsUrl,
-  customSelected,
-  isCustomLoading,
-  handleCustomWorkflowSearch,
-}: SearchSettingsDrawerProps) {
+export default function SearchSettingsDrawer({}: SearchSettingsDrawerProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -68,94 +53,14 @@ export default function SearchSettingsDrawer({
 
             <div className="flex-1 p-6 overflow-y-auto">
               <div className="space-y-8">
-                {/* External Search Configuration */}
-                {setTargetUrl && setResultsUrl && handleCustomWorkflowSearch && (
-                  <div>
-                    <h3 className="text-lg font-medium mb-4">External Search Configuration</h3>
-                    <Separator className="mb-4" />
-                    
-                    <div className="grid grid-cols-1 gap-4">
-                      <div className="relative">
-                        <div className="flex items-center">
-                          <Input
-                            value={targetUrl || ""}
-                            onChange={(e) => setTargetUrl(e.target.value)}
-                            placeholder="Target URL"
-                            className="w-full pr-8"
-                          />
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6">
-                                  <HelpCircle className="h-4 w-4" />
-                                  <span className="sr-only">Target URL Info</span>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs">Enter the URL where search requests should be sent. This endpoint should accept a JSON payload with query and callbackUrl fields.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </div>
-                      
-                      <div className="relative">
-                        <div className="flex items-center">
-                          <Input
-                            value={resultsUrl || ""}
-                            onChange={(e) => setResultsUrl(e.target.value)}
-                            placeholder="Results URL (optional)"
-                            className="w-full pr-8"
-                          />
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6">
-                                  <HelpCircle className="h-4 w-4" />
-                                  <span className="sr-only">Results URL Info</span>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs">Enter the URL where search results should be sent back. This is included in the payload as callbackUrl. If left empty, the default webhook endpoint will be used.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </div>
-                      
-                      <Button
-                        variant={customSelected ? 'default' : 'outline'}
-                        size="sm"
-                        className="flex items-center gap-1 w-full"
-                        onClick={handleCustomWorkflowSearch}
-                        disabled={isCustomLoading}
-                      >
-                        {isCustomLoading && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12 4L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                          <path d="M12 18L12 20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                          <path d="M4 12L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                          <path d="M18 12L20 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                          <path 
-                            d="M7 7L9 9M15 15L17 17M15 9L17 7M7 17L9 15" 
-                            stroke="currentColor" 
-                            strokeWidth="1.5" 
-                            strokeLinecap="round"/>
-                          <circle 
-                            cx="12" 
-                            cy="12" 
-                            r="4" 
-                            fill={customSelected ? 'currentColor' : 'none'} 
-                            stroke="currentColor" 
-                            strokeWidth="1.5"/>
-                        </svg>
-                        Custom
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Search Settings</h3>
+                  <Separator className="mb-4" />
+                  
+                  <p className="text-sm text-muted-foreground">
+                    Search configuration options will be available here in a future update.
+                  </p>
+                </div>
               </div>
             </div>
             

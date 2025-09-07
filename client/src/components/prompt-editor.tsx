@@ -539,58 +539,6 @@ export default function PromptEditor({
   
 
   
-  // Mutation for workflow-based search
-  const workflowSearchMutation = useMutation({
-    mutationFn: async ({ 
-      query, 
-      strategyId, 
-      provider,
-      targetUrl,
-      resultsUrl
-    }: { 
-      query: string; 
-      strategyId?: number;
-      provider?: string;
-      targetUrl?: string;
-      resultsUrl?: string;
-    }) => {
-      console.log(`Sending workflow search request: ${query} (Provider: ${provider || 'default'})`);
-      if (targetUrl) {
-        console.log(`Target URL: ${targetUrl}`);
-      }
-      if (resultsUrl) {
-        console.log(`Results URL: ${resultsUrl}`);
-      }
-      
-      const res = await apiRequest("POST", "/api/workflow-search", { 
-        query,
-        strategyId,
-        provider,
-        targetUrl,
-        resultsUrl
-      });
-      return res.json();
-    },
-    onSuccess: (data) => {
-      console.log("Workflow search started:", data);
-      toast({
-        title: "Search Started",
-        description: `Search request sent to workflow. SearchID: ${data.searchId}`,
-      });
-      // Note: Results will come back through the webhook
-      setIsCustomLoading(false);
-      onComplete();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Workflow Search Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      setIsCustomLoading(false);
-      onComplete();
-    },
-  });
 
   // Quick search mutation - gets companies immediately
   const quickSearchMutation = useMutation({
@@ -939,66 +887,7 @@ export default function PromptEditor({
     }
   };
 
-  // State for custom workflow configuration with localStorage persistence
-  const [targetUrl, setTargetUrl] = useState<string>(() => {
-    // Try to get the value from localStorage
-    const savedValue = localStorage.getItem('5ducks_target_url');
-    return savedValue || "";
-  });
-  
-  const [resultsUrl, setResultsUrl] = useState<string>(() => {
-    // Try to get the value from localStorage
-    const savedValue = localStorage.getItem('5ducks_results_url');
-    return savedValue || "";
-  });
-  
-  const [customSelected, setCustomSelected] = useState<boolean>(false);
-  
-  // Separate loading states for search and custom buttons
-  const [isCustomLoading, setIsCustomLoading] = useState<boolean>(false);
-  
-  // Save values to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem('5ducks_target_url', targetUrl);
-  }, [targetUrl]);
-  
-  useEffect(() => {
-    localStorage.setItem('5ducks_results_url', resultsUrl);
-  }, [resultsUrl]);
 
-  // Function to handle custom workflow search
-  const handleCustomWorkflowSearch = () => {
-    if (!query.trim()) {
-      toast({
-        title: "Empty Query",
-        description: "Please enter a search query.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!targetUrl.trim()) {
-      toast({
-        title: "Missing Target URL",
-        description: "Please enter a target URL for the workflow.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    console.log(`Executing custom workflow search with target: ${targetUrl}`);
-    setCustomSelected(true);
-    setIsCustomLoading(true);
-    
-    // Execute the search with custom URLs
-    onAnalyze();
-    workflowSearchMutation.mutate({ 
-      query, 
-      provider: 'custom',
-      targetUrl,
-      resultsUrl: resultsUrl.trim() || undefined
-    });
-  };
 
   return (
     <div className="pl-0 pr-1 pt-1 pb-1 shadow-none"> {/* Container with no padding */}
@@ -1129,15 +1018,7 @@ export default function PromptEditor({
 
         {/* Settings drawer trigger - positioned in lower right corner */}
         <div className="absolute bottom-8 right-4">
-          <SearchSettingsDrawer 
-            targetUrl={targetUrl}
-            setTargetUrl={setTargetUrl}
-            resultsUrl={resultsUrl}
-            setResultsUrl={setResultsUrl}
-            customSelected={customSelected}
-            isCustomLoading={isCustomLoading}
-            handleCustomWorkflowSearch={handleCustomWorkflowSearch}
-          />
+          <SearchSettingsDrawer />
         </div>
 
       </div>
