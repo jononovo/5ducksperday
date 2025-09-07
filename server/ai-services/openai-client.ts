@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
-import { queryPerplexity } from '../../search/core/perplexity-client';
-import type { PerplexityMessage } from '../../search/core/perplexity-types';
+import { queryPerplexity } from '../search/core/perplexity-client';
+import type { PerplexityMessage } from '../search/core/perplexity-types';
 
 let openaiClient: OpenAI | null = null;
 
@@ -257,7 +257,7 @@ High-level strategic guidance for email generation.`;
 
 // Product offer generation function - now using OpenAI for consistency
 async function generateProductOffer(offerId: string, productContext: any, salesContext: any): Promise<any> {
-  const { OFFER_CONFIGS } = await import('../../email-content-generation/offer-configs');
+  const { OFFER_CONFIGS } = await import('../email-content-generation/offer-configs');
   
   // Define offer options directly
   const OFFER_OPTIONS = [
@@ -316,7 +316,7 @@ Generate a highly specific, compelling offer using this framework. Make it irres
 
 // Generate all product offers using OpenAI conversation threading
 export async function generateAllProductOffers(productContext: any, salesContext: any, conversationHistory?: any[]): Promise<any[]> {
-  const { OFFER_CONFIGS } = await import('../../email-content-generation/offer-configs');
+  const { OFFER_CONFIGS } = await import('../email-content-generation/offer-configs');
   
   // Define offer options
   const OFFER_OPTIONS = [

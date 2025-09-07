@@ -14,7 +14,7 @@ import {
   generateSprintPrompt, 
   generateDailyQueries,
   generateProductOffers
-} from "../../lib/api/openai-client";
+} from "../../ai-services";
 import type { PerplexityMessage } from "../../search/core/perplexity-types";
 
 // Helper function to safely get user ID from request
