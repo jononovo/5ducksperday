@@ -48,5 +48,5 @@ export {
   NOTIFICATIONS
 } from './gamification/types';
 
-// Route registration will be added in Phase 2
-// export { registerBillingRoutes } from './routes';
+// Route registration
+export { registerBillingRoutes } from './routes';
