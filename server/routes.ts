@@ -26,8 +26,7 @@ import type { Contact } from "@shared/schema";
 // import { postSearchEnrichmentService } from "./search/enrichment/post-search/post-search-enrichment/service"; // File doesn't exist
 import { findKeyDecisionMakers } from "./search/contacts/finder";
 import { TokenService } from "./lib/tokens/index";
-import { registerCreditRoutes } from "./routes/credits";
-import { registerStripeRoutes } from "./routes/stripe";
+import { registerBillingRoutes } from "./features/billing/routes";
 import { CreditService } from "./lib/credits";
 import { SearchType } from "./lib/credits/types";
 import { getEmailProvider } from "./services/emailService";
@@ -647,62 +646,7 @@ export function registerRoutes(app: Express) {
   });
 
 
-  // Individual Email Search Credit Deduction Endpoint
-  app.post("/api/credits/deduct-individual-email", requireAuth, async (req, res) => {
-    try {
-      const userId = getUserId(req);
-      const { contactId, searchType, emailFound } = req.body;
-
-      if (!contactId || !searchType || typeof emailFound !== 'boolean') {
-        res.status(400).json({ message: "Missing required parameters" });
-        return;
-      }
-
-      // Only deduct credits if email was found
-      if (!emailFound) {
-        res.json({ 
-          success: true, 
-          charged: false, 
-          message: "No email found - no credits deducted" 
-        });
-        return;
-      }
-
-      // Validate search type
-      const validSearchTypes = ['apollo', 'hunter', 'perplexity', 'comprehensive'];
-      if (!validSearchTypes.includes(searchType)) {
-        res.status(400).json({ message: "Invalid search type" });
-        return;
-      }
-
-      // Deduct credits for successful email discovery
-      const result = await CreditService.deductCredits(
-        userId,
-        'individual_email',
-        true // success = true since email was found
-      );
-
-      console.log(`Individual email search billing: ${searchType} search for contact ${contactId} - charged ${result.success ? 20 : 0} credits`);
-
-      res.json({
-        success: result.success,
-        charged: true,
-        newBalance: result.newBalance,
-        isBlocked: result.isBlocked,
-        transaction: result.transaction,
-        searchType,
-        contactId
-      });
-
-    } catch (error) {
-      console.error('Individual email credit deduction error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to process credit deduction",
-        success: false,
-        charged: false
-      });
-    }
-  });
+  // Individual email credit deduction has been moved to billing module
 
   // ===============================================
   // OLD HTML LANDING PAGE VERSION - DEPRECATED
@@ -1618,80 +1562,7 @@ Respond in this exact JSON format:
 
   // All N8N Workflow Management Endpoints and proxies have been removed
 
-  // Easter egg route
-  app.post('/api/credits/easter-egg', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const { query } = req.body;
-      
-      const result = await CreditService.claimEasterEgg(userId, query);
-      
-      if (result.success) {
-        res.json(result);
-      } else {
-        res.status(409).json(result);
-      }
-    } catch (error) {
-      res.status(500).json({ message: "Easter egg claim failed" });
-    }
-  });
-
-  // Notification routes
-  app.post('/api/notifications/trigger', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const { trigger } = req.body;
-      
-      const result = await CreditService.triggerNotification(userId, trigger);
-      
-      if (result.shouldShow) {
-        res.json(result);
-      } else {
-        res.status(409).json({ shouldShow: false, message: "Notification already shown or not found" });
-      }
-    } catch (error) {
-      res.status(500).json({ message: "Notification trigger failed" });
-    }
-  });
-
-  app.post('/api/notifications/mark-shown', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const { notificationId, badgeId } = req.body;
-      
-      if (typeof badgeId === 'number') {
-        // Award badge
-        await CreditService.awardBadge(userId, badgeId);
-      } else if (typeof notificationId === 'number') {
-        // Mark notification as shown
-        await CreditService.markNotificationShown(userId, notificationId);
-      } else {
-        return res.status(400).json({ message: "Either notificationId or badgeId is required" });
-      }
-      
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to mark notification/badge as shown" });
-    }
-  });
-
-  app.get('/api/notifications/status', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const credits = await CreditService.getUserCredits(userId);
-      
-      res.json({ 
-        notifications: credits.notifications || [],
-        badges: credits.badges || [],
-        isWaitlistMember: credits.notifications?.includes(1) || false
-      });
-    } catch (error) {
-      console.error('Error fetching notification status:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch notification status' 
-      });
-    }
-  });
+  // Gamification routes have been moved to billing module
 
   // User Profile API endpoints
   app.get('/api/user/profile', requireAuth, async (req, res) => {
@@ -1922,11 +1793,8 @@ Respond in this exact JSON format:
     }
   });
 
-  // Register credit routes
-  registerCreditRoutes(app);
-  
-  // Register Stripe subscription routes
-  registerStripeRoutes(app);
+  // Register all billing-related routes (credits, Stripe, gamification)
+  registerBillingRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;
