@@ -1,4 +1,4 @@
-import { TokenService } from './tokens';
+import { TokenService } from '../features/billing/tokens/service';
 import { storage } from '../storage';
 
 export interface SenderNames {
