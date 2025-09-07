@@ -1,0 +1,88 @@
+client:495 [vite] connecting...
+client:614 [vite] connected.
+chunk-RPCDYKBN.js?v=342fc1d7:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+firebase.ts:78 Starting Firebase initialization... {timestamp: '2025-09-07T03:55:11.806Z', domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev'}
+firebase.ts:18 Raw environment variables: {apiKey: '....aDbuzU', projectId: 'fire-5-ducks', appId: '....b133e8', mode: 'development', dev: true, …}
+firebase.ts:55 Firebase Configuration: {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: 'fire-5-ducks.firebaseapp.com', environment: 'development', …}
+firebase.ts:156 Firebase initialized successfully: {domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev', isAuth: true, isProvider: true, authDomain: 'fire-5-ducks.firebaseapp.com', timestamp: '2025-09-07T03:55:11.807Z'}
+use-auth.tsx:369 Setting up Firebase auth state listener
+use-auth.tsx:377 Firebase auth state changed: ale@codetribe.com
+firebase.ts:100 Firebase persistence set to LOCAL
+firebase.ts:128 Auth token set successfully: {uid: 'Zqq7kXq1ujY2c9hy8XHReEm3wRa2', email: 'ale@...', timestamp: '2025-09-07T03:55:12.014Z'}
+use-auth.tsx:299 Making backend sync request {endpoint: '/api/google-auth', domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev', selectedPlan: null, planSource: null, joinWaitlist: null}
+queryClient.ts:18 JSON parsing error: {status: 200, statusText: 'OK', url: 'https://3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev/api/products', error: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON}
+safeJsonParse @ queryClient.ts:18
+await in safeJsonParse
+(anonymous) @ queryClient.ts:106
+await in (anonymous)
+fetchFn @ @tanstack_react-query.js?v=342fc1d7:840
+run @ @tanstack_react-query.js?v=342fc1d7:494
+start @ @tanstack_react-query.js?v=342fc1d7:536
+fetch @ @tanstack_react-query.js?v=342fc1d7:926
+executeFetch_fn @ @tanstack_react-query.js?v=342fc1d7:2211
+onSubscribe @ @tanstack_react-query.js?v=342fc1d7:1898
+subscribe @ @tanstack_react-query.js?v=342fc1d7:24
+(anonymous) @ @tanstack_react-query.js?v=342fc1d7:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=342fc1d7:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=342fc1d7:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=342fc1d7:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=342fc1d7:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=342fc1d7:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=342fc1d7:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=342fc1d7:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=342fc1d7:19447
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:19328
+workLoop @ chunk-RPCDYKBN.js?v=342fc1d7:197
+flushWork @ chunk-RPCDYKBN.js?v=342fc1d7:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=342fc1d7:384
+queryClient.ts:28 Response that failed to parse: {text: '<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <sty… 4.8% 95.9%;\n--secondary-foreground: 24 9.8% 10%;', contentType: 'text/html; charset=utf-8'}
+safeJsonParse @ queryClient.ts:28
+await in safeJsonParse
+(anonymous) @ queryClient.ts:106
+await in (anonymous)
+fetchFn @ @tanstack_react-query.js?v=342fc1d7:840
+run @ @tanstack_react-query.js?v=342fc1d7:494
+start @ @tanstack_react-query.js?v=342fc1d7:536
+fetch @ @tanstack_react-query.js?v=342fc1d7:926
+executeFetch_fn @ @tanstack_react-query.js?v=342fc1d7:2211
+onSubscribe @ @tanstack_react-query.js?v=342fc1d7:1898
+subscribe @ @tanstack_react-query.js?v=342fc1d7:24
+(anonymous) @ @tanstack_react-query.js?v=342fc1d7:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=342fc1d7:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=342fc1d7:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=342fc1d7:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=342fc1d7:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=342fc1d7:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=342fc1d7:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=342fc1d7:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=342fc1d7:19447
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:19328
+workLoop @ chunk-RPCDYKBN.js?v=342fc1d7:197
+flushWork @ chunk-RPCDYKBN.js?v=342fc1d7:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=342fc1d7:384
+queryClient.ts:108 Query error for /api/products: Error: Failed to parse JSON response: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+    at safeJsonParse (queryClient.ts:36:11)
+    at async queryClient.ts:106:14
+(anonymous) @ queryClient.ts:108
+await in (anonymous)
+fetchFn @ @tanstack_react-query.js?v=342fc1d7:840
+run @ @tanstack_react-query.js?v=342fc1d7:494
+start @ @tanstack_react-query.js?v=342fc1d7:536
+fetch @ @tanstack_react-query.js?v=342fc1d7:926
+executeFetch_fn @ @tanstack_react-query.js?v=342fc1d7:2211
+onSubscribe @ @tanstack_react-query.js?v=342fc1d7:1898
+subscribe @ @tanstack_react-query.js?v=342fc1d7:24
+(anonymous) @ @tanstack_react-query.js?v=342fc1d7:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=342fc1d7:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=342fc1d7:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=342fc1d7:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=342fc1d7:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=342fc1d7:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=342fc1d7:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=342fc1d7:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=342fc1d7:19447
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:19328
+workLoop @ chunk-RPCDYKBN.js?v=342fc1d7:197
+flushWork @ chunk-RPCDYKBN.js?v=342fc1d7:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=342fc1d7:384
+use-auth.tsx:339 Successfully synced with backend
