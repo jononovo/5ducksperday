@@ -19,7 +19,7 @@ export class StripeService {
       }
       
       stripe = new Stripe(stripeSecretKey, {
-        apiVersion: "2025-03-31.basil",
+        apiVersion: "2025-05-28.basil",
       });
     }
     
@@ -41,11 +41,15 @@ export class StripeService {
     
     if (credits.stripeCustomerId) {
       const customer = await this.getStripe().customers.retrieve(credits.stripeCustomerId);
-      return {
-        customerId: customer.id,
-        email: customer.email || userEmail,
-        userId
-      };
+      if ('deleted' in customer && customer.deleted) {
+        // Customer was deleted, create a new one
+      } else {
+        return {
+          customerId: customer.id,
+          email: (customer as any).email || userEmail,
+          userId
+        };
+      }
     }
 
     // Create new customer
@@ -143,8 +147,8 @@ export class StripeService {
         status: subscription.status,
         currentPlan: credits.currentPlan || null,
         subscriptionId: subscription.id,
-        currentPeriodEnd: subscription.current_period_end * 1000, // Convert to milliseconds
-        cancelAtPeriodEnd: subscription.cancel_at_period_end
+        currentPeriodEnd: (subscription as any).current_period_end * 1000, // Convert to milliseconds
+        cancelAtPeriodEnd: (subscription as any).cancel_at_period_end
       };
     } catch (error) {
       console.error('Error retrieving subscription:', error);
@@ -271,14 +275,14 @@ export class StripeService {
     return {
       customer: {
         id: customer.id,
-        email: customer.email,
-        created: customer.created
+        email: (customer as any).email || null,
+        created: (customer as any).created || null
       },
       subscriptions: subscriptions.data.map(sub => ({
         id: sub.id,
         status: sub.status,
         created: sub.created,
-        current_period_end: sub.current_period_end,
+        current_period_end: (sub as any).current_period_end,
         metadata: sub.metadata
       }))
     };
