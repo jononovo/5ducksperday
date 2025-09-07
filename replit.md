@@ -32,6 +32,41 @@ The application features a **React SPA frontend** built with TypeScript, Vite, T
 - **Campaigns Module:** Extracted campaign management functionality into self-contained module (Sep 2025), reducing ~100 lines from main routes.ts. Module handles campaign creation, scheduling, and execution (currently inactive feature).
 - **Rate Limiting Implementation:** Session-based rate limiting for demo users (Sep 2025) limiting to 10 searches per hour per session. Prevents external API abuse while maintaining demo experience. Applied to both quick-search and full search endpoints, with friendly message encouraging signup when limit reached.
 
+## Modular Architecture Pattern
+
+New features should follow symmetric frontend-backend structure:
+- Backend: `server/features/[feature-name]/` or `server/[feature-name]/`
+- Frontend: `client/src/features/[feature-name]/`
+
+Each module should be self-contained with:
+- Clear public API via index.ts
+- Internal organization (components, services, hooks, etc.)
+- Shared types between frontend and backend
+- Feature-specific documentation
+
+### Backend Module Structure
+```
+server/features/[feature-name]/
+  ├── index.ts        # Public exports
+  ├── routes.ts       # Express route definitions
+  ├── handlers/       # Route handlers
+  ├── services/       # Business logic
+  └── types.ts        # TypeScript interfaces
+```
+
+### Frontend Module Structure
+```
+client/src/features/[feature-name]/
+  ├── index.ts        # Public exports
+  ├── components/     # React components
+  ├── hooks/          # Custom React hooks
+  ├── services/       # API calls
+  ├── context/        # React context providers
+  └── types.ts        # TypeScript interfaces
+```
+
+Example: The `strategy-chat` module (React onboarding chat) will serve as the reference implementation for this pattern. See `docs/symmetric_frontend.MD` for detailed migration plan.
+
 ## AI Testing Configuration
 
 ### Automated Browser Testing
