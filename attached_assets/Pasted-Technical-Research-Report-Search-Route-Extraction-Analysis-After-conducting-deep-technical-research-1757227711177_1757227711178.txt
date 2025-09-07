@@ -1,0 +1,116 @@
+Technical Research Report: Search Route Extraction Analysis
+After conducting deep technical research into the codebase, here's my comprehensive analysis of the search route extraction proposal:
+
+Current State Analysis
+Routes Currently in Main routes.ts (Search-Related)
+GET /api/search-sessions/:sessionId/status (lines 426-466)
+
+Polls session status from global.searchSessions Map
+Handles session expiration and cleanup
+40 lines of code
+POST /api/workflow-search (lines 469-540)
+
+Triggers search via workflow system
+Maps strategy IDs to providers
+Complex workflow integration logic
+~70 lines of code
+POST /api/contacts/:contactId/enrich (lines 835-982)
+
+Perplexity-based contact enrichment
+Credit checking and billing
+Database updates for contact details
+~147 lines of code
+POST /api/search-test (lines 985-1108)
+
+Search quality testing endpoint
+Strategy validation and scoring
+~123 lines of code
+GET /api/search-approaches (lines 1426-1438)
+
+Legacy endpoint returning empty array
+Prevents frontend errors
+~12 lines of code
+Routes Already in Search Module
+The search module (server/search/) already manages:
+
+Session management (/api/sessions/*)
+Company search (/api/companies/*)
+Contact discovery (/api/contacts/*/hunter|apollo|aeroleads)
+Email orchestration (/api/companies/find-all-emails)
+Architecture Analysis
+Module Patterns in Codebase
+After analyzing existing modules:
+
+Router Pattern: Most modules use Express Router with app.use('/api/path', router)
+Direct Registration: Search module currently uses direct app.post() registration
+Mixed Approach: Some modules (lists, email-templates) use Router internally but export a registration function
+Technical Recommendation
+YES, these routes should be moved to the search module, but with careful consideration:
+
+✅ Routes to Move:
+/api/search-sessions/:sessionId/status → Move to server/search/sessions.ts
+
+Already manages session creation/updates
+Uses same global.searchSessions Map
+Natural fit with existing session logic
+/api/contacts/:contactId/enrich → Move to server/search/contacts.ts
+
+Fits with other contact enrichment endpoints
+Uses same enrichment patterns
+Groups all contact operations together
+/api/search-test → Create new server/search/testing.ts
+
+Specialized testing functionality
+Clean separation of concerns
+Keeps main search logic uncluttered
+❌ Routes to Keep in Main:
+/api/workflow-search - Should stay in routes.ts
+
+Deeply integrated with workflow system
+Not pure search functionality
+Cross-cutting concern beyond search module
+/api/search-approaches - Should stay in routes.ts
+
+Legacy compatibility endpoint
+Returns empty array (deprecated feature)
+Minimal code, not worth moving
+Implementation Plan
+Phase 1: Standardize Search Module Pattern
+// Convert from direct registration to Router pattern
+// server/search/sessions.ts
+export function registerSessionRoutes(app: Express) {
+  const router = Router();
+  
+  router.post('/:sessionId/status', updateSessionStatus);
+  router.get('/:sessionId/status', getSessionStatus);  // Move from routes.ts
+  
+  app.use('/api/search-sessions', router);
+}
+Phase 2: Move Contact Enrichment
+// server/search/contacts.ts
+router.post('/:contactId/enrich', requireAuth, enrichContactWithPerplexity);
+// Consolidates all contact enrichment in one place
+Phase 3: Create Testing Module
+// server/search/testing.ts
+export function registerTestingRoutes(app: Express, requireAuth: any) {
+  const router = Router();
+  router.post('/search-test', requireAuth, testSearchQuality);
+  app.use('/api', router);
+}
+Benefits of This Approach
+Better Organization: All search-related code in one module (408KB → ~420KB)
+Reduced routes.ts: Further reduction of ~300 lines from routes.ts
+Improved Maintainability: Single source of truth for search functionality
+Consistent Patterns: Aligns with existing modular architecture
+Clear Boundaries: Search module becomes fully self-contained
+Risk Mitigation
+Import Dependencies: searchContactDetails is already in search module
+Global State: global.searchSessions already accessed by both
+Testing: Each phase can be tested independently
+Rollback: Git commits after each phase for easy reversion
+Conclusion
+The extraction is technically sound and aligns with the existing modularization pattern. Moving these routes (except workflow-search and search-approaches) will:
+
+Reduce routes.ts by ~310 lines
+Create a more cohesive search module
+Improve code organization without breaking functionality

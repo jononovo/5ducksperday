@@ -1058,7 +1058,7 @@ export default function Outreach() {
     setPendingHunterIds(prev => new Set(prev).add(contactId));
     
     try {
-      const response = await apiRequest("POST", `/api/contacts/${contactId}/hunter-search`, {});
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/hunter`, {});
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to search Hunter");
@@ -1095,7 +1095,7 @@ export default function Outreach() {
     setPendingAeroLeadsIds(prev => new Set(prev).add(contactId));
     
     try {
-      const response = await apiRequest("POST", `/api/contacts/${contactId}/aeroleads-search`, {});
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/aeroleads`, {});
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to search AeroLeads");
@@ -1128,7 +1128,7 @@ export default function Outreach() {
     setPendingApolloIds(prev => new Set(prev).add(contactId));
     
     try {
-      const response = await apiRequest("POST", `/api/contacts/${contactId}/apollo-search`, {});
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/apollo`, {});
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to search Apollo");
