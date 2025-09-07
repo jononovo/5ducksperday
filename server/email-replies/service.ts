@@ -3,7 +3,7 @@
  * Note: This feature is currently inactive and uses placeholder implementations
  */
 
-import { getEmailProvider } from '../services/emailService';
+import { getEmailProvider } from '../gmail-api-service';
 import type { 
   ActiveContact,
   EmailThread,
