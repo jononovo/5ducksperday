@@ -1,0 +1,112 @@
+/**
+ * Contact Details Enrichment Module
+ * 
+ * Uses Perplexity AI to find professional contact information including emails
+ */
+
+import { queryPerplexity } from "../core/perplexity-client";
+
+// Define the Perplexity message type locally since the main type file is missing
+interface PerplexityMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
+interface ContactDetails {
+  email: string | null;
+  linkedinUrl: string | null;
+  twitterHandle: string | null;
+  phoneNumber: string | null;
+  department: string | null;
+  location: string | null;
+}
+
+/**
+ * Search for contact details using Perplexity AI
+ * This is the primary function for AI-powered email discovery
+ */
+export async function searchContactDetails(name: string, company: string): Promise<ContactDetails> {
+  try {
+    console.log(`[Perplexity] Searching for contact details: ${name} at ${company}`);
+    
+    const messages: PerplexityMessage[] = [
+      {
+        role: "system",
+        content: `You are a contact information researcher. Find professional information about the specified person. Include:
+        1. Role and department
+        2. Professional email
+        3. LinkedIn URL
+        4. Location
+
+        IMPORTANT: If you cannot find data, leave fields empty. Do NOT make up data.
+
+        Format your response as JSON with these exact keys:
+        {
+          "role_and_department": "string or empty",
+          "professional_email": "string or empty", 
+          "linkedin_url": "string or empty",
+          "location": "string or empty"
+        }`
+      },
+      {
+        role: "user",
+        content: `Find professional contact information for ${name} at ${company}.`
+      }
+    ];
+
+    const response = await queryPerplexity(messages);
+    console.log(`[Perplexity] Raw response for ${name}:`, response);
+
+    // Parse the response
+    let parsedData: any = {};
+    try {
+      // Try to extract JSON from the response
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsedData = JSON.parse(jsonMatch[0]);
+        console.log(`[Perplexity] Parsed JSON data:`, parsedData);
+      } else {
+        console.log(`[Perplexity] No JSON found in response`);
+      }
+    } catch (parseError) {
+      console.error(`[Perplexity] Failed to parse response as JSON:`, parseError);
+      // Try to extract email using regex as fallback
+      const emailMatch = response.match(/[\w\.-]+@[\w\.-]+\.\w+/);
+      if (emailMatch) {
+        parsedData.professional_email = emailMatch[0];
+        console.log(`[Perplexity] Extracted email via regex:`, emailMatch[0]);
+      }
+    }
+
+    // Extract and format the data
+    const contactDetails: ContactDetails = {
+      email: parsedData.professional_email || parsedData.email || null,
+      linkedinUrl: parsedData.linkedin_url || parsedData.linkedinUrl || null,
+      twitterHandle: parsedData.twitter_handle || parsedData.twitterHandle || null,
+      phoneNumber: parsedData.phone_number || parsedData.phoneNumber || null,
+      department: parsedData.role_and_department || parsedData.department || null,
+      location: parsedData.location || null
+    };
+
+    // Log what we found
+    if (contactDetails.email) {
+      console.log(`[Perplexity] ✅ Found email for ${name}: ${contactDetails.email}`);
+    } else {
+      console.log(`[Perplexity] ❌ No email found for ${name}`);
+    }
+
+    return contactDetails;
+
+  } catch (error) {
+    console.error(`[Perplexity] Error searching for ${name} at ${company}:`, error);
+    // Return empty details on error
+    return {
+      email: null,
+      linkedinUrl: null,
+      twitterHandle: null,
+      phoneNumber: null,
+      department: null,
+      location: null
+    };
+  }
+}

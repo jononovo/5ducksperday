@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Sheet,
@@ -28,6 +29,8 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
   const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
   });
+  
+  const [clickedId, setClickedId] = useState<number | null>(null);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -59,8 +62,11 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
               {lists.map((list: List) => (
                 <TableRow 
                   key={list.id}
-                  className="cursor-pointer hover:bg-muted"
-                  onClick={() => onLoadSearch(list)}
+                  className={`cursor-pointer hover:bg-muted ${clickedId === list.id ? 'bg-blue-100 dark:bg-blue-900/30' : ''}`}
+                  onClick={() => {
+                    setClickedId(list.id);
+                    onLoadSearch(list);
+                  }}
                 >
                   <TableCell className="font-mono text-sm">
                     {generateListDisplayName(list)}

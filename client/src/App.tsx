@@ -15,9 +15,7 @@ import { useAnalytics } from "./hooks/use-analytics";
 import { SEOHead } from "@/components/ui/seo-head";
 import { MainNav } from "@/components/main-nav";
 import { LoadingScreen } from "@/components/ui/loading-screen";
-import { StrategyOverlayProvider } from "@/lib/strategy-overlay-context";
-import { useStrategyOverlay } from "@/lib/strategy-overlay-context";
-import { StrategyOverlay } from "@/components/strategy-overlay";
+import { StrategyOverlayProvider, useStrategyOverlay } from "@/features/strategy-chat";
 import "@/components/ui/loading-spinner.css";
 
 // Immediate imports for landing pages and critical components
@@ -28,7 +26,6 @@ import Auth from "@/pages/auth";
 
 // Lazy imports for app pages that can be loaded on demand
 const Home = lazy(() => import("@/pages/home"));
-const Build = lazy(() => import("@/pages/build"));
 const Account = lazy(() => import("@/pages/account"));
 // Lists functionality moved to drawer in Home page
 const Campaigns = lazy(() => import("@/pages/campaigns"));
@@ -40,7 +37,7 @@ const ContactDetails = lazy(() => import("@/pages/contact-details"));
 const Testing = lazy(() => import("@/pages/testing"));
 const SubscriptionSuccess = lazy(() => import("@/pages/subscription-success"));
 const NotFound = lazy(() => import("@/pages/not-found"));
-const StrategyDashboard = lazy(() => import("@/pages/strategy-dashboard"));
+const StrategyDashboard = lazy(() => import("@/features/strategy-chat").then(module => ({ default: module.StrategyDashboard })));
 
 // Lazy imports for marketing pages
 const Terms = lazy(() => import("@/pages/terms"));
@@ -167,11 +164,6 @@ function Router() {
                 } />
                 
                 {/* Fully protected routes - require login */}
-                <ProtectedRoute path="/build" component={() => 
-                  <Suspense fallback={<LoadingScreen />}>
-                    <Build />
-                  </Suspense>
-                } />
                 <ProtectedRoute path="/account" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Account />

@@ -56,7 +56,7 @@ export type SearchType =
 export const CREDIT_COSTS: Record<SearchType, number> = {
   'company_search': 10,
   'contact_discovery': 60,
-  'email_search': 170,
+  'email_search': 160,
   'full_search': 250,
   'company_and_contacts': 70,   // 10 + 60
   'company_contacts_emails': 240, // 10 + 60 + 170

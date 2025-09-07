@@ -1,0 +1,488 @@
+client:495 [vite] connecting...
+client:614 [vite] connected.
+chunk-RPCDYKBN.js?v=342fc1d7:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+firebase.ts:78 Starting Firebase initialization... {timestamp: '2025-09-07T09:12:05.477Z', domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev'}
+firebase.ts:18 Raw environment variables: {apiKey: '....aDbuzU', projectId: 'fire-5-ducks', appId: '....b133e8', mode: 'development', dev: true, …}
+firebase.ts:55 Firebase Configuration: {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: 'fire-5-ducks.firebaseapp.com', environment: 'development', …}
+firebase.ts:156 Firebase initialized successfully: {domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev', isAuth: true, isProvider: true, authDomain: 'fire-5-ducks.firebaseapp.com', timestamp: '2025-09-07T09:12:05.478Z'}
+use-auth.tsx:369 Setting up Firebase auth state listener
+use-auth.tsx:377 Firebase auth state changed: ale@codetribe.com
+firebase.ts:100 Firebase persistence set to LOCAL
+use-auth.tsx:299 Making backend sync request {endpoint: '/api/google-auth', domain: '3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev', selectedPlan: null, planSource: null, joinWaitlist: null}
+firebase.ts:128 Auth token set successfully: {uid: 'Zqq7kXq1ujY2c9hy8XHReEm3wRa2', email: 'ale@...', timestamp: '2025-09-07T09:12:05.731Z'}
+use-auth.tsx:339 Successfully synced with backend
+home.tsx:420 Found localStorage data: {query: 'life science companies in chicago', resultsCount: 7, hasContacts: true, listId: 1058}
+home.tsx:434 Refreshing contact data from database to preserve emails after navigation
+home.tsx:435 Companies before refresh: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:442 NAVIGATION: Restoring search state and refreshing from database
+home.tsx:369 Refreshing contact data from database for navigation persistence...
+queryClient.ts:46 API Request: GET /api/companies/575/contacts?t=1757236326064 {hasData: false, timestamp: '2025-09-07T09:12:06.064Z'}
+queryClient.ts:46 API Request: GET /api/companies/576/contacts?t=1757236326065 {hasData: false, timestamp: '2025-09-07T09:12:06.065Z'}
+queryClient.ts:46 API Request: GET /api/companies/577/contacts?t=1757236326065 {hasData: false, timestamp: '2025-09-07T09:12:06.065Z'}
+queryClient.ts:46 API Request: GET /api/companies/578/contacts?t=1757236326065 {hasData: false, timestamp: '2025-09-07T09:12:06.065Z'}
+queryClient.ts:46 API Request: GET /api/companies/573/contacts?t=1757236326065 {hasData: false, timestamp: '2025-09-07T09:12:06.065Z'}
+queryClient.ts:46 API Request: GET /api/companies/572/contacts?t=1757236326065 {hasData: false, timestamp: '2025-09-07T09:12:06.065Z'}
+queryClient.ts:46 API Request: GET /api/companies/574/contacts?t=1757236326065 {hasData: false, timestamp: '2025-09-07T09:12:06.065Z'}
+home.tsx:379 Refreshed 9 contacts for Argon Medical Devices: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:379 Refreshed 9 contacts for Charles River Laboratories: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:379 Refreshed 7 contacts for Belay Diagnostics: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:379 Refreshed 5 contacts for Nexus Pharmaceuticals: (5) [{…}, {…}, {…}, {…}, {…}]
+home.tsx:496 Registration success detected, triggering welcome notification
+home.tsx:505 Extracted guest data: {originalQuery: 'life science companies in chicago'}
+home.tsx:527 Guest data cleared successfully
+home.tsx:532 Restored guest query to input: life science companies in chicago
+queryClient.ts:46 API Request: POST /api/notifications/trigger {hasData: true, timestamp: '2025-09-07T09:12:06.196Z'}
+home.tsx:379 Refreshed 11 contacts for AbbVie: (11) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:379 Refreshed 10 contacts for MAIA Biotechnology: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:379 Refreshed 6 contacts for Emalex Biosciences: (6) [{…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:393 Contact data refresh completed from database
+home.tsx:456 NAVIGATION: Database refresh completed with 9 emails
+home.tsx:457 NAVIGATION: Companies after refresh: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:482 NAVIGATION: Successfully restored 9 emails
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+prompt-editor.tsx:458 PromptEditor received config update: {enableCoreLeadership: true, enableDepartmentHeads: false, enableMiddleManagement: false, enableCustomSearch: false, customSearchTarget: '', …}
+queryClient.ts:62  POST https://3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev/api/notifications/trigger 409 (Conflict)
+apiRequest @ queryClient.ts:62
+triggerNotification @ useNotifications.tsx:43
+handleRegistrationSuccess @ home.tsx:538
+(anonymous) @ use-registration-modal.tsx:64
+setTimeout
+(anonymous) @ use-registration-modal.tsx:63
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=342fc1d7:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=342fc1d7:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=342fc1d7:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=342fc1d7:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=342fc1d7:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=342fc1d7:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=342fc1d7:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=342fc1d7:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=342fc1d7:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=342fc1d7:19432
+commitRoot @ chunk-RPCDYKBN.js?v=342fc1d7:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=342fc1d7:18783
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=342fc1d7:18718
+workLoop @ chunk-RPCDYKBN.js?v=342fc1d7:197
+flushWork @ chunk-RPCDYKBN.js?v=342fc1d7:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=342fc1d7:384
+queryClient.ts:72 API Request Error: POST /api/notifications/trigger {error: '409: {"shouldShow":false,"message":"Notification already shown or not found"}', timestamp: '2025-09-07T09:12:06.351Z'}
+apiRequest @ queryClient.ts:72
+await in apiRequest
+triggerNotification @ useNotifications.tsx:43
+handleRegistrationSuccess @ home.tsx:538
+(anonymous) @ use-registration-modal.tsx:64
+setTimeout
+(anonymous) @ use-registration-modal.tsx:63
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=342fc1d7:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=342fc1d7:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=342fc1d7:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=342fc1d7:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=342fc1d7:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=342fc1d7:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=342fc1d7:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=342fc1d7:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=342fc1d7:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=342fc1d7:19432
+commitRoot @ chunk-RPCDYKBN.js?v=342fc1d7:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=342fc1d7:18783
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=342fc1d7:18718
+workLoop @ chunk-RPCDYKBN.js?v=342fc1d7:197
+flushWork @ chunk-RPCDYKBN.js?v=342fc1d7:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=342fc1d7:384
+useNotifications.tsx:63 Failed to trigger notification: Error: 409: {"shouldShow":false,"message":"Notification already shown or not found"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:69:5)
+    at async triggerNotification (useNotifications.tsx:43:24)
+    at async handleRegistrationSuccess (home.tsx:538:9)
+triggerNotification @ useNotifications.tsx:63
+await in triggerNotification
+handleRegistrationSuccess @ home.tsx:538
+(anonymous) @ use-registration-modal.tsx:64
+setTimeout
+(anonymous) @ use-registration-modal.tsx:63
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=342fc1d7:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=342fc1d7:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=342fc1d7:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=342fc1d7:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=342fc1d7:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=342fc1d7:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=342fc1d7:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=342fc1d7:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=342fc1d7:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=342fc1d7:19432
+commitRoot @ chunk-RPCDYKBN.js?v=342fc1d7:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=342fc1d7:18783
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=342fc1d7:18718
+workLoop @ chunk-RPCDYKBN.js?v=342fc1d7:197
+flushWork @ chunk-RPCDYKBN.js?v=342fc1d7:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=342fc1d7:384
+company-table.tsx:77 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+company-table.tsx:202 Auto-expanding first company to show contacts: Argon Medical Devices
+home.tsx:584 Saving search state: {query: 'life science companies in chicago', resultsCount: 7, listId: null, companies: Array(7)}
+queryClient.ts:46 API Request: POST /api/contacts/2393/apollo {hasData: true, timestamp: '2025-09-07T09:12:08.334Z'}
+queryClient.ts:62  POST https://3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev/api/contacts/2393/apollo 422 (Unprocessable Entity)
+apiRequest @ queryClient.ts:62
+(anonymous) @ use-comprehensive-email-search.ts:49
+handleComprehensiveEmailSearch @ home.tsx:2561
+handleClick @ button.tsx:31
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+queryClient.ts:72 API Request Error: POST /api/contacts/2393/apollo {error: '422: {"message":"Request failed with status code 4…de 422","searchDate":"2025-09-07T09:12:08.619Z"}}', timestamp: '2025-09-07T09:12:08.640Z'}
+apiRequest @ queryClient.ts:72
+await in apiRequest
+(anonymous) @ use-comprehensive-email-search.ts:49
+handleComprehensiveEmailSearch @ home.tsx:2561
+handleClick @ button.tsx:31
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+use-comprehensive-email-search.ts:166 Comprehensive search error: Error: 422: {"message":"Request failed with status code 422","contact":{"id":2393,"userId":4,"companyId":575,"name":"Matt Edwards","role":"Senior Vice President & General Manager, EMEA & APAC","email":null,"alternativeEmails":[],"probability":89,"linkedinUrl":null,"twitterHandle":null,"phoneNumber":null,"department":null,"location":null,"verificationSource":"Decision-maker Analysis","lastEnriched":null,"nameConfidenceScore":74,"userFeedbackScore":null,"feedbackCount":0,"lastValidated":"2025-09-07T09:12:08.619Z","createdAt":"2025-09-07T05:57:49.916Z","completedSearches":["contact_enrichment","apollo_search"]},"searchMetadata":{"error":"Request failed with status code 422","searchDate":"2025-09-07T09:12:08.619Z"}}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:69:5)
+    at async use-comprehensive-email-search.ts:49:32
+    at async handleComprehensiveEmailSearch (home.tsx:2561:5)
+(anonymous) @ use-comprehensive-email-search.ts:166
+await in (anonymous)
+handleComprehensiveEmailSearch @ home.tsx:2561
+handleClick @ button.tsx:31
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+queryClient.ts:46 API Request: POST /api/contacts/2393/comprehensive-search-complete {hasData: true, timestamp: '2025-09-07T09:12:08.640Z'}
+company-table.tsx:77 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:584 Saving search state: {query: 'life science companies in chicago', resultsCount: 7, listId: null, companies: Array(7)}
+prompt-editor.tsx:921 Analyzing search query...
+prompt-editor.tsx:922 Preparing to search for companies and contacts...
+prompt-editor.tsx:598 Initiating company search process...
+prompt-editor.tsx:599 Sending request to company discovery API...
+prompt-editor.tsx:602 [Session Management] Cleaning up active sessions before starting new search...
+search-session-manager.ts:38 Created search session: search_1757236334865_c67gbpyqa for query: life science companies in los angeles
+search-session-manager.ts:271 [Session Cleanup] Found 1 active sessions, terminating...
+prompt-editor.tsx:613 Created session search_1757236334865_c67gbpyqa for query: life science companies in los angeles
+prompt-editor.tsx:616 Quick search with strategy: 17
+queryClient.ts:46 API Request: POST /api/companies/quick-search {hasData: true, timestamp: '2025-09-07T09:12:14.865Z'}
+search-session-manager.ts:276  DELETE https://3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev/api/search-sessions/search_1757236334865_c67gbpyqa 404 (Not Found)
+cleanupActiveSessions @ search-session-manager.ts:276
+createSession @ search-session-manager.ts:41
+mutationFn @ prompt-editor.tsx:606
+await in mutationFn
+fn @ @tanstack_react-query.js?v=342fc1d7:1189
+run @ @tanstack_react-query.js?v=342fc1d7:494
+start @ @tanstack_react-query.js?v=342fc1d7:536
+execute @ @tanstack_react-query.js?v=342fc1d7:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=342fc1d7:2630
+(anonymous) @ @tanstack_react-query.js?v=342fc1d7:3295
+handleSearch @ prompt-editor.tsx:931
+onKeyDown @ prompt-editor.tsx:1030
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+search-session-manager.ts:242 Cleaned up session: search_1757236334865_c67gbpyqa
+search-session-manager.ts:291 [Session Cleanup] Completed cleanup of 1 sessions
+home.tsx:584 Saving search state: {query: 'life science companies in los angeles', resultsCount: 7, listId: null, companies: Array(7)}
+prompt-editor.tsx:632 Processing company results...
+prompt-editor.tsx:633 Found 7 companies matching your search
+prompt-editor.tsx:644 Started polling for session search_1757236334865_c67gbpyqa completion
+home.tsx:858 Companies received: 7
+prompt-editor.tsx:767 Starting contact discovery process...
+prompt-editor.tsx:768 Searching for key decision makers and contacts...
+prompt-editor.tsx:771 Sending comprehensive search request to API...
+prompt-editor.tsx:772 This process may take a moment while we find the most relevant contacts...
+queryClient.ts:46 API Request: POST /api/companies/search {hasData: true, timestamp: '2025-09-07T09:12:20.775Z'}
+company-table.tsx:77 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:584 Saving search state: {query: 'life science companies in los angeles', resultsCount: 7, listId: null, companies: Array(7)}
+prompt-editor.tsx:788 Contact discovery completed successfully
+prompt-editor.tsx:789 Found 70 contacts across 7 companies
+prompt-editor.tsx:791 Processing and organizing results...
+prompt-editor.tsx:800 Session search_1757236334865_c67gbpyqa completed with full results
+prompt-editor.tsx:805 [Database Sync] Invalidating cache to force fresh queries...
+prompt-editor.tsx:838 Search process completed!
+prompt-editor.tsx:298 Session completed, restoring results: {id: 'search_1757236334865_c67gbpyqa', query: 'life science companies in los angeles', status: 'contacts_complete', quickResults: Array(7), fullResults: Array(7), …}
+search-session-manager.ts:242 Cleaned up session: search_1757236334865_c67gbpyqa
+home.tsx:872 === PARENT COMPONENT: handleSearchResults called ===
+home.tsx:873 Received query: life science companies in los angeles
+home.tsx:874 Received results count: 7
+home.tsx:875 Current component state - query: life science companies in los angeles
+home.tsx:876 Current component state - results count: 7
+home.tsx:877 Complete results received with contacts: 7
+home.tsx:896 Companies reordered by contact count: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:905 === PARENT COMPONENT: State updated ===
+home.tsx:906 New state - query: life science companies in los angeles
+home.tsx:907 New state - results count: 7
+home.tsx:908 handleSearchResults completed
+home.tsx:918 Companies with contacts: 7 of 7
+company-table.tsx:77 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+prompt-editor.tsx:815 [Database Sync] Cache invalidated, sending results to UI...
+home.tsx:872 === PARENT COMPONENT: handleSearchResults called ===
+home.tsx:873 Received query: life science companies in los angeles
+home.tsx:874 Received results count: 7
+home.tsx:875 Current component state - query: life science companies in los angeles
+home.tsx:876 Current component state - results count: 7
+home.tsx:877 Complete results received with contacts: 7
+home.tsx:896 Companies reordered by contact count: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:905 === PARENT COMPONENT: State updated ===
+home.tsx:906 New state - query: life science companies in los angeles
+home.tsx:907 New state - results count: 7
+home.tsx:908 handleSearchResults completed
+home.tsx:918 Companies with contacts: 7 of 7
+company-table.tsx:77 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+queryClient.ts:46 API Request: POST /api/lists {hasData: true, timestamp: '2025-09-07T09:12:37.901Z'}
+queryClient.ts:46 API Request: POST /api/lists {hasData: true, timestamp: '2025-09-07T09:12:37.923Z'}
+home.tsx:584 Saving search state: {query: 'life science companies in los angeles', resultsCount: 7, listId: 1061, companies: Array(7)}
+queryClient.ts:46 API Request: POST /api/contacts/2494/apollo {hasData: true, timestamp: '2025-09-07T09:12:49.420Z'}
+queryClient.ts:62  POST https://3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev/api/contacts/2494/apollo 422 (Unprocessable Entity)
+apiRequest @ queryClient.ts:62
+(anonymous) @ use-comprehensive-email-search.ts:49
+handleComprehensiveEmailSearch @ home.tsx:2561
+handleClick @ button.tsx:31
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+queryClient.ts:72 API Request Error: POST /api/contacts/2494/apollo {error: '422: {"message":"Request failed with status code 4…de 422","searchDate":"2025-09-07T09:12:49.939Z"}}', timestamp: '2025-09-07T09:12:50.050Z'}
+apiRequest @ queryClient.ts:72
+await in apiRequest
+(anonymous) @ use-comprehensive-email-search.ts:49
+handleComprehensiveEmailSearch @ home.tsx:2561
+handleClick @ button.tsx:31
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+use-comprehensive-email-search.ts:166 Comprehensive search error: Error: 422: {"message":"Request failed with status code 422","contact":{"id":2494,"userId":4,"companyId":594,"name":"Tim Scott","role":"President and CEO, Biocom California","email":null,"alternativeEmails":[],"probability":89,"linkedinUrl":null,"twitterHandle":null,"phoneNumber":null,"department":null,"location":null,"verificationSource":"Decision-maker Analysis","lastEnriched":null,"nameConfidenceScore":74,"userFeedbackScore":null,"feedbackCount":0,"lastValidated":"2025-09-07T09:12:49.939Z","createdAt":"2025-09-07T09:12:35.942Z","completedSearches":["apollo_search"]},"searchMetadata":{"error":"Request failed with status code 422","searchDate":"2025-09-07T09:12:49.939Z"}}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:69:5)
+    at async use-comprehensive-email-search.ts:49:32
+    at async handleComprehensiveEmailSearch (home.tsx:2561:5)
+(anonymous) @ use-comprehensive-email-search.ts:166
+await in (anonymous)
+handleComprehensiveEmailSearch @ home.tsx:2561
+handleClick @ button.tsx:31
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+queryClient.ts:46 API Request: POST /api/contacts/2494/comprehensive-search-complete {hasData: true, timestamp: '2025-09-07T09:12:50.050Z'}
+company-table.tsx:77 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:584 Saving search state: {query: 'life science companies in los angeles', resultsCount: 7, listId: 1061, companies: Array(7)}
+queryClient.ts:46 API Request: POST /api/contacts/2497/apollo {hasData: true, timestamp: '2025-09-07T09:12:51.962Z'}
+queryClient.ts:62  POST https://3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev/api/contacts/2497/apollo 422 (Unprocessable Entity)
+apiRequest @ queryClient.ts:62
+(anonymous) @ use-comprehensive-email-search.ts:49
+handleComprehensiveEmailSearch @ home.tsx:2561
+handleClick @ button.tsx:31
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+queryClient.ts:72 API Request Error: POST /api/contacts/2497/apollo {error: '422: {"message":"Request failed with status code 4…de 422","searchDate":"2025-09-07T09:12:52.241Z"}}', timestamp: '2025-09-07T09:12:52.264Z'}
+apiRequest @ queryClient.ts:72
+await in apiRequest
+(anonymous) @ use-comprehensive-email-search.ts:49
+handleComprehensiveEmailSearch @ home.tsx:2561
+handleClick @ button.tsx:31
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+use-comprehensive-email-search.ts:166 Comprehensive search error: Error: 422: {"message":"Request failed with status code 422","contact":{"id":2497,"userId":4,"companyId":594,"name":"Sabrina Martucci Johnson","role":"Chair, Board of Directors; President and CEO, Daré Biosciences","email":null,"alternativeEmails":[],"probability":89,"linkedinUrl":null,"twitterHandle":null,"phoneNumber":null,"department":null,"location":null,"verificationSource":"Decision-maker Analysis","lastEnriched":null,"nameConfidenceScore":74,"userFeedbackScore":null,"feedbackCount":0,"lastValidated":"2025-09-07T09:12:52.241Z","createdAt":"2025-09-07T09:12:35.947Z","completedSearches":["apollo_search"]},"searchMetadata":{"error":"Request failed with status code 422","searchDate":"2025-09-07T09:12:52.241Z"}}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:69:5)
+    at async use-comprehensive-email-search.ts:49:32
+    at async handleComprehensiveEmailSearch (home.tsx:2561:5)
+(anonymous) @ use-comprehensive-email-search.ts:166
+await in (anonymous)
+handleComprehensiveEmailSearch @ home.tsx:2561
+handleClick @ button.tsx:31
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+queryClient.ts:46 API Request: POST /api/contacts/2497/comprehensive-search-complete {hasData: true, timestamp: '2025-09-07T09:12:52.264Z'}
+company-table.tsx:77 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:584 Saving search state: {query: 'life science companies in los angeles', resultsCount: 7, listId: 1061, companies: Array(7)}
+queryClient.ts:46 API Request: POST /api/contacts/2496/apollo {hasData: true, timestamp: '2025-09-07T09:12:54.560Z'}
+queryClient.ts:62  POST https://3223af30-a19b-47c5-ab14-a698c118cd66-00-38xs4kvuqdka9.janeway.replit.dev/api/contacts/2496/apollo 422 (Unprocessable Entity)
+apiRequest @ queryClient.ts:62
+(anonymous) @ use-comprehensive-email-search.ts:49
+handleComprehensiveEmailSearch @ home.tsx:2561
+handleClick @ button.tsx:31
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+queryClient.ts:72 API Request Error: POST /api/contacts/2496/apollo {error: '422: {"message":"Request failed with status code 4…de 422","searchDate":"2025-09-07T09:12:54.797Z"}}', timestamp: '2025-09-07T09:12:54.820Z'}
+apiRequest @ queryClient.ts:72
+await in apiRequest
+(anonymous) @ use-comprehensive-email-search.ts:49
+handleComprehensiveEmailSearch @ home.tsx:2561
+handleClick @ button.tsx:31
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+use-comprehensive-email-search.ts:166 Comprehensive search error: Error: 422: {"message":"Request failed with status code 422","contact":{"id":2496,"userId":4,"companyId":594,"name":"Ranjeet Banerjee","role":"Vice Chair, DE&I; CEO, Cold Chain Technologies","email":null,"alternativeEmails":[],"probability":89,"linkedinUrl":null,"twitterHandle":null,"phoneNumber":null,"department":null,"location":null,"verificationSource":"Decision-maker Analysis","lastEnriched":null,"nameConfidenceScore":74,"userFeedbackScore":null,"feedbackCount":0,"lastValidated":"2025-09-07T09:12:54.797Z","createdAt":"2025-09-07T09:12:35.947Z","completedSearches":["apollo_search"]},"searchMetadata":{"error":"Request failed with status code 422","searchDate":"2025-09-07T09:12:54.797Z"}}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:69:5)
+    at async use-comprehensive-email-search.ts:49:32
+    at async handleComprehensiveEmailSearch (home.tsx:2561:5)
+(anonymous) @ use-comprehensive-email-search.ts:166
+await in (anonymous)
+handleComprehensiveEmailSearch @ home.tsx:2561
+handleClick @ button.tsx:31
+callCallback2 @ chunk-RPCDYKBN.js?v=342fc1d7:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=342fc1d7:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=342fc1d7:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=342fc1d7:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=342fc1d7:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=342fc1d7:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=342fc1d7:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=342fc1d7:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=342fc1d7:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=342fc1d7:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=342fc1d7:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=342fc1d7:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=342fc1d7:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=342fc1d7:5449
+queryClient.ts:46 API Request: POST /api/contacts/2496/comprehensive-search-complete {hasData: true, timestamp: '2025-09-07T09:12:54.821Z'}
+company-table.tsx:77 CompanyTable received companies: (7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+home.tsx:584 Saving search state: {query: 'life science companies in los angeles', resultsCount: 7, listId: 1061, companies: Array(7)}

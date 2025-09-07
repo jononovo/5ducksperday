@@ -17,8 +17,8 @@ import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { useNotifications } from "@/hooks/use-notifications";
-import { useStrategyOverlay } from "@/lib/strategy-overlay-context";
+import { useNotifications } from "@/features/user-account-settings";
+import { useStrategyOverlay } from "@/features/strategy-chat";
 import { NotificationToast } from "@/components/ui/notification-toast";
 import {
   ListPlus,
@@ -70,6 +70,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ContactActionColumn } from "@/components/contact-action-column";
 import { SearchSessionManager } from "@/lib/search-session-manager";
 import { SavedSearchesDrawer } from "@/components/saved-searches-drawer";
+import { useComprehensiveEmailSearch } from "@/hooks/use-comprehensive-email-search";
 
 // Extend Company type to include contacts
 interface CompanyWithContacts extends Company {
@@ -81,6 +82,7 @@ interface SavedSearchState {
   currentQuery: string | null;
   currentResults: CompanyWithContacts[] | null;
   currentListId: number | null;
+  lastExecutedQuery?: string | null;
   emailSearchCompleted?: boolean;
   emailSearchTimestamp?: number;
   navigationRefreshTimestamp?: number;
@@ -129,6 +131,39 @@ export default function Home() {
   const auth = useAuth();
   const { notificationState, triggerNotification, closeNotification } = useNotifications();
   const { setState: setStrategyOverlayState } = useStrategyOverlay();
+  
+  // Use shared comprehensive email search hook
+  const { 
+    handleComprehensiveEmailSearch: comprehensiveSearchHook, 
+    pendingSearchIds: pendingComprehensiveSearchIds 
+  } = useComprehensiveEmailSearch({
+    onContactUpdate: (updatedContact) => {
+      // Update the contact in currentResults
+      setCurrentResults(prev => {
+        if (!prev) return null;
+        const updatedResults = prev.map(company => ({
+          ...company,
+          contacts: company.contacts?.map(contact =>
+            contact.id === updatedContact.id ? updatedContact : contact
+          )
+        }));
+        
+        // Save to localStorage for persistence
+        // Save lastExecutedQuery as currentQuery to ensure consistency
+        const queryToSave = lastExecutedQuery || currentQuery;
+        const stateToSave = {
+          currentQuery: queryToSave,
+          currentResults: updatedResults,
+          currentListId,
+          lastExecutedQuery
+        };
+        localStorage.setItem('searchState', JSON.stringify(stateToSave));
+        sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
+        
+        return updatedResults;
+      });
+    }
+  });
 
   // Check if user has already seen email tooltip
   useEffect(() => {
@@ -291,10 +326,13 @@ export default function Home() {
           setCurrentResults(refreshedResults);
           
           // Update localStorage with refreshed data
+          // Save lastExecutedQuery as currentQuery to ensure consistency
+          const queryToSave = lastExecutedQuery || currentQuery;
           const stateToSave = {
-            currentQuery,
+            currentQuery: queryToSave,
             currentResults: refreshedResults,
-            currentListId
+            currentListId,
+            lastExecutedQuery
           };
           localStorage.setItem('searchState', JSON.stringify(stateToSave));
           sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
@@ -390,6 +428,7 @@ export default function Home() {
         setCurrentQuery(savedState.currentQuery);
         setCurrentResults(savedState.currentResults);
         setCurrentListId(savedState.currentListId);
+        setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
         
         // Always refresh contact data when restoring from localStorage to ensure emails are preserved
         console.log('Refreshing contact data from database to preserve emails after navigation');
@@ -406,6 +445,7 @@ export default function Home() {
         setCurrentQuery(savedState.currentQuery);
         setCurrentListId(savedState.currentListId);
         setCurrentResults(savedState.currentResults);
+        setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
         
         // Always refresh from database to ensure fresh data (including emails)
         refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
@@ -424,10 +464,13 @@ export default function Home() {
           setCurrentResults(refreshedResults);
           
           // Update localStorage with complete fresh data
+          // Save lastExecutedQuery as currentQuery to ensure consistency
+          const queryToSave = savedState.lastExecutedQuery || savedState.currentQuery;
           const updatedState = {
-            currentQuery: savedState.currentQuery,
+            currentQuery: queryToSave,
             currentResults: refreshedResults,
             currentListId: savedState.currentListId,
+            lastExecutedQuery: savedState.lastExecutedQuery || savedState.currentQuery,
             emailSearchCompleted: savedState.emailSearchCompleted || false,
             emailSearchTimestamp: savedState.emailSearchTimestamp || null,
             navigationRefreshTimestamp: Date.now()
@@ -529,13 +572,17 @@ export default function Home() {
       
       // Only save if we have meaningful data (prevents saving null states)
       if (currentQuery || (currentResults && currentResults.length > 0)) {
+        // Save lastExecutedQuery as currentQuery to ensure the saved query matches the results
+        // If no search has been executed yet, fall back to currentQuery
+        const queryToSave = lastExecutedQuery || currentQuery;
         const stateToSave: SavedSearchState = {
-          currentQuery,
+          currentQuery: queryToSave,
           currentResults,
-          currentListId
+          currentListId,
+          lastExecutedQuery
         };
         console.log('Saving search state:', {
-          query: currentQuery,
+          query: queryToSave,
           resultsCount: currentResults?.length,
           listId: currentListId,
           companies: currentResults?.map(c => ({ id: c.id, name: c.name }))
@@ -556,7 +603,7 @@ export default function Home() {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [currentQuery, currentResults, currentListId]);
+  }, [currentQuery, currentResults, currentListId, lastExecutedQuery]);
 
 
 
@@ -988,7 +1035,7 @@ export default function Home() {
 
 
   const enrichContactMutation = useMutation({
-    mutationFn: async (contactId: number) => {
+    mutationFn: async ({ contactId, silent = false, searchContext = 'manual' }: { contactId: number; silent?: boolean; searchContext?: 'manual' | 'automated' }) => {
       // Add this contact ID to the set of pending contacts
       setPendingContactIds(prev => {
         const newSet = new Set(prev);
@@ -996,11 +1043,11 @@ export default function Home() {
         return newSet;
       });
       const response = await apiRequest("POST", `/api/contacts/${contactId}/enrich`);
-      return {data: await response.json(), contactId};
+      return {data: await response.json(), contactId, silent, searchContext};
     },
     onSuccess: async (result) => {
-      // The data and the contactId that was processed
-      const {data, contactId} = result;
+      // The data, contactId, silent flag, and searchContext that was processed
+      const {data, contactId, silent = false, searchContext = 'manual'} = result;
       
       // Update the currentResults with the enriched contact - use a safer update pattern
       setCurrentResults(prev => {
@@ -1034,8 +1081,8 @@ export default function Home() {
         setIsSaved(false);
       }
 
-      // CREDIT BILLING ON EMAIL SUCCESS (same as other APIs)
-      if (data.email) {
+      // CREDIT BILLING ON EMAIL SUCCESS (only for manual searches, not automated/comprehensive)
+      if (data.email && searchContext === 'manual') {
         try {
           const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
             contactId,
@@ -1055,24 +1102,26 @@ export default function Home() {
         }
       }
       
-      // Only show notifications if we're not in a consolidated search
-      if (!isConsolidatedSearching && !isAutomatedSearchRef.current) {
-        toast({
-          title: "Email Search Complete",
-          description: `${data.name}: ${data.email 
-            ? "Successfully found email address."
-            : "No email found for this contact."}`,
-        });
-      } else if (isConsolidatedSearching && data.email) {
-        // During consolidated search, only show when we find an email
-        toast({
-          title: "Email Search Complete",
-          description: `${data.name}: Successfully found email address.`,
-        });
+      // Only show notifications if not silent
+      if (!silent) {
+        if (!isConsolidatedSearching && !isAutomatedSearchRef.current) {
+          toast({
+            title: "Email Search Complete",
+            description: `${data.name}: ${data.email 
+              ? "Successfully found email address."
+              : "No email found for this contact."}`,
+          });
+        } else if (isConsolidatedSearching && data.email) {
+          // During consolidated search, only show when we find an email
+          toast({
+            title: "Email Search Complete",
+            description: `${data.name}: Successfully found email address.`,
+          });
+        }
       }
     },
     onError: (error, variables) => {
-      const contactId = variables; // This will be the contactId that was passed to mutate
+      const { contactId, silent = false } = variables; // Destructure from variables
       
       // Remove this contact ID from the set of pending contacts
       setPendingContactIds(prev => {
@@ -1081,16 +1130,18 @@ export default function Home() {
         return newSet;
       });
       
-      toast({
-        title: "Email Search Failed",
-        description: error instanceof Error ? error.message : "Failed to find contact's email",
-        variant: "destructive",
-      });
+      if (!silent) {
+        toast({
+          title: "Email Search Failed",
+          description: error instanceof Error ? error.message : "Failed to find contact's email",
+          variant: "destructive",
+        });
+      }
     },
   });
 
   // PRE-SEARCH CREDIT CHECK (same as other APIs)
-  const handleEnrichContact = async (contactId: number) => {
+  const handleEnrichContact = async (contactId: number, silent: boolean = false, searchContext: 'manual' | 'automated' = 'manual') => {
     // Only prevent if this specific contact is already being processed
     if (pendingContactIds.has(contactId)) return;
     
@@ -1114,7 +1165,7 @@ export default function Home() {
       }
     }
     
-    enrichContactMutation.mutate(contactId);
+    enrichContactMutation.mutate({ contactId, silent, searchContext });
   };
 
   const isContactEnriched = (contact: Contact) => {
@@ -1276,6 +1327,7 @@ export default function Home() {
       );
       
       setCurrentQuery(list.prompt);
+      setLastExecutedQuery(list.prompt); // Update lastExecutedQuery to sync the search input
       setCurrentResults(companiesWithContacts);
       setCurrentListId(list.listId);
       setIsSaved(true);
@@ -1317,7 +1369,7 @@ export default function Home() {
 
   // Enhanced Hunter.io mutation with improved error handling
   const hunterMutation = useMutation({
-    mutationFn: async ({ contactId, searchContext = 'manual' }: { contactId: number; searchContext?: 'manual' | 'automated' }) => {
+    mutationFn: async ({ contactId, searchContext = 'manual', silent = false }: { contactId: number; searchContext?: 'manual' | 'automated'; silent?: boolean }) => {
       // Add this contact ID to the set of pending searches
       setPendingHunterIds(prev => {
         const newSet = new Set(prev);
@@ -1335,6 +1387,7 @@ export default function Home() {
           data: responseData.contact,
           contactId,
           searchContext,
+          silent,
           searchMetadata: responseData.searchMetadata,
           success: true,
           emailFound: false
@@ -1347,15 +1400,16 @@ export default function Home() {
         data: responseData,
         contactId,
         searchContext,
+        silent,
         success: true,
         emailFound: !!responseData.email
       };
     },
     onSuccess: async (result) => {
-      const {data, contactId, searchContext, searchMetadata, emailFound} = result;
+      const {data, contactId, searchContext, searchMetadata, emailFound, silent = false} = result;
       
-      // Process credit billing for successful email discoveries
-      if (emailFound) {
+      // Process credit billing for successful email discoveries (only for manual searches)
+      if (emailFound && searchContext === 'manual') {
         try {
           const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
             contactId,
@@ -1377,10 +1431,11 @@ export default function Home() {
       }
       
       // Update the contact in the results
+      let updatedResults: CompanyWithContacts[] | null = null;
       setCurrentResults(prev => {
         if (!prev) return null;
         
-        return prev.map(company => {
+        updatedResults = prev.map(company => {
           if (!company.contacts?.some(c => c.id === data.id)) {
             return company;
           }
@@ -1392,7 +1447,49 @@ export default function Home() {
             )
           };
         });
+        
+        return updatedResults;
       });
+      
+      // Immediately update localStorage to prevent losing emails on quick navigation
+      if (updatedResults) {
+        // Save lastExecutedQuery as currentQuery to ensure consistency
+        const queryToSave = lastExecutedQuery || currentQuery;
+        const stateToSave: SavedSearchState = {
+          currentQuery: queryToSave,
+          currentResults: updatedResults,
+          currentListId,
+          lastExecutedQuery
+        };
+        localStorage.setItem('searchState', JSON.stringify(stateToSave));
+        sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
+        console.log('Hunter.io: Immediately saved email to localStorage for persistence');
+      }
+      
+      // If we have a saved list, update it in the database to ensure persistence
+      if (currentListId && updatedResults) {
+        console.log('Hunter.io: Updating list in database with new email');
+        // Use silent update without toast notification
+        apiRequest("PUT", `/api/lists/${currentListId}`, {
+          companies: updatedResults,
+          prompt: currentQuery,
+          contactSearchConfig: (() => {
+            const savedConfig = localStorage.getItem('contactSearchConfig');
+            if (savedConfig) {
+              try {
+                return JSON.parse(savedConfig);
+              } catch (error) {
+                return null;
+              }
+            }
+            return null;
+          })()
+        }).then(() => {
+          console.log('Hunter.io: List updated in database successfully');
+        }).catch(error => {
+          console.error('Hunter.io: Failed to update list in database:', error);
+        });
+      }
       
       // Remove this contact ID from the set of pending searches
       setPendingHunterIds(prev => {
@@ -1402,25 +1499,27 @@ export default function Home() {
       });
       
       // Enhanced toast notifications with search metadata
-      if (searchContext === 'manual') {
-        const confidence = searchMetadata?.confidence || data.nameConfidenceScore;
-        const retryInfo = searchMetadata?.retryCount > 0 ? ` (${searchMetadata.retryCount + 1} attempts)` : '';
-        
-        toast({
-          title: "Hunter.io Search Complete",
-          description: `${data.name}: ${emailFound 
-            ? `Found email with ${confidence || 'unknown'} confidence${retryInfo}.`
-            : `No email found${retryInfo}.`}`,
-        });
-      } else if (searchContext === 'automated' && emailFound) {
-        toast({
-          title: "Email Found",
-          description: `${data.name}: Successfully found email address.`,
-        });
+      if (!silent) {
+        if (searchContext === 'manual') {
+          const confidence = searchMetadata?.confidence || data.nameConfidenceScore;
+          const retryInfo = searchMetadata?.retryCount > 0 ? ` (${searchMetadata.retryCount + 1} attempts)` : '';
+          
+          toast({
+            title: "Hunter.io Search Complete",
+            description: `${data.name}: ${emailFound 
+              ? `Found email with ${confidence || 'unknown'} confidence${retryInfo}.`
+              : `No email found${retryInfo}.`}`,
+          });
+        } else if (searchContext === 'automated' && emailFound) {
+          toast({
+            title: "Email Found",
+            description: `${data.name}: Successfully found email address.`,
+          });
+        }
       }
     },
     onError: (error, variables) => {
-      const { contactId, searchContext } = variables;
+      const { contactId, searchContext, silent = false } = variables;
       
       // Remove this contact ID from the set of pending searches
       setPendingHunterIds(prev => {
@@ -1430,23 +1529,25 @@ export default function Home() {
       });
       
       // Enhanced error handling with retry suggestions
-      if (searchContext === 'manual') {
-        const isRetryable = error instanceof Error && 
-          (error.message.includes('rate limit') || error.message.includes('network'));
-        
-        toast({
-          title: "Hunter.io Search Failed",
-          description: `${error instanceof Error ? error.message : "Failed to find contact email"}${
-            isRetryable ? ' - You can try again in a moment.' : ''
-          }`,
-          variant: "destructive",
-        });
+      if (!silent) {
+        if (searchContext === 'manual') {
+          const isRetryable = error instanceof Error && 
+            (error.message.includes('rate limit') || error.message.includes('network'));
+          
+          toast({
+            title: "Hunter.io Search Failed",
+            description: `${error instanceof Error ? error.message : "Failed to find contact email"}${
+              isRetryable ? ' - You can try again in a moment.' : ''
+            }`,
+            variant: "destructive",
+          });
+        }
       }
     },
   });
   
   // Handler for Hunter.io search with credit checking
-  const handleHunterSearch = async (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
+  const handleHunterSearch = async (contactId: number, searchContext: 'manual' | 'automated' = 'manual', silent: boolean = false) => {
     // Allow multiple searches to run in parallel
     if (pendingHunterIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
     
@@ -1470,7 +1571,7 @@ export default function Home() {
       }
     }
     
-    hunterMutation.mutate({ contactId, searchContext });
+    hunterMutation.mutate({ contactId, searchContext, silent });
   };
   
   // Add AeroLeads mutation with Set-based state management
@@ -1511,11 +1612,12 @@ export default function Home() {
       }
       
       // Update the contact in the results
+      let updatedResults: CompanyWithContacts[] | null = null;
       setCurrentResults(prev => {
         if (!prev) return null;
         
         // Only update the specific contact without affecting others
-        return prev.map(company => {
+        updatedResults = prev.map(company => {
           if (!company.contacts?.some(c => c.id === data.id)) {
             return company;
           }
@@ -1527,7 +1629,49 @@ export default function Home() {
             )
           };
         });
+        
+        return updatedResults;
       });
+      
+      // Immediately update localStorage to prevent losing emails on quick navigation
+      if (updatedResults) {
+        // Save lastExecutedQuery as currentQuery to ensure consistency
+        const queryToSave = lastExecutedQuery || currentQuery;
+        const stateToSave: SavedSearchState = {
+          currentQuery: queryToSave,
+          currentResults: updatedResults,
+          currentListId,
+          lastExecutedQuery
+        };
+        localStorage.setItem('searchState', JSON.stringify(stateToSave));
+        sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
+        console.log('AeroLeads: Immediately saved email to localStorage for persistence');
+      }
+      
+      // If we have a saved list, update it in the database to ensure persistence
+      if (currentListId && updatedResults) {
+        console.log('AeroLeads: Updating list in database with new email');
+        // Use silent update without toast notification
+        apiRequest("PUT", `/api/lists/${currentListId}`, {
+          companies: updatedResults,
+          prompt: currentQuery,
+          contactSearchConfig: (() => {
+            const savedConfig = localStorage.getItem('contactSearchConfig');
+            if (savedConfig) {
+              try {
+                return JSON.parse(savedConfig);
+              } catch (error) {
+                return null;
+              }
+            }
+            return null;
+          })()
+        }).then(() => {
+          console.log('AeroLeads: List updated in database successfully');
+        }).catch(error => {
+          console.error('AeroLeads: Failed to update list in database:', error);
+        });
+      }
       
       // Remove this contact ID from the set of pending searches
       setPendingAeroLeadsIds(prev => {
@@ -1893,10 +2037,13 @@ export default function Home() {
         }, 100);
         
         // Update localStorage with fresh data
+        // Save lastExecutedQuery as currentQuery to ensure consistency
+        const queryToSave = lastExecutedQuery || currentQuery;
         const stateToSave = {
-          currentQuery,
+          currentQuery: queryToSave,
           currentResults: refreshedResults,
-          currentListId
+          currentListId,
+          lastExecutedQuery
         };
         const stateString = JSON.stringify(stateToSave);
         localStorage.setItem('searchState', stateString);
@@ -1950,10 +2097,13 @@ export default function Home() {
         }, 100);
         
         // Update localStorage with fresh data (simplified)
+        // Save lastExecutedQuery as currentQuery to ensure consistency
+        const queryToSave = lastExecutedQuery || currentQuery;
         const stateToSave = {
-          currentQuery,
+          currentQuery: queryToSave,
           currentResults: refreshedResults,
-          currentListId
+          currentListId,
+          lastExecutedQuery
         };
         const stateString = JSON.stringify(stateToSave);
         localStorage.setItem('searchState', stateString);
@@ -2095,11 +2245,17 @@ export default function Home() {
       setLastEmailSearchCount(data.summary.emailsFound);
       setLastSourceBreakdown(data.summary.sourceBreakdown);
       
-      // Complete search immediately
+      // Complete search immediately - show credit deduction if available
+      const creditInfo = data.summary.creditsCharged ? ` (${data.summary.creditsCharged} credits used)` : '';
       toast({
         title: "Email Search Complete",
-        description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies`,
+        description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies${creditInfo}`,
       });
+      
+      // Refresh credits display if credits were charged
+      if (data.summary.creditsCharged) {
+        await queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+      }
       
       // COMPLETE RELOAD APPROACH: Clear localStorage and reload fresh from database
       console.log('EMAIL SEARCH COMPLETE: Starting complete database reload to ensure email persistence');
@@ -2129,10 +2285,13 @@ export default function Home() {
       setCurrentResults(freshResults);
       
       // Step 6: Save complete fresh state to localStorage (single authoritative save)
+      // Save lastExecutedQuery as currentQuery to ensure consistency
+      const queryToSave = lastExecutedQuery || currentQuery;
       const completeState = {
-        currentQuery,
+        currentQuery: queryToSave,
         currentResults: freshResults,
         currentListId,
+        lastExecutedQuery,
         emailSearchCompleted: true,
         emailSearchTimestamp: Date.now()
       };
@@ -2183,7 +2342,7 @@ export default function Home() {
   
   // Enhanced Apollo.io mutation with improved error handling
   const apolloMutation = useMutation({
-    mutationFn: async ({ contactId, searchContext = 'manual' }: { contactId: number; searchContext?: 'manual' | 'automated' }) => {
+    mutationFn: async ({ contactId, searchContext = 'manual', silent = false }: { contactId: number; searchContext?: 'manual' | 'automated'; silent?: boolean }) => {
       // Add this contact ID to the set of pending searches
       setPendingApolloIds(prev => {
         const newSet = new Set(prev);
@@ -2201,6 +2360,7 @@ export default function Home() {
           data: responseData.contact,
           contactId,
           searchContext,
+          silent,
           searchMetadata: responseData.searchMetadata,
           success: true,
           emailFound: false
@@ -2213,15 +2373,16 @@ export default function Home() {
         data: responseData,
         contactId,
         searchContext,
+        silent,
         success: true,
         emailFound: !!responseData.email
       };
     },
     onSuccess: async (result) => {
-      const {data, contactId, searchContext, searchMetadata, emailFound} = result;
+      const {data, contactId, searchContext, searchMetadata, emailFound, silent = false} = result;
       
-      // Process credit billing for successful email discoveries
-      if (emailFound) {
+      // Process credit billing for successful email discoveries (only for manual searches)
+      if (emailFound && searchContext === 'manual') {
         try {
           const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
             contactId,
@@ -2243,10 +2404,11 @@ export default function Home() {
       }
       
       // Update the contact in the results
+      let updatedResults: CompanyWithContacts[] | null = null;
       setCurrentResults(prev => {
         if (!prev) return null;
         
-        return prev.map(company => {
+        updatedResults = prev.map(company => {
           if (!company.contacts?.some(c => c.id === data.id)) {
             return company;
           }
@@ -2258,7 +2420,49 @@ export default function Home() {
             )
           };
         });
+        
+        return updatedResults;
       });
+      
+      // Immediately update localStorage to prevent losing emails on quick navigation
+      if (updatedResults) {
+        // Save lastExecutedQuery as currentQuery to ensure consistency
+        const queryToSave = lastExecutedQuery || currentQuery;
+        const stateToSave: SavedSearchState = {
+          currentQuery: queryToSave,
+          currentResults: updatedResults,
+          currentListId,
+          lastExecutedQuery
+        };
+        localStorage.setItem('searchState', JSON.stringify(stateToSave));
+        sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
+        console.log('Apollo.io: Immediately saved email to localStorage for persistence');
+      }
+      
+      // If we have a saved list, update it in the database to ensure persistence
+      if (currentListId && updatedResults) {
+        console.log('Apollo.io: Updating list in database with new email');
+        // Use silent update without toast notification
+        apiRequest("PUT", `/api/lists/${currentListId}`, {
+          companies: updatedResults,
+          prompt: currentQuery,
+          contactSearchConfig: (() => {
+            const savedConfig = localStorage.getItem('contactSearchConfig');
+            if (savedConfig) {
+              try {
+                return JSON.parse(savedConfig);
+              } catch (error) {
+                return null;
+              }
+            }
+            return null;
+          })()
+        }).then(() => {
+          console.log('Apollo.io: List updated in database successfully');
+        }).catch(error => {
+          console.error('Apollo.io: Failed to update list in database:', error);
+        });
+      }
       
       // Remove this contact ID from the set of pending searches
       setPendingApolloIds(prev => {
@@ -2268,26 +2472,28 @@ export default function Home() {
       });
       
       // Enhanced toast notifications with search metadata
-      if (searchContext === 'manual') {
-        const confidence = searchMetadata?.confidence || data.nameConfidenceScore;
-        const retryInfo = searchMetadata?.retryCount > 0 ? ` (${searchMetadata.retryCount + 1} attempts)` : '';
-        const additionalData = data.linkedinUrl || data.phoneNumber ? ' + profile data' : '';
-        
-        toast({
-          title: "Apollo.io Search Complete",
-          description: `${data.name}: ${emailFound 
-            ? `Found email with ${confidence || 'unknown'} confidence${additionalData}${retryInfo}.`
-            : `No email found${additionalData ? ', but found other profile data' : ''}${retryInfo}.`}`,
-        });
-      } else if (searchContext === 'automated' && emailFound) {
-        toast({
-          title: "Email Found",
-          description: `${data.name}: Successfully found email address.`,
-        });
+      if (!silent) {
+        if (searchContext === 'manual') {
+          const confidence = searchMetadata?.confidence || data.nameConfidenceScore;
+          const retryInfo = searchMetadata?.retryCount > 0 ? ` (${searchMetadata.retryCount + 1} attempts)` : '';
+          const additionalData = data.linkedinUrl || data.phoneNumber ? ' + profile data' : '';
+          
+          toast({
+            title: "Apollo.io Search Complete",
+            description: `${data.name}: ${emailFound 
+              ? `Found email with ${confidence || 'unknown'} confidence${additionalData}${retryInfo}.`
+              : `No email found${additionalData ? ', but found other profile data' : ''}${retryInfo}.`}`,
+          });
+        } else if (searchContext === 'automated' && emailFound) {
+          toast({
+            title: "Email Found",
+            description: `${data.name}: Successfully found email address.`,
+          });
+        }
       }
     },
     onError: (error, variables) => {
-      const { contactId, searchContext } = variables;
+      const { contactId, searchContext, silent = false } = variables;
       
       // Remove this contact ID from the set of pending searches
       setPendingApolloIds(prev => {
@@ -2297,23 +2503,25 @@ export default function Home() {
       });
       
       // Enhanced error handling with retry suggestions
-      if (searchContext === 'manual') {
-        const isRetryable = error instanceof Error && 
-          (error.message.includes('rate limit') || error.message.includes('network'));
-        
-        toast({
-          title: "Apollo.io Search Failed",
-          description: `${error instanceof Error ? error.message : "Failed to find contact email"}${
-            isRetryable ? ' - You can try again in a moment.' : ''
-          }`,
-          variant: "destructive",
-        });
+      if (!silent) {
+        if (searchContext === 'manual') {
+          const isRetryable = error instanceof Error && 
+            (error.message.includes('rate limit') || error.message.includes('network'));
+          
+          toast({
+            title: "Apollo.io Search Failed",
+            description: `${error instanceof Error ? error.message : "Failed to find contact email"}${
+              isRetryable ? ' - You can try again in a moment.' : ''
+            }`,
+            variant: "destructive",
+          });
+        }
       }
     },
   });
   
   // Handler for Apollo.io search with credit checking
-  const handleApolloSearch = async (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
+  const handleApolloSearch = async (contactId: number, searchContext: 'manual' | 'automated' = 'manual', silent: boolean = false) => {
     // Allow multiple searches to run in parallel
     if (pendingApolloIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
     
@@ -2337,7 +2545,24 @@ export default function Home() {
       }
     }
     
-    apolloMutation.mutate({ contactId, searchContext });
+    apolloMutation.mutate({ contactId, searchContext, silent });
+  };
+
+  // Wrapper function for comprehensive email search using the shared hook
+  const handleComprehensiveEmailSearch = async (contactId: number) => {
+    // Get contact data from current results
+    const contact = currentResults?.flatMap(c => c.contacts || []).find(ct => ct.id === contactId);
+    if (!contact) return;
+    
+    // Get company data for search context
+    const company = currentResults?.find(c => c.contacts?.some(ct => ct.id === contactId));
+    
+    // Call the shared hook function
+    await comprehensiveSearchHook(contactId, contact, {
+      companyName: company?.name,
+      companyWebsite: company?.website,
+      companyDescription: company?.description
+    });
   };
   
   // Functions for checkbox selection
@@ -2429,27 +2654,6 @@ export default function Home() {
           {/* Companies Analysis Section - Moved to top */}
           {currentResults && currentResults.length > 0 ? (
             <Card className="w-full fluffy-gradient-bg">
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Companies Analysis</CardTitle>
-                  {currentResults && (
-                    <Button
-                      variant="outline"
-                      onClick={handleSaveList}
-                      disabled={autoCreateListMutation.isPending || updateListMutation.isPending}
-                      className="opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                    >
-                      <ListPlus className="mr-2 h-4 w-4" />
-                      {currentListId && isSaved ? "Saved" : currentListId ? "Update List" : "Save as List"}
-                    </Button>
-                  )}
-                </div>
-                {lastExecutedQuery && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Search: {lastExecutedQuery}
-                  </p>
-                )}
-              </CardHeader>
               
               {/* Contact Discovery Report - with reduced padding */}
               {contactReportVisible && (
@@ -2494,9 +2698,10 @@ export default function Home() {
                 </div>
               )}
               
-              {/* Mini Search Menu */}
+              {/* Action buttons menu */}
               {currentResults && currentResults.length > 0 && (
-                <div className="px-6 pb-3 flex items-center gap-2">
+                <div className="px-6 py-3 flex items-center justify-between border-b">
+                  <div className="flex items-center gap-2">
                   <div className="relative">
                     <Button 
                       variant="outline" 
@@ -2606,6 +2811,18 @@ export default function Home() {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+                  </div>
+                  
+                  {/* Save button moved here */}
+                  <Button
+                    variant="outline"
+                    onClick={handleSaveList}
+                    disabled={autoCreateListMutation.isPending || updateListMutation.isPending}
+                    className="opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                  >
+                    <ListPlus className="mr-2 h-4 w-4" />
+                    {currentListId && isSaved ? "Saved" : currentListId ? "Update List" : "Save as List"}
+                  </Button>
                 </div>
               )}
               
@@ -2619,10 +2836,12 @@ export default function Home() {
                       handleAeroLeadsSearch={handleAeroLeadsSearch}
                       handleApolloSearch={handleApolloSearch}
                       handleEnrichContact={handleEnrichContact}
+                      handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
                       pendingHunterIds={pendingHunterIds}
                       pendingAeroLeadsIds={pendingAeroLeadsIds}
                       pendingApolloIds={pendingApolloIds}
-                    pendingContactIds={pendingContactIds}
+                      pendingContactIds={pendingContactIds}
+                      pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
                   />
                   </Suspense>
                 </div>
@@ -2752,15 +2971,7 @@ export default function Home() {
                           </TableCell>
                           
                           <TableCell>
-                            <Badge
-                              variant={
-                                (contact.probability || 0) >= 90
-                                  ? "default"
-                                  : (contact.probability || 0) >= 70
-                                  ? "secondary"
-                                  : "outline"
-                              }
-                            >
+                            <Badge variant="secondary">
                               {contact.probability || 0}
                             </Badge>
                           </TableCell>

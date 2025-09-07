@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { LogOut, User, Menu, LayoutDashboard, Mail, MessageCircle, Target, Headphones } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { useStrategyOverlay } from "@/lib/strategy-overlay-context";
+import { useStrategyOverlay } from "@/features/strategy-chat";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { CreditUpgradeDropdown } from "@/components/credit-upgrade-dropdown";
@@ -92,12 +92,6 @@ export function MainNav() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <Link href="/build">
-                  <DropdownMenuItem>
-                    <LayoutDashboard className="h-4 w-4 mr-2" />
-                    <span>Build</span>
-                  </DropdownMenuItem>
-                </Link>
                 <Link href="/account">
                   <DropdownMenuItem>
                     <User className="h-4 w-4 mr-2" />

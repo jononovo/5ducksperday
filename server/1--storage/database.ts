@@ -69,27 +69,6 @@ export class DatabaseStorage implements IStorage {
   updateEmailTemplate = (id: number, template: any, userId: number): Promise<any> => this.templateStorage.updateEmailTemplate(id, template, userId);
   deleteEmailTemplate = (id: number, userId: number): Promise<void> => this.templateStorage.deleteEmailTemplate(id, userId);
 
-  // Search Approaches (safe stubs for route compatibility)
-  getSearchApproach = async (id: number): Promise<any> => {
-    // Return default decision-maker strategy for compatibility
-    return { id, moduleType: 'decision_maker', active: true, name: 'Default Strategy' };
-  };
-  
-  listSearchApproaches = async (): Promise<any[]> => {
-    // Return default decision-maker approach for route compatibility
-    return [{ id: 1, moduleType: 'decision_maker', active: true, name: 'Default Strategy' }];
-  };
-  
-  createSearchTestResult = async (data: any): Promise<void> => {
-    // Silent no-op for route compatibility
-    console.log('Search test result stub called:', data.testId || 'unknown');
-  };
-  
-  getTestResultsByStrategy = async (strategyId: number, userId: number): Promise<any[]> => {
-    // Return empty array for route compatibility
-    return [];
-  };
-
   // Strategic Profiles (placeholder - to be implemented if needed)
   getStrategicProfile = async (id: number, userId: number): Promise<any> => undefined;
   listStrategicProfiles = async (userId: number): Promise<any[]> => [];

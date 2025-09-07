@@ -42,9 +42,10 @@ interface QuickTemplatesProps {
   onExitEditMode?: () => void;
   isMergeViewMode?: boolean;
   onToggleMergeView?: () => void;
+  isSavingTemplate?: boolean;
 }
 
-export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpdateTemplate, onMergeFieldInsert, onEditTemplate, isEditMode, editingTemplateId, onExitEditMode, isMergeViewMode, onToggleMergeView }: QuickTemplatesProps) {
+export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpdateTemplate, onMergeFieldInsert, onEditTemplate, isEditMode, editingTemplateId, onExitEditMode, isMergeViewMode, onToggleMergeView, isSavingTemplate = false }: QuickTemplatesProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
   const [mergeFieldDialogOpen, setMergeFieldDialogOpen] = useState(false);
   const [editConfirmDialogOpen, setEditConfirmDialogOpen] = useState(false);
@@ -196,14 +197,21 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
           <Button 
             variant="secondary"
             onClick={isEditMode ? () => onUpdateTemplate?.() : handleEditTemplate} 
-            disabled={!selectedTemplateId}
+            disabled={!selectedTemplateId || isSavingTemplate}
             className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
           >
             {isEditMode ? (
-              <>
-                <Save className="w-3 h-3 mr-1" />
-                Save Template
-              </>
+              isSavingTemplate ? (
+                <>
+                  <Save className="w-3 h-3 mr-1 animate-pulse" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-3 h-3 mr-1" />
+                  Save Template
+                </>
+              )
             ) : (
               <>
                 <Edit className="w-3 h-3 mr-1" />

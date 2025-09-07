@@ -123,10 +123,7 @@ export default function ContactDetails() {
                     {contact.role} at {company?.name}
                   </CardDescription>
                 </div>
-                <Badge variant={
-                  (contact.probability || 0) >= 90 ? "default" :
-                  (contact.probability || 0) >= 70 ? "secondary" : "outline"
-                }>
+                <Badge variant="secondary">
                   {contact.probability || 0}% match
                 </Badge>
               </div>

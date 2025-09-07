@@ -24,7 +24,8 @@ import {
   Palette,
   TrendingUp,
   Gift,
-  Box
+  Box,
+  Loader2
 } from "lucide-react";
 import {
   Select,
@@ -46,10 +47,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
-import {Loader2} from "lucide-react";
 import { queryClient } from "@/lib/queryClient"; // Import queryClient
 import type { InsertEmailTemplate } from "@shared/schema"; // Import the type
 import { ContactActionColumn } from "@/components/contact-action-column";
+import { ComprehensiveSearchButton } from "@/components/comprehensive-email-search";
+import { useComprehensiveEmailSearch } from "@/hooks/use-comprehensive-email-search";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -173,6 +175,9 @@ export default function Outreach() {
   
   // Scroll compression state
   const [isScrolled, setIsScrolled] = useState(false);
+  
+  // Gmail button hover state for expand/collapse
+  const [isGmailButtonHovered, setIsGmailButtonHovered] = useState(false);
   
   // Textarea refs for auto-resizing
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -461,21 +466,49 @@ export default function Outreach() {
   };
 
   const saveCurrentTemplate = () => {
-    if (editingTemplateId && editingTemplate && emailPrompt && emailContent) {
-      const templateData: InsertEmailTemplate = {
-        name: editingTemplate.name, // Preserve original template name
-        subject: emailSubject || editingTemplate.subject || "Email Template",
-        content: emailContent,
-        description: emailPrompt,
-        category: editingTemplate.category || "saved",
-        userId: user?.id || 1
-      };
-      
-      updateMutation.mutate({
-        id: editingTemplateId,
-        template: templateData
+    console.log('saveCurrentTemplate called with:', {
+      editingTemplateId,
+      hasEditingTemplate: !!editingTemplate,
+      emailPrompt,
+      emailContent,
+      emailSubject
+    });
+
+    // Check if we're in edit mode
+    if (!editingTemplateId || !editingTemplate) {
+      toast({
+        title: "No Template Selected",
+        description: "Please select a template to edit first",
+        variant: "destructive",
       });
+      return;
     }
+
+    // Only require content to be present (description/prompt can be empty)
+    if (!emailContent) {
+      toast({
+        title: "Missing Content",
+        description: "Template content cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const templateData: InsertEmailTemplate = {
+      name: editingTemplate.name, // Preserve original template name
+      subject: emailSubject || editingTemplate.subject || "Email Template",
+      content: emailContent,
+      description: emailPrompt || "", // Allow empty description
+      category: editingTemplate.category || "saved",
+      userId: user?.id || 1
+    };
+    
+    console.log('Attempting to update template with data:', templateData);
+    
+    updateMutation.mutate({
+      id: editingTemplateId,
+      template: templateData
+    });
   };
 
   // Handle product selection and insert context into email prompt
@@ -927,12 +960,14 @@ export default function Outreach() {
   };
 
   const handlePrevCompany = () => {
-    // Find previous company with contacts
-    for (let i = selectedCompanyIndex - 1; i >= 0; i--) {
-      const company = companies[i];
+    // Find previous company with contacts, wrapping around to end
+    const totalCompanies = companies.length;
+    for (let offset = 1; offset < totalCompanies; offset++) {
+      const prevIndex = (selectedCompanyIndex - offset + totalCompanies) % totalCompanies;
+      const company = companies[prevIndex];
       const contacts = queryClient.getQueryData([`/api/companies/${company.id}/contacts`]) as Contact[] || [];
       if (contacts.length > 0) {
-        setCurrentCompanyIndex(i);
+        setCurrentCompanyIndex(prevIndex);
         return;
       }
     }
@@ -981,7 +1016,7 @@ export default function Outreach() {
   };
 
   // Email enrichment handlers
-  const handleEnrichContact = async (contactId: number) => {
+  const handleEnrichContact = async (contactId: number, silent: boolean = false) => {
     setPendingContactIds(prev => new Set(prev).add(contactId));
     
     try {
@@ -996,16 +1031,20 @@ export default function Outreach() {
         queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] 
       });
       
-      toast({
-        title: "Contact Enriched",
-        description: "Email search completed successfully",
-      });
+      if (!silent) {
+        toast({
+          title: "Contact Enriched",
+          description: "Email search completed successfully",
+        });
+      }
     } catch (error) {
-      toast({
-        title: "Enrichment Failed",
-        description: error instanceof Error ? error.message : "Failed to enrich contact",
-        variant: "destructive",
-      });
+      if (!silent) {
+        toast({
+          title: "Enrichment Failed",
+          description: error instanceof Error ? error.message : "Failed to enrich contact",
+          variant: "destructive",
+        });
+      }
     } finally {
       setPendingContactIds(prev => {
         const newSet = new Set(prev);
@@ -1015,11 +1054,11 @@ export default function Outreach() {
     }
   };
 
-  const handleHunterSearch = async (contactId: number) => {
+  const handleHunterSearch = async (contactId: number, silent: boolean = false) => {
     setPendingHunterIds(prev => new Set(prev).add(contactId));
     
     try {
-      const response = await apiRequest("POST", `/api/contacts/${contactId}/hunter-search`, {});
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/hunter`, {});
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to search Hunter");
@@ -1029,16 +1068,20 @@ export default function Outreach() {
         queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] 
       });
       
-      toast({
-        title: "Hunter Search Complete",
-        description: "Hunter.io email search completed",
-      });
+      if (!silent) {
+        toast({
+          title: "Hunter Search Complete",
+          description: "Hunter.io email search completed",
+        });
+      }
     } catch (error) {
-      toast({
-        title: "Hunter Search Failed",
-        description: error instanceof Error ? error.message : "Failed to search Hunter.io",
-        variant: "destructive",
-      });
+      if (!silent) {
+        toast({
+          title: "Hunter Search Failed",
+          description: error instanceof Error ? error.message : "Failed to search Hunter.io",
+          variant: "destructive",
+        });
+      }
     } finally {
       setPendingHunterIds(prev => {
         const newSet = new Set(prev);
@@ -1052,7 +1095,7 @@ export default function Outreach() {
     setPendingAeroLeadsIds(prev => new Set(prev).add(contactId));
     
     try {
-      const response = await apiRequest("POST", `/api/contacts/${contactId}/aeroleads-search`, {});
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/aeroleads`, {});
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to search AeroLeads");
@@ -1081,11 +1124,11 @@ export default function Outreach() {
     }
   };
 
-  const handleApolloSearch = async (contactId: number) => {
+  const handleApolloSearch = async (contactId: number, silent: boolean = false) => {
     setPendingApolloIds(prev => new Set(prev).add(contactId));
     
     try {
-      const response = await apiRequest("POST", `/api/contacts/${contactId}/apollo-search`, {});
+      const response = await apiRequest("POST", `/api/contacts/${contactId}/apollo`, {});
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to search Apollo");
@@ -1095,16 +1138,20 @@ export default function Outreach() {
         queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] 
       });
       
-      toast({
-        title: "Apollo Search Complete",
-        description: "Apollo.io email search completed",
-      });
+      if (!silent) {
+        toast({
+          title: "Apollo Search Complete",
+          description: "Apollo.io email search completed",
+        });
+      }
     } catch (error) {
-      toast({
-        title: "Apollo Search Failed",
-        description: error instanceof Error ? error.message : "Failed to search Apollo.io",
-        variant: "destructive",
-      });
+      if (!silent) {
+        toast({
+          title: "Apollo Search Failed",
+          description: error instanceof Error ? error.message : "Failed to search Apollo.io",
+          variant: "destructive",
+        });
+      }
     } finally {
       setPendingApolloIds(prev => {
         const newSet = new Set(prev);
@@ -1112,6 +1159,68 @@ export default function Outreach() {
         return newSet;
       });
     }
+  };
+
+  // Use the shared comprehensive email search hook
+  const { handleComprehensiveEmailSearch: comprehensiveSearchHook, pendingSearchIds: pendingComprehensiveSearchIds } = useComprehensiveEmailSearch({
+    onContactUpdate: async (updatedContact) => {
+      // Only update the cache data directly without refetching
+      const queryKey = [`/api/companies/${selectedCompany?.id}/contacts`];
+      
+      // Update the cache data directly to show the new email immediately
+      queryClient.setQueryData<Contact[]>(queryKey, (oldData) => {
+        if (!oldData) return oldData;
+        return oldData.map(contact =>
+          contact.id === updatedContact.id ? updatedContact : contact
+        );
+      });
+      
+      // Don't refetch - just update the cache to avoid reordering/disappearing contacts
+      // The cache update above is sufficient to trigger a re-render with the new data
+    },
+    onSearchComplete: async (contactId, emailFound) => {
+      if (!emailFound) {
+        console.log('Comprehensive search complete, no email found for contact:', contactId);
+        
+        // Only update the specific contact in cache, don't refetch
+        const queryKey = [`/api/companies/${selectedCompany?.id}/contacts`];
+        
+        // Get the current contact from the server to ensure we have the latest state
+        try {
+          const response = await apiRequest("GET", `/api/contacts/${contactId}`);
+          if (response.ok) {
+            const updatedContact = await response.json();
+            
+            // Update only this contact in the cache
+            queryClient.setQueryData<Contact[]>(queryKey, (oldData) => {
+              if (!oldData) return oldData;
+              return oldData.map(contact =>
+                contact.id === contactId ? updatedContact : contact
+              );
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch updated contact:', error);
+        }
+      }
+    }
+  });
+  
+  // Wrapper function for comprehensive email search
+  const handleComprehensiveEmailSearch = async (contactId: number) => {
+    // Get contact data from current list
+    const contact = contacts?.find(c => c.id === contactId);
+    if (!contact) return;
+    
+    // Get company data for search context
+    const company = selectedCompany;
+    
+    // Call the shared hook function
+    await comprehensiveSearchHook(contactId, contact, {
+      companyName: company?.name || undefined,
+      companyWebsite: company?.website || undefined,
+      companyDescription: company?.description || undefined
+    });
   };
 
   return (
@@ -1212,9 +1321,18 @@ export default function Outreach() {
                     <div className="text-xs text-muted-foreground mt-0 whitespace-nowrap overflow-hidden text-ellipsis pr-8">
                       {selectedContact.role}
                     </div>
-                    {selectedContact.email && (
+                    {selectedContact.email ? (
                       <div className="text-sm text-muted-foreground mt-2">
                         {selectedContact.email}
+                      </div>
+                    ) : (
+                      <div className="mt-2">
+                        <ComprehensiveSearchButton
+                          contact={selectedContact}
+                          onSearch={handleComprehensiveEmailSearch}
+                          isPending={pendingComprehensiveSearchIds.has(selectedContact.id)}
+                          displayMode="text"
+                        />
                       </div>
                     )}
                     
@@ -1292,53 +1410,118 @@ export default function Outreach() {
           <div className="md:border md:rounded-lg md:shadow-sm">
             <div className="p-6 md:pb-6">
               <div className="space-y-3">
-                {/* List Selection Row */}
-                <Select
-                  value={selectedListId}
-                  onValueChange={(value) => {
-                    setSelectedListId(value);
-                    setCurrentCompanyIndex(0); // Reset company index when changing list
-                  }}
-                >
-                  <SelectTrigger className="[&>span]:pl-2">
-                    <SelectValue placeholder="Select a list" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {lists.map((list: List) => (
-                      <SelectItem key={list.listId} value={list.listId.toString()}>
-                        {generateShortListDisplayName(list)} ({list.resultCount} companies)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                {/* Title + Navigation Row */}
-                <div className="flex items-center justify-center gap-3">
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="w-5 h-5" />
-                  </CardTitle>
+                {/* Unified Navigation Container */}
+                <div className={cn(
+                  "rounded-lg border transition-all duration-200",
+                  !selectedListId 
+                    ? "border-2 border-blue-200"
+                    : selectedListId && !selectedContactId
+                      ? "border border-blue-200"
+                      : "border border-gray-200"
+                )}>
+                  {/* List Selection Dropdown */}
+                  <Select
+                    value={selectedListId}
+                    onValueChange={(value) => {
+                      setSelectedListId(value);
+                      setCurrentCompanyIndex(0); // Reset company index when changing list
+                    }}
+                  >
+                    <SelectTrigger className={cn(
+                      "w-full h-12 transition-all duration-200 font-medium border-0 rounded-b-none",
+                      !selectedListId 
+                        ? "px-4 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100"
+                        : "px-3 bg-white hover:bg-gray-50",
+                      // Hide the company count in the trigger display
+                      selectedListId && "[&_span.company-count]:hidden",
+                      companies.length > 0 && "border-b"
+                    )}>
+                      <SelectValue placeholder="Select a list to start" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {lists.map((list: List) => (
+                        <SelectItem 
+                          key={list.listId} 
+                          value={list.listId.toString()}
+                        >
+                          <div className="flex items-center justify-between w-full pr-2">
+                            <span className="font-medium">{generateShortListDisplayName(list)}</span>
+                            <span className="company-count text-sm text-muted-foreground ml-4">
+                              {list.resultCount} companies
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Company Navigation */}
                   {companies.length > 0 && (
-                    <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "flex items-center justify-center gap-2 p-3 rounded-b-lg transition-all duration-200",
+                      selectedListId && !selectedContactId 
+                        ? "bg-gradient-to-r from-blue-50 to-indigo-50"
+                        : "bg-white"
+                    )}>
                       <Button
                         variant="outline"
                         size="default"
-                        className="px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+                        className={cn(
+                          "h-12 w-12 p-0 bg-white border-2 transition-all duration-200 shadow-sm hover:shadow-md",
+                          selectedListId && !selectedContactId
+                            ? "border-blue-300 hover:border-blue-500 hover:bg-blue-100"
+                            : "border-gray-300 hover:border-gray-400 hover:bg-gray-100"
+                        )}
                         onClick={handlePrevCompany}
-                        disabled={selectedCompanyIndex === 0}
                       >
-                        <ChevronLeft className="w-5 h-5" />
+                        <ChevronLeft 
+                          className={cn(
+                            selectedListId && !selectedContactId
+                              ? "text-blue-300"
+                              : "text-gray-300"
+                          )}
+                          style={{ width: '32px', height: '32px' }}
+                        />
                       </Button>
-                      <span className="text-sm text-muted-foreground font-medium">
-                        {selectedCompanyIndex + 1} of {companies.length}
-                      </span>
+                      
+                      <div className="flex items-center gap-2 px-4">
+                        <Building2 className={cn(
+                          "w-5 h-5",
+                          selectedListId && !selectedContactId ? "text-blue-600" : "text-gray-600"
+                        )} />
+                        <div className="text-center">
+                          <span className={cn(
+                            "text-base font-semibold",
+                            selectedListId && !selectedContactId ? "text-blue-800" : "text-gray-800"
+                          )}>
+                            {selectedCompanyIndex + 1} of {companies.length}
+                          </span>
+                          <p className={cn(
+                            "text-xs",
+                            selectedListId && !selectedContactId ? "text-blue-600" : "text-gray-500"
+                          )}>Companies</p>
+                        </div>
+                      </div>
+                      
                       <Button
                         variant="outline"
                         size="default"
-                        className="px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+                        className={cn(
+                          "h-12 w-12 p-0 bg-white border-2 transition-all duration-200 shadow-sm hover:shadow-md",
+                          selectedListId && !selectedContactId
+                            ? "border-blue-300 hover:border-blue-500 hover:bg-blue-100"
+                            : "border-gray-300 hover:border-gray-400 hover:bg-gray-100"
+                        )}
                         onClick={handleNextCompany}
-                        disabled={selectedCompanyIndex === companies.length - 1}
                       >
-                        <ChevronRight className="w-5 h-5" />
+                        <ChevronRight 
+                          className={cn(
+                            selectedListId && !selectedContactId
+                              ? "text-blue-300"
+                              : "text-gray-300"
+                          )}
+                          style={{ width: '32px', height: '32px' }}
+                        />
                       </Button>
                     </div>
                   )}
@@ -1346,7 +1529,34 @@ export default function Outreach() {
               </div>
             </div>
             <div className="px-6 pb-6 md:px-6 md:pb-6">
-
+              {/* Company Name Header */}
+              {selectedCompany && (
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-medium text-gray-500">{selectedCompany.name}</h2>
+                  <TooltipProvider delayDuration={500}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log('Company view button clicked:', { id: selectedCompany.id, name: selectedCompany.name });
+                            setLocation(`/companies/${selectedCompany.id}`);
+                          }}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Open company page</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
+              
               {/* Key Members Section */}
               {topContacts && topContacts.length > 0 && (
                 <div className="space-y-2">
@@ -1389,10 +1599,7 @@ export default function Outreach() {
                         <div className="flex items-center justify-between">
                           <span className="font-medium">{contact.name}</span>
                           <div className="flex items-center gap-3">
-                            <Badge variant={
-                              (contact.probability || 0) >= 90 ? "default" :
-                              (contact.probability || 0) >= 70 ? "secondary" : "outline"
-                            }>
+                            <Badge variant="secondary">
                               {contact.probability || 0}
                             </Badge>
                             {/* Mobile Actions Menu */}
@@ -1416,8 +1623,15 @@ export default function Outreach() {
                           {contact.role && (
                             <span className="block">{contact.role}</span>
                           )}
-                          {contact.email && (
+                          {contact.email ? (
                             <span className="block">{contact.email}</span>
+                          ) : (
+                            <ComprehensiveSearchButton
+                              contact={contact}
+                              onSearch={handleComprehensiveEmailSearch}
+                              isPending={pendingComprehensiveSearchIds.has(contact.id)}
+                              displayMode="text"
+                            />
                           )}
                         </div>
                         {/* Copy button */}
@@ -1448,44 +1662,11 @@ export default function Outreach() {
                 </div>
               )}
 
-              <div className="mt-6">
+              <div className="mt-4">
                 <div>
-                  <div className="pt-6">
+                  <div className="pt-3">
                     {selectedCompany ? (
                       <div className="border rounded-lg p-4 space-y-2">
-                        {/* Company Name with Link - More prominent */}
-                        <div>
-                          <div className="flex justify-between items-start mb-1">
-                            <h2 className="text-xl font-semibold">{selectedCompany.name}</h2>
-                            <TooltipProvider delayDuration={500}>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 w-8 p-0"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      console.log('Company view button clicked:', { id: selectedCompany.id, name: selectedCompany.name });
-                                      setLocation(`/companies/${selectedCompany.id}`);
-                                    }}
-                                  >
-                                    <ExternalLink className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Open company page</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          {selectedCompany.size && (
-                            <p className="text-muted-foreground">
-                              {selectedCompany.size} employees
-                            </p>
-                          )}
-                        </div>
-
                         {/* Company Description */}
                         <div>
                           {selectedCompany.description ? (
@@ -1532,11 +1713,21 @@ export default function Outreach() {
 
                       </div>
                     ) : (
-                      <p className="text-muted-foreground">
-                        {selectedListId
-                          ? "No companies found in this list"
-                          : "Select a list to view company details"}
-                      </p>
+                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 bg-gray-50/50">
+                        <div className="flex flex-col items-center justify-center text-center space-y-2">
+                          <Building2 className="w-12 h-12 text-gray-400" />
+                          <p className="text-muted-foreground font-medium">
+                            {selectedListId
+                              ? "No companies found in this list"
+                              : "Select a list to view company details"}
+                          </p>
+                          {!selectedListId && (
+                            <p className="text-sm text-muted-foreground">
+                              Choose a list from the dropdown above to start prospecting
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1827,15 +2018,33 @@ export default function Outreach() {
                       }
                     </Badge>
                   ) : (
-                    <Button
-                      onClick={handleGmailConnect}
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
-                    >
-                      <Lock className="w-3 h-3 mr-1" />
-                      Secure Gmail Connect
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={handleGmailConnect}
+                            onMouseEnter={() => setIsGmailButtonHovered(true)}
+                            onMouseLeave={() => setIsGmailButtonHovered(false)}
+                            variant="outline"
+                            size="sm"
+                            className={cn(
+                              "h-8 text-xs transition-all duration-300 ease-out overflow-hidden",
+                              isGmailButtonHovered 
+                                ? "px-3 bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100" 
+                                : "px-2 w-8 bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+                            )}
+                          >
+                            <Lock className="w-3 h-3 shrink-0" />
+                            {isGmailButtonHovered && (
+                              <span className="ml-1 whitespace-nowrap">Gmail API BETA</span>
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Connect via Gmail API so that your emails send automatically when you click send here.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                   
                   {/* Send Email Button with Fallback */}
@@ -1875,6 +2084,7 @@ export default function Outreach() {
                   onExitEditMode={exitEditMode}
                   isMergeViewMode={isMergeViewMode}
                   onToggleMergeView={toggleMergeView}
+                  isSavingTemplate={updateMutation.isPending}
                 />
               </div>
             </div>

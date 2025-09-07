@@ -15,7 +15,7 @@ import { SearchSessionManager } from "@/lib/search-session-manager";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { useNotifications } from "@/hooks/use-notifications";
+import { useNotifications } from "@/features/user-account-settings";
 import { SearchProgress } from "./search-progress";
 import { MainSearchSummary } from "./main-search-summary";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
@@ -490,6 +490,16 @@ export default function PromptEditor({
       }
     }
   }, [initialPrompt, isFromLandingPage]);
+
+  // Sync query when initialPrompt changes (e.g., when loading saved searches)
+  useEffect(() => {
+    // Only sync if initialPrompt has meaningfully changed and is different from current query
+    // AND if this matches lastExecutedQuery (indicating a saved search was loaded)
+    if (initialPrompt && initialPrompt !== query && initialPrompt === lastExecutedQuery) {
+      setQuery(initialPrompt);
+      setInputHasChanged(false); // Reset input changed flag since we're loading a saved search
+    }
+  }, [initialPrompt, lastExecutedQuery]);
 
   // Handle tooltip dismissal
   useEffect(() => {

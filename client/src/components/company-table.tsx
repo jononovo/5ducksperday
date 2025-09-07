@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   ExternalLink, 
-  Mail, 
   Gem,
   Target,
   Rocket,
@@ -41,6 +40,7 @@ import {
 import type { Company, Contact } from "@shared/schema";
 import { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
 import { ContactActionColumn } from "@/components/contact-action-column";
+import { ComprehensiveSearchButton } from "@/components/comprehensive-email-search";
 
 interface CompanyTableProps {
   companies: Array<Company & { contacts?: ContactWithCompanyInfo[] }>;
@@ -50,10 +50,12 @@ interface CompanyTableProps {
   handleAeroLeadsSearch?: (contactId: number) => void;
   handleApolloSearch?: (contactId: number) => void;
   handleEnrichContact?: (contactId: number) => void;
+  handleComprehensiveEmailSearch?: (contactId: number) => void;
   pendingHunterIds?: Set<number>;
   pendingAeroLeadsIds?: Set<number>;
   pendingApolloIds?: Set<number>;
   pendingContactIds?: Set<number>;
+  pendingComprehensiveSearchIds?: Set<number>;
 }
 
 export default function CompanyTable({ 
@@ -63,10 +65,12 @@ export default function CompanyTable({
   handleAeroLeadsSearch,
   handleApolloSearch,
   handleEnrichContact,
+  handleComprehensiveEmailSearch,
   pendingHunterIds,
   pendingAeroLeadsIds,
   pendingApolloIds,
-  pendingContactIds
+  pendingContactIds,
+  pendingComprehensiveSearchIds
 }: CompanyTableProps) {
   // Move console logging to useEffect to avoid React warnings about state updates during render
   useEffect(() => {
@@ -230,7 +234,7 @@ export default function CompanyTable({
                   aria-label="Select all companies and contacts"
                 />
               </TableHead>
-              <TableHead>Name</TableHead>
+              <TableHead>Company Name</TableHead>
               <TableHead className="hidden md:table-cell">Details</TableHead>
               <TableHead className="hidden md:table-cell">Score</TableHead>
               <TableHead>Actions</TableHead>
@@ -357,18 +361,12 @@ export default function CompanyTable({
                       </div>
                       <div className="md:hidden text-xs text-muted-foreground leading-tight mt-0.5">
                         {contact.email || (
-                          <TooltipProvider delayDuration={300}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="text-muted-foreground">
-                                  <Mail className="h-4 w-4 text-gray-400" />
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="text-xs">
-                                <p>Use "Action" icons on this row to find this email. 👉🏼</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <ComprehensiveSearchButton
+                            contact={contact}
+                            onSearch={handleComprehensiveEmailSearch!}
+                            isPending={pendingComprehensiveSearchIds?.has(contact.id)}
+                            displayMode="icon"
+                          />
                         )}
                         {Array.isArray(contact.alternativeEmails) && contact.alternativeEmails.length > 0 && (
                           <div className="text-xs opacity-75 mt-0.5 italic">
@@ -384,18 +382,12 @@ export default function CompanyTable({
                     <TableCell className="py-1 hidden md:table-cell">
                       <div className="text-xs text-muted-foreground">
                         {contact.email || (
-                          <TooltipProvider delayDuration={300}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="text-muted-foreground">
-                                  <Mail className="h-4 w-4 text-gray-400" />
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="text-xs">
-                                <p>Use "Action" icons on this row to find this email. 👉🏼</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <ComprehensiveSearchButton
+                            contact={contact}
+                            onSearch={handleComprehensiveEmailSearch!}
+                            isPending={pendingComprehensiveSearchIds?.has(contact.id)}
+                            displayMode="icon"
+                          />
                         )}
                       </div>
                       {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
