@@ -10,7 +10,6 @@ import { storage } from "../storage";
 import { getUserId } from "./utils";
 import { hunterSearch } from "./providers/hunter";
 import { apolloSearch } from "./providers/apollo";
-import { aeroLeadsSearch } from "./providers/aeroleads";
 import { searchContactDetails } from "./enrichment/contact-details";
 import { CreditService } from "../lib/credits";
 import type { Contact } from "@shared/schema";
@@ -23,8 +22,6 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
   // Apollo.io email finder endpoint
   app.post("/api/contacts/:contactId/apollo", requireAuth, apolloSearch);
   
-  // AeroLeads email finder endpoint
-  app.post("/api/contacts/:contactId/aeroleads", requireAuth, aeroLeadsSearch);
   
   // Mark comprehensive search as complete (even if no email was found)
   app.post("/api/contacts/:contactId/comprehensive-search-complete", requireAuth, async (req: Request, res: Response) => {

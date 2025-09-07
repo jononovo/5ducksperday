@@ -1,0 +1,95 @@
+There's only ONE place where Perplexity is directly asked to find email addresses:
+File: server/search/enrichment/contact-details.ts Function: searchContactDetails (lines 35-60)
+const messages: PerplexityMessage[] = [
+{
+role: "system",
+content: `You are a contact information researcher. Find professional information about the specified person. Include:
+1. Role and department
+2. Professional email // <-- HERE: Requesting email
+3. LinkedIn URL
+4. Location
+
+IMPORTANT: If you cannot find data, leave fields empty. Do NOT make up data.
+
+Format your response as JSON.`
+},
+{
+role: "user",
+content: `Find professional contact information for ${name} at ${company}.`
+}
+];
+
+🔗 How It's Called
+This function is exposed through three API endpoints:
+1. /api/contacts/:contactId/enrich (Primary endpoint)
+    * File: server/search/contacts.ts (line 124)
+    * Used by the "AI-powered Search" button in the UI (Sparkles icon)
+    * Called when users click the dropdown menu item
+2. /api/contacts/search (Direct search)
+    * File: server/search/contacts.ts (line 94)
+    * Takes name and company as body parameters
+    * Less commonly used
+3. Comprehensive Email Search (Orchestrated)
+    * File: client/src/hooks/use-comprehensive-email-search.ts (line 84)
+    * Calls the enrich endpoint as part of a multi-provider search sequence
+    * Order: Apollo → Perplexity → Hunter
+🎯 Frontend Usage
+The Perplexity email search is triggered from:
+1. Search Page (client/src/pages/home.tsx)
+    * Via handleEnrichContact function (line 1144)
+    * Through the contact action dropdown menu
+2. Outreach Page (client/src/pages/outreach.tsx)
+    * Via handleEnrichContact function (line 1019)
+    * Same dropdown menu component
+3. Contact Action Dropdown (client/src/components/contact-action-column.tsx)
+    * Shows as "AI-powered Search" with Sparkles icon
+    * Lines 129-145
+📊 Summary
+You're correct - there aren't many Perplexity prompts requesting email addresses. In fact, there's only ONE prompt template in the entire codebase that explicitly asks Perplexity for email addresses. This single prompt is reused across all contact enrichment scenarios.
+The prompt is straightforward and asks for "Professional email" as one of four data points (role, email, LinkedIn, location). This makes it easy to modify or remove if needed.
+The comprehensive email search feature uses this as a fallback - it tries Apollo first, then Perplexity, then Hunter.io as a last resort to find email addresses.
+
+3 minutes of work
+
+OK, so within this Perplexity enrichment request there's actually a few different things that are being received back and I'm not sure how often they're actually being received but I don't think anything other than the email address is actually being safe to the database and into the contact’s page on the app. Right?  What I would like is to map the other elements that are being discovered ( and I'm sure sometime soon not included or found) two database fields for that specific contact.  And I'm not sure if we have these fields ready for contacts or if we may need to create them.  What do you think?  I mean, I know we have role and department. And we have professional email. But I don't think we're saving LinkedIn or location anywhere right?  Also, we're already doing a separate request for the designation of the contact so maybe we can remove that from the request as it's a bit of duplication isn't it?   —  const messages: PerplexityMessage[] = [ { role: "system", content: `You are a contact information researcher. Find professional information about the specified person. Include: 1. Role and department 2. Professional email // <-- HERE: Requesting email 3. LinkedIn URL 4. Location
+IMPORTANT: If you cannot find data, leave fields empty. Do NOT make up data.
+
+Format your response as JSON.`
+
+}, { role: "user", content: Find professional contact information for ${name} at ${company}. } ];
+
+
+
+6 minutes ago
+
+Optimized Agent memory
+
+Planned Perplexity field mapping (6 seconds)
+
+You're absolutely right! Let me investigate the current state of contact data storage and the Perplexity enrichment handling.
+
+Opened server/search/analysis/email-analysis.ts
+
+
+Decided on parsing logic adjustment (6 seconds)
+
+Excellent observation! You're absolutely correct. After investigating the code, I found the issue:
+🔍 Current Problem
+The good news: The database already has all the necessary fields:
+* linkedinUrl ✅
+* location ✅
+* role ✅
+* department ✅
+The bad news: The parseEmailDetails function in server/search/analysis/email-analysis.ts is ONLY extracting email addresses from Perplexity's response. It completely ignores LinkedIn URL, location, role, and department!
+Here's what's happening:
+1. Perplexity returns a JSON response with all 4 fields
+2. The parseEmailDetails function only looks for email patterns with regex
+3. All other valuable data (LinkedIn, location, etc.) is thrown away 😞
+4. The endpoint tries to save these fields but they're always undefined
+📋 Solution Plan
+Let me fix this by:
+1. Updating the parseEmailDetails function to properly parse JSON and extract ALL fields
+2. Optionally removing role/department from the request (as you suggested, since it might be redundant)
+3. Ensuring all discovered data is saved to the database
+
+
