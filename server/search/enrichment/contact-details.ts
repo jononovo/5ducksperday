@@ -33,16 +33,14 @@ export async function searchContactDetails(name: string, company: string): Promi
       {
         role: "system",
         content: `You are a contact information researcher. Find professional information about the specified person. Include:
-        1. Role and department
-        2. Professional email
-        3. LinkedIn URL
-        4. Location
+        1. Professional email
+        2. LinkedIn URL
+        3. Location (city, state/country)
 
         IMPORTANT: If you cannot find data, leave fields empty. Do NOT make up data.
 
         Format your response as JSON with these exact keys:
         {
-          "role_and_department": "string or empty",
           "professional_email": "string or empty", 
           "linkedin_url": "string or empty",
           "location": "string or empty"
@@ -84,7 +82,7 @@ export async function searchContactDetails(name: string, company: string): Promi
       linkedinUrl: parsedData.linkedin_url || parsedData.linkedinUrl || null,
       twitterHandle: parsedData.twitter_handle || parsedData.twitterHandle || null,
       phoneNumber: parsedData.phone_number || parsedData.phoneNumber || null,
-      department: parsedData.role_and_department || parsedData.department || null,
+      department: null, // Department is not requested in enrichment since role is already obtained in discovery
       location: parsedData.location || null
     };
 
