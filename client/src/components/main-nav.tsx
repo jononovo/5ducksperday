@@ -98,13 +98,6 @@ export function MainNav() {
                     <span>Account</span>
                   </DropdownMenuItem>
                 </Link>
-
-                <Link href="/campaigns">
-                  <DropdownMenuItem>
-                    <Mail className="h-4 w-4 mr-2" />
-                    <span>Campaigns</span>
-                  </DropdownMenuItem>
-                </Link>
                 <Link href="/strategy">
                   <DropdownMenuItem>
                     <Target className="h-4 w-4 mr-2" />
