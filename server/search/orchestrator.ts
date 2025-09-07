@@ -8,19 +8,7 @@ import { Express, Request, Response } from "express";
 import { storage } from "../storage";
 import { CreditService } from "../lib/credits";
 import { getUserId } from "./utils";
-// import { searchContactDetails } from "./enrichment/contact-details"; // File doesn't exist - TSX runtime cached
-// Temporary placeholder for searchContactDetails to prevent crashes
-const searchContactDetails = async (contactName: string, companyName: string) => {
-  console.log('searchContactDetails called but implementation missing:', { contactName, companyName });
-  return {
-    email: null,
-    linkedinUrl: null,
-    twitterHandle: null,
-    phoneNumber: null,
-    department: null,
-    location: null
-  };
-};
+import { searchContactDetails } from "./enrichment/contact-details";
 import type { Contact } from "./types";
 
 export function registerOrchestratorRoutes(app: Express, requireAuth: any) {
