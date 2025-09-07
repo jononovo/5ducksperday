@@ -1,4 +1,4 @@
-import { logOutgoingRequest, logHttpStatus } from "./webhook-logger";
+// Webhook logger removed - using console logging instead
 
 // Default N8N workflow webhook URL - this should be configurable in production
 const DEFAULT_N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://n8n.5ducks.io/webhook/5-ducks-search-workflow";
@@ -76,7 +76,13 @@ export async function sendSearchRequest(query: string, options: WorkflowRequestO
   
   try {
     // Log the outgoing request
-    const requestId = await logOutgoingRequest(searchId, webhookUrl, payload);
+    const requestId = `n8n-send-${Date.now()}`;
+    console.log(`[${new Date().toISOString()}] Logging outgoing N8N request:`, {
+      requestId,
+      searchId,
+      url: webhookUrl,
+      payload
+    });
     
     console.log(`Sending search request: ${searchId} - Query: "${query}"`);
     
@@ -101,12 +107,11 @@ export async function sendSearchRequest(query: string, options: WorkflowRequestO
     }
     
     // Log the HTTP status
-    await logHttpStatus(
-      requestId,
-      response.status,
-      response.statusText,
+    console.log(`[${new Date().toISOString()}] Logging HTTP status for ${requestId}:`, {
+      statusCode: response.status,
+      statusText: response.statusText,
       responseData
-    );
+    });
     
     // Check response status
     if (!response.ok) {

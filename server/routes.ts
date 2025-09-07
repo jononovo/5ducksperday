@@ -31,7 +31,6 @@ import { registerStripeRoutes } from "./routes/stripe";
 import { CreditService } from "./lib/credits";
 import { SearchType } from "./lib/credits/types";
 import { sendSearchRequest, startKeepAlive, stopKeepAlive } from "./lib/workflow-service";
-// import { logIncomingWebhook } from "./lib/webhook-logger"; // COMMENTED: webhook logging inactive
 import { getEmailProvider } from "./services/emailService";
 import { registerEmailGenerationRoutes } from "./email-content-generation/routes";
 import { registerGmailRoutes } from "./features/gmail-integration";
@@ -322,7 +321,6 @@ export function registerRoutes(app: Express) {
       
       // Log the incoming webhook
       console.log(`Received webhook for searchId: ${searchId}, status: ${status || 'unknown'}`);
-      // await logIncomingWebhook(searchId, req.body, req.headers as Record<string, string>); // Function doesn't exist
       
       // Handle error case
       if (error) {
