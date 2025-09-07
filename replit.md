@@ -93,10 +93,10 @@ This application supports Replit AI agent browser testing through an authenticat
 - All pages and API endpoints are accessible without login
 - Database operations use the demo user account
 
-**Current Status:** ✅ ENABLED
+**Current Status:** ❌ DISABLED
 - Environment: Development
-- Test User ID: 1
-- Email: demo@5ducks.ai
+- Test User ID: N/A (disabled)
+- Email: N/A (disabled)
 
 **For AI Testing Agents:**
 1. No authentication required - proceed directly to any page

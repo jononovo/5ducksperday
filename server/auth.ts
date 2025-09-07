@@ -227,7 +227,9 @@ export function setupAuth(app: Express) {
 
   // Add Firebase token verification to all authenticated routes
   app.use(async (req, res, next) => {
-    // AI Testing Mode - Only apply for unauthenticated requests
+    // AI Testing Mode - DISABLED for normal user authentication
+    // The test mode bypass has been commented out to allow proper user authentication
+    /*
     if (process.env.ENABLE_AI_TEST_MODE === 'true' && 
         process.env.NODE_ENV !== 'production' &&
         !req.isAuthenticated()) {
@@ -254,6 +256,7 @@ export function setupAuth(app: Express) {
       
       return next(); // Skip other auth checks for this request
     }
+    */
     
     // Enhanced session debugging
     console.log('Session middleware check:', {
