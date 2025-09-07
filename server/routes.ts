@@ -39,6 +39,9 @@ import { registerHealthMonitoringRoutes } from "./features/health-monitoring";
 import { registerListsRoutes } from "./features/lists";
 import { registerEmailTemplatesRoutes } from "./email/email-templates";
 import { registerSearchRoutes, SessionManager } from "./search";
+import { registerUserAccountSettingsRoutes } from "./user-account-settings";
+import { registerEmailRepliesRoutes } from "./email-replies";
+import { registerCampaignsRoutes } from "./campaigns";
 
 
 
@@ -267,116 +270,7 @@ export function registerRoutes(app: Express) {
   app.get('/sitemap.xml', generateSitemap);
   
   
-  // Email conversations routes
-  app.get('/api/replies/contacts', requireAuth, async (req, res) => {
-    try {
-      const userId = (req as any).user.id;
-      const gmailToken = (req.session as any)?.gmailToken || null;
-      
-      // Get the appropriate email provider (Gmail or mock)
-      const emailProvider = getEmailProvider(userId, gmailToken);
-      
-      // Fetch active contacts using the provider
-      const activeContacts = await emailProvider.getActiveContacts(userId);
-      
-      res.json(activeContacts);
-    } catch (error) {
-      console.error('Error fetching active contacts with threads:', error);
-      res.status(500).json({ error: 'Failed to fetch active contacts' });
-    }
-  });
-  
-  app.get('/api/replies/threads/:contactId', requireAuth, async (req, res) => {
-    try {
-      const userId = (req as any).user.id;
-      const contactId = parseInt(req.params.contactId, 10);
-      const gmailToken = (req.session as any)?.gmailToken || null;
-      
-      if (isNaN(contactId)) {
-        return res.status(400).json({ error: 'Invalid contact ID' });
-      }
-      
-      // Get the appropriate email provider 
-      const emailProvider = getEmailProvider(userId, gmailToken);
-      
-      // Fetch threads for this contact using the provider
-      const threads = await emailProvider.getThreadsByContact(contactId, userId);
-      
-      res.json(threads);
-    } catch (error) {
-      console.error('Error fetching threads for contact:', error);
-      res.status(500).json({ error: 'Failed to fetch email threads' });
-    }
-  });
-  
-  app.get('/api/replies/thread/:id', requireAuth, async (req, res) => {
-    try {
-      const userId = (req as any).user.id;
-      const threadId = parseInt(req.params.id, 10);
-      const gmailToken = (req.session as any)?.gmailToken || null;
-      
-      if (isNaN(threadId)) {
-        return res.status(400).json({ error: 'Invalid thread ID' });
-      }
-      
-      // Get the appropriate email provider
-      const emailProvider = getEmailProvider(userId, gmailToken);
-      
-      // Fetch thread with messages using the provider
-      const threadData = await emailProvider.getThreadWithMessages(threadId, userId);
-      
-      if (!threadData) {
-        return res.status(404).json({ error: 'Thread not found' });
-      }
-      
-      // Mark thread as read
-      await emailProvider.markThreadAsRead(threadId);
-      
-      res.json(threadData);
-    } catch (error) {
-      console.error('Error fetching thread details:', error);
-      res.status(500).json({ error: 'Failed to fetch thread details' });
-    }
-  });
-  
-  app.post('/api/replies/thread', requireAuth, async (req, res) => {
-    try {
-      const userId = (req as any).user.id;
-      const gmailToken = (req.session as any)?.gmailToken || null;
-      
-      // Get the appropriate email provider
-      const emailProvider = getEmailProvider(userId, gmailToken);
-      
-      // Create thread using the provider
-      const thread = await emailProvider.createThread({
-        ...req.body,
-        userId
-      });
-      
-      res.status(201).json(thread);
-    } catch (error) {
-      console.error('Error creating email thread:', error);
-      res.status(500).json({ error: 'Failed to create thread' });
-    }
-  });
-  
-  app.post('/api/replies/message', requireAuth, async (req, res) => {
-    try {
-      const userId = (req as any).user.id;
-      const gmailToken = (req.session as any)?.gmailToken || null;
-      
-      // Get the appropriate email provider
-      const emailProvider = getEmailProvider(userId, gmailToken);
-      
-      // Create message using the provider
-      const message = await emailProvider.createMessage(req.body);
-      
-      res.status(201).json(message);
-    } catch (error) {
-      console.error('Error creating email message:', error);
-      res.status(500).json({ error: 'Failed to create message' });
-    }
-  });
+  // Email conversations routes removed - now in server/email-replies module
 
   // Simplified webhook endpoint to receive search results
   app.post("/api/webhooks/search-results", async (req, res) => {
@@ -906,87 +800,7 @@ export function registerRoutes(app: Express) {
   });
 
 
-  // Campaigns
-  app.get("/api/campaigns", requireAuth, async (req, res) => {
-    const campaigns = await storage.listCampaigns(req.user!.id);
-    res.json(campaigns);
-  });
-
-  app.get("/api/campaigns/:campaignId", requireAuth, async (req, res) => {
-    const campaign = await storage.getCampaign(parseInt(req.params.campaignId), req.user!.id);
-    if (!campaign) {
-      res.status(404).json({ message: "Campaign not found" });
-      return;
-    }
-    res.json(campaign);
-  });
-
-  app.post("/api/campaigns", requireAuth, async (req, res) => {
-    try {
-      // Get next available campaign ID (starting from 2001)
-      const campaignId = await storage.getNextCampaignId();
-
-      // Campaign functionality is currently inactive - basic validation
-      const result = { success: true, data: {
-        ...req.body,
-        campaignId,
-        totalCompanies: 0,
-        userId: getUserId(req)
-      }};
-      // const result = insertCampaignSchema.safeParse({
-      //   ...req.body,
-      //   campaignId,
-      //   totalCompanies: 0,
-      //   userId: userId
-      // });
-
-      if (!result.success) {
-        res.status(400).json({
-          message: "Invalid request body",
-          errors: result.error.errors
-        });
-        return;
-      }
-
-      // Create the campaign
-      const campaign = await storage.createCampaign({
-        ...result.data,
-        description: result.data.description || null,
-        startDate: result.data.startDate || null,
-        status: result.data.status || 'draft'
-      });
-
-      res.json(campaign);
-    } catch (error) {
-      console.error('Campaign creation error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred while creating the campaign"
-      });
-    }
-  });
-
-  app.patch("/api/campaigns/:campaignId", requireAuth, async (req, res) => {
-    // Campaign functionality is currently inactive - basic validation
-    const result = { success: true, data: req.body };
-    // const result = insertCampaignSchema.partial().safeParse(req.body);
-    if (!result.success) {
-      res.status(400).json({ message: "Invalid request body" });
-      return;
-    }
-
-    const updated = await storage.updateCampaign(
-      parseInt(req.params.campaignId),
-      result.data,
-      req.user!.id
-    );
-
-    if (!updated) {
-      res.status(404).json({ message: "Campaign not found" });
-      return;
-    }
-
-    res.json(updated);
-  });
+  // Campaigns routes removed - now in server/campaigns module
 
 
   // Leave the search approaches endpoints without auth since they are system-wide
@@ -1005,6 +819,15 @@ export function registerRoutes(app: Express) {
   
   // Register modular email templates routes
   registerEmailTemplatesRoutes(app, requireAuth);
+  
+  // Register modular user account settings routes
+  registerUserAccountSettingsRoutes(app, requireAuth);
+  
+  // Register modular email replies routes (inactive feature)
+  registerEmailRepliesRoutes(app, requireAuth);
+  
+  // Register modular campaigns routes (inactive feature)
+  registerCampaignsRoutes(app, requireAuth);
 
   app.post("/api/contacts/:contactId/enrich", requireAuth, async (req, res) => {
     try {
@@ -1146,37 +969,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Add these routes before the return statement in registerRoutes
-  // User Preferences
-  app.get("/api/user/preferences", async (req, res) => {
-    try {
-      // For compatibility with the existing functionality
-      const userId = req.isAuthenticated() && req.user ? (req.user as any).id : 1;
-      
-      const preferences = await storage.getUserPreferences(userId);
-      res.json(preferences || {});
-    } catch (error) {
-      console.error('Error getting user preferences:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to get user preferences"
-      });
-    }
-  });
-
-  app.post("/api/user/preferences", requireAuth, async (req, res) => {
-    try {
-      // Remove hasSeenTour extraction and use other preferences from body
-      const preferences = await storage.updateUserPreferences(req.user!.id, {
-        ...req.body  // Allow other preference fields to be updated
-      });
-      res.json(preferences);
-    } catch (error) {
-      console.error('Error updating user preferences:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to update user preferences"
-      });
-    }
-  });
+  // User preferences routes removed - now in server/user-account-settings module
 
 
 
@@ -2529,206 +2322,9 @@ Respond in this exact JSON format:
 
   // All N8N Workflow Management Endpoints and proxies have been removed
 
-  // Easter egg route
-  app.post('/api/credits/easter-egg', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const { query } = req.body;
-      
-      const result = await CreditService.claimEasterEgg(userId, query);
-      
-      if (result.success) {
-        res.json(result);
-      } else {
-        res.status(409).json(result);
-      }
-    } catch (error) {
-      res.status(500).json({ message: "Easter egg claim failed" });
-    }
-  });
+  // Easter egg and notification routes removed - now in server/user-account-settings module
 
-  // Notification routes
-  app.post('/api/notifications/trigger', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const { trigger } = req.body;
-      
-      const result = await CreditService.triggerNotification(userId, trigger);
-      
-      if (result.shouldShow) {
-        res.json(result);
-      } else {
-        res.status(409).json({ shouldShow: false, message: "Notification already shown or not found" });
-      }
-    } catch (error) {
-      res.status(500).json({ message: "Notification trigger failed" });
-    }
-  });
-
-  app.post('/api/notifications/mark-shown', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const { notificationId, badgeId } = req.body;
-      
-      if (typeof badgeId === 'number') {
-        // Award badge
-        await CreditService.awardBadge(userId, badgeId);
-      } else if (typeof notificationId === 'number') {
-        // Mark notification as shown
-        await CreditService.markNotificationShown(userId, notificationId);
-      } else {
-        return res.status(400).json({ message: "Either notificationId or badgeId is required" });
-      }
-      
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to mark notification/badge as shown" });
-    }
-  });
-
-  app.get('/api/notifications/status', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const credits = await CreditService.getUserCredits(userId);
-      
-      res.json({ 
-        notifications: credits.notifications || [],
-        badges: credits.badges || [],
-        isWaitlistMember: credits.notifications?.includes(1) || false
-      });
-    } catch (error) {
-      console.error('Error fetching notification status:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch notification status' 
-      });
-    }
-  });
-
-  // User Profile API endpoints
-  app.get('/api/user/profile', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const user = await storage.getUserById(userId);
-      
-      if (!user) {
-        res.status(404).json({ message: "User not found" });
-        return;
-      }
-
-      res.json({
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        createdAt: user.createdAt
-      });
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : 'Failed to fetch user profile' 
-      });
-    }
-  });
-
-  app.put('/api/user/profile', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const { username } = req.body;
-      
-      if (!username || typeof username !== 'string') {
-        res.status(400).json({ message: "Username is required" });
-        return;
-      }
-
-      if (username.length < 1 || username.length > 50) {
-        res.status(400).json({ message: "Username must be between 1 and 50 characters" });
-        return;
-      }
-
-      const updatedUser = await storage.updateUser(userId, { username });
-      
-      if (!updatedUser) {
-        res.status(404).json({ message: "User not found" });
-        return;
-      }
-
-      res.json({
-        id: updatedUser.id,
-        email: updatedUser.email,
-        username: updatedUser.username,
-        createdAt: updatedUser.createdAt
-      });
-    } catch (error) {
-      console.error('Error updating user profile:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : 'Failed to update user profile' 
-      });
-    }
-  });
-
-  // Email preferences endpoints
-  app.get('/api/email-preferences', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      
-      // Get or create email preferences
-      let preferences = await storage.getUserEmailPreferences(userId);
-      
-      if (!preferences) {
-        // Create default preferences
-        preferences = await storage.createUserEmailPreferences({
-          userId,
-          preferredMethod: 'smart-default',
-          hasSeenFirstTimeModal: false,
-          hasSeenIOSNotification: false,
-          hasSeenAndroidNotification: false,
-          successCount: 0,
-          failureCount: 0
-        });
-      }
-      
-      res.json(preferences);
-    } catch (error) {
-      console.error('Error fetching email preferences:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : 'Failed to fetch email preferences' 
-      });
-    }
-  });
-
-  app.put('/api/email-preferences', requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const updates = req.body;
-      
-      // Remove userId from updates if present (we use the authenticated user's ID)
-      delete updates.userId;
-      
-      // Update preferences
-      const updatedPreferences = await storage.updateUserEmailPreferences(userId, updates);
-      
-      if (!updatedPreferences) {
-        // Create if doesn't exist
-        const newPreferences = await storage.createUserEmailPreferences({
-          userId,
-          preferredMethod: 'smart-default',
-          hasSeenFirstTimeModal: false,
-          hasSeenIOSNotification: false,
-          hasSeenAndroidNotification: false,
-          successCount: 0,
-          failureCount: 0,
-          ...updates
-        });
-        res.json(newPreferences);
-      } else {
-        res.json(updatedPreferences);
-      }
-    } catch (error) {
-      console.error('Error updating email preferences:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : 'Failed to update email preferences' 
-      });
-    }
-  });
+  // User profile and email preferences endpoints removed - now in server/user-account-settings module
 
   // Delete strategic profile endpoint (for React Strategy Chat restart)
   app.delete('/api/strategic-profiles/:id', requireAuth, async (req, res) => {
