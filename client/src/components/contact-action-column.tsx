@@ -6,7 +6,6 @@ import {
   Menu,
   Sparkles,
   Target,
-  Gem,
   Rocket
 } from "lucide-react";
 import {
@@ -31,13 +30,11 @@ export interface ContactActionColumnProps {
   handleContactView?: (contactId: number) => void;
   handleEnrichContact?: (contactId: number) => void;
   handleHunterSearch?: (contactId: number) => void;
-  handleAeroLeadsSearch?: (contactId: number) => void;
   handleApolloSearch?: (contactId: number) => void;
   
   // State tracking
   pendingContactIds?: Set<number>;
   pendingHunterIds?: Set<number>;
-  pendingAeroLeadsIds?: Set<number>;
   pendingApolloIds?: Set<number>;
   
   // Optional custom class
@@ -51,11 +48,9 @@ export function ContactActionColumn({
   handleContactView,
   handleEnrichContact,
   handleHunterSearch,
-  handleAeroLeadsSearch,
   handleApolloSearch,
   pendingContactIds = new Set(),
   pendingHunterIds = new Set(),
-  pendingAeroLeadsIds = new Set(),
   pendingApolloIds = new Set(),
   className = '',
 }: ContactActionColumnProps) {
@@ -64,21 +59,19 @@ export function ContactActionColumn({
   const isPending = {
     contact: (id: number) => pendingContactIds.has(id),
     hunter: (id: number) => pendingHunterIds.has(id),
-    aeroLeads: (id: number) => pendingAeroLeadsIds.has(id),
     apollo: (id: number) => pendingApolloIds.has(id)
   };
   
   const isComplete = {
     contact: (c: ContactWithCompanyInfo) => c.completedSearches?.includes('contact_enrichment') || false,
     hunter: (c: ContactWithCompanyInfo) => c.completedSearches?.includes('hunter') || false,
-    aeroLeads: (c: ContactWithCompanyInfo) => c.completedSearches?.includes('aeroleads') || false,
     apollo: (c: ContactWithCompanyInfo) => c.completedSearches?.includes('apollo_search') || false
   };
   
   const getSuccessColor = {
     contact: "text-green-500",
     hunter: "text-green-500",
-    aeroLeads: "text-yellow-500", 
+ 
     apollo: "text-purple-500"
   };
 
@@ -165,25 +158,6 @@ export function ContactActionColumn({
             </DropdownMenuItem>
           )}
           
-          {/* AeroLeads search menu item */}
-          {handleAeroLeadsSearch && (
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAeroLeadsSearch(contact.id);
-              }}
-              disabled={isPending.aeroLeads(contact.id) || isComplete.aeroLeads(contact)}
-            >
-              {isPending.aeroLeads(contact.id) ? (
-                <div className="animate-spin mr-2 h-5 w-5">
-                  <Gem className="h-5 w-5 text-gray-700" />
-                </div>
-              ) : (
-                <Gem className={`mr-2 h-5 w-5 ${isComplete.aeroLeads(contact) && contact.email ? getSuccessColor.aeroLeads : "text-gray-700"}`} />
-              )}
-              AeroLeads Search
-            </DropdownMenuItem>
-          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

@@ -327,7 +327,7 @@ We may share your information in the following circumstances:
 - **With Your Consent**: We may share your information when you direct us to do so or grant us permission, such as when you authorize us to send emails on your behalf via Gmail.
 - **Service Providers**: We may share your information with third-party vendors, consultants, and other service providers who need access to such information to perform work on our behalf. These service providers include:
   - Anthropic, OpenAI, and Perplexity (AI services)
-  - AeroLeads and Hunter.io (lead generation services)
+  - Hunter.io and Apollo.io (lead generation services)
   - AWS (cloud hosting)
   - Replit (development environment)
 - **Business Transfers**: If we are involved in a merger, acquisition, or sale of all or a portion of our assets, your information may be transferred as part of that transaction.

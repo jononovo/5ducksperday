@@ -120,7 +120,6 @@ export default function Home() {
   const [showStartSellingTooltip, setShowStartSellingTooltip] = useState(false);
   const [hasShownStartSellingTooltip, setHasShownStartSellingTooltip] = useState(false);
   // Tour modal has been removed
-  const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
   const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
@@ -1574,192 +1573,6 @@ export default function Home() {
     hunterMutation.mutate({ contactId, searchContext, silent });
   };
   
-  // Add AeroLeads mutation with Set-based state management
-  const aeroLeadsMutation = useMutation({
-    mutationFn: async ({ contactId, searchContext = 'manual' }: { contactId: number; searchContext?: 'manual' | 'automated' }) => {
-      // Add this contact ID to the set of pending searches
-      setPendingAeroLeadsIds(prev => {
-        const newSet = new Set(prev);
-        newSet.add(contactId);
-        return newSet;
-      });
-      const response = await apiRequest("POST", `/api/contacts/${contactId}/aeroleads`);
-      return {data: await response.json(), contactId, searchContext};
-    },
-    onSuccess: async (result) => {
-      const {data, contactId, searchContext} = result;
-      
-      // Process credit billing for successful email discoveries
-      if (data.email) {
-        try {
-          const creditResponse = await apiRequest("POST", "/api/credits/deduct-individual-email", {
-            contactId,
-            searchType: 'aeroleads',
-            emailFound: true
-          });
-          
-          const creditResult = await creditResponse.json();
-          console.log('AeroLeads credit billing result:', creditResult);
-          
-          // Refresh credits display
-          if (creditResult.success) {
-            queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
-          }
-        } catch (creditError) {
-          console.error('AeroLeads credit billing failed:', creditError);
-          // Don't block user experience for billing errors
-        }
-      }
-      
-      // Update the contact in the results
-      let updatedResults: CompanyWithContacts[] | null = null;
-      setCurrentResults(prev => {
-        if (!prev) return null;
-        
-        // Only update the specific contact without affecting others
-        updatedResults = prev.map(company => {
-          if (!company.contacts?.some(c => c.id === data.id)) {
-            return company;
-          }
-          
-          return {
-            ...company,
-            contacts: company.contacts?.map(contact =>
-              contact.id === data.id ? data : contact
-            )
-          };
-        });
-        
-        return updatedResults;
-      });
-      
-      // Immediately update localStorage to prevent losing emails on quick navigation
-      if (updatedResults) {
-        // Save lastExecutedQuery as currentQuery to ensure consistency
-        const queryToSave = lastExecutedQuery || currentQuery;
-        const stateToSave: SavedSearchState = {
-          currentQuery: queryToSave,
-          currentResults: updatedResults,
-          currentListId,
-          lastExecutedQuery
-        };
-        localStorage.setItem('searchState', JSON.stringify(stateToSave));
-        sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
-        console.log('AeroLeads: Immediately saved email to localStorage for persistence');
-      }
-      
-      // If we have a saved list, update it in the database to ensure persistence
-      if (currentListId && updatedResults) {
-        console.log('AeroLeads: Updating list in database with new email');
-        // Use silent update without toast notification
-        apiRequest("PUT", `/api/lists/${currentListId}`, {
-          companies: updatedResults,
-          prompt: currentQuery,
-          contactSearchConfig: (() => {
-            const savedConfig = localStorage.getItem('contactSearchConfig');
-            if (savedConfig) {
-              try {
-                return JSON.parse(savedConfig);
-              } catch (error) {
-                return null;
-              }
-            }
-            return null;
-          })()
-        }).then(() => {
-          console.log('AeroLeads: List updated in database successfully');
-        }).catch(error => {
-          console.error('AeroLeads: Failed to update list in database:', error);
-        });
-      }
-      
-      // Remove this contact ID from the set of pending searches
-      setPendingAeroLeadsIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(contactId);
-        return newSet;
-      });
-      
-      // Only show toast notifications based on context
-      if (searchContext === 'manual') {
-        // Manual searches: show all results (success and no email found)
-        toast({
-          title: "Email Search Complete",
-          description: `${data.name}: ${data.email 
-            ? "Successfully found email address."
-            : "No email found for this contact."}`,
-        });
-      } else if (searchContext === 'automated' && data.email) {
-        // Automated searches: only show when email is found
-        toast({
-          title: "Email Search Complete",
-          description: `${data.name}: Successfully found email address.`,
-        });
-      }
-    },
-    onError: (error, variables) => {
-      const { contactId, searchContext } = variables;
-      
-      // Remove this contact ID from the set of pending searches
-      setPendingAeroLeadsIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(contactId);
-        return newSet;
-      });
-      
-      // Only show error notifications for manual searches
-      if (searchContext === 'manual') {
-        toast({
-          title: "AeroLeads Search Failed",
-          description: error instanceof Error ? error.message : "Failed to find contact email",
-          variant: "destructive",
-        });
-      }
-    },
-  });
-
-  const handleAeroLeadsSearch = async (contactId: number, searchContext: 'manual' | 'automated' = 'manual') => {
-    // Allow multiple searches to run in parallel
-    if (pendingAeroLeadsIds.has(contactId)) return; // Only prevent if this specific contact is already being processed
-    
-    // Check credits before starting search (only for manual searches)
-    if (searchContext === 'manual') {
-      try {
-        const creditsResponse = await apiRequest("GET", "/api/credits");
-        const creditsData = await creditsResponse.json();
-        
-        if (creditsData.currentBalance < 20) { // 20 credits needed for individual email search
-          toast({
-            title: "Insufficient Credits",
-            description: `You need 20 credits for AeroLeads email search. Current balance: ${creditsData.currentBalance}`,
-            variant: "destructive",
-          });
-          return;
-        }
-      } catch (error) {
-        console.error('Credit check failed:', error);
-        // Continue with search if credit check fails to avoid blocking user
-      }
-    }
-    
-    aeroLeadsMutation.mutate({ contactId, searchContext });
-  };
-
-  const isAeroLeadsSearchComplete = (contact: Contact) => {
-    return contact.completedSearches?.includes('aeroleads_search') || false;
-  };
-
-  const isAeroLeadsPending = (contactId: number) => {
-    return pendingAeroLeadsIds.has(contactId);
-  };
-
-  const getAeroLeadsButtonClass = (contact: Contact) => {
-    if (isAeroLeadsSearchComplete(contact)) {
-      return contact.email ? "text-yellow-500" : "text-muted-foreground opacity-50";
-    }
-    return "";
-  };
-  
   // Hunter.io helpers
   const isHunterSearchComplete = (contact: Contact) => {
     return contact.completedSearches?.includes('hunter_search') || false;
@@ -2833,12 +2646,12 @@ export default function Home() {
                       companies={currentResults || []}
                       handleCompanyView={handleCompanyView}
                       handleHunterSearch={handleHunterSearch}
-                      handleAeroLeadsSearch={handleAeroLeadsSearch}
+
                       handleApolloSearch={handleApolloSearch}
                       handleEnrichContact={handleEnrichContact}
                       handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
                       pendingHunterIds={pendingHunterIds}
-                      pendingAeroLeadsIds={pendingAeroLeadsIds}
+
                       pendingApolloIds={pendingApolloIds}
                       pendingContactIds={pendingContactIds}
                       pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
@@ -2984,11 +2797,11 @@ export default function Home() {
                                 handleContactView={handleContactView}
                                 handleEnrichContact={handleEnrichContact}
                                 handleHunterSearch={handleHunterSearch}
-                                handleAeroLeadsSearch={handleAeroLeadsSearch}
+          
                                 handleApolloSearch={handleApolloSearch}
                                 pendingContactIds={pendingContactIds}
                                 pendingHunterIds={pendingHunterIds}
-                                pendingAeroLeadsIds={pendingAeroLeadsIds}
+          
                                 pendingApolloIds={pendingApolloIds}
                                 standalone={true}
                               />

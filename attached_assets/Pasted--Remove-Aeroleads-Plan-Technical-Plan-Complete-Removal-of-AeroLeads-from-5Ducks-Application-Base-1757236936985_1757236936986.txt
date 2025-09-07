@@ -1,0 +1,101 @@
+# Remove Aeroleads Plan   Technical Plan: Complete Removal of AeroLeads from 5Ducks Application
+Based on my deep analysis, I've identified all AeroLeads references across the codebase. Here's a comprehensive plan to remove it completely:
+📊 Scope Analysis
+AeroLeads is integrated into the application at multiple levels:
+* UI Component: Represented by the Gem icon (💎) from lucide-react
+* Frontend Pages: Used in both Search (home.tsx) and Outreach (outreach.tsx) pages
+* Backend Routes: Dedicated API endpoint at /api/contacts/:contactId/aeroleads
+* Email Discovery: Integrated into the comprehensive email search orchestration
+* Database: Stores aeroleads_search in contact's completedSearches array
+* Configuration: Uses AEROLEADS_API_KEY environment variable
+🗂️ Files to Modify/Remove
+Frontend Files (7 files)
+1. client/src/components/contact-action-column.tsx
+    * Remove Gem icon import
+    * Remove AeroLeads dropdown menu item (lines 168-186)
+    * Remove handleAeroLeadsSearch prop and related types
+    * Remove pendingAeroLeadsIds prop
+    * Remove isComplete.aeroLeads and isPending.aeroLeads helpers
+2. client/src/pages/home.tsx
+    * Remove pendingAeroLeadsIds state (line 123)
+    * Remove aeroLeadsMutation hook (lines 1673-1719)
+    * Remove handleAeroLeadsSearch function (lines 1721-1746)
+    * Remove isAeroLeadsSearchComplete helper (lines 1748-1750)
+    * Remove isAeroLeadsPending helper (lines 1752-1754)
+    * Remove getAeroLeadsButtonClass helper (lines 1756-1761)
+    * Remove props passed to CompanyTable (line 2836)
+3. client/src/pages/outreach.tsx
+    * Remove pendingAeroLeadsIds state (line 154)
+    * Remove handleAeroLeadsSearch function (lines 1094-1125)
+    * Remove props passed to ContactActionColumn (lines 1374, 1378, 1613, 1617)
+4. client/src/components/company-table.tsx
+    * Remove Gem icon import (line 17)
+    * Remove handleAeroLeadsSearch prop from interface
+    * Remove pendingAeroLeadsIds prop from interface
+    * Remove prop passing to ContactActionColumn
+5. client/src/lib/blog-data.ts
+    * Review and remove any AeroLeads mentions in blog content
+6. client/public/privacy.html
+    * Remove AeroLeads from privacy policy mentions
+7. replit.md
+    * Update documentation to remove AeroLeads from provider list
+Backend Files to Remove (3 files)
+1. server/search/providers/aeroleads.ts - DELETE entire file
+2. server/search/providers/email-discovery/aeroleads-search.ts - DELETE entire file
+3. server/lib/search-logic/email-discovery/aeroleads-search.ts - DELETE if exists
+Backend Files to Modify (9 files)
+1. server/search/contacts.ts
+    * Remove import statement (line 13)
+    * Remove route registration (lines 26-27)
+2. server/search/providers/email-discovery/enhanced-validation.ts
+    * Remove import of splitFullName from aeroleads-search (line 3)
+    * Copy splitFullName function locally if still needed
+3. server/1--storage/contacts.ts
+    * Remove updateContactWithAeroLeadsResult method (lines 118-141)
+4. server/features/health-monitoring/health-checks.ts
+    * Remove AeroLeads API health check (lines 146-150)
+5. server/lib/test-runner.ts
+    * Remove AeroLeads API test (lines 207-212)
+6. server/routes.ts
+    * Remove 'aeroleads' from validSearchTypes array (line 968)
+7. server/routes.ts.backup
+    * Remove entire AeroLeads route handler (lines 2079-2182)
+    * Remove 'aeroleads' from validSearchTypes (line 2261)
+8. server/routes.ts.backup2
+    * Remove 'aeroleads' from validSearchTypes (line 1376)
+9. Comprehensive Email Search Orchestrator
+    * Review and remove any AeroLeads fallback logic if present
+🔧 Implementation Steps
+Phase 1: Backend Cleanup
+1. Remove AeroLeads provider files
+2. Update route registrations and remove endpoints
+3. Clean up storage methods
+4. Update health checks and test runners
+5. Remove from valid search types arrays
+Phase 2: Frontend Cleanup
+1. Remove UI components (Gem icon and dropdown items)
+2. Remove state management for AeroLeads
+3. Remove mutation hooks and handlers
+4. Clean up prop drilling through components
+5. Update type definitions
+Phase 3: Database Migration
+1. Clean existing completedSearches arrays to remove 'aeroleads_search' entries
+2. Update any saved search sessions that might reference AeroLeads
+Phase 4: Documentation & Configuration
+1. Remove AEROLEADS_API_KEY from environment variables
+2. Update documentation to reflect removal
+3. Update privacy policy and terms if needed
+🎯 Testing Checklist
+After removal, verify:
+*  Search page loads without errors
+*  Outreach page loads without errors
+*  Contact action dropdown shows only remaining providers
+*  Comprehensive email search works without AeroLeads
+*  No console errors related to missing AeroLeads functions
+*  Health monitoring endpoint works correctly
+*  No TypeScript compilation errors
+⚠️ Risk Mitigation
+* Data Preservation: Contacts with existing AeroLeads emails will retain their email data
+* Search Completeness: The comprehensive search will continue working with remaining providers (Hunter, Apollo, Perplexity)
+* UI Consistency: The dropdown menu will automatically adjust spacing with one less item
+This plan ensures complete removal of AeroLeads while maintaining application stability and functionality. The remaining email discovery providers (Hunter.io, Apollo.io, and Perplexity AI) will continue to function normally.

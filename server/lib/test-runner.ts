@@ -204,14 +204,6 @@ export class TestRunner {
         });
       }
 
-      // Test AeroLeads API key
-      const aeroLeadsKey = process.env.AEROLEADS_API_KEY;
-      subTests.push({
-        name: 'AeroLeads API',
-        status: aeroLeadsKey ? 'passed' : 'failed',
-        message: aeroLeadsKey ? 'Contact discovery service ready' : 'AeroLeads API key missing'
-      });
-
       // Test Hunter API key
       const hunterKey = process.env.HUNTER_API_KEY;
       subTests.push({

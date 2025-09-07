@@ -115,7 +115,6 @@ This application supports Replit AI agent browser testing through an authenticat
 - **OpenAI API**: Email strategy generation and content creation.
 - **Hunter.io API**: Email finder and verification.
 - **Apollo.io API**: Professional contact database.
-- **AeroLeads API**: Email discovery service.
 - **Firebase**: Authentication and user management.
 - **Replit Key-value Database**: Primary data storage.
 - **PostgreSQL**: Primary data storage.
