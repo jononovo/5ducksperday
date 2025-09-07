@@ -1,4 +1,5 @@
 import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE, EasterEgg, EASTER_EGGS, NotificationConfig, NOTIFICATIONS, BadgeConfig, BADGES, STRIPE_CONFIG } from "./types";
+import { GamificationService } from '../gamification/service';
 import Database from '@replit/database';
 
 // Replit DB instance for persistent credit storage
@@ -223,6 +224,8 @@ export class CreditService {
 
   /**
    * Claim Easter Egg bonus credits
+   * @deprecated Use GamificationService.claimEasterEgg instead
+   * Proxy method maintained for backward compatibility
    */
   static async claimEasterEgg(userId: number, query: string): Promise<{
     success: boolean; 
@@ -230,160 +233,68 @@ export class CreditService {
     newBalance?: number;
     easterEgg?: EasterEgg;
   }> {
-    // Find matching easter egg by trigger (case-insensitive)
-    const easterEgg = EASTER_EGGS.find(egg => 
-      egg.trigger.toLowerCase() === query.toLowerCase().trim()
-    );
-    if (!easterEgg) {
-      return { success: false, message: "Invalid easter egg" };
-    }
-
-    const credits = await this.getUserCredits(userId);
-    const easterEggArray = credits.easterEggs || [];
-    
-    // Check if already used
-    if (easterEggArray[easterEgg.id] === 1) {
-      return { success: false, message: "Easter egg already claimed!" };
-    }
-
-    // Award credits and mark as used
-    const transaction: CreditTransaction = {
-      type: 'credit',
-      amount: easterEgg.reward,
-      description: `${easterEgg.emoji} ${easterEgg.description}`,
-      timestamp: Date.now()
-    };
-
-    // Update easter egg tracking array
-    const updatedEasterEggs = [...easterEggArray];
-    updatedEasterEggs[easterEgg.id] = 1;
-
-    const updatedCredits: UserCredits = {
-      ...credits,
-      currentBalance: credits.currentBalance + easterEgg.reward,
-      isBlocked: credits.currentBalance + easterEgg.reward >= 0 ? false : credits.isBlocked,
-      transactions: [transaction, ...credits.transactions],
-      easterEggs: updatedEasterEggs,
-      updatedAt: Date.now()
-    };
-
-    await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
-    return { 
-      success: true, 
-      message: `🎉 Easter egg found! +${easterEgg.reward} credits added!`, 
-      newBalance: updatedCredits.currentBalance,
-      easterEgg 
-    };
+    return GamificationService.claimEasterEgg(userId, query);
   }
 
   /**
    * Check if badge has been earned by user
+   * @deprecated Use GamificationService.hasEarnedBadge instead
+   * Proxy method maintained for backward compatibility
    */
   static async hasEarnedBadge(userId: number, badgeId: number): Promise<boolean> {
-    const credits = await this.getUserCredits(userId);
-    const badges = credits.badges || [];
-    return badges[badgeId] === 1;
+    return GamificationService.hasEarnedBadge(userId, badgeId);
   }
 
   /**
    * Award badge to user
+   * @deprecated Use GamificationService.awardBadge instead
+   * Proxy method maintained for backward compatibility
    */
   static async awardBadge(userId: number, badgeId: number): Promise<void> {
-    const credits = await this.getUserCredits(userId);
-    const badges = credits.badges || [];
-    
-    // Update tracking array
-    const updated = [...badges];
-    updated[badgeId] = 1;
-    
-    const updatedCredits: UserCredits = {
-      ...credits,
-      badges: updated,
-      updatedAt: Date.now()
-    };
-    
-    await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
+    return GamificationService.awardBadge(userId, badgeId);
   }
 
   /**
    * Trigger badge if not already earned
+   * @deprecated Use GamificationService.triggerBadge instead
+   * Proxy method maintained for backward compatibility
    */
   static async triggerBadge(userId: number, trigger: string): Promise<{
     shouldShow: boolean;
     badge?: BadgeConfig;
   }> {
-    const badge = BADGES.find(b => b.trigger === trigger);
-    if (!badge) {
-      return { shouldShow: false };
-    }
-
-    const hasEarned = await this.hasEarnedBadge(userId, badge.id);
-    if (hasEarned) {
-      return { shouldShow: false };
-    }
-
-    return { shouldShow: true, badge };
+    return GamificationService.triggerBadge(userId, trigger);
   }
 
   /**
    * Check if notification has been shown to user
+   * @deprecated Use GamificationService.hasShownNotification instead
+   * Proxy method maintained for backward compatibility
    */
   static async hasShownNotification(userId: number, notificationId: number): Promise<boolean> {
-    const credits = await this.getUserCredits(userId);
-    const notifications = credits.notifications || [];
-    return notifications[notificationId] === 1;
+    return GamificationService.hasShownNotification(userId, notificationId);
   }
 
   /**
    * Mark notification as shown
+   * @deprecated Use GamificationService.markNotificationShown instead
+   * Proxy method maintained for backward compatibility
    */
   static async markNotificationShown(userId: number, notificationId: number): Promise<void> {
-    const credits = await this.getUserCredits(userId);
-    const notifications = credits.notifications || [];
-    
-    // Update tracking array
-    const updated = [...notifications];
-    updated[notificationId] = 1;
-    
-    const updatedCredits: UserCredits = {
-      ...credits,
-      notifications: updated,
-      updatedAt: Date.now()
-    };
-    
-    await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
+    return GamificationService.markNotificationShown(userId, notificationId);
   }
 
   /**
    * Trigger notification if not already shown
+   * @deprecated Use GamificationService.triggerNotification instead
+   * Proxy method maintained for backward compatibility
    */
   static async triggerNotification(userId: number, trigger: string): Promise<{
     shouldShow: boolean;
     notification?: NotificationConfig;
     badge?: BadgeConfig;
   }> {
-    // Check if it's a badge first
-    const badge = BADGES.find(b => b.trigger === trigger);
-    if (badge) {
-      const badgeResult = await this.triggerBadge(userId, trigger);
-      return { 
-        shouldShow: badgeResult.shouldShow, 
-        badge: badgeResult.badge 
-      };
-    }
-
-    // Otherwise check notifications
-    const notification = NOTIFICATIONS.find(n => n.trigger === trigger);
-    if (!notification) {
-      return { shouldShow: false };
-    }
-
-    const hasShown = await this.hasShownNotification(userId, notification.id);
-    if (hasShown) {
-      return { shouldShow: false };
-    }
-
-    return { shouldShow: true, notification };
+    return GamificationService.triggerNotification(userId, trigger);
   }
 
   /**
