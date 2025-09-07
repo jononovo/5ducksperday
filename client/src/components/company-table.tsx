@@ -47,12 +47,10 @@ interface CompanyTableProps {
   handleCompanyView: (companyId: number) => void;
   // Add these props to connect to existing functionality
   handleHunterSearch?: (contactId: number) => void;
-  handleAeroLeadsSearch?: (contactId: number) => void;
   handleApolloSearch?: (contactId: number) => void;
   handleEnrichContact?: (contactId: number) => void;
   handleComprehensiveEmailSearch?: (contactId: number) => void;
   pendingHunterIds?: Set<number>;
-  pendingAeroLeadsIds?: Set<number>;
   pendingApolloIds?: Set<number>;
   pendingContactIds?: Set<number>;
   pendingComprehensiveSearchIds?: Set<number>;
@@ -62,12 +60,10 @@ export default function CompanyTable({
   companies, 
   handleCompanyView,
   handleHunterSearch,
-  handleAeroLeadsSearch,
   handleApolloSearch,
   handleEnrichContact,
   handleComprehensiveEmailSearch,
   pendingHunterIds,
-  pendingAeroLeadsIds,
   pendingApolloIds,
   pendingContactIds,
   pendingComprehensiveSearchIds
@@ -416,11 +412,9 @@ export default function CompanyTable({
                       }}
                       handleEnrichContact={handleEnrichContact}
                       handleHunterSearch={handleHunterSearch}
-                      handleAeroLeadsSearch={handleAeroLeadsSearch}
                       handleApolloSearch={handleApolloSearch}
                       pendingContactIds={pendingContactIds}
                       pendingHunterIds={pendingHunterIds}
-                      pendingAeroLeadsIds={pendingAeroLeadsIds}
                       pendingApolloIds={pendingApolloIds}
                       className="py-1"
                     />
