@@ -14,7 +14,7 @@ import {
   generateSprintPrompt, 
   generateDailyQueries,
   generateProductOffers
-} from "../../lib/api/openai-client";
+} from "../../ai-services";
 import type { PerplexityMessage } from "../../search/core/perplexity-types";
 
 // Helper function to safely get user ID from request
@@ -190,7 +190,7 @@ PHASE-SPECIFIC INSTRUCTIONS:
         console.log('Handling product offers generation directly');
         
         try {
-          const { generateAllProductOffers } = await import('../../lib/api/openai-client.js');
+          const { generateAllProductOffers } = await import('../../ai-services/openai-client.js');
           
           // Get sales approach context from conversation history
           const salesApproachMessage = conversationHistory?.find((msg: any) => 

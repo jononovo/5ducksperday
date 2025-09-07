@@ -11,7 +11,7 @@ import { searchCompanies, analyzeCompany } from "./search/core/company-search";
 // import { extractContacts } from "./lib/perplexity"; // File doesn't exist
 // import { parseCompanyData } from "./lib/results-analysis/company-parser"; // File doesn't exist
 import { queryPerplexity } from "./search/core/perplexity-client";
-import { queryOpenAI, generateEmailStrategy, generateBoundary, generateBoundaryOptions, generateSprintPrompt, generateDailyQueries } from "./lib/api/openai-client";
+import { queryOpenAI, generateEmailStrategy, generateBoundary, generateBoundaryOptions, generateSprintPrompt, generateDailyQueries, type PerplexityMessage } from "./ai-services";
 // import { searchContactDetails } from "./search/enrichment/contact-details"; // File doesn't exist - TSX runtime cached
 import { google } from "googleapis";
 import { 
@@ -1059,7 +1059,7 @@ PHASE-SPECIFIC INSTRUCTIONS:
         console.log('Handling product offers generation directly');
         
         try {
-          const { generateAllProductOffers } = await import('./lib/api/openai-client.js');
+          const { generateAllProductOffers } = await import('./ai-services/openai-client.js');
           
           // Get sales approach context from conversation history
           const salesApproachMessage = conversationHistory?.find(msg => 
