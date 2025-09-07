@@ -1,22 +1,18 @@
 import express from 'express';
-import { registerCreditRoutes } from '../../routes/credits';
-import { registerStripeRoutes } from '../../routes/stripe';
+import { registerCreditRoutes } from './credits/routes';
+import { registerStripeRoutes } from './stripe/routes';
 import { registerGamificationRoutes } from './gamification/routes';
-import { registerBillingCreditRoutes } from './credits/routes';
 
 /**
  * Register all billing-related routes
  */
 export function registerBillingRoutes(app: express.Express): void {
-  // Register original credit routes (from routes/credits.ts)
+  // Register credit management routes
   registerCreditRoutes(app);
   
-  // Register Stripe payment routes (from routes/stripe.ts)
+  // Register Stripe payment routes
   registerStripeRoutes(app);
   
   // Register gamification routes (notifications, badges, easter eggs)
   registerGamificationRoutes(app);
-  
-  // Register additional credit routes (individual email deduction)
-  registerBillingCreditRoutes(app);
 }
