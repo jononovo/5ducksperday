@@ -227,30 +227,32 @@ export function setupAuth(app: Express) {
 
   // Add Firebase token verification to all authenticated routes
   app.use(async (req, res, next) => {
-    // AI Testing Mode Bypass - Must be first to skip all auth checks
+    // AI Testing Mode - Only apply for unauthenticated requests
     if (process.env.ENABLE_AI_TEST_MODE === 'true' && 
-        process.env.NODE_ENV !== 'production') {
+        process.env.NODE_ENV !== 'production' &&
+        !req.isAuthenticated()) {
       
-      // Attach demo user for all requests
+      // Attach demo user only for unauthenticated requests
       req.user = { 
         id: 1, 
         email: 'demo@5ducks.ai',
-        username: 'AI Test User',
+        username: 'Demo User',
         password: '' // Empty password for Firebase compatibility
       } as any;
       
-      // Override isAuthenticated to always return true
+      // Override isAuthenticated to return true for this request
+      const originalIsAuthenticated = req.isAuthenticated;
       req.isAuthenticated = () => true;
       
       // Log for debugging and audit
-      console.log('[AI TEST MODE] Auth bypassed:', {
+      console.log('[AI TEST MODE] Auth bypassed for unauthenticated request:', {
         path: req.path,
         method: req.method,
         userId: 1,
         timestamp: new Date().toISOString()
       });
       
-      return next(); // Skip all other auth checks
+      return next(); // Skip other auth checks for this request
     }
     
     // Enhanced session debugging
