@@ -16,6 +16,7 @@ export interface SendGmailRequest {
 export interface GmailStatusResponse {
   connected: boolean;
   userEmail?: string;
+  authUrl?: string | null;
 }
 
 export interface GmailDisconnectResponse {
@@ -30,4 +31,6 @@ export interface SendGmailResponse {
 export interface GmailUserInfo {
   email: string;
   name?: string;
+  email_verified?: boolean;
+  displayName?: string;
 }

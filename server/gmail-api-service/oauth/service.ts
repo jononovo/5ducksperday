@@ -66,7 +66,7 @@ export class GmailOAuthService {
       expiry_date: tokens.expiry_date
     }, {
       email: userInfo.email,
-      name: userInfo.name
+      name: userInfo.name || ""
     });
   }
 
