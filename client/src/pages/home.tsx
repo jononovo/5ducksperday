@@ -17,7 +17,7 @@ import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { useNotifications } from "@/hooks/use-notifications";
+import { useNotifications } from "@/features/user-account-settings";
 import { useStrategyOverlay } from "@/lib/strategy-overlay-context";
 import { NotificationToast } from "@/components/ui/notification-toast";
 import {

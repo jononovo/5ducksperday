@@ -15,7 +15,7 @@ import { SearchSessionManager } from "@/lib/search-session-manager";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { useNotifications } from "@/hooks/use-notifications";
+import { useNotifications } from "@/features/user-account-settings";
 import { SearchProgress } from "./search-progress";
 import { MainSearchSummary } from "./main-search-summary";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
