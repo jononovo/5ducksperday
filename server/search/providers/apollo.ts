@@ -8,6 +8,56 @@ import { Request, Response } from "express";
 import { storage } from "../../storage";
 import { getUserId } from "../utils";
 
+async function searchApolloDirect(contact: any, company: any, apiKey: string): Promise<any> {
+  try {
+    const axios = (await import('axios')).default;
+    const response = await axios.post('https://api.apollo.io/v1/people/match', {
+      api_key: apiKey,
+      name: contact.name,
+      organization_name: company.name,
+      domain: company.website
+    }, {
+      timeout: 20000
+    });
+
+    if (response.data?.person?.email) {
+      return {
+        success: true,
+        contact: {
+          ...contact,
+          email: response.data.person.email,
+          role: response.data.person.title || contact.role,
+          linkedinUrl: response.data.person.linkedin_url || contact.linkedinUrl,
+          phoneNumber: response.data.person.phone_numbers?.[0]?.sanitized_number || contact.phoneNumber
+        },
+        metadata: {
+          confidence: response.data.person.email_confidence || 75,
+          searchDate: new Date().toISOString()
+        }
+      };
+    }
+
+    return {
+      success: false,
+      contact,
+      metadata: {
+        error: 'No email found',
+        searchDate: new Date().toISOString()
+      }
+    };
+  } catch (error) {
+    console.error('Apollo API error:', error);
+    return {
+      success: false,
+      contact,
+      metadata: {
+        error: error instanceof Error ? error.message : 'Apollo API failed',
+        searchDate: new Date().toISOString()
+      }
+    };
+  }
+}
+
 export async function apolloSearch(req: Request, res: Response) {
   try {
     const contactId = parseInt(req.params.contactId);
@@ -53,11 +103,8 @@ export async function apolloSearch(req: Request, res: Response) {
       return;
     }
 
-    // Use enhanced orchestrator for better error handling and retries
-    const { EnhancedSearchOrchestrator } = await import('./email-discovery/enhanced-search-orchestrator');
-    const orchestrator = new EnhancedSearchOrchestrator();
-    
-    const searchResult = await orchestrator.executeApolloSearch(contact, company, apolloApiKey);
+    // Direct Apollo API implementation
+    const searchResult = await searchApolloDirect(contact, company, apolloApiKey);
     
     if (searchResult.success) {
       // Handle email updates with unified deduplication logic - only include search result fields (no ID)

@@ -8,6 +8,55 @@ import { Request, Response } from "express";
 import { storage } from "../../storage";
 import { getUserId } from "../utils";
 
+async function searchHunterDirect(contact: any, company: any, apiKey: string): Promise<any> {
+  try {
+    const axios = (await import('axios')).default;
+    const response = await axios.get('https://api.hunter.io/v2/email-finder', {
+      params: {
+        api_key: apiKey,
+        domain: company.website || company.name.toLowerCase().replace(/\s+/g, '') + '.com',
+        first_name: contact.name.split(' ')[0],
+        last_name: contact.name.split(' ').slice(1).join(' ')
+      },
+      timeout: 20000
+    });
+
+    if (response.data?.data?.email) {
+      return {
+        success: true,
+        contact: {
+          ...contact,
+          email: response.data.data.email,
+          role: response.data.data.position || contact.role
+        },
+        metadata: {
+          confidence: response.data.data.score || 75,
+          searchDate: new Date().toISOString()
+        }
+      };
+    }
+
+    return {
+      success: false,
+      contact,
+      metadata: {
+        error: 'No email found',
+        searchDate: new Date().toISOString()
+      }
+    };
+  } catch (error) {
+    console.error('Hunter API error:', error);
+    return {
+      success: false,
+      contact,
+      metadata: {
+        error: error instanceof Error ? error.message : 'Hunter API failed',
+        searchDate: new Date().toISOString()
+      }
+    };
+  }
+}
+
 export async function hunterSearch(req: Request, res: Response) {
   try {
     const contactId = parseInt(req.params.contactId);
@@ -53,11 +102,8 @@ export async function hunterSearch(req: Request, res: Response) {
       return;
     }
 
-    // Use enhanced orchestrator for better error handling and retries
-    const { EnhancedSearchOrchestrator } = await import('./email-discovery/enhanced-search-orchestrator');
-    const orchestrator = new EnhancedSearchOrchestrator();
-    
-    const searchResult = await orchestrator.executeHunterSearch(contact, company, hunterApiKey);
+    // Direct Hunter API implementation
+    const searchResult = await searchHunterDirect(contact, company, hunterApiKey);
     
     if (searchResult.success) {
       // Handle email updates with unified deduplication logic - only include search result fields (no ID)

@@ -8,6 +8,65 @@ import { Request, Response } from "express";
 import { storage } from "../../storage";
 import { getUserId } from "../utils";
 
+async function searchAeroLeadsDirect(
+  name: string,
+  company: string,
+  apiKey: string
+): Promise<{ email: string | null; confidence: number }> {
+  try {
+    const axios = (await import('axios')).default;
+    const nameParts = name.trim().split(/\s+/);
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ');
+
+    console.log(`Searching AeroLeads for: ${firstName} ${lastName} at ${company}`);
+
+    const response = await axios.get('https://aeroleads.com/api/get_email_details', {
+      params: {
+        api_key: apiKey,
+        first_name: firstName,
+        last_name: lastName,
+        company: company
+      },
+      timeout: 20000
+    });
+
+    console.log('AeroLeads API response:', response.data);
+
+    // Handle both response formats AeroLeads uses
+    if (response.data?.success && response.data?.data?.email) {
+      return {
+        email: response.data.data.email,
+        confidence: response.data.data.score || 75
+      };
+    }
+
+    if (response.data?.email) {
+      console.log(`Found email in direct response format: ${response.data.email}`);
+      return {
+        email: response.data.email,
+        confidence: 75
+      };
+    }
+
+    console.log('No email found in AeroLeads response');
+    return {
+      email: null,
+      confidence: 0
+    };
+  } catch (error: any) {
+    console.error('AeroLeads API error:', error);
+    if (error.response) {
+      console.error('Response:', error.response?.data);
+      console.error('Status:', error.response?.status);
+    }
+    return {
+      email: null,
+      confidence: 0
+    };
+  }
+}
+
 export async function aeroLeadsSearch(req: Request, res: Response) {
   try {
     const contactId = parseInt(req.params.contactId);
@@ -54,14 +113,13 @@ export async function aeroLeadsSearch(req: Request, res: Response) {
       return;
     }
 
-    // Use the AeroLeads API to search for the email
-    const { searchAeroLeads } = await import('./email-discovery/aeroleads-search');
+    // Direct AeroLeads API implementation
     console.log('Initiating AeroLeads search for:', {
       contactName: contact.name,
       companyName: company.name
     });
 
-    const result = await searchAeroLeads(
+    const result = await searchAeroLeadsDirect(
       contact.name,
       company.name,
       aeroLeadsApiKey
