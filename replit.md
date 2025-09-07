@@ -28,6 +28,34 @@ The application features a **React SPA frontend** built with TypeScript, Vite, T
 - **Lists Management Module:** Extracted lists functionality into self-contained module (Sep 2025), reducing 198 lines from main routes.ts. Module handles list CRUD operations, company associations, and demo list visibility for unauthenticated users.
 - **Email Templates Module:** Extracted email templates functionality into self-contained module (Sep 2025), reducing 122 lines from main routes.ts. Module handles template CRUD operations, default template inheritance (userId=1 templates visible to all users), and integrates with QuickTemplates component and Outreach page.
 
+## AI Testing Configuration
+
+### Automated Browser Testing
+This application supports Replit AI agent browser testing through an authentication bypass mechanism.
+
+**How It Works:**
+- When `ENABLE_AI_TEST_MODE=true` is set, all authentication is bypassed
+- The AI agent operates as demo user (ID: 1)
+- All pages and API endpoints are accessible without login
+- Database operations use the demo user account
+
+**Current Status:** ✅ ENABLED
+- Environment: Development
+- Test User ID: 1
+- Email: demo@5ducks.ai
+
+**For AI Testing Agents:**
+1. No authentication required - proceed directly to any page
+2. All API calls automatically authenticated
+3. Use the application as a logged-in user
+4. Data operations safe (demo user sandbox)
+
+**Security:**
+- Only works in development environment
+- Cannot be enabled in production
+- Logs all test mode access for audit
+- To disable: Set `ENABLE_AI_TEST_MODE=false` or remove it
+
 ## External Dependencies
 - **Perplexity API**: Company research and contact discovery.
 - **OpenAI API**: Email strategy generation and content creation.
