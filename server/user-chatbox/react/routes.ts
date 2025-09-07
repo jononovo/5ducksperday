@@ -7,11 +7,13 @@ import { Express } from "express";
 import { storage } from "../../storage";
 import { queryPerplexity } from "../../lib/api/perplexity-client";
 import { 
+  queryOpenAI,
   generateEmailStrategy, 
   generateBoundary, 
   generateBoundaryOptions, 
   generateSprintPrompt, 
-  generateDailyQueries 
+  generateDailyQueries,
+  generateProductOffers
 } from "../../lib/api/openai-client";
 import type { PerplexityMessage } from "../../lib/perplexity";
 
@@ -278,57 +280,12 @@ High-level strategic guidance for email generation.`;
           };
         }
       } else {
-        // Normal conversation flow using Perplexity
-        const perplexityMessages: PerplexityMessage[] = messages.map(msg => ({
-          role: msg.role as "system" | "user" | "assistant",
-          content: msg.content
-        }));
-        
-        const response = await queryPerplexity(perplexityMessages);
-        
-        // Detect if response contains function call patterns
-        if (response.includes('generateProductSummary()') || response.includes('Product Analysis Summary')) {
-          // Generate product summary inline
-          const summaryPrompt = `Create a strategic product analysis summary for ${productContext.productService}.
-Customer feedback: ${productContext.customerFeedback}
-Website: ${productContext.website || 'Not provided'}
-
-Format as:
-**PRODUCT ANALYSIS SUMMARY**
-• Core Offering: [What they sell]
-• Key Strength: [What customers love]
-• Ideal Customer: [Who needs this]`;
-
-          const summaryResponse = await queryPerplexity([
-            { role: "system", content: "You are a product strategist. Create concise product summaries." },
-            { role: "user", content: summaryPrompt }
-          ]);
-
-          result = {
-            type: 'profile',
-            message: response.replace(/generateProductSummary\(\)/g, '').trim(),
-            data: {
-              title: "Product Analysis Summary",
-              content: summaryResponse
-            }
-          };
-        } else if (response.includes('generateEmailStrategy()')) {
-          // This shouldn't happen in progressive flow but handle it
-          result = {
-            type: 'conversation',
-            message: response.replace(/generateEmailStrategy\(\)/g, '').trim()
-          };
-        } else {
-          // Regular conversation response
-          result = {
-            type: 'conversation',
-            message: response
-          };
-        }
+        // Normal conversation flow using OpenAI with function calling
+        result = await queryOpenAI(messages, productContext);
       }
 
-      // Save to database if user is authenticated and we have a profile/strategy
-      if (req.user && (result.type === 'profile' || result.type === 'strategy')) {
+      // Save to database if user is authenticated
+      if (req.user) {
         try {
           const userId = getUserId(req);
           const existingProfiles = await storage.getStrategicProfiles(userId);
@@ -354,13 +311,21 @@ Format as:
           }
           
           // Save report content based on type
-          if (result.type === 'profile' && result.data) {
+          if (result.type === 'product_summary' && result.data) {
             await storage.updateStrategicProfile(matchingProfile.id, { 
-              reportProductProfile: JSON.stringify(result.data) 
+              productAnalysisSummary: JSON.stringify(result.data) 
             });
-          } else if (result.type === 'strategy' && result.data) {
+          } else if (result.type === 'email_strategy' && result.data) {
             await storage.updateStrategicProfile(matchingProfile.id, { 
-              reportEmailStrategy: JSON.stringify(result.data) 
+              reportSalesTargetingGuidance: JSON.stringify(result.data) 
+            });
+          } else if (result.type === 'sales_approach' && result.data) {
+            await storage.updateStrategicProfile(matchingProfile.id, { 
+              reportSalesContextGuidance: JSON.stringify(result.data) 
+            });
+          } else if (result.type === 'product_offers' && result.data) {
+            await storage.updateStrategicProfile(matchingProfile.id, { 
+              productOfferStrategies: JSON.stringify(result.data) 
             });
           }
         } catch (dbError) {
