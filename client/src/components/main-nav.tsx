@@ -92,12 +92,6 @@ export function MainNav() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <Link href="/build">
-                  <DropdownMenuItem>
-                    <LayoutDashboard className="h-4 w-4 mr-2" />
-                    <span>Build</span>
-                  </DropdownMenuItem>
-                </Link>
                 <Link href="/account">
                   <DropdownMenuItem>
                     <User className="h-4 w-4 mr-2" />

@@ -26,7 +26,6 @@ import Auth from "@/pages/auth";
 
 // Lazy imports for app pages that can be loaded on demand
 const Home = lazy(() => import("@/pages/home"));
-const Build = lazy(() => import("@/pages/build"));
 const Account = lazy(() => import("@/pages/account"));
 // Lists functionality moved to drawer in Home page
 const Campaigns = lazy(() => import("@/pages/campaigns"));
@@ -165,11 +164,6 @@ function Router() {
                 } />
                 
                 {/* Fully protected routes - require login */}
-                <ProtectedRoute path="/build" component={() => 
-                  <Suspense fallback={<LoadingScreen />}>
-                    <Build />
-                  </Suspense>
-                } />
                 <ProtectedRoute path="/account" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Account />
