@@ -90,25 +90,15 @@ function mapSearchTypeToCredits(frontendSearchType: string): SearchType {
  * IMPORTANT: Specific routes MUST come before dynamic routes
  */
 export function registerCompanyRoutes(app: Express, requireAuth: any) {
-  // List companies (allows unauthenticated access for demo)
-  app.get("/api/companies", async (req: Request, res: Response) => {
-    // Check if the user is authenticated with their own account
-    const isAuthenticated = (req as any).isAuthenticated && (req as any).isAuthenticated() && (req as any).user;
-    
-    if (isAuthenticated) {
-      // Return authenticated user's companies
-      const companies = await storage.listCompanies((req as any).user!.id);
-      res.json(companies);
-    } else {
-      // For demo/unauthenticated users, return only the demo companies
-      const demoCompanies = await storage.listCompanies(1); // Demo user ID = 1
-      res.json(demoCompanies);
-    }
+  // List companies for authenticated users
+  app.get("/api/companies", requireAuth, async (req: Request, res: Response) => {
+    const companies = await storage.listCompanies((req as any).user!.id);
+    res.json(companies);
   });
 
   // Quick company search endpoint - returns companies immediately without waiting for contacts
-  app.post("/api/companies/quick-search", async (req: Request, res: Response) => {
-    const userId = (req as any).isAuthenticated() && (req as any).user ? (req as any).user.id : 1;
+  app.post("/api/companies/quick-search", requireAuth, async (req: Request, res: Response) => {
+    const userId = (req as any).user.id;
     const { query, strategyId, contactSearchConfig, sessionId, searchType }: QuickSearchRequest = req.body;
 
     if (!query || typeof query !== 'string') {
@@ -124,14 +114,12 @@ export function registerCompanyRoutes(app: Express, requireAuth: any) {
       console.log(`[Quick Search] Search type: ${searchType || 'emails'}`);
       
       // Credit blocking check: Prevent searches if user has negative balance
-      if ((req as any).isAuthenticated() && (req as any).user) {
-        const credits = await CreditService.getUserCredits((req as any).user.id);
-        if (credits.currentBalance < 0) {
-          return res.status(402).json({
-            message: "Account blocked due to insufficient credits",
-            currentBalance: credits.currentBalance
-          });
-        }
+      const credits = await CreditService.getUserCredits((req as any).user.id);
+      if (credits.currentBalance < 0) {
+        return res.status(402).json({
+          message: "Account blocked due to insufficient credits",
+          currentBalance: credits.currentBalance
+        });
       }
       
       // First, get the company search results quickly
@@ -189,7 +177,7 @@ export function registerCompanyRoutes(app: Express, requireAuth: any) {
       }
       
       // Pre-response billing: Deduct credits based on actual search type selected
-      if ((req as any).isAuthenticated() && (req as any).user && companies.length > 0) {
+      if (companies.length > 0) {
         try {
           const creditSearchType = mapSearchTypeToCredits(searchType || 'companies');
           
@@ -223,8 +211,8 @@ export function registerCompanyRoutes(app: Express, requireAuth: any) {
   });
 
   // Full company search endpoint with contacts
-  app.post("/api/companies/search", async (req: Request, res: Response) => {
-    const userId = (req as any).isAuthenticated() && (req as any).user ? (req as any).user.id : 1;
+  app.post("/api/companies/search", requireAuth, async (req: Request, res: Response) => {
+    const userId = (req as any).user.id;
     const { query, strategyId, includeContacts = true, contactSearchConfig, sessionId }: CompanySearchRequest = req.body;
 
     // Debug: Log contact search configuration at batch level
@@ -505,32 +493,21 @@ export function registerCompanyRoutes(app: Express, requireAuth: any) {
   });
 
   // Get company by ID - MUST BE LAST because it has a dynamic :id parameter
-  app.get("/api/companies/:id", async (req: Request, res: Response) => {
+  app.get("/api/companies/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const companyId = parseInt(req.params.id);
-      const isAuthenticated = (req as any).isAuthenticated && (req as any).isAuthenticated() && (req as any).user;
+      const userId = (req as any).user.id;
       
       console.log('GET /api/companies/:id - Request params:', {
         id: req.params.id,
-        isAuthenticated: isAuthenticated
+        userId: userId
       });
       
-      let company = null;
-      
-      // First try to find the company for the authenticated user
-      if (isAuthenticated) {
-        company = await storage.getCompany(companyId, (req as any).user!.id);
-      }
-      
-      // If not found or not authenticated, check if it's a demo company
-      if (!company) {
-        company = await storage.getCompany(companyId, 1); // Check demo user (ID 1)
-      }
+      const company = await storage.getCompany(companyId, userId);
       
       console.log('GET /api/companies/:id - Retrieved company:', {
         requested: req.params.id,
-        found: company ? { id: company.id, name: company.name } : null,
-        isDemo: company && (!isAuthenticated || company.userId === 1)
+        found: company ? { id: company.id, name: company.name } : null
       });
 
       if (!company) {
