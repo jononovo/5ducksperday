@@ -54,7 +54,7 @@ export async function hunterSearch(req: Request, res: Response) {
     }
 
     // Use enhanced orchestrator for better error handling and retries
-    const { EnhancedSearchOrchestrator } = await import('../../lib/search-logic/email-discovery/enhanced-search-orchestrator');
+    const { EnhancedSearchOrchestrator } = await import('./email-discovery/enhanced-search-orchestrator');
     const orchestrator = new EnhancedSearchOrchestrator();
     
     const searchResult = await orchestrator.executeHunterSearch(contact, company, hunterApiKey);

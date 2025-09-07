@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
-import { queryPerplexity } from './perplexity-client';
-import type { PerplexityMessage } from '../perplexity';
+import { queryPerplexity } from '../../search/core/perplexity-client';
+import type { PerplexityMessage } from '../../search/core/perplexity-types';
 
 let openaiClient: OpenAI | null = null;
 

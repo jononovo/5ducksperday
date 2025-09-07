@@ -55,7 +55,7 @@ export async function aeroLeadsSearch(req: Request, res: Response) {
     }
 
     // Use the AeroLeads API to search for the email
-    const { searchAeroLeads } = await import('../../lib/search-logic/email-discovery/aeroleads-search');
+    const { searchAeroLeads } = await import('./email-discovery/aeroleads-search');
     console.log('Initiating AeroLeads search for:', {
       contactName: contact.name,
       companyName: company.name
