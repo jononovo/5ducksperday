@@ -10,6 +10,7 @@ import { findKeyDecisionMakers } from "../lib/search-logic/contact-discovery/enh
 import { CreditService } from "../lib/credits";
 import { SearchType } from "../lib/credits/types";
 import { SessionManager } from "./sessions";
+import rateLimit from "express-rate-limit";
 import type { 
   QuickSearchRequest, 
   CompanySearchRequest,
@@ -20,6 +21,25 @@ import type {
 if (!global.searchCache) {
   global.searchCache = new Map<string, SearchCache>();
 }
+
+// Create session-based rate limiter for demo searches
+const demoSearchLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour window
+  max: 10, // Limit each session to 10 searches per hour
+  keyGenerator: (req) => {
+    // Use session ID as the key for rate limiting
+    return (req as any).sessionID || 'no-session';
+  },
+  skipSuccessfulRequests: false, // Count all requests
+  message: "You've enjoyed 10 free searches! Please sign up for unlimited searches.",
+  handler: (req, res) => {
+    res.status(429).json({
+      message: "You've enjoyed 10 free searches! Please sign up for unlimited searches.",
+      signupUrl: "/register",
+      limitReached: true
+    });
+  }
+});
 
 /**
  * Get user ID from request (auth or default to 1)
@@ -107,7 +127,16 @@ export function registerCompanyRoutes(app: Express, requireAuth: any) {
   });
 
   // Quick company search endpoint - returns companies immediately without waiting for contacts
-  app.post("/api/companies/quick-search", async (req: Request, res: Response) => {
+  app.post("/api/companies/quick-search", (req: Request, res: Response, next) => {
+    // Apply rate limiting to demo users (userId = 1) and unauthenticated users
+    const userId = (req as any).user?.id;
+    const isDemo = userId === 1 || !((req as any).isAuthenticated && (req as any).isAuthenticated());
+    
+    if (isDemo) {
+      return demoSearchLimiter(req, res, () => next());
+    }
+    next();
+  }, async (req: Request, res: Response) => {
     const userId = (req as any).isAuthenticated() && (req as any).user ? (req as any).user.id : 1;
     const { query, strategyId, contactSearchConfig, sessionId, searchType }: QuickSearchRequest = req.body;
 
@@ -223,7 +252,16 @@ export function registerCompanyRoutes(app: Express, requireAuth: any) {
   });
 
   // Full company search endpoint with contacts
-  app.post("/api/companies/search", async (req: Request, res: Response) => {
+  app.post("/api/companies/search", (req: Request, res: Response, next) => {
+    // Apply rate limiting to demo users (userId = 1) and unauthenticated users
+    const userId = (req as any).user?.id;
+    const isDemo = userId === 1 || !((req as any).isAuthenticated && (req as any).isAuthenticated());
+    
+    if (isDemo) {
+      return demoSearchLimiter(req, res, () => next());
+    }
+    next();
+  }, async (req: Request, res: Response) => {
     const userId = (req as any).isAuthenticated() && (req as any).user ? (req as any).user.id : 1;
     const { query, strategyId, includeContacts = true, contactSearchConfig, sessionId }: CompanySearchRequest = req.body;
 

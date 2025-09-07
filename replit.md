@@ -27,6 +27,7 @@ The application features a **React SPA frontend** built with TypeScript, Vite, T
 - **Search State Persistence:** Enhanced search input field synchronization to properly maintain query consistency between typed input and executed searches across page refreshes, ensuring displayed results always match the shown query (Sep 2025).
 - **Lists Management Module:** Extracted lists functionality into self-contained module (Sep 2025), reducing 198 lines from main routes.ts. Module handles list CRUD operations, company associations, and demo list visibility for unauthenticated users.
 - **Email Templates Module:** Extracted email templates functionality into self-contained module (Sep 2025), reducing 122 lines from main routes.ts. Module handles template CRUD operations, default template inheritance (userId=1 templates visible to all users), and integrates with QuickTemplates component and Outreach page.
+- **Rate Limiting Implementation:** Session-based rate limiting for demo users (Sep 2025) limiting to 10 searches per hour per session. Prevents external API abuse while maintaining demo experience. Applied to both quick-search and full search endpoints, with friendly message encouraging signup when limit reached.
 
 ## AI Testing Configuration
 
