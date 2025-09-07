@@ -151,7 +151,6 @@ export default function Outreach() {
   // Email enrichment state tracking
   const [pendingContactIds, setPendingContactIds] = useState<Set<number>>(new Set());
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
-  const [pendingAeroLeadsIds, setPendingAeroLeadsIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
   
   // Copy feedback state tracking
@@ -1091,38 +1090,6 @@ export default function Outreach() {
     }
   };
 
-  const handleAeroLeadsSearch = async (contactId: number) => {
-    setPendingAeroLeadsIds(prev => new Set(prev).add(contactId));
-    
-    try {
-      const response = await apiRequest("POST", `/api/contacts/${contactId}/aeroleads`, {});
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to search AeroLeads");
-      }
-      
-      queryClient.invalidateQueries({ 
-        queryKey: [`/api/companies/${selectedCompany?.id}/contacts`] 
-      });
-      
-      toast({
-        title: "AeroLeads Search Complete",
-        description: "AeroLeads email search completed",
-      });
-    } catch (error) {
-      toast({
-        title: "AeroLeads Search Failed",
-        description: error instanceof Error ? error.message : "Failed to search AeroLeads",
-        variant: "destructive",
-      });
-    } finally {
-      setPendingAeroLeadsIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(contactId);
-        return newSet;
-      });
-    }
-  };
 
   const handleApolloSearch = async (contactId: number, silent: boolean = false) => {
     setPendingApolloIds(prev => new Set(prev).add(contactId));
@@ -1371,11 +1338,11 @@ export default function Outreach() {
                         className="p-0"
                         handleEnrichContact={handleEnrichContact}
                         handleHunterSearch={handleHunterSearch}
-                        handleAeroLeadsSearch={handleAeroLeadsSearch}
+
                         handleApolloSearch={handleApolloSearch}
                         pendingContactIds={pendingContactIds}
                         pendingHunterIds={pendingHunterIds}
-                        pendingAeroLeadsIds={pendingAeroLeadsIds}
+
                         pendingApolloIds={pendingApolloIds}
                       />
                     </div>
@@ -1610,11 +1577,11 @@ export default function Outreach() {
                               className="p-0"
                               handleEnrichContact={handleEnrichContact}
                               handleHunterSearch={handleHunterSearch}
-                              handleAeroLeadsSearch={handleAeroLeadsSearch}
+      
                               handleApolloSearch={handleApolloSearch}
                               pendingContactIds={pendingContactIds}
                               pendingHunterIds={pendingHunterIds}
-                              pendingAeroLeadsIds={pendingAeroLeadsIds}
+      
                               pendingApolloIds={pendingApolloIds}
                             />
                           </div>
