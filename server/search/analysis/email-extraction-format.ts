@@ -1,5 +1,5 @@
 import type { Contact } from "@shared/schema";
-import { validateName, type ValidationOptions } from "./contact-name-validation";
+import { validateName, type ValidationOptions } from "./contact-validation";
 import { isPlaceholderEmail, isValidBusinessEmail, generatePossibleEmails, extractDomainFromContext } from "./email-analysis";
 import { validateNames, combineValidationScores } from "./contact-ai-name-scorer";
 import { isPlaceholderName } from "./name-filters";

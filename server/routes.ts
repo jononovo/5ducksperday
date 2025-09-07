@@ -7,12 +7,12 @@ import { storage } from "./storage";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-import { searchCompanies, analyzeCompany } from "./lib/search-logic";
-import { extractContacts } from "./lib/perplexity";
-import { parseCompanyData } from "./lib/results-analysis/company-parser";
-import { queryPerplexity } from "./lib/api/perplexity-client";
+import { searchCompanies, analyzeCompany } from "./search/core/company-search";
+import { extractContacts } from "./search/core/perplexity-utils";
+import { parseCompanyData } from "./search/analysis/company-parser";
+import { queryPerplexity } from "./search/core/perplexity-client";
 import { queryOpenAI, generateEmailStrategy, generateBoundary, generateBoundaryOptions, generateSprintPrompt, generateDailyQueries } from "./lib/api/openai-client";
-import { searchContactDetails } from "./lib/api-interactions";
+import { searchContactDetails } from "./search/enrichment/contact-details";
 import { google } from "googleapis";
 import { 
   insertCompanySchema, 
@@ -20,11 +20,11 @@ import {
   insertListSchema, 
   insertEmailTemplateSchema
 } from "@shared/schema";
-import { emailEnrichmentService } from "./lib/search-logic/email-enrichment/service"; 
-import type { PerplexityMessage } from "./lib/perplexity";
+import { emailEnrichmentService } from "./search/enrichment/email/email-enrichment/service"; 
+import type { PerplexityMessage } from "./search/core/perplexity-types";
 import type { Contact } from "@shared/schema";
-import { postSearchEnrichmentService } from "./lib/search-logic/post-search-enrichment/service";
-import { findKeyDecisionMakers } from "./lib/search-logic/contact-discovery/enhanced-contact-finder";
+import { postSearchEnrichmentService } from "./search/enrichment/post-search/post-search-enrichment/service";
+import { findKeyDecisionMakers } from "./search/contacts/finder";
 import { TokenService } from "./lib/tokens/index";
 import { registerCreditRoutes } from "./routes/credits";
 import { registerStripeRoutes } from "./routes/stripe";

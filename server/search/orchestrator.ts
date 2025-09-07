@@ -8,7 +8,7 @@ import { Express, Request, Response } from "express";
 import { storage } from "../storage";
 import { CreditService } from "../lib/credits";
 import { getUserId } from "./utils";
-import { searchContactDetails } from "../lib/api-interactions";
+import { searchContactDetails } from "./enrichment/contact-details";
 import type { Contact } from "./types";
 
 export function registerOrchestratorRoutes(app: Express, requireAuth: any) {

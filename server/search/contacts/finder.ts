@@ -1,12 +1,12 @@
 import { Contact } from "@shared/schema";
-import { analyzeWithPerplexity } from "../../perplexity";
-import { isPlaceholderName } from "../../results-analysis/name-filters";
-import { validateName } from "../../results-analysis/contact-name-validation";
-import { extractDomainFromContext } from "../../results-analysis/email-analysis";
-import { INDUSTRY_PROFESSIONAL_TITLES } from "../../results-analysis/name-filters";
-import { applyCustomRoleAffinityScoring } from "../../results-analysis/custom-role-affinity-scorer";
-import { SmartFallbackManager } from "./smart-fallback-manager";
-import { SearchPerformanceLogger } from "./search-performance-logger";
+import { analyzeWithPerplexity } from "../core/perplexity-utils";
+import { isPlaceholderName } from "../analysis/name-filters";
+import { validateName } from "../analysis/contact-validation";
+import { extractDomainFromContext } from "../analysis/email-analysis";
+import { INDUSTRY_PROFESSIONAL_TITLES } from "../analysis/name-filters";
+import { applyCustomRoleAffinityScoring } from "../analysis/custom-role-affinity-scorer";
+import { SmartFallbackManager } from "./fallback-manager";
+import { SearchPerformanceLogger } from "./performance-logger";
 
 /**
  * Enhanced contact finder that uses industry-specific prompts

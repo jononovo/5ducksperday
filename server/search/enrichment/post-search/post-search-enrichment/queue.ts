@@ -1,6 +1,6 @@
 import type { EnrichmentQueueItem, QueueStatus, EnrichmentResult } from './types';
-import { storage } from '../../../storage';
-import { searchContactDetails } from '../../api-interactions';
+import { storage } from '../../../../storage';
+import { searchContactDetails } from '../../contact-details';
 
 class EnrichmentQueue {
   private queue: Map<string, EnrichmentQueueItem[]> = new Map();

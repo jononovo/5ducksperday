@@ -5,8 +5,8 @@
 
 import { Express, Request, Response } from "express";
 import { storage } from "../storage";
-import { searchCompanies } from "../lib/search-logic";
-import { findKeyDecisionMakers } from "../lib/search-logic/contact-discovery/enhanced-contact-finder";
+import { searchCompanies } from "./core/company-search";
+import { findKeyDecisionMakers } from "./contacts/finder";
 import { CreditService } from "../lib/credits";
 import { SearchType } from "../lib/credits/types";
 import { SessionManager } from "./sessions";

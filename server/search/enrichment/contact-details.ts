@@ -1,9 +1,9 @@
 import type { Company, Contact } from "@shared/schema";
-import { validateNames } from "./results-analysis/contact-ai-name-scorer";
-import { isPlaceholderEmail, isValidBusinessEmail, parseEmailDetails } from "./results-analysis/email-analysis";
-import { queryPerplexity } from "./api/perplexity-client";
-import type { PerplexityMessage } from "./types/perplexity";
-import { analyzeWithPerplexity } from "./perplexity";
+import { validateNames } from "../analysis/contact-ai-name-scorer";
+import { isPlaceholderEmail, isValidBusinessEmail, parseEmailDetails } from "../analysis/email-analysis";
+import { queryPerplexity } from "../core/perplexity-client";
+import type { PerplexityMessage } from "../core/perplexity-types";
+import { analyzeWithPerplexity } from "../core/perplexity-utils";
 
 // Company analysis functions
 // Note: The searchCompanies function has been consolidated into the search-logic.ts implementation

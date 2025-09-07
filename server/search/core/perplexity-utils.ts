@@ -1,8 +1,8 @@
 import type { Company, Contact } from "@shared/schema";
-import { queryPerplexity } from "./api/perplexity-client";
-import type { PerplexityMessage } from "./types/perplexity";
-import { validateEmailPattern, isValidBusinessEmail, isPlaceholderEmail } from "./results-analysis/email-analysis";
-import type { ValidationOptions } from "./results-analysis/contact-name-validation";
+import { queryPerplexity } from "./perplexity-client";
+import type { PerplexityMessage } from "./perplexity-types";
+import { validateEmailPattern, isValidBusinessEmail, isPlaceholderEmail } from "../analysis/email-analysis";
+import type { ValidationOptions } from "../analysis/contact-validation";
 
 /**
  * Core Perplexity AI interaction module
@@ -140,6 +140,6 @@ export async function validateEmails(emails: string[]): Promise<EmailValidationR
 }
 
 // Re-export essential analysis functions
-export { extractContacts } from "./results-analysis/email-extraction-format";
-export { parseCompanyData } from "./results-analysis/company-parser";
+export { extractContacts } from "../analysis/email-extraction-format";
+export { parseCompanyData } from "../analysis/company-parser";
 export type { PerplexityMessage };

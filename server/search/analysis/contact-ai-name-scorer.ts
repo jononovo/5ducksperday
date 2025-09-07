@@ -1,7 +1,7 @@
 import type { Contact } from "@shared/schema";
-import { validateName } from "./contact-name-validation";
-import { queryPerplexity } from "../api/perplexity-client";
-import type { PerplexityMessage } from "../types/perplexity";
+import { validateName } from "./contact-validation";
+import { queryPerplexity } from "../core/perplexity-client";
+import type { PerplexityMessage } from "../core/perplexity-types";
 
 export interface ValidationOptions {
   minimumScore?: number;
