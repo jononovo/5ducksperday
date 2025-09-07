@@ -148,7 +148,7 @@ class DatabaseStorage implements IStorage {
     console.log('DatabaseStorage.initializeUserPreferences - Creating preferences for userId:', userId);
     const [prefs] = await db
       .insert(userPreferences)
-      .values({ userId, hasSeenTour: false })
+      .values({ userId })
       .returning();
 
     return prefs;

@@ -29,7 +29,6 @@ The application features a **React SPA frontend** built with TypeScript, Vite, T
 - **Email Templates Module:** Extracted email templates functionality into self-contained module (Sep 2025), reducing 122 lines from main routes.ts. Module handles template CRUD operations, default template inheritance (userId=1 templates visible to all users), and integrates with QuickTemplates component and Outreach page.
 - **User Account Settings Module:** Extracted user account management functionality into self-contained module (Sep 2025), reducing ~200 lines from main routes.ts. Module handles user profile management, preferences, email preferences, notifications system, and Easter egg features.
 - **Email Replies Module:** Extracted email reply tracking functionality into self-contained module (Sep 2025), reducing ~140 lines from main routes.ts. Module handles reply tracking, sentiment analysis, and follow-up management (currently inactive feature).
-- **Campaigns Module:** Extracted campaign management functionality into self-contained module (Sep 2025), reducing ~100 lines from main routes.ts. Module handles campaign creation, scheduling, and execution (currently inactive feature).
 - **Rate Limiting Implementation:** Session-based rate limiting for demo users (Sep 2025) limiting to 10 searches per hour per session. Prevents external API abuse while maintaining demo experience. Applied to both quick-search and full search endpoints, with friendly message encouraging signup when limit reached.
 
 ## Modular Architecture Pattern
