@@ -11,7 +11,7 @@ import { getUserId } from "./utils";
 import { hunterSearch } from "./providers/hunter";
 import { apolloSearch } from "./providers/apollo";
 import { searchContactDetails } from "./enrichment/contact-details";
-import { CreditService } from "../lib/credits";
+import { CreditService } from "../features/billing/credits/service";
 import type { Contact } from "@shared/schema";
 
 export function registerContactRoutes(app: Express, requireAuth: any) {

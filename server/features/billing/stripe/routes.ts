@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import Stripe from "stripe";
-import { CreditService } from "../lib/credits";
-import { STRIPE_CONFIG } from "../lib/credits/types";
+import { CreditService } from "../credits/service";
+import { STRIPE_CONFIG } from "./types";
 
 // Environment detection logic - temporarily forcing production mode for real payment testing
 const isTestMode = false; // Temporarily disabled to test real payments in development

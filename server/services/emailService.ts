@@ -1,6 +1,6 @@
 import { MOCK_ACTIVE_CONTACTS, MOCK_EMAIL_THREADS } from "../mock/emailData";
 import type { Contact } from "@shared/schema";
-import { TokenService } from "../lib/tokens/index";
+import { TokenService } from "../features/billing/tokens/service";
 
 // Email provider interface - will be implemented by different email services
 export interface EmailProvider {

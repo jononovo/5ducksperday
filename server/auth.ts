@@ -7,7 +7,8 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User, User as SelectUser } from "@shared/schema";
 import admin from "firebase-admin";
-import { TokenService, UserTokens } from "./lib/tokens";
+import { TokenService } from "./features/billing/tokens/service";
+import { UserTokens } from "./features/billing/tokens/types";
 import MemoryStore from "memorystore";
 
 // Extend the session type to include gmailToken
@@ -474,7 +475,7 @@ export function setupAuth(app: Express) {
     
     try {
       const userId = (req.user as any).id;
-      const { CreditService } = await import("./lib/credits");
+      const { CreditService } = await import("./features/billing/credits/service");
       const credits = await CreditService.getUserCredits(userId);
       
       const planMap = {
@@ -545,7 +546,7 @@ export function setupAuth(app: Express) {
       // Handle plan selection from pricing page
       if (selectedPlan && planSource === 'pricing_page') {
         try {
-          const { CreditService } = await import("./lib/credits");
+          const { CreditService } = await import("./features/billing/credits/service");
           
           if (selectedPlan === 'ugly-duckling') {
             // User selected The Duckling plan - redirect to Stripe checkout after auth
