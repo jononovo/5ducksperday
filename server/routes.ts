@@ -8,11 +8,11 @@ import { storage } from "./storage";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 import { searchCompanies, analyzeCompany } from "./search/core/company-search";
-import { extractContacts } from "./lib/perplexity";
-import { parseCompanyData } from "./lib/results-analysis/company-parser";
+// import { extractContacts } from "./lib/perplexity"; // File doesn't exist
+// import { parseCompanyData } from "./lib/results-analysis/company-parser"; // File doesn't exist
 import { queryPerplexity } from "./search/core/perplexity-client";
 import { queryOpenAI, generateEmailStrategy, generateBoundary, generateBoundaryOptions, generateSprintPrompt, generateDailyQueries } from "./lib/api/openai-client";
-import { searchContactDetails } from "./search/enrichment/contact-details";
+// import { searchContactDetails } from "./search/enrichment/contact-details"; // File doesn't exist - TSX runtime cached
 import { google } from "googleapis";
 import { 
   insertCompanySchema, 
@@ -21,9 +21,9 @@ import {
   insertEmailTemplateSchema
 } from "@shared/schema";
  
-import type { PerplexityMessage } from "./lib/perplexity";
+// import type { PerplexityMessage } from "./lib/perplexity"; // File doesn't exist
 import type { Contact } from "@shared/schema";
-import { postSearchEnrichmentService } from "./search/enrichment/post-search/post-search-enrichment/service";
+// import { postSearchEnrichmentService } from "./search/enrichment/post-search/post-search-enrichment/service"; // File doesn't exist
 import { findKeyDecisionMakers } from "./search/contacts/finder";
 import { TokenService } from "./lib/tokens/index";
 import { registerCreditRoutes } from "./routes/credits";

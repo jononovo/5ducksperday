@@ -11,7 +11,19 @@ import { getUserId } from "./utils";
 import { hunterSearch } from "./providers/hunter";
 import { apolloSearch } from "./providers/apollo";
 import { aeroLeadsSearch } from "./providers/aeroleads";
-import { searchContactDetails } from "./enrichment/contact-details";
+// import { searchContactDetails } from "./enrichment/contact-details"; // File doesn't exist - TSX runtime cached
+// Temporary placeholder for searchContactDetails to prevent crashes
+const searchContactDetails = async (contactName: string, companyName: string) => {
+  console.log('searchContactDetails called but implementation missing:', { contactName, companyName });
+  return {
+    email: null,
+    linkedinUrl: null,
+    twitterHandle: null,
+    phoneNumber: null,
+    department: null,
+    location: null
+  };
+};
 import { CreditService } from "../lib/credits";
 import type { Contact } from "@shared/schema";
 
