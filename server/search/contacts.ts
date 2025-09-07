@@ -13,7 +13,7 @@ import { apolloSearch } from "./providers/apollo";
 import { aeroLeadsSearch } from "./providers/aeroleads";
 import { searchContactDetails } from "./enrichment/contact-details";
 import { CreditService } from "../lib/credits";
-import type { Contact } from "./types";
+import type { Contact } from "@shared/schema";
 
 export function registerContactRoutes(app: Express, requireAuth: any) {
   
@@ -46,7 +46,7 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
         const updatedContact = await storage.updateContact(contactId, {
           completedSearches: completedSearches,
           lastValidated: new Date()
-        }, userId);
+        });
         
         res.json(updatedContact);
       } else {
