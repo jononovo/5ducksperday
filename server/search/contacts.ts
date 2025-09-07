@@ -208,4 +208,31 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
       });
     }
   });
+
+  // Get contacts by company ID
+  app.get("/api/companies/:companyId/contacts", async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const companyId = parseInt(req.params.companyId);
+      
+      // Handle cache invalidation for fresh data requests
+      const cacheTimestamp = req.query.t;
+      
+      const contacts = await storage.listContactsByCompany(companyId, userId);
+      
+      // Set no-cache headers for fresh data requests
+      if (cacheTimestamp) {
+        res.set({
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        });
+      }
+      
+      res.json(contacts);
+    } catch (error) {
+      console.error("Error fetching contacts by company:", error);
+      res.status(500).json({ message: "Failed to fetch contacts" });
+    }
+  });
 }

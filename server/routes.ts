@@ -689,32 +689,7 @@ export function registerRoutes(app: Express) {
 
 
 
-  // Contacts
-  app.get("/api/companies/:companyId/contacts", async (req, res) => {
-    try {
-      const userId = getUserId(req);
-      const companyId = parseInt(req.params.companyId);
-      
-      // Handle cache invalidation for fresh data requests
-      const cacheTimestamp = req.query.t;
-      
-      const contacts = await storage.listContactsByCompany(companyId, userId);
-      
-      // Set no-cache headers for fresh data requests
-      if (cacheTimestamp) {
-        res.set({
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        });
-      }
-      
-      res.json(contacts);
-    } catch (error) {
-      console.error("Error fetching contacts by company:", error);
-      res.status(500).json({ message: "Failed to fetch contacts" });
-    }
-  });
+  // Contacts - endpoint moved to search/contacts.ts module
 
   app.post("/api/companies/:companyId/enrich-contacts", requireAuth, async (req, res) => {
     try {
