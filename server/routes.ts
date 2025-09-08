@@ -189,8 +189,10 @@ export function registerRoutes(app: Express) {
     res.sendFile(path.join(__dirname, '../static/contact.html'));
   });
   
-
-  
+  // Serve the static privacy page
+  app.get('/privacy.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../static/privacy.html'));
+  });
   
   // Email conversations routes
   app.get('/api/replies/contacts', requireAuth, async (req, res) => {
