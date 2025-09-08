@@ -37,6 +37,13 @@ import { registerEmailTemplatesRoutes } from "./email/email-templates";
 import { registerSearchRoutes, SessionManager } from "./search";
 import { registerSitemapRoutes } from "./features/sitemap";
 
+// Import dormant modules that were created but never activated
+import { registerEmailRepliesRoutes } from "./email-replies";
+import { registerHtmlStaticChatRoutes } from "./user-chatbox/html-static";
+import { registerReactChatRoutes } from "./user-chatbox/react";
+import { registerStrategicProfilesRoutes } from "./user-chatbox/strategic-profiles";
+import { registerUserAccountSettingsRoutes } from "./user-account-settings";
+
 
 
 // Helper function to safely get user ID from request
@@ -482,6 +489,13 @@ export function registerRoutes(app: Express) {
   
   // Register modular sitemap routes
   registerSitemapRoutes(app);
+  
+  // Register dormant modules that were created but never activated
+  registerEmailRepliesRoutes(app, requireAuth);
+  registerHtmlStaticChatRoutes(app); // No requireAuth needed - serves public landing page
+  registerReactChatRoutes(app, requireAuth);
+  registerStrategicProfilesRoutes(app, requireAuth);
+  registerUserAccountSettingsRoutes(app, requireAuth);
 
   app.post("/api/companies/:companyId/enrich-top-prospects", requireAuth, async (req, res) => {
     try {
