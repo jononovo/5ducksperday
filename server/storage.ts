@@ -10,7 +10,7 @@ import {
   type User, type InsertUser,
   type StrategicProfile, type InsertStrategicProfile
 } from "@shared/schema";
-import { db } from "./1--db";
+import { db } from "./db";
 import { eq, and, or, sql, desc } from "drizzle-orm";
 
 export interface IStorage {

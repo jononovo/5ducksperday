@@ -1,4 +1,4 @@
-import { db } from '../../1--db';
+import { db } from '../../db';
 import { eq, and, or } from 'drizzle-orm';
 import {
   type EmailTemplate,
