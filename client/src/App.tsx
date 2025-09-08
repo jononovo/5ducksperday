@@ -6,7 +6,6 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { SemiProtectedRoute } from "@/lib/semi-protected-route";
 import { Layout, AppLayout } from "@/components/layout";
-import { SearchStrategyProvider } from "@/lib/search-strategy-context";
 import { RegistrationModalProvider } from "@/hooks/use-registration-modal";
 import { RegistrationModalContainer } from "@/components/registration-modal-container";
 import { useEffect, useState, lazy, Suspense } from "react";
@@ -232,15 +231,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <RegistrationModalProvider>
-          <SearchStrategyProvider>
-            <StrategyOverlayProvider>
+          <StrategyOverlayProvider>
               {/* Default SEO tags for the entire site */}
               <SEOHead />
               <Router />
               <RegistrationModalContainer />
               <Toaster />
-            </StrategyOverlayProvider>
-          </SearchStrategyProvider>
+          </StrategyOverlayProvider>
         </RegistrationModalProvider>
       </AuthProvider>
     </QueryClientProvider>

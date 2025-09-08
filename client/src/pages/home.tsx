@@ -606,9 +606,6 @@ export default function Home() {
 
 
 
-  const { data: searchApproaches = [] } = useQuery<any[]>({
-    queryKey: ["/api/search-approaches"],
-  });
 
 
   

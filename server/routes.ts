@@ -36,12 +36,15 @@ import { registerEmailTemplatesRoutes } from "./email/email-templates";
 import { registerSearchRoutes, SessionManager } from "./search";
 import { registerSitemapRoutes } from "./features/sitemap";
 
-// Import dormant modules that were created but never activated
+// Import inactive module registration functions
+
+
 import { registerEmailRepliesRoutes } from "./email-replies";
 import { registerHtmlStaticChatRoutes } from "./user-chatbox/html-static";
 import { registerReactChatRoutes } from "./user-chatbox/react";
 import { registerStrategicProfilesRoutes } from "./user-chatbox/strategic-profiles";
 import { registerUserAccountSettingsRoutes } from "./user-account-settings";
+
 
 // Import centralized auth utilities
 import { getUserId, requireAuth } from "./utils/auth";
@@ -111,13 +114,6 @@ export function registerRoutes(app: Express) {
 
 
 
-
-
-
-
-
-
-
   // Leave the search approaches endpoints without auth since they are system-wide
 
   // Register modular email generation routes
@@ -137,6 +133,7 @@ export function registerRoutes(app: Express) {
   
   // Register modular sitemap routes
   registerSitemapRoutes(app);
+
   
   // Register dormant modules that were created but never activated
   registerEmailRepliesRoutes(app, requireAuth);
@@ -144,6 +141,7 @@ export function registerRoutes(app: Express) {
   registerReactChatRoutes(app, requireAuth);
   registerStrategicProfilesRoutes(app, requireAuth);
   registerUserAccountSettingsRoutes(app, requireAuth);
+
 
   // Strategy Processing Endpoint for Cold Email Outreach
   app.post("/api/onboarding/process-strategy", async (req, res) => {
@@ -234,26 +232,13 @@ Respond in this exact JSON format:
     }
   });
 
-  // Add missing search-approaches endpoint to fix frontend JSON parsing errors
-  app.get("/api/search-approaches", requireAuth, async (req, res) => {
-    try {
-      // Return empty array since search approaches have been removed
-      // This prevents frontend JSON parsing errors
-      res.json([]);
-    } catch (error) {
-      console.error('Search approaches endpoint error:', error);
-      res.status(500).json({ 
-        message: "Failed to fetch search approaches",
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
 
   // All N8N Workflow Management Endpoints and proxies have been removed
 
   // Gamification routes have been moved to billing module
 
   // User Profile API endpoints
+
 
   // Register all billing-related routes (credits, Stripe, gamification)
   registerBillingRoutes(app);
