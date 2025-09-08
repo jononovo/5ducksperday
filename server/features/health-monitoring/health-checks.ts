@@ -1,7 +1,7 @@
 import { storage } from '../../storage';
 import { queryPerplexity } from '../../search/core/perplexity-client';
 import { searchCompanies, analyzeCompany } from '../../search/core/company-search';
-import { getEmailProvider } from '../../services/emailService';
+import { getEmailProvider } from '../../gmail-api-service';
 
 export interface TestResult {
   status: 'passed' | 'failed' | 'warning';

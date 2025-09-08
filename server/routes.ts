@@ -13,7 +13,6 @@ import { searchCompanies, analyzeCompany } from "./search/core/company-search";
 import { queryPerplexity } from "./search/core/perplexity-client";
 import { queryOpenAI, generateEmailStrategy, generateBoundary, generateBoundaryOptions, generateSprintPrompt, generateDailyQueries, type PerplexityMessage } from "./ai-services";
 // import { searchContactDetails } from "./search/enrichment/contact-details"; // File doesn't exist - TSX runtime cached
-import { google } from "googleapis";
 import { 
   insertCompanySchema, 
   insertContactSchema, 
@@ -29,9 +28,9 @@ import { TokenService } from "./features/billing/tokens/service";
 import { registerBillingRoutes } from "./features/billing/routes";
 import { CreditService } from "./features/billing/credits/service";
 import { SearchType } from "./features/billing/credits/types";
-import { getEmailProvider } from "./services/emailService";
+import { getEmailProvider } from "./gmail-api-service";
 import { registerEmailGenerationRoutes } from "./email-content-generation/routes";
-import { registerGmailRoutes } from "./features/gmail-integration";
+import { registerGmailRoutes } from "./gmail-api-service";
 import { registerHealthMonitoringRoutes } from "./features/health-monitoring";
 import { registerListsRoutes } from "./features/lists";
 import { registerEmailTemplatesRoutes } from "./email/email-templates";

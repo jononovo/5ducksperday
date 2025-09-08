@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
-import { TokenService } from '../billing/tokens/service';
-import { GmailUserInfo } from './types';
+import { TokenService } from '../../features/billing/tokens/service';
+import type { GmailUserInfo } from './types';
 
 export class GmailOAuthService {
   private static getOAuth2Client(redirectUri?: string) {
@@ -66,7 +66,7 @@ export class GmailOAuthService {
       expiry_date: tokens.expiry_date
     }, {
       email: userInfo.email,
-      name: userInfo.name
+      name: userInfo.name || ""
     });
   }
 

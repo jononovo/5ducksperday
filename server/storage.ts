@@ -41,6 +41,7 @@ export interface IStorage {
 
   // Contacts
   listContactsByCompany(companyId: number, userId: number): Promise<Contact[]>;
+  listContacts(userId: number): Promise<Contact[]>;
   getContact(id: number, userId: number): Promise<Contact | undefined>;
   createContact(data: InsertContact): Promise<Contact>;
   updateContact(id: number, data: Partial<Contact>): Promise<Contact>;
@@ -255,6 +256,18 @@ class DatabaseStorage implements IStorage {
         .where(and(eq(contacts.companyId, companyId), eq(contacts.userId, userId)));
     } catch (error) {
       console.error('Error fetching contacts by company:', error);
+      return [];
+    }
+  }
+
+  async listContacts(userId: number): Promise<Contact[]> {
+    try {
+      return await db
+        .select()
+        .from(contacts)
+        .where(eq(contacts.userId, userId));
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
       return [];
     }
   }
