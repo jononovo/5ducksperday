@@ -143,28 +143,3 @@ Please output a JSON array containing 7 objects, where each object has exactly t
     return companies;
   }
 }
-
-export async function analyzeCompany(
-  companyName: string,
-  userPrompt: string,
-  technicalPrompt?: string | null,
-  responseStructure?: string | null
-): Promise<string> {
-  const messages: PerplexityMessage[] = [
-    {
-      role: "system",
-      content: technicalPrompt || "You are a business intelligence analyst providing detailed company information."
-    },
-    {
-      role: "user",
-      content: (userPrompt || "").replace("[COMPANY]", companyName)
-    }
-  ];
-
-  if (responseStructure) {
-    messages[0].content += `\n\nFormat your response as JSON:\n${responseStructure}`;
-  }
-
-  return queryPerplexity(messages);
-}
-

@@ -7,7 +7,7 @@ import { storage } from "./storage";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-import { searchCompanies, analyzeCompany } from "./search/core/company-search";
+import { searchCompanies } from "./search/core/company-search";
 // import { extractContacts } from "./lib/perplexity"; // File doesn't exist
 // import { parseCompanyData } from "./lib/results-analysis/company-parser"; // File doesn't exist
 import { queryPerplexity } from "./search/core/perplexity-client";
