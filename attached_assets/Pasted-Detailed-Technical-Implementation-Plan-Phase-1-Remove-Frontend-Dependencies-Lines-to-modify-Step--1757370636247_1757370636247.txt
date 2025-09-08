@@ -1,0 +1,55 @@
+Detailed Technical Implementation Plan
+Phase 1: Remove Frontend Dependencies (Lines to modify)
+Step 1: Clean up prompt-editor.tsx
+Line 12: Remove import { useSearchStrategy } from "@/lib/search-strategy-context";
+Line 13: Remove import SearchSettingsDrawer from "./search-settings-drawer";
+Line 538: Remove const { selectedStrategyId } = useSearchStrategy();
+Lines 556, 569, 724: Replace selectedStrategyId ? parseInt(selectedStrategyId) : undefined with undefined
+Lines 1019-1022: Remove the SearchSettingsDrawer component render block
+Step 2: Clean up App.tsx
+Line 9: Remove import { SearchStrategyProvider } from "@/lib/search-strategy-context";
+Line 236: Remove opening <SearchStrategyProvider> tag
+Line 244: Remove closing </SearchStrategyProvider> tag
+Step 3: Clean up home.tsx
+Lines 609-611: Remove the unused searchApproaches query:
+const { data: searchApproaches = [] } = useQuery<any[]>({
+  queryKey: ["/api/search-approaches"],
+});
+Phase 2: Remove Backend Dependencies
+Step 4: Clean up server/routes.ts
+Lines 541-553: Remove the entire /api/search-approaches endpoint
+Step 5: Clean up shared/schema.ts
+Line 267: Remove export type SearchApproach = { id: number; name: string; description?: string };
+Phase 3: Delete Orphaned Files
+Step 6: Remove component files
+Delete client/src/components/search-settings-drawer.tsx (81 lines)
+Delete client/src/components/search-strategies.tsx (196 lines)
+Delete client/src/lib/search-strategy-context.tsx (30 lines)
+Phase 4: Validation
+Step 7: Verify no broken imports
+Check for any TypeScript/LSP errors after removal
+Ensure application compiles without errors
+Step 8: Test functionality
+Verify search still works without strategyId
+Confirm no console errors in browser
+Test that the search button area no longer shows the settings icon
+Impact Summary
+Total lines removed: ~400+ lines
+Files deleted: 3
+Files modified: 5
+
+Risk Assessment
+✅ Low Risk - All changes are removing unused code:
+
+Backend ignores strategyId already
+UI shows empty drawer with "future update" message
+No functional dependencies on these components
+Search will continue working exactly as before
+Rollback Plan
+If any issues occur:
+
+The changes are isolated and can be reverted file by file
+No database migrations or data changes are involved
+Git history will preserve all removed code if needed later
+Would you like me to proceed with implementing this plan?
+

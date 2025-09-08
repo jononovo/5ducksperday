@@ -9,8 +9,6 @@ import { Loader2, Search, HelpCircle } from "lucide-react";
 
 
 import { useConfetti } from "@/hooks/use-confetti";
-import { useSearchStrategy } from "@/lib/search-strategy-context";
-import SearchSettingsDrawer from "./search-settings-drawer";
 import { SearchSessionManager } from "@/lib/search-session-manager";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -535,7 +533,6 @@ export default function PromptEditor({
 
 
   // Use our search strategy context
-  const { selectedStrategyId } = useSearchStrategy();
   
 
   
@@ -553,7 +550,7 @@ export default function PromptEditor({
       // Create a new session for this search
       const sessionId = SearchSessionManager.createSession(
         searchQuery, 
-        selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
+        undefined,
         contactSearchConfig
       ).id;
       
@@ -561,12 +558,12 @@ export default function PromptEditor({
       console.log(`Created session ${sessionId} for query: ${searchQuery}`);
       
       // Use the standard search but optimize for quick company results
-      console.log(`Quick search with strategy: ${selectedStrategyId || "Default"}`);
+      console.log('Quick search initiated');
 
       // Get companies quickly without waiting for contact enrichment
       const res = await apiRequest("POST", "/api/companies/quick-search", { 
         query: searchQuery,
-        strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
+        strategyId: undefined,
         contactSearchConfig: contactSearchConfig,
         sessionId: sessionId,
         searchType: searchType
@@ -721,7 +718,7 @@ export default function PromptEditor({
       
       const res = await apiRequest("POST", "/api/companies/search", { 
         query: searchQuery,
-        strategyId: selectedStrategyId ? parseInt(selectedStrategyId) : undefined,
+        strategyId: undefined,
         includeContacts: true,
         contactSearchConfig: contactSearchConfig,
         sessionId: currentSessionId
@@ -1016,10 +1013,6 @@ export default function PromptEditor({
           />
         )}
 
-        {/* Settings drawer trigger - positioned in lower right corner */}
-        <div className="absolute bottom-8 right-4">
-          <SearchSettingsDrawer />
-        </div>
 
       </div>
     </div>
