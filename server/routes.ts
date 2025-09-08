@@ -424,7 +424,7 @@ export function registerRoutes(app: Express) {
       await storage.deleteContactsByCompany(companyId, userId);
 
       // Create new contacts with only the essential fields and minimum confidence score
-      const validContacts = newContacts.filter((contact: Contact) => 
+      const validContacts = newContacts.filter((contact: any) => 
         contact.name && 
         contact.name !== "Unknown" && 
         (!contact.probability || contact.probability >= 40) // Filter out contacts with low confidence/probability scores
@@ -432,7 +432,7 @@ export function registerRoutes(app: Express) {
       console.log('Valid contacts for enrichment:', validContacts);
 
       const createdContacts = await Promise.all(
-        validContacts.map(async (contact: Contact) => {
+        validContacts.map(async (contact: any) => {
           console.log(`Processing contact enrichment for: ${contact.name}`);
 
           return storage.createContact({
@@ -440,14 +440,16 @@ export function registerRoutes(app: Express) {
             name: contact.name!,
             role: contact.role || null,
             email: contact.email || null,
-            priority: contact.priority ?? null,
+            probability: contact.probability || null,
             linkedinUrl: null,
             twitterHandle: null,
             phoneNumber: null,
             department: null,
             location: null,
             verificationSource: 'Decision-maker Analysis',
-            userId: userId
+            nameConfidenceScore: null,
+            userFeedbackScore: null,
+            feedbackCount: null
           });
         })
       );
@@ -461,90 +463,6 @@ export function registerRoutes(app: Express) {
       });
     }
   });
-
-
-  // Campaigns
-  app.get("/api/campaigns", requireAuth, async (req, res) => {
-    const campaigns = await storage.listCampaigns(req.user!.id);
-    res.json(campaigns);
-  });
-
-  app.get("/api/campaigns/:campaignId", requireAuth, async (req, res) => {
-    const campaign = await storage.getCampaign(parseInt(req.params.campaignId), req.user!.id);
-    if (!campaign) {
-      res.status(404).json({ message: "Campaign not found" });
-      return;
-    }
-    res.json(campaign);
-  });
-
-  app.post("/api/campaigns", requireAuth, async (req, res) => {
-    try {
-      // Get next available campaign ID (starting from 2001)
-      const campaignId = await storage.getNextCampaignId();
-
-      // Campaign functionality is currently inactive - basic validation
-      const result = { success: true, data: {
-        ...req.body,
-        campaignId,
-        totalCompanies: 0,
-        userId: getUserId(req)
-      }};
-      // const result = insertCampaignSchema.safeParse({
-      //   ...req.body,
-      //   campaignId,
-      //   totalCompanies: 0,
-      //   userId: userId
-      // });
-
-      if (!result.success) {
-        res.status(400).json({
-          message: "Invalid request body",
-          errors: result.error.errors
-        });
-        return;
-      }
-
-      // Create the campaign
-      const campaign = await storage.createCampaign({
-        ...result.data,
-        description: result.data.description || null,
-        startDate: result.data.startDate || null,
-        status: result.data.status || 'draft'
-      });
-
-      res.json(campaign);
-    } catch (error) {
-      console.error('Campaign creation error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred while creating the campaign"
-      });
-    }
-  });
-
-  app.patch("/api/campaigns/:campaignId", requireAuth, async (req, res) => {
-    // Campaign functionality is currently inactive - basic validation
-    const result = { success: true, data: req.body };
-    // const result = insertCampaignSchema.partial().safeParse(req.body);
-    if (!result.success) {
-      res.status(400).json({ message: "Invalid request body" });
-      return;
-    }
-
-    const updated = await storage.updateCampaign(
-      parseInt(req.params.campaignId),
-      result.data,
-      req.user!.id
-    );
-
-    if (!updated) {
-      res.status(404).json({ message: "Campaign not found" });
-      return;
-    }
-
-    res.json(updated);
-  });
-
 
   // Leave the search approaches endpoints without auth since they are system-wide
 
@@ -707,9 +625,9 @@ export function registerRoutes(app: Express) {
       }
 
       // Prepare messages for OpenAI with conversation history
-      const openaiMessages = [
+      const openaiMessages: Array<{ role: string; content: string }> = [
         {
-          role: "system" as const,
+          role: "system",
           content: currentStepConfig.systemPrompt
         }
       ];
@@ -719,8 +637,8 @@ export function registerRoutes(app: Express) {
         // Skip the initial personalized message to avoid role alternation issues
         // Start from the first user message (customer example)
         const previousMessages = conversationHistory.slice(0, -1);
-        const userMessages = previousMessages.filter(msg => msg.sender === 'user');
-        const aiMessages = previousMessages.filter(msg => msg.sender === 'ai' && !msg.content.includes("Perfect! So you're selling"));
+        const userMessages = previousMessages.filter((msg: any) => msg.sender === 'user');
+        const aiMessages = previousMessages.filter((msg: any) => msg.sender === 'ai' && !msg.content.includes("Perfect! So you're selling"));
         
         // Only include alternating messages starting with user messages
         let lastRole = 'system';
@@ -732,13 +650,13 @@ export function registerRoutes(app: Express) {
           
           if (msg.sender === 'ai' && lastRole !== 'assistant') {
             openaiMessages.push({
-              role: "assistant" as const,
+              role: "assistant",
               content: msg.content
             });
             lastRole = 'assistant';
           } else if (msg.sender === 'user' && lastRole !== 'user') {
             openaiMessages.push({
-              role: "user" as const,
+              role: "user",
               content: msg.content
             });
             lastRole = 'user';
@@ -748,7 +666,7 @@ export function registerRoutes(app: Express) {
         
       // Add the new user message
       openaiMessages.push({
-        role: "user" as const,
+        role: "user",
         content: message
       });
 
@@ -905,7 +823,7 @@ Focus on actionable insights that directly support their stated business goal an
       console.error("Background research error:", error);
       res.status(500).json({
         message: "Failed to complete background research",
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -924,7 +842,7 @@ Focus on actionable insights that directly support their stated business goal an
       console.log('Conversation history received:', JSON.stringify(conversationHistory, null, 2));
 
       // Determine conversation phase based on conversation content
-      const hasProductSummary = conversationHistory?.some(msg => 
+      const hasProductSummary = conversationHistory?.some((msg: any) => 
         msg.sender === 'ai' && 
         msg.content && (
           msg.content.toLowerCase().includes('product analysis summary') ||
@@ -933,17 +851,17 @@ Focus on actionable insights that directly support their stated business goal an
           (msg.content.toLowerCase().includes('product') && msg.content.toLowerCase().includes('summary'))
         )
       ) || false;
-      const hasEmailStrategy = conversationHistory?.some(msg => 
+      const hasEmailStrategy = conversationHistory?.some((msg: any) => 
         msg.sender === 'ai' && 
         (msg.content?.includes('90-day email sales strategy') || msg.content?.includes('EMAIL STRATEGY'))
       ) || false;
-      const hasSalesApproach = conversationHistory?.some(msg => 
+      const hasSalesApproach = conversationHistory?.some((msg: any) => 
         msg.sender === 'ai' && 
         msg.content?.includes('Sales Approach Strategy')
       ) || false;
       
       // Track target market collection phases
-      const targetMessages = conversationHistory?.filter(msg => 
+      const targetMessages = conversationHistory?.filter((msg: any) => 
         msg.sender === 'user' && 
         msg.content && 
         !msg.content.toLowerCase().includes('generate product summary') &&
@@ -979,11 +897,11 @@ Focus on actionable insights that directly support their stated business goal an
         hasEmailStrategy,
         currentPhase,
         targetMessagesCount: targetMessages.length,
-        conversationHistory: conversationHistory?.map(m => ({ sender: m.sender, contentStart: m.content?.substring(0, 50) }))
+        conversationHistory: conversationHistory?.map((m: any) => ({ sender: m.sender, contentStart: m.content?.substring(0, 50) }))
       });
 
       // Build conversation messages for OpenAI
-      const messages = [
+      const messages: any[] = [
         {
           role: "system",
           content: `You are a strategic onboarding assistant managing a 3-report generation process.
@@ -1017,7 +935,7 @@ PHASE-SPECIFIC INSTRUCTIONS:
 
       // Add conversation history
       if (conversationHistory && conversationHistory.length > 0) {
-        conversationHistory.forEach(msg => {
+        conversationHistory.forEach((msg: any) => {
           if (msg.sender && msg.content) {
             messages.push({
               role: msg.sender === 'user' ? 'user' : 'assistant',
@@ -1064,7 +982,7 @@ PHASE-SPECIFIC INSTRUCTIONS:
           const { generateAllProductOffers } = await import('./ai-services/openai-client.js');
           
           // Get sales approach context from conversation history
-          const salesApproachMessage = conversationHistory?.find(msg => 
+          const salesApproachMessage = conversationHistory?.find((msg: any) => 
             msg.sender === 'ai' && msg.content?.includes('Sales Approach Strategy')
           );
           const salesContext = salesApproachMessage?.content || 'sales approach context';
@@ -1542,7 +1460,7 @@ Respond in this exact JSON format:
       console.error("Strategy processing error:", error);
       res.status(500).json({
         message: "Failed to process strategy",
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -1775,13 +1693,13 @@ Respond in this exact JSON format:
         const profileData = {
           userId,
           title: formData.businessDescription || formData.productService || 'Strategy Plan',
-          businessType: formData.businessType || 'product',
+          businessType: formData.businessType || 'product' as 'product' | 'service',
           businessDescription: formData.productService || 'Strategic Plan',
           productService: formData.productService,
           customerFeedback: formData.customerFeedback,
           website: formData.website,
           targetCustomers: formData.productService || 'Target audience',
-          status: 'completed'
+          status: 'completed' as 'completed' | 'in_progress'
         };
         
         const savedProfile = await storage.createStrategicProfile(profileData);
