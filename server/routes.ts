@@ -37,6 +37,13 @@ import { registerEmailTemplatesRoutes } from "./email/email-templates";
 import { registerSearchRoutes, SessionManager } from "./search";
 import { registerSitemapRoutes } from "./features/sitemap";
 
+// Import inactive module registration functions
+import { registerEmailRepliesRoutes } from "./email-replies";
+import { registerHtmlStaticChatRoutes } from "./user-chatbox/html-static";
+import { registerReactChatRoutes } from "./user-chatbox/react";
+import { registerStrategicProfilesRoutes } from "./user-chatbox/strategic-profiles";
+import { registerUserAccountSettingsRoutes } from "./user-account-settings";
+
 
 
 // Helper function to safely get user ID from request
