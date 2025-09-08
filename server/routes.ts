@@ -489,6 +489,13 @@ export function registerRoutes(app: Express) {
   
   // Register modular sitemap routes
   registerSitemapRoutes(app);
+  
+  // Register previously inactive modules
+  registerEmailRepliesRoutes(app, requireAuth);
+  registerHtmlStaticChatRoutes(app, requireAuth);
+  registerReactChatRoutes(app, requireAuth);
+  registerStrategicProfilesRoutes(app, requireAuth);
+  registerUserAccountSettingsRoutes(app, requireAuth);
 
   app.post("/api/companies/:companyId/enrich-top-prospects", requireAuth, async (req, res) => {
     try {
