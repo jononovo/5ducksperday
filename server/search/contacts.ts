@@ -11,6 +11,7 @@ import { getUserId } from "./utils";
 import { hunterSearch } from "./providers/hunter";
 import { apolloSearch } from "./providers/apollo";
 import { searchContactDetails } from "./enrichment/contact-details";
+import { findKeyDecisionMakers } from "./contacts/finder";
 import { CreditService } from "../features/billing/credits/service";
 import type { Contact } from "@shared/schema";
 
@@ -230,6 +231,80 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
     } catch (error) {
       console.error("Error fetching contacts by company:", error);
       res.status(500).json({ message: "Failed to fetch contacts" });
+    }
+  });
+
+  // Enrich contacts for a specific company (find decision makers)
+  app.post("/api/companies/:companyId/enrich-contacts", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const companyId = parseInt(req.params.companyId);
+      const company = await storage.getCompany(companyId, userId);
+
+      if (!company) {
+        res.status(404).json({ message: "Company not found" });
+        return;
+      }
+
+      console.log('Starting contact discovery for company:', company.name);
+
+      // Direct call to find contacts - it has its own industry detection
+      const newContacts = await findKeyDecisionMakers(company.name, {
+        minimumConfidence: 30,
+        maxContacts: 10,
+        includeMiddleManagement: true,
+        prioritizeLeadership: true,
+        useMultipleQueries: true,
+        // Enable all search types for enrichment
+        enableCoreLeadership: true,
+        enableDepartmentHeads: true,
+        enableMiddleManagement: true,
+        enableCustomSearch: false,
+        customSearchTarget: ""
+      });
+      console.log('Contact finder results:', newContacts);
+
+      // Remove existing contacts
+      await storage.deleteContactsByCompany(companyId, userId);
+
+      // Create new contacts with only the essential fields and minimum confidence score
+      const validContacts = newContacts.filter((contact: any) => 
+        contact.name && 
+        contact.name !== "Unknown" && 
+        (!contact.probability || contact.probability >= 40) // Filter out contacts with low confidence/probability scores
+      );
+      console.log('Valid contacts for enrichment:', validContacts);
+
+      const createdContacts = await Promise.all(
+        validContacts.map(async (contact: any) => {
+          console.log(`Processing contact enrichment for: ${contact.name}`);
+
+          return storage.createContact({
+            companyId,
+            name: contact.name!,
+            role: contact.role || null,
+            email: contact.email || null,
+            probability: contact.probability || null,
+            linkedinUrl: null,
+            twitterHandle: null,
+            phoneNumber: null,
+            department: null,
+            location: null,
+            verificationSource: 'Decision-maker Analysis',
+            nameConfidenceScore: null,
+            userFeedbackScore: null,
+            feedbackCount: null
+          });
+        })
+      );
+
+      console.log('Created contacts:', createdContacts);
+      res.json(createdContacts);
+    } catch (error) {
+      console.error('Contact enrichment error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to enrich contacts"
+      });
     }
   });
 }
