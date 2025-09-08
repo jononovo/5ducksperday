@@ -38,7 +38,15 @@ export class HealthMonitoringTestRunner {
       });
       console.log('=== END TEST REPORT ===');
       
-      return results;
+      return {
+        ...results,
+        message: results.overallStatus === 'passed' 
+          ? "All system tests passed successfully" 
+          : results.overallStatus === 'warning'
+          ? "System tests completed with warnings"
+          : "Some system tests failed",
+        status: results.overallStatus
+      };
     } catch (error) {
       console.error('Test runner error:', error);
       throw error;
