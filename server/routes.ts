@@ -23,7 +23,6 @@ import {
 // import type { PerplexityMessage } from "./lib/perplexity"; // File doesn't exist
 import type { Contact } from "@shared/schema";
 // import { postSearchEnrichmentService } from "./search/enrichment/post-search/post-search-enrichment/service"; // File doesn't exist
-import { findKeyDecisionMakers } from "./search/contacts/finder";
 import { TokenService } from "./features/billing/tokens/service";
 import { registerBillingRoutes } from "./features/billing/routes";
 import { CreditService } from "./features/billing/credits/service";
@@ -109,36 +108,6 @@ export function registerRoutes(app: Express) {
     res.sendFile(path.join(__dirname, '../static/privacy.html'));
   });
   
-  // New route for enriching multiple contacts
-  app.post("/api/enrich-contacts", requireAuth, async (req, res) => {
-    try {
-      const { contactIds } = req.body;
-
-      if (!contactIds || !Array.isArray(contactIds) || contactIds.length === 0) {
-        res.status(400).json({ message: "No contact IDs provided for enrichment" });
-        return;
-      }
-
-      // Create a searchId for this batch
-      const searchId = `search_${Date.now()}`;
-
-      // Start the enrichment process using postSearchEnrichmentService
-      // const queueId = await postSearchEnrichmentService.startEnrichment(searchId, contactIds); // Service doesn't exist
-      const queueId = 'placeholder-queue-id';
-
-      res.json({
-        message: "Contact enrichment started",
-        queueId,
-        status: 'processing',
-        totalContacts: contactIds.length
-      });
-    } catch (error) {
-      console.error('Contact enrichment error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to start enrichment process"
-      });
-    }
-  });
 
 
 
@@ -148,80 +117,6 @@ export function registerRoutes(app: Express) {
 
 
 
-  // Contacts - endpoint moved to search/contacts.ts module
-
-  app.post("/api/companies/:companyId/enrich-contacts", requireAuth, async (req, res) => {
-    try {
-      const userId = getUserId(req);
-      const companyId = parseInt(req.params.companyId);
-      const company = await storage.getCompany(companyId, userId);
-
-      if (!company) {
-        res.status(404).json({ message: "Company not found" });
-        return;
-      }
-
-      console.log('Starting contact discovery for company:', company.name);
-
-      // Direct call to find contacts - it has its own industry detection
-      const newContacts = await findKeyDecisionMakers(company.name, {
-        minimumConfidence: 30,
-        maxContacts: 10,
-        includeMiddleManagement: true,
-        prioritizeLeadership: true,
-        useMultipleQueries: true,
-        // Enable all search types for enrichment
-        enableCoreLeadership: true,
-        enableDepartmentHeads: true,
-        enableMiddleManagement: true,
-        enableCustomSearch: false,
-        customSearchTarget: ""
-      });
-      console.log('Contact finder results:', newContacts);
-
-      // Remove existing contacts
-      await storage.deleteContactsByCompany(companyId, userId);
-
-      // Create new contacts with only the essential fields and minimum confidence score
-      const validContacts = newContacts.filter((contact: any) => 
-        contact.name && 
-        contact.name !== "Unknown" && 
-        (!contact.probability || contact.probability >= 40) // Filter out contacts with low confidence/probability scores
-      );
-      console.log('Valid contacts for enrichment:', validContacts);
-
-      const createdContacts = await Promise.all(
-        validContacts.map(async (contact: any) => {
-          console.log(`Processing contact enrichment for: ${contact.name}`);
-
-          return storage.createContact({
-            companyId,
-            name: contact.name!,
-            role: contact.role || null,
-            email: contact.email || null,
-            probability: contact.probability || null,
-            linkedinUrl: null,
-            twitterHandle: null,
-            phoneNumber: null,
-            department: null,
-            location: null,
-            verificationSource: 'Decision-maker Analysis',
-            nameConfidenceScore: null,
-            userFeedbackScore: null,
-            feedbackCount: null
-          });
-        })
-      );
-
-      console.log('Created contacts:', createdContacts);
-      res.json(createdContacts);
-    } catch (error) {
-      console.error('Contact enrichment error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to enrich contacts"
-      });
-    }
-  });
 
   // Leave the search approaches endpoints without auth since they are system-wide
 
@@ -249,52 +144,6 @@ export function registerRoutes(app: Express) {
   registerReactChatRoutes(app, requireAuth);
   registerStrategicProfilesRoutes(app, requireAuth);
   registerUserAccountSettingsRoutes(app, requireAuth);
-
-  app.post("/api/companies/:companyId/enrich-top-prospects", requireAuth, async (req, res) => {
-    try {
-      const companyId = parseInt(req.params.companyId);
-      const searchId = `search_${Date.now()}`;
-      const { contactIds } = req.body; // Get the specific contact IDs to enrich
-
-      // Start the enrichment process
-      // const queueId = await postSearchEnrichmentService.startEnrichment(companyId, searchId, contactIds); // Service doesn't exist
-      const queueId = 'placeholder-queue-id';
-
-      res.json({
-        message: "Top prospects enrichment started",
-        queueId,
-        status: 'processing'
-      });
-    } catch (error) {
-      console.error('Enrichment start error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to start enrichment process"
-      });
-    }
-  });
-
-  app.get("/api/enrichment/:queueId/status", async (req, res) => {
-    try {
-      // const status = postSearchEnrichmentService.getEnrichmentStatus(req.params.queueId); // Service doesn't exist
-      const status = null;
-
-      if (!status) {
-        res.status(404).json({ message: "Enrichment queue not found" });
-        return;
-      }
-
-      res.json(status);
-    } catch (error) {
-      console.error('Status check error:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to check enrichment status"
-      });
-    }
-  });
-
-
-  // Individual email credit deduction has been moved to billing module
-
 
   // Strategy Processing Endpoint for Cold Email Outreach
   app.post("/api/onboarding/process-strategy", async (req, res) => {
