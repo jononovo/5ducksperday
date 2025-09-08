@@ -109,49 +109,6 @@ export function registerRoutes(app: Express) {
     res.sendFile(path.join(__dirname, '../static/privacy.html'));
   });
   
-  // Session status endpoint for polling
-  app.get("/api/search-sessions/:sessionId/status", (req, res) => {
-    const { sessionId } = req.params;
-    
-    try {
-      const session = global.searchSessions.get(sessionId);
-      
-      if (!session) {
-        return res.status(404).json({
-          success: false,
-          message: "Session not found"
-        });
-      }
-      
-      // Check if session has expired
-      if (Date.now() - session.timestamp > session.ttl) {
-        global.searchSessions.delete(sessionId);
-        return res.status(404).json({
-          success: false,
-          message: "Session expired"
-        });
-      }
-      
-      res.json({
-        success: true,
-        session: {
-          sessionId: session.sessionId,
-          query: session.query,
-          status: session.status,
-          quickResults: session.quickResults,
-          fullResults: session.fullResults,
-          error: session.error
-        }
-      });
-    } catch (error) {
-      console.error('Error retrieving session status:', error);
-      res.status(500).json({
-        success: false,
-        message: "Error retrieving session status"
-      });
-    }
-  });
-  
   // New route for enriching multiple contacts
   app.post("/api/enrich-contacts", requireAuth, async (req, res) => {
     try {
