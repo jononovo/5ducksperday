@@ -5,7 +5,7 @@
 
 import { Express, Request, Response } from "express";
 import { storage } from "../storage";
-import { searchCompanies } from "./core/company-search";
+import { searchCompanies } from "./perplexity/company-search";
 import { findKeyDecisionMakers } from "./contacts/finder";
 import { CreditService } from "../features/billing/credits/service";
 import { SearchType } from "../features/billing/credits/types";

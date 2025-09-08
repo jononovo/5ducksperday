@@ -1,6 +1,6 @@
 import { storage } from '../../storage';
-import { queryPerplexity } from '../../search/core/perplexity-client';
-import { searchCompanies } from '../../search/core/company-search';
+import { queryPerplexity } from '../../search/perplexity/perplexity-client';
+import { searchCompanies } from '../../search/perplexity/company-search';
 import { getEmailProvider } from '../../gmail-api-service';
 
 export interface TestResult {

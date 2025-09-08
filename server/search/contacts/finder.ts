@@ -1,5 +1,5 @@
 import { Contact } from "@shared/schema";
-import { analyzeWithPerplexity } from "../core/perplexity-utils";
+import { analyzeWithPerplexity } from "../perplexity/perplexity-utils";
 import { extractDomainFromContext } from "../analysis/email-analysis";
 import { applyCustomRoleAffinityScoring } from "../analysis/custom-role-affinity-scorer";
 import { SmartFallbackManager } from "./fallback-manager";

@@ -4,7 +4,7 @@
  * Uses Perplexity AI to find professional contact information including emails
  */
 
-import { queryPerplexity } from "../core/perplexity-client";
+import { queryPerplexity } from "../perplexity/perplexity-client";
 
 // Define the Perplexity message type locally since the main type file is missing
 interface PerplexityMessage {
