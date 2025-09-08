@@ -10,6 +10,7 @@ import { findKeyDecisionMakers } from "./contacts/finder";
 import { CreditService } from "../features/billing/credits/service";
 import { SearchType } from "../features/billing/credits/types";
 import { SessionManager } from "./sessions";
+import { getUserId } from "../utils/auth";
 import rateLimit from "express-rate-limit";
 import type { 
   QuickSearchRequest, 
@@ -41,44 +42,6 @@ const demoSearchLimiter = rateLimit({
   }
 });
 
-/**
- * Get user ID from request (auth or default to 1)
- */
-export function getUserId(req: Request): number {
-  const isAuthenticated = (req as any).isAuthenticated && (req as any).isAuthenticated() && (req as any).user;
-  
-  if (isAuthenticated && (req as any).user) {
-    return (req as any).user.id;
-  }
-  
-  console.log('getUserId() called:', {
-    path: req.path.replace(/\d+/g, ':id'),
-    method: req.method,
-    sessionID: (req as any).sessionID,
-    hasSession: !!(req as any).session,
-    isAuthenticated: isAuthenticated,
-    hasUser: !!(req as any).user,
-    userId: (req as any).user?.id || 'none',
-    hasFirebaseUser: !!(req as any).firebaseUser,
-    firebaseUserId: (req as any).firebaseUser?.id || 'none',
-    timestamp: new Date().toISOString()
-  });
-  
-  if ((req as any).user?.id) {
-    console.log(`User ID from session authentication: ${(req as any).user.id}`);
-    return (req as any).user.id;
-  }
-  
-  if ((req as any).firebaseUser?.id) {
-    console.log(`User ID from Firebase authentication: ${(req as any).firebaseUser.id}`);
-    return (req as any).firebaseUser.id;
-  }
-  
-  // This is a temporary fix to ensure the system works during testing
-  // In production, this should be handled more appropriately
-  console.log('Warning: No authenticated user found, using default user ID 1');
-  return 1;
-}
 
 /**
  * Process items in batches for rate limiting
