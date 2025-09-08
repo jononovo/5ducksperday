@@ -139,7 +139,5 @@ export async function validateEmails(emails: string[]): Promise<EmailValidationR
   }
 }
 
-// Re-export essential analysis functions
-export { extractContacts } from "../analysis/email-extraction-format";
-export { parseCompanyData } from "../analysis/company-parser";
+// Re-export essential types
 export type { PerplexityMessage };

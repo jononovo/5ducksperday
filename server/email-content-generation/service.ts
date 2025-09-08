@@ -1,5 +1,5 @@
-import { queryPerplexity } from "../search/core/perplexity-client";
-import type { PerplexityMessage } from "../search/core/perplexity-types";
+import { queryPerplexity } from "../search/perplexity/perplexity-client";
+import type { PerplexityMessage } from "../search/perplexity/perplexity-types";
 import type { EmailGenerationRequest, EmailGenerationResponse, EmailGenerationContext } from "./types";
 import { resolveSenderNames } from "../lib/name-resolver";
 import { getToneConfig } from "./tone-configs";

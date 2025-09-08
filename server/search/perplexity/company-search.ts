@@ -2,14 +2,6 @@ import type { Company, Contact } from "@shared/schema";
 import { queryPerplexity } from "./perplexity-client";
 import type { PerplexityMessage } from "./perplexity-types";
 import { analyzeWithPerplexity } from "./perplexity-utils";
-import { 
-  analyzeCompanySize, 
-  analyzeDifferentiators,
-  calculateCompanyScore 
-} from "../analysis/company-analysis";
-import { validateName } from "../analysis/contact-validation";
-import { extractContacts } from "../analysis/email-extraction-format";
-import { validateNames } from "../analysis/contact-ai-name-scorer";
 import { findKeyDecisionMakers } from "../contacts/finder";
 import { cleanPerplexityResponse } from "../../lib/utils";
 
@@ -151,30 +143,3 @@ Please output a JSON array containing 7 objects, where each object has exactly t
     return companies;
   }
 }
-
-export async function analyzeCompany(
-  companyName: string,
-  userPrompt: string,
-  technicalPrompt?: string | null,
-  responseStructure?: string | null
-): Promise<string> {
-  const messages: PerplexityMessage[] = [
-    {
-      role: "system",
-      content: technicalPrompt || "You are a business intelligence analyst providing detailed company information."
-    },
-    {
-      role: "user",
-      content: (userPrompt || "").replace("[COMPANY]", companyName)
-    }
-  ];
-
-  if (responseStructure) {
-    messages[0].content += `\n\nFormat your response as JSON:\n${responseStructure}`;
-  }
-
-  return queryPerplexity(messages);
-}
-
-// Export the functions we need
-export { validateNames, extractContacts };

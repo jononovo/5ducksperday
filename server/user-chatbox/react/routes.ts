@@ -5,7 +5,7 @@
 
 import { Express } from "express";
 import { storage } from "../../storage";
-import { queryPerplexity } from "../../search/core/perplexity-client";
+import { queryPerplexity } from "../../search/perplexity/perplexity-client";
 import { 
   queryOpenAI,
   generateEmailStrategy, 
@@ -15,7 +15,7 @@ import {
   generateDailyQueries,
   generateProductOffers
 } from "../../ai-services";
-import type { PerplexityMessage } from "../../search/core/perplexity-types";
+import type { PerplexityMessage } from "../../search/perplexity/perplexity-types";
 
 // Helper function to safely get user ID from request
 function getUserId(req: any): number {

@@ -16,4 +16,4 @@ export {
 } from './openai-client';
 
 // Re-export PerplexityMessage type to fix TypeScript errors in routes
-export type { PerplexityMessage } from '../search/core/perplexity-types';
+export type { PerplexityMessage } from '../search/perplexity/perplexity-types';

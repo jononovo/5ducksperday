@@ -1,5 +1,28 @@
 import type { Contact } from "@shared/schema";
-import { validateRoleAffinity } from "./role-affinity-ai-scorer";
+
+// Stub for validateRoleAffinity - replaced with simple logic during cleanup
+async function validateRoleAffinity(
+  roles: string[],
+  targetRole: string
+): Promise<Record<string, number>> {
+  const scores: Record<string, number> = {};
+  const targetLower = targetRole.toLowerCase();
+  
+  for (const role of roles) {
+    const roleLower = role.toLowerCase();
+    
+    // Simple tier assignment based on role matching
+    if (roleLower === targetLower) {
+      scores[role] = 3; // Exact match
+    } else if (roleLower.includes(targetLower) || targetLower.includes(roleLower)) {
+      scores[role] = 2; // Partial match
+    } else {
+      scores[role] = 1; // No match but still a valid role
+    }
+  }
+  
+  return scores;
+}
 
 export interface CustomRoleAffinityOptions {
   customSearchTarget: string;

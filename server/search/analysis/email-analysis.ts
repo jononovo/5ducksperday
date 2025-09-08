@@ -1,5 +1,21 @@
 import type { Contact } from "@shared/schema";
-import { isPlaceholderEmail as checkPlaceholderEmail } from "./name-filters";
+
+// Placeholder email patterns that should be filtered
+const PLACEHOLDER_EMAIL_PATTERNS = [
+  /first[._]?name/i,
+  /last[._]?name/i,
+  /first[._]?initial/i,
+  /company(domain)?\.com$/i,
+  /example\.com$/i,
+  /domain\.com$/i,
+  /test[._]?user/i,
+  /demo[._]?user/i,
+  /noreply/i,
+  /donotreply/i,
+  /placeholder/i,
+  /tempmail/i,
+  /temp[._]?email/i
+];
 
 // Moved from contact-name-validation.ts
 const EMAIL_FORMATS = [
@@ -30,7 +46,7 @@ export function extractDomainFromContext(text: string): string | null {
 }
 
 export function isPlaceholderEmail(email: string): boolean {
-  return checkPlaceholderEmail(email);
+  return PLACEHOLDER_EMAIL_PATTERNS.some(pattern => pattern.test(email));
 }
 
 export function isValidBusinessEmail(email: string): boolean {

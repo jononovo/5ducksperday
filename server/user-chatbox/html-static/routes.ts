@@ -6,8 +6,8 @@
 
 import { Express } from "express";
 import { storage } from "../../storage";
-import { queryPerplexity } from "../../search/core/perplexity-client";
-import type { PerplexityMessage } from "../../search/core/perplexity-types";
+import { queryPerplexity } from "../../search/perplexity/perplexity-client";
+import type { PerplexityMessage } from "../../search/perplexity/perplexity-types";
 
 // Helper function to safely get user ID from request
 function getUserId(req: any): number {

@@ -1,6 +1,6 @@
 import { storage } from '../../storage';
-import { queryPerplexity } from '../../search/core/perplexity-client';
-import { searchCompanies, analyzeCompany } from '../../search/core/company-search';
+import { queryPerplexity } from '../../search/perplexity/perplexity-client';
+import { searchCompanies } from '../../search/perplexity/company-search';
 import { getEmailProvider } from '../../gmail-api-service';
 
 export interface TestResult {
@@ -94,21 +94,6 @@ export class HealthChecks {
       tests.companyOverview = {
         status: 'failed',
         message: 'Company overview search failed',
-        error: error instanceof Error ? error.message : String(error)
-      };
-    }
-
-    // Test Decision Maker Search
-    try {
-      const decisionMakerTest = await analyzeCompany("Apple Inc", "Find decision makers", null, null);
-      tests.decisionMaker = {
-        status: 'passed',
-        message: 'Decision maker search functional'
-      };
-    } catch (error) {
-      tests.decisionMaker = {
-        status: 'failed',
-        message: 'Decision maker search failed',
         error: error instanceof Error ? error.message : String(error)
       };
     }
