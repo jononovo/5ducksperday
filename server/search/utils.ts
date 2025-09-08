@@ -6,25 +6,8 @@
 
 import { Request } from "express";
 
-/**
- * Get user ID from request with fallback to demo user
- */
-export function getUserId(req: Request): number {
-  const userId = 
-    (req as any).userId || 
-    (req as any).user?.id || 
-    ((req as any).session as any)?.userId || 
-    1; // Default to demo user ID 1
-  
-  console.log('getUserId called:', { 
-    reqUserId: (req as any).userId,
-    reqUserId2: (req as any).user?.id,
-    sessionUserId: ((req as any).session as any)?.userId,
-    finalUserId: userId
-  });
-  
-  return userId;
-}
+// Re-export getUserId from centralized auth utilities
+export { getUserId } from "../utils/auth";
 
 /**
  * Normalize a score to be within valid range (30-100)
