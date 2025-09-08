@@ -200,118 +200,6 @@ export function registerRoutes(app: Express) {
     res.sendFile(path.join(__dirname, '../static/privacy.html'));
   });
   
-  // Email conversations routes
-  app.get('/api/replies/contacts', requireAuth, async (req, res) => {
-    try {
-      const userId = (req as any).user.id;
-      const gmailToken = (req.session as any)?.gmailToken || null;
-      
-      // Get the appropriate email provider (Gmail or mock)
-      const emailProvider = getEmailProvider(userId, gmailToken);
-      
-      // Fetch active contacts using the provider
-      const activeContacts = await emailProvider.getActiveContacts(userId);
-      
-      res.json(activeContacts);
-    } catch (error) {
-      console.error('Error fetching active contacts with threads:', error);
-      res.status(500).json({ error: 'Failed to fetch active contacts' });
-    }
-  });
-  
-  app.get('/api/replies/threads/:contactId', requireAuth, async (req, res) => {
-    try {
-      const userId = (req as any).user.id;
-      const contactId = parseInt(req.params.contactId, 10);
-      const gmailToken = (req.session as any)?.gmailToken || null;
-      
-      if (isNaN(contactId)) {
-        return res.status(400).json({ error: 'Invalid contact ID' });
-      }
-      
-      // Get the appropriate email provider 
-      const emailProvider = getEmailProvider(userId, gmailToken);
-      
-      // Fetch threads for this contact using the provider
-      const threads = await emailProvider.getThreadsByContact(contactId, userId);
-      
-      res.json(threads);
-    } catch (error) {
-      console.error('Error fetching threads for contact:', error);
-      res.status(500).json({ error: 'Failed to fetch email threads' });
-    }
-  });
-  
-  app.get('/api/replies/thread/:id', requireAuth, async (req, res) => {
-    try {
-      const userId = (req as any).user.id;
-      const threadId = parseInt(req.params.id, 10);
-      const gmailToken = (req.session as any)?.gmailToken || null;
-      
-      if (isNaN(threadId)) {
-        return res.status(400).json({ error: 'Invalid thread ID' });
-      }
-      
-      // Get the appropriate email provider
-      const emailProvider = getEmailProvider(userId, gmailToken);
-      
-      // Fetch thread with messages using the provider
-      const threadData = await emailProvider.getThreadWithMessages(threadId, userId);
-      
-      if (!threadData) {
-        return res.status(404).json({ error: 'Thread not found' });
-      }
-      
-      // Mark thread as read
-      await emailProvider.markThreadAsRead(threadId);
-      
-      res.json(threadData);
-    } catch (error) {
-      console.error('Error fetching thread details:', error);
-      res.status(500).json({ error: 'Failed to fetch thread details' });
-    }
-  });
-  
-  app.post('/api/replies/thread', requireAuth, async (req, res) => {
-    try {
-      const userId = (req as any).user.id;
-      const gmailToken = (req.session as any)?.gmailToken || null;
-      
-      // Get the appropriate email provider
-      const emailProvider = getEmailProvider(userId, gmailToken);
-      
-      // Create thread using the provider
-      const thread = await emailProvider.createThread({
-        ...req.body,
-        userId
-      });
-      
-      res.status(201).json(thread);
-    } catch (error) {
-      console.error('Error creating email thread:', error);
-      res.status(500).json({ error: 'Failed to create thread' });
-    }
-  });
-  
-  app.post('/api/replies/message', requireAuth, async (req, res) => {
-    try {
-      const userId = (req as any).user.id;
-      const gmailToken = (req.session as any)?.gmailToken || null;
-      
-      // Get the appropriate email provider
-      const emailProvider = getEmailProvider(userId, gmailToken);
-      
-      // Create message using the provider
-      const message = await emailProvider.createMessage(req.body);
-      
-      res.status(201).json(message);
-    } catch (error) {
-      console.error('Error creating email message:', error);
-      res.status(500).json({ error: 'Failed to create message' });
-    }
-  });
-
-  
 
   // Session status endpoint for polling
   app.get("/api/search-sessions/:sessionId/status", (req, res) => {
@@ -492,7 +380,7 @@ export function registerRoutes(app: Express) {
   
   // Register previously inactive modules
   registerEmailRepliesRoutes(app, requireAuth);
-  registerHtmlStaticChatRoutes(app, requireAuth);
+  registerHtmlStaticChatRoutes(app); // No requireAuth needed
   registerReactChatRoutes(app, requireAuth);
   registerStrategicProfilesRoutes(app, requireAuth);
   registerUserAccountSettingsRoutes(app, requireAuth);
