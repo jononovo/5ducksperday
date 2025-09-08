@@ -1,12 +1,486 @@
 import { Contact } from "@shared/schema";
 import { analyzeWithPerplexity } from "../core/perplexity-utils";
-import { isPlaceholderName } from "../analysis/name-filters";
-import { validateName } from "../analysis/contact-validation";
 import { extractDomainFromContext } from "../analysis/email-analysis";
-import { INDUSTRY_PROFESSIONAL_TITLES } from "../analysis/name-filters";
 import { applyCustomRoleAffinityScoring } from "../analysis/custom-role-affinity-scorer";
 import { SmartFallbackManager } from "./fallback-manager";
 import { SearchPerformanceLogger } from "./performance-logger";
+
+// ============================================================================
+// EXTRACTED ACTIVE FUNCTIONS FROM ANALYSIS FOLDER
+// These functions were moved here from the analysis folder during cleanup
+// to consolidate actively used code with the contact finder functionality.
+// ============================================================================
+
+/**
+ * Standard placeholder names that should always be filtered out
+ */
+const PLACEHOLDER_NAMES = new Set([
+  'john doe', 'jane doe', 'john smith', 'jane smith',
+  'test user', 'demo user', 'example user',
+  'admin user', 'guest user', 'unknown user'
+]);
+
+/**
+ * Checks if a name is a known placeholder or test name
+ * @param name The name to check
+ * @returns true if the name is a placeholder name
+ */
+function isPlaceholderName(name: string): boolean {
+  const normalizedName = name.toLowerCase();
+  return PLACEHOLDER_NAMES.has(normalizedName) || 
+         normalizedName.includes('test') || 
+         normalizedName.includes('demo') ||
+         normalizedName.includes('example') ||
+         normalizedName.includes('admin') ||
+         normalizedName.includes('guest') ||
+         normalizedName.includes('user');
+}
+
+/**
+ * Dictionary of industry-specific professional titles by sector
+ * These are legitimate role titles that should boost confidence scores
+ */
+const INDUSTRY_PROFESSIONAL_TITLES: Record<string, string[]> = {
+  "technology": [
+    "software engineer", "systems architect", "cto", "developer", "devops engineer", 
+    "product manager", "scrum master", "data scientist", "full stack", "frontend", 
+    "backend", "qa engineer", "information security", "cloud architect", "engineer"
+  ],
+  "healthcare": [
+    "physician", "surgeon", "medical director", "nurse practitioner", "chief medical", 
+    "healthcare administrator", "medical officer", "clinical director", "doctor", 
+    "specialist", "head of radiology", "chief of staff", "pharmacist"
+  ],
+  "financial": [
+    "investment banker", "financial advisor", "financial analyst", "portfolio manager", 
+    "wealth manager", "fund manager", "chief financial", "controller", "treasurer", 
+    "actuary", "underwriter", "financial planner", "credit analyst"
+  ],
+  "legal": [
+    "attorney", "lawyer", "legal counsel", "partner", "associate", "legal director", 
+    "general counsel", "law partner", "chief legal", "litigator", "solicitor", 
+    "barrister", "compliance officer", "judge"
+  ],
+  "construction": [
+    "project manager", "general contractor", "construction manager", "site supervisor", 
+    "architect", "civil engineer", "structural engineer", "estimator", "surveyor", 
+    "superintendent", "foreman", "master plumber", "master electrician"
+  ],
+  "retail": [
+    "store manager", "retail director", "merchandising manager", "buyer", "category manager", 
+    "regional manager", "visual merchandiser", "sales associate", "operations manager", 
+    "ecommerce director", "supply chain manager"
+  ],
+  "education": [
+    "principal", "headmaster", "dean", "professor", "department chair", "superintendent", 
+    "academic director", "provost", "faculty head", "curriculum director", "school administrator", 
+    "teacher", "instructor"
+  ],
+  "manufacturing": [
+    "plant manager", "production manager", "quality control", "industrial engineer", 
+    "operations director", "manufacturing engineer", "supply chain", "procurement manager", 
+    "facilities manager", "lean manufacturing", "master craftsman"
+  ],
+  "consulting": [
+    "managing partner", "engagement manager", "consulting director", "principal consultant", 
+    "management consultant", "senior advisor", "strategy consultant", "transformation lead", 
+    "senior partner", "practice leader", "business consultant"
+  ]
+};
+
+/**
+ * Validation result interface for name validation
+ */
+interface NameValidationResult {
+  score: number;
+  isGeneric: boolean;
+  confidence: number;
+  name: string;
+  context?: string;
+  aiScore?: number;
+  validationSteps: ValidationStepResult[];
+}
+
+interface ValidationStepResult {
+  name: string;
+  score: number;
+  weight: number;
+  reason?: string;
+}
+
+interface ValidationOptions {
+  useLocalValidation?: boolean;
+  localValidationWeight?: number;
+  minimumScore?: number;
+  companyNamePenalty?: number;
+  searchPrompt?: string;
+  searchTermPenalty?: number;
+  aiScore?: number;
+  industry?: string;
+  requireRole?: boolean;
+  roleMinimumScore?: number;
+}
+
+// Centralized scoring weights
+const VALIDATION_WEIGHTS = {
+  formatAndStructure: 0.25,
+  genericTerms: 0.20,
+  aiValidation: 0.30,
+  contextAnalysis: 0.15,
+  domainKnowledge: 0.10
+};
+
+const MAX_SCORE = 95;
+
+/**
+ * Validates a contact name using multiple validation steps
+ * @param name The name to validate
+ * @param context Optional context string around the name
+ * @param companyName Optional company name for additional validation
+ * @param options Validation options
+ * @returns Validation result with score and confidence
+ */
+function validateName(
+  name: string,
+  context: string = "",
+  companyName?: string | null,
+  options: ValidationOptions = {}
+): NameValidationResult {
+  const validationSteps: ValidationStepResult[] = [];
+  let totalScore = 0;
+
+  // Step 1: Format and Structure Validation (25% weight)
+  const formatScore = validateNameFormat(name);
+  validationSteps.push({
+    name: "Format Validation",
+    score: formatScore,
+    weight: VALIDATION_WEIGHTS.formatAndStructure
+  });
+
+  // Step 2: Generic Terms Check (20% weight)
+  const genericScore = validateGenericTerms(name);
+  validationSteps.push({
+    name: "Generic Terms Check",
+    score: genericScore,
+    weight: VALIDATION_WEIGHTS.genericTerms
+  });
+
+  // Step 3: AI Validation Score (30% weight)
+  const aiScore = options.aiScore || 50;
+  validationSteps.push({
+    name: "AI Validation",
+    score: aiScore,
+    weight: VALIDATION_WEIGHTS.aiValidation
+  });
+
+  // Step 4: Context Analysis (15% weight)
+  const contextScore = validateContext(name, context, companyName);
+  validationSteps.push({
+    name: "Context Analysis",
+    score: contextScore,
+    weight: VALIDATION_WEIGHTS.contextAnalysis
+  });
+
+  // Step 5: Domain Knowledge Rules (10% weight)
+  const domainScore = validateDomainRules(name, context, options);
+  validationSteps.push({
+    name: "Domain Rules",
+    score: domainScore,
+    weight: VALIDATION_WEIGHTS.domainKnowledge,
+    reason: options?.industry ? `Industry context: ${options.industry}` : undefined
+  });
+
+  // Calculate weighted total
+  totalScore = validationSteps.reduce((acc, step) => {
+    return acc + (step.score * step.weight);
+  }, 0);
+
+  // Apply penalties for generic terms more aggressively
+  const genericTermCount = countGenericTerms(name);
+  if (genericTermCount > 0) {
+    const genericPenalty = genericTermCount * 25;
+    totalScore = Math.max(20, totalScore - genericPenalty);
+    validationSteps.push({
+      name: "Generic Term Penalty",
+      score: -genericPenalty,
+      weight: 1,
+      reason: `Contains ${genericTermCount} generic terms`
+    });
+  }
+
+  // Apply search term penalties
+  if (options.searchPrompt) {
+    const searchTermPenalty = calculateSearchTermPenalty(name, options.searchPrompt);
+    totalScore = Math.max(20, totalScore - searchTermPenalty);
+    validationSteps.push({
+      name: "Search Term Penalty",
+      score: -searchTermPenalty,
+      weight: 1,
+      reason: "Contains search terms"
+    });
+  }
+
+  // Apply company name penalties
+  if (companyName && isNameSimilarToCompany(name, companyName)) {
+    if (!isFounderOrOwner(context, companyName)) {
+      const penalty = options.companyNamePenalty || 20;
+      totalScore = Math.max(20, totalScore - penalty);
+      validationSteps.push({
+        name: "Company Name Penalty",
+        score: -penalty,
+        weight: 1,
+        reason: "Similar to company name"
+      });
+    }
+  }
+
+  // Ensure score stays within bounds
+  totalScore = Math.max(options.minimumScore || 20, Math.min(MAX_SCORE, totalScore));
+
+  return {
+    score: Math.round(totalScore),
+    isGeneric: genericScore < 40,
+    confidence: calculateConfidence(validationSteps),
+    name,
+    context,
+    aiScore: options.aiScore,
+    validationSteps
+  };
+}
+
+// Helper functions for validateName
+function validateNameFormat(name: string): number {
+  let score = 50;
+  
+  const namePattern = /^[A-Z][a-z]+(?:(?:\s+[A-Z](?:\.|\s+))?(?:\s+[A-Z][a-z]+){1,2})$/;
+  const nameParts = name.split(/\s+/).filter(part => part.length > 0);
+  
+  if (namePattern.test(name)) {
+    score += 35;
+  } else {
+    score -= 30;
+  }
+  
+  if (name === name.toUpperCase() && name.length > 2) {
+    score -= 40;
+  }
+  
+  const validPartCount = nameParts.length >= 2 && nameParts.length <= 4;
+  if (!validPartCount) {
+    score -= 25;
+  }
+  
+  if (nameParts.length === 2) {
+    score += 20;
+  } else if (nameParts.length === 3) {
+    score += 15;
+  } else if (nameParts.length > 4) {
+    score -= 15 * (nameParts.length - 4);
+  }
+  
+  const hasReasonableLengths = nameParts.every(part =>
+    part.length >= 2 && part.length <= 20
+  );
+  
+  if (hasReasonableLengths) {
+    score += 15;
+  } else {
+    score -= 25;
+  }
+  
+  const hasInvalidChars = /[0-9@#$%^&*()+=\[\]{}|\\/<>~`_]/.test(name);
+  if (hasInvalidChars) {
+    score -= 40;
+  }
+  
+  const prefixes = ['Mr', 'Mrs', 'Ms', 'Dr', 'Prof'];
+  if (prefixes.includes(nameParts[0])) {
+    score += 5;
+  }
+  
+  return Math.min(95, Math.max(10, score));
+}
+
+function validateGenericTerms(name: string): number {
+  let score = 80;
+
+  const genericCount = countGenericTerms(name);
+
+  if (genericCount > 0) {
+    score -= genericCount * 25;
+  }
+
+  if (/\b(department|team|group|division|office|support|sales|service|info)\b/i.test(name)) {
+    score -= 50;
+  }
+  
+  if (/\b(contact|inquiry|question|help|service|request|consult|about)\b/i.test(name)) {
+    score -= 45;
+  }
+  
+  if (/\b(manager|director|president|chief|officer|ceo|cfo|cto|owner|founder)\b/i.test(name)) {
+    if (!name.includes(',') && !name.includes('(') && !name.includes('-')) {
+      score -= 40;
+    }
+  }
+  
+  if (name.includes('@') || /\b(email|mail)\b/i.test(name)) {
+    score -= 75;
+  }
+
+  return Math.min(95, Math.max(0, score));
+}
+
+function validateContext(name: string, context: string, companyName?: string | null): number {
+  let score = 60;
+
+  if (/\b(ceo|cto|cfo|founder|president|director)\b/i.test(context)) {
+    if (isFounderOrOwner(context, companyName || '')) {
+      score += 20;
+    }
+  }
+
+  if (/\b(manages|leads|heads|directs)\b/i.test(context)) {
+    score += 10;
+  }
+
+  if (/\b(intern|temporary|contractor)\b/i.test(context)) {
+    score -= 10;
+  }
+
+  return Math.min(95, Math.max(20, score));
+}
+
+function validateDomainRules(name: string, context: string, options?: ValidationOptions): number {
+  let score = 70;
+
+  if (/Dr\.|Prof\.|PhD/i.test(name)) {
+    score += 10;
+  }
+
+  if (/^[A-Z]\.\s[A-Z][a-z]+$/.test(name)) {
+    score -= 15;
+  }
+
+  if (options?.industry) {
+    // Simple industry-specific adjustment
+    const industryTitles = INDUSTRY_PROFESSIONAL_TITLES[options.industry.toLowerCase()];
+    if (industryTitles) {
+      const hasIndustryTitle = industryTitles.some(title => 
+        context.toLowerCase().includes(title.toLowerCase())
+      );
+      if (hasIndustryTitle) {
+        score += 10;
+      }
+    }
+  }
+
+  return Math.min(95, Math.max(20, score));
+}
+
+function calculateConfidence(steps: ValidationStepResult[]): number {
+  const totalWeight = steps.reduce((acc, step) => acc + step.weight, 0);
+  const weightedConfidence = steps.reduce((acc, step) => {
+    const stepConfidence = step.score > 80 ? 90 : step.score > 60 ? 70 : 50;
+    return acc + (stepConfidence * step.weight);
+  }, 0);
+
+  return Math.round(weightedConfidence / totalWeight);
+}
+
+function countGenericTerms(name: string): number {
+  const genericTerms = new Set([
+    'chief', 'executive', 'officer', 'ceo', 'cto', 'cfo', 'coo', 'president',
+    'director', 'manager', 'head', 'lead', 'senior', 'junior', 'principal',
+    'sales', 'marketing', 'finance', 'accounting', 'hr', 'operations', 'it',
+    'support', 'customer', 'service', 'product', 'project', 'team', 'department',
+    'admin', 'professional', 'consultant', 'company', 'business', 'office'
+  ]);
+  
+  const nameLower = name.toLowerCase();
+  const words = nameLower.split(/[\s-]+/);
+  
+  return words.filter(word => genericTerms.has(word)).length;
+}
+
+function calculateSearchTermPenalty(name: string, searchPrompt: string): number {
+  const searchTerms = searchPrompt.toLowerCase().split(/\s+/);
+  const normalizedName = name.toLowerCase();
+
+  const matchingTerms = searchTerms.filter(term =>
+    term.length >= 4 && normalizedName.includes(term)
+  );
+
+  return matchingTerms.length * 25;
+}
+
+function isNameSimilarToCompany(name: string, companyName: string): boolean {
+  const normalizedName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const normalizedCompany = companyName.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  const cleanCompany = normalizedCompany
+    .replace(/(inc|llc|ltd|corp|co|company|group|holdings)$/, '')
+    .trim();
+
+  if (normalizedName === cleanCompany) return true;
+
+  const nameWords = normalizedName.split(/\s+/);
+  const companyWords = cleanCompany.split(/\s+/);
+
+  const matchingWords = nameWords.filter(word =>
+    companyWords.includes(word) && word.length > 3
+  );
+
+  if (matchingWords.length >= 2) return true;
+
+  if (normalizedName.length > 4) {
+    if (cleanCompany.includes(normalizedName)) {
+      return true;
+    }
+    if (normalizedName.includes(cleanCompany)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isFounderOrOwner(context?: string, companyName?: string): boolean {
+  if (!context) return false;
+
+  const normalizedContext = context.toLowerCase();
+  const normalizedCompany = companyName ? companyName.toLowerCase() : '';
+
+  const founderPatterns = [
+    /\b(?:founder|co-founder|founding)\b/i,
+    /\b(?:owner|proprietor)\b/i,
+    /\bceo\b/i,
+    /\b(?:president|chief\s+executive)\b/i,
+    /\b(?:managing\s+director|managing\s+partner)\b/i
+  ];
+
+  if (companyName) {
+    const contextWindow = 100;
+    const companyIndex = normalizedContext.indexOf(normalizedCompany);
+    if (companyIndex >= 0) {
+      const start = Math.max(0, companyIndex - contextWindow);
+      const end = Math.min(normalizedContext.length, companyIndex + normalizedCompany.length + contextWindow);
+      const nearbyContext = normalizedContext.slice(start, end);
+
+      for (const pattern of founderPatterns) {
+        if (pattern.test(nearbyContext)) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return founderPatterns.some(pattern => pattern.test(normalizedContext));
+}
+
+// ============================================================================
+// END OF EXTRACTED FUNCTIONS
+// ============================================================================
 
 /**
  * Enhanced contact finder that uses industry-specific prompts

@@ -2,9 +2,6 @@ import type { Company, Contact } from "@shared/schema";
 import { queryPerplexity } from "./perplexity-client";
 import type { PerplexityMessage } from "./perplexity-types";
 import { analyzeWithPerplexity } from "./perplexity-utils";
-import { validateName } from "../analysis/contact-validation";
-import { extractContacts } from "../analysis/email-extraction-format";
-import { validateNames } from "../analysis/contact-ai-name-scorer";
 import { findKeyDecisionMakers } from "../contacts/finder";
 import { cleanPerplexityResponse } from "../../lib/utils";
 
@@ -171,5 +168,3 @@ export async function analyzeCompany(
   return queryPerplexity(messages);
 }
 
-// Export the functions we need
-export { validateNames, extractContacts };
