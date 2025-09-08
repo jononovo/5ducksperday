@@ -261,7 +261,6 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
 // Legacy type stubs for components that still import them
-export type SearchApproach = { id: number; name: string; description?: string };
 export type SearchSection = { id: string; title: string; content: string };
 
 /* 

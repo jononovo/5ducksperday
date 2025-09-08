@@ -537,20 +537,6 @@ Respond in this exact JSON format:
     }
   });
 
-  // Add missing search-approaches endpoint to fix frontend JSON parsing errors
-  app.get("/api/search-approaches", requireAuth, async (req, res) => {
-    try {
-      // Return empty array since search approaches have been removed
-      // This prevents frontend JSON parsing errors
-      res.json([]);
-    } catch (error) {
-      console.error('Search approaches endpoint error:', error);
-      res.status(500).json({ 
-        message: "Failed to fetch search approaches",
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
 
   // All N8N Workflow Management Endpoints and proxies have been removed
 
