@@ -55,10 +55,9 @@ function Router() {
   return (
     <>
       <Switch>
-        {/* Public Landing Page (no layout or nav) */}
-        <Route path="/" component={LandingPage} />
+        {/* Static landing page is served directly by Express at "/" */}
         
-        {/* Temporary React Landing Page for comparison */}
+        {/* React version of landing page for comparison */}
         <Route path="/react-landing" component={LandingPage} />
         
         {/* Landing2 Page Clone */}
