@@ -1,4 +1,4 @@
-import { storage } from "../../storage-switching/storage-switcher";
+import { storage } from "../storage";
 import { queryPerplexity } from "../search/perplexity/perplexity-client";
 
 export interface SubTestResult {
