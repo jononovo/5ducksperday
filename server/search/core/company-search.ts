@@ -2,11 +2,6 @@ import type { Company, Contact } from "@shared/schema";
 import { queryPerplexity } from "./perplexity-client";
 import type { PerplexityMessage } from "./perplexity-types";
 import { analyzeWithPerplexity } from "./perplexity-utils";
-import { 
-  analyzeCompanySize, 
-  analyzeDifferentiators,
-  calculateCompanyScore 
-} from "../analysis/company-analysis";
 import { validateName } from "../analysis/contact-validation";
 import { extractContacts } from "../analysis/email-extraction-format";
 import { validateNames } from "../analysis/contact-ai-name-scorer";
