@@ -440,7 +440,7 @@ export default function StreakPage() {
                   try {
                     const response = await fetch('/api/daily-outreach/preview', {
                       headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('firebaseToken')}`
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
                       }
                     });
                     if (response.ok) {
