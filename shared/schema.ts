@@ -356,6 +356,21 @@ export const userOutreachPreferences = pgTable("user_outreach_preferences", {
   index('idx_outreach_pref_enabled').on(table.enabled),
 ]);
 
+// Daily outreach job persistence table
+export const dailyOutreachJobs = pgTable("daily_outreach_jobs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  nextRunAt: timestamp("next_run_at", { withTimezone: true }).notNull(),
+  lastRunAt: timestamp("last_run_at", { withTimezone: true }),
+  status: text("status").default("scheduled"), // "scheduled", "running", "completed", "failed"
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_jobs_next_run').on(table.nextRunAt),
+  index('idx_jobs_user_status').on(table.userId, table.status),
+]);
+
 // Strategic onboarding tables
 export const strategicProfiles = pgTable("strategic_profiles", {
   id: serial("id").primaryKey(),
