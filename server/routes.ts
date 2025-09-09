@@ -44,6 +44,7 @@ import { registerHtmlStaticChatRoutes } from "./user-chatbox/html-static";
 import { registerReactChatRoutes } from "./user-chatbox/react";
 import { registerStrategicProfilesRoutes } from "./user-chatbox/strategic-profiles";
 import { registerUserAccountSettingsRoutes } from "./user-account-settings";
+import { dailyOutreachRoutes } from "./features/daily-outreach";
 
 
 // Import centralized auth utilities
@@ -133,6 +134,9 @@ export function registerRoutes(app: Express) {
   
   // Register modular sitemap routes
   registerSitemapRoutes(app);
+  
+  // Register daily outreach routes
+  app.use('/api/daily-outreach', requireAuth, dailyOutreachRoutes);
 
   
   // Register dormant modules that were created but never activated

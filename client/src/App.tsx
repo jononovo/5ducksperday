@@ -35,6 +35,8 @@ const Testing = lazy(() => import("@/pages/testing"));
 const SubscriptionSuccess = lazy(() => import("@/pages/subscription-success"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const StrategyDashboard = lazy(() => import("@/features/strategy-chat").then(module => ({ default: module.StrategyDashboard })));
+const DailyOutreach = lazy(() => import("@/pages/DailyOutreach"));
+const Streak = lazy(() => import("@/pages/Streak"));
 
 // Lazy imports for marketing pages
 const Terms = lazy(() => import("@/pages/terms"));
@@ -171,6 +173,11 @@ function Router() {
                     <Outreach />
                   </Suspense>
                 } />
+                <ProtectedRoute path="/streak" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <Streak />
+                  </Suspense>
+                } />
                 <ProtectedRoute path="/replies" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Replies />
@@ -189,6 +196,13 @@ function Router() {
                 <ProtectedRoute path="/strategy" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <StrategyDashboard />
+                  </Suspense>
+                } />
+                
+                {/* Daily Outreach Page - No auth required as token is the auth */}
+                <Route path="/outreach/daily/:token" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <DailyOutreach />
                   </Suspense>
                 } />
                 

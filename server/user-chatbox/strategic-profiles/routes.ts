@@ -131,4 +131,47 @@ export function registerStrategicProfilesRoutes(app: Express, requireAuth: any) 
       });
     }
   });
+
+  // Quick setup endpoint for Streak page activation
+  app.post('/api/strategic-profiles/quick-setup', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const { businessType, productService, customerFeedback, website, title } = req.body;
+      
+      // Validate required fields
+      if (!businessType || !productService || !customerFeedback) {
+        res.status(400).json({ 
+          message: 'Missing required fields: businessType, productService, and customerFeedback are required' 
+        });
+        return;
+      }
+      
+      // Create a new strategic profile with simplified data
+      const profileData = {
+        userId,
+        title: title || productService.slice(0, 50) || 'Daily Sales Companion',
+        businessType: businessType as 'product' | 'service',
+        businessDescription: productService,
+        productService,
+        customerFeedback,
+        website: website || '',
+        targetCustomers: 'B2B customers', // Default for now
+        status: 'completed' as const,
+        uniqueAttributes: [customerFeedback], // Store customer feedback as unique attribute
+      };
+      
+      const savedProfile = await storage.createStrategicProfile(profileData);
+      
+      res.json({
+        success: true,
+        profile: savedProfile,
+        message: 'Product profile created successfully'
+      });
+    } catch (error) {
+      console.error('Error in quick setup:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to create product profile' 
+      });
+    }
+  });
 }
