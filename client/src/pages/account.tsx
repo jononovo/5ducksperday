@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CreditCard, ExternalLink, Mail } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { ProfileForm, type UserProfile, type SubscriptionStatus } from "@/features/user-account-settings";
+import { DailyOutreachSettings } from "@/components/daily-outreach-settings";
 
 export default function AccountPage() {
   const { user } = useAuth();
@@ -73,6 +74,9 @@ ${profile?.username}`
       <div className="space-y-6">
         {/* Profile Section - Using ProfileForm from feature module */}
         <ProfileForm profile={profile} isLoading={isLoading} />
+
+        {/* Daily Outreach Settings */}
+        <DailyOutreachSettings />
 
         {/* Billing Section */}
         <Card>
