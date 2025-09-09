@@ -436,7 +436,35 @@ export default function StreakPage() {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => window.open('/api/daily-outreach/preview', '_blank')}
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/daily-outreach/preview', {
+                      headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('firebaseToken')}`
+                      }
+                    });
+                    if (response.ok) {
+                      const html = await response.text();
+                      const newWindow = window.open('', '_blank');
+                      if (newWindow) {
+                        newWindow.document.write(html);
+                        newWindow.document.close();
+                      }
+                    } else {
+                      toast({
+                        title: "Error",
+                        description: "Failed to load email preview",
+                        variant: "destructive",
+                      });
+                    }
+                  } catch (error) {
+                    toast({
+                      title: "Error", 
+                      description: "Failed to open preview",
+                      variant: "destructive",
+                    });
+                  }
+                }}
               >
                 <Mail className="h-4 w-4 mr-2" />
                 Preview Email Template
