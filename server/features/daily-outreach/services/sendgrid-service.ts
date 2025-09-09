@@ -15,7 +15,7 @@ export class SendGridNotificationService {
       this.sg.setApiKey(process.env.SENDGRID_API_KEY);
     }
     
-    this.fromEmail = process.env.SENDGRID_FROM_EMAIL || 'nudge@5ducks.ai';
+    this.fromEmail = process.env.SENDGRID_FROM_EMAIL || 'quack@5ducks.ai';
     this.fromName = process.env.SENDGRID_FROM_NAME || '5Ducks Daily';
     this.appUrl = process.env.APP_URL || 'https://5ducks.ai';
   }
