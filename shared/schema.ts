@@ -309,6 +309,52 @@ export const webhookLogs = pgTable("webhook_logs", {
 });
 */
 
+// Daily Outreach Tables
+export const dailyOutreachBatches = pgTable("daily_outreach_batches", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  batchDate: timestamp("batch_date", { withTimezone: true }).notNull(),
+  secureToken: uuid("secure_token").defaultRandom().notNull(),
+  status: text("status").default("pending"), // "pending", "partial", "complete", "expired"
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull()
+}, (table) => [
+  index('idx_outreach_batch_user_id').on(table.userId),
+  index('idx_outreach_batch_token').on(table.secureToken),
+  index('idx_outreach_batch_date').on(table.batchDate),
+]);
+
+export const dailyOutreachItems = pgTable("daily_outreach_items", {
+  id: serial("id").primaryKey(),
+  batchId: integer("batch_id").notNull().references(() => dailyOutreachBatches.id),
+  contactId: integer("contact_id").notNull().references(() => contacts.id),
+  companyId: integer("company_id").notNull().references(() => companies.id),
+  emailSubject: text("email_subject").notNull(),
+  emailBody: text("email_body").notNull(),
+  emailTone: text("email_tone").notNull(),
+  status: text("status").default("pending"), // "pending", "sent", "skipped", "edited"
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  editedContent: text("edited_content"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_outreach_item_batch_id').on(table.batchId),
+  index('idx_outreach_item_contact_id').on(table.contactId),
+]);
+
+export const userOutreachPreferences = pgTable("user_outreach_preferences", {
+  userId: integer("user_id").primaryKey().references(() => users.id),
+  enabled: boolean("enabled").default(true),
+  scheduleDays: text("schedule_days").array().default(['mon', 'tue', 'wed']),
+  scheduleTime: text("schedule_time").default('09:00'), // Store as string for simplicity
+  timezone: text("timezone").default('America/New_York'),
+  minContactsRequired: integer("min_contacts_required").default(5),
+  lastNudgeSent: timestamp("last_nudge_sent", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_outreach_pref_enabled').on(table.enabled),
+]);
+
 // Strategic onboarding tables
 export const strategicProfiles = pgTable("strategic_profiles", {
   id: serial("id").primaryKey(),
@@ -412,6 +458,34 @@ export const insertEmailMessageSchema = emailMessageSchema;
 
 export const insertWebhookLogSchema = webhookLogSchema;
 
+// Daily Outreach schemas
+export const dailyOutreachBatchSchema = z.object({
+  batchDate: z.string(),
+  status: z.enum(["pending", "partial", "complete", "expired"]).default("pending"),
+  expiresAt: z.string()
+});
+
+export const dailyOutreachItemSchema = z.object({
+  batchId: z.number(),
+  contactId: z.number(),
+  companyId: z.number(),
+  emailSubject: z.string().min(1, "Email subject is required"),
+  emailBody: z.string().min(1, "Email body is required"),
+  emailTone: z.string(),
+  status: z.enum(["pending", "sent", "skipped", "edited"]).default("pending"),
+  sentAt: z.string().optional(),
+  editedContent: z.string().optional()
+});
+
+export const userOutreachPreferencesSchema = z.object({
+  enabled: z.boolean().default(true),
+  scheduleDays: z.array(z.string()).default(['mon', 'tue', 'wed']),
+  scheduleTime: z.string().default('09:00'),
+  timezone: z.string().default('America/New_York'),
+  minContactsRequired: z.number().default(5),
+  lastNudgeSent: z.string().optional()
+});
+
 // Strategic onboarding schemas
 export const strategicProfileSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -467,6 +541,16 @@ export const insertProspectDeliverySchema = prospectDeliverySchema.extend({
 });
 */
 
+export const insertDailyOutreachBatchSchema = dailyOutreachBatchSchema.extend({
+  userId: z.number()
+});
+
+export const insertDailyOutreachItemSchema = dailyOutreachItemSchema;
+
+export const insertUserOutreachPreferencesSchema = userOutreachPreferencesSchema.extend({
+  userId: z.number()
+});
+
 export const insertStrategicProfileSchema = strategicProfileSchema.extend({
   userId: z.number()
 });
@@ -487,6 +571,13 @@ export type InsertProspectDelivery = z.infer<typeof insertProspectDeliverySchema
 */
 
 // Strategic onboarding types
+export type DailyOutreachBatch = typeof dailyOutreachBatches.$inferSelect;
+export type InsertDailyOutreachBatch = z.infer<typeof insertDailyOutreachBatchSchema>;
+export type DailyOutreachItem = typeof dailyOutreachItems.$inferSelect;
+export type InsertDailyOutreachItem = z.infer<typeof insertDailyOutreachItemSchema>;
+export type UserOutreachPreferences = typeof userOutreachPreferences.$inferSelect;
+export type InsertUserOutreachPreferences = z.infer<typeof insertUserOutreachPreferencesSchema>;
+
 export type StrategicProfile = typeof strategicProfiles.$inferSelect;
 export type InsertStrategicProfile = z.infer<typeof insertStrategicProfileSchema>;
 export type OnboardingChat = typeof onboardingChats.$inferSelect;
