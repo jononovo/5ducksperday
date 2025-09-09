@@ -371,6 +371,24 @@ export const dailyOutreachJobs = pgTable("daily_outreach_jobs", {
   index('idx_jobs_user_status').on(table.userId, table.status),
 ]);
 
+// Daily outreach job execution logs for audit trail
+export const dailyOutreachJobLogs = pgTable("daily_outreach_job_logs", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => dailyOutreachJobs.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  executedAt: timestamp("executed_at", { withTimezone: true }).notNull(),
+  status: text("status").notNull(), // "success", "failed", "skipped"
+  batchId: integer("batch_id").references(() => dailyOutreachBatches.id),
+  processingTimeMs: integer("processing_time_ms"),
+  contactsProcessed: integer("contacts_processed"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_job_logs_job_id').on(table.jobId),
+  index('idx_job_logs_user_id').on(table.userId),
+  index('idx_job_logs_executed_at').on(table.executedAt),
+]);
+
 // Strategic onboarding tables
 export const strategicProfiles = pgTable("strategic_profiles", {
   id: serial("id").primaryKey(),

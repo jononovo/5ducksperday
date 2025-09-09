@@ -1,6 +1,7 @@
 import { db } from '../../../db';
 import { 
   dailyOutreachJobs,
+  dailyOutreachJobLogs,
   userOutreachPreferences,
   users,
   dailyOutreachBatches,
@@ -16,6 +17,13 @@ import { differenceInMinutes } from 'date-fns';
 export class PersistentDailyOutreachScheduler {
   private pollingInterval: NodeJS.Timeout | null = null;
   private runningJobs: Set<number> = new Set();
+  private readonly POLL_INTERVAL_MS: number;
+  
+  constructor() {
+    // Default to 10 seconds, configurable via environment variable
+    this.POLL_INTERVAL_MS = parseInt(process.env.OUTREACH_POLL_INTERVAL || '10000', 10);
+    console.log(`Polling interval set to ${this.POLL_INTERVAL_MS}ms`);
+  }
   
   async initialize() {
     console.log('Initializing Persistent Daily Outreach Scheduler...');
@@ -71,10 +79,10 @@ export class PersistentDailyOutreachScheduler {
   }
   
   private startPolling() {
-    // Poll every 60 seconds for due jobs
+    // Poll at configured interval for due jobs
     this.pollingInterval = setInterval(async () => {
       await this.checkAndRunDueJobs();
-    }, 60000); // 1 minute
+    }, this.POLL_INTERVAL_MS);
     
     // Run immediately on startup
     this.checkAndRunDueJobs();
@@ -114,6 +122,9 @@ export class PersistentDailyOutreachScheduler {
   
   private async executeJob(job: any) {
     this.runningJobs.add(job.userId);
+    const startTime = Date.now();
+    let batchId: number | null = null;
+    let contactsProcessed = 0;
     
     try {
       console.log(`Starting job execution for user ${job.userId}`);
@@ -125,7 +136,9 @@ export class PersistentDailyOutreachScheduler {
         .where(eq(dailyOutreachJobs.id, job.id));
       
       // Execute the actual outreach process
-      await this.processUserOutreach(job.userId);
+      const result = await this.processUserOutreach(job.userId);
+      batchId = result?.batchId || null;
+      contactsProcessed = result?.contactsProcessed || 0;
       
       // Calculate next run time
       const [preferences] = await db
@@ -155,7 +168,19 @@ export class PersistentDailyOutreachScheduler {
         })
         .where(eq(dailyOutreachJobs.id, job.id));
       
-      console.log(`Job completed for user ${job.userId}, next run: ${nextRun}`);
+      // Log successful execution to audit trail
+      const processingTime = Date.now() - startTime;
+      await db.insert(dailyOutreachJobLogs).values({
+        jobId: job.id,
+        userId: job.userId,
+        executedAt: new Date(),
+        status: 'success',
+        batchId: batchId,
+        processingTimeMs: processingTime,
+        contactsProcessed: contactsProcessed
+      });
+      
+      console.log(`Job completed for user ${job.userId}, next run: ${nextRun}, processing time: ${processingTime}ms`);
       
     } catch (error: any) {
       console.error(`Job failed for user ${job.userId}:`, error);
@@ -169,6 +194,17 @@ export class PersistentDailyOutreachScheduler {
           updatedAt: new Date()
         })
         .where(eq(dailyOutreachJobs.id, job.id));
+      
+      // Log failed execution to audit trail
+      const processingTime = Date.now() - startTime;
+      await db.insert(dailyOutreachJobLogs).values({
+        jobId: job.id,
+        userId: job.userId,
+        executedAt: new Date(),
+        status: 'failed',
+        processingTimeMs: processingTime,
+        errorMessage: error.message || 'Unknown error'
+      });
       
     } finally {
       this.runningJobs.delete(job.userId);
@@ -215,7 +251,7 @@ export class PersistentDailyOutreachScheduler {
     return nextRun;
   }
   
-  private async processUserOutreach(userId: number) {
+  private async processUserOutreach(userId: number): Promise<{ batchId: number | null; contactsProcessed: number }> {
     console.log(`Processing daily outreach for user ${userId}`);
     
     try {
@@ -252,7 +288,7 @@ export class PersistentDailyOutreachScheduler {
           .set({ lastNudgeSent: new Date() })
           .where(eq(userOutreachPreferences.userId, userId));
         
-        return;
+        return { batchId: null, contactsProcessed: 0 };
       }
       
       // Generate batch
@@ -269,8 +305,10 @@ export class PersistentDailyOutreachScheduler {
           .where(eq(userOutreachPreferences.userId, userId));
         
         console.log(`Daily outreach processed successfully for user ${userId}`);
+        return { batchId: batch.id, contactsProcessed: batch.items.length };
       } else {
         console.log(`Failed to generate batch for user ${userId}`);
+        return { batchId: null, contactsProcessed: 0 };
       }
       
     } catch (error) {

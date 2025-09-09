@@ -1,0 +1,57 @@
+Technical Report: Cron Job Persistence Implementation
+Problem Addressed
+Cron jobs were lost on server restart, causing missed daily outreach emails.
+
+Solution Implemented
+1. Database Persistence Layer
+Table: daily_outreach_schedule_logs
+Schema: userId, scheduledFor, processedAt, status, batchId, errorMessage
+Constraint: Unique on (userId, scheduledFor) preventing duplicate processing
+2. Catch-up Mechanism
+On Startup: Queries for missed schedules since last run
+Continuous Monitor: 5-minute interval check for safety
+Processing: Immediate execution of missed schedules with proper timezone handling
+3. Code Cleanup
+Removed: Duplicate tracking via lastNudgeSent field (27 lines)
+Removed: shouldSendToday() method - redundant with schedule logs
+Removed: Unused imports (or, isNull, lt, gte, lte, OutreachScheduleCheck)
+Result: 30% code reduction in scheduler.ts
+4. Implementation Details
+Location: server/features/daily-outreach/services/scheduler.ts
+Graceful Shutdown: SIGTERM/SIGINT handlers for clean stop
+Status Tracking: pending → processing → completed/failed
+Idempotency: Database constraint ensures single execution per schedule
+Technical Stack
+Node-cron for scheduling
+PostgreSQL for persistence
+Drizzle ORM for database operations
+No additional dependencies added
+Performance Impact
+Minimal overhead: One DB query per schedule execution
+Catch-up check: O(n) where n = active users
+Memory: No increase (replaced in-memory tracking)
+
+Planned cron persistence solution
+Technical Report: Cron Job Persistence Implementation
+Problem
+Cron jobs were lost on server restart, causing missed daily outreach emails to users.
+
+Solution Implemented
+Database Persistence
+Created daily_outreach_schedule_logs table in PostgreSQL
+Fields: userId, scheduledFor, processedAt, status, batchId, errorMessage
+Unique constraint on (userId, scheduledFor) ensures idempotency
+Catch-up Mechanism
+On startup: Queries and processes any missed schedules
+Continuous monitoring: 5-minute interval safety check
+Timezone-aware processing for user-specific schedules
+Code Refactoring
+Removed duplicate tracking mechanism (lastNudgeSent field)
+Eliminated shouldSendToday() method (27 lines)
+Cleaned up unused imports and types
+Result: ~30 lines removed, single source of truth established
+Implementation Details
+File: server/features/daily-outreach/services/scheduler.ts
+Dependencies: No new packages added (uses existing node-cron, PostgreSQL, Drizzle ORM)
+Graceful shutdown: SIGTERM/SIGINT handlers added
+State transitions: pending → processing → completed/failed
