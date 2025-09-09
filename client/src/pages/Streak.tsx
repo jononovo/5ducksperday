@@ -10,9 +10,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
-import { CalendarIcon, Mail, Zap, Building2, Users, TrendingUp, Pause, Play, ExternalLink, RefreshCw, Target, Flame } from 'lucide-react';
+import { CalendarIcon, Mail, Zap, Building2, Users, TrendingUp, Pause, Play, ExternalLink, RefreshCw, Target, Flame, Sparkles, Rocket } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
+import { ProductOnboardingForm } from '@/components/product-onboarding-form';
 
 interface StreakStats {
   currentStreak: number;
@@ -62,6 +63,7 @@ export default function StreakPage() {
     from: undefined,
     to: undefined
   });
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Fetch streak stats
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useQuery<StreakStats>({
@@ -251,6 +253,34 @@ export default function StreakPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Activation CTA */}
+      {preferences && !preferences.enabled && (
+        <Card className="mb-8 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+          <CardContent className="py-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex items-center gap-3 justify-center md:justify-start mb-3">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                  <h2 className="text-2xl font-bold">Activate Your Daily Sales Companion</h2>
+                </div>
+                <p className="text-muted-foreground">
+                  Get 5 personalized prospects delivered to your inbox every day.
+                  Takes just 2 minutes to set up.
+                </p>
+              </div>
+              <Button 
+                size="lg" 
+                className="min-w-[200px]"
+                onClick={() => setShowOnboarding(true)}
+              >
+                <Rocket className="h-5 w-5 mr-2" />
+                Start Daily Outreach
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Actions */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -500,6 +530,16 @@ export default function StreakPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Product Onboarding Form */}
+      <ProductOnboardingForm
+        open={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onComplete={() => {
+          refetchPreferences();
+          refetchStats();
+        }}
+      />
     </div>
   );
 }
