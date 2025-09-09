@@ -21,7 +21,6 @@ import { useNotifications } from "@/features/user-account-settings";
 import { useStrategyOverlay } from "@/features/strategy-chat";
 import { NotificationToast } from "@/components/ui/notification-toast";
 import {
-  ListPlus,
   Search,
   Code2,
   UserCircle,
@@ -927,24 +926,6 @@ export default function Home() {
     // (removed automatic reset to allow email tooltip to show)
   };
 
-  const handleSaveList = () => {
-    if (!currentResults || !currentQuery) {
-      toast({
-        title: "Cannot Save",
-        description: "Please perform a search first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (currentListId) {
-      console.log('Manual save: Updating existing list', currentListId);
-      updateListMutation.mutate();
-    } else {
-      console.log('Manual save: Creating new list');
-      autoCreateListMutation.mutate();
-    }
-  };
   
   // Handler for Start Selling button
   const handleStartSelling = () => {
@@ -2622,17 +2603,6 @@ export default function Home() {
                     </Tooltip>
                   </TooltipProvider>
                   </div>
-                  
-                  {/* Save button moved here */}
-                  <Button
-                    variant="outline"
-                    onClick={handleSaveList}
-                    disabled={autoCreateListMutation.isPending || updateListMutation.isPending}
-                    className="opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                  >
-                    <ListPlus className="mr-2 h-4 w-4" />
-                    {currentListId && isSaved ? "Saved" : currentListId ? "Update List" : "Save as List"}
-                  </Button>
                 </div>
               )}
               
