@@ -48,10 +48,17 @@ export class DailyOutreachScheduler {
       'sun': 0
     };
     
-    const days = preferences.scheduleDays
-      .map((day: string) => dayMapping[day as keyof typeof dayMapping])
-      .filter((d: number) => d !== undefined)
-      .join(',');
+    // Handle schedule days - default to weekdays if not specified
+    let days = '1-5'; // Default: Monday through Friday
+    if (preferences.scheduleDays && preferences.scheduleDays.length > 0) {
+      const mappedDays = preferences.scheduleDays
+        .map((day: string) => dayMapping[day as keyof typeof dayMapping])
+        .filter((d: number) => d !== undefined);
+      
+      if (mappedDays.length > 0) {
+        days = mappedDays.join(',');
+      }
+    }
     
     // Cron format: minute hour * * day-of-week
     const cronExpression = `${minute} ${hour} * * ${days}`;
