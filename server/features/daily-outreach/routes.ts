@@ -9,7 +9,7 @@ import {
   companies
 } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
-import { outreachScheduler } from './services/scheduler';
+import { persistentScheduler as outreachScheduler } from './services/persistent-scheduler';
 import { batchGenerator } from './services/batch-generator';
 import { sendGridService } from './services/sendgrid-service';
 import type { Request, Response } from 'express';
