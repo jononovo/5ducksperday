@@ -36,7 +36,7 @@ export class DailyBatchGenerator {
       const selectedContacts = this.selectTopContacts(uncontactedContacts, 5);
       
       // Get company details for selected contacts
-      const companyIds = [...new Set(selectedContacts.map(c => c.companyId))];
+      const companyIds = Array.from(new Set(selectedContacts.map(c => c.companyId)));
       const companiesData = await db
         .select()
         .from(companies)

@@ -4,12 +4,13 @@ import {
   dailyOutreachBatches, 
   dailyOutreachItems, 
   userOutreachPreferences,
+  dailyOutreachJobs,
   users,
   contacts,
   companies
 } from '@shared/schema';
-import { eq, and } from 'drizzle-orm';
-import { outreachScheduler } from './services/scheduler';
+import { eq, and, lte, sql } from 'drizzle-orm';
+import { persistentScheduler as outreachScheduler } from './services/persistent-scheduler';
 import { batchGenerator } from './services/batch-generator';
 import { sendGridService } from './services/sendgrid-service';
 import type { Request, Response } from 'express';
@@ -456,6 +457,132 @@ router.post('/batch/:token/item/:itemId/skip', async (req: Request, res: Respons
   } catch (error) {
     console.error('Error skipping item:', error);
     res.status(500).json({ error: 'Failed to skip item' });
+  }
+});
+
+// Admin endpoint to test retry logic (dev only)
+router.post('/admin/simulate-failure/:userId', async (req: Request, res: Response) => {
+  try {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ error: 'Not available in production' });
+    }
+    
+    const userId = parseInt(req.params.userId);
+    const { retryCount = 0 } = req.body;
+    
+    // Update job to simulate failure
+    const result = await db
+      .update(dailyOutreachJobs)
+      .set({
+        status: 'failed',
+        lastError: 'Simulated failure for testing',
+        retryCount: retryCount,
+        nextRetryAt: new Date(Date.now() + 60 * 1000), // Retry in 1 minute
+        updatedAt: new Date()
+      })
+      .where(eq(dailyOutreachJobs.userId, userId))
+      .returning();
+    
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'No job found for user' });
+    }
+    
+    res.json({ 
+      message: 'Job marked as failed for testing',
+      job: result[0]
+    });
+  } catch (error) {
+    console.error('Error simulating failure:', error);
+    res.status(500).json({ error: 'Failed to simulate failure' });
+  }
+});
+
+// Admin endpoint to get batch processing stats (dev only)
+router.get('/admin/stats', async (req: Request, res: Response) => {
+  try {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ error: 'Not available in production' });
+    }
+    
+    // Get job statistics
+    const stats = await db
+      .select({
+        status: dailyOutreachJobs.status,
+        count: sql<number>`COUNT(*)::int`
+      })
+      .from(dailyOutreachJobs)
+      .groupBy(dailyOutreachJobs.status);
+    
+    // Get retry distribution
+    const retryStats = await db
+      .select({
+        retryCount: dailyOutreachJobs.retryCount,
+        count: sql<number>`COUNT(*)::int`
+      })
+      .from(dailyOutreachJobs)
+      .where(eq(dailyOutreachJobs.status, 'failed'))
+      .groupBy(dailyOutreachJobs.retryCount);
+    
+    // Get upcoming jobs
+    const upcomingJobs = await db
+      .select({
+        id: dailyOutreachJobs.id,
+        userId: dailyOutreachJobs.userId,
+        nextRunAt: dailyOutreachJobs.nextRunAt,
+        status: dailyOutreachJobs.status,
+        retryCount: dailyOutreachJobs.retryCount
+      })
+      .from(dailyOutreachJobs)
+      .where(lte(dailyOutreachJobs.nextRunAt, new Date(Date.now() + 60 * 60 * 1000))) // Next hour
+      .orderBy(dailyOutreachJobs.nextRunAt)
+      .limit(10);
+    
+    res.json({
+      config: {
+        POLL_INTERVAL_MS: parseInt(process.env.OUTREACH_POLL_INTERVAL || '30000'),
+        BATCH_SIZE: parseInt(process.env.OUTREACH_BATCH_SIZE || '15'),
+        MAX_CONCURRENT: parseInt(process.env.OUTREACH_MAX_CONCURRENT || '10'),
+        MAX_RETRIES: parseInt(process.env.OUTREACH_MAX_RETRIES || '3')
+      },
+      jobStats: stats,
+      retryDistribution: retryStats,
+      upcomingJobs: upcomingJobs
+    });
+  } catch (error) {
+    console.error('Error getting admin stats:', error);
+    res.status(500).json({ error: 'Failed to get stats' });
+  }
+});
+
+// Get job status for a specific user
+router.get('/job-status/:userId', async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    
+    const [job] = await db
+      .select()
+      .from(dailyOutreachJobs)
+      .where(eq(dailyOutreachJobs.userId, userId));
+    
+    if (!job) {
+      return res.json({ 
+        enabled: false, 
+        message: 'No scheduled job found' 
+      });
+    }
+    
+    res.json({
+      enabled: true,
+      status: job.status,
+      nextRunAt: job.nextRunAt,
+      lastRunAt: job.lastRunAt,
+      lastError: job.lastError,
+      retryCount: job.retryCount,
+      nextRetryAt: job.nextRetryAt
+    });
+  } catch (error) {
+    console.error('Error getting job status:', error);
+    res.status(500).json({ error: 'Failed to get job status' });
   }
 });
 

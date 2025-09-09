@@ -356,6 +356,42 @@ export const userOutreachPreferences = pgTable("user_outreach_preferences", {
   index('idx_outreach_pref_enabled').on(table.enabled),
 ]);
 
+// Daily outreach job persistence table
+export const dailyOutreachJobs = pgTable("daily_outreach_jobs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  nextRunAt: timestamp("next_run_at", { withTimezone: true }).notNull(),
+  lastRunAt: timestamp("last_run_at", { withTimezone: true }),
+  status: text("status").default("scheduled"), // "scheduled", "running", "completed", "failed"
+  lastError: text("last_error"),
+  retryCount: integer("retry_count").default(0),
+  nextRetryAt: timestamp("next_retry_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_jobs_next_run').on(table.nextRunAt),
+  index('idx_jobs_user_status').on(table.userId, table.status),
+  index('idx_jobs_retry').on(table.nextRetryAt, table.retryCount),
+]);
+
+// Daily outreach job execution logs for audit trail
+export const dailyOutreachJobLogs = pgTable("daily_outreach_job_logs", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => dailyOutreachJobs.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  executedAt: timestamp("executed_at", { withTimezone: true }).notNull(),
+  status: text("status").notNull(), // "success", "failed", "skipped"
+  batchId: integer("batch_id").references(() => dailyOutreachBatches.id),
+  processingTimeMs: integer("processing_time_ms"),
+  contactsProcessed: integer("contacts_processed"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_job_logs_job_id').on(table.jobId),
+  index('idx_job_logs_user_id').on(table.userId),
+  index('idx_job_logs_executed_at').on(table.executedAt),
+]);
+
 // Strategic onboarding tables
 export const strategicProfiles = pgTable("strategic_profiles", {
   id: serial("id").primaryKey(),
