@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
+import { outreachScheduler } from "./features/daily-outreach";
 import dotenv from "dotenv";
 
 // Load environment variables from .env file
@@ -79,6 +80,9 @@ app.get('/api/health', (_req, res) => {
     // Database already initialized through Drizzle
     
     // Storage initialization handled by individual storage implementations
+    
+    // Initialize daily outreach scheduler
+    await outreachScheduler.initialize();
 
     const server = registerRoutes(app);
 
