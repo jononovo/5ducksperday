@@ -21,7 +21,6 @@ import { useNotifications } from "@/features/user-account-settings";
 import { useStrategyOverlay } from "@/features/strategy-chat";
 import { NotificationToast } from "@/components/ui/notification-toast";
 import {
-  ListPlus,
   Search,
   Code2,
   UserCircle,
@@ -38,7 +37,6 @@ import {
   Menu,
   Mail,
   Target,
-  Rocket,
   Plus,
 } from "lucide-react";
 import {
@@ -114,11 +112,8 @@ export default function Home() {
   const [highlightEmailButton, setHighlightEmailButton] = useState(false);
   // Track current session ID for email search persistence
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [highlightStartSellingButton, setHighlightStartSellingButton] = useState(false);
   const [showEmailTooltip, setShowEmailTooltip] = useState(false);
   const [hasShownEmailTooltip, setHasShownEmailTooltip] = useState(false);
-  const [showStartSellingTooltip, setShowStartSellingTooltip] = useState(false);
-  const [hasShownStartSellingTooltip, setHasShownStartSellingTooltip] = useState(false);
   // Tour modal has been removed
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
@@ -190,31 +185,6 @@ export default function Home() {
     checkEmailTooltipStatus();
   }, [auth?.user]);
 
-  // Check if user has already seen start selling tooltip
-  useEffect(() => {
-    const checkStartSellingTooltipStatus = async () => {
-      if (auth?.user) {
-        try {
-          const response = await fetch('/api/notifications/status', {
-            headers: {
-              ...(localStorage.getItem('authToken') && { 
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
-              })
-            },
-            credentials: 'include'
-          });
-          const data = await response.json();
-          if (data.notifications && data.notifications[4] === 1) {
-            setHasShownStartSellingTooltip(true);
-          }
-        } catch (error) {
-          console.error('Failed to check start selling tooltip status:', error);
-        }
-      }
-    };
-    
-    checkStartSellingTooltipStatus();
-  }, [auth?.user]);
 
   // Handle tooltip dismissal when clicked
   useEffect(() => {
@@ -243,37 +213,11 @@ export default function Home() {
           }
         }
       }
-      
-      // Dismiss start selling tooltip
-      if (showStartSellingTooltip) {
-        setShowStartSellingTooltip(false);
-        setHighlightStartSellingButton(false);
-        setHasShownStartSellingTooltip(true); // Mark as shown
-        
-        // Mark start selling tooltip as shown for authenticated users
-        if (auth?.user) {
-          try {
-            await fetch('/api/notifications/mark-shown', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(localStorage.getItem('authToken') && { 
-                  'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
-                })
-              },
-              credentials: 'include',
-              body: JSON.stringify({ notificationId: 4 })
-            });
-          } catch (error) {
-            console.error('Failed to mark start selling tooltip as shown:', error);
-          }
-        }
-      }
     };
 
     window.addEventListener('dismissTooltip', handleTooltipDismiss);
     return () => window.removeEventListener('dismissTooltip', handleTooltipDismiss);
-  }, [showEmailTooltip, showStartSellingTooltip, auth?.user, hasShownEmailTooltip, hasShownStartSellingTooltip]);
+  }, [showEmailTooltip, auth?.user, hasShownEmailTooltip]);
   
   // Track if component is mounted to prevent localStorage corruption during unmount
   const isMountedRef = useRef(true);
@@ -700,93 +644,7 @@ export default function Home() {
     },
   });
 
-  // Mutation for updating existing list and navigating to outreach
-  const updateAndNavigateMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentQuery || !currentResults || !currentListId) return;
-      
-      // Get current contact search config from localStorage
-      const savedConfig = localStorage.getItem('contactSearchConfig');
-      let contactSearchConfig = null;
-      if (savedConfig) {
-        try {
-          contactSearchConfig = JSON.parse(savedConfig);
-        } catch (error) {
-          console.error('Error parsing contact search config:', error);
-        }
-      }
-      
-      const res = await apiRequest("PUT", `/api/lists/${currentListId}`, {
-        companies: currentResults,
-        prompt: currentQuery,
-        contactSearchConfig: contactSearchConfig
-      });
-      return res.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
-      toast({
-        title: "List Updated",
-        description: "Your search results have been updated. Redirecting to outreach...",
-      });
-      // Navigate to outreach page
-      setTimeout(() => {
-        window.location.href = '/outreach';
-      }, 1000);
-    },
-    onError: (error) => {
-      toast({
-        title: "Update Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
 
-  // Mutation for auto-creating list and navigating to outreach
-  const autoCreateAndNavigateMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentQuery || !currentResults) return;
-      
-      // Get current contact search config from localStorage
-      const savedConfig = localStorage.getItem('contactSearchConfig');
-      let contactSearchConfig = null;
-      if (savedConfig) {
-        try {
-          contactSearchConfig = JSON.parse(savedConfig);
-        } catch (error) {
-          console.error('Error parsing contact search config:', error);
-        }
-      }
-      
-      const res = await apiRequest("POST", "/api/lists", {
-        companies: currentResults,
-        prompt: currentQuery,
-        contactSearchConfig: contactSearchConfig
-      });
-      return res.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
-      setCurrentListId(data.listId); // Track the auto-created list
-      setIsSaved(true); // Mark as saved
-      toast({
-        title: "List Created",
-        description: "Your search results have been saved. Redirecting to outreach...",
-      });
-      // Navigate to outreach page
-      setTimeout(() => {
-        window.location.href = '/outreach';
-      }, 1000);
-    },
-    onError: (error) => {
-      toast({
-        title: "Save Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
 
   // Mutation for saving and navigating to outreach
   const saveAndNavigateMutation = useMutation({
@@ -927,70 +785,7 @@ export default function Home() {
     // (removed automatic reset to allow email tooltip to show)
   };
 
-  const handleSaveList = () => {
-    if (!currentResults || !currentQuery) {
-      toast({
-        title: "Cannot Save",
-        description: "Please perform a search first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (currentListId) {
-      console.log('Manual save: Updating existing list', currentListId);
-      updateListMutation.mutate();
-    } else {
-      console.log('Manual save: Creating new list');
-      autoCreateListMutation.mutate();
-    }
-  };
   
-  // Handler for Start Selling button
-  const handleStartSelling = () => {
-    if (!currentResults || !currentQuery) {
-      toast({
-        title: "Cannot Start Selling",
-        description: "Please perform a search first to find companies and contacts.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // If email search summary is visible, we know an email search has run
-    if (summaryVisible) {
-      // Proceed with updating or auto-creating and navigating
-      if (currentListId) {
-        updateAndNavigateMutation.mutate();
-      } else {
-        autoCreateAndNavigateMutation.mutate();
-      }
-      return;
-    }
-    
-    // Otherwise, check if we have 5+ emails already
-    const emailCount = currentResults.reduce((count, company) => {
-      return count + (company.contacts?.filter(contact => 
-        contact.email && contact.email.length > 5
-      ).length || 0);
-    }, 0);
-    
-    if (emailCount >= 5) {
-      // We have enough emails, proceed with auto-creation and navigation
-      if (currentListId) {
-        updateAndNavigateMutation.mutate();
-      } else {
-        autoCreateAndNavigateMutation.mutate();
-      }
-    } else {
-      // Not enough emails
-      toast({
-        title: "Action Required",
-        description: "Search for 5 emails before moving to Outreach.",
-        variant: "destructive"
-      });
-    }
-  };
 
   // Get top prospects from all companies
   const getTopProspects = (): ContactWithCompanyInfo[] => {
@@ -1684,46 +1479,6 @@ export default function Home() {
     };
   }, []);
   
-  // Effect to highlight Start Selling button when email search completes
-  useEffect(() => {
-    // If the consolidated search just finished (summary is visible and not searching)
-    if (summaryVisible && !isConsolidatedSearching && !hasShownStartSellingTooltip) {
-      // Add a 2-second delay before highlighting the Start Selling button
-      const timer = setTimeout(async () => {
-        // The search has completed and results are available, highlight the Start Selling button
-        setHighlightStartSellingButton(true);
-        setShowStartSellingTooltip(true);
-        setHasShownStartSellingTooltip(true); // Mark as shown
-        
-        // Mark start selling tooltip as shown for authenticated users
-        if (auth?.user) {
-          try {
-            await fetch('/api/notifications/mark-shown', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(localStorage.getItem('authToken') && { 
-                  'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
-                })
-              },
-              credentials: 'include',
-              body: JSON.stringify({ notificationId: 4 })
-            });
-          } catch (error) {
-            console.error('Failed to mark start selling tooltip as shown:', error);
-          }
-        }
-        
-        setTimeout(() => {
-          setHighlightStartSellingButton(false);
-          setShowStartSellingTooltip(false);
-        }, 10000);
-      }, 2000);
-      
-      // Clean up timer if component unmounts or dependencies change
-      return () => clearTimeout(timer);
-    }
-  }, [summaryVisible, isConsolidatedSearching, hasShownStartSellingTooltip, auth?.user]);
 
   // Email tooltip timing effect
   useEffect(() => {
@@ -2551,39 +2306,6 @@ export default function Home() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className={`flex items-center gap-1 h-8 ${
-                            highlightStartSellingButton 
-                              ? 'email-button-highlight' 
-                              : 'opacity-45 hover:opacity-100 hover:bg-white'
-                          } transition-all`}
-                          onClick={handleStartSelling}
-                        >
-                          <Rocket className="h-4 w-4" />
-                          <span className="hidden md:inline">Start Selling</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="text-xs">Save list, open "Outreach" page & load this list</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  
-                  <div className="relative">
-                    <LandingPageTooltip
-                      message="Ready to turn your research into results? Start your outreach!"
-                      visible={showStartSellingTooltip}
-                      position="custom"
-                      offsetX={-40}
-                      offsetY={-15}
-                    />
-                  </div>
-                  
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
                           className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
                           onClick={() => {
                             if (!auth.user) {
@@ -2622,17 +2344,6 @@ export default function Home() {
                     </Tooltip>
                   </TooltipProvider>
                   </div>
-                  
-                  {/* Save button moved here */}
-                  <Button
-                    variant="outline"
-                    onClick={handleSaveList}
-                    disabled={autoCreateListMutation.isPending || updateListMutation.isPending}
-                    className="opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                  >
-                    <ListPlus className="mr-2 h-4 w-4" />
-                    {currentListId && isSaved ? "Saved" : currentListId ? "Update List" : "Save as List"}
-                  </Button>
                 </div>
               )}
               
