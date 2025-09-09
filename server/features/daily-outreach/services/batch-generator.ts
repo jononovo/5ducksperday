@@ -5,6 +5,7 @@ import {
   dailyOutreachBatches, 
   dailyOutreachItems,
   strategicProfiles,
+  userOutreachPreferences,
   Contact,
   Company,
   DailyOutreachBatch,
@@ -131,13 +132,30 @@ export class DailyBatchGenerator {
     userId: number
   ): Promise<Omit<DailyOutreachItem, 'id' | 'batchId' | 'createdAt'>> {
     try {
-      // Get user's strategic profile for tone preferences
-      const [strategy] = await db
+      // Get user's active product from preferences
+      const [preferences] = await db
         .select()
-        .from(strategicProfiles)
-        .where(eq(strategicProfiles.userId, userId))
-        .orderBy(desc(strategicProfiles.createdAt))
-        .limit(1);
+        .from(userOutreachPreferences)
+        .where(eq(userOutreachPreferences.userId, userId));
+      
+      let strategy;
+      if (preferences?.activeProductId) {
+        // Get the specific active product
+        const [activeProduct] = await db
+          .select()
+          .from(strategicProfiles)
+          .where(eq(strategicProfiles.id, preferences.activeProductId));
+        strategy = activeProduct;
+      } else {
+        // Fallback to most recent strategy
+        const [latestStrategy] = await db
+          .select()
+          .from(strategicProfiles)
+          .where(eq(strategicProfiles.userId, userId))
+          .orderBy(desc(strategicProfiles.createdAt))
+          .limit(1);
+        strategy = latestStrategy;
+      }
       
       // Generate email content using existing system
       const emailContent = await generateEmailContent({
