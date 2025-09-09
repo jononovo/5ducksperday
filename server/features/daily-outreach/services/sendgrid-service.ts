@@ -54,7 +54,7 @@ export class SendGridNotificationService {
     }
   }
 
-  private buildContactsReadyEmail(batch: DailyBatch): EmailNotificationContent {
+  buildContactsReadyEmail(batch: DailyBatch): EmailNotificationContent {
     const secureUrl = `${this.appUrl}/outreach/daily/${batch.secureToken}`;
     
     const companiesBreakdown = batch.companiesByType

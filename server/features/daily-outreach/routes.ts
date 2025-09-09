@@ -113,6 +113,90 @@ router.put('/preferences', async (req: Request, res: Response) => {
   }
 });
 
+// Preview email template
+router.get('/preview', async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    // Get user details
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId));
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Try to get the most recent batch for this user
+    const [recentBatch] = await db
+      .select()
+      .from(dailyOutreachBatches)
+      .where(eq(dailyOutreachBatches.userId, userId))
+      .orderBy(dailyOutreachBatches.createdAt)
+      .limit(1);
+    
+    let batch;
+    if (recentBatch) {
+      // Get batch items with contact and company details
+      const items = await db
+        .select({
+          item: dailyOutreachItems,
+          contact: contacts,
+          company: companies
+        })
+        .from(dailyOutreachItems)
+        .innerJoin(contacts, eq(dailyOutreachItems.contactId, contacts.id))
+        .innerJoin(companies, eq(dailyOutreachItems.companyId, companies.id))
+        .where(eq(dailyOutreachItems.batchId, recentBatch.id))
+        .limit(5);
+      
+      batch = {
+        ...recentBatch,
+        items: items.map(({ item, contact, company }) => ({
+          ...item,
+          contact,
+          company
+        })),
+        hasContacts: items.length > 0,
+        companiesByType: [{ type: 'prospects', count: items.length }]
+      };
+    } else {
+      // Generate a sample batch for preview
+      batch = await batchGenerator.generateDailyBatch(userId);
+    }
+    
+    // If still no batch, create a minimal sample
+    if (!batch) {
+      batch = {
+        id: 0,
+        userId,
+        batchDate: new Date(),
+        secureToken: 'preview-token',
+        status: 'preview',
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        createdAt: new Date(),
+        items: [],
+        hasContacts: true,
+        companiesByType: [{ type: 'B2B prospects', count: 5 }]
+      };
+    }
+    
+    // Generate the email HTML using the SendGrid service
+    const emailContent = sendGridService.buildContactsReadyEmail(batch);
+    
+    // Return HTML directly with proper content type
+    res.setHeader('Content-Type', 'text/html');
+    res.send(emailContent.html);
+  } catch (error) {
+    console.error('Error generating email preview:', error);
+    res.status(500).json({ error: 'Failed to generate preview' });
+  }
+});
+
 // Manual trigger for testing (only in development)
 router.post('/trigger', async (req: Request, res: Response) => {
   try {
