@@ -37,7 +37,6 @@ import {
   Menu,
   Mail,
   Target,
-  Rocket,
   Plus,
 } from "lucide-react";
 import {
@@ -113,11 +112,8 @@ export default function Home() {
   const [highlightEmailButton, setHighlightEmailButton] = useState(false);
   // Track current session ID for email search persistence
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [highlightStartSellingButton, setHighlightStartSellingButton] = useState(false);
   const [showEmailTooltip, setShowEmailTooltip] = useState(false);
   const [hasShownEmailTooltip, setHasShownEmailTooltip] = useState(false);
-  const [showStartSellingTooltip, setShowStartSellingTooltip] = useState(false);
-  const [hasShownStartSellingTooltip, setHasShownStartSellingTooltip] = useState(false);
   // Tour modal has been removed
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
@@ -242,37 +238,11 @@ export default function Home() {
           }
         }
       }
-      
-      // Dismiss start selling tooltip
-      if (showStartSellingTooltip) {
-        setShowStartSellingTooltip(false);
-        setHighlightStartSellingButton(false);
-        setHasShownStartSellingTooltip(true); // Mark as shown
-        
-        // Mark start selling tooltip as shown for authenticated users
-        if (auth?.user) {
-          try {
-            await fetch('/api/notifications/mark-shown', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(localStorage.getItem('authToken') && { 
-                  'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
-                })
-              },
-              credentials: 'include',
-              body: JSON.stringify({ notificationId: 4 })
-            });
-          } catch (error) {
-            console.error('Failed to mark start selling tooltip as shown:', error);
-          }
-        }
-      }
     };
 
     window.addEventListener('dismissTooltip', handleTooltipDismiss);
     return () => window.removeEventListener('dismissTooltip', handleTooltipDismiss);
-  }, [showEmailTooltip, showStartSellingTooltip, auth?.user, hasShownEmailTooltip, hasShownStartSellingTooltip]);
+  }, [showEmailTooltip, auth?.user, hasShownEmailTooltip]);
   
   // Track if component is mounted to prevent localStorage corruption during unmount
   const isMountedRef = useRef(true);
@@ -1534,46 +1504,6 @@ export default function Home() {
     };
   }, []);
   
-  // Effect to highlight Start Selling button when email search completes
-  useEffect(() => {
-    // If the consolidated search just finished (summary is visible and not searching)
-    if (summaryVisible && !isConsolidatedSearching && !hasShownStartSellingTooltip) {
-      // Add a 2-second delay before highlighting the Start Selling button
-      const timer = setTimeout(async () => {
-        // The search has completed and results are available, highlight the Start Selling button
-        setHighlightStartSellingButton(true);
-        setShowStartSellingTooltip(true);
-        setHasShownStartSellingTooltip(true); // Mark as shown
-        
-        // Mark start selling tooltip as shown for authenticated users
-        if (auth?.user) {
-          try {
-            await fetch('/api/notifications/mark-shown', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(localStorage.getItem('authToken') && { 
-                  'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
-                })
-              },
-              credentials: 'include',
-              body: JSON.stringify({ notificationId: 4 })
-            });
-          } catch (error) {
-            console.error('Failed to mark start selling tooltip as shown:', error);
-          }
-        }
-        
-        setTimeout(() => {
-          setHighlightStartSellingButton(false);
-          setShowStartSellingTooltip(false);
-        }, 10000);
-      }, 2000);
-      
-      // Clean up timer if component unmounts or dependencies change
-      return () => clearTimeout(timer);
-    }
-  }, [summaryVisible, isConsolidatedSearching, hasShownStartSellingTooltip, auth?.user]);
 
   // Email tooltip timing effect
   useEffect(() => {
@@ -2392,39 +2322,6 @@ export default function Home() {
                       visible={showEmailTooltip && !(isAnalyzing || isConsolidatedSearching)}
                       position="custom"
                       offsetX={-10}
-                    />
-                  </div>
-                  
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className={`flex items-center gap-1 h-8 ${
-                            highlightStartSellingButton 
-                              ? 'email-button-highlight' 
-                              : 'opacity-45 hover:opacity-100 hover:bg-white'
-                          } transition-all`}
-                          onClick={handleStartSelling}
-                        >
-                          <Rocket className="h-4 w-4" />
-                          <span className="hidden md:inline">Start Selling</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="text-xs">Save list, open "Outreach" page & load this list</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  
-                  <div className="relative">
-                    <LandingPageTooltip
-                      message="Ready to turn your research into results? Start your outreach!"
-                      visible={showStartSellingTooltip}
-                      position="custom"
-                      offsetX={-40}
-                      offsetY={-15}
                     />
                   </div>
                   
