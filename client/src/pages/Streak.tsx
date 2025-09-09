@@ -433,6 +433,17 @@ export default function StreakPage() {
             </div>
 
             <div className="border-t pt-6">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => window.open('/api/daily-outreach/preview', '_blank')}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Preview Email Template
+              </Button>
+            </div>
+
+            <div className="border-t pt-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label htmlFor="vacation-mode">Vacation Mode</Label>
