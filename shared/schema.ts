@@ -348,6 +348,7 @@ export const userOutreachPreferences = pgTable("user_outreach_preferences", {
   scheduleTime: text("schedule_time").default('09:00'), // Store as string for simplicity
   timezone: text("timezone").default('America/New_York'),
   minContactsRequired: integer("min_contacts_required").default(5),
+  activeProductId: integer("active_product_id").references(() => strategicProfiles.id),
   lastNudgeSent: timestamp("last_nudge_sent", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()

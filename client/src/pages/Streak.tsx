@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
-import { CalendarIcon, Mail, Zap, Building2, Users, TrendingUp, Pause, Play, ExternalLink, RefreshCw, Target, Flame, Sparkles, Rocket } from 'lucide-react';
+import { CalendarIcon, Mail, Zap, Building2, Users, TrendingUp, Pause, Play, ExternalLink, RefreshCw, Target, Flame, Sparkles, Rocket, Package, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { ProductOnboardingForm } from '@/components/product-onboarding-form';
@@ -52,6 +52,18 @@ interface OutreachPreferences {
   vacationMode?: boolean;
   vacationStartDate?: string | null;
   vacationEndDate?: string | null;
+  activeProductId?: number;
+}
+
+interface Product {
+  id: number;
+  userId: number;
+  title: string;
+  productService: string;
+  customerFeedback?: string;
+  website?: string;
+  businessType: 'product' | 'service';
+  status: string;
 }
 
 export default function StreakPage() {
@@ -64,12 +76,19 @@ export default function StreakPage() {
     to: undefined
   });
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
 
   // Fetch streak stats
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useQuery<StreakStats>({
     queryKey: ['/api/daily-outreach/streak-stats'],
     enabled: !!user,
     refetchInterval: 30000 // Refresh every 30 seconds
+  });
+
+  // Fetch user's products
+  const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
+    queryKey: ['/api/products'],
+    enabled: !!user
   });
 
   // Fetch current preferences
@@ -132,6 +151,23 @@ export default function StreakPage() {
     }
   });
 
+  // Set active product mutation
+  const setActiveProduct = useMutation({
+    mutationFn: async (productId: number) => {
+      const res = await apiRequest('PUT', '/api/daily-outreach/preferences', {
+        activeProductId: productId
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Product selected',
+        description: 'Your active product has been updated'
+      });
+      refetchPreferences();
+    }
+  });
+
   useEffect(() => {
     if (preferences) {
       // Set days per week based on schedule days length
@@ -148,8 +184,21 @@ export default function StreakPage() {
           });
         }
       }
+      
+      // Set active product
+      if (preferences.activeProductId) {
+        setSelectedProductId(preferences.activeProductId);
+      } else if (products && products.length > 0 && !selectedProductId) {
+        // Default to first product if none selected
+        setSelectedProductId(products[0].id);
+      }
     }
-  }, [preferences]);
+  }, [preferences, products]);
+
+  const handleProductChange = (productId: number) => {
+    setSelectedProductId(productId);
+    setActiveProduct.mutate(productId);
+  };
 
   const handleDaysPerWeekChange = (value: number[]) => {
     setDaysPerWeek(value);
@@ -253,6 +302,85 @@ export default function StreakPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Product Selector */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Active Product
+          </CardTitle>
+          <CardDescription>
+            Select which product or service to promote in your daily outreach
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {productsLoading ? (
+            <div className="text-sm text-muted-foreground">Loading products...</div>
+          ) : products && products.length > 0 ? (
+            <div className="space-y-3">
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className={cn(
+                    "p-4 rounded-lg border cursor-pointer transition-all",
+                    selectedProductId === product.id
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  )}
+                  onClick={() => handleProductChange(product.id)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium">{product.title}</h4>
+                        {selectedProductId === product.id && (
+                          <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">Active</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {product.productService}
+                      </p>
+                      {product.customerFeedback && (
+                        <p className="text-xs text-muted-foreground mt-2 italic">
+                          "{product.customerFeedback}"
+                        </p>
+                      )}
+                    </div>
+                    <span className={cn(
+                      "text-xs px-2 py-1 rounded",
+                      product.businessType === 'product' 
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-green-100 text-green-700"
+                    )}>
+                      {product.businessType}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setShowOnboarding(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Product
+              </Button>
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <Package className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+              <p className="text-sm text-muted-foreground mb-4">
+                No products configured yet
+              </p>
+              <Button onClick={() => setShowOnboarding(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Product
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Activation CTA */}
       {preferences && !preferences.enabled && (
