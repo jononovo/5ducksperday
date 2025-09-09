@@ -364,11 +364,14 @@ export const dailyOutreachJobs = pgTable("daily_outreach_jobs", {
   lastRunAt: timestamp("last_run_at", { withTimezone: true }),
   status: text("status").default("scheduled"), // "scheduled", "running", "completed", "failed"
   lastError: text("last_error"),
+  retryCount: integer("retry_count").default(0),
+  nextRetryAt: timestamp("next_retry_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
 }, (table) => [
   index('idx_jobs_next_run').on(table.nextRunAt),
   index('idx_jobs_user_status').on(table.userId, table.status),
+  index('idx_jobs_retry').on(table.nextRetryAt, table.retryCount),
 ]);
 
 // Daily outreach job execution logs for audit trail

@@ -16,13 +16,21 @@ import { differenceInMinutes } from 'date-fns';
 
 export class PersistentDailyOutreachScheduler {
   private pollingInterval: NodeJS.Timeout | null = null;
-  private runningJobs: Set<number> = new Set();
+  private runningJobs: Map<number, Date> = new Map(); // Track userId -> startTime
   private readonly POLL_INTERVAL_MS: number;
+  private readonly BATCH_SIZE: number;
+  private readonly MAX_CONCURRENT: number;
+  private readonly MAX_RETRIES: number;
+  private readonly RETRY_DELAYS = [60, 300, 900]; // 1min, 5min, 15min in seconds
   
   constructor() {
-    // Default to 10 seconds, configurable via environment variable
+    // Configurable via environment variables with sensible defaults
     this.POLL_INTERVAL_MS = parseInt(process.env.OUTREACH_POLL_INTERVAL || '10000', 10);
-    console.log(`Polling interval set to ${this.POLL_INTERVAL_MS}ms`);
+    this.BATCH_SIZE = parseInt(process.env.OUTREACH_BATCH_SIZE || '15', 10);
+    this.MAX_CONCURRENT = parseInt(process.env.OUTREACH_MAX_CONCURRENT || '10', 10);
+    this.MAX_RETRIES = parseInt(process.env.OUTREACH_MAX_RETRIES || '3', 10);
+    
+    console.log(`Scheduler config: Poll=${this.POLL_INTERVAL_MS}ms, Batch=${this.BATCH_SIZE}, MaxConcurrent=${this.MAX_CONCURRENT}, MaxRetries=${this.MAX_RETRIES}`);
   }
   
   async initialize() {
@@ -90,23 +98,53 @@ export class PersistentDailyOutreachScheduler {
   
   private async checkAndRunDueJobs() {
     try {
-      // Find all jobs that should run now
+      // Clean up stale running jobs (older than 5 minutes)
+      const staleThreshold = new Date(Date.now() - 5 * 60 * 1000);
+      for (const [userId, startTime] of Array.from(this.runningJobs.entries())) {
+        if (startTime < staleThreshold) {
+          console.log(`Removing stale job for user ${userId}`);
+          this.runningJobs.delete(userId);
+        }
+      }
+      
+      // Check current concurrency
+      const currentRunning = this.runningJobs.size;
+      if (currentRunning >= this.MAX_CONCURRENT) {
+        console.log(`Max concurrent jobs reached (${currentRunning}/${this.MAX_CONCURRENT}), waiting...`);
+        return;
+      }
+      
+      // Calculate how many jobs we can take
+      const slotsAvailable = this.MAX_CONCURRENT - currentRunning;
+      const batchLimit = Math.min(this.BATCH_SIZE, slotsAvailable);
+      
+      // Find jobs that should run now with fair ordering
       const dueJobs = await db
         .select()
         .from(dailyOutreachJobs)
         .where(
-          and(
-            lte(dailyOutreachJobs.nextRunAt, new Date()),
-            eq(dailyOutreachJobs.status, 'scheduled')
-          )
-        );
+          sql`(
+            (status = 'scheduled' AND next_run_at <= NOW()) OR
+            (status = 'failed' AND retry_count < ${this.MAX_RETRIES} AND 
+             (next_retry_at IS NULL OR next_retry_at <= NOW()))
+          )`
+        )
+        .orderBy(
+          sql`CASE 
+            WHEN status = 'failed' AND retry_count < ${this.MAX_RETRIES} THEN 0
+            ELSE 1 
+          END`,
+          sql`next_run_at ASC`
+        )
+        .limit(batchLimit);
       
       if (dueJobs.length > 0) {
-        console.log(`Found ${dueJobs.length} due jobs to process`);
+        console.log(`Processing batch of ${dueJobs.length} jobs (${currentRunning} running, ${batchLimit} slots available)`);
       }
       
+      // Process jobs without blocking
       for (const job of dueJobs) {
-        // Prevent duplicate runs
+        // Skip if already running (double-check)
         if (this.runningJobs.has(job.userId)) {
           console.log(`Job for user ${job.userId} already running, skipping`);
           continue;
@@ -121,7 +159,7 @@ export class PersistentDailyOutreachScheduler {
   }
   
   private async executeJob(job: any) {
-    this.runningJobs.add(job.userId);
+    this.runningJobs.set(job.userId, new Date());
     const startTime = Date.now();
     let batchId: number | null = null;
     let contactsProcessed = 0;
@@ -156,7 +194,7 @@ export class PersistentDailyOutreachScheduler {
       
       const nextRun = this.calculateNextRun(preferences);
       
-      // Mark as completed and schedule next run
+      // Mark as completed and schedule next run (reset retry count on success)
       await db
         .update(dailyOutreachJobs)
         .set({ 
@@ -164,6 +202,8 @@ export class PersistentDailyOutreachScheduler {
           lastRunAt: new Date(),
           nextRunAt: nextRun,
           lastError: null,
+          retryCount: 0,
+          nextRetryAt: null,
           updatedAt: new Date()
         })
         .where(eq(dailyOutreachJobs.id, job.id));
@@ -185,15 +225,41 @@ export class PersistentDailyOutreachScheduler {
     } catch (error: any) {
       console.error(`Job failed for user ${job.userId}:`, error);
       
-      // Mark as failed
-      await db
-        .update(dailyOutreachJobs)
-        .set({ 
-          status: 'failed',
-          lastError: error.message || 'Unknown error',
-          updatedAt: new Date()
-        })
-        .where(eq(dailyOutreachJobs.id, job.id));
+      const newRetryCount = (job.retryCount || 0) + 1;
+      const shouldRetry = newRetryCount < this.MAX_RETRIES;
+      
+      if (shouldRetry) {
+        // Calculate next retry time with exponential backoff
+        const retryDelaySeconds = this.RETRY_DELAYS[Math.min(newRetryCount - 1, this.RETRY_DELAYS.length - 1)];
+        const nextRetryAt = new Date(Date.now() + retryDelaySeconds * 1000);
+        
+        console.log(`Job for user ${job.userId} will retry (attempt ${newRetryCount}/${this.MAX_RETRIES}) at ${nextRetryAt}`);
+        
+        // Mark as failed but retryable
+        await db
+          .update(dailyOutreachJobs)
+          .set({ 
+            status: 'failed',
+            lastError: error.message || 'Unknown error',
+            retryCount: newRetryCount,
+            nextRetryAt: nextRetryAt,
+            updatedAt: new Date()
+          })
+          .where(eq(dailyOutreachJobs.id, job.id));
+      } else {
+        console.log(`Job for user ${job.userId} has exhausted all retries (${this.MAX_RETRIES})`);
+        
+        // Mark as permanently failed
+        await db
+          .update(dailyOutreachJobs)
+          .set({ 
+            status: 'failed',
+            lastError: `Failed after ${this.MAX_RETRIES} retries: ${error.message || 'Unknown error'}`,
+            retryCount: newRetryCount,
+            updatedAt: new Date()
+          })
+          .where(eq(dailyOutreachJobs.id, job.id));
+      }
       
       // Log failed execution to audit trail
       const processingTime = Date.now() - startTime;
@@ -201,7 +267,7 @@ export class PersistentDailyOutreachScheduler {
         jobId: job.id,
         userId: job.userId,
         executedAt: new Date(),
-        status: 'failed',
+        status: shouldRetry ? 'failed' : 'failed_permanent',
         processingTimeMs: processingTime,
         errorMessage: error.message || 'Unknown error'
       });
