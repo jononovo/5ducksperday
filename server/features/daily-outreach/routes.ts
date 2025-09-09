@@ -13,8 +13,12 @@ import { outreachScheduler } from './services/scheduler';
 import { batchGenerator } from './services/batch-generator';
 import { sendGridService } from './services/sendgrid-service';
 import type { Request, Response } from 'express';
+import streakRoutes from './routes-streak';
 
 const router = Router();
+
+// Mount streak routes
+router.use('/', streakRoutes);
 
 // Get user's outreach preferences
 router.get('/preferences', async (req: Request, res: Response) => {

@@ -36,6 +36,7 @@ const SubscriptionSuccess = lazy(() => import("@/pages/subscription-success"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const StrategyDashboard = lazy(() => import("@/features/strategy-chat").then(module => ({ default: module.StrategyDashboard })));
 const DailyOutreach = lazy(() => import("@/pages/DailyOutreach"));
+const Streak = lazy(() => import("@/pages/Streak"));
 
 // Lazy imports for marketing pages
 const Terms = lazy(() => import("@/pages/terms"));
@@ -170,6 +171,11 @@ function Router() {
                 <ProtectedRoute path="/outreach" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Outreach />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/streak" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <Streak />
                   </Suspense>
                 } />
                 <ProtectedRoute path="/replies" component={() => 
