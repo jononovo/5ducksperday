@@ -185,31 +185,6 @@ export default function Home() {
     checkEmailTooltipStatus();
   }, [auth?.user]);
 
-  // Check if user has already seen start selling tooltip
-  useEffect(() => {
-    const checkStartSellingTooltipStatus = async () => {
-      if (auth?.user) {
-        try {
-          const response = await fetch('/api/notifications/status', {
-            headers: {
-              ...(localStorage.getItem('authToken') && { 
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
-              })
-            },
-            credentials: 'include'
-          });
-          const data = await response.json();
-          if (data.notifications && data.notifications[4] === 1) {
-            setHasShownStartSellingTooltip(true);
-          }
-        } catch (error) {
-          console.error('Failed to check start selling tooltip status:', error);
-        }
-      }
-    };
-    
-    checkStartSellingTooltipStatus();
-  }, [auth?.user]);
 
   // Handle tooltip dismissal when clicked
   useEffect(() => {
