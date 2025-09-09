@@ -539,7 +539,7 @@ router.get('/admin/stats', async (req: Request, res: Response) => {
     
     res.json({
       config: {
-        POLL_INTERVAL_MS: parseInt(process.env.OUTREACH_POLL_INTERVAL || '10000'),
+        POLL_INTERVAL_MS: parseInt(process.env.OUTREACH_POLL_INTERVAL || '30000'),
         BATCH_SIZE: parseInt(process.env.OUTREACH_BATCH_SIZE || '15'),
         MAX_CONCURRENT: parseInt(process.env.OUTREACH_MAX_CONCURRENT || '10'),
         MAX_RETRIES: parseInt(process.env.OUTREACH_MAX_RETRIES || '3')

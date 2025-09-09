@@ -25,7 +25,7 @@ export class PersistentDailyOutreachScheduler {
   
   constructor() {
     // Configurable via environment variables with sensible defaults
-    this.POLL_INTERVAL_MS = parseInt(process.env.OUTREACH_POLL_INTERVAL || '10000', 10);
+    this.POLL_INTERVAL_MS = parseInt(process.env.OUTREACH_POLL_INTERVAL || '30000', 10);
     this.BATCH_SIZE = parseInt(process.env.OUTREACH_BATCH_SIZE || '15', 10);
     this.MAX_CONCURRENT = parseInt(process.env.OUTREACH_MAX_CONCURRENT || '10', 10);
     this.MAX_RETRIES = parseInt(process.env.OUTREACH_MAX_RETRIES || '3', 10);
