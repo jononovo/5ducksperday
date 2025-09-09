@@ -19,7 +19,7 @@ const router = Router();
 // Get user's outreach preferences
 router.get('/preferences', async (req: Request, res: Response) => {
   try {
-    const userId = req.session.userId;
+    const userId = (req as any).user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
@@ -50,7 +50,7 @@ router.get('/preferences', async (req: Request, res: Response) => {
 // Update user's outreach preferences
 router.put('/preferences', async (req: Request, res: Response) => {
   try {
-    const userId = req.session.userId;
+    const userId = (req as any).user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
@@ -110,7 +110,7 @@ router.put('/preferences', async (req: Request, res: Response) => {
 // Manual trigger for testing (only in development)
 router.post('/trigger', async (req: Request, res: Response) => {
   try {
-    const userId = req.session.userId;
+    const userId = (req as any).user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
