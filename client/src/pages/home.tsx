@@ -699,93 +699,7 @@ export default function Home() {
     },
   });
 
-  // Mutation for updating existing list and navigating to outreach
-  const updateAndNavigateMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentQuery || !currentResults || !currentListId) return;
-      
-      // Get current contact search config from localStorage
-      const savedConfig = localStorage.getItem('contactSearchConfig');
-      let contactSearchConfig = null;
-      if (savedConfig) {
-        try {
-          contactSearchConfig = JSON.parse(savedConfig);
-        } catch (error) {
-          console.error('Error parsing contact search config:', error);
-        }
-      }
-      
-      const res = await apiRequest("PUT", `/api/lists/${currentListId}`, {
-        companies: currentResults,
-        prompt: currentQuery,
-        contactSearchConfig: contactSearchConfig
-      });
-      return res.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
-      toast({
-        title: "List Updated",
-        description: "Your search results have been updated. Redirecting to outreach...",
-      });
-      // Navigate to outreach page
-      setTimeout(() => {
-        window.location.href = '/outreach';
-      }, 1000);
-    },
-    onError: (error) => {
-      toast({
-        title: "Update Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
 
-  // Mutation for auto-creating list and navigating to outreach
-  const autoCreateAndNavigateMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentQuery || !currentResults) return;
-      
-      // Get current contact search config from localStorage
-      const savedConfig = localStorage.getItem('contactSearchConfig');
-      let contactSearchConfig = null;
-      if (savedConfig) {
-        try {
-          contactSearchConfig = JSON.parse(savedConfig);
-        } catch (error) {
-          console.error('Error parsing contact search config:', error);
-        }
-      }
-      
-      const res = await apiRequest("POST", "/api/lists", {
-        companies: currentResults,
-        prompt: currentQuery,
-        contactSearchConfig: contactSearchConfig
-      });
-      return res.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
-      setCurrentListId(data.listId); // Track the auto-created list
-      setIsSaved(true); // Mark as saved
-      toast({
-        title: "List Created",
-        description: "Your search results have been saved. Redirecting to outreach...",
-      });
-      // Navigate to outreach page
-      setTimeout(() => {
-        window.location.href = '/outreach';
-      }, 1000);
-    },
-    onError: (error) => {
-      toast({
-        title: "Save Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
 
   // Mutation for saving and navigating to outreach
   const saveAndNavigateMutation = useMutation({
@@ -927,51 +841,6 @@ export default function Home() {
   };
 
   
-  // Handler for Start Selling button
-  const handleStartSelling = () => {
-    if (!currentResults || !currentQuery) {
-      toast({
-        title: "Cannot Start Selling",
-        description: "Please perform a search first to find companies and contacts.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // If email search summary is visible, we know an email search has run
-    if (summaryVisible) {
-      // Proceed with updating or auto-creating and navigating
-      if (currentListId) {
-        updateAndNavigateMutation.mutate();
-      } else {
-        autoCreateAndNavigateMutation.mutate();
-      }
-      return;
-    }
-    
-    // Otherwise, check if we have 5+ emails already
-    const emailCount = currentResults.reduce((count, company) => {
-      return count + (company.contacts?.filter(contact => 
-        contact.email && contact.email.length > 5
-      ).length || 0);
-    }, 0);
-    
-    if (emailCount >= 5) {
-      // We have enough emails, proceed with auto-creation and navigation
-      if (currentListId) {
-        updateAndNavigateMutation.mutate();
-      } else {
-        autoCreateAndNavigateMutation.mutate();
-      }
-    } else {
-      // Not enough emails
-      toast({
-        title: "Action Required",
-        description: "Search for 5 emails before moving to Outreach.",
-        variant: "destructive"
-      });
-    }
-  };
 
   // Get top prospects from all companies
   const getTopProspects = (): ContactWithCompanyInfo[] => {
