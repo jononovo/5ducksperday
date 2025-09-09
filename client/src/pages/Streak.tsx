@@ -64,6 +64,7 @@ interface Product {
   website?: string;
   businessType: 'product' | 'service';
   status: string;
+  createdAt?: string;
 }
 
 export default function StreakPage() {
@@ -302,85 +303,6 @@ export default function StreakPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Product Selector */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            Active Product
-          </CardTitle>
-          <CardDescription>
-            Select which product or service to promote in your daily outreach
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {productsLoading ? (
-            <div className="text-sm text-muted-foreground">Loading products...</div>
-          ) : products && products.length > 0 ? (
-            <div className="space-y-3">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className={cn(
-                    "p-4 rounded-lg border cursor-pointer transition-all",
-                    selectedProductId === product.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  )}
-                  onClick={() => handleProductChange(product.id)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium">{product.title}</h4>
-                        {selectedProductId === product.id && (
-                          <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">Active</span>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {product.productService}
-                      </p>
-                      {product.customerFeedback && (
-                        <p className="text-xs text-muted-foreground mt-2 italic">
-                          "{product.customerFeedback}"
-                        </p>
-                      )}
-                    </div>
-                    <span className={cn(
-                      "text-xs px-2 py-1 rounded",
-                      product.businessType === 'product' 
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-green-100 text-green-700"
-                    )}>
-                      {product.businessType}
-                    </span>
-                  </div>
-                </div>
-              ))}
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setShowOnboarding(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Product
-              </Button>
-            </div>
-          ) : (
-            <div className="text-center py-6">
-              <Package className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-              <p className="text-sm text-muted-foreground mb-4">
-                No products configured yet
-              </p>
-              <Button onClick={() => setShowOnboarding(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Product
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Activation CTA */}
       {preferences && !preferences.enabled && (
@@ -658,6 +580,89 @@ export default function StreakPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Product Selector */}
+      <Card className="mb-8">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Package className="h-4 w-4" />
+            Active Product
+          </CardTitle>
+          <CardDescription className="text-sm">
+            Select which product to promote in daily outreach
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {productsLoading ? (
+            <div className="text-sm text-muted-foreground">Loading products...</div>
+          ) : products && products.length > 0 ? (
+            <div className="space-y-2">
+              {products
+                .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+                .slice(0, 3)
+                .map((product) => (
+                <div
+                  key={product.id}
+                  className={cn(
+                    "p-3 rounded-lg border cursor-pointer transition-all",
+                    selectedProductId === product.id
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  )}
+                  onClick={() => handleProductChange(product.id)}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium text-sm truncate">{product.title}</h4>
+                        {selectedProductId === product.id && (
+                          <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded shrink-0">Active</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                        {product.productService}
+                      </p>
+                    </div>
+                    <span className={cn(
+                      "text-xs px-1.5 py-0.5 rounded shrink-0",
+                      product.businessType === 'product' 
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-green-100 text-green-700"
+                    )}>
+                      {product.businessType}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {products.length > 3 && (
+                <p className="text-xs text-muted-foreground text-center pt-1">
+                  Showing 3 most recent products
+                </p>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full mt-2"
+                onClick={() => setShowOnboarding(true)}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add New Product
+              </Button>
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <Package className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+              <p className="text-sm text-muted-foreground mb-3">
+                No products configured yet
+              </p>
+              <Button size="sm" onClick={() => setShowOnboarding(true)}>
+                <Plus className="h-3 w-3 mr-1" />
+                Add Your First Product
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Product Onboarding Form */}
       <ProductOnboardingForm
