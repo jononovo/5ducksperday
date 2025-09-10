@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { cn } from '@/lib/utils';
 
@@ -14,25 +14,44 @@ type EggState = 'egg' | 'cracked' | 'hatching' | 'hatched';
 interface EggData {
   state: EggState;
   isAnimating: boolean;
+  animationDelay?: number;
 }
 
 export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgressBarProps) {
   const [eggs, setEggs] = useState<EggData[]>([]);
   const [celebratingIndex, setCelebratingIndex] = useState<number | null>(null);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [overlayEmoji, setOverlayEmoji] = useState('🐥');
+  const wobbleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize eggs
+  // Initialize eggs with random animation delays
   useEffect(() => {
     const initialEggs: EggData[] = Array.from({ length: totalEmails }, (_, i) => {
+      const animationDelay = Math.random() * 500; // Random delay 0-500ms
       if (i < sentEmails) {
-        return { state: 'hatched', isAnimating: false };
+        return { state: 'hatched', isAnimating: false, animationDelay };
       } else if (i === sentEmails) {
-        return { state: 'cracked', isAnimating: false };
+        return { state: 'cracked', isAnimating: true, animationDelay };
       } else {
-        return { state: 'egg', isAnimating: false };
+        return { state: 'egg', isAnimating: false, animationDelay };
       }
     });
     setEggs(initialEggs);
-  }, [totalEmails]);
+
+    // Stop wobble animation after 2 seconds
+    if (wobbleTimeoutRef.current) {
+      clearTimeout(wobbleTimeoutRef.current);
+    }
+    wobbleTimeoutRef.current = setTimeout(() => {
+      setEggs(prev => prev.map(egg => ({ ...egg, isAnimating: false })));
+    }, 2000);
+
+    return () => {
+      if (wobbleTimeoutRef.current) {
+        clearTimeout(wobbleTimeoutRef.current);
+      }
+    };
+  }, [totalEmails, sentEmails]);
 
   // Handle when an email is sent
   useEffect(() => {
@@ -43,7 +62,7 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
       setEggs(prev => {
         const newEggs = [...prev];
         if (newEggs[eggIndex]) {
-          newEggs[eggIndex] = { state: 'hatching', isAnimating: true };
+          newEggs[eggIndex] = { ...newEggs[eggIndex], state: 'hatching', isAnimating: true };
         }
         return newEggs;
       });
@@ -56,11 +75,12 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
         setEggs(prev => {
           const newEggs = [...prev];
           if (newEggs[eggIndex]) {
-            newEggs[eggIndex] = { state: 'hatched', isAnimating: false };
+            newEggs[eggIndex] = { ...newEggs[eggIndex], state: 'hatched', isAnimating: false };
           }
           // Crack the next egg if available
           if (newEggs[eggIndex + 1]) {
-            newEggs[eggIndex + 1] = { state: 'cracked', isAnimating: false };
+            const delay = Math.random() * 500;
+            newEggs[eggIndex + 1] = { ...newEggs[eggIndex + 1], state: 'cracked', isAnimating: true, animationDelay: delay };
           }
           return newEggs;
         });
@@ -71,6 +91,14 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
         // Clear celebrating index after animation
         setTimeout(() => {
           setCelebratingIndex(null);
+        }, 2000);
+
+        // Stop wobble for new cracked egg after 2 seconds
+        if (wobbleTimeoutRef.current) {
+          clearTimeout(wobbleTimeoutRef.current);
+        }
+        wobbleTimeoutRef.current = setTimeout(() => {
+          setEggs(prev => prev.map(egg => ({ ...egg, isAnimating: false })));
         }, 2000);
       }, 1500);
     }
@@ -136,6 +164,18 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
     }
   };
 
+  // Public method to trigger overlay celebration (called from parent)
+  useEffect(() => {
+    // Expose the overlay trigger method via ref or callback
+    if (onEggClick) {
+      (window as any).triggerEggOverlayCelebration = () => {
+        setOverlayEmoji('🐥');
+        setShowOverlay(true);
+        setTimeout(() => setShowOverlay(false), 1500);
+      };
+    }
+  }, [onEggClick]);
+
   const getEggEmoji = (egg: EggData, index: number) => {
     if (egg.state === 'hatched') {
       return '🐥';
@@ -149,6 +189,8 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
   };
 
   const getEggAnimation = (egg: EggData, index: number) => {
+    if (!egg.isAnimating) return '';
+    
     if (celebratingIndex === index) {
       return 'animate-celebrate-hatch';
     }
@@ -166,6 +208,15 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
 
   return (
     <div className="relative">
+      {/* Large overlay celebration */}
+      {showOverlay && (
+        <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
+          <div className="text-[200px] animate-pulse opacity-40">
+            {overlayEmoji}
+          </div>
+        </div>
+      )}
+
       {/* Eggs container */}
       <div className="flex items-center justify-center gap-2 md:gap-3 py-3">
         {eggs.map((egg, index) => (
@@ -173,29 +224,30 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
             key={index}
             className="relative"
           >
-            {/* Celebration overlay for individual egg */}
+            {/* Celebration overlay for individual egg - now behind emoji */}
             {celebratingIndex === index && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                 <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></div>
               </div>
             )}
             
-            {/* The egg/chick */}
+            {/* The egg/chick - with higher z-index */}
             <button
               onClick={() => onEggClick?.(index)}
               disabled={egg.state === 'egg' && index > sentEmails}
               className={cn(
-                "text-3xl md:text-4xl transition-all duration-300 transform",
+                "text-xl md:text-2xl transition-all duration-300 transform relative z-20",
                 getEggAnimation(egg, index),
                 egg.state === 'cracked' && 'opacity-90',
                 egg.state === 'hatched' && 'hover:scale-110',
-                celebratingIndex === index && 'z-30 scale-150'
+                celebratingIndex === index && 'scale-150'
               )}
+              style={{
+                animationDelay: egg.isAnimating ? `${egg.animationDelay}ms` : undefined
+              }}
             >
               {getEggEmoji(egg, index)}
             </button>
-
-            {/* Progress indicator removed - green dots were confusing */}
           </div>
         ))}
       </div>

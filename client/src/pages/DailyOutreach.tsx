@@ -221,6 +221,11 @@ export default function DailyOutreach() {
   const handleSendConfirmation = () => {
     setShowConfirmModal(false);
     if (currentItem) {
+      // Trigger the large overlay celebration
+      if ((window as any).triggerEggOverlayCelebration) {
+        (window as any).triggerEggOverlayCelebration();
+      }
+      
       markSent.mutate(currentItem.id);
       setSentCount(prev => prev + 1);
       
