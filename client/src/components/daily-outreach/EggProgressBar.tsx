@@ -90,7 +90,7 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
         // Clear celebrating index after animation
         setTimeout(() => {
           setCelebratingIndex(null);
-        }, 800);
+        }, 600);
 
         // Stop wobble for new cracked egg after 2 seconds
         if (wobbleTimeoutRef.current) {
@@ -168,12 +168,12 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
     // Start the overlay after a short delay (when small egg is fading)
     setTimeout(() => {
       setShowOverlay(true);
-    }, 400);
+    }, 350);
 
     // Hide overlay after animation completes
     setTimeout(() => {
       setShowOverlay(false);
-    }, 2400);
+    }, 2350);
   };
 
   // Public method to trigger overlay celebration (called from parent)
