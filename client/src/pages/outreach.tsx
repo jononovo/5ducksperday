@@ -1401,11 +1401,13 @@ export default function Outreach() {
                         : "px-3 bg-white hover:bg-gray-50",
                       // Hide the company count in the trigger display
                       selectedListId && "[&_span.company-count]:hidden",
-                      companies.length > 0 && "md:border-b"
+                      companies.length > 0 && "md:border-b",
+                      // Make the chevron icon larger and more visible
+                      "[&_svg]:h-6 [&_svg]:w-6 [&_svg]:opacity-70 [&_svg]:transition-all hover:[&_svg]:opacity-100"
                     )}>
                       <SelectValue placeholder="Select a list to start">
                         {selectedListId && lists.length > 0 && (
-                          <span className="text-base font-semibold">
+                          <span className="text-base">
                             {generateListPromptOnly(lists.find(l => l.listId.toString() === selectedListId))}
                           </span>
                         )}
