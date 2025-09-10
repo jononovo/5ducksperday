@@ -364,7 +364,7 @@ export default function DailyOutreach() {
       
       {/* Top Bar */}
       <div className="bg-white border-b px-6 py-4">
-        <div className="max-w-4xl mx-auto flex justify-center items-center">
+        <div className="max-w-4xl mx-auto flex justify-end items-center">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Email {currentIndex + 1} of {pendingItems.length}</span>
             <span>•</span>
