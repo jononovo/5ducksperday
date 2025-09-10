@@ -1400,8 +1400,7 @@ export default function Outreach() {
                         ? "px-4 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100"
                         : "px-3 bg-white hover:bg-gray-50",
                       // Hide the company count in the trigger display
-                      selectedListId && "[&_span.company-count]:hidden",
-                      companies.length > 0 && "md:border-b"
+                      selectedListId && "[&_span.company-count]:hidden"
                     )}>
                       <SelectValue placeholder="Select a list to start">
                         {selectedListId && lists.length > 0 && (
