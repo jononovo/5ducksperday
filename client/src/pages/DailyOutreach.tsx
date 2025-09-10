@@ -208,23 +208,8 @@ export default function DailyOutreach() {
         setTimeout(() => {
           setShowCompletionModal(true);
         }, 3000);
-      } else {
-        // Auto-advance to next pending email
-        setIsAutoAdvancing(true);
-        setTimeout(() => {
-          const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
-          if (batchData?.items) {
-            const nextPendingIndex = batchData.items.findIndex((item: OutreachItem, idx: number) => 
-              idx > currentIndex && item.status === 'pending'
-            );
-            if (nextPendingIndex !== -1) {
-              setNavigationAction('next');
-              setCurrentIndex(nextPendingIndex);
-            }
-          }
-          setIsAutoAdvancing(false);
-        }, 1000);
       }
+      // No auto-advance - user stays on current email
     },
     onError: (error: any) => {
       toast({
@@ -336,19 +321,8 @@ export default function DailyOutreach() {
             setTimeout(() => {
               setShowCompletionModal(true);
             }, 3000);
-          } else {
-            // Navigate to next pending email
-            const items = batchData.items;
-            setTimeout(() => {
-              const nextPendingIndex = items.findIndex((item: OutreachItem, idx: number) => 
-                idx > currentIndex && item.status === 'pending'
-              );
-              if (nextPendingIndex !== -1) {
-                setNavigationAction('next');
-                setCurrentIndex(nextPendingIndex);
-              }
-            }, 1000);
           }
+          // No auto-advance - user stays on current email
         }
       }
     }
@@ -370,19 +344,8 @@ export default function DailyOutreach() {
       if (isLastPendingEmail()) {
         // Show completion modal when all emails are handled
         setShowCompletionModal(true);
-      } else {
-        // Find and navigate to next pending email
-        const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
-        if (batchData?.items) {
-          const nextPendingIndex = batchData.items.findIndex((item: OutreachItem, idx: number) => 
-            idx > currentIndex && item.status === 'pending'
-          );
-          if (nextPendingIndex !== -1) {
-            setNavigationAction('next');
-            setCurrentIndex(nextPendingIndex);
-          }
-        }
       }
+      // No auto-advance - user stays on current email
     }
   });
   
