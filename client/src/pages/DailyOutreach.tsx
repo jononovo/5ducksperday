@@ -813,13 +813,13 @@ export default function DailyOutreach() {
         
         {/* Next Up Teaser - Single Line */}
         {nextItem && (
-          <Card className="p-4 text-center border-0">
-            <p className="text-sm">
-              <strong className="text-muted-foreground">Next up:</strong>{' '}
+          <div className="mt-4 pb-2">
+            <p className="text-xs text-muted-foreground text-center" data-testid="text-next-up">
+              <span className="font-medium">Next up:</span>{' '}
               {nextItem.contact.name}
               {nextItem.contact.role && `, ${nextItem.contact.role}`} at {nextItem.company.name}
             </p>
-          </Card>
+          </div>
         )}
       </div>
     </div>
