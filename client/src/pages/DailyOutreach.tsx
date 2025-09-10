@@ -112,6 +112,19 @@ export default function DailyOutreach() {
     }
   }, [data]);
   
+  // Show completion modal when all items are complete
+  useEffect(() => {
+    const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
+    if (batchData?.items) {
+      const pendingCount = batchData.items.filter((item: OutreachItem) => item.status === 'pending').length;
+      if (pendingCount === 0 && !showCompletionModal) {
+        // Show completion modal after a short delay if all items already complete
+        const timer = setTimeout(() => setShowCompletionModal(true), 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [data, showCompletionModal]);
+  
   // Check Gmail status
   const { data: gmailStatus } = useQuery<GmailStatus>({
     queryKey: ['/api/gmail/status'],
@@ -541,15 +554,6 @@ export default function DailyOutreach() {
       </div>
     );
   }
-  
-  // If no pending items, show completion modal
-  useEffect(() => {
-    if (pendingItems && pendingItems.length === 0 && !showCompletionModal) {
-      // Show completion modal after a short delay if all items already complete
-      const timer = setTimeout(() => setShowCompletionModal(true), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [pendingItems, showCompletionModal]);
   
   return (
     <div className="min-h-screen bg-gray-50">
