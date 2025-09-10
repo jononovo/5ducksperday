@@ -98,6 +98,7 @@ export default function DailyOutreach() {
   const [sentCount, setSentCount] = useState(0);
   const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
   const [navigationAction, setNavigationAction] = useState<'next' | 'prev' | null>(null);
+  const [completionDismissed, setCompletionDismissed] = useState(false);
   
   // Fetch batch data
   const { data, isLoading, error } = useQuery({
@@ -119,13 +120,13 @@ export default function DailyOutreach() {
     const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
     if (batchData?.items) {
       const pendingCount = batchData.items.filter((item: OutreachItem) => item.status === 'pending').length;
-      if (pendingCount === 0 && !showCompletionModal) {
+      if (pendingCount === 0 && !showCompletionModal && !completionDismissed) {
         // Show completion modal after a short delay if all items already complete
         const timer = setTimeout(() => setShowCompletionModal(true), 500);
         return () => clearTimeout(timer);
       }
     }
-  }, [data, showCompletionModal]);
+  }, [data, showCompletionModal, completionDismissed]);
   
   // Check Gmail status
   const { data: gmailStatus } = useQuery<GmailStatus>({
@@ -642,7 +643,10 @@ export default function DailyOutreach() {
       {/* Completion Modal */}
       <CompletionModal
         isOpen={showCompletionModal}
-        onClose={() => setShowCompletionModal(false)}
+        onClose={() => {
+          setShowCompletionModal(false);
+          setCompletionDismissed(true);
+        }}
         sentCount={sentCount}
       />
       
