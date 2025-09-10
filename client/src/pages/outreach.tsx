@@ -39,7 +39,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; // Import Input component
 import { cn } from "@/lib/utils";
 import type { List, Company, Contact, StrategicProfile } from "@shared/schema";
-import { generateShortListDisplayName } from "@/lib/list-utils";
+import { generateShortListDisplayName, generateListPromptOnly } from "@/lib/list-utils";
 import { useState, useEffect, useMemo, useRef } from "react";
 import QuickTemplates from "@/components/quick-templates";
 import type { EmailTemplate } from "@shared/schema";
@@ -1403,7 +1403,13 @@ export default function Outreach() {
                       selectedListId && "[&_span.company-count]:hidden",
                       companies.length > 0 && "border-b"
                     )}>
-                      <SelectValue placeholder="Select a list to start" />
+                      <SelectValue placeholder="Select a list to start">
+                        {selectedListId && (
+                          <span className="text-base font-semibold">
+                            {generateListPromptOnly(lists.find(l => l.listId.toString() === selectedListId) || lists[0])}
+                          </span>
+                        )}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {lists.map((list: List) => (
@@ -1412,9 +1418,10 @@ export default function Outreach() {
                           value={list.listId.toString()}
                         >
                           <div className="flex items-center justify-between w-full pr-2">
-                            <span className="font-medium">{generateShortListDisplayName(list)}</span>
-                            <span className="company-count text-sm text-muted-foreground ml-4">
-                              {list.resultCount} companies
+                            <span className="font-medium text-[15px]">{list.prompt}</span>
+                            <span className="flex items-center gap-2 text-sm text-muted-foreground ml-4">
+                              <span>{list.resultCount} companies</span>
+                              <span className="text-xs">ID{list.listId}</span>
                             </span>
                           </div>
                         </SelectItem>
