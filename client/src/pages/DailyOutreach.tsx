@@ -20,7 +20,10 @@ import {
   ExternalLink,
   Info,
   Calendar,
-  CheckCircle
+  CheckCircle,
+  AlertCircle,
+  AlertTriangle,
+  WifiOff
 } from 'lucide-react';
 import {
   Tooltip,
@@ -314,14 +317,163 @@ export default function DailyOutreach() {
     );
   }
   
+  // Smart error handling with specific messages and actions
   if (error || !data) {
+    const errorMessage = error?.message || '';
+    const is410 = errorMessage.includes('410');
+    const is404 = errorMessage.includes('404');
+    const is500 = errorMessage.includes('500');
+    const isNetwork = errorMessage.includes('NetworkError') || errorMessage.includes('Failed to fetch');
+    
+    // Expired link (410)
+    if (is410) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="pt-8 pb-6">
+              <div className="text-center space-y-4">
+                <div className="flex justify-center">
+                  <Clock className="h-12 w-12 text-amber-500" />
+                </div>
+                <h2 className="text-2xl font-semibold text-gray-900">Link Expired</h2>
+                <p className="text-gray-600 px-4">
+                  This daily outreach link has expired. Daily links are valid for 24 hours to ensure email freshness.
+                </p>
+                <div className="flex flex-col gap-3 px-4 pt-2">
+                  <Button 
+                    onClick={() => window.location.href = '/app/streak'} 
+                    className="w-full"
+                  >
+                    Go to Streak Dashboard
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => window.location.href = '/app'} 
+                    className="w-full"
+                  >
+                    Browse New Leads
+                  </Button>
+                  <p className="text-sm text-gray-500">
+                    💡 Check your email for today's outreach link
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+    
+    // Not found (404)
+    if (is404) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="pt-8 pb-6">
+              <div className="text-center space-y-4">
+                <div className="flex justify-center">
+                  <AlertCircle className="h-12 w-12 text-red-500" />
+                </div>
+                <h2 className="text-2xl font-semibold text-gray-900">Link Not Found</h2>
+                <p className="text-gray-600 px-4">
+                  This outreach link doesn't exist. It may have been from a different day or the link was copied incorrectly.
+                </p>
+                <div className="flex flex-col gap-3 px-4 pt-2">
+                  <Button 
+                    onClick={() => window.location.href = '/app/streak'} 
+                    className="w-full"
+                  >
+                    View Today's Batch
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => window.location.href = '/app'} 
+                    className="w-full"
+                  >
+                    Go to Dashboard
+                  </Button>
+                  <p className="text-sm text-gray-500">
+                    💡 Your daily link is sent each morning to your email
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+    
+    // Network error
+    if (isNetwork) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="pt-8 pb-6">
+              <div className="text-center space-y-4">
+                <div className="flex justify-center">
+                  <WifiOff className="h-12 w-12 text-gray-500" />
+                </div>
+                <h2 className="text-2xl font-semibold text-gray-900">Connection Problem</h2>
+                <p className="text-gray-600 px-4">
+                  Can't connect to the server. Please check your internet connection and try again.
+                </p>
+                <div className="flex flex-col gap-3 px-4 pt-2">
+                  <Button 
+                    onClick={() => window.location.reload()} 
+                    className="w-full"
+                  >
+                    Try Again
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => window.location.href = '/app'} 
+                    className="w-full"
+                  >
+                    Go to Dashboard
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+    
+    // Server error or generic error
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-lg font-semibold mb-2">Unable to Load Outreach</p>
-              <p className="text-muted-foreground">This link may be expired or invalid.</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-8 pb-6">
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <AlertTriangle className="h-12 w-12 text-orange-500" />
+              </div>
+              <h2 className="text-2xl font-semibold text-gray-900">Temporary Issue</h2>
+              <p className="text-gray-600 px-4">
+                We're having trouble loading your outreach. This is usually temporary. Please try again in a moment.
+              </p>
+              <div className="flex flex-col gap-3 px-4 pt-2">
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  className="w-full"
+                >
+                  Try Again
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.location.href = '/app/streak'} 
+                  className="w-full"
+                >
+                  View Streak Dashboard
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.location.href = '/app'} 
+                  className="w-full"
+                >
+                  Go to Main Dashboard
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
