@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/tooltip';
 import { EmailSendButton } from '@/components/email-fallback/EmailSendButton';
 import { format } from 'date-fns';
+import { resolveAllMergeFields } from '@/lib/merge-field-resolver';
 
 interface OutreachItem {
   id: number;
@@ -252,8 +253,24 @@ export default function DailyOutreach() {
   // Update local state when current item changes
   useEffect(() => {
     if (currentItem) {
-      setLocalSubject(currentItem.emailSubject);
-      setLocalBody(currentItem.emailBody);
+      // Create merge field context
+      const mergeFieldContext = {
+        contact: {
+          name: currentItem.contact.name,
+          role: currentItem.contact.role || undefined,
+          email: currentItem.contact.email,
+        },
+        company: {
+          name: currentItem.company.name,
+        },
+      };
+      
+      // Resolve merge fields when displaying
+      const resolvedSubject = resolveAllMergeFields(currentItem.emailSubject, mergeFieldContext);
+      const resolvedBody = resolveAllMergeFields(currentItem.emailBody, mergeFieldContext);
+      
+      setLocalSubject(resolvedSubject);
+      setLocalBody(resolvedBody);
       setHasChanges(false);
     }
   }, [currentItem?.id]);
