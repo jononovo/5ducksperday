@@ -142,7 +142,7 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
     } else if (egg.state === 'hatching') {
       return '🐣';
     } else if (egg.state === 'cracked') {
-      return '🥚';
+      return '🐣'; // Show cracked egg emoji for current email
     } else {
       return '🥚';
     }
@@ -153,15 +153,15 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
       return 'animate-celebrate-hatch';
     }
     if (egg.state === 'hatching') {
-      return 'animate-hatching-wobble';
+      return 'animate-chick-bounce'; // Use bounce animation when hatching
     }
     if (egg.state === 'cracked') {
-      return 'animate-egg-shake';
+      return 'animate-hatching-wobble'; // Use wobble for current email
     }
     if (egg.state === 'hatched') {
-      return '';
+      return ''; // No animation for settled chicks
     }
-    return '';
+    return 'animate-egg-shake'; // Gentle shake for pending eggs
   };
 
   return (
@@ -195,12 +195,7 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
               {getEggEmoji(egg, index)}
             </button>
 
-            {/* Progress indicator */}
-            {index < sentEmails && (
-              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              </div>
-            )}
+            {/* Progress indicator removed - green dots were confusing */}
           </div>
         ))}
       </div>
