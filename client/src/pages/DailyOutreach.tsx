@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useEmailSendState } from '@/hooks/use-email-send-state';
 import { 
   Clock, 
   Building2, 
@@ -175,6 +176,7 @@ export default function DailyOutreach() {
   // Send email via Gmail
   const sendEmailMutation = useMutation({
     mutationFn: async ({ to, subject, body }: { to: string; subject: string; body: string }) => {
+      markPending(); // Mark as sending
       const response = await fetch('/api/gmail/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -189,6 +191,7 @@ export default function DailyOutreach() {
       return response.json();
     },
     onSuccess: (_, variables) => {
+      markEmailSent(); // Mark email as sent in UI
       // Mark as sent in database (without completion check since Gmail handles navigation)
       if (currentItem) {
         markSent.mutate({ itemId: currentItem.id, checkCompletion: false });
@@ -264,6 +267,7 @@ export default function DailyOutreach() {
   // Handle confirmation from modal
   const handleSendConfirmation = () => {
     setShowConfirmModal(false);
+    markEmailSent(); // Mark email as sent in UI for manual send
     if (currentItem) {
       // Trigger the large overlay celebration
       if ((window as any).triggerEggOverlayCelebration) {
@@ -386,6 +390,9 @@ export default function DailyOutreach() {
   // Use direct indexing instead of filtered arrays to prevent content swapping
   const currentItem = items?.[currentIndex];
   const nextItem = items?.[currentIndex + 1];
+  
+  // Track email send state for both Gmail and manual sends
+  const { isSent, markPending, markSent: markEmailSent } = useEmailSendState({ id: currentItem?.id });
   
   // Update local state when current item changes
   useEffect(() => {
@@ -827,7 +834,7 @@ export default function DailyOutreach() {
                     )}
                     onManualSend={() => handleManualSend()}
                     isPending={sendEmailMutation.isPending}
-                    isSuccess={sendEmailMutation.isSuccess}
+                    isSuccess={isSent || currentItem.status === 'sent'}
                     className="h-9 px-4 text-sm"
                   />
                 </div>
