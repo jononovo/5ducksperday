@@ -556,7 +556,7 @@ export default function DailyOutreach() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-blue-50">
       {/* Sending Animation Overlay */}
       {sendingAnimation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -599,26 +599,24 @@ export default function DailyOutreach() {
         sentCount={sentCount}
       />
       
-      {/* Top Bar with Egg Progress */}
-      <div className="bg-white border-b">
-        {/* Egg Progress Bar */}
-        <div className="px-6 py-4">
-          <EggProgressBar 
-            totalEmails={items?.length || 0}
-            sentEmails={sentCount}
-            currentIndex={currentIndex}
-            pendingCount={pendingItems.length}
-            date={format(new Date(), 'EEEE, MMMM d, yyyy')}
-            onEggClick={(index) => {
-              // Optional: Add click handler if needed
-              console.log('Egg clicked:', index);
-            }}
-          />
-        </div>
+      {/* Egg Progress Bar Section */}
+      <div className="px-6 py-6 max-w-4xl mx-auto">
+        <EggProgressBar 
+          totalEmails={items?.length || 0}
+          sentEmails={sentCount}
+          currentIndex={currentIndex}
+          pendingCount={pendingItems.length}
+          date={format(new Date(), 'MMMM d')}
+          productName=""
+          onEggClick={(index) => {
+            // Optional: Add click handler if needed
+            console.log('Egg clicked:', index);
+          }}
+        />
       </div>
       
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-4xl mx-auto px-6 pb-8">
         {currentItem && (
           <Card className="mb-6">
             <div className="p-6">

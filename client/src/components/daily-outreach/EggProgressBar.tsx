@@ -8,6 +8,7 @@ interface EggProgressBarProps {
   currentIndex?: number;
   pendingCount?: number;
   date?: string;
+  productName?: string;
   onEggClick?: (index: number) => void;
 }
 
@@ -19,7 +20,7 @@ interface EggData {
   isNew?: boolean;
 }
 
-export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingCount, date, onEggClick }: EggProgressBarProps) {
+export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingCount, date, productName, onEggClick }: EggProgressBarProps) {
   const [eggs, setEggs] = useState<EggData[]>([]);
 
   // Initialize eggs based on sent count
@@ -78,56 +79,61 @@ export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingC
   };
 
   return (
-    <div className="relative">
-      {/* Top row with email count and date */}
-      {(currentIndex !== undefined || date) && (
-        <div className="flex justify-between items-center px-2 mb-1">
+    <div className="w-full">
+      {/* Header row with product name and email count/date */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-sm font-medium text-gray-700">
+          {productName || ''}
+        </div>
+        <div className="text-sm text-gray-600 mr-4">
           {currentIndex !== undefined && pendingCount !== undefined && (
-            <span className="text-xs text-muted-foreground">
-              Email {currentIndex + 1} of {pendingCount}
-            </span>
+            <span>Email {currentIndex + 1} of {pendingCount}</span>
+          )}
+          {currentIndex !== undefined && date && (
+            <span className="mx-1">•</span>
           )}
           {date && (
-            <span className="text-xs text-muted-foreground">
-              {date}
-            </span>
+            <span>{date}</span>
           )}
         </div>
-      )}
-      
-      {/* Eggs container - with subtle animations */}
-      <div className="flex items-center justify-center gap-2 md:gap-3 py-2">
-        {eggs.map((egg, index) => (
-          <div
-            key={index}
-            className="relative"
-          >
-            <button
-              onClick={() => onEggClick?.(index)}
-              disabled={egg.state === 'egg' && index > sentEmails}
-              className={cn(
-                "text-xl md:text-2xl transition-transform duration-200",
-                egg.state === 'hatched' && 'hover:scale-110',
-                getEggAnimation(egg, index)
-              )}
-            >
-              {getEggEmoji(egg)}
-            </button>
-          </div>
-        ))}
       </div>
+      
+      {/* White card container for eggs */}
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        {/* Eggs container - with subtle animations */}
+        <div className="flex items-center justify-center gap-3 md:gap-4 mb-3">
+          {eggs.map((egg, index) => (
+            <div
+              key={index}
+              className="relative"
+            >
+              <button
+                onClick={() => onEggClick?.(index)}
+                disabled={egg.state === 'egg' && index > sentEmails}
+                className={cn(
+                  "text-2xl md:text-3xl transition-transform duration-200",
+                  egg.state === 'hatched' && 'hover:scale-110',
+                  getEggAnimation(egg, index)
+                )}
+              >
+                {getEggEmoji(egg)}
+              </button>
+            </div>
+          ))}
+        </div>
 
-      {/* Progress text */}
-      <div className="text-center text-xs text-muted-foreground">
-        {sentEmails === 0 && (
-          <span>Ready to send your first email! 🚀</span>
-        )}
-        {sentEmails > 0 && sentEmails < totalEmails && (
-          <span>{sentEmails} of {totalEmails} emails sent - Keep going! 💪</span>
-        )}
-        {sentEmails === totalEmails && totalEmails > 0 && (
-          <span className="text-green-600 font-semibold">All done! Great job! 🎉</span>
-        )}
+        {/* Progress text */}
+        <div className="text-center text-sm text-gray-600">
+          {sentEmails === 0 && (
+            <span>Ready for email {totalEmails}</span>
+          )}
+          {sentEmails > 0 && sentEmails < totalEmails && (
+            <span>Skipped {sentEmails}, Ready for email {sentEmails + 1}</span>
+          )}
+          {sentEmails === totalEmails && totalEmails > 0 && (
+            <span className="text-green-600 font-semibold">All done! Great job! 🎉</span>
+          )}
+        </div>
       </div>
     </div>
   );
