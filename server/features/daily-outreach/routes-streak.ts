@@ -104,6 +104,16 @@ router.get('/streak-stats', async (req: Request, res: Response) => {
       )
       .orderBy(desc(dailyOutreachBatches.createdAt))
       .limit(1);
+    
+    // Debug logging
+    console.log('[Streak Stats] Today\'s batch for user', userId, ':', {
+      found: !!todaysBatch,
+      batchId: todaysBatch?.id,
+      token: todaysBatch?.token?.substring(0, 8) + '...',
+      itemCount: todaysBatch?.itemCount,
+      todayStart: todayStart.toISOString(),
+      createdAt: todaysBatch?.createdAt
+    });
 
     // Get available companies and contacts count
     const availableCompaniesResult = await db
