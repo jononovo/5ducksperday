@@ -1404,9 +1404,9 @@ export default function Outreach() {
                       companies.length > 0 && "md:border-b"
                     )}>
                       <SelectValue placeholder="Select a list to start">
-                        {selectedListId && (
+                        {selectedListId && lists.length > 0 && (
                           <span className="text-base font-semibold">
-                            {generateListPromptOnly(lists.find(l => l.listId.toString() === selectedListId) || lists[0])}
+                            {generateListPromptOnly(lists.find(l => l.listId.toString() === selectedListId))}
                           </span>
                         )}
                       </SelectValue>

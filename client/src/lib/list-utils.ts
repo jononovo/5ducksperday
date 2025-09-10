@@ -51,7 +51,12 @@ export function generateShortListDisplayName(list: List): string {
 /**
  * Generate just the prompt for the selected display (no ID)
  */
-export function generateListPromptOnly(list: List): string {
+export function generateListPromptOnly(list: List | undefined): string {
+  // Defensive check for undefined list
+  if (!list) {
+    return '';
+  }
+  
   const { prompt, customSearchTargets } = list;
   
   let displayName = prompt;
