@@ -1,32 +1,27 @@
+import { lazy, Suspense, useEffect } from "react";
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/hooks/use-auth";
+import { queryClient } from "@/lib/queryClient";
+import { LoadingScreen } from "@/components/ui/loading-screen";
+import { AppLayout, Layout } from "@/components/layout";
+import { MainNav } from "@/components/main-nav";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { SemiProtectedRoute } from "@/lib/semi-protected-route";
-import { Layout, AppLayout } from "@/components/layout";
-import { RegistrationModalProvider } from "@/hooks/use-registration-modal";
-import { RegistrationModalContainer } from "@/components/registration-modal-container";
-import { useEffect, useState, lazy, Suspense } from "react";
-import { initGA } from "./lib/analytics";
-import { useAnalytics } from "./hooks/use-analytics";
-import { SEOHead } from "@/components/ui/seo-head";
-import { MainNav } from "@/components/main-nav";
-import { LoadingScreen } from "@/components/ui/loading-screen";
-import { StrategyOverlayProvider, useStrategyOverlay } from "@/features/strategy-chat";
-import "@/components/ui/loading-spinner.css";
+import { StrategyOverlayProvider } from "@/features/strategy-chat";
+import { AuthProvider } from "@/hooks/use-auth";
+import "@/lib/firebase";
+import { initGA } from "@/lib/analytics";
+import { useAnalytics } from "@/hooks/use-analytics";
 
-// Immediate imports for landing pages and critical components
-import LandingPage from "@/pages/landing";
-import Landing2Page from "@/pages/landing2";
+// Static pages
+import Landing from "@/pages/landing";
+import Landing2 from "@/pages/landing2";
 import Planning from "@/pages/planning";
 import Auth from "@/pages/auth";
 
 // Lazy imports for app pages that can be loaded on demand
 const Home = lazy(() => import("@/pages/home"));
 const Account = lazy(() => import("@/pages/account"));
-// Lists functionality moved to drawer in Home page
 const Outreach = lazy(() => import("@/pages/outreach"));
 const Replies = lazy(() => import("@/pages/replies"));
 const CompanyDetails = lazy(() => import("@/pages/company-details"));
@@ -40,10 +35,8 @@ const Streak = lazy(() => import("@/pages/Streak"));
 
 // Lazy imports for marketing pages
 const Terms = lazy(() => import("@/pages/terms"));
-
 const Blog = lazy(() => import("@/pages/blog"));
 const BlogPost = lazy(() => import("@/pages/blog-post"));
-
 const Support = lazy(() => import("@/pages/support"));
 const Levels = lazy(() => import("@/pages/levels"));
 const Privacy = lazy(() => import("@/pages/privacy"));
@@ -59,13 +52,20 @@ function Router() {
         {/* Static landing page is served directly by Express at "/" */}
         
         {/* React version of landing page for comparison */}
-        <Route path="/react-landing" component={LandingPage} />
+        <Route path="/react-landing" component={Landing} />
         
         {/* Landing2 Page Clone */}
-        <Route path="/landing2" component={Landing2Page} />
+        <Route path="/landing2" component={Landing2} />
         
         {/* Strategic Planning Page (no nav) */}
         <Route path="/planning" component={Planning} />
+        
+        {/* Daily Outreach Page - Standalone without navigation */}
+        <Route path="/outreach/daily/:token" component={() => 
+          <Suspense fallback={<LoadingScreen />}>
+            <DailyOutreach />
+          </Suspense>
+        } />
         
         {/* Marketing pages with full footer */}
         <Route path="/terms">
@@ -89,6 +89,7 @@ function Router() {
             </div>
           </Layout>
         </Route>
+
         <Route path="/blog/:slug">
           <Layout>
             <MainNav />
@@ -99,6 +100,7 @@ function Router() {
             </div>
           </Layout>
         </Route>
+
         <Route path="/levels">
           <Layout>
             <MainNav />
@@ -167,7 +169,6 @@ function Router() {
                     <Account />
                   </Suspense>
                 } />
-                {/* Lists routes removed - functionality moved to drawer in Home page */}
                 <ProtectedRoute path="/outreach" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Outreach />
@@ -196,13 +197,6 @@ function Router() {
                 <ProtectedRoute path="/strategy" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <StrategyDashboard />
-                  </Suspense>
-                } />
-                
-                {/* Daily Outreach Page - No auth required as token is the auth */}
-                <Route path="/outreach/daily/:token" component={() => 
-                  <Suspense fallback={<LoadingScreen />}>
-                    <DailyOutreach />
                   </Suspense>
                 } />
                 
@@ -244,15 +238,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <RegistrationModalProvider>
-          <StrategyOverlayProvider>
-              {/* Default SEO tags for the entire site */}
-              <SEOHead />
-              <Router />
-              <RegistrationModalContainer />
-              <Toaster />
-          </StrategyOverlayProvider>
-        </RegistrationModalProvider>
+        <StrategyOverlayProvider>
+          <Router />
+        </StrategyOverlayProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
