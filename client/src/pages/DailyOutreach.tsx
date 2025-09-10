@@ -133,6 +133,14 @@ export default function DailyOutreach() {
     refetchInterval: 30000, // Check every 30 seconds
   });
   
+  // Helper function to check if this is the last pending email
+  const isLastPendingEmail = () => {
+    const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
+    if (!batchData?.items) return false;
+    const pendingCount = batchData.items.filter((item: OutreachItem) => item.status === 'pending').length;
+    return pendingCount === 1; // Current email is the last pending one
+  };
+  
   // Gmail connect mutation
   const handleGmailConnect = () => {
     // Open Gmail OAuth flow in a new window
@@ -187,15 +195,32 @@ export default function DailyOutreach() {
       // Update sent count for egg animation
       setSentCount(prev => prev + 1);
       
-      // Auto-advance to next email after success
-      setIsAutoAdvancing(true);
-      setTimeout(() => {
-        if (items && currentIndex < items.length - 1) {
-          setNavigationAction('next');
-          setCurrentIndex(currentIndex + 1);
+      // Check if this was the last pending email
+      if (isLastPendingEmail()) {
+        // Trigger celebration and show completion modal
+        if ((window as any).triggerEggOverlayCelebration) {
+          (window as any).triggerEggOverlayCelebration();
         }
-        setIsAutoAdvancing(false);
-      }, 1000);
+        setTimeout(() => {
+          setShowCompletionModal(true);
+        }, 3000);
+      } else {
+        // Auto-advance to next pending email
+        setIsAutoAdvancing(true);
+        setTimeout(() => {
+          const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
+          if (batchData?.items) {
+            const nextPendingIndex = batchData.items.findIndex((item: OutreachItem, idx: number) => 
+              idx > currentIndex && item.status === 'pending'
+            );
+            if (nextPendingIndex !== -1) {
+              setNavigationAction('next');
+              setCurrentIndex(nextPendingIndex);
+            }
+          }
+          setIsAutoAdvancing(false);
+        }, 1000);
+      }
     },
     onError: (error: any) => {
       toast({
@@ -248,18 +273,24 @@ export default function DailyOutreach() {
       const newSentCount = sentCount + 1;
       setSentCount(newSentCount);
       
-      // Check if this was the last email
-      if (items && currentIndex >= items.length - 1) {
+      // Check if this was the last pending email
+      if (isLastPendingEmail()) {
         // Show completion modal after celebration animation
         setTimeout(() => {
           setShowCompletionModal(true);
         }, 3000);
       } else {
-        // Move to next email after animation
+        // Move to next email after animation - find next pending
         setTimeout(() => {
-          if (items && currentIndex < items.length - 1) {
-            setNavigationAction('next');
-            setCurrentIndex(currentIndex + 1);
+          const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
+          if (batchData?.items) {
+            const nextPendingIndex = batchData.items.findIndex((item: OutreachItem, idx: number) => 
+              idx > currentIndex && item.status === 'pending'
+            );
+            if (nextPendingIndex !== -1) {
+              setNavigationAction('next');
+              setCurrentIndex(nextPendingIndex);
+            }
           }
         }, 1000);
       }
@@ -321,10 +352,22 @@ export default function DailyOutreach() {
     onSuccess: () => {
       // Removed immediate cache invalidation to prevent content swap
       
-      // Move to next email
-      if (items && currentIndex < items.length - 1) {
-        setNavigationAction('next');
-        setCurrentIndex(currentIndex + 1);
+      // Check if this was the last pending email
+      if (isLastPendingEmail()) {
+        // Show completion modal when all emails are handled
+        setShowCompletionModal(true);
+      } else {
+        // Find and navigate to next pending email
+        const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
+        if (batchData?.items) {
+          const nextPendingIndex = batchData.items.findIndex((item: OutreachItem, idx: number) => 
+            idx > currentIndex && item.status === 'pending'
+          );
+          if (nextPendingIndex !== -1) {
+            setNavigationAction('next');
+            setCurrentIndex(nextPendingIndex);
+          }
+        }
       }
     }
   });
