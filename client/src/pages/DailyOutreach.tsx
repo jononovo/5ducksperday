@@ -195,7 +195,7 @@ export default function DailyOutreach() {
           setCurrentIndex(currentIndex + 1);
         }
         setIsAutoAdvancing(false);
-      }, 2500);
+      }, 1000);
     },
     onError: (error: any) => {
       toast({
@@ -261,7 +261,7 @@ export default function DailyOutreach() {
             setNavigationAction('next');
             setCurrentIndex(currentIndex + 1);
           }
-        }, 2500);
+        }, 1000);
       }
     }
   };
