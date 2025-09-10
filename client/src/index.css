@@ -253,6 +253,28 @@
   100% { transform: rotate(720deg) scale(1); }
 }
 
+/* Egg celebration animation */
+@keyframes celebrate-hatch {
+  0% { 
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+  20% { 
+    transform: scale(1.3) translateY(-20px) rotate(-10deg);
+  }
+  40% { 
+    transform: scale(1.5) translateY(-30px) rotate(10deg);
+  }
+  60% { 
+    transform: scale(1.4) translateY(-25px) rotate(-5deg);
+  }
+  80% { 
+    transform: scale(1.2) translateY(-10px) rotate(5deg);
+  }
+  100% { 
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+}
+
 /* Search tooltip animation */
 @keyframes fade-in {
   0% { opacity: 0; transform: translate(-50%, 10px); }
@@ -299,6 +321,10 @@
 
   .animate-breakdance {
     animation: breakdance 5s ease-in-out;
+  }
+  
+  .animate-celebrate-hatch {
+    animation: celebrate-hatch 2s ease-in-out;
   }
   
   .animate-fade-in {
