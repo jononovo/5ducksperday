@@ -38,6 +38,7 @@ import { cn } from '@/lib/utils';
 import { EggProgressBar } from '@/components/daily-outreach/EggProgressBar';
 import { SendConfirmationModal } from '@/components/daily-outreach/SendConfirmationModal';
 import { CompletionModal } from '@/components/daily-outreach/CompletionModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface OutreachItem {
   id: number;
@@ -96,6 +97,7 @@ export default function DailyOutreach() {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [sentCount, setSentCount] = useState(0);
   const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
+  const [navigationAction, setNavigationAction] = useState<'next' | 'prev' | null>(null);
   
   // Fetch batch data
   const { data, isLoading, error } = useQuery({
@@ -188,11 +190,12 @@ export default function DailyOutreach() {
       // Auto-advance to next email after success
       setIsAutoAdvancing(true);
       setTimeout(() => {
-        if (pendingItems && currentIndex < pendingItems.length - 1) {
+        if (items && currentIndex < items.length - 1) {
+          setNavigationAction('next');
           setCurrentIndex(currentIndex + 1);
         }
         setIsAutoAdvancing(false);
-      }, 2500);
+      }, 1000);
     },
     onError: (error: any) => {
       toast({
@@ -246,7 +249,7 @@ export default function DailyOutreach() {
       setSentCount(newSentCount);
       
       // Check if this was the last email
-      if (pendingItems && currentIndex >= pendingItems.length - 1) {
+      if (items && currentIndex >= items.length - 1) {
         // Show completion modal after celebration animation
         setTimeout(() => {
           setShowCompletionModal(true);
@@ -254,10 +257,11 @@ export default function DailyOutreach() {
       } else {
         // Move to next email after animation
         setTimeout(() => {
-          if (pendingItems && currentIndex < pendingItems.length - 1) {
+          if (items && currentIndex < items.length - 1) {
+            setNavigationAction('next');
             setCurrentIndex(currentIndex + 1);
           }
-        }, 2500);
+        }, 1000);
       }
     }
   };
@@ -297,7 +301,7 @@ export default function DailyOutreach() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/daily-outreach/batch/${token}`] });
+      // Removed immediate cache invalidation to prevent content swap
       toast({
         title: 'Email sent!',
         description: 'Great job! Keep going! 🎉'
@@ -315,20 +319,20 @@ export default function DailyOutreach() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/daily-outreach/batch/${token}`] });
+      // Removed immediate cache invalidation to prevent content swap
       
       // Move to next email
-      if (pendingItems && currentIndex < pendingItems.length - 1) {
+      if (items && currentIndex < items.length - 1) {
+        setNavigationAction('next');
         setCurrentIndex(currentIndex + 1);
       }
     }
   });
   
   const { batch, items } = (data as { batch: OutreachBatch; items: OutreachItem[] }) || { batch: null, items: [] };
-  const pendingItems = items?.filter((item: OutreachItem) => item.status === 'pending') || [];
-  const sentItems = items?.filter((item: OutreachItem) => item.status === 'sent') || [];
-  const currentItem = pendingItems[currentIndex] || sentItems[sentItems.length - 1]; // Show last sent if all complete
-  const nextItem = pendingItems[currentIndex + 1];
+  // Use direct indexing instead of filtered arrays to prevent content swapping
+  const currentItem = items?.[currentIndex];
+  const nextItem = items?.[currentIndex + 1];
   
   // Update local state when current item changes
   useEffect(() => {
@@ -605,7 +609,7 @@ export default function DailyOutreach() {
           totalEmails={items?.length || 0}
           sentEmails={sentCount}
           currentIndex={currentIndex}
-          pendingCount={pendingItems.length}
+          pendingCount={(items?.length || 0) - sentCount}
           date={format(new Date(), 'MMMM d')}
           productName=""
           onEggClick={(index) => {
@@ -617,11 +621,23 @@ export default function DailyOutreach() {
       
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-6 pb-8">
-        {currentItem && (
-          <Card className="mb-6 border-0">
-            <div className="p-6">
-              {/* Company and Contact Info */}
-              <div className="mb-6">
+        <AnimatePresence mode="wait">
+          {currentItem && (
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, x: navigationAction === 'prev' ? -300 : 300 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: navigationAction === 'prev' ? 300 : -300 }}
+              transition={{ 
+                duration: 0.3, 
+                ease: "easeInOut",
+                opacity: { duration: 0.2 }
+              }}
+            >
+              <Card className="mb-6 border-0">
+                <div className="p-6">
+                  {/* Company and Contact Info */}
+                  <div className="mb-6">
                 <div className="flex items-start justify-between mb-2">
                   <TooltipProvider>
                     <Tooltip open={companyTooltipOpen} onOpenChange={setCompanyTooltipOpen}>
@@ -762,14 +778,19 @@ export default function DailyOutreach() {
               </div>
             </div>
           </Card>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
         
         {/* Navigation */}
         <div className="flex justify-between items-center mb-6">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
+            onClick={() => {
+              setNavigationAction('prev');
+              setCurrentIndex(Math.max(0, currentIndex - 1));
+            }}
             disabled={currentIndex === 0}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
@@ -779,8 +800,11 @@ export default function DailyOutreach() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentIndex(Math.min(pendingItems.length - 1, currentIndex + 1))}
-            disabled={currentIndex >= pendingItems.length - 1}
+            onClick={() => {
+              setNavigationAction('next');
+              setCurrentIndex(Math.min(items.length - 1, currentIndex + 1));
+            }}
+            disabled={currentIndex >= items.length - 1}
           >
             Next
             <ChevronRight className="h-4 w-4 ml-1" />
