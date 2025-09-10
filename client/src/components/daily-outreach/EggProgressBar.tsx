@@ -90,7 +90,7 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
         // Clear celebrating index after animation
         setTimeout(() => {
           setCelebratingIndex(null);
-        }, 2000);
+        }, 800);
 
         // Stop wobble for new cracked egg after 2 seconds
         if (wobbleTimeoutRef.current) {
@@ -165,13 +165,15 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
 
   // Trigger overlay celebration
   const triggerOverlayCelebration = (eggIndex: number) => {
-    // Show overlay
-    setShowOverlay(true);
+    // Start the overlay after a short delay (when small egg is fading)
+    setTimeout(() => {
+      setShowOverlay(true);
+    }, 400);
 
     // Hide overlay after animation completes
     setTimeout(() => {
       setShowOverlay(false);
-    }, 2000);
+    }, 2400);
   };
 
   // Public method to trigger overlay celebration (called from parent)
@@ -252,7 +254,8 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
                 getEggAnimation(egg, index),
                 egg.state === 'cracked' && 'opacity-90',
                 egg.state === 'hatched' && 'hover:scale-110',
-                celebratingIndex === index && 'scale-150'
+                celebratingIndex === index && 'scale-150',
+                showOverlay && index === sentEmails - 1 && 'invisible'
               )}
               style={{
                 animationDelay: egg.isAnimating ? `${egg.animationDelay}ms` : undefined
