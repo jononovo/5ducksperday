@@ -403,7 +403,7 @@ export default function DailyOutreach() {
     if (is410) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-          <Card className="max-w-md w-full">
+          <Card className="max-w-md w-full border-0">
             <CardContent className="pt-8 pb-6">
               <div className="text-center space-y-4">
                 <div className="flex justify-center">
@@ -442,7 +442,7 @@ export default function DailyOutreach() {
     if (is404) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-          <Card className="max-w-md w-full">
+          <Card className="max-w-md w-full border-0">
             <CardContent className="pt-8 pb-6">
               <div className="text-center space-y-4">
                 <div className="flex justify-center">
@@ -481,7 +481,7 @@ export default function DailyOutreach() {
     if (isNetwork) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-          <Card className="max-w-md w-full">
+          <Card className="max-w-md w-full border-0">
             <CardContent className="pt-8 pb-6">
               <div className="text-center space-y-4">
                 <div className="flex justify-center">
@@ -516,7 +516,7 @@ export default function DailyOutreach() {
     // Server error or generic error
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <Card className="max-w-md w-full">
+        <Card className="max-w-md w-full border-0">
           <CardContent className="pt-8 pb-6">
             <div className="text-center space-y-4">
               <div className="flex justify-center">
@@ -556,7 +556,7 @@ export default function DailyOutreach() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-blue-50">
       {/* Sending Animation Overlay */}
       {sendingAnimation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -599,38 +599,26 @@ export default function DailyOutreach() {
         sentCount={sentCount}
       />
       
-      {/* Top Bar with Egg Progress */}
-      <div className="bg-white border-b">
-        {/* Egg Progress Bar */}
-        <div className="px-6 py-4 border-b">
-          <EggProgressBar 
-            totalEmails={items?.length || 0}
-            sentEmails={sentCount}
-            onEggClick={(index) => {
-              // Optional: Add click handler if needed
-              console.log('Egg clicked:', index);
-            }}
-          />
-        </div>
-        
-        {/* Date and Progress Info */}
-        <div className="px-6 py-3">
-          <div className="max-w-4xl mx-auto flex justify-between items-center">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <span>Email {currentIndex + 1} of {pendingItems.length}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>{format(new Date(), 'EEEE, MMMM d, yyyy')}</span>
-            </div>
-          </div>
-        </div>
+      {/* Egg Progress Bar Section */}
+      <div className="px-6 py-6 max-w-4xl mx-auto">
+        <EggProgressBar 
+          totalEmails={items?.length || 0}
+          sentEmails={sentCount}
+          currentIndex={currentIndex}
+          pendingCount={pendingItems.length}
+          date={format(new Date(), 'MMMM d')}
+          productName=""
+          onEggClick={(index) => {
+            // Optional: Add click handler if needed
+            console.log('Egg clicked:', index);
+          }}
+        />
       </div>
       
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-4xl mx-auto px-6 pb-8">
         {currentItem && (
-          <Card className="mb-6">
+          <Card className="mb-6 border-0">
             <div className="p-6">
               {/* Company and Contact Info */}
               <div className="mb-6">
@@ -689,7 +677,7 @@ export default function DailyOutreach() {
                     value={localSubject}
                     onChange={(e) => handleSubjectChange(e.target.value)}
                     placeholder="Email subject..."
-                    className="bg-gray-50 text-base"
+                    className="bg-blue-50/50 text-base"
                   />
                 </div>
                 <div>
@@ -698,7 +686,7 @@ export default function DailyOutreach() {
                     onChange={(e) => handleBodyChange(e.target.value)}
                     rows={12}
                     placeholder="Email body..."
-                    className="text-base bg-gray-50"
+                    className="text-base bg-blue-50/50"
                   />
                   {hasChanges && (
                     <p className="text-xs text-muted-foreground mt-1">
@@ -801,13 +789,13 @@ export default function DailyOutreach() {
         
         {/* Next Up Teaser - Single Line */}
         {nextItem && (
-          <div className="bg-gray-50 rounded-lg p-4 text-center">
+          <Card className="p-4 text-center border-0">
             <p className="text-sm">
               <strong className="text-muted-foreground">Next up:</strong>{' '}
               {nextItem.contact.name}
               {nextItem.contact.role && `, ${nextItem.contact.role}`} at {nextItem.company.name}
             </p>
-          </div>
+          </Card>
         )}
       </div>
     </div>
