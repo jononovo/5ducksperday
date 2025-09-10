@@ -1,5 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Switch, Route } from "wouter";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { AppLayout, Layout } from "@/components/layout";
 import { MainNav } from "@/components/main-nav";
@@ -234,11 +236,13 @@ function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      <StrategyOverlayProvider>
-        <Router />
-      </StrategyOverlayProvider>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <StrategyOverlayProvider>
+          <Router />
+        </StrategyOverlayProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
