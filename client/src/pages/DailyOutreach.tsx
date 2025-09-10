@@ -97,7 +97,7 @@ export default function DailyOutreach() {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [sentCount, setSentCount] = useState(0);
   const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
-  const [slideDirection, setSlideDirection] = useState<'forward' | 'backward'>('forward');
+  const [navigationAction, setNavigationAction] = useState<'next' | 'prev' | null>(null);
   
   // Fetch batch data
   const { data, isLoading, error } = useQuery({
@@ -191,7 +191,7 @@ export default function DailyOutreach() {
       setIsAutoAdvancing(true);
       setTimeout(() => {
         if (pendingItems && currentIndex < pendingItems.length - 1) {
-          setSlideDirection('forward');
+          setNavigationAction('next');
           setCurrentIndex(currentIndex + 1);
         }
         setIsAutoAdvancing(false);
@@ -258,7 +258,7 @@ export default function DailyOutreach() {
         // Move to next email after animation
         setTimeout(() => {
           if (pendingItems && currentIndex < pendingItems.length - 1) {
-            setSlideDirection('forward');
+            setNavigationAction('next');
             setCurrentIndex(currentIndex + 1);
           }
         }, 2500);
@@ -323,7 +323,7 @@ export default function DailyOutreach() {
       
       // Move to next email
       if (pendingItems && currentIndex < pendingItems.length - 1) {
-        setSlideDirection('forward');
+        setNavigationAction('next');
         setCurrentIndex(currentIndex + 1);
       }
     }
@@ -626,9 +626,9 @@ export default function DailyOutreach() {
           {currentItem && (
             <motion.div
               key={currentIndex}
-              initial={{ opacity: 0, x: slideDirection === 'forward' ? 300 : -300 }}
+              initial={{ opacity: 0, x: navigationAction === 'prev' ? -300 : 300 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: slideDirection === 'forward' ? -300 : 300 }}
+              exit={{ opacity: 0, x: navigationAction === 'prev' ? 300 : -300 }}
               transition={{ 
                 duration: 0.3, 
                 ease: "easeInOut",
@@ -789,7 +789,7 @@ export default function DailyOutreach() {
             variant="outline"
             size="sm"
             onClick={() => {
-              setSlideDirection('backward');
+              setNavigationAction('prev');
               setCurrentIndex(Math.max(0, currentIndex - 1));
             }}
             disabled={currentIndex === 0}
@@ -802,7 +802,7 @@ export default function DailyOutreach() {
             variant="outline"
             size="sm"
             onClick={() => {
-              setSlideDirection('forward');
+              setNavigationAction('next');
               setCurrentIndex(Math.min(pendingItems.length - 1, currentIndex + 1));
             }}
             disabled={currentIndex >= pendingItems.length - 1}
