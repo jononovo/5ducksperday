@@ -37,6 +37,7 @@ import { resolveAllMergeFields } from '@/lib/merge-field-resolver';
 import { cn } from '@/lib/utils';
 import { EggProgressBar } from '@/components/daily-outreach/EggProgressBar';
 import { SendConfirmationModal } from '@/components/daily-outreach/SendConfirmationModal';
+import { CompletionModal } from '@/components/daily-outreach/CompletionModal';
 
 interface OutreachItem {
   id: number;
@@ -92,6 +93,7 @@ export default function DailyOutreach() {
   const [hasChanges, setHasChanges] = useState(false);
   const [isGmailButtonHovered, setIsGmailButtonHovered] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [sentCount, setSentCount] = useState(0);
   const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
   
@@ -227,14 +229,23 @@ export default function DailyOutreach() {
       }
       
       markSent.mutate(currentItem.id);
-      setSentCount(prev => prev + 1);
+      const newSentCount = sentCount + 1;
+      setSentCount(newSentCount);
       
-      // Move to next email after animation
-      setTimeout(() => {
-        if (pendingItems && currentIndex < pendingItems.length - 1) {
-          setCurrentIndex(currentIndex + 1);
-        }
-      }, 2500);
+      // Check if this was the last email
+      if (pendingItems && currentIndex >= pendingItems.length - 1) {
+        // Show completion modal after celebration animation
+        setTimeout(() => {
+          setShowCompletionModal(true);
+        }, 3000);
+      } else {
+        // Move to next email after animation
+        setTimeout(() => {
+          if (pendingItems && currentIndex < pendingItems.length - 1) {
+            setCurrentIndex(currentIndex + 1);
+          }
+        }, 2500);
+      }
     }
   };
   
@@ -302,7 +313,8 @@ export default function DailyOutreach() {
   
   const { batch, items } = (data as { batch: OutreachBatch; items: OutreachItem[] }) || { batch: null, items: [] };
   const pendingItems = items?.filter((item: OutreachItem) => item.status === 'pending') || [];
-  const currentItem = pendingItems[currentIndex];
+  const sentItems = items?.filter((item: OutreachItem) => item.status === 'sent') || [];
+  const currentItem = pendingItems[currentIndex] || sentItems[sentItems.length - 1]; // Show last sent if all complete
   const nextItem = pendingItems[currentIndex + 1];
   
   // Update local state when current item changes
@@ -530,26 +542,14 @@ export default function DailyOutreach() {
     );
   }
   
-  // If no pending items, show completion message
-  if (pendingItems.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </div>
-              <h2 className="text-xl font-semibold mb-2">All Done!</h2>
-              <p className="text-muted-foreground">
-                You've completed your daily outreach. Check back tomorrow for your next batch of leads!
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // If no pending items, show completion modal
+  useEffect(() => {
+    if (pendingItems && pendingItems.length === 0 && !showCompletionModal) {
+      // Show completion modal after a short delay if all items already complete
+      const timer = setTimeout(() => setShowCompletionModal(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [pendingItems, showCompletionModal]);
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -587,6 +587,13 @@ export default function DailyOutreach() {
           companyName={currentItem.company.name}
         />
       )}
+      
+      {/* Completion Modal */}
+      <CompletionModal
+        isOpen={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        sentCount={sentCount}
+      />
       
       {/* Top Bar with Egg Progress */}
       <div className="bg-white border-b">
