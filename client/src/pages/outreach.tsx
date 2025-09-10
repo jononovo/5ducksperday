@@ -1402,8 +1402,8 @@ export default function Outreach() {
                       // Hide the company count in the trigger display
                       selectedListId && "[&_span.company-count]:hidden",
                       companies.length > 0 && "md:border-b",
-                      // Make the chevron icon larger and more visible
-                      "[&_svg]:h-6 [&_svg]:w-6 [&_svg]:opacity-70 [&_svg]:transition-all hover:[&_svg]:opacity-100"
+                      // Make the chevron icon match the navigation buttons (32px, gray-300)
+                      "[&_svg]:h-8 [&_svg]:w-8 [&_svg]:text-gray-300 [&_svg]:opacity-100"
                     )}>
                       <SelectValue placeholder="Select a list to start">
                         {selectedListId && lists.length > 0 && (
