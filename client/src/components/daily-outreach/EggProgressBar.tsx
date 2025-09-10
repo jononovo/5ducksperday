@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { cn } from '@/lib/utils';
+import { Calendar } from 'lucide-react';
 
 interface EggProgressBarProps {
   totalEmails: number;
@@ -85,7 +86,7 @@ export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingC
         <div className="text-sm font-medium text-gray-700">
           {productName || ''}
         </div>
-        <div className="text-xs text-gray-600 mr-4">
+        <div className="text-xs text-gray-600 mr-4 flex items-center gap-1">
           {currentIndex !== undefined && pendingCount !== undefined && (
             <span>Email {currentIndex + 1} of {pendingCount}</span>
           )}
@@ -93,13 +94,16 @@ export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingC
             <span className="mx-1">•</span>
           )}
           {date && (
-            <span>{date}</span>
+            <>
+              <Calendar className="h-3 w-3" />
+              <span>{date}</span>
+            </>
           )}
         </div>
       </div>
       
-      {/* White card container for eggs with border */}
-      <div className="bg-white rounded-lg border p-4">
+      {/* White card container for eggs */}
+      <div className="bg-white rounded-lg p-4">
         {/* Eggs container - with subtle animations */}
         <div className="flex items-center justify-center gap-3 md:gap-4 mb-2">
           {eggs.map((egg, index) => (
