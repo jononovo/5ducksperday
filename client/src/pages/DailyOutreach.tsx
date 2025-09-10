@@ -190,7 +190,7 @@ export default function DailyOutreach() {
       // Auto-advance to next email after success
       setIsAutoAdvancing(true);
       setTimeout(() => {
-        if (pendingItems && currentIndex < pendingItems.length - 1) {
+        if (items && currentIndex < items.length - 1) {
           setNavigationAction('next');
           setCurrentIndex(currentIndex + 1);
         }
@@ -249,7 +249,7 @@ export default function DailyOutreach() {
       setSentCount(newSentCount);
       
       // Check if this was the last email
-      if (pendingItems && currentIndex >= pendingItems.length - 1) {
+      if (items && currentIndex >= items.length - 1) {
         // Show completion modal after celebration animation
         setTimeout(() => {
           setShowCompletionModal(true);
@@ -257,7 +257,7 @@ export default function DailyOutreach() {
       } else {
         // Move to next email after animation
         setTimeout(() => {
-          if (pendingItems && currentIndex < pendingItems.length - 1) {
+          if (items && currentIndex < items.length - 1) {
             setNavigationAction('next');
             setCurrentIndex(currentIndex + 1);
           }
@@ -301,7 +301,7 @@ export default function DailyOutreach() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/daily-outreach/batch/${token}`] });
+      // Removed immediate cache invalidation to prevent content swap
       toast({
         title: 'Email sent!',
         description: 'Great job! Keep going! 🎉'
@@ -319,10 +319,10 @@ export default function DailyOutreach() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/daily-outreach/batch/${token}`] });
+      // Removed immediate cache invalidation to prevent content swap
       
       // Move to next email
-      if (pendingItems && currentIndex < pendingItems.length - 1) {
+      if (items && currentIndex < items.length - 1) {
         setNavigationAction('next');
         setCurrentIndex(currentIndex + 1);
       }
@@ -330,10 +330,9 @@ export default function DailyOutreach() {
   });
   
   const { batch, items } = (data as { batch: OutreachBatch; items: OutreachItem[] }) || { batch: null, items: [] };
-  const pendingItems = items?.filter((item: OutreachItem) => item.status === 'pending') || [];
-  const sentItems = items?.filter((item: OutreachItem) => item.status === 'sent') || [];
-  const currentItem = pendingItems[currentIndex] || sentItems[sentItems.length - 1]; // Show last sent if all complete
-  const nextItem = pendingItems[currentIndex + 1];
+  // Use direct indexing instead of filtered arrays to prevent content swapping
+  const currentItem = items?.[currentIndex];
+  const nextItem = items?.[currentIndex + 1];
   
   // Update local state when current item changes
   useEffect(() => {
@@ -610,7 +609,7 @@ export default function DailyOutreach() {
           totalEmails={items?.length || 0}
           sentEmails={sentCount}
           currentIndex={currentIndex}
-          pendingCount={pendingItems.length}
+          pendingCount={(items?.length || 0) - sentCount}
           date={format(new Date(), 'MMMM d')}
           productName=""
           onEggClick={(index) => {
@@ -803,9 +802,9 @@ export default function DailyOutreach() {
             size="sm"
             onClick={() => {
               setNavigationAction('next');
-              setCurrentIndex(Math.min(pendingItems.length - 1, currentIndex + 1));
+              setCurrentIndex(Math.min(items.length - 1, currentIndex + 1));
             }}
-            disabled={currentIndex >= pendingItems.length - 1}
+            disabled={currentIndex >= items.length - 1}
           >
             Next
             <ChevronRight className="h-4 w-4 ml-1" />
