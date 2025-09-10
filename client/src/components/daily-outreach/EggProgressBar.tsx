@@ -21,8 +21,9 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
   const [eggs, setEggs] = useState<EggData[]>([]);
   const [celebratingIndex, setCelebratingIndex] = useState<number | null>(null);
   const [showOverlay, setShowOverlay] = useState(false);
-  const [overlayEmoji, setOverlayEmoji] = useState('🐥');
+  const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties>({});
   const wobbleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const eggRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Initialize eggs with random animation delays
   useEffect(() => {
@@ -164,19 +165,72 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
     }
   };
 
+  // Trigger overlay celebration with position tracking
+  const triggerOverlayCelebration = (eggIndex: number) => {
+    const eggElement = eggRefs.current[eggIndex];
+    if (!eggElement) return;
+
+    // Get egg position
+    const rect = eggElement.getBoundingClientRect();
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    
+    // Calculate offset from egg to center
+    const startX = rect.left + rect.width / 2 - centerX;
+    const startY = rect.top + rect.height / 2 - centerY;
+
+    // Set CSS variables for animation start position
+    setOverlayStyle({
+      '--start-x': `${startX}px`,
+      '--start-y': `${startY}px`,
+    } as React.CSSProperties);
+
+    // Hide the small egg during overlay animation
+    setEggs(prev => {
+      const newEggs = [...prev];
+      if (newEggs[eggIndex]) {
+        newEggs[eggIndex] = { ...newEggs[eggIndex], isAnimating: false };
+      }
+      return newEggs;
+    });
+
+    // Show overlay
+    setShowOverlay(true);
+
+    // Hide overlay after animation completes
+    setTimeout(() => {
+      setShowOverlay(false);
+      // Re-show the small egg
+      setEggs(prev => {
+        const newEggs = [...prev];
+        if (newEggs[eggIndex]) {
+          newEggs[eggIndex] = { ...newEggs[eggIndex], isAnimating: false };
+        }
+        return newEggs;
+      });
+    }, 2000);
+  };
+
   // Public method to trigger overlay celebration (called from parent)
   useEffect(() => {
     // Expose the overlay trigger method via ref or callback
     if (onEggClick) {
       (window as any).triggerEggOverlayCelebration = () => {
-        setOverlayEmoji('🐥');
-        setShowOverlay(true);
-        setTimeout(() => setShowOverlay(false), 1500);
+        // Trigger for the last sent email
+        const lastSentIndex = sentEmails - 1;
+        if (lastSentIndex >= 0) {
+          triggerOverlayCelebration(lastSentIndex);
+        }
       };
     }
-  }, [onEggClick]);
+  }, [onEggClick, sentEmails]);
 
   const getEggEmoji = (egg: EggData, index: number) => {
+    // Hide emoji during overlay animation for this egg
+    if (showOverlay && index === sentEmails - 1) {
+      return '';
+    }
+    
     if (egg.state === 'hatched') {
       return '🐥';
     } else if (egg.state === 'hatching') {
@@ -210,9 +264,12 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
     <div className="relative">
       {/* Large overlay celebration */}
       {showOverlay && (
-        <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
-          <div className="text-[200px] animate-pulse opacity-40">
-            {overlayEmoji}
+        <div 
+          className="fixed inset-0 flex items-center justify-center pointer-events-none z-50"
+          style={overlayStyle}
+        >
+          <div className="text-[200px] animate-egg-overlay-zoom">
+            🐥
           </div>
         </div>
       )}
@@ -233,6 +290,7 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
             
             {/* The egg/chick - with higher z-index */}
             <button
+              ref={el => eggRefs.current[index] = el}
               onClick={() => onEggClick?.(index)}
               disabled={egg.state === 'egg' && index > sentEmails}
               className={cn(
@@ -240,7 +298,8 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
                 getEggAnimation(egg, index),
                 egg.state === 'cracked' && 'opacity-90',
                 egg.state === 'hatched' && 'hover:scale-110',
-                celebratingIndex === index && 'scale-150'
+                celebratingIndex === index && 'scale-150',
+                showOverlay && index === sentEmails - 1 && 'opacity-0'
               )}
               style={{
                 animationDelay: egg.isAnimating ? `${egg.animationDelay}ms` : undefined
