@@ -45,6 +45,7 @@ import QuickTemplates from "@/components/quick-templates";
 import type { EmailTemplate } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useEmailSendState } from "@/hooks/use-email-send-state";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { queryClient } from "@/lib/queryClient"; // Import queryClient
@@ -743,8 +744,12 @@ export default function Outreach() {
     },
   });
 
+  // Track email send state for both Gmail and manual sends
+  const { isSent, markPending, markSent: markEmailSent } = useEmailSendState({ id: selectedContactId || toEmail });
+
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
+      markPending(); // Mark as sending
       // First check Gmail authorization
       const authResponse = await apiRequest("GET", "/api/gmail/auth-status");
       if (!authResponse.ok) {
@@ -770,6 +775,7 @@ export default function Outreach() {
       return response.json();
     },
     onSuccess: () => {
+      markEmailSent(); // Mark email as sent in UI
       toast({
         title: "Email Sent",
         description: "Your email has been sent successfully via Gmail!",
@@ -796,6 +802,15 @@ export default function Outreach() {
       return;
     }
     sendEmailMutation.mutate();
+  }
+
+  const handleManualSend = () => {
+    // Mark email as sent when user confirms manual sending
+    markEmailSent();
+    toast({
+      title: "Email Marked as Sent",
+      description: "Don't forget to actually send the email from your email client!",
+    });
   }
 
   const handleGmailConnect = () => {
@@ -2023,8 +2038,9 @@ export default function Outreach() {
                     company={selectedCompany}
                     isGmailAuthenticated={gmailStatus?.authorized}
                     onSendViaGmail={handleSendEmail}
+                    onManualSend={handleManualSend}
                     isPending={sendEmailMutation.isPending}
-                    isSuccess={sendEmailMutation.isSuccess}
+                    isSuccess={isSent}
                     className="h-8 px-3 text-xs"
                   />
                 </div>
