@@ -7,7 +7,8 @@ import {
   dailyOutreachJobs,
   users,
   contacts,
-  companies
+  companies,
+  communicationHistory
 } from '@shared/schema';
 import { eq, and, lte, sql } from 'drizzle-orm';
 import { persistentScheduler as outreachScheduler } from './services/persistent-scheduler';
@@ -377,12 +378,29 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
       return res.status(404).json({ error: 'Invalid or expired batch' });
     }
     
+    // Get the full item details before updating
+    const [itemDetails] = await db
+      .select()
+      .from(dailyOutreachItems)
+      .where(
+        and(
+          eq(dailyOutreachItems.id, parseInt(itemId)),
+          eq(dailyOutreachItems.batchId, batch.id)
+        )
+      );
+    
+    if (!itemDetails) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    const sentAt = new Date();
+    
     // Update item status
     const [updated] = await db
       .update(dailyOutreachItems)
       .set({
         status: 'sent',
-        sentAt: new Date()
+        sentAt
       })
       .where(
         and(
@@ -394,6 +412,49 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
     
     if (!updated) {
       return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    // Save to CRM communications history
+    try {
+      // Get contact details
+      const [contact] = await db
+        .select()
+        .from(contacts)
+        .where(eq(contacts.id, itemDetails.contactId));
+      
+      if (contact) {
+        // Save to communicationHistory
+        await db.insert(communicationHistory).values({
+          userId: batch.userId,
+          contactId: itemDetails.contactId,
+          companyId: itemDetails.companyId,
+          type: 'email',
+          direction: 'sent',
+          subject: itemDetails.emailSubject,
+          content: itemDetails.emailBody,
+          sentAt,
+          status: 'sent',
+          source: 'daily_outreach',
+          metadata: JSON.stringify({
+            batchId: batch.id,
+            itemId: itemDetails.id,
+            tone: itemDetails.emailTone
+          })
+        });
+        
+        // Update contact status
+        await db
+          .update(contacts)
+          .set({
+            contactStatus: 'contacted',
+            lastContactedAt: sentAt,
+            totalCommunications: (contact.totalCommunications || 0) + 1
+          })
+          .where(eq(contacts.id, itemDetails.contactId));
+      }
+    } catch (crmError) {
+      console.error('Error saving to CRM history:', crmError);
+      // Don't fail the request if CRM update fails
     }
     
     // Check if all items are processed
