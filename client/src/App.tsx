@@ -9,6 +9,8 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import { SemiProtectedRoute } from "@/lib/semi-protected-route";
 import { StrategyOverlayProvider } from "@/features/strategy-chat";
 import { AuthProvider } from "@/hooks/use-auth";
+import { RegistrationModalProvider } from "@/hooks/use-registration-modal";
+import { RegistrationModalContainer } from "@/components/registration-modal-container";
 import "@/lib/firebase";
 import { initGA } from "@/lib/analytics";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -238,9 +240,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <StrategyOverlayProvider>
-          <Router />
-        </StrategyOverlayProvider>
+        <RegistrationModalProvider>
+          <StrategyOverlayProvider>
+            <Router />
+            <RegistrationModalContainer />
+          </StrategyOverlayProvider>
+        </RegistrationModalProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
