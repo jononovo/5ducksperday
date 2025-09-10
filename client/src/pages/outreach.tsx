@@ -1374,17 +1374,17 @@ export default function Outreach() {
         <div 
           className={`md:block ${!isMobileExpanded ? 'hidden' : 'block'}`}
         >
-          <div className="md:border md:rounded-lg md:shadow-sm">
+          <div className="md:border md:rounded-lg md:shadow-sm md:overflow-hidden">
             {/* Navigation Section - No padding to use full width */}
             <div>
               {/* Unified Navigation Container */}
               <div className={cn(
-                "md:rounded-t-lg border-b md:border-b-0 md:border transition-all duration-200",
+                "md:border-0 md:rounded-none transition-all duration-200",
                 !selectedListId 
-                  ? "border-2 border-blue-200"
+                  ? "bg-blue-50/30"
                   : selectedListId && !selectedContactId
-                    ? "border border-blue-200"
-                    : "border border-gray-200"
+                    ? "bg-blue-50/20"
+                    : "bg-white"
               )}>
                   {/* List Selection Dropdown */}
                   <Select
@@ -1400,7 +1400,8 @@ export default function Outreach() {
                         ? "px-4 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100"
                         : "px-3 bg-white hover:bg-gray-50",
                       // Hide the company count in the trigger display
-                      selectedListId && "[&_span.company-count]:hidden"
+                      selectedListId && "[&_span.company-count]:hidden",
+                      companies.length > 0 && "md:border-b"
                     )}>
                       <SelectValue placeholder="Select a list to start">
                         {selectedListId && lists.length > 0 && (
