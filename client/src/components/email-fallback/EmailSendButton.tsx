@@ -36,6 +36,7 @@ interface EmailSendButtonProps {
   company?: Company;
   isGmailAuthenticated?: boolean;
   onSendViaGmail?: () => void;
+  onManualSend?: () => void;
   isPending?: boolean;
   isSuccess?: boolean;
   className?: string;
@@ -52,6 +53,7 @@ export function EmailSendButton({
   company,
   isGmailAuthenticated = false,
   onSendViaGmail,
+  onManualSend,
   isPending = false,
   isSuccess = false,
   className,
@@ -177,6 +179,14 @@ export function EmailSendButton({
             ? "Your default email client should open shortly"
             : `Opening ${method.charAt(0).toUpperCase() + method.slice(1)} in a new tab`,
         });
+        
+        // Trigger the manual send callback for confirmation modal
+        if (onManualSend) {
+          // Small delay to allow email client to open first
+          setTimeout(() => {
+            onManualSend();
+          }, 1500);
+        }
       }
     } catch (error) {
       console.error('Failed to send email:', error);

@@ -35,6 +35,8 @@ import { EmailSendButton } from '@/components/email-fallback/EmailSendButton';
 import { format } from 'date-fns';
 import { resolveAllMergeFields } from '@/lib/merge-field-resolver';
 import { cn } from '@/lib/utils';
+import { EggProgressBar } from '@/components/daily-outreach/EggProgressBar';
+import { SendConfirmationModal } from '@/components/daily-outreach/SendConfirmationModal';
 
 interface OutreachItem {
   id: number;
@@ -89,12 +91,24 @@ export default function DailyOutreach() {
   const [localBody, setLocalBody] = useState<string>('');
   const [hasChanges, setHasChanges] = useState(false);
   const [isGmailButtonHovered, setIsGmailButtonHovered] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [sentCount, setSentCount] = useState(0);
+  const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
   
   // Fetch batch data
   const { data, isLoading, error } = useQuery({
     queryKey: [`/api/daily-outreach/batch/${token}`],
     enabled: !!token,
   });
+  
+  // Track sent emails count on mount and updates
+  useEffect(() => {
+    const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
+    if (batchData?.items) {
+      const sent = batchData.items.filter((item: OutreachItem) => item.status === 'sent').length;
+      setSentCount(sent);
+    }
+  }, [data]);
   
   // Check Gmail status
   const { data: gmailStatus } = useQuery<GmailStatus>({
@@ -153,6 +167,17 @@ export default function DailyOutreach() {
       if (currentItem) {
         markSent.mutate(currentItem.id);
       }
+      // Update sent count for egg animation
+      setSentCount(prev => prev + 1);
+      
+      // Auto-advance to next email after success
+      setIsAutoAdvancing(true);
+      setTimeout(() => {
+        if (pendingItems && currentIndex < pendingItems.length - 1) {
+          setCurrentIndex(currentIndex + 1);
+        }
+        setIsAutoAdvancing(false);
+      }, 2500);
     },
     onError: (error: any) => {
       toast({
@@ -184,6 +209,32 @@ export default function DailyOutreach() {
       });
       setSendingAnimation(false);
     }, 1500);
+  };
+  
+  // Handle manual send (opens email client)
+  const handleManualSend = () => {
+    // Show confirmation modal after user returns
+    setShowConfirmModal(true);
+  };
+  
+  // Handle confirmation from modal
+  const handleSendConfirmation = () => {
+    setShowConfirmModal(false);
+    if (currentItem) {
+      markSent.mutate(currentItem.id);
+      setSentCount(prev => prev + 1);
+      
+      // Move to next email after animation
+      setTimeout(() => {
+        if (pendingItems && currentIndex < pendingItems.length - 1) {
+          setCurrentIndex(currentIndex + 1);
+        }
+      }, 2500);
+    }
+  };
+  
+  const handleSendCancellation = () => {
+    setShowConfirmModal(false);
   };
   
   // Update item mutation
@@ -220,15 +271,8 @@ export default function DailyOutreach() {
       queryClient.invalidateQueries({ queryKey: [`/api/daily-outreach/batch/${token}`] });
       toast({
         title: 'Email sent!',
-        description: 'Moving to the next prospect...'
+        description: 'Great job! Keep going! 🎉'
       });
-      
-      // Move to next email after a short delay
-      setTimeout(() => {
-        if (pendingItems && currentIndex < pendingItems.length - 1) {
-          setCurrentIndex(currentIndex + 1);
-        }
-      }, 1000);
     }
   });
   
@@ -514,14 +558,55 @@ export default function DailyOutreach() {
         </div>
       )}
       
-      {/* Top Bar */}
-      <div className="bg-white border-b px-6 py-4">
-        <div className="max-w-4xl mx-auto flex justify-end items-center">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Email {currentIndex + 1} of {pendingItems.length}</span>
-            <span>•</span>
-            <Calendar className="h-4 w-4" />
-            <span>{format(new Date(), 'EEEE, MMMM d, yyyy')}</span>
+      {/* Auto-advancing overlay */}
+      {isAutoAdvancing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-lg p-6 shadow-xl">
+            <CheckCircle className="h-12 w-12 mx-auto mb-3 text-green-600" />
+            <p className="text-lg font-semibold text-gray-800 mb-2">Email Sent! 🎉</p>
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+              <p className="text-sm text-gray-600">Loading next contact...</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Send Confirmation Modal */}
+      {currentItem && (
+        <SendConfirmationModal
+          isOpen={showConfirmModal}
+          onConfirm={handleSendConfirmation}
+          onCancel={handleSendCancellation}
+          contactName={currentItem.contact.name}
+          companyName={currentItem.company.name}
+        />
+      )}
+      
+      {/* Top Bar with Egg Progress */}
+      <div className="bg-white border-b">
+        {/* Egg Progress Bar */}
+        <div className="px-6 py-4 border-b">
+          <EggProgressBar 
+            totalEmails={5}
+            sentEmails={sentCount}
+            onEggClick={(index) => {
+              // Optional: Add click handler if needed
+              console.log('Egg clicked:', index);
+            }}
+          />
+        </div>
+        
+        {/* Date and Progress Info */}
+        <div className="px-6 py-3">
+          <div className="max-w-4xl mx-auto flex justify-between items-center">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <span>Email {currentIndex + 1} of {pendingItems.length}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>{format(new Date(), 'EEEE, MMMM d, yyyy')}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -664,6 +749,7 @@ export default function DailyOutreach() {
                       localSubject,
                       localBody
                     )}
+                    onManualSend={() => handleManualSend()}
                     isPending={sendEmailMutation.isPending}
                     isSuccess={sendEmailMutation.isSuccess}
                     className="h-9 px-4 text-sm"
