@@ -196,28 +196,6 @@
   }
 }
 
-/* Existing animations */
-@keyframes egg-shake {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-8deg); }
-  75% { transform: rotate(8deg); }
-}
-
-@keyframes hatching-wobble {
-  0% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-5px) rotate(-5deg); }
-  50% { transform: translateY(-8px) rotate(3deg); }
-  75% { transform: translateY(-3px) rotate(-3deg); }
-  100% { transform: translateY(0) rotate(0deg); }
-}
-
-@keyframes chick-bounce {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-15px) rotate(-5deg); }
-  50% { transform: translateY(0) rotate(5deg); }
-  75% { transform: translateY(-10px) rotate(-3deg); }
-}
-
 /* Button shake animation for validation errors */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
@@ -277,18 +255,6 @@
 }
 
 @layer utilities {
-  .animate-egg-shake {
-    animation: egg-shake 0.7s ease-in-out infinite;
-  }
-
-  .animate-hatching-wobble {
-    animation: hatching-wobble 1s ease-in-out;
-  }
-
-  .animate-chick-bounce {
-    animation: chick-bounce 2s ease-in-out;
-  }
-
   .animate-disco-bounce {
     animation: disco-bounce 5s ease-in-out;
   }
