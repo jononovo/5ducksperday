@@ -189,9 +189,9 @@ export default function DailyOutreach() {
       return response.json();
     },
     onSuccess: (_, variables) => {
-      // Mark as sent in database
+      // Mark as sent in database (without completion check since Gmail handles navigation)
       if (currentItem) {
-        markSent.mutate(currentItem.id);
+        markSent.mutate({ itemId: currentItem.id, checkCompletion: false });
       }
       // Update sent count for egg animation
       setSentCount(prev => prev + 1);
@@ -270,31 +270,10 @@ export default function DailyOutreach() {
         (window as any).triggerEggOverlayCelebration();
       }
       
-      markSent.mutate(currentItem.id);
+      // Mark as sent with completion check enabled
+      markSent.mutate({ itemId: currentItem.id, checkCompletion: true });
       const newSentCount = sentCount + 1;
       setSentCount(newSentCount);
-      
-      // Check if this was the last pending email
-      if (isLastPendingEmail()) {
-        // Show completion modal after celebration animation
-        setTimeout(() => {
-          setShowCompletionModal(true);
-        }, 3000);
-      } else {
-        // Move to next email after animation - find next pending
-        setTimeout(() => {
-          const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
-          if (batchData?.items) {
-            const nextPendingIndex = batchData.items.findIndex((item: OutreachItem, idx: number) => 
-              idx > currentIndex && item.status === 'pending'
-            );
-            if (nextPendingIndex !== -1) {
-              setNavigationAction('next');
-              setCurrentIndex(nextPendingIndex);
-            }
-          }
-        }, 1000);
-      }
     }
   };
   
@@ -325,19 +304,49 @@ export default function DailyOutreach() {
   
   // Mark as sent mutation
   const markSent = useMutation({
-    mutationFn: async (itemId: number) => {
+    mutationFn: async ({ itemId, checkCompletion = false }: { itemId: number; checkCompletion?: boolean }) => {
       const response = await fetch(`/api/daily-outreach/batch/${token}/item/${itemId}/sent`, {
         method: 'POST'
       });
       if (!response.ok) throw new Error('Failed to mark as sent');
-      return response.json();
+      return { data: await response.json(), checkCompletion };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       // Removed immediate cache invalidation to prevent content swap
       toast({
         title: 'Email sent!',
         description: 'Great job! Keep going! 🎉'
       });
+      
+      // Check if we should verify completion (for manual sends)
+      if (result.checkCompletion) {
+        // Check if this was the last pending email (accounting for the one we just marked as sent)
+        const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
+        if (batchData?.items) {
+          const remainingPending = batchData.items.filter((item: OutreachItem) => 
+            item.status === 'pending' && item.id !== currentItem?.id
+          ).length;
+          
+          if (remainingPending === 0) {
+            // All emails are now sent, show completion modal
+            setTimeout(() => {
+              setShowCompletionModal(true);
+            }, 3000);
+          } else {
+            // Navigate to next pending email
+            const items = batchData.items;
+            setTimeout(() => {
+              const nextPendingIndex = items.findIndex((item: OutreachItem, idx: number) => 
+                idx > currentIndex && item.status === 'pending'
+              );
+              if (nextPendingIndex !== -1) {
+                setNavigationAction('next');
+                setCurrentIndex(nextPendingIndex);
+              }
+            }, 1000);
+          }
+        }
+      }
     }
   });
   
