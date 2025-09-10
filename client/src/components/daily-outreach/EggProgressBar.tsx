@@ -88,7 +88,7 @@ export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingC
         </div>
         <div className="text-xs text-gray-600 mr-4 flex items-center gap-1">
           {currentIndex !== undefined && pendingCount !== undefined && (
-            <span>Email {currentIndex + 1} of {pendingCount}</span>
+            <span>Email {currentIndex + 1} of {totalEmails}</span>
           )}
           {currentIndex !== undefined && date && (
             <span className="mx-1">•</span>
