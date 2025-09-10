@@ -81,11 +81,11 @@ export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingC
   return (
     <div className="w-full">
       {/* Header row with product name and email count/date */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-3">
         <div className="text-sm font-medium text-gray-700">
           {productName || ''}
         </div>
-        <div className="text-sm text-gray-600 mr-4">
+        <div className="text-xs text-gray-600 mr-4">
           {currentIndex !== undefined && pendingCount !== undefined && (
             <span>Email {currentIndex + 1} of {pendingCount}</span>
           )}
@@ -98,10 +98,10 @@ export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingC
         </div>
       </div>
       
-      {/* White card container for eggs */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      {/* White card container for eggs with border */}
+      <div className="bg-white rounded-lg border p-4">
         {/* Eggs container - with subtle animations */}
-        <div className="flex items-center justify-center gap-3 md:gap-4 mb-3">
+        <div className="flex items-center justify-center gap-3 md:gap-4 mb-2">
           {eggs.map((egg, index) => (
             <div
               key={index}
@@ -123,7 +123,7 @@ export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingC
         </div>
 
         {/* Progress text */}
-        <div className="text-center text-sm text-gray-600">
+        <div className="text-center text-xs text-gray-600">
           {sentEmails === 0 && (
             <span>Ready for email {totalEmails}</span>
           )}

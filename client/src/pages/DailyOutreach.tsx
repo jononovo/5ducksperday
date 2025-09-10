@@ -677,7 +677,7 @@ export default function DailyOutreach() {
                     value={localSubject}
                     onChange={(e) => handleSubjectChange(e.target.value)}
                     placeholder="Email subject..."
-                    className="bg-gray-50 text-base"
+                    className="bg-blue-50 text-base"
                   />
                 </div>
                 <div>
@@ -686,7 +686,7 @@ export default function DailyOutreach() {
                     onChange={(e) => handleBodyChange(e.target.value)}
                     rows={12}
                     placeholder="Email body..."
-                    className="text-base bg-gray-50"
+                    className="text-base bg-blue-50"
                   />
                   {hasChanges && (
                     <p className="text-xs text-muted-foreground mt-1">
