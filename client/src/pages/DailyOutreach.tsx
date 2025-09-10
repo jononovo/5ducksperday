@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -402,8 +403,8 @@ export default function DailyOutreach() {
     if (is410) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="pt-8 pb-6 px-6">
+          <Card className="max-w-md w-full border-0">
+            <CardContent className="pt-8 pb-6">
               <div className="text-center space-y-4">
                 <div className="flex justify-center">
                   <Clock className="h-12 w-12 text-amber-500" />
@@ -431,8 +432,8 @@ export default function DailyOutreach() {
                   </p>
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }
@@ -441,8 +442,8 @@ export default function DailyOutreach() {
     if (is404) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="pt-8 pb-6 px-6">
+          <Card className="max-w-md w-full border-0">
+            <CardContent className="pt-8 pb-6">
               <div className="text-center space-y-4">
                 <div className="flex justify-center">
                   <AlertCircle className="h-12 w-12 text-red-500" />
@@ -470,8 +471,8 @@ export default function DailyOutreach() {
                   </p>
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }
@@ -480,8 +481,8 @@ export default function DailyOutreach() {
     if (isNetwork) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="pt-8 pb-6 px-6">
+          <Card className="max-w-md w-full border-0">
+            <CardContent className="pt-8 pb-6">
               <div className="text-center space-y-4">
                 <div className="flex justify-center">
                   <WifiOff className="h-12 w-12 text-gray-500" />
@@ -506,8 +507,8 @@ export default function DailyOutreach() {
                   </Button>
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }
@@ -515,8 +516,8 @@ export default function DailyOutreach() {
     // Server error or generic error
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="bg-white rounded-lg max-w-md w-full">
-          <div className="pt-8 pb-6 px-6">
+        <Card className="max-w-md w-full border-0">
+          <CardContent className="pt-8 pb-6">
             <div className="text-center space-y-4">
               <div className="flex justify-center">
                 <AlertTriangle className="h-12 w-12 text-orange-500" />
@@ -548,8 +549,8 @@ export default function DailyOutreach() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -617,7 +618,7 @@ export default function DailyOutreach() {
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-6 pb-8">
         {currentItem && (
-          <div className="bg-white rounded-lg mb-6">
+          <Card className="mb-6 border-0">
             <div className="p-6">
               {/* Company and Contact Info */}
               <div className="mb-6">
@@ -760,7 +761,7 @@ export default function DailyOutreach() {
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         )}
         
         {/* Navigation */}
@@ -788,13 +789,13 @@ export default function DailyOutreach() {
         
         {/* Next Up Teaser - Single Line */}
         {nextItem && (
-          <div className="bg-white rounded-lg p-4 text-center">
+          <Card className="p-4 text-center border-0">
             <p className="text-sm">
               <strong className="text-muted-foreground">Next up:</strong>{' '}
               {nextItem.contact.name}
               {nextItem.contact.role && `, ${nextItem.contact.role}`} at {nextItem.company.name}
             </p>
-          </div>
+          </Card>
         )}
       </div>
     </div>
