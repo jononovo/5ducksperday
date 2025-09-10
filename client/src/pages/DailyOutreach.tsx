@@ -604,7 +604,7 @@ export default function DailyOutreach() {
         {/* Egg Progress Bar */}
         <div className="px-6 py-4 border-b">
           <EggProgressBar 
-            totalEmails={5}
+            totalEmails={pendingItems.length}
             sentEmails={sentCount}
             onEggClick={(index) => {
               // Optional: Add click handler if needed
