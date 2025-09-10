@@ -91,8 +91,8 @@ router.get('/streak-stats', async (req: Request, res: Response) => {
         token: dailyOutreachBatches.secureToken,
         createdAt: dailyOutreachBatches.createdAt,
         itemCount: sql<number>`
-          (SELECT COUNT(*) FROM ${dailyOutreachItems} 
-           WHERE ${dailyOutreachItems.batchId} = ${dailyOutreachBatches.id})
+          CAST((SELECT COUNT(*) FROM ${dailyOutreachItems} 
+           WHERE ${dailyOutreachItems.batchId} = ${dailyOutreachBatches.id}) AS INTEGER)
         `.as('itemCount')
       })
       .from(dailyOutreachBatches)
