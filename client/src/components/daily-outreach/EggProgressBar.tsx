@@ -13,6 +13,7 @@ type EggState = 'egg' | 'cracked' | 'hatched';
 
 interface EggData {
   state: EggState;
+  isNew?: boolean;
 }
 
 export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgressBarProps) {
@@ -22,14 +23,24 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
   useEffect(() => {
     const initialEggs: EggData[] = Array.from({ length: totalEmails }, (_, i) => {
       if (i < sentEmails) {
-        return { state: 'hatched' };
+        return { state: 'hatched', isNew: false };
       } else if (i === sentEmails) {
-        return { state: 'cracked' };
+        return { state: 'cracked', isNew: true };
       } else {
-        return { state: 'egg' };
+        return { state: 'egg', isNew: false };
       }
     });
     setEggs(initialEggs);
+    
+    // Clear the "new" flag after animation plays
+    if (sentEmails > 0 && sentEmails < totalEmails) {
+      const timer = setTimeout(() => {
+        setEggs(prev => prev.map((egg, i) => 
+          i === sentEmails ? { ...egg, isNew: false } : egg
+        ));
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
   }, [totalEmails, sentEmails]);
 
   // Simple confetti when all emails are sent
@@ -54,9 +65,18 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
     }
   };
 
+  const getEggAnimation = (egg: EggData, index: number) => {
+    // Apply subtle animation to the current egg (cracked state)
+    if (egg.state === 'cracked' && egg.isNew) {
+      // Use one of the subtle animations from the search page
+      return 'animate-disco-bounce';
+    }
+    return '';
+  };
+
   return (
     <div className="relative">
-      {/* Eggs container - simple display */}
+      {/* Eggs container - with subtle animations */}
       <div className="flex items-center justify-center gap-2 md:gap-3 py-3">
         {eggs.map((egg, index) => (
           <div
@@ -68,7 +88,8 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
               disabled={egg.state === 'egg' && index > sentEmails}
               className={cn(
                 "text-xl md:text-2xl transition-transform duration-200",
-                egg.state === 'hatched' && 'hover:scale-110'
+                egg.state === 'hatched' && 'hover:scale-110',
+                getEggAnimation(egg, index)
               )}
             >
               {getEggEmoji(egg)}
