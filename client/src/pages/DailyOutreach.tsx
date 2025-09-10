@@ -12,6 +12,7 @@ import {
   Building2, 
   User, 
   Mail,
+  Lock,
   ChevronLeft,
   ChevronRight,
   SkipForward,
@@ -30,6 +31,7 @@ import {
 import { EmailSendButton } from '@/components/email-fallback/EmailSendButton';
 import { format } from 'date-fns';
 import { resolveAllMergeFields } from '@/lib/merge-field-resolver';
+import { cn } from '@/lib/utils';
 
 interface OutreachItem {
   id: number;
@@ -83,6 +85,7 @@ export default function DailyOutreach() {
   const [localSubject, setLocalSubject] = useState<string>('');
   const [localBody, setLocalBody] = useState<string>('');
   const [hasChanges, setHasChanges] = useState(false);
+  const [isGmailButtonHovered, setIsGmailButtonHovered] = useState(false);
   
   // Fetch batch data
   const { data, isLoading, error } = useQuery({
@@ -363,7 +366,7 @@ export default function DailyOutreach() {
       <div className="bg-white border-b px-6 py-4">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Badge variant="outline">
+            <Badge variant="outline" className="text-xs">
               Email {currentIndex + 1} of {pendingItems.length}
             </Badge>
           </div>
@@ -437,7 +440,7 @@ export default function DailyOutreach() {
                     value={localSubject}
                     onChange={(e) => handleSubjectChange(e.target.value)}
                     placeholder="Email subject..."
-                    className="bg-gray-50"
+                    className="bg-gray-50 text-base"
                   />
                 </div>
                 <div>
@@ -446,7 +449,7 @@ export default function DailyOutreach() {
                     onChange={(e) => handleBodyChange(e.target.value)}
                     rows={12}
                     placeholder="Email body..."
-                    className="font-mono text-sm bg-gray-50"
+                    className="text-base bg-gray-50"
                   />
                   {hasChanges && (
                     <p className="text-xs text-muted-foreground mt-1">
@@ -461,15 +464,33 @@ export default function DailyOutreach() {
                 <div className="flex gap-2">
                   {/* Gmail Connect Button - only show if not authenticated */}
                   {!gmailStatus?.authorized && (
-                    <Button
-                      onClick={handleGmailConnect}
-                      variant="outline"
-                      size="sm"
-                      className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
-                    >
-                      <Mail className="h-4 w-4 mr-1" />
-                      Gmail API BETA
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={handleGmailConnect}
+                            onMouseEnter={() => setIsGmailButtonHovered(true)}
+                            onMouseLeave={() => setIsGmailButtonHovered(false)}
+                            variant="outline"
+                            size="sm"
+                            className={cn(
+                              "h-8 text-xs transition-all duration-300 ease-out overflow-hidden",
+                              isGmailButtonHovered 
+                                ? "px-3 bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100" 
+                                : "px-2 w-8 bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+                            )}
+                          >
+                            <Lock className="w-3 h-3 shrink-0" />
+                            {isGmailButtonHovered && (
+                              <span className="ml-1 whitespace-nowrap">Gmail API BETA</span>
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-xs">Connect Gmail to send emails directly</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                 </div>
                 
@@ -532,8 +553,8 @@ export default function DailyOutreach() {
         {nextItem && (
           <div className="bg-gray-50 rounded-lg p-4 text-center">
             <p className="text-sm">
-              <span className="text-muted-foreground">Next up:</span>{' '}
-              <strong>{nextItem.contact.name}</strong>
+              <strong className="text-muted-foreground">Next up:</strong>{' '}
+              {nextItem.contact.name}
               {nextItem.contact.role && `, ${nextItem.contact.role}`} at {nextItem.company.name}
             </p>
           </div>
