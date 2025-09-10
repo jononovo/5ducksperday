@@ -354,6 +354,16 @@ export default function StreakPage() {
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Review & Send
                 </Button>
+                <Button 
+                  onClick={() => triggerEmail.mutate()} 
+                  size="sm" 
+                  className="w-full"
+                  variant="ghost"
+                  disabled={triggerEmail.isPending}
+                >
+                  <RefreshCw className={cn("h-4 w-4 mr-2", triggerEmail.isPending && "animate-spin")} />
+                  Re-generate
+                </Button>
               </div>
             ) : (
               <div className="space-y-3">

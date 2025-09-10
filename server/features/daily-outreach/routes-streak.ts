@@ -7,13 +7,14 @@ import {
   companies,
   contacts
 } from '@shared/schema';
-import { eq, and, gte, sql, desc, isNotNull } from 'drizzle-orm';
+import { eq, and, gte, sql, desc, isNotNull, count } from 'drizzle-orm';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay, differenceInDays } from 'date-fns';
+import { requireAuth } from '../../utils/auth';
 
 const router = Router();
 
 // Get streak statistics
-router.get('/streak-stats', async (req: Request, res: Response) => {
+router.get('/streak-stats', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     if (!userId) {
@@ -89,11 +90,7 @@ router.get('/streak-stats', async (req: Request, res: Response) => {
       .select({
         id: dailyOutreachBatches.id,
         token: dailyOutreachBatches.secureToken,
-        createdAt: dailyOutreachBatches.createdAt,
-        itemCount: sql<number>`
-          (SELECT COUNT(*) FROM ${dailyOutreachItems} 
-           WHERE ${dailyOutreachItems.batchId} = ${dailyOutreachBatches.id})
-        `.as('itemCount')
+        createdAt: dailyOutreachBatches.createdAt
       })
       .from(dailyOutreachBatches)
       .where(
@@ -104,6 +101,30 @@ router.get('/streak-stats', async (req: Request, res: Response) => {
       )
       .orderBy(desc(dailyOutreachBatches.createdAt))
       .limit(1);
+    
+    // Get the actual item count separately if batch exists
+    let itemCount = 0;
+    if (todaysBatch) {
+      const [countResult] = await db
+        .select({ count: count() })
+        .from(dailyOutreachItems)
+        .where(eq(dailyOutreachItems.batchId, todaysBatch.id));
+      
+      itemCount = Number(countResult?.count || 0);
+      
+      // Add itemCount to the batch object
+      (todaysBatch as any).itemCount = itemCount;
+    }
+    
+    // Debug logging
+    console.log('[Streak Stats] Today\'s batch for user', userId, ':', {
+      found: !!todaysBatch,
+      batchId: todaysBatch?.id,
+      token: todaysBatch?.token?.substring(0, 8) + '...',
+      itemCount: itemCount,
+      todayStart: todayStart.toISOString(),
+      createdAt: todaysBatch?.createdAt
+    });
 
     // Get available companies and contacts count
     const availableCompaniesResult = await db
