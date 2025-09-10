@@ -265,7 +265,7 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
       </div>
 
       {/* Progress text */}
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="text-center text-xs text-muted-foreground">
         {sentEmails === 0 && (
           <span>Ready to send your first email! 🚀</span>
         )}
