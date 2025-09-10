@@ -1434,7 +1434,7 @@ export default function Outreach() {
                   {/* Company Navigation */}
                   {companies.length > 0 && (
                     <div className={cn(
-                      "flex items-center justify-center gap-2 p-3 md:rounded-b-lg transition-all duration-200",
+                      "flex items-center justify-center gap-2 p-3 md:rounded-b-lg transition-all duration-200 border-b",
                       selectedListId && !selectedContactId 
                         ? "bg-gradient-to-r from-blue-50 to-indigo-50"
                         : "bg-white"
