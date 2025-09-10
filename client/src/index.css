@@ -196,28 +196,6 @@
   }
 }
 
-/* Existing animations */
-@keyframes egg-shake {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-8deg); }
-  75% { transform: rotate(8deg); }
-}
-
-@keyframes hatching-wobble {
-  0% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-5px) rotate(-5deg); }
-  50% { transform: translateY(-8px) rotate(3deg); }
-  75% { transform: translateY(-3px) rotate(-3deg); }
-  100% { transform: translateY(0) rotate(0deg); }
-}
-
-@keyframes chick-bounce {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-15px) rotate(-5deg); }
-  50% { transform: translateY(0) rotate(5deg); }
-  75% { transform: translateY(-10px) rotate(-3deg); }
-}
-
 /* Button shake animation for validation errors */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
@@ -253,70 +231,6 @@
   100% { transform: rotate(720deg) scale(1); }
 }
 
-/* Egg celebration animation */
-@keyframes celebrate-hatch {
-  0% { 
-    transform: scale(1) translateY(0) rotate(0deg);
-    opacity: 1;
-  }
-  20% { 
-    transform: scale(2) translateY(30px) rotate(-10deg);
-    opacity: 1;
-  }
-  40% { 
-    transform: scale(3) translateY(60px) rotate(10deg);
-    opacity: 0.8;
-  }
-  60% { 
-    transform: scale(3.5) translateY(80px) rotate(-5deg);
-    opacity: 0;
-  }
-  100% { 
-    transform: scale(4) translateY(100px) rotate(0deg);
-    opacity: 0;
-  }
-}
-
-/* Smooth zoom animation for egg overlay celebration */
-@keyframes egg-overlay-zoom {
-  0% { 
-    transform: scale(0.5) translateY(-100px);
-    opacity: 0;
-  }
-  10% {
-    transform: scale(2) translateY(-50px);
-    opacity: 0.8;
-  }
-  40% { 
-    transform: scale(3.5) translateY(0);
-    opacity: 0.5;
-  }
-  45% { 
-    transform: scale(3.7) translateY(0) rotate(10deg);
-    opacity: 0.5;
-  }
-  50% { 
-    transform: scale(3.5) translateY(0) rotate(-10deg);
-    opacity: 0.5;
-  }
-  55% { 
-    transform: scale(3.7) translateY(0) rotate(10deg);
-    opacity: 0.5;
-  }
-  60% { 
-    transform: scale(3.5) translateY(0);
-    opacity: 0.5;
-  }
-  90% { 
-    transform: scale(1.2) translateY(-50px);
-    opacity: 0.8;
-  }
-  100% { 
-    transform: scale(0.5) translateY(-100px);
-    opacity: 0;
-  }
-}
-
 /* Search tooltip animation */
 @keyframes fade-in {
   0% { opacity: 0; transform: translate(-50%, 10px); }
@@ -341,18 +255,6 @@
 }
 
 @layer utilities {
-  .animate-egg-shake {
-    animation: egg-shake 0.7s ease-in-out infinite;
-  }
-
-  .animate-hatching-wobble {
-    animation: hatching-wobble 1s ease-in-out;
-  }
-
-  .animate-chick-bounce {
-    animation: chick-bounce 2s ease-in-out;
-  }
-
   .animate-disco-bounce {
     animation: disco-bounce 5s ease-in-out;
   }
@@ -363,14 +265,6 @@
 
   .animate-breakdance {
     animation: breakdance 5s ease-in-out;
-  }
-  
-  .animate-celebrate-hatch {
-    animation: celebrate-hatch 0.6s ease-out forwards;
-  }
-  
-  .animate-egg-overlay-zoom {
-    animation: egg-overlay-zoom 2s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .animate-fade-in {
