@@ -38,6 +38,7 @@ import { cn } from '@/lib/utils';
 import { EggProgressBar } from '@/components/daily-outreach/EggProgressBar';
 import { SendConfirmationModal } from '@/components/daily-outreach/SendConfirmationModal';
 import { CompletionModal } from '@/components/daily-outreach/CompletionModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface OutreachItem {
   id: number;
@@ -96,6 +97,7 @@ export default function DailyOutreach() {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [sentCount, setSentCount] = useState(0);
   const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
+  const [slideDirection, setSlideDirection] = useState<'forward' | 'backward'>('forward');
   
   // Fetch batch data
   const { data, isLoading, error } = useQuery({
@@ -189,6 +191,7 @@ export default function DailyOutreach() {
       setIsAutoAdvancing(true);
       setTimeout(() => {
         if (pendingItems && currentIndex < pendingItems.length - 1) {
+          setSlideDirection('forward');
           setCurrentIndex(currentIndex + 1);
         }
         setIsAutoAdvancing(false);
@@ -255,6 +258,7 @@ export default function DailyOutreach() {
         // Move to next email after animation
         setTimeout(() => {
           if (pendingItems && currentIndex < pendingItems.length - 1) {
+            setSlideDirection('forward');
             setCurrentIndex(currentIndex + 1);
           }
         }, 2500);
@@ -319,6 +323,7 @@ export default function DailyOutreach() {
       
       // Move to next email
       if (pendingItems && currentIndex < pendingItems.length - 1) {
+        setSlideDirection('forward');
         setCurrentIndex(currentIndex + 1);
       }
     }
@@ -617,11 +622,23 @@ export default function DailyOutreach() {
       
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-6 pb-8">
-        {currentItem && (
-          <Card className="mb-6 border-0">
-            <div className="p-6">
-              {/* Company and Contact Info */}
-              <div className="mb-6">
+        <AnimatePresence mode="wait">
+          {currentItem && (
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, x: slideDirection === 'forward' ? 300 : -300 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: slideDirection === 'forward' ? -300 : 300 }}
+              transition={{ 
+                duration: 0.3, 
+                ease: "easeInOut",
+                opacity: { duration: 0.2 }
+              }}
+            >
+              <Card className="mb-6 border-0">
+                <div className="p-6">
+                  {/* Company and Contact Info */}
+                  <div className="mb-6">
                 <div className="flex items-start justify-between mb-2">
                   <TooltipProvider>
                     <Tooltip open={companyTooltipOpen} onOpenChange={setCompanyTooltipOpen}>
@@ -762,14 +779,19 @@ export default function DailyOutreach() {
               </div>
             </div>
           </Card>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
         
         {/* Navigation */}
         <div className="flex justify-between items-center mb-6">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
+            onClick={() => {
+              setSlideDirection('backward');
+              setCurrentIndex(Math.max(0, currentIndex - 1));
+            }}
             disabled={currentIndex === 0}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
@@ -779,7 +801,10 @@ export default function DailyOutreach() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentIndex(Math.min(pendingItems.length - 1, currentIndex + 1))}
+            onClick={() => {
+              setSlideDirection('forward');
+              setCurrentIndex(Math.min(pendingItems.length - 1, currentIndex + 1));
+            }}
             disabled={currentIndex >= pendingItems.length - 1}
           >
             Next
