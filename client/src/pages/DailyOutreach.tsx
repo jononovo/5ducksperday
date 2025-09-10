@@ -196,8 +196,7 @@ export default function DailyOutreach() {
       if (currentItem) {
         markSent.mutate({ itemId: currentItem.id, checkCompletion: false });
       }
-      // Update sent count for egg animation
-      setSentCount(prev => prev + 1);
+      // Don't increment locally - let data refresh handle it
       
       // Check if this was the last pending email
       if (isLastPendingEmail()) {
@@ -276,8 +275,7 @@ export default function DailyOutreach() {
       
       // Mark as sent with completion check enabled
       markSent.mutate({ itemId: currentItem.id, checkCompletion: true });
-      const newSentCount = sentCount + 1;
-      setSentCount(newSentCount);
+      // Don't increment locally - let data refresh handle it
     }
   };
   
@@ -316,11 +314,15 @@ export default function DailyOutreach() {
       return { data: await response.json(), checkCompletion };
     },
     onSuccess: (result) => {
-      // Removed immediate cache invalidation to prevent content swap
       toast({
         title: 'Email sent!',
         description: 'Great job! Keep going! 🎉'
       });
+      
+      // Invalidate cache after a short delay to refresh data
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: [`/api/daily-outreach/batch/${token}`] });
+      }, 500);
       
       // Check if we should verify completion (for manual sends)
       if (result.checkCompletion) {
