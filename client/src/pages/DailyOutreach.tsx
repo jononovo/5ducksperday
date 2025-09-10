@@ -602,28 +602,18 @@ export default function DailyOutreach() {
       {/* Top Bar with Egg Progress */}
       <div className="bg-white border-b">
         {/* Egg Progress Bar */}
-        <div className="px-6 py-4 border-b">
+        <div className="px-6 py-4">
           <EggProgressBar 
             totalEmails={items?.length || 0}
             sentEmails={sentCount}
+            currentIndex={currentIndex}
+            pendingCount={pendingItems.length}
+            date={format(new Date(), 'EEEE, MMMM d, yyyy')}
             onEggClick={(index) => {
               // Optional: Add click handler if needed
               console.log('Egg clicked:', index);
             }}
           />
-        </div>
-        
-        {/* Date and Progress Info */}
-        <div className="px-6 py-3">
-          <div className="max-w-4xl mx-auto flex justify-between items-center">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <span>Email {currentIndex + 1} of {pendingItems.length}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>{format(new Date(), 'EEEE, MMMM d, yyyy')}</span>
-            </div>
-          </div>
         </div>
       </div>
       

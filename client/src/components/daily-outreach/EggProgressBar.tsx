@@ -5,6 +5,9 @@ import { cn } from '@/lib/utils';
 interface EggProgressBarProps {
   totalEmails: number;
   sentEmails: number;
+  currentIndex?: number;
+  pendingCount?: number;
+  date?: string;
   onEggClick?: (index: number) => void;
 }
 
@@ -16,7 +19,7 @@ interface EggData {
   isNew?: boolean;
 }
 
-export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgressBarProps) {
+export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingCount, date, onEggClick }: EggProgressBarProps) {
   const [eggs, setEggs] = useState<EggData[]>([]);
 
   // Initialize eggs based on sent count
@@ -76,8 +79,24 @@ export function EggProgressBar({ totalEmails, sentEmails, onEggClick }: EggProgr
 
   return (
     <div className="relative">
+      {/* Top row with email count and date */}
+      {(currentIndex !== undefined || date) && (
+        <div className="flex justify-between items-center px-2 mb-1">
+          {currentIndex !== undefined && pendingCount !== undefined && (
+            <span className="text-xs text-muted-foreground">
+              Email {currentIndex + 1} of {pendingCount}
+            </span>
+          )}
+          {date && (
+            <span className="text-xs text-muted-foreground">
+              {date}
+            </span>
+          )}
+        </div>
+      )}
+      
       {/* Eggs container - with subtle animations */}
-      <div className="flex items-center justify-center gap-2 md:gap-3 py-3">
+      <div className="flex items-center justify-center gap-2 md:gap-3 py-2">
         {eggs.map((egg, index) => (
           <div
             key={index}
