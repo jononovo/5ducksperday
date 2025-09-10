@@ -28,7 +28,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { EmailSendButton } from '@/components/email-fallback/EmailSendButton';
-import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
 
 interface OutreachItem {
@@ -65,6 +64,12 @@ interface OutreachBatch {
   expiresAt: string;
 }
 
+interface GmailStatus {
+  connected?: boolean;
+  authorized?: boolean;
+  authUrl?: string;
+}
+
 export default function DailyOutreach() {
   const params = useParams();
   const { toast } = useToast();
@@ -85,7 +90,7 @@ export default function DailyOutreach() {
   });
   
   // Check Gmail status
-  const { data: gmailStatus } = useQuery({
+  const { data: gmailStatus } = useQuery<GmailStatus>({
     queryKey: ['/api/gmail/status'],
     refetchInterval: 30000, // Check every 30 seconds
   });
@@ -123,11 +128,18 @@ export default function DailyOutreach() {
   // Send email via Gmail
   const sendEmailMutation = useMutation({
     mutationFn: async ({ to, subject, body }: { to: string; subject: string; body: string }) => {
-      return apiRequest('/api/gmail/send', {
+      const response = await fetch('/api/gmail/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to, subject, body })
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to send email');
+      }
+      
+      return response.json();
     },
     onSuccess: (_, variables) => {
       // Mark as sent in database
@@ -335,9 +347,8 @@ export default function DailyOutreach() {
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Badge variant="outline">
-              {currentIndex + 1} of {pendingItems.length}
+              Email {currentIndex + 1} of {pendingItems.length}
             </Badge>
-            <span className="text-sm text-muted-foreground">prospects remaining</span>
           </div>
           
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -367,7 +378,7 @@ export default function DailyOutreach() {
                           <Info className="h-4 w-4 text-muted-foreground" />
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-sm p-4">
+                      <TooltipContent side="right" className="max-w-sm p-4">
                         <div className="space-y-2">
                           {currentItem.company.description && (
                             <p className="text-sm">{currentItem.company.description}</p>
@@ -405,7 +416,6 @@ export default function DailyOutreach() {
               {/* Email Content - Always Editable */}
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Subject:</label>
                   <Input
                     value={localSubject}
                     onChange={(e) => handleSubjectChange(e.target.value)}
@@ -414,7 +424,6 @@ export default function DailyOutreach() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Message:</label>
                   <Textarea
                     value={localBody}
                     onChange={(e) => handleBodyChange(e.target.value)}
@@ -461,8 +470,8 @@ export default function DailyOutreach() {
                     to={currentItem.contact.email}
                     subject={localSubject}
                     body={localBody}
-                    contact={currentItem.contact}
-                    company={currentItem.company}
+                    contact={currentItem.contact as any}
+                    company={currentItem.company as any}
                     isGmailAuthenticated={gmailStatus?.authorized}
                     onSendViaGmail={() => handleSendEmail(
                       currentItem.contact.email,
@@ -502,11 +511,11 @@ export default function DailyOutreach() {
           </Button>
         </div>
         
-        {/* Next Up Teaser */}
+        {/* Next Up Teaser - Single Line */}
         {nextItem && (
           <div className="bg-gray-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-muted-foreground mb-1">Next up:</p>
-            <p className="text-sm font-medium">
+            <p className="text-sm">
+              <span className="text-muted-foreground">Next up:</span>{' '}
               <strong>{nextItem.contact.name}</strong>
               {nextItem.contact.role && `, ${nextItem.contact.role}`} at {nextItem.company.name}
             </p>

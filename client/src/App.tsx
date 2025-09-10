@@ -1,25 +1,26 @@
+import { lazy, Suspense, useEffect } from "react";
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/hooks/use-auth";
-import { ProtectedRoute } from "@/lib/protected-route";
-import { SemiProtectedRoute } from "@/lib/semi-protected-route";
-import { Layout, AppLayout } from "@/components/layout";
-import { RegistrationModalProvider } from "@/hooks/use-registration-modal";
-import { RegistrationModalContainer } from "@/components/registration-modal-container";
-import { useEffect, useState, lazy, Suspense } from "react";
-import { initGA } from "./lib/analytics";
-import { useAnalytics } from "./hooks/use-analytics";
-import { SEOHead } from "@/components/ui/seo-head";
-import { MainNav } from "@/components/main-nav";
-import { LoadingScreen } from "@/components/ui/loading-screen";
-import { StrategyOverlayProvider, useStrategyOverlay } from "@/features/strategy-chat";
-import "@/components/ui/loading-spinner.css";
+import LandingPage from "@/pages/landing-page";
+import Landing2Page from "@/pages/landing2-page";
+import LoadingScreen from "@/components/LoadingScreen";
+import AppLayout from "@/components/AppLayout";
+import Layout from "@/components/Layout"; // Full layout with footer
+import MainNav from "@/components/MainNav";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { SemiProtectedRoute } from "@/components/SemiProtectedRoute";
+import { StrategyOverlayProvider } from "@/features/strategy-chat";
+import { FirebaseAuthProvider } from "@/contexts/FirebaseAuthContext";
+import { TransactionProvider } from "@/contexts/TransactionContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { AccountSettingsProvider } from "@/contexts/AccountSettingsContext";
+import { CompanyProvider } from "@/contexts/CompanyContext";
+import { SearchProvider } from "@/contexts/SearchContext";
+import { QuickSearchProvider } from "@/contexts/QuickSearchContext";
+import { HomeProvider } from "@/contexts/HomeContext";
+import "@/services/firebase";
+import { initGA, useAnalytics } from "@/services/google-analytics";
 
-// Immediate imports for landing pages and critical components
-import LandingPage from "@/pages/landing";
-import Landing2Page from "@/pages/landing2";
+// Static planning page
 import Planning from "@/pages/planning";
 import Auth from "@/pages/auth";
 
@@ -67,6 +68,13 @@ function Router() {
         {/* Strategic Planning Page (no nav) */}
         <Route path="/planning" component={Planning} />
         
+        {/* Daily Outreach Page - Standalone without navigation */}
+        <Route path="/outreach/daily/:token" component={() => 
+          <Suspense fallback={<LoadingScreen />}>
+            <DailyOutreach />
+          </Suspense>
+        } />
+        
         {/* Marketing pages with full footer */}
         <Route path="/terms">
           <Layout>
@@ -89,6 +97,7 @@ function Router() {
             </div>
           </Layout>
         </Route>
+
         <Route path="/blog/:slug">
           <Layout>
             <MainNav />
@@ -99,6 +108,7 @@ function Router() {
             </div>
           </Layout>
         </Route>
+
         <Route path="/levels">
           <Layout>
             <MainNav />
@@ -199,13 +209,6 @@ function Router() {
                   </Suspense>
                 } />
                 
-                {/* Daily Outreach Page - No auth required as token is the auth */}
-                <Route path="/outreach/daily/:token" component={() => 
-                  <Suspense fallback={<LoadingScreen />}>
-                    <DailyOutreach />
-                  </Suspense>
-                } />
-                
                 {/* Subscription Success Page */}
                 <Route path="/subscription-success" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
@@ -242,19 +245,25 @@ function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <FirebaseAuthProvider>
       <AuthProvider>
-        <RegistrationModalProvider>
-          <StrategyOverlayProvider>
-              {/* Default SEO tags for the entire site */}
-              <SEOHead />
-              <Router />
-              <RegistrationModalContainer />
-              <Toaster />
-          </StrategyOverlayProvider>
-        </RegistrationModalProvider>
+        <TransactionProvider>
+          <AccountSettingsProvider>
+            <CompanyProvider>
+              <SearchProvider>
+                <QuickSearchProvider>
+                  <HomeProvider>
+                    <StrategyOverlayProvider>
+                      <Router />
+                    </StrategyOverlayProvider>
+                  </HomeProvider>
+                </QuickSearchProvider>
+              </SearchProvider>
+            </CompanyProvider>
+          </AccountSettingsProvider>
+        </TransactionProvider>
       </AuthProvider>
-    </QueryClientProvider>
+    </FirebaseAuthProvider>
   );
 }
 
