@@ -98,6 +98,7 @@ export default function DailyOutreach() {
   const [sentCount, setSentCount] = useState(0);
   const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
   const [navigationAction, setNavigationAction] = useState<'next' | 'prev' | null>(null);
+  const [completionDismissed, setCompletionDismissed] = useState(false);
   
   // Fetch batch data
   const { data, isLoading, error } = useQuery({
@@ -119,19 +120,27 @@ export default function DailyOutreach() {
     const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
     if (batchData?.items) {
       const pendingCount = batchData.items.filter((item: OutreachItem) => item.status === 'pending').length;
-      if (pendingCount === 0 && !showCompletionModal) {
+      if (pendingCount === 0 && !showCompletionModal && !completionDismissed) {
         // Show completion modal after a short delay if all items already complete
         const timer = setTimeout(() => setShowCompletionModal(true), 500);
         return () => clearTimeout(timer);
       }
     }
-  }, [data, showCompletionModal]);
+  }, [data, showCompletionModal, completionDismissed]);
   
   // Check Gmail status
   const { data: gmailStatus } = useQuery<GmailStatus>({
     queryKey: ['/api/gmail/status'],
     refetchInterval: 30000, // Check every 30 seconds
   });
+  
+  // Helper function to check if this is the last pending email
+  const isLastPendingEmail = () => {
+    const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
+    if (!batchData?.items) return false;
+    const pendingCount = batchData.items.filter((item: OutreachItem) => item.status === 'pending').length;
+    return pendingCount === 1; // Current email is the last pending one
+  };
   
   // Gmail connect mutation
   const handleGmailConnect = () => {
@@ -180,22 +189,39 @@ export default function DailyOutreach() {
       return response.json();
     },
     onSuccess: (_, variables) => {
-      // Mark as sent in database
+      // Mark as sent in database (without completion check since Gmail handles navigation)
       if (currentItem) {
-        markSent.mutate(currentItem.id);
+        markSent.mutate({ itemId: currentItem.id, checkCompletion: false });
       }
       // Update sent count for egg animation
       setSentCount(prev => prev + 1);
       
-      // Auto-advance to next email after success
-      setIsAutoAdvancing(true);
-      setTimeout(() => {
-        if (items && currentIndex < items.length - 1) {
-          setNavigationAction('next');
-          setCurrentIndex(currentIndex + 1);
+      // Check if this was the last pending email
+      if (isLastPendingEmail()) {
+        // Trigger celebration and show completion modal
+        if ((window as any).triggerEggOverlayCelebration) {
+          (window as any).triggerEggOverlayCelebration();
         }
-        setIsAutoAdvancing(false);
-      }, 1000);
+        setTimeout(() => {
+          setShowCompletionModal(true);
+        }, 3000);
+      } else {
+        // Auto-advance to next pending email
+        setIsAutoAdvancing(true);
+        setTimeout(() => {
+          const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
+          if (batchData?.items) {
+            const nextPendingIndex = batchData.items.findIndex((item: OutreachItem, idx: number) => 
+              idx > currentIndex && item.status === 'pending'
+            );
+            if (nextPendingIndex !== -1) {
+              setNavigationAction('next');
+              setCurrentIndex(nextPendingIndex);
+            }
+          }
+          setIsAutoAdvancing(false);
+        }, 1000);
+      }
     },
     onError: (error: any) => {
       toast({
@@ -244,25 +270,10 @@ export default function DailyOutreach() {
         (window as any).triggerEggOverlayCelebration();
       }
       
-      markSent.mutate(currentItem.id);
+      // Mark as sent with completion check enabled
+      markSent.mutate({ itemId: currentItem.id, checkCompletion: true });
       const newSentCount = sentCount + 1;
       setSentCount(newSentCount);
-      
-      // Check if this was the last email
-      if (items && currentIndex >= items.length - 1) {
-        // Show completion modal after celebration animation
-        setTimeout(() => {
-          setShowCompletionModal(true);
-        }, 3000);
-      } else {
-        // Move to next email after animation
-        setTimeout(() => {
-          if (items && currentIndex < items.length - 1) {
-            setNavigationAction('next');
-            setCurrentIndex(currentIndex + 1);
-          }
-        }, 1000);
-      }
     }
   };
   
@@ -293,19 +304,49 @@ export default function DailyOutreach() {
   
   // Mark as sent mutation
   const markSent = useMutation({
-    mutationFn: async (itemId: number) => {
+    mutationFn: async ({ itemId, checkCompletion = false }: { itemId: number; checkCompletion?: boolean }) => {
       const response = await fetch(`/api/daily-outreach/batch/${token}/item/${itemId}/sent`, {
         method: 'POST'
       });
       if (!response.ok) throw new Error('Failed to mark as sent');
-      return response.json();
+      return { data: await response.json(), checkCompletion };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       // Removed immediate cache invalidation to prevent content swap
       toast({
         title: 'Email sent!',
         description: 'Great job! Keep going! 🎉'
       });
+      
+      // Check if we should verify completion (for manual sends)
+      if (result.checkCompletion) {
+        // Check if this was the last pending email (accounting for the one we just marked as sent)
+        const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
+        if (batchData?.items) {
+          const remainingPending = batchData.items.filter((item: OutreachItem) => 
+            item.status === 'pending' && item.id !== currentItem?.id
+          ).length;
+          
+          if (remainingPending === 0) {
+            // All emails are now sent, show completion modal
+            setTimeout(() => {
+              setShowCompletionModal(true);
+            }, 3000);
+          } else {
+            // Navigate to next pending email
+            const items = batchData.items;
+            setTimeout(() => {
+              const nextPendingIndex = items.findIndex((item: OutreachItem, idx: number) => 
+                idx > currentIndex && item.status === 'pending'
+              );
+              if (nextPendingIndex !== -1) {
+                setNavigationAction('next');
+                setCurrentIndex(nextPendingIndex);
+              }
+            }, 1000);
+          }
+        }
+      }
     }
   });
   
@@ -321,10 +362,22 @@ export default function DailyOutreach() {
     onSuccess: () => {
       // Removed immediate cache invalidation to prevent content swap
       
-      // Move to next email
-      if (items && currentIndex < items.length - 1) {
-        setNavigationAction('next');
-        setCurrentIndex(currentIndex + 1);
+      // Check if this was the last pending email
+      if (isLastPendingEmail()) {
+        // Show completion modal when all emails are handled
+        setShowCompletionModal(true);
+      } else {
+        // Find and navigate to next pending email
+        const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
+        if (batchData?.items) {
+          const nextPendingIndex = batchData.items.findIndex((item: OutreachItem, idx: number) => 
+            idx > currentIndex && item.status === 'pending'
+          );
+          if (nextPendingIndex !== -1) {
+            setNavigationAction('next');
+            setCurrentIndex(nextPendingIndex);
+          }
+        }
       }
     }
   });
@@ -599,7 +652,10 @@ export default function DailyOutreach() {
       {/* Completion Modal */}
       <CompletionModal
         isOpen={showCompletionModal}
-        onClose={() => setShowCompletionModal(false)}
+        onClose={() => {
+          setShowCompletionModal(false);
+          setCompletionDismissed(true);
+        }}
         sentCount={sentCount}
       />
       
@@ -813,13 +869,13 @@ export default function DailyOutreach() {
         
         {/* Next Up Teaser - Single Line */}
         {nextItem && (
-          <Card className="p-4 text-center border-0">
-            <p className="text-sm">
-              <strong className="text-muted-foreground">Next up:</strong>{' '}
+          <div className="mt-4 pb-2">
+            <p className="text-xs text-muted-foreground text-center" data-testid="text-next-up">
+              <span className="font-medium">Next up:</span>{' '}
               {nextItem.contact.name}
               {nextItem.contact.role && `, ${nextItem.contact.role}`} at {nextItem.company.name}
             </p>
-          </Card>
+          </div>
         )}
       </div>
     </div>
