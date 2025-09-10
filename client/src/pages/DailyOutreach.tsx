@@ -14,7 +14,6 @@ import {
   Mail,
   ChevronLeft,
   ChevronRight,
-  Edit3,
   SkipForward,
   Loader2,
   ExternalLink,
@@ -73,11 +72,11 @@ export default function DailyOutreach() {
   const token = params.token;
   
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [editingItem, setEditingItem] = useState<number | null>(null);
-  const [editedSubject, setEditedSubject] = useState<string>('');
-  const [editedBody, setEditedBody] = useState<string>('');
   const [sendingAnimation, setSendingAnimation] = useState(false);
   const [companyTooltipOpen, setCompanyTooltipOpen] = useState(false);
+  const [localSubject, setLocalSubject] = useState<string>('');
+  const [localBody, setLocalBody] = useState<string>('');
+  const [hasChanges, setHasChanges] = useState(false);
   
   // Fetch batch data
   const { data, isLoading, error } = useQuery({
@@ -146,11 +145,24 @@ export default function DailyOutreach() {
   });
   
   const handleSendEmail = async (to: string, subject: string, body: string) => {
+    // Save changes before sending if there are any
+    if (hasChanges && currentItem) {
+      await updateItem.mutateAsync({ 
+        itemId: currentItem.id, 
+        subject: localSubject, 
+        body: localBody 
+      });
+    }
+    
     setSendingAnimation(true);
     
     // Show loading animation
     setTimeout(() => {
-      sendEmailMutation.mutate({ to, subject, body });
+      sendEmailMutation.mutate({ 
+        to, 
+        subject: localSubject || subject, 
+        body: localBody || body 
+      });
       setSendingAnimation(false);
     }, 1500);
   };
@@ -168,7 +180,7 @@ export default function DailyOutreach() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/daily-outreach/batch/${token}`] });
-      setEditingItem(null);
+      setHasChanges(false);
       toast({
         title: 'Email updated',
         description: 'Your changes have been saved'
@@ -220,20 +232,43 @@ export default function DailyOutreach() {
     }
   });
   
-  const handleEdit = (item: OutreachItem) => {
-    setEditingItem(item.id);
-    setEditedSubject(item.emailSubject);
-    setEditedBody(item.emailBody);
+  const { batch, items } = (data as { batch: OutreachBatch; items: OutreachItem[] }) || { batch: null, items: [] };
+  const pendingItems = items?.filter((item: OutreachItem) => item.status === 'pending') || [];
+  const currentItem = pendingItems[currentIndex];
+  const nextItem = pendingItems[currentIndex + 1];
+  
+  // Update local state when current item changes
+  useEffect(() => {
+    if (currentItem) {
+      setLocalSubject(currentItem.emailSubject);
+      setLocalBody(currentItem.emailBody);
+      setHasChanges(false);
+    }
+  }, [currentItem?.id]);
+  
+  // Auto-save function with debounce
+  useEffect(() => {
+    if (!hasChanges || !currentItem) return;
+    
+    const timer = setTimeout(() => {
+      updateItem.mutate({ 
+        itemId: currentItem.id, 
+        subject: localSubject, 
+        body: localBody 
+      });
+    }, 2000); // Auto-save after 2 seconds of no typing
+    
+    return () => clearTimeout(timer);
+  }, [localSubject, localBody, hasChanges]);
+  
+  const handleSubjectChange = (value: string) => {
+    setLocalSubject(value);
+    setHasChanges(true);
   };
   
-  const handleSave = (itemId: number) => {
-    updateItem.mutate({ itemId, subject: editedSubject, body: editedBody });
-  };
-  
-  const handleCancel = () => {
-    setEditingItem(null);
-    setEditedSubject('');
-    setEditedBody('');
+  const handleBodyChange = (value: string) => {
+    setLocalBody(value);
+    setHasChanges(true);
   };
   
   if (isLoading) {
@@ -261,11 +296,6 @@ export default function DailyOutreach() {
       </div>
     );
   }
-  
-  const { batch, items } = data as { batch: OutreachBatch; items: OutreachItem[] };
-  const pendingItems = items?.filter((item: OutreachItem) => item.status === 'pending') || [];
-  const currentItem = pendingItems[currentIndex];
-  const nextItem = pendingItems[currentIndex + 1];
   
   // If no pending items, show completion message
   if (pendingItems.length === 0) {
@@ -372,112 +402,79 @@ export default function DailyOutreach() {
                 </div>
               </div>
               
-              {/* Email Content */}
-              {editingItem === currentItem.id ? (
-                // Edit Mode
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Subject</label>
-                    <Input
-                      value={editedSubject}
-                      onChange={(e) => setEditedSubject(e.target.value)}
-                      placeholder="Email subject..."
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Message</label>
-                    <Textarea
-                      value={editedBody}
-                      onChange={(e) => setEditedBody(e.target.value)}
-                      rows={12}
-                      placeholder="Email body..."
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => handleSave(currentItem.id)}
-                      disabled={updateItem.isPending}
-                    >
-                      Save Changes
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={handleCancel}
-                      disabled={updateItem.isPending}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
+              {/* Email Content - Always Editable */}
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Subject:</label>
+                  <Input
+                    value={localSubject}
+                    onChange={(e) => handleSubjectChange(e.target.value)}
+                    placeholder="Email subject..."
+                    className="bg-gray-50"
+                  />
                 </div>
-              ) : (
-                // View Mode
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium mb-1">Subject:</p>
-                    <p className="text-sm bg-gray-50 p-3 rounded-md">{currentItem.emailSubject}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-1">Message:</p>
-                    <div className="text-sm bg-gray-50 p-4 rounded-md whitespace-pre-wrap min-h-[200px]">
-                      {currentItem.emailBody}
-                    </div>
-                  </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Message:</label>
+                  <Textarea
+                    value={localBody}
+                    onChange={(e) => handleBodyChange(e.target.value)}
+                    rows={12}
+                    placeholder="Email body..."
+                    className="font-mono text-sm bg-gray-50"
+                  />
+                  {hasChanges && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Auto-saving changes...
+                    </p>
+                  )}
                 </div>
-              )}
+              </div>
               
               {/* Action Buttons */}
-              {editingItem !== currentItem.id && (
-                <div className="mt-6 flex items-center justify-between">
-                  <div className="flex gap-2">
+              <div className="mt-6 flex items-center justify-between">
+                <div className="flex gap-2">
+                  {/* Gmail Connect Button - only show if not authenticated */}
+                  {!gmailStatus?.authorized && (
                     <Button
-                      onClick={() => handleEdit(currentItem)}
+                      onClick={handleGmailConnect}
                       variant="outline"
                       size="sm"
+                      className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
                     >
-                      <Edit3 className="h-4 w-4 mr-1" />
-                      Edit
+                      <Mail className="h-4 w-4 mr-1" />
+                      Gmail API BETA
                     </Button>
-                    
-                    {/* Gmail Connect Button - only show if not authenticated */}
-                    {!gmailStatus?.authorized && (
-                      <Button
-                        onClick={handleGmailConnect}
-                        variant="outline"
-                        size="sm"
-                        className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
-                      >
-                        <Mail className="h-4 w-4 mr-1" />
-                        Gmail API BETA
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => skipItem.mutate(currentItem.id)}
-                      disabled={skipItem.isPending}
-                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <SkipForward className="h-3 w-3 inline mr-1" />
-                      Skip
-                    </button>
-                    
-                    <EmailSendButton
-                      to={currentItem.contact.email}
-                      subject={currentItem.emailSubject}
-                      body={currentItem.emailBody}
-                      contact={currentItem.contact}
-                      company={currentItem.company}
-                      isGmailAuthenticated={gmailStatus?.authorized}
-                      onSendViaGmail={handleSendEmail}
-                      isPending={sendEmailMutation.isPending}
-                      isSuccess={sendEmailMutation.isSuccess}
-                      className="h-9 px-4 text-sm"
-                    />
-                  </div>
+                  )}
                 </div>
-              )}
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => skipItem.mutate(currentItem.id)}
+                    disabled={skipItem.isPending}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <SkipForward className="h-3 w-3 inline mr-1" />
+                    Skip
+                  </button>
+                  
+                  <EmailSendButton
+                    to={currentItem.contact.email}
+                    subject={localSubject}
+                    body={localBody}
+                    contact={currentItem.contact}
+                    company={currentItem.company}
+                    isGmailAuthenticated={gmailStatus?.authorized}
+                    onSendViaGmail={() => handleSendEmail(
+                      currentItem.contact.email,
+                      localSubject,
+                      localBody
+                    )}
+                    isPending={sendEmailMutation.isPending}
+                    isSuccess={sendEmailMutation.isSuccess}
+                    className="h-9 px-4 text-sm"
+                  />
+                </div>
+              </div>
             </div>
           </Card>
         )}
