@@ -9,11 +9,12 @@ import {
 } from '@shared/schema';
 import { eq, and, gte, sql, desc, isNotNull, count } from 'drizzle-orm';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay, differenceInDays } from 'date-fns';
+import { requireAuth } from '../../utils/auth';
 
 const router = Router();
 
 // Get streak statistics
-router.get('/streak-stats', async (req: Request, res: Response) => {
+router.get('/streak-stats', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     if (!userId) {

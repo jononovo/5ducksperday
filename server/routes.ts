@@ -136,7 +136,8 @@ export function registerRoutes(app: Express) {
   registerSitemapRoutes(app);
   
   // Register daily outreach routes
-  app.use('/api/daily-outreach', requireAuth, dailyOutreachRoutes);
+  // Note: Auth is handled selectively inside the router - token-based endpoints don't need auth
+  app.use('/api/daily-outreach', dailyOutreachRoutes);
 
   
   // Register dormant modules that were created but never activated

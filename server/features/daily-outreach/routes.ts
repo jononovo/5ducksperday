@@ -15,6 +15,7 @@ import { batchGenerator } from './services/batch-generator';
 import { sendGridService } from './services/sendgrid-service';
 import type { Request, Response } from 'express';
 import streakRoutes from './routes-streak';
+import { requireAuth } from '../../utils/auth';
 
 const router = Router();
 
@@ -22,7 +23,7 @@ const router = Router();
 router.use('/', streakRoutes);
 
 // Get user's outreach preferences
-router.get('/preferences', async (req: Request, res: Response) => {
+router.get('/preferences', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     if (!userId) {
@@ -53,7 +54,7 @@ router.get('/preferences', async (req: Request, res: Response) => {
 });
 
 // Update user's outreach preferences
-router.put('/preferences', async (req: Request, res: Response) => {
+router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     if (!userId) {
@@ -115,7 +116,7 @@ router.put('/preferences', async (req: Request, res: Response) => {
 });
 
 // Preview email template
-router.get('/preview', async (req: Request, res: Response) => {
+router.get('/preview', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     if (!userId) {
@@ -199,7 +200,7 @@ router.get('/preview', async (req: Request, res: Response) => {
 });
 
 // Manual trigger for testing (only in development)
-router.post('/trigger', async (req: Request, res: Response) => {
+router.post('/trigger', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
     if (!userId) {
@@ -461,7 +462,7 @@ router.post('/batch/:token/item/:itemId/skip', async (req: Request, res: Respons
 });
 
 // Admin endpoint to test retry logic (dev only)
-router.post('/admin/simulate-failure/:userId', async (req: Request, res: Response) => {
+router.post('/admin/simulate-failure/:userId', requireAuth, async (req: Request, res: Response) => {
   try {
     if (process.env.NODE_ENV === 'production') {
       return res.status(403).json({ error: 'Not available in production' });
@@ -498,7 +499,7 @@ router.post('/admin/simulate-failure/:userId', async (req: Request, res: Respons
 });
 
 // Admin endpoint to get batch processing stats (dev only)
-router.get('/admin/stats', async (req: Request, res: Response) => {
+router.get('/admin/stats', requireAuth, async (req: Request, res: Response) => {
   try {
     if (process.env.NODE_ENV === 'production') {
       return res.status(403).json({ error: 'Not available in production' });
@@ -555,7 +556,7 @@ router.get('/admin/stats', async (req: Request, res: Response) => {
 });
 
 // Get job status for a specific user
-router.get('/job-status/:userId', async (req: Request, res: Response) => {
+router.get('/job-status/:userId', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId);
     
