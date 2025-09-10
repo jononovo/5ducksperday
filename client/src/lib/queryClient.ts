@@ -55,7 +55,10 @@ export async function apiRequest(
     const headers: HeadersInit = data ? { "Content-Type": "application/json" } : {};
     
     // Add auth token if available
-    if (authToken) {
+    // BUT skip auth headers for token-based endpoints (daily outreach)
+    const isTokenBasedEndpoint = url.includes('/daily-outreach/batch/');
+    
+    if (authToken && !isTokenBasedEndpoint) {
       headers['Authorization'] = `Bearer ${authToken}`;
     }
     
@@ -84,16 +87,21 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     try {
+      const url = queryKey[0] as string;
+      
       // Get Firebase token from localStorage if available
       const authToken = localStorage.getItem('authToken');
       
       // Set up headers with auth token if available
+      // BUT skip auth headers for token-based endpoints (daily outreach)
       const headers: HeadersInit = {};
-      if (authToken) {
+      const isTokenBasedEndpoint = url.includes('/daily-outreach/batch/');
+      
+      if (authToken && !isTokenBasedEndpoint) {
         headers['Authorization'] = `Bearer ${authToken}`;
       }
       
-      const res = await fetch(queryKey[0] as string, {
+      const res = await fetch(url, {
         credentials: "include",
         headers
       });
