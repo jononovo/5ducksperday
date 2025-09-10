@@ -765,7 +765,11 @@ export default function Outreach() {
       const payload = {
         to: toEmail,
         subject: emailSubject,
-        content: emailContent
+        content: emailContent,
+        contactId: selectedContactId,
+        companyId: selectedCompany?.id,
+        tone: selectedTone,
+        offerStrategy: selectedOfferStrategy
       };
       const response = await apiRequest("POST", "/api/send-gmail", payload);
       if (!response.ok) {

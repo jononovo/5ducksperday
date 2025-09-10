@@ -26,6 +26,8 @@ export interface GmailDisconnectResponse {
 
 export interface SendGmailResponse {
   success: boolean;
+  threadId?: string;
+  messageId?: string;
 }
 
 export interface GmailUserInfo {
