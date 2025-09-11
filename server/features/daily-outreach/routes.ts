@@ -393,100 +393,92 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
       return res.status(404).json({ error: 'Item not found' });
     }
     
-    const sentAt = new Date();
-    
-    // Update item status
-    const [updated] = await db
-      .update(dailyOutreachItems)
-      .set({
-        status: 'sent',
-        sentAt
-      })
-      .where(
-        and(
-          eq(dailyOutreachItems.id, parseInt(itemId)),
-          eq(dailyOutreachItems.batchId, batch.id)
-        )
-      )
-      .returning();
-    
-    if (!updated) {
-      return res.status(404).json({ error: 'Item not found' });
+    if (itemDetails.status === 'sent') {
+      return res.status(400).json({ error: 'Item already sent' });
     }
     
-    // Save to CRM communications history and link to dailyOutreachItem
-    let communicationId: number | null = null;
-    try {
+    const sentAt = new Date();
+    
+    // Execute all critical operations in a single transaction
+    const transactionResult = await db.transaction(async (tx) => {
       // Get contact details
-      const [contact] = await db
+      const [contact] = await tx
         .select()
         .from(contacts)
         .where(eq(contacts.id, itemDetails.contactId));
       
-      if (contact) {
-        // Determine final content (use edited content if available)
-        let finalContent = itemDetails.emailBody;
-        let finalSubject = itemDetails.emailSubject;
-        
-        if (itemDetails.editedContent) {
-          try {
-            const edited = JSON.parse(itemDetails.editedContent);
-            finalSubject = edited.subject || finalSubject;
-            finalContent = edited.body || finalContent;
-          } catch (e) {
-            console.error('Error parsing edited content:', e);
-          }
-        }
-        
-        // Save to communicationHistory and get the ID
-        const [communication] = await db.insert(communicationHistory).values({
-          userId: batch.userId,
-          contactId: itemDetails.contactId,
-          companyId: itemDetails.companyId,
-          channel: 'email',  // Standardize field name
-          direction: 'outbound',  // Standardize to match manual outreach
-          subject: finalSubject,
-          content: finalContent,
-          contentPreview: finalContent.substring(0, 200),
-          sentAt,
-          status: 'sent',
-          metadata: {
-            source: 'daily_outreach',
-            batchId: batch.id,
-            itemId: itemDetails.id,
-            tone: itemDetails.emailTone
-          }
-        }).returning();
-        
-        communicationId = communication.id;
-        
-        // Update contact status
-        await db
-          .update(contacts)
-          .set({
-            contactStatus: 'contacted',
-            lastContactedAt: sentAt,
-            totalCommunications: (contact.totalCommunications || 0) + 1
-          })
-          .where(eq(contacts.id, itemDetails.contactId));
+      if (!contact) {
+        throw new Error('Contact not found');
       }
-    } catch (crmError) {
-      console.error('Error saving to CRM history:', crmError);
-      // Don't fail the request if CRM update fails
-    }
-    
-    // Update item status with communication reference
-    const [finalUpdated] = await db
-      .update(dailyOutreachItems)
-      .set({
-        status: 'sent',
+      
+      // Determine final content (use edited content if available)
+      let finalContent = itemDetails.emailBody;
+      let finalSubject = itemDetails.emailSubject;
+      
+      if (itemDetails.editedContent) {
+        try {
+          const edited = JSON.parse(itemDetails.editedContent);
+          finalSubject = edited.subject || finalSubject;
+          finalContent = edited.body || finalContent;
+        } catch (e) {
+          console.error('Error parsing edited content:', e);
+        }
+      }
+      
+      // 1. Save to communicationHistory
+      const communicationResult = await tx.insert(communicationHistory).values({
+        userId: batch.userId,
+        contactId: itemDetails.contactId,
+        companyId: itemDetails.companyId,
+        channel: 'email',
+        direction: 'outbound',
+        subject: finalSubject,
+        content: finalContent,
+        contentPreview: finalContent.substring(0, 200),
         sentAt,
-        communicationId: communicationId  // Link to CRM record
-      })
-      .where(eq(dailyOutreachItems.id, parseInt(itemId)))
-      .returning();
+        status: 'sent',
+        metadata: {
+          source: 'daily_outreach',
+          batchId: batch.id,
+          itemId: itemDetails.id,
+          tone: itemDetails.emailTone
+        }
+      }).returning();
+      
+      const communication = Array.isArray(communicationResult) ? communicationResult[0] : communicationResult;
+      
+      // 2. Update contact status
+      await tx
+        .update(contacts)
+        .set({
+          contactStatus: 'contacted',
+          lastContactedAt: sentAt,
+          totalCommunications: (contact.totalCommunications || 0) + 1
+        })
+        .where(eq(contacts.id, itemDetails.contactId));
+      
+      // 3. Update dailyOutreachItem with status and communication link in ONE operation
+      const updateResult = await tx
+        .update(dailyOutreachItems)
+        .set({
+          status: 'sent',
+          sentAt,
+          communicationId: communication.id  // Link to CRM record
+        })
+        .where(
+          and(
+            eq(dailyOutreachItems.id, parseInt(itemId)),
+            eq(dailyOutreachItems.batchId, batch.id)
+          )
+        )
+        .returning();
+      
+      const updatedItem = Array.isArray(updateResult) ? updateResult[0] : updateResult;
+      
+      return { communication, updatedItem };
+    });
     
-    // Check if all items are processed
+    // Update batch status (outside transaction - this is housekeeping)
     const pendingItems = await db
       .select()
       .from(dailyOutreachItems)
@@ -497,7 +489,6 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
         )
       );
     
-    // Update batch status if all items are processed
     if (pendingItems.length === 0) {
       await db
         .update(dailyOutreachBatches)
@@ -510,7 +501,7 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
         .where(eq(dailyOutreachBatches.id, batch.id));
     }
     
-    res.json({ success: true, item: finalUpdated || updated });
+    res.json({ success: true, item: transactionResult.updatedItem });
   } catch (error) {
     console.error('Error marking item as sent:', error);
     res.status(500).json({ error: 'Failed to mark as sent' });
