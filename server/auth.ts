@@ -228,36 +228,33 @@ export function setupAuth(app: Express) {
 
   // Add Firebase token verification to all authenticated routes
   app.use(async (req, res, next) => {
-    // AI Testing Mode - DISABLED for normal user authentication
-    // The test mode bypass has been commented out to allow proper user authentication
-    /*
-    if (process.env.ENABLE_AI_TEST_MODE === 'true' && 
-        process.env.NODE_ENV !== 'production' &&
-        !req.isAuthenticated()) {
-      
-      // Attach demo user only for unauthenticated requests
+    // Development mode authentication bypass using REPLIT_DEPLOYMENT
+    // When not in production (REPLIT_DEPLOYMENT !== "1"), bypass auth
+    const isDevelopment = process.env.REPLIT_DEPLOYMENT !== "1";
+    
+    if (isDevelopment && !req.isAuthenticated()) {
+      // In development, automatically use user ID 1 (guest user)
       req.user = { 
         id: 1, 
-        email: 'demo@5ducks.ai',
-        username: 'Demo User',
+        email: 'guest@5ducks.ai',
+        username: 'Guest User',
         password: '' // Empty password for Firebase compatibility
       } as any;
       
-      // Override isAuthenticated to return true for this request
+      // Override isAuthenticated to return true
       const originalIsAuthenticated = req.isAuthenticated;
-      req.isAuthenticated = () => true;
+      req.isAuthenticated = function(this: any) { return true; } as any;
       
-      // Log for debugging and audit
-      console.log('[AI TEST MODE] Auth bypassed for unauthenticated request:', {
+      console.log('[DEV MODE] Auth bypassed - using guest user:', {
         path: req.path,
         method: req.method,
         userId: 1,
+        replitDeployment: process.env.REPLIT_DEPLOYMENT,
         timestamp: new Date().toISOString()
       });
       
-      return next(); // Skip other auth checks for this request
+      return next(); // Skip other auth checks
     }
-    */
     
     // Enhanced session debugging
     console.log('Session middleware check:', {
@@ -398,6 +395,17 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
+    // In development mode, always return guest user
+    const isDevelopment = process.env.REPLIT_DEPLOYMENT !== "1";
+    if (isDevelopment) {
+      return res.json({
+        id: 1,
+        email: 'guest@5ducks.ai',
+        username: 'Guest User',
+        createdAt: new Date()
+      });
+    }
+    
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: "Not authenticated" });
     }

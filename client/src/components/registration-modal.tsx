@@ -27,6 +27,11 @@ export function RegistrationModal() {
   const { user, signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
   const { closeModal, isOpenedFromProtectedRoute } = useRegistrationModal();
   const { toast } = useToast();
+  
+  // Check if we're in development mode
+  const isDevelopment = window.location.hostname.includes('.replit.dev') || 
+                       window.location.hostname === 'localhost' ||
+                       window.location.hostname === '0.0.0.0';
 
   // If user is already logged in, we'll close the modal
   // but we don't return early to avoid React hooks errors
@@ -215,8 +220,8 @@ export function RegistrationModal() {
     }
   };
 
-  // Don't render the modal if user is already authenticated
-  if (user) {
+  // Don't render the modal if user is already authenticated or in development mode
+  if (user || isDevelopment) {
     return null;
   }
 
