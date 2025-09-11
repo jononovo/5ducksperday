@@ -122,6 +122,7 @@ export default function StreakPage() {
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [selectedSenderProfileId, setSelectedSenderProfileId] = useState<number | null>(null);
   const [selectedCustomerProfileId, setSelectedCustomerProfileId] = useState<number | null>(null);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Fetch streak stats
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useQuery<StreakStats>({
@@ -295,17 +296,25 @@ export default function StreakPage() {
       }
     }
 
-    // Auto-select default sender profile
-    if (senderProfiles && senderProfiles.length > 0 && !selectedSenderProfileId) {
-      const defaultProfile = senderProfiles.find(p => p.isDefault) || senderProfiles[0];
-      setSelectedSenderProfileId(defaultProfile.id);
-    }
+    // Only auto-select profiles on initial load, not after user interaction
+    if (!hasInitialized) {
+      // Auto-select default sender profile
+      if (senderProfiles && senderProfiles.length > 0 && !selectedSenderProfileId) {
+        const defaultProfile = senderProfiles.find(p => p.isDefault) || senderProfiles[0];
+        setSelectedSenderProfileId(defaultProfile.id);
+      }
 
-    // Auto-select first customer profile if available
-    if (customerProfiles && customerProfiles.length > 0 && !selectedCustomerProfileId) {
-      setSelectedCustomerProfileId(customerProfiles[0].id);
+      // Auto-select first customer profile if available
+      if (customerProfiles && customerProfiles.length > 0 && !selectedCustomerProfileId) {
+        setSelectedCustomerProfileId(customerProfiles[0].id);
+      }
+
+      // Mark as initialized once we have data
+      if (senderProfiles && customerProfiles && products) {
+        setHasInitialized(true);
+      }
     }
-  }, [preferences, products, senderProfiles, customerProfiles]);
+  }, [preferences, products, senderProfiles, customerProfiles, hasInitialized]);
 
   const handleProductChange = (productId: number) => {
     // Toggle selection - if already selected, deselect it
