@@ -132,7 +132,7 @@ export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingC
             <span>Ready for email {totalEmails}</span>
           )}
           {sentEmails > 0 && sentEmails < totalEmails && (
-            <span>Skipped {sentEmails}, Ready for email {sentEmails + 1}</span>
+            <span>Sent {sentEmails}, Ready for email {sentEmails + 1}</span>
           )}
           {sentEmails === totalEmails && totalEmails > 0 && (
             <span className="text-green-600 font-semibold">All done! Great job! 🎉</span>
