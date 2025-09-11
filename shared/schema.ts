@@ -336,6 +336,7 @@ export const dailyOutreachItems = pgTable("daily_outreach_items", {
   batchId: integer("batch_id").notNull().references(() => dailyOutreachBatches.id),
   contactId: integer("contact_id").notNull().references(() => contacts.id),
   companyId: integer("company_id").notNull().references(() => companies.id),
+  communicationId: integer("communication_id").references(() => communicationHistory.id), // Link to CRM record when sent
   emailSubject: text("email_subject").notNull(),
   emailBody: text("email_body").notNull(),
   emailTone: text("email_tone").notNull(),
@@ -346,6 +347,7 @@ export const dailyOutreachItems = pgTable("daily_outreach_items", {
 }, (table) => [
   index('idx_outreach_item_batch_id').on(table.batchId),
   index('idx_outreach_item_contact_id').on(table.contactId),
+  index('idx_outreach_item_communication_id').on(table.communicationId),
 ]);
 
 // CRM Communications History Table
