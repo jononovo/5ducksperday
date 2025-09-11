@@ -308,18 +308,39 @@ export default function StreakPage() {
   }, [preferences, products, senderProfiles, customerProfiles]);
 
   const handleProductChange = (productId: number) => {
-    setSelectedProductId(productId);
-    setActiveProduct.mutate(productId);
+    // Toggle selection - if already selected, deselect it
+    if (selectedProductId === productId) {
+      setSelectedProductId(null);
+      // Optionally clear the active product in preferences
+      setActiveProduct.mutate(0); // or pass null if API supports it
+    } else {
+      setSelectedProductId(productId);
+      setActiveProduct.mutate(productId);
+    }
   };
 
   const handleSenderProfileChange = (profileId: number) => {
-    setSelectedSenderProfileId(profileId);
-    setActiveSenderProfile.mutate(profileId);
+    // Toggle selection - if already selected, deselect it
+    if (selectedSenderProfileId === profileId) {
+      setSelectedSenderProfileId(null);
+      // Optionally clear the active sender profile in preferences
+      setActiveSenderProfile.mutate(0); // or pass null if API supports it
+    } else {
+      setSelectedSenderProfileId(profileId);
+      setActiveSenderProfile.mutate(profileId);
+    }
   };
 
   const handleCustomerProfileChange = (profileId: number) => {
-    setSelectedCustomerProfileId(profileId);
-    setActiveCustomerProfile.mutate(profileId);
+    // Toggle selection - if already selected, deselect it
+    if (selectedCustomerProfileId === profileId) {
+      setSelectedCustomerProfileId(null);
+      // Optionally clear the active customer profile in preferences
+      setActiveCustomerProfile.mutate(0); // or pass null if API supports it
+    } else {
+      setSelectedCustomerProfileId(profileId);
+      setActiveCustomerProfile.mutate(profileId);
+    }
   };
 
   const handleDaysPerWeekChange = (value: number[]) => {
