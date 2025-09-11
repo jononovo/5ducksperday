@@ -489,6 +489,39 @@ export const dailyOutreachJobLogs = pgTable("daily_outreach_job_logs", {
 ]);
 
 // Strategic onboarding tables
+// Sender Profiles for Campaigns
+export const senderProfiles = pgTable("sender_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  companyName: text("company_name"),
+  companyWebsite: text("company_website"),
+  title: text("title"), // Job title
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Target Customer Profiles for Campaigns
+export const targetCustomerProfiles = pgTable("target_customer_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(), // e.g., "Small Business Owners"
+  industry: text("industry"),
+  companySize: text("company_size"), // e.g., "1-50 employees", "50-200 employees"
+  jobTitles: text("job_titles").array(), // e.g., ["CEO", "Owner", "Founder"]
+  painPoints: text("pain_points").array(),
+  goals: text("goals").array(),
+  geography: text("geography"), // e.g., "United States", "Southeast US", "Global"
+  budget: text("budget"), // e.g., "< $10k", "$10k-$50k", "> $50k"
+  decisionMakingProcess: text("decision_making_process"),
+  currentSolutions: text("current_solutions"), // What they currently use
+  buyingTriggers: text("buying_triggers").array(), // What makes them buy
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 export const strategicProfiles = pgTable("strategic_profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
@@ -620,6 +653,31 @@ export const userOutreachPreferencesSchema = z.object({
 });
 
 // Strategic onboarding schemas
+// Sender Profile schemas
+export const senderProfileSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  companyName: z.string().optional(),
+  companyWebsite: z.string().optional(),
+  title: z.string().optional(),
+  isDefault: z.boolean().default(false)
+});
+
+// Target Customer Profile schemas
+export const targetCustomerProfileSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  industry: z.string().optional(),
+  companySize: z.string().optional(),
+  jobTitles: z.array(z.string()).optional(),
+  painPoints: z.array(z.string()).optional(),
+  goals: z.array(z.string()).optional(),
+  geography: z.string().optional(),
+  budget: z.string().optional(),
+  decisionMakingProcess: z.string().optional(),
+  currentSolutions: z.string().optional(),
+  buyingTriggers: z.array(z.string()).optional()
+});
+
 export const strategicProfileSchema = z.object({
   title: z.string().min(1, "Title is required"),
   businessType: z.enum(["product", "service"]),
@@ -684,6 +742,14 @@ export const insertUserOutreachPreferencesSchema = userOutreachPreferencesSchema
   userId: z.number()
 });
 
+export const insertSenderProfileSchema = senderProfileSchema.extend({
+  userId: z.number()
+});
+
+export const insertTargetCustomerProfileSchema = targetCustomerProfileSchema.extend({
+  userId: z.number()
+});
+
 export const insertStrategicProfileSchema = strategicProfileSchema.extend({
   userId: z.number()
 });
@@ -711,6 +777,10 @@ export type InsertDailyOutreachItem = z.infer<typeof insertDailyOutreachItemSche
 export type UserOutreachPreferences = typeof userOutreachPreferences.$inferSelect;
 export type InsertUserOutreachPreferences = z.infer<typeof insertUserOutreachPreferencesSchema>;
 
+export type SenderProfile = typeof senderProfiles.$inferSelect;
+export type InsertSenderProfile = z.infer<typeof insertSenderProfileSchema>;
+export type TargetCustomerProfile = typeof targetCustomerProfiles.$inferSelect;
+export type InsertTargetCustomerProfile = z.infer<typeof insertTargetCustomerProfileSchema>;
 export type StrategicProfile = typeof strategicProfiles.$inferSelect;
 export type InsertStrategicProfile = z.infer<typeof insertStrategicProfileSchema>;
 export type OnboardingChat = typeof onboardingChats.$inferSelect;
