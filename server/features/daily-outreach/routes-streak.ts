@@ -5,7 +5,8 @@ import {
   dailyOutreachItems,
   userOutreachPreferences,
   companies,
-  contacts
+  contacts,
+  communicationHistory
 } from '@shared/schema';
 import { eq, and, gte, sql, desc, isNotNull, count } from 'drizzle-orm';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay, differenceInDays } from 'date-fns';
@@ -36,42 +37,45 @@ router.get('/streak-stats', requireAuth, async (req: Request, res: Response) => 
 
     const weeklyGoal = preferences?.scheduleDays?.length || 3;
 
-    // Get all batches for streak calculation
-    const allBatches = await db
+    // Get all days with emails sent for streak calculation from CRM history
+    const allEmailDays = await db
       .select({
-        createdAt: dailyOutreachBatches.createdAt,
-        itemsSent: sql<number>`
-          (SELECT COUNT(*) 
-           FROM ${dailyOutreachItems} 
-           WHERE ${dailyOutreachItems.batchId} = ${dailyOutreachBatches.id} 
-           AND ${dailyOutreachItems.sentAt} IS NOT NULL)
-        `.as('itemsSent')
+        date: sql<string>`DATE(${communicationHistory.sentAt})`,
+        itemsSent: sql<number>`count(*)`.as('itemsSent')
       })
-      .from(dailyOutreachBatches)
-      .where(eq(dailyOutreachBatches.userId, userId))
-      .orderBy(desc(dailyOutreachBatches.createdAt));
+      .from(communicationHistory)
+      .where(
+        and(
+          eq(communicationHistory.userId, userId),
+          eq(communicationHistory.channel, 'email'),
+          eq(communicationHistory.direction, 'outbound'),
+          isNotNull(communicationHistory.sentAt)
+        )
+      )
+      .groupBy(sql`DATE(${communicationHistory.sentAt})`)
+      .orderBy(sql`DATE(${communicationHistory.sentAt}) DESC`);
 
-    // Calculate current streak
+    // Calculate current streak based on email days
     let currentStreak = 0;
     let longestStreak = 0;
     let tempStreak = 0;
     let lastDate: Date | null = null;
 
-    for (const batch of allBatches) {
-      if (batch.itemsSent > 0 && batch.createdAt) {
-        const batchDate = new Date(batch.createdAt);
+    for (const emailDay of allEmailDays) {
+      if (emailDay.itemsSent > 0 && emailDay.date) {
+        const emailDate = new Date(emailDay.date);
         
         if (!lastDate) {
           tempStreak = 1;
-          if (differenceInDays(today, batchDate) <= 1) {
+          if (differenceInDays(today, emailDate) <= 1) {
             currentStreak = 1;
           }
         } else {
-          const daysDiff = differenceInDays(lastDate, batchDate);
+          const daysDiff = differenceInDays(lastDate, emailDate);
           
           if (daysDiff === 1) {
             tempStreak++;
-            if (differenceInDays(today, batchDate) <= tempStreak) {
+            if (differenceInDays(today, emailDate) <= tempStreak) {
               currentStreak = tempStreak;
             }
           } else {
@@ -80,7 +84,7 @@ router.get('/streak-stats', requireAuth, async (req: Request, res: Response) => 
           }
         }
         
-        lastDate = batchDate;
+        lastDate = emailDate;
       }
     }
     longestStreak = Math.max(longestStreak, tempStreak);
@@ -149,106 +153,114 @@ router.get('/streak-stats', requireAuth, async (req: Request, res: Response) => 
         )
       );
 
-    // Get emails sent statistics
+    // Get emails sent statistics from CRM history
     const emailsSentToday = await db
       .select({ count: sql<number>`count(*)` })
-      .from(dailyOutreachItems)
-      .innerJoin(dailyOutreachBatches, eq(dailyOutreachBatches.id, dailyOutreachItems.batchId))
+      .from(communicationHistory)
       .where(
         and(
-          eq(dailyOutreachBatches.userId, userId),
-          gte(dailyOutreachItems.sentAt, todayStart),
-          isNotNull(dailyOutreachItems.sentAt)
+          eq(communicationHistory.userId, userId),
+          eq(communicationHistory.channel, 'email'),
+          eq(communicationHistory.direction, 'outbound'),
+          gte(communicationHistory.sentAt, todayStart),
+          isNotNull(communicationHistory.sentAt)
         )
       );
 
     const emailsSentThisWeek = await db
       .select({ count: sql<number>`count(*)` })
-      .from(dailyOutreachItems)
-      .innerJoin(dailyOutreachBatches, eq(dailyOutreachBatches.id, dailyOutreachItems.batchId))
+      .from(communicationHistory)
       .where(
         and(
-          eq(dailyOutreachBatches.userId, userId),
-          gte(dailyOutreachItems.sentAt, weekStart),
-          isNotNull(dailyOutreachItems.sentAt)
+          eq(communicationHistory.userId, userId),
+          eq(communicationHistory.channel, 'email'),
+          eq(communicationHistory.direction, 'outbound'),
+          gte(communicationHistory.sentAt, weekStart),
+          isNotNull(communicationHistory.sentAt)
         )
       );
 
     const emailsSentThisMonth = await db
       .select({ count: sql<number>`count(*)` })
-      .from(dailyOutreachItems)
-      .innerJoin(dailyOutreachBatches, eq(dailyOutreachBatches.id, dailyOutreachItems.batchId))
+      .from(communicationHistory)
       .where(
         and(
-          eq(dailyOutreachBatches.userId, userId),
-          gte(dailyOutreachItems.sentAt, monthStart),
-          isNotNull(dailyOutreachItems.sentAt)
+          eq(communicationHistory.userId, userId),
+          eq(communicationHistory.channel, 'email'),
+          eq(communicationHistory.direction, 'outbound'),
+          gte(communicationHistory.sentAt, monthStart),
+          isNotNull(communicationHistory.sentAt)
         )
       );
 
     const emailsSentAllTime = await db
       .select({ count: sql<number>`count(*)` })
-      .from(dailyOutreachItems)
-      .innerJoin(dailyOutreachBatches, eq(dailyOutreachBatches.id, dailyOutreachItems.batchId))
+      .from(communicationHistory)
       .where(
         and(
-          eq(dailyOutreachBatches.userId, userId),
-          isNotNull(dailyOutreachItems.sentAt)
+          eq(communicationHistory.userId, userId),
+          eq(communicationHistory.channel, 'email'),
+          eq(communicationHistory.direction, 'outbound'),
+          isNotNull(communicationHistory.sentAt)
         )
       );
 
-    // Get companies contacted statistics
+    // Get companies contacted statistics from CRM history
     const companiesContactedThisWeek = await db
-      .select({ count: sql<number>`count(distinct ${dailyOutreachItems.companyId})` })
-      .from(dailyOutreachItems)
-      .innerJoin(dailyOutreachBatches, eq(dailyOutreachBatches.id, dailyOutreachItems.batchId))
+      .select({ count: sql<number>`count(distinct ${communicationHistory.companyId})` })
+      .from(communicationHistory)
       .where(
         and(
-          eq(dailyOutreachBatches.userId, userId),
-          gte(dailyOutreachItems.sentAt, weekStart),
-          isNotNull(dailyOutreachItems.sentAt)
+          eq(communicationHistory.userId, userId),
+          eq(communicationHistory.channel, 'email'),
+          eq(communicationHistory.direction, 'outbound'),
+          gte(communicationHistory.sentAt, weekStart),
+          isNotNull(communicationHistory.sentAt)
         )
       );
 
     const companiesContactedThisMonth = await db
-      .select({ count: sql<number>`count(distinct ${dailyOutreachItems.companyId})` })
-      .from(dailyOutreachItems)
-      .innerJoin(dailyOutreachBatches, eq(dailyOutreachBatches.id, dailyOutreachItems.batchId))
+      .select({ count: sql<number>`count(distinct ${communicationHistory.companyId})` })
+      .from(communicationHistory)
       .where(
         and(
-          eq(dailyOutreachBatches.userId, userId),
-          gte(dailyOutreachItems.sentAt, monthStart),
-          isNotNull(dailyOutreachItems.sentAt)
+          eq(communicationHistory.userId, userId),
+          eq(communicationHistory.channel, 'email'),
+          eq(communicationHistory.direction, 'outbound'),
+          gte(communicationHistory.sentAt, monthStart),
+          isNotNull(communicationHistory.sentAt)
         )
       );
 
     const companiesContactedAllTime = await db
-      .select({ count: sql<number>`count(distinct ${dailyOutreachItems.companyId})` })
-      .from(dailyOutreachItems)
-      .innerJoin(dailyOutreachBatches, eq(dailyOutreachBatches.id, dailyOutreachItems.batchId))
+      .select({ count: sql<number>`count(distinct ${communicationHistory.companyId})` })
+      .from(communicationHistory)
       .where(
         and(
-          eq(dailyOutreachBatches.userId, userId),
-          isNotNull(dailyOutreachItems.sentAt)
+          eq(communicationHistory.userId, userId),
+          eq(communicationHistory.channel, 'email'),
+          eq(communicationHistory.direction, 'outbound'),
+          isNotNull(communicationHistory.sentAt)
         )
       );
 
-    // Calculate weekly progress (days with sent emails this week)
+    // Calculate weekly progress (days with sent emails this week) from CRM history
     const daysWithEmailsThisWeek = await db
       .select({ 
-        date: sql<string>`DATE(${dailyOutreachItems.sentAt})`,
+        date: sql<string>`DATE(${communicationHistory.sentAt})`,
         count: sql<number>`count(*)` 
       })
-      .from(dailyOutreachItems)
-      .innerJoin(dailyOutreachBatches, eq(dailyOutreachBatches.id, dailyOutreachItems.batchId))
+      .from(communicationHistory)
       .where(
         and(
-          eq(dailyOutreachBatches.userId, userId),
-          gte(dailyOutreachItems.sentAt, weekStart),
-          isNotNull(dailyOutreachItems.sentAt)
+          eq(communicationHistory.userId, userId),
+          eq(communicationHistory.channel, 'email'),
+          eq(communicationHistory.direction, 'outbound'),
+          gte(communicationHistory.sentAt, weekStart),
+          isNotNull(communicationHistory.sentAt)
         )
       )
-      .groupBy(sql`DATE(${dailyOutreachItems.sentAt})`);
+      .groupBy(sql`DATE(${communicationHistory.sentAt})`);
 
     const weeklyProgress = daysWithEmailsThisWeek.length;
 
