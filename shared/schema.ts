@@ -509,17 +509,14 @@ export const senderProfiles = pgTable("sender_profiles", {
 export const customerProfiles = pgTable("customer_profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  title: text("title").notNull(), // e.g., "Small Business Owners"
-  industry: text("industry"),
-  companySize: text("company_size"), // e.g., "1-50 employees", "50-200 employees"
-  jobTitles: text("job_titles").array(), // e.g., ["CEO", "Owner", "Founder"]
-  painPoints: text("pain_points").array(),
-  goals: text("goals").array(),
-  geography: text("geography"), // e.g., "United States", "Southeast US", "Global"
-  budget: text("budget"), // e.g., "< $10k", "$10k-$50k", "> $50k"
-  decisionMakingProcess: text("decision_making_process"),
-  currentSolutions: text("current_solutions"), // What they currently use
-  buyingTriggers: text("buying_triggers").array(), // What makes them buy
+  label: text("label").notNull(), // e.g., "Small Business Owners"
+  targetDescription: text("target_description"), // Full description of target customer
+  industries: text("industries").array(), // Array of industries
+  roles: text("roles").array(), // Array of job roles/titles
+  locations: text("locations").array(), // Array of geographical locations
+  companySizes: text("company_sizes").array(), // Array of company size ranges
+  techStack: text("tech_stack").array(), // Array of technologies they use
+  notes: text("notes"), // Additional notes
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -690,17 +687,14 @@ export const senderProfileSchema = z.object({
 
 // Target Customer Profile schemas
 export const targetCustomerProfileSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  industry: z.string().optional(),
-  companySize: z.string().optional(),
-  jobTitles: z.array(z.string()).optional(),
-  painPoints: z.array(z.string()).optional(),
-  goals: z.array(z.string()).optional(),
-  geography: z.string().optional(),
-  budget: z.string().optional(),
-  decisionMakingProcess: z.string().optional(),
-  currentSolutions: z.string().optional(),
-  buyingTriggers: z.array(z.string()).optional()
+  label: z.string().min(1, "Label is required"),
+  targetDescription: z.string().optional(),
+  industries: z.array(z.string()).optional(),
+  roles: z.array(z.string()).optional(),
+  locations: z.array(z.string()).optional(),
+  companySizes: z.array(z.string()).optional(),
+  techStack: z.array(z.string()).optional(),
+  notes: z.string().optional()
 });
 
 export const strategicProfileSchema = z.object({

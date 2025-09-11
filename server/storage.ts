@@ -1,7 +1,7 @@
 import { 
   userPreferences, lists, companies, contacts, emailTemplates, users,
   strategicProfiles, userEmailPreferences,
-  senderProfiles, targetCustomerProfiles,
+  senderProfiles, customerProfiles,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type List, type InsertList,
@@ -518,34 +518,34 @@ class DatabaseStorage implements IStorage {
   // Customer Profiles
   async listCustomerProfiles(userId: number): Promise<TargetCustomerProfile[]> {
     return db.select()
-      .from(targetCustomerProfiles)
-      .where(eq(targetCustomerProfiles.userId, userId))
-      .orderBy(desc(targetCustomerProfiles.createdAt));
+      .from(customerProfiles)
+      .where(eq(customerProfiles.userId, userId))
+      .orderBy(desc(customerProfiles.createdAt));
   }
 
   async getCustomerProfile(id: number, userId: number): Promise<TargetCustomerProfile | undefined> {
     const [profile] = await db.select()
-      .from(targetCustomerProfiles)
-      .where(and(eq(targetCustomerProfiles.id, id), eq(targetCustomerProfiles.userId, userId)));
+      .from(customerProfiles)
+      .where(and(eq(customerProfiles.id, id), eq(customerProfiles.userId, userId)));
     return profile;
   }
 
   async createCustomerProfile(data: InsertTargetCustomerProfile): Promise<TargetCustomerProfile> {
-    const [profile] = await db.insert(targetCustomerProfiles).values(data).returning();
+    const [profile] = await db.insert(customerProfiles).values(data).returning();
     return profile;
   }
 
   async updateCustomerProfile(id: number, data: Partial<TargetCustomerProfile>): Promise<TargetCustomerProfile> {
-    const [updated] = await db.update(targetCustomerProfiles)
+    const [updated] = await db.update(customerProfiles)
       .set({ ...data, updatedAt: new Date() })
-      .where(eq(targetCustomerProfiles.id, id))
+      .where(eq(customerProfiles.id, id))
       .returning();
     return updated;
   }
 
   async deleteCustomerProfile(id: number, userId: number): Promise<void> {
-    await db.delete(targetCustomerProfiles)
-      .where(and(eq(targetCustomerProfiles.id, id), eq(targetCustomerProfiles.userId, userId)));
+    await db.delete(customerProfiles)
+      .where(and(eq(customerProfiles.id, id), eq(customerProfiles.userId, userId)));
   }
 }
 

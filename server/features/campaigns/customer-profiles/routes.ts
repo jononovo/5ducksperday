@@ -51,11 +51,24 @@ export function registerCustomerProfilesRoutes(app: Application, requireAuth: an
     try {
       const userId = getUserId(req);
       
-      // Validate request body
-      const parseResult = insertTargetCustomerProfileSchema.safeParse({
-        ...req.body,
-        userId
-      });
+      // Map frontend fields to database fields
+      const mappedData = {
+        userId,
+        label: req.body.title || req.body.exampleCompany || 'Untitled Profile',
+        targetDescription: [
+          req.body.searchPrompt,
+          req.body.additionalContext
+        ].filter(Boolean).join(' '),
+        industries: req.body.industry ? [req.body.industry] : [],
+        roles: req.body.jobTitles || [],
+        locations: req.body.geography ? [req.body.geography] : [],
+        companySizes: req.body.companySize ? [req.body.companySize] : [],
+        techStack: req.body.currentSolutions ? [req.body.currentSolutions] : [],
+        notes: req.body.additionalContext || ''
+      };
+      
+      // Validate mapped data
+      const parseResult = insertTargetCustomerProfileSchema.safeParse(mappedData);
       
       if (!parseResult.success) {
         return res.status(400).json({
@@ -91,9 +104,29 @@ export function registerCustomerProfilesRoutes(app: Application, requireAuth: an
         return res.status(404).json({ message: 'Customer profile not found' });
       }
       
+      // Map frontend fields to database fields for update
+      const mappedData: any = {};
+      
+      if (req.body.title !== undefined) mappedData.label = req.body.title;
+      if (req.body.exampleCompany !== undefined) mappedData.label = req.body.exampleCompany;
+      
+      if (req.body.searchPrompt !== undefined || req.body.additionalContext !== undefined) {
+        mappedData.targetDescription = [
+          req.body.searchPrompt,
+          req.body.additionalContext
+        ].filter(Boolean).join(' ');
+      }
+      
+      if (req.body.industry !== undefined) mappedData.industries = req.body.industry ? [req.body.industry] : [];
+      if (req.body.jobTitles !== undefined) mappedData.roles = req.body.jobTitles;
+      if (req.body.geography !== undefined) mappedData.locations = req.body.geography ? [req.body.geography] : [];
+      if (req.body.companySize !== undefined) mappedData.companySizes = req.body.companySize ? [req.body.companySize] : [];
+      if (req.body.currentSolutions !== undefined) mappedData.techStack = req.body.currentSolutions ? [req.body.currentSolutions] : [];
+      if (req.body.additionalContext !== undefined) mappedData.notes = req.body.additionalContext;
+      
       // Validate update data
       const updateSchema = insertTargetCustomerProfileSchema.partial().omit({ userId: true });
-      const parseResult = updateSchema.safeParse(req.body);
+      const parseResult = updateSchema.safeParse(mappedData);
       
       if (!parseResult.success) {
         return res.status(400).json({
