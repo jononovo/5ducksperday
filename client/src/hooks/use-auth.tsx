@@ -33,6 +33,13 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  
+  // Check if we're in development mode
+  // Note: REPLIT_DEPLOYMENT is not available on frontend, so we check for development domains
+  const isDevelopment = window.location.hostname.includes('.replit.dev') || 
+                       window.location.hostname === 'localhost' ||
+                       window.location.hostname === '0.0.0.0';
+  
   const {
     data: user,
     error,
@@ -40,6 +47,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<SelectUser | undefined, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
+    // In development, provide a default guest user
+    initialData: isDevelopment ? {
+      id: 1,
+      email: 'guest@5ducks.ai',
+      username: 'Guest User',
+      createdAt: new Date()
+    } as SelectUser : undefined,
   });
 
   const logoutMutation = useMutation({
