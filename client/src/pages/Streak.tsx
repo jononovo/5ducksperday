@@ -989,7 +989,7 @@ export default function StreakPage() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-xs truncate">{profile.name}</div>
+                        <div className="font-medium text-xs truncate">{profile.displayName}</div>
                         <div className="text-xs text-muted-foreground truncate">{profile.email}</div>
                         {profile.title && (
                           <div className="text-xs text-muted-foreground truncate">{profile.title}</div>

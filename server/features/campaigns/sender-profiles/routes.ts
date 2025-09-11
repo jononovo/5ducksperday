@@ -22,7 +22,7 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
         if (user) {
           const defaultProfile = await storage.createSenderProfile({
             userId,
-            name: user.username || user.email.split('@')[0],
+            displayName: user.username || user.email.split('@')[0],
             email: user.email,
             isDefault: true
           });

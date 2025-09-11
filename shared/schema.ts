@@ -446,7 +446,7 @@ export const userOutreachPreferences = pgTable("user_outreach_preferences", {
   minContactsRequired: integer("min_contacts_required").default(5),
   activeProductId: integer("active_product_id").references(() => strategicProfiles.id),
   activeSenderProfileId: integer("active_sender_profile_id").references(() => senderProfiles.id),
-  activeCustomerProfileId: integer("active_customer_profile_id").references(() => targetCustomerProfiles.id),
+  activeCustomerProfileId: integer("active_customer_profile_id").references(() => customerProfiles.id),
   lastNudgeSent: timestamp("last_nudge_sent", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
@@ -495,18 +495,18 @@ export const dailyOutreachJobLogs = pgTable("daily_outreach_job_logs", {
 export const senderProfiles = pgTable("sender_profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  name: text("name").notNull(),
+  displayName: text("display_name").notNull(),
   email: text("email").notNull(),
+  title: text("title"),
   companyName: text("company_name"),
   companyWebsite: text("company_website"),
-  title: text("title"), // Job title
   isDefault: boolean("is_default").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
 // Target Customer Profiles for Campaigns
-export const targetCustomerProfiles = pgTable("target_customer_profiles", {
+export const customerProfiles = pgTable("customer_profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   title: text("title").notNull(), // e.g., "Small Business Owners"
@@ -533,7 +533,7 @@ export const campaigns = pgTable("campaigns", {
   status: text("status").notNull().default("draft"), // draft, active, paused, completed
   senderProfileId: integer("sender_profile_id").references(() => senderProfiles.id),
   strategicProfileId: integer("strategic_profile_id").references(() => strategicProfiles.id), // Reference to product/service info
-  targetCustomerProfileId: integer("target_customer_profile_id").references(() => targetCustomerProfiles.id),
+  targetCustomerProfileId: integer("target_customer_profile_id").references(() => customerProfiles.id),
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
   durationDays: integer("duration_days").notNull().default(14), // Default 2 weeks
@@ -680,7 +680,7 @@ export const userOutreachPreferencesSchema = z.object({
 // Strategic onboarding schemas
 // Sender Profile schemas
 export const senderProfileSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  displayName: z.string().min(1, "Display name is required"),
   email: z.string().email("Invalid email address"),
   companyName: z.string().optional(),
   companyWebsite: z.string().optional(),
@@ -818,12 +818,14 @@ export type InsertUserOutreachPreferences = z.infer<typeof insertUserOutreachPre
 
 export type SenderProfile = typeof senderProfiles.$inferSelect;
 export type InsertSenderProfile = z.infer<typeof insertSenderProfileSchema>;
-export type TargetCustomerProfile = typeof targetCustomerProfiles.$inferSelect;
+export type TargetCustomerProfile = typeof customerProfiles.$inferSelect;
 export type InsertTargetCustomerProfile = z.infer<typeof insertTargetCustomerProfileSchema>;
 export type StrategicProfile = typeof strategicProfiles.$inferSelect;
 export type InsertStrategicProfile = z.infer<typeof insertStrategicProfileSchema>;
 export type OnboardingChat = typeof onboardingChats.$inferSelect;
 export type InsertOnboardingChat = z.infer<typeof insertOnboardingChatSchema>;
 
+// Backward compatibility exports
+export const targetCustomerProfiles = customerProfiles;
 
 
