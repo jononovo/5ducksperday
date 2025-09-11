@@ -92,10 +92,19 @@ This application supports Replit AI agent browser testing through an authenticat
 - All pages and API endpoints are accessible without login
 - Database operations use the demo user account
 
+**Secret Configuration:**
+- The `ENABLE_AI_TEST_MODE` secret is stored in **Replit Account Secrets**
+- This secret is shared across all Replit instances linked to your account
+- **IMPORTANT FOR AI AGENTS:** When working on a clone of this project, you must:
+  1. Open the Secrets tab (🔒 icon) in your Replit workspace
+  2. Go to "Account Secrets" tab
+  3. Find `ENABLE_AI_TEST_MODE` and click the checkbox to link it to your app
+  4. Or add it as a new app-specific secret with value `true` or `false`
+
 **To Toggle Test Mode:**
-- **Enable:** Set `ENABLE_AI_TEST_MODE=true` in `.env` file (line 1)
-- **Disable:** Set `ENABLE_AI_TEST_MODE=false` in `.env` file (line 1)
-- Restart the app after changing
+- **Enable:** Set `ENABLE_AI_TEST_MODE` to `true` in Secrets vault
+- **Disable:** Set `ENABLE_AI_TEST_MODE` to `false` in Secrets vault
+- The app will automatically restart when secrets are updated
 
 **Current Status:** ✅ ENABLED
 - Environment: Development
