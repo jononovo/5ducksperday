@@ -522,25 +522,6 @@ export const targetCustomerProfiles = pgTable("target_customer_profiles", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
-// Products table (for campaigns)
-export const products = pgTable("products", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  title: text("title").notNull(),
-  productService: text("product_service"),
-  customerFeedback: text("customer_feedback"),
-  website: text("website"),
-  businessType: text("business_type"), // "product" or "service"
-  status: text("status").default("active"),
-  targetCustomers: text("target_customers"),
-  primaryCustomerType: text("primary_customer_type"),
-  marketNiche: text("market_niche"),
-  createdAt: timestamp("created_at").defaultNow()
-});
-
-// Product type definitions
-export type Product = typeof products.$inferSelect;
-export type InsertProduct = typeof products.$inferInsert;
 
 // Campaign Tables
 export const campaigns = pgTable("campaigns", {
@@ -549,7 +530,7 @@ export const campaigns = pgTable("campaigns", {
   name: text("name").notNull(),
   status: text("status").notNull().default("draft"), // draft, active, paused, completed
   senderProfileId: integer("sender_profile_id").references(() => senderProfiles.id),
-  productId: integer("product_id").references(() => products.id),
+  strategicProfileId: integer("strategic_profile_id").references(() => strategicProfiles.id), // Reference to product/service info
   targetCustomerProfileId: integer("target_customer_profile_id").references(() => targetCustomerProfiles.id),
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),

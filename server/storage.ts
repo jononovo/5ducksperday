@@ -1,6 +1,6 @@
 import { 
   userPreferences, lists, companies, contacts, emailTemplates, users,
-  strategicProfiles, userEmailPreferences, products,
+  strategicProfiles, userEmailPreferences,
   senderProfiles, targetCustomerProfiles,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
@@ -10,7 +10,6 @@ import {
   type EmailTemplate, type InsertEmailTemplate,
   type User, type InsertUser,
   type StrategicProfile, type InsertStrategicProfile,
-  type Product, type InsertProduct,
   type SenderProfile, type InsertSenderProfile,
   type TargetCustomerProfile, type InsertTargetCustomerProfile
 } from "@shared/schema";
@@ -79,13 +78,6 @@ export interface IStorage {
   createStrategicProfile(data: InsertStrategicProfile): Promise<StrategicProfile>;
   updateStrategicProfile(id: number, data: Partial<StrategicProfile>): Promise<StrategicProfile>;
   deleteStrategicProfile(id: number): Promise<void>;
-
-  // Products
-  listProducts(userId: number): Promise<Product[]>;
-  getProduct(id: number, userId: number): Promise<Product | undefined>;
-  createProduct(data: InsertProduct): Promise<Product>;
-  updateProduct(id: number, data: Partial<Product>): Promise<Product | undefined>;
-  deleteProduct(id: number, userId: number): Promise<void>;
 
   // Sender Profiles
   listSenderProfiles(userId: number): Promise<SenderProfile[]>;
@@ -488,46 +480,6 @@ class DatabaseStorage implements IStorage {
     await db
       .delete(strategicProfiles)
       .where(eq(strategicProfiles.id, id));
-  }
-
-  // Product methods
-  async listProducts(userId: number): Promise<Product[]> {
-    return await db
-      .select()
-      .from(products)
-      .where(eq(products.userId, userId))
-      .orderBy(desc(products.createdAt));
-  }
-
-  async getProduct(id: number, userId: number): Promise<Product | undefined> {
-    const [product] = await db
-      .select()
-      .from(products)
-      .where(and(eq(products.id, id), eq(products.userId, userId)));
-    return product;
-  }
-
-  async createProduct(data: InsertProduct): Promise<Product> {
-    const [product] = await db
-      .insert(products)
-      .values(data)
-      .returning();
-    return product;
-  }
-
-  async updateProduct(id: number, data: Partial<Product>): Promise<Product | undefined> {
-    const [product] = await db
-      .update(products)
-      .set(data)
-      .where(eq(products.id, id))
-      .returning();
-    return product;
-  }
-
-  async deleteProduct(id: number, userId: number): Promise<void> {
-    await db
-      .delete(products)
-      .where(and(eq(products.id, id), eq(products.userId, userId)));
   }
 
   // Sender Profiles
