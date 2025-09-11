@@ -123,6 +123,38 @@ This application supports Replit AI agent browser testing through an authenticat
 - Logs all test mode access for audit
 - To disable: Set `ENABLE_AI_TEST_MODE=false` or remove it
 
+## Critical Development Notes for AI Agents
+
+### Database Access
+- Demo user (ID: 1, email: demo@5ducks.ai) is pre-seeded with sample data
+- Rate limit: 10 searches/hour for demo user (session-based)
+- Database migrations: Use `npm run db:push` (never write manual SQL migrations)
+- Force push if data loss warning: `npm run db:push --force`
+
+### Required Secrets (Must be in Secrets vault)
+- `ENABLE_AI_TEST_MODE`: Authentication bypass (true/false)
+- API keys needed for full functionality:
+  - `OPENAI_API_KEY`: Email generation, company research
+  - `PERPLEXITY_API_KEY`: Company/contact discovery
+  - `HUNTER_API_KEY`: Email finder/verification
+  - `APOLLO_API_KEY`: Professional contacts (optional)
+  - `SENDGRID_API_KEY`: Email sending (optional)
+  - Firebase env vars auto-configured in client
+
+### Key Endpoints & Testing
+- `/outreach`: Main app page - test email generation/search here
+- `/api/test-mode-status`: Verify AI test mode is active
+- `/api/user`: Should return demo user when test mode enabled
+- `/api/credits`: Check demo user credits (2980 initial balance)
+
+### Common Gotchas
+- Workflows auto-restart after package installation
+- Port 5000 reserved for frontend (bind nothing else)
+- Session store persists 7 days (survives restarts)
+- Firebase auth bypassed in test mode but still initializes
+- Search orchestrator has 3 retry attempts with exponential backoff
+- Email templates with userId=1 are defaults (visible to all users)
+
 ## External Dependencies
 - **Perplexity API**: Company research and contact discovery.
 - **OpenAI API**: Email strategy generation and content creation.
