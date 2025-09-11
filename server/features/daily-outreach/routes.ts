@@ -414,7 +414,8 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
       return res.status(404).json({ error: 'Item not found' });
     }
     
-    // Save to CRM communications history
+    // Save to CRM communications history and link to dailyOutreachItem
+    let communicationId: number | null = null;
     try {
       // Get contact details
       const [contact] = await db
@@ -423,24 +424,41 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
         .where(eq(contacts.id, itemDetails.contactId));
       
       if (contact) {
-        // Save to communicationHistory
-        await db.insert(communicationHistory).values({
+        // Determine final content (use edited content if available)
+        let finalContent = itemDetails.emailBody;
+        let finalSubject = itemDetails.emailSubject;
+        
+        if (itemDetails.editedContent) {
+          try {
+            const edited = JSON.parse(itemDetails.editedContent);
+            finalSubject = edited.subject || finalSubject;
+            finalContent = edited.body || finalContent;
+          } catch (e) {
+            console.error('Error parsing edited content:', e);
+          }
+        }
+        
+        // Save to communicationHistory and get the ID
+        const [communication] = await db.insert(communicationHistory).values({
           userId: batch.userId,
           contactId: itemDetails.contactId,
           companyId: itemDetails.companyId,
-          type: 'email',
-          direction: 'sent',
-          subject: itemDetails.emailSubject,
-          content: itemDetails.emailBody,
+          channel: 'email',  // Standardize field name
+          direction: 'outbound',  // Standardize to match manual outreach
+          subject: finalSubject,
+          content: finalContent,
+          contentPreview: finalContent.substring(0, 200),
           sentAt,
           status: 'sent',
-          source: 'daily_outreach',
-          metadata: JSON.stringify({
+          metadata: {
+            source: 'daily_outreach',
             batchId: batch.id,
             itemId: itemDetails.id,
             tone: itemDetails.emailTone
-          })
-        });
+          }
+        }).returning();
+        
+        communicationId = communication.id;
         
         // Update contact status
         await db
@@ -456,6 +474,17 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
       console.error('Error saving to CRM history:', crmError);
       // Don't fail the request if CRM update fails
     }
+    
+    // Update item status with communication reference
+    const [finalUpdated] = await db
+      .update(dailyOutreachItems)
+      .set({
+        status: 'sent',
+        sentAt,
+        communicationId: communicationId  // Link to CRM record
+      })
+      .where(eq(dailyOutreachItems.id, parseInt(itemId)))
+      .returning();
     
     // Check if all items are processed
     const pendingItems = await db
@@ -481,7 +510,7 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
         .where(eq(dailyOutreachBatches.id, batch.id));
     }
     
-    res.json({ success: true, item: updated });
+    res.json({ success: true, item: finalUpdated || updated });
   } catch (error) {
     console.error('Error marking item as sent:', error);
     res.status(500).json({ error: 'Failed to mark as sent' });
