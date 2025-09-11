@@ -14,6 +14,8 @@ import { CalendarIcon, Mail, Zap, Building2, Users, TrendingUp, Pause, Play, Ext
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { ProductOnboardingForm } from '@/components/product-onboarding-form';
+import { CustomerProfileForm } from '@/components/customer-profile-form';
+import { SenderProfileForm } from '@/components/sender-profile-form';
 import { useLocation } from 'wouter';
 
 interface StreakStats {
@@ -115,6 +117,8 @@ export default function StreakPage() {
     to: undefined
   });
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [showSenderForm, setShowSenderForm] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [selectedSenderProfileId, setSelectedSenderProfileId] = useState<number | null>(null);
   const [selectedCustomerProfileId, setSelectedCustomerProfileId] = useState<number | null>(null);
@@ -926,7 +930,7 @@ export default function StreakPage() {
                 variant="ghost"
                 size="sm"
                 className="h-6 w-6 p-0"
-                onClick={() => setLocation('/settings/profile')}
+                onClick={() => setShowSenderForm(true)}
                 data-testid="button-add-sender-profile"
               >
                 <Plus className="h-3 w-3" />
@@ -1102,7 +1106,7 @@ export default function StreakPage() {
                 variant="ghost"
                 size="sm"
                 className="h-6 w-6 p-0"
-                onClick={() => setLocation('/strategy')}
+                onClick={() => setShowCustomerForm(true)}
                 data-testid="button-add-customer-profile"
               >
                 <Plus className="h-3 w-3" />
@@ -1299,6 +1303,26 @@ export default function StreakPage() {
       <ProductOnboardingForm
         open={showOnboarding}
         onClose={() => setShowOnboarding(false)}
+        onComplete={() => {
+          refetchPreferences();
+          refetchStats();
+        }}
+      />
+
+      {/* Customer Profile Form */}
+      <CustomerProfileForm
+        open={showCustomerForm}
+        onClose={() => setShowCustomerForm(false)}
+        onComplete={() => {
+          refetchPreferences();
+          refetchStats();
+        }}
+      />
+
+      {/* Sender Profile Form */}
+      <SenderProfileForm
+        open={showSenderForm}
+        onClose={() => setShowSenderForm(false)}
         onComplete={() => {
           refetchPreferences();
           refetchStats();
