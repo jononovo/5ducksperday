@@ -236,7 +236,7 @@ export function setupAuth(app: Express) {
       // In AI test mode, automatically use user ID 1 (guest user)
       req.user = { 
         id: 1, 
-        email: 'guest@5ducks.ai',
+        email: 'demo@5ducks.ai',
         username: 'Guest User',
         password: '' // Empty password for Firebase compatibility
       } as any;
@@ -400,7 +400,7 @@ export function setupAuth(app: Express) {
       enabled: process.env.ENABLE_AI_TEST_MODE === 'true',
       user: process.env.ENABLE_AI_TEST_MODE === 'true' ? {
         id: 1,
-        email: 'guest@5ducks.ai',
+        email: 'demo@5ducks.ai',
         username: 'Guest User'
       } : null
     });
@@ -412,7 +412,7 @@ export function setupAuth(app: Express) {
     if (isAITestMode) {
       return res.json({
         id: 1,
-        email: 'guest@5ducks.ai',
+        email: 'demo@5ducks.ai',
         username: 'Guest User',
         createdAt: new Date()
       });

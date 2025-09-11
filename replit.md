@@ -100,7 +100,7 @@ This application supports Replit AI agent browser testing through an authenticat
 **Current Status:** ✅ ENABLED
 - Environment: Development
 - Test User ID: 1
-- Email: guest@5ducks.ai
+- Email: demo@5ducks.ai
 
 **For AI Testing Agents:**
 1. No authentication required - proceed directly to any page

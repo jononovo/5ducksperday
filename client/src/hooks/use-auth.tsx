@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // In AI test mode, provide a default guest user
     initialData: isAITestMode ? {
       id: 1,
-      email: 'guest@5ducks.ai',
+      email: 'demo@5ducks.ai',
       username: 'Guest User',
       createdAt: new Date()
     } as SelectUser : undefined,
