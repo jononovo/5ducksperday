@@ -375,7 +375,7 @@ export const communicationHistory = pgTable("communication_history", {
   
   // Threading (critical for email replies)
   threadId: text("thread_id"), // Gmail threadId or generated UUID
-  parentId: integer("parent_id").references(() => communicationHistory.id),
+  parentId: integer("parent_id"),
   inReplyTo: text("in_reply_to"), // Email Message-ID for standard threading
   references: text("references"), // Email References header chain
   
