@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
-import { CalendarIcon, Mail, Zap, Building2, Users, TrendingUp, Pause, Play, ExternalLink, RefreshCw, Target, Flame, Sparkles, Rocket, Package, Plus, Check } from 'lucide-react';
+import { CalendarIcon, Mail, Zap, Building2, Users, TrendingUp, Pause, Play, ExternalLink, RefreshCw, Target, Flame, Sparkles, Rocket, Package, Plus, Check, Clock, Calendar as CalendarIcon2, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { ProductOnboardingForm } from '@/components/product-onboarding-form';
@@ -593,35 +593,70 @@ export default function StreakPage() {
         </Card>
       </div>
 
-      {/* Fluffy Header Banner */}
-      <Card className="mb-8 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-        <CardContent className="py-8">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="flex-shrink-0">
-              <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center">
-                <Sparkles className="h-12 w-12 text-primary" />
+      {/* Campaign Status Banner */}
+      <div className="mb-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-10 text-white shadow-2xl relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
+        
+        <div className="relative z-10">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium uppercase tracking-wider opacity-90">Campaign Active</span>
+              </div>
+              <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-white/80 bg-clip-text">
+                Your Campaign is Live! 🎯
+              </h2>
+              <p className="text-lg opacity-90 mb-4">Targeting ideal customers with personalized outreach</p>
+              
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon2 className="w-4 h-4 opacity-80" />
+                  <span className="text-sm opacity-90">Day 3 of 14</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 opacity-80" />
+                  <span className="text-sm opacity-90">11 days remaining</span>
+                </div>
               </div>
             </div>
-            <div className="flex-1 text-center md:text-left">
-              <h2 className="text-2xl font-bold mb-2">Welcome to My Nest! 🐣</h2>
-              <p className="text-muted-foreground">
-                For you to catch the worm, I need you to fill in three things below. 
-                Once your campaign is ready, hit the play button to start your daily outreach!
-              </p>
+            
+            <div className="flex gap-4">
+              <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
+                <p className="text-sm opacity-90 mb-1">Leads Generated</p>
+                <p className="text-4xl font-bold">27</p>
+                <p className="text-xs opacity-70 mt-1">+5 today</p>
+              </div>
+              <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
+                <p className="text-sm opacity-90 mb-1">Response Rate</p>
+                <p className="text-4xl font-bold">32%</p>
+                <p className="text-xs opacity-70 mt-1">↑ 8% vs avg</p>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+          
+          {/* Progress bar */}
+          <div className="mt-6">
+            <div className="bg-white/20 rounded-full h-2 overflow-hidden">
+              <div className="bg-white h-full rounded-full transition-all duration-500" style={{width: '21%'}}></div>
+            </div>
+            <p className="text-xs opacity-70 mt-2">Campaign Progress: 21% Complete</p>
+          </div>
+        </div>
+      </div>
 
       {/* Campaign Setup Row - 4 Components */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {/* 1. Me (My Company/Profile) */}
-        <Card className="relative">
+        <Card className="relative group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/30">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
+                  <User className="h-4 w-4" />
                   Me
                 </CardTitle>
                 <CardDescription className="text-xs">
