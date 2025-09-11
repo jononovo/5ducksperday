@@ -222,7 +222,7 @@ export default function StreakPage() {
         title: 'Product selected',
         description: 'Your active product has been updated'
       });
-      refetchPreferences();
+      // Removed refetchPreferences() to prevent card refresh
     }
   });
 
@@ -239,7 +239,7 @@ export default function StreakPage() {
         title: 'Sender profile selected',
         description: 'Your active sender profile has been updated'
       });
-      refetchPreferences();
+      // Removed refetchPreferences() to prevent card refresh
     }
   });
 
@@ -256,7 +256,7 @@ export default function StreakPage() {
         title: 'Customer profile selected',
         description: 'Your active customer profile has been updated'
       });
-      refetchPreferences();
+      // Removed refetchPreferences() to prevent card refresh
     }
   });
 
@@ -333,11 +333,8 @@ export default function StreakPage() {
     // Toggle selection - if already selected, deselect it
     if (selectedProductId === productId) {
       setSelectedProductId(null);
-      // Optionally clear the active product in preferences
-      setActiveProduct.mutate(0); // or pass null if API supports it
     } else {
       setSelectedProductId(productId);
-      setActiveProduct.mutate(productId);
     }
   };
 
@@ -345,11 +342,8 @@ export default function StreakPage() {
     // Toggle selection - if already selected, deselect it
     if (selectedSenderProfileId === profileId) {
       setSelectedSenderProfileId(null);
-      // Optionally clear the active sender profile in preferences
-      setActiveSenderProfile.mutate(0); // or pass null if API supports it
     } else {
       setSelectedSenderProfileId(profileId);
-      setActiveSenderProfile.mutate(profileId);
     }
   };
 
@@ -357,11 +351,8 @@ export default function StreakPage() {
     // Toggle selection - if already selected, deselect it
     if (selectedCustomerProfileId === profileId) {
       setSelectedCustomerProfileId(null);
-      // Optionally clear the active customer profile in preferences
-      setActiveCustomerProfile.mutate(0); // or pass null if API supports it
     } else {
       setSelectedCustomerProfileId(profileId);
-      setActiveCustomerProfile.mutate(profileId);
     }
   };
 
@@ -1314,9 +1305,13 @@ export default function StreakPage() {
                   className="h-16 w-16 rounded-full p-0 mb-3"
                   onClick={() => {
                     if (products && products.length > 0 && selectedProductId) {
+                      // Save all selected profiles when activating the campaign
                       updatePreferences.mutate({ 
                         enabled: true,
-                        scheduleDays: ['monday', 'tuesday', 'wednesday'].slice(0, daysPerWeek[0])
+                        scheduleDays: ['monday', 'tuesday', 'wednesday'].slice(0, daysPerWeek[0]),
+                        activeProductId: selectedProductId,
+                        activeSenderProfileId: selectedSenderProfileId || 0,
+                        activeCustomerProfileId: selectedCustomerProfileId || 0
                       });
                     } else {
                       toast({
@@ -1347,7 +1342,7 @@ export default function StreakPage() {
         open={showOnboarding}
         onClose={() => setShowOnboarding(false)}
         onComplete={() => {
-          refetchPreferences();
+          // Only refetch stats, not preferences to avoid card refresh
           refetchStats();
         }}
       />
@@ -1357,7 +1352,7 @@ export default function StreakPage() {
         open={showCustomerForm}
         onClose={() => setShowCustomerForm(false)}
         onComplete={() => {
-          refetchPreferences();
+          // Only refetch stats, not preferences to avoid card refresh
           refetchStats();
         }}
       />
@@ -1367,7 +1362,7 @@ export default function StreakPage() {
         open={showSenderForm}
         onClose={() => setShowSenderForm(false)}
         onComplete={() => {
-          refetchPreferences();
+          // Only refetch stats, not preferences to avoid card refresh
           refetchStats();
         }}
       />
