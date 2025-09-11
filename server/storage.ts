@@ -1,6 +1,7 @@
 import { 
   userPreferences, lists, companies, contacts, emailTemplates, users,
   strategicProfiles, userEmailPreferences, products,
+  senderProfiles, targetCustomerProfiles,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type List, type InsertList,
@@ -9,7 +10,9 @@ import {
   type EmailTemplate, type InsertEmailTemplate,
   type User, type InsertUser,
   type StrategicProfile, type InsertStrategicProfile,
-  type Product, type InsertProduct
+  type Product, type InsertProduct,
+  type SenderProfile, type InsertSenderProfile,
+  type TargetCustomerProfile, type InsertTargetCustomerProfile
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, sql, desc } from "drizzle-orm";
@@ -83,6 +86,20 @@ export interface IStorage {
   createProduct(data: InsertProduct): Promise<Product>;
   updateProduct(id: number, data: Partial<Product>): Promise<Product | undefined>;
   deleteProduct(id: number, userId: number): Promise<void>;
+
+  // Sender Profiles
+  listSenderProfiles(userId: number): Promise<SenderProfile[]>;
+  getSenderProfile(id: number, userId: number): Promise<SenderProfile | undefined>;
+  createSenderProfile(data: InsertSenderProfile): Promise<SenderProfile>;
+  updateSenderProfile(id: number, data: Partial<SenderProfile>): Promise<SenderProfile>;
+  deleteSenderProfile(id: number, userId: number): Promise<void>;
+
+  // Customer Profiles
+  listCustomerProfiles(userId: number): Promise<TargetCustomerProfile[]>;
+  getCustomerProfile(id: number, userId: number): Promise<TargetCustomerProfile | undefined>;
+  createCustomerProfile(data: InsertTargetCustomerProfile): Promise<TargetCustomerProfile>;
+  updateCustomerProfile(id: number, data: Partial<TargetCustomerProfile>): Promise<TargetCustomerProfile>;
+  deleteCustomerProfile(id: number, userId: number): Promise<void>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -511,6 +528,72 @@ class DatabaseStorage implements IStorage {
     await db
       .delete(products)
       .where(and(eq(products.id, id), eq(products.userId, userId)));
+  }
+
+  // Sender Profiles
+  async listSenderProfiles(userId: number): Promise<SenderProfile[]> {
+    return db.select()
+      .from(senderProfiles)
+      .where(eq(senderProfiles.userId, userId))
+      .orderBy(desc(senderProfiles.createdAt));
+  }
+
+  async getSenderProfile(id: number, userId: number): Promise<SenderProfile | undefined> {
+    const [profile] = await db.select()
+      .from(senderProfiles)
+      .where(and(eq(senderProfiles.id, id), eq(senderProfiles.userId, userId)));
+    return profile;
+  }
+
+  async createSenderProfile(data: InsertSenderProfile): Promise<SenderProfile> {
+    const [profile] = await db.insert(senderProfiles).values(data).returning();
+    return profile;
+  }
+
+  async updateSenderProfile(id: number, data: Partial<SenderProfile>): Promise<SenderProfile> {
+    const [updated] = await db.update(senderProfiles)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(senderProfiles.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteSenderProfile(id: number, userId: number): Promise<void> {
+    await db.delete(senderProfiles)
+      .where(and(eq(senderProfiles.id, id), eq(senderProfiles.userId, userId)));
+  }
+
+  // Customer Profiles
+  async listCustomerProfiles(userId: number): Promise<TargetCustomerProfile[]> {
+    return db.select()
+      .from(targetCustomerProfiles)
+      .where(eq(targetCustomerProfiles.userId, userId))
+      .orderBy(desc(targetCustomerProfiles.createdAt));
+  }
+
+  async getCustomerProfile(id: number, userId: number): Promise<TargetCustomerProfile | undefined> {
+    const [profile] = await db.select()
+      .from(targetCustomerProfiles)
+      .where(and(eq(targetCustomerProfiles.id, id), eq(targetCustomerProfiles.userId, userId)));
+    return profile;
+  }
+
+  async createCustomerProfile(data: InsertTargetCustomerProfile): Promise<TargetCustomerProfile> {
+    const [profile] = await db.insert(targetCustomerProfiles).values(data).returning();
+    return profile;
+  }
+
+  async updateCustomerProfile(id: number, data: Partial<TargetCustomerProfile>): Promise<TargetCustomerProfile> {
+    const [updated] = await db.update(targetCustomerProfiles)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(targetCustomerProfiles.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCustomerProfile(id: number, userId: number): Promise<void> {
+    await db.delete(targetCustomerProfiles)
+      .where(and(eq(targetCustomerProfiles.id, id), eq(targetCustomerProfiles.userId, userId)));
   }
 }
 

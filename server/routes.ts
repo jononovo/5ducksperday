@@ -45,6 +45,8 @@ import { registerReactChatRoutes } from "./user-chatbox/react";
 import { registerStrategicProfilesRoutes } from "./user-chatbox/strategic-profiles";
 import { registerUserAccountSettingsRoutes } from "./user-account-settings";
 import { dailyOutreachRoutes } from "./features/daily-outreach";
+import { registerSenderProfilesRoutes } from "./features/sender-profiles";
+import { registerCustomerProfilesRoutes } from "./features/customer-profiles";
 
 
 // Import centralized auth utilities
@@ -139,6 +141,9 @@ export function registerRoutes(app: Express) {
   // Note: Auth is handled selectively inside the router - token-based endpoints don't need auth
   app.use('/api/daily-outreach', dailyOutreachRoutes);
 
+  // Register sender and customer profiles modules
+  registerSenderProfilesRoutes(app, requireAuth);
+  registerCustomerProfilesRoutes(app, requireAuth);
   
   // Register dormant modules that were created but never activated
   registerEmailRepliesRoutes(app, requireAuth);
