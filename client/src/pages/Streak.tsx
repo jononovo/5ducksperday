@@ -529,19 +529,16 @@ export default function StreakPage() {
 
       {/* Adaptive Campaign Banner - Shows intro or metrics based on campaign status */}
       {(() => {
-        // Check if all campaign components are filled
+        // Simply check if campaign is activated (play button pressed)
+        const isActivated = !!preferences?.enabled;
+        
+        // Calculate progress for intro banner
         const hasSenderProfile = !!selectedSenderProfileId;
         const hasProduct = !!selectedProductId;
         const hasCustomerProfile = !!selectedCustomerProfileId;
-        const isActivated = !!preferences?.enabled;
-        
-        const allComponentsFilled = hasSenderProfile && hasProduct && hasCustomerProfile;
-        const campaignIsActive = allComponentsFilled && isActivated;
-        
-        // Calculate progress for intro banner
         const componentsFilledCount = [hasSenderProfile, hasProduct, hasCustomerProfile].filter(Boolean).length;
         
-        if (campaignIsActive) {
+        if (isActivated) {
           // Show metrics banner for active campaigns
           return (
             <div className="mb-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-10 text-white shadow-2xl relative overflow-hidden">
@@ -691,7 +688,7 @@ export default function StreakPage() {
                     </div>
                     
                     {/* Activation prompt when all components are filled */}
-                    {allComponentsFilled && !isActivated && (
+                    {componentsFilledCount === 3 && !isActivated && (
                       <div className="mt-4 p-3 bg-green-400/20 rounded-lg border border-green-300">
                         <p className="text-sm flex items-center gap-2">
                           <Sparkles className="w-4 h-4" />
