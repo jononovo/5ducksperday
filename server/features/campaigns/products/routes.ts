@@ -4,30 +4,11 @@
  * Manages strategic profile CRUD operations
  */
 
-import { Express } from "express";
-import { storage } from "../../storage";
+import { Express, Application } from "express";
+import { storage } from "../../../storage";
+import { getUserId } from "../../../utils/auth";
 
-// Helper function to safely get user ID from request
-function getUserId(req: any): number {
-  try {
-    // First check if user is authenticated through session
-    if (req.isAuthenticated && req.isAuthenticated() && req.user && req.user.id) {
-      return req.user.id;
-    }
-    
-    // Then check for Firebase authentication
-    if (req.firebaseUser && req.firebaseUser.id) {
-      return req.firebaseUser.id;
-    }
-  } catch (error) {
-    console.error('Error accessing user ID:', error);
-  }
-  
-  // For non-authenticated users, fall back to demo user ID (1)
-  return 1;
-}
-
-export function registerStrategicProfilesRoutes(app: Express, requireAuth: any) {
+export function registerStrategicProfilesRoutes(app: Application, requireAuth: any) {
   
   // Delete strategic profile endpoint (for React Strategy Chat restart)
   app.delete('/api/strategic-profiles/:id', requireAuth, async (req, res) => {

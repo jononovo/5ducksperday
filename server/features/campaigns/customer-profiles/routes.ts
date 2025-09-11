@@ -1,7 +1,7 @@
 import { Router, Request, Response, Application } from 'express';
-import { storage } from '../../storage';
+import { storage } from '../../../storage';
 import { insertTargetCustomerProfileSchema, type TargetCustomerProfile, type InsertTargetCustomerProfile } from '@shared/schema';
-import { getUserId } from '../../utils/auth';
+import { getUserId } from '../../../utils/auth';
 import { z } from 'zod';
 
 export function registerCustomerProfilesRoutes(app: Application, requireAuth: any) {
