@@ -54,6 +54,8 @@ interface OutreachPreferences {
   vacationStartDate?: string | null;
   vacationEndDate?: string | null;
   activeProductId?: number;
+  activeSenderProfileId?: number;
+  activeCustomerProfileId?: number;
 }
 
 interface Product {
@@ -71,6 +73,37 @@ interface Product {
   marketNiche?: string;
 }
 
+interface SenderProfile {
+  id: number;
+  userId: number;
+  name: string;
+  email: string;
+  companyName?: string;
+  companyWebsite?: string;
+  title?: string;
+  isDefault: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface CustomerProfile {
+  id: number;
+  userId: number;
+  title: string;
+  industry?: string;
+  companySize?: string;
+  jobTitles?: string[];
+  painPoints?: string[];
+  goals?: string[];
+  geography?: string;
+  budget?: string;
+  decisionMakingProcess?: string;
+  currentSolutions?: string;
+  buyingTriggers?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export default function StreakPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -83,6 +116,8 @@ export default function StreakPage() {
   });
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [selectedSenderProfileId, setSelectedSenderProfileId] = useState<number | null>(null);
+  const [selectedCustomerProfileId, setSelectedCustomerProfileId] = useState<number | null>(null);
 
   // Fetch streak stats
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useQuery<StreakStats>({
@@ -94,6 +129,18 @@ export default function StreakPage() {
   // Fetch user's products
   const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ['/api/products'],
+    enabled: !!user
+  });
+
+  // Fetch sender profiles
+  const { data: senderProfiles, isLoading: senderProfilesLoading } = useQuery<SenderProfile[]>({
+    queryKey: ['/api/sender-profiles'],
+    enabled: !!user
+  });
+
+  // Fetch customer profiles
+  const { data: customerProfiles, isLoading: customerProfilesLoading } = useQuery<CustomerProfile[]>({
+    queryKey: ['/api/customer-profiles'],
     enabled: !!user
   });
 
@@ -174,6 +221,40 @@ export default function StreakPage() {
     }
   });
 
+  // Set active sender profile mutation
+  const setActiveSenderProfile = useMutation({
+    mutationFn: async (senderProfileId: number) => {
+      const res = await apiRequest('PUT', '/api/daily-outreach/preferences', {
+        activeSenderProfileId: senderProfileId
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Sender profile selected',
+        description: 'Your active sender profile has been updated'
+      });
+      refetchPreferences();
+    }
+  });
+
+  // Set active customer profile mutation
+  const setActiveCustomerProfile = useMutation({
+    mutationFn: async (customerProfileId: number) => {
+      const res = await apiRequest('PUT', '/api/daily-outreach/preferences', {
+        activeCustomerProfileId: customerProfileId
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Customer profile selected',
+        description: 'Your active customer profile has been updated'
+      });
+      refetchPreferences();
+    }
+  });
+
   useEffect(() => {
     if (preferences) {
       // Set days per week based on schedule days length
@@ -198,12 +279,43 @@ export default function StreakPage() {
         // Default to first product if none selected
         setSelectedProductId(products[0].id);
       }
+
+      // Set active sender profile
+      if (preferences.activeSenderProfileId) {
+        setSelectedSenderProfileId(preferences.activeSenderProfileId);
+      }
+
+      // Set active customer profile
+      if (preferences.activeCustomerProfileId) {
+        setSelectedCustomerProfileId(preferences.activeCustomerProfileId);
+      }
     }
-  }, [preferences, products]);
+
+    // Auto-select default sender profile
+    if (senderProfiles && senderProfiles.length > 0 && !selectedSenderProfileId) {
+      const defaultProfile = senderProfiles.find(p => p.isDefault) || senderProfiles[0];
+      setSelectedSenderProfileId(defaultProfile.id);
+    }
+
+    // Auto-select first customer profile if available
+    if (customerProfiles && customerProfiles.length > 0 && !selectedCustomerProfileId) {
+      setSelectedCustomerProfileId(customerProfiles[0].id);
+    }
+  }, [preferences, products, senderProfiles, customerProfiles]);
 
   const handleProductChange = (productId: number) => {
     setSelectedProductId(productId);
     setActiveProduct.mutate(productId);
+  };
+
+  const handleSenderProfileChange = (profileId: number) => {
+    setSelectedSenderProfileId(profileId);
+    setActiveSenderProfile.mutate(profileId);
+  };
+
+  const handleCustomerProfileChange = (profileId: number) => {
+    setSelectedCustomerProfileId(profileId);
+    setActiveCustomerProfile.mutate(profileId);
   };
 
   const handleDaysPerWeekChange = (value: number[]) => {
@@ -651,7 +763,12 @@ export default function StreakPage() {
       {/* Campaign Setup Row - 4 Components */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {/* 1. Me (My Company/Profile) */}
-        <Card className="relative group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/30">
+        <Card className={cn(
+          "relative group transition-all duration-300 border-2",
+          selectedSenderProfileId 
+            ? "border-primary bg-primary/5 shadow-lg" 
+            : "hover:shadow-xl hover:border-primary/30"
+        )}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
@@ -663,31 +780,60 @@ export default function StreakPage() {
                   My Company
                 </CardDescription>
               </div>
-              {user && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={() => setLocation('/settings/profile')}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setLocation('/settings/profile')}
+                data-testid="button-add-sender-profile"
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            {user ? (
+            {senderProfilesLoading ? (
+              <div className="text-xs text-muted-foreground">Loading...</div>
+            ) : senderProfiles && senderProfiles.length > 0 ? (
               <div className="space-y-2">
-                <div className="p-2 bg-secondary rounded-lg">
-                  <div className="font-medium text-xs truncate">{user.username || user.email}</div>
-                  <div className="text-xs text-muted-foreground truncate">{user.email}</div>
-                </div>
+                {senderProfiles
+                  .sort((a, b) => b.isDefault ? 1 : -1) // Default profiles first
+                  .slice(0, 3)
+                  .map((profile) => (
+                  <div
+                    key={profile.id}
+                    className={cn(
+                      "p-2 rounded-lg border cursor-pointer transition-all",
+                      selectedSenderProfileId === profile.id
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => handleSenderProfileChange(profile.id)}
+                    data-testid={`sender-profile-${profile.id}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-xs truncate">{profile.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">{profile.email}</div>
+                        {profile.title && (
+                          <div className="text-xs text-muted-foreground truncate">{profile.title}</div>
+                        )}
+                      </div>
+                      {selectedSenderProfileId === profile.id && (
+                        <Check className="h-3 w-3 text-primary flex-shrink-0" />
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="text-center py-4">
-                <Plus className="h-8 w-8 mx-auto text-muted-foreground/30 mb-2" />
+                <div className="p-2 bg-secondary rounded-lg mb-2">
+                  <div className="font-medium text-xs truncate">{user?.username || user?.email}</div>
+                  <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Set up your profile
+                  Default profile created
                 </p>
               </div>
             )}
@@ -695,7 +841,12 @@ export default function StreakPage() {
         </Card>
 
         {/* 2. My Product */}
-        <Card className="relative">
+        <Card className={cn(
+          "relative transition-all duration-300 border-2",
+          selectedProductId 
+            ? "border-primary bg-primary/5 shadow-lg" 
+            : "hover:shadow-xl hover:border-primary/30"
+        )}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
@@ -707,16 +858,15 @@ export default function StreakPage() {
                   What are you selling?
                 </CardDescription>
               </div>
-              {products && products.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={() => setShowOnboarding(true)}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setShowOnboarding(true)}
+                data-testid="button-add-product"
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
@@ -733,14 +883,22 @@ export default function StreakPage() {
                     className={cn(
                       "p-2 rounded-lg border cursor-pointer transition-all",
                       selectedProductId === product.id
-                        ? "border-primary bg-primary/5"
+                        ? "border-primary bg-primary/10"
                         : "border-border hover:border-primary/50"
                     )}
                     onClick={() => handleProductChange(product.id)}
+                    data-testid={`product-${product.id}`}
                   >
-                    <div className="font-medium text-xs truncate">{product.title}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {product.productService}
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-xs truncate">{product.title}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {product.productService}
+                        </div>
+                      </div>
+                      {selectedProductId === product.id && (
+                        <Check className="h-3 w-3 text-primary flex-shrink-0" />
+                      )}
                     </div>
                   </div>
                 ))}
@@ -752,6 +910,7 @@ export default function StreakPage() {
                   size="sm"
                   className="h-16 w-16 rounded-full p-0"
                   onClick={() => setShowOnboarding(true)}
+                  data-testid="button-create-product"
                 >
                   <Plus className="h-8 w-8 text-muted-foreground/30" />
                 </Button>
@@ -764,7 +923,12 @@ export default function StreakPage() {
         </Card>
 
         {/* 3. Ideal Customer */}
-        <Card className="relative">
+        <Card className={cn(
+          "relative transition-all duration-300 border-2",
+          selectedCustomerProfileId 
+            ? "border-primary bg-primary/5 shadow-lg" 
+            : "hover:shadow-xl hover:border-primary/30"
+        )}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
@@ -776,20 +940,54 @@ export default function StreakPage() {
                   Who are you connecting with?
                 </CardDescription>
               </div>
-              {products && products.length > 0 && selectedProductId && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={() => setShowOnboarding(true)}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setLocation('/strategy')}
+                data-testid="button-add-customer-profile"
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            {products && products.length > 0 && selectedProductId ? (
+            {customerProfilesLoading ? (
+              <div className="text-xs text-muted-foreground">Loading...</div>
+            ) : customerProfiles && customerProfiles.length > 0 ? (
+              <div className="space-y-2">
+                {customerProfiles
+                  .slice(0, 3)
+                  .map((profile) => (
+                  <div
+                    key={profile.id}
+                    className={cn(
+                      "p-2 rounded-lg border cursor-pointer transition-all",
+                      selectedCustomerProfileId === profile.id
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => handleCustomerProfileChange(profile.id)}
+                    data-testid={`customer-profile-${profile.id}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-xs truncate">{profile.title}</div>
+                        {profile.industry && (
+                          <div className="text-xs text-muted-foreground truncate">{profile.industry}</div>
+                        )}
+                        {profile.companySize && (
+                          <div className="text-xs text-muted-foreground truncate">{profile.companySize}</div>
+                        )}
+                      </div>
+                      {selectedCustomerProfileId === profile.id && (
+                        <Check className="h-3 w-3 text-primary flex-shrink-0" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : products && products.length > 0 && selectedProductId ? (
               <div className="space-y-2">
                 {products
                   .filter(p => p.id === selectedProductId)

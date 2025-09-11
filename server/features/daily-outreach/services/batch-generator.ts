@@ -6,6 +6,8 @@ import {
   dailyOutreachItems,
   strategicProfiles,
   userOutreachPreferences,
+  senderProfiles,
+  targetCustomerProfiles,
   Contact,
   Company,
   DailyOutreachBatch,
@@ -132,7 +134,7 @@ export class DailyBatchGenerator {
     userId: number
   ): Promise<Omit<DailyOutreachItem, 'id' | 'batchId' | 'createdAt'>> {
     try {
-      // Get user's active product from preferences
+      // Get user's preferences including profile selections
       const [preferences] = await db
         .select()
         .from(userOutreachPreferences)
@@ -156,12 +158,49 @@ export class DailyBatchGenerator {
           .limit(1);
         strategy = latestStrategy;
       }
+
+      // Get selected sender profile for personalization
+      let senderProfile;
+      if (preferences?.activeSenderProfileId) {
+        const [activeSender] = await db
+          .select()
+          .from(senderProfiles)
+          .where(eq(senderProfiles.id, preferences.activeSenderProfileId));
+        senderProfile = activeSender;
+      }
+
+      // Get selected customer profile for targeting
+      let customerProfile;
+      if (preferences?.activeCustomerProfileId) {
+        const [activeCustomer] = await db
+          .select()
+          .from(targetCustomerProfiles)
+          .where(eq(targetCustomerProfiles.id, preferences.activeCustomerProfileId));
+        customerProfile = activeCustomer;
+      }
       
-      // Generate email content using existing system
+      // Build enhanced email prompt with profile context
+      let emailPrompt = strategy?.productService 
+        ? `Introduce ${strategy.productService} to this company and how it can help their business`
+        : 'Introduce our services and explore potential collaboration';
+        
+      if (customerProfile) {
+        emailPrompt += `. Target customer profile: ${customerProfile.title}`;
+        if (customerProfile.painPoints && customerProfile.painPoints.length > 0) {
+          emailPrompt += `. Address these pain points: ${customerProfile.painPoints.join(', ')}`;
+        }
+      }
+      
+      if (senderProfile) {
+        emailPrompt += `. Email from ${senderProfile.name} at ${senderProfile.companyName || 'our company'}`;
+        if (senderProfile.title) {
+          emailPrompt += ` (${senderProfile.title})`;
+        }
+      }
+
+      // Generate email content using existing system with enhanced context
       const emailContent = await generateEmailContent({
-        emailPrompt: strategy?.productService 
-          ? `Introduce ${strategy.productService} to this company and how it can help their business`
-          : 'Introduce our services and explore potential collaboration',
+        emailPrompt,
         contact: contact,
         company: company,
         userId: userId,

@@ -445,6 +445,8 @@ export const userOutreachPreferences = pgTable("user_outreach_preferences", {
   timezone: text("timezone").default('America/New_York'),
   minContactsRequired: integer("min_contacts_required").default(5),
   activeProductId: integer("active_product_id").references(() => strategicProfiles.id),
+  activeSenderProfileId: integer("active_sender_profile_id").references(() => senderProfiles.id),
+  activeCustomerProfileId: integer("active_customer_profile_id").references(() => targetCustomerProfiles.id),
   lastNudgeSent: timestamp("last_nudge_sent", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
@@ -669,6 +671,9 @@ export const userOutreachPreferencesSchema = z.object({
   scheduleTime: z.string().default('09:00'),
   timezone: z.string().default('America/New_York'),
   minContactsRequired: z.number().default(5),
+  activeProductId: z.number().optional(),
+  activeSenderProfileId: z.number().optional(),
+  activeCustomerProfileId: z.number().optional(),
   lastNudgeSent: z.string().optional()
 });
 

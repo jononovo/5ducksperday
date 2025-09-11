@@ -62,7 +62,7 @@ router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
     
-    const { enabled, scheduleDays, scheduleTime, timezone, minContactsRequired, activeProductId } = req.body;
+    const { enabled, scheduleDays, scheduleTime, timezone, minContactsRequired, activeProductId, activeSenderProfileId, activeCustomerProfileId } = req.body;
     
     // Check if preferences exist
     const [existing] = await db
@@ -82,6 +82,8 @@ router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
           timezone,
           minContactsRequired,
           activeProductId,
+          activeSenderProfileId,
+          activeCustomerProfileId,
           updatedAt: new Date()
         })
         .where(eq(userOutreachPreferences.userId, userId))
@@ -97,7 +99,9 @@ router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
           scheduleTime,
           timezone,
           minContactsRequired,
-          activeProductId
+          activeProductId,
+          activeSenderProfileId,
+          activeCustomerProfileId
         })
         .returning();
     }
