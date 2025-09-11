@@ -522,6 +522,25 @@ export const targetCustomerProfiles = pgTable("target_customer_profiles", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+// Campaign Tables
+export const campaigns = pgTable("campaigns", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  status: text("status").notNull().default("draft"), // draft, active, paused, completed
+  senderProfileId: integer("sender_profile_id").references(() => senderProfiles.id),
+  productId: integer("product_id").references(() => products.id),
+  targetCustomerProfileId: integer("target_customer_profile_id").references(() => targetCustomerProfiles.id),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  durationDays: integer("duration_days").notNull().default(14), // Default 2 weeks
+  dailyLeadTarget: integer("daily_lead_target").notNull().default(5),
+  totalLeadsGenerated: integer("total_leads_generated").notNull().default(0),
+  responseRate: real("response_rate").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 export const strategicProfiles = pgTable("strategic_profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
@@ -747,6 +766,20 @@ export const insertSenderProfileSchema = senderProfileSchema.extend({
 });
 
 export const insertTargetCustomerProfileSchema = targetCustomerProfileSchema.extend({
+  userId: z.number()
+});
+
+export const campaignSchema = z.object({
+  name: z.string().min(1, "Campaign name is required"),
+  status: z.enum(["draft", "active", "paused", "completed"]).default("draft"),
+  senderProfileId: z.number().optional(),
+  productId: z.number().optional(),
+  targetCustomerProfileId: z.number().optional(),
+  durationDays: z.number().default(14),
+  dailyLeadTarget: z.number().default(5)
+});
+
+export const insertCampaignSchema = campaignSchema.extend({
   userId: z.number()
 });
 
