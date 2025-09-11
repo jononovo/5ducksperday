@@ -39,7 +39,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; // Import Input component
 import { cn } from "@/lib/utils";
 import type { List, Company, Contact, StrategicProfile } from "@shared/schema";
-import { generateShortListDisplayName } from "@/lib/list-utils";
+import { generateShortListDisplayName, generateListPromptOnly } from "@/lib/list-utils";
 import { useState, useEffect, useMemo, useRef } from "react";
 import QuickTemplates from "@/components/quick-templates";
 import type { EmailTemplate } from "@shared/schema";
@@ -1389,18 +1389,18 @@ export default function Outreach() {
         <div 
           className={`md:block ${!isMobileExpanded ? 'hidden' : 'block'}`}
         >
-          <div className="md:border md:rounded-lg md:shadow-sm">
-            <div className="p-6 md:pb-6">
-              <div className="space-y-3">
-                {/* Unified Navigation Container */}
-                <div className={cn(
-                  "rounded-lg border transition-all duration-200",
-                  !selectedListId 
-                    ? "border-2 border-blue-200"
-                    : selectedListId && !selectedContactId
-                      ? "border border-blue-200"
-                      : "border border-gray-200"
-                )}>
+          <div className="md:border md:rounded-lg md:shadow-sm md:overflow-hidden">
+            {/* Navigation Section - No padding to use full width */}
+            <div>
+              {/* Unified Navigation Container */}
+              <div className={cn(
+                "md:border-0 md:rounded-none transition-all duration-200",
+                !selectedListId 
+                  ? "bg-blue-50/30"
+                  : selectedListId && !selectedContactId
+                    ? "bg-blue-50/20"
+                    : "bg-white"
+              )}>
                   {/* List Selection Dropdown */}
                   <Select
                     value={selectedListId}
@@ -1410,15 +1410,23 @@ export default function Outreach() {
                     }}
                   >
                     <SelectTrigger className={cn(
-                      "w-full h-12 transition-all duration-200 font-medium border-0 rounded-b-none",
+                      "w-full h-12 transition-all duration-200 font-medium border-0 md:rounded-t-lg rounded-b-none",
                       !selectedListId 
                         ? "px-4 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100"
                         : "px-3 bg-white hover:bg-gray-50",
                       // Hide the company count in the trigger display
                       selectedListId && "[&_span.company-count]:hidden",
-                      companies.length > 0 && "border-b"
+                      companies.length > 0 && "md:border-b",
+                      // Make the chevron icon match the navigation buttons (32px, gray-300)
+                      "[&_svg]:h-8 [&_svg]:w-8 [&_svg]:text-gray-300 [&_svg]:opacity-100"
                     )}>
-                      <SelectValue placeholder="Select a list to start" />
+                      <SelectValue placeholder="Select a list to start">
+                        {selectedListId && lists.length > 0 && (
+                          <span className="text-base">
+                            {generateListPromptOnly(lists.find(l => l.listId.toString() === selectedListId))}
+                          </span>
+                        )}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {lists.map((list: List) => (
@@ -1427,9 +1435,10 @@ export default function Outreach() {
                           value={list.listId.toString()}
                         >
                           <div className="flex items-center justify-between w-full pr-2">
-                            <span className="font-medium">{generateShortListDisplayName(list)}</span>
-                            <span className="company-count text-sm text-muted-foreground ml-4">
-                              {list.resultCount} companies
+                            <span className="font-medium text-[15px]">{list.prompt}</span>
+                            <span className="flex items-center gap-2 text-sm text-muted-foreground ml-4">
+                              <span>{list.resultCount} companies</span>
+                              <span className="text-xs">ID{list.listId}</span>
                             </span>
                           </div>
                         </SelectItem>
@@ -1440,7 +1449,7 @@ export default function Outreach() {
                   {/* Company Navigation */}
                   {companies.length > 0 && (
                     <div className={cn(
-                      "flex items-center justify-center gap-2 p-3 rounded-b-lg transition-all duration-200",
+                      "flex items-center justify-center gap-2 p-3 md:rounded-b-lg transition-all duration-200 border-b",
                       selectedListId && !selectedContactId 
                         ? "bg-gradient-to-r from-blue-50 to-indigo-50"
                         : "bg-white"
@@ -1508,9 +1517,10 @@ export default function Outreach() {
                     </div>
                   )}
                 </div>
-              </div>
             </div>
-            <div className="px-6 pb-6 md:px-6 md:pb-6">
+            
+            {/* Content Section - With padding for proper spacing */}
+            <div className="p-6">
               {/* Company Name Header */}
               {selectedCompany && (
                 <div className="flex justify-between items-center mb-4">

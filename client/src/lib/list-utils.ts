@@ -15,7 +15,7 @@ export function generateListDisplayName(list: List): string {
   let displayName = `ID${listId}-${truncatedPrompt}`;
   
   // Add custom search targets if they exist
-  if (customSearchTargets && customSearchTargets.length > 0) {
+  if (customSearchTargets && Array.isArray(customSearchTargets) && customSearchTargets.length > 0) {
     const customLabels = customSearchTargets.join('+');
     displayName += `+${customLabels}`;
   }
@@ -33,7 +33,7 @@ export function generateShortListDisplayName(list: List): string {
   let availableSpace = 60; // Base space
   
   let customLabel = '';
-  if (customSearchTargets && customSearchTargets.length > 0) {
+  if (customSearchTargets && Array.isArray(customSearchTargets) && customSearchTargets.length > 0) {
     customLabel = `+${customSearchTargets.join('+')}`;
     availableSpace -= customLabel.length;
   }
@@ -46,4 +46,26 @@ export function generateShortListDisplayName(list: List): string {
     : prompt;
   
   return `ID${listId}-${truncatedPrompt}${customLabel}`;
+}
+
+/**
+ * Generate just the prompt for the selected display (no ID)
+ */
+export function generateListPromptOnly(list: List | undefined): string {
+  // Defensive check for undefined list
+  if (!list) {
+    return '';
+  }
+  
+  const { prompt, customSearchTargets } = list;
+  
+  let displayName = prompt;
+  
+  // Add custom search targets if they exist
+  if (customSearchTargets && Array.isArray(customSearchTargets) && customSearchTargets.length > 0) {
+    const customLabel = `+${customSearchTargets.join('+')}`;
+    displayName += customLabel;
+  }
+  
+  return displayName;
 }
