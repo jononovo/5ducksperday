@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, jsonb, timestamp, boolean, uuid, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, boolean, uuid, index, real } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 export const users = pgTable("users", {
@@ -520,6 +520,22 @@ export const targetCustomerProfiles = pgTable("target_customer_profiles", {
   buyingTriggers: text("buying_triggers").array(), // What makes them buy
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Products table (for campaigns)
+export const products = pgTable("products", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  productService: text("product_service"),
+  customerFeedback: text("customer_feedback"),
+  website: text("website"),
+  businessType: text("business_type"), // "product" or "service"
+  status: text("status").default("active"),
+  targetCustomers: text("target_customers"),
+  primaryCustomerType: text("primary_customer_type"),
+  marketNiche: text("market_niche"),
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 // Campaign Tables
