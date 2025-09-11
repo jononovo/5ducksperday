@@ -10,10 +10,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
-import { CalendarIcon, Mail, Zap, Building2, Users, TrendingUp, Pause, Play, ExternalLink, RefreshCw, Target, Flame, Sparkles, Rocket, Package, Plus } from 'lucide-react';
+import { CalendarIcon, Mail, Zap, Building2, Users, TrendingUp, Pause, Play, ExternalLink, RefreshCw, Target, Flame, Sparkles, Rocket, Package, Plus, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { ProductOnboardingForm } from '@/components/product-onboarding-form';
+import { useLocation } from 'wouter';
 
 interface StreakStats {
   currentStreak: number;
@@ -65,11 +66,15 @@ interface Product {
   businessType: 'product' | 'service';
   status: string;
   createdAt?: string;
+  targetCustomers?: string;
+  primaryCustomerType?: string;
+  marketNiche?: string;
 }
 
 export default function StreakPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [daysPerWeek, setDaysPerWeek] = useState<number[]>([3]);
   const [vacationMode, setVacationMode] = useState(false);
   const [vacationDates, setVacationDates] = useState<{ from: Date | undefined; to: Date | undefined }>({
@@ -588,88 +593,276 @@ export default function StreakPage() {
         </Card>
       </div>
 
-      {/* Product Selector */}
-      <Card className="mb-8">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Active Product
-          </CardTitle>
-          <CardDescription className="text-sm">
-            Select which product to promote in daily outreach
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {productsLoading ? (
-            <div className="text-sm text-muted-foreground">Loading products...</div>
-          ) : products && products.length > 0 ? (
-            <div className="space-y-2">
-              {products
-                .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-                .slice(0, 3)
-                .map((product) => (
-                <div
-                  key={product.id}
-                  className={cn(
-                    "p-3 rounded-lg border cursor-pointer transition-all",
-                    selectedProductId === product.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  )}
-                  onClick={() => handleProductChange(product.id)}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium text-sm truncate">{product.title}</h4>
-                        {selectedProductId === product.id && (
-                          <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded shrink-0">Active</span>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                        {product.productService}
-                      </p>
-                    </div>
-                    <span className={cn(
-                      "text-xs px-1.5 py-0.5 rounded shrink-0",
-                      product.businessType === 'product' 
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-green-100 text-green-700"
-                    )}>
-                      {product.businessType}
-                    </span>
-                  </div>
-                </div>
-              ))}
-              {products.length > 3 && (
-                <p className="text-xs text-muted-foreground text-center pt-1">
-                  Showing 3 most recent products
-                </p>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full mt-2"
-                onClick={() => setShowOnboarding(true)}
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                Add New Product
-              </Button>
+      {/* Fluffy Header Banner */}
+      <Card className="mb-8 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+        <CardContent className="py-8">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="flex-shrink-0">
+              <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center">
+                <Sparkles className="h-12 w-12 text-primary" />
+              </div>
             </div>
-          ) : (
-            <div className="text-center py-4">
-              <Package className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-              <p className="text-sm text-muted-foreground mb-3">
-                No products configured yet
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="text-2xl font-bold mb-2">Welcome to My Nest! 🐣</h2>
+              <p className="text-muted-foreground">
+                For you to catch the worm, I need you to fill in three things below. 
+                Once your campaign is ready, hit the play button to start your daily outreach!
               </p>
-              <Button size="sm" onClick={() => setShowOnboarding(true)}>
-                <Plus className="h-3 w-3 mr-1" />
-                Add Your First Product
-              </Button>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
+
+      {/* Campaign Setup Row - 4 Components */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* 1. Me (My Company/Profile) */}
+        <Card className="relative">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Me
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  My Company
+                </CardDescription>
+              </div>
+              {user && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={() => setLocation('/settings/profile')}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {user ? (
+              <div className="space-y-2">
+                <div className="p-2 bg-secondary rounded-lg">
+                  <div className="font-medium text-xs truncate">{user.username || user.email}</div>
+                  <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <Plus className="h-8 w-8 mx-auto text-muted-foreground/30 mb-2" />
+                <p className="text-xs text-muted-foreground">
+                  Set up your profile
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 2. My Product */}
+        <Card className="relative">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  My Product
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  What are you selling?
+                </CardDescription>
+              </div>
+              {products && products.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={() => setShowOnboarding(true)}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {productsLoading ? (
+              <div className="text-xs text-muted-foreground">Loading...</div>
+            ) : products && products.length > 0 ? (
+              <div className="space-y-2">
+                {products
+                  .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+                  .slice(0, 3)
+                  .map((product) => (
+                  <div
+                    key={product.id}
+                    className={cn(
+                      "p-2 rounded-lg border cursor-pointer transition-all",
+                      selectedProductId === product.id
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    )}
+                    onClick={() => handleProductChange(product.id)}
+                  >
+                    <div className="font-medium text-xs truncate">{product.title}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {product.productService}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-16 w-16 rounded-full p-0"
+                  onClick={() => setShowOnboarding(true)}
+                >
+                  <Plus className="h-8 w-8 text-muted-foreground/30" />
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Add your product
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 3. Ideal Customer */}
+        <Card className="relative">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Ideal Customer
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Who are you connecting with?
+                </CardDescription>
+              </div>
+              {products && products.length > 0 && selectedProductId && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={() => setShowOnboarding(true)}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {products && products.length > 0 && selectedProductId ? (
+              <div className="space-y-2">
+                {products
+                  .filter(p => p.id === selectedProductId)
+                  .slice(0, 1)
+                  .map((product) => (
+                  <div key={product.id} className="space-y-2">
+                    {product.targetCustomers && (
+                      <div className="p-2 bg-secondary rounded-lg">
+                        <div className="font-medium text-xs">Target</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {product.targetCustomers}
+                        </div>
+                      </div>
+                    )}
+                    {product.primaryCustomerType && (
+                      <div className="p-2 bg-secondary rounded-lg">
+                        <div className="font-medium text-xs">Type</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {product.primaryCustomerType}
+                        </div>
+                      </div>
+                    )}
+                    {product.marketNiche && (
+                      <div className="p-2 bg-secondary rounded-lg">
+                        <div className="font-medium text-xs">Market</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {product.marketNiche}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <Plus className="h-8 w-8 mx-auto text-muted-foreground/30 mb-2" />
+                <p className="text-xs text-muted-foreground">
+                  Define your audience
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 4. Play Button */}
+        <Card className={cn(
+          "relative transition-all",
+          preferences?.enabled 
+            ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800" 
+            : "hover:shadow-lg"
+        )}>
+          <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] p-4">
+            {preferences?.enabled ? (
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mb-3">
+                  <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+                <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                  Campaign Active
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  Sending {daysPerWeek[0]} days/week
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => {
+                    updatePreferences.mutate({ enabled: false });
+                  }}
+                >
+                  Pause Campaign
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center">
+                <Button
+                  size="lg"
+                  className="h-16 w-16 rounded-full p-0 mb-3"
+                  onClick={() => {
+                    if (products && products.length > 0 && selectedProductId) {
+                      updatePreferences.mutate({ 
+                        enabled: true,
+                        scheduleDays: ['monday', 'tuesday', 'wednesday'].slice(0, daysPerWeek[0])
+                      });
+                    } else {
+                      toast({
+                        title: "Setup Required",
+                        description: "Please add your product information first",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                  disabled={!products || products.length === 0 || !selectedProductId}
+                >
+                  <Play className="h-8 w-8 ml-1" />
+                </Button>
+                <p className="text-sm font-medium">
+                  Start Campaign
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Launch daily outreach
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Product Onboarding Form */}
       <ProductOnboardingForm
