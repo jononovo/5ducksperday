@@ -538,6 +538,10 @@ export const products = pgTable("products", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// Product type definitions
+export type Product = typeof products.$inferSelect;
+export type InsertProduct = typeof products.$inferInsert;
+
 // Campaign Tables
 export const campaigns = pgTable("campaigns", {
   id: serial("id").primaryKey(),

@@ -244,6 +244,104 @@ Respond in this exact JSON format:
 
   // User Profile API endpoints
 
+  // Product Routes
+  app.get("/api/products", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId as number;
+      const userProducts = await storage.listProducts(userId);
+      
+      // If no products exist and it's the demo user, create demo products
+      if (userProducts.length === 0 && userId === 1) {
+        const demoProducts = [
+          {
+            userId: 1,
+            title: "AI Lead Generator",
+            productService: "AI-powered B2B lead generation platform that helps businesses find and connect with their ideal customers using advanced search algorithms and automated outreach.",
+            businessType: "service",
+            targetCustomers: "Small to medium B2B companies",
+            primaryCustomerType: "B2B SaaS companies",
+            marketNiche: "Sales automation",
+            status: "active"
+          },
+          {
+            userId: 1,
+            title: "CRM Integration Suite",
+            productService: "Seamless integration solution that connects multiple CRM platforms, syncing data and automating workflows across different sales tools.",
+            businessType: "product",
+            targetCustomers: "Enterprise sales teams",
+            primaryCustomerType: "Large corporations",
+            marketNiche: "Enterprise software",
+            status: "active"
+          }
+        ];
+        
+        for (const product of demoProducts) {
+          await storage.createProduct(product);
+        }
+        
+        return res.json(await storage.listProducts(userId));
+      }
+      
+      res.json(userProducts);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      res.status(500).json({ error: "Failed to fetch products" });
+    }
+  });
+
+  app.post("/api/products", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId as number;
+      const productData = {
+        ...req.body,
+        userId
+      };
+      
+      const newProduct = await storage.createProduct(productData);
+      res.json(newProduct);
+    } catch (error) {
+      console.error("Error creating product:", error);
+      res.status(500).json({ error: "Failed to create product" });
+    }
+  });
+
+  app.put("/api/products/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId as number;
+      const productId = parseInt(req.params.id);
+      
+      // Verify the product belongs to the user
+      const existingProduct = await storage.getProduct(productId, userId);
+      if (!existingProduct) {
+        return res.status(404).json({ error: "Product not found" });
+      }
+      
+      const updatedProduct = await storage.updateProduct(productId, req.body);
+      res.json(updatedProduct);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      res.status(500).json({ error: "Failed to update product" });
+    }
+  });
+
+  app.delete("/api/products/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId as number;
+      const productId = parseInt(req.params.id);
+      
+      // Verify the product belongs to the user
+      const existingProduct = await storage.getProduct(productId, userId);
+      if (!existingProduct) {
+        return res.status(404).json({ error: "Product not found" });
+      }
+      
+      await storage.deleteProduct(productId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      res.status(500).json({ error: "Failed to delete product" });
+    }
+  });
 
   // Register all billing-related routes (credits, Stripe, gamification)
   registerBillingRoutes(app);
