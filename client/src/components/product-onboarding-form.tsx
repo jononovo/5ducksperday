@@ -39,7 +39,7 @@ export function ProductOnboardingForm({ open, onClose, onComplete }: ProductOnbo
     website: ''
   });
 
-  // Save product profile mutation
+  // Save product profile mutation using strategic profiles
   const saveProduct = useMutation({
     mutationFn: async (data: FormData) => {
       const res = await apiRequest('POST', '/api/strategic-profiles/quick-setup', {
@@ -51,19 +51,21 @@ export function ProductOnboardingForm({ open, onClose, onComplete }: ProductOnbo
       });
       return res.json();
     },
-    onSuccess: async () => {
+    onSuccess: async (newProfile) => {
       // Enable daily outreach
       await apiRequest('PUT', '/api/daily-outreach/preferences', {
         enabled: true,
-        minContactsRequired: 5
+        minContactsRequired: 5,
+        activeStrategicProfileId: newProfile.id // Set the new profile as active
       });
       
       toast({
         title: 'Success!',
-        description: 'Your daily sales companion is now active. You\'ll receive your first batch of leads tomorrow!',
+        description: 'Your product has been added and is now active.',
       });
       
-      // Refresh the streak stats and preferences
+      // Refresh the products list (which is actually strategic profiles) and related data
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/preferences'] });
       queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/streak-stats'] });
       

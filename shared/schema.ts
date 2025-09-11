@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, jsonb, timestamp, boolean, uuid, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, boolean, uuid, index, real } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 export const users = pgTable("users", {
@@ -375,7 +375,7 @@ export const communicationHistory = pgTable("communication_history", {
   
   // Threading (critical for email replies)
   threadId: text("thread_id"), // Gmail threadId or generated UUID
-  parentId: integer("parent_id").references(() => communicationHistory.id),
+  parentId: integer("parent_id"),
   inReplyTo: text("in_reply_to"), // Email Message-ID for standard threading
   references: text("references"), // Email References header chain
   
@@ -445,6 +445,8 @@ export const userOutreachPreferences = pgTable("user_outreach_preferences", {
   timezone: text("timezone").default('America/New_York'),
   minContactsRequired: integer("min_contacts_required").default(5),
   activeProductId: integer("active_product_id").references(() => strategicProfiles.id),
+  activeSenderProfileId: integer("active_sender_profile_id").references(() => senderProfiles.id),
+  activeCustomerProfileId: integer("active_customer_profile_id").references(() => targetCustomerProfiles.id),
   lastNudgeSent: timestamp("last_nudge_sent", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
@@ -489,6 +491,59 @@ export const dailyOutreachJobLogs = pgTable("daily_outreach_job_logs", {
 ]);
 
 // Strategic onboarding tables
+// Sender Profiles for Campaigns
+export const senderProfiles = pgTable("sender_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  companyName: text("company_name"),
+  companyWebsite: text("company_website"),
+  title: text("title"), // Job title
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Target Customer Profiles for Campaigns
+export const targetCustomerProfiles = pgTable("target_customer_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(), // e.g., "Small Business Owners"
+  industry: text("industry"),
+  companySize: text("company_size"), // e.g., "1-50 employees", "50-200 employees"
+  jobTitles: text("job_titles").array(), // e.g., ["CEO", "Owner", "Founder"]
+  painPoints: text("pain_points").array(),
+  goals: text("goals").array(),
+  geography: text("geography"), // e.g., "United States", "Southeast US", "Global"
+  budget: text("budget"), // e.g., "< $10k", "$10k-$50k", "> $50k"
+  decisionMakingProcess: text("decision_making_process"),
+  currentSolutions: text("current_solutions"), // What they currently use
+  buyingTriggers: text("buying_triggers").array(), // What makes them buy
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+
+// Campaign Tables
+export const campaigns = pgTable("campaigns", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  status: text("status").notNull().default("draft"), // draft, active, paused, completed
+  senderProfileId: integer("sender_profile_id").references(() => senderProfiles.id),
+  strategicProfileId: integer("strategic_profile_id").references(() => strategicProfiles.id), // Reference to product/service info
+  targetCustomerProfileId: integer("target_customer_profile_id").references(() => targetCustomerProfiles.id),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  durationDays: integer("duration_days").notNull().default(14), // Default 2 weeks
+  dailyLeadTarget: integer("daily_lead_target").notNull().default(5),
+  totalLeadsGenerated: integer("total_leads_generated").notNull().default(0),
+  responseRate: real("response_rate").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 export const strategicProfiles = pgTable("strategic_profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
@@ -616,10 +671,38 @@ export const userOutreachPreferencesSchema = z.object({
   scheduleTime: z.string().default('09:00'),
   timezone: z.string().default('America/New_York'),
   minContactsRequired: z.number().default(5),
+  activeProductId: z.number().optional(),
+  activeSenderProfileId: z.number().optional(),
+  activeCustomerProfileId: z.number().optional(),
   lastNudgeSent: z.string().optional()
 });
 
 // Strategic onboarding schemas
+// Sender Profile schemas
+export const senderProfileSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  companyName: z.string().optional(),
+  companyWebsite: z.string().optional(),
+  title: z.string().optional(),
+  isDefault: z.boolean().default(false)
+});
+
+// Target Customer Profile schemas
+export const targetCustomerProfileSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  industry: z.string().optional(),
+  companySize: z.string().optional(),
+  jobTitles: z.array(z.string()).optional(),
+  painPoints: z.array(z.string()).optional(),
+  goals: z.array(z.string()).optional(),
+  geography: z.string().optional(),
+  budget: z.string().optional(),
+  decisionMakingProcess: z.string().optional(),
+  currentSolutions: z.string().optional(),
+  buyingTriggers: z.array(z.string()).optional()
+});
+
 export const strategicProfileSchema = z.object({
   title: z.string().min(1, "Title is required"),
   businessType: z.enum(["product", "service"]),
@@ -684,6 +767,28 @@ export const insertUserOutreachPreferencesSchema = userOutreachPreferencesSchema
   userId: z.number()
 });
 
+export const insertSenderProfileSchema = senderProfileSchema.extend({
+  userId: z.number()
+});
+
+export const insertTargetCustomerProfileSchema = targetCustomerProfileSchema.extend({
+  userId: z.number()
+});
+
+export const campaignSchema = z.object({
+  name: z.string().min(1, "Campaign name is required"),
+  status: z.enum(["draft", "active", "paused", "completed"]).default("draft"),
+  senderProfileId: z.number().optional(),
+  productId: z.number().optional(),
+  targetCustomerProfileId: z.number().optional(),
+  durationDays: z.number().default(14),
+  dailyLeadTarget: z.number().default(5)
+});
+
+export const insertCampaignSchema = campaignSchema.extend({
+  userId: z.number()
+});
+
 export const insertStrategicProfileSchema = strategicProfileSchema.extend({
   userId: z.number()
 });
@@ -711,6 +816,10 @@ export type InsertDailyOutreachItem = z.infer<typeof insertDailyOutreachItemSche
 export type UserOutreachPreferences = typeof userOutreachPreferences.$inferSelect;
 export type InsertUserOutreachPreferences = z.infer<typeof insertUserOutreachPreferencesSchema>;
 
+export type SenderProfile = typeof senderProfiles.$inferSelect;
+export type InsertSenderProfile = z.infer<typeof insertSenderProfileSchema>;
+export type TargetCustomerProfile = typeof targetCustomerProfiles.$inferSelect;
+export type InsertTargetCustomerProfile = z.infer<typeof insertTargetCustomerProfileSchema>;
 export type StrategicProfile = typeof strategicProfiles.$inferSelect;
 export type InsertStrategicProfile = z.infer<typeof insertStrategicProfileSchema>;
 export type OnboardingChat = typeof onboardingChats.$inferSelect;

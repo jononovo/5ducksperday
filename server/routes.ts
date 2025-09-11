@@ -42,9 +42,9 @@ import { registerSitemapRoutes } from "./features/sitemap";
 import { registerEmailRepliesRoutes } from "./email-replies";
 import { registerHtmlStaticChatRoutes } from "./user-chatbox/html-static";
 import { registerReactChatRoutes } from "./user-chatbox/react";
-import { registerStrategicProfilesRoutes } from "./user-chatbox/strategic-profiles";
 import { registerUserAccountSettingsRoutes } from "./user-account-settings";
 import { dailyOutreachRoutes } from "./features/daily-outreach";
+import { registerCampaignsRoutes } from "./features/campaigns";
 
 
 // Import centralized auth utilities
@@ -88,6 +88,9 @@ function calculateImprovement(results: any[]): string | null {
 export function registerRoutes(app: Express) {
   // Register modular search routes (sessions and companies)
   registerSearchRoutes(app, requireAuth);
+  
+  // Register campaigns module (includes sender profiles, customer profiles, and products)
+  registerCampaignsRoutes(app, requireAuth);
 
   // Serve static files from the static directory
   app.use('/static', express.static(path.join(__dirname, '../static')));
@@ -139,12 +142,13 @@ export function registerRoutes(app: Express) {
   // Note: Auth is handled selectively inside the router - token-based endpoints don't need auth
   app.use('/api/daily-outreach', dailyOutreachRoutes);
 
+  // Register campaigns module (includes sender profiles, customer profiles, and products)
+  registerCampaignsRoutes(app, requireAuth);
   
   // Register dormant modules that were created but never activated
   registerEmailRepliesRoutes(app, requireAuth);
   registerHtmlStaticChatRoutes(app); // No requireAuth needed - serves public landing page
   registerReactChatRoutes(app, requireAuth);
-  registerStrategicProfilesRoutes(app, requireAuth);
   registerUserAccountSettingsRoutes(app, requireAuth);
 
 
@@ -244,6 +248,7 @@ Respond in this exact JSON format:
 
   // User Profile API endpoints
 
+  // Sender and Customer Profiles Routes are registered via their modules
 
   // Register all billing-related routes (credits, Stripe, gamification)
   registerBillingRoutes(app);

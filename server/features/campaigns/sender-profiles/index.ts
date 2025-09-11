@@ -1,0 +1,1 @@
+export { registerSenderProfilesRoutes } from './routes';
