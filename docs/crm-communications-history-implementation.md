@@ -222,5 +222,164 @@ Using JSON for metadata provides flexibility for:
 - Implement pagination for history endpoints
 - Consider GraphQL for complex relationship queries
 
+## AI Agent Implementation Guide
+
+### For AI Agents Implementing CRM Features in Existing 5Ducks Applications
+
+If you're an AI agent working on an existing 5Ducks application that needs to add the CRM communications history features, follow these steps:
+
+#### 1. Database Schema Updates
+
+**Location**: `shared/schema.ts`
+
+You need to add/modify these tables in your schema:
+
+##### A. Add communicationHistory table (new table):
+```typescript
+export const communicationHistory = pgTable("communication_history", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  contactId: integer("contact_id").notNull().references(() => contacts.id),
+  companyId: integer("company_id").notNull().references(() => companies.id),
+  
+  channel: text("channel").notNull().default('email'),
+  direction: text("direction").notNull().default('outbound'),
+  
+  subject: text("subject"),
+  content: text("content").notNull(),
+  contentPreview: text("content_preview"),
+  
+  status: text("status").notNull().default('pending'),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  receivedAt: timestamp("received_at", { withTimezone: true }),
+  
+  threadId: text("thread_id"),
+  messageId: text("message_id"),
+  parentId: integer("parent_id").references(() => communicationHistory.id),
+  inReplyTo: text("in_reply_to"),
+  references: text("references"),
+  
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_comm_history_user_id').on(table.userId),
+  index('idx_comm_history_contact_id').on(table.contactId),
+  index('idx_comm_history_company_id').on(table.companyId),
+  index('idx_comm_history_sent_at').on(table.sentAt),
+  index('idx_comm_history_thread_id').on(table.threadId)
+]);
+```
+
+##### B. Update contacts table (add these fields):
+```typescript
+// Add these fields to your existing contacts table:
+contactStatus: text("contact_status").default('uncontacted'),
+lastContactedAt: timestamp("last_contacted_at", { withTimezone: true }),
+totalCommunications: integer("total_communications").default(0),
+lastReplyAt: timestamp("last_reply_at", { withTimezone: true }),
+lastThreadId: text("last_thread_id")
+```
+
+##### C. Update dailyOutreachItems table (add this field):
+```typescript
+// Add this field to link to CRM record when sent:
+communicationId: integer("communication_id").references(() => communicationHistory.id)
+```
+
+#### 2. Database Migration Commands
+
+After updating `shared/schema.ts`, run:
+
+```bash
+# Push schema changes to database
+npm run db:push
+
+# If you get data-loss warnings and you're sure it's safe:
+npm run db:push --force
+```
+
+#### 3. NPM Packages Required
+
+**No additional NPM packages needed!** The implementation uses only existing packages:
+- `drizzle-orm` (already installed)
+- `@neondatabase/serverless` (already installed)
+- Express.js (already installed)
+
+#### 4. Code Updates Required
+
+##### A. Import Updates
+In files that interact with CRM data, add to imports:
+```typescript
+import { communicationHistory } from '@shared/schema';
+import { sql, not } from 'drizzle-orm'; // Add 'not' for transaction logic
+```
+
+##### B. Transaction Support
+The mark-as-sent operation uses database transactions. Ensure your `db` instance supports transactions (it should with Drizzle ORM).
+
+##### C. Key Files to Update:
+1. **`server/features/daily-outreach/routes.ts`** - Add transaction logic for mark-as-sent
+2. **`server/features/daily-outreach/routes-streak.ts`** - Update queries to use communicationHistory
+3. **`server/features/daily-outreach/services/batch-generator.ts`** - Add communicationId field
+4. **`server/gmail-api-service/routes.ts`** - Add CRM tracking to Gmail sends
+
+#### 5. Verification Steps
+
+After implementation, verify:
+
+1. **Check database structure**:
+```sql
+-- Should see new table
+SELECT * FROM communication_history LIMIT 1;
+
+-- Should see new columns in contacts
+SELECT contact_status, last_contacted_at, total_communications 
+FROM contacts LIMIT 1;
+
+-- Should see new column in daily_outreach_items
+SELECT communication_id FROM daily_outreach_items LIMIT 1;
+```
+
+2. **Test sending an email** through daily outreach and verify:
+   - Record appears in communication_history
+   - Contact status updates to 'contacted'
+   - dailyOutreachItems.communicationId is populated
+
+3. **Check streak statistics** are pulling from communication_history
+
+#### 6. Common Issues & Solutions
+
+**Issue**: "column does not exist" errors
+**Solution**: Run `npm run db:push --force` to sync schema
+
+**Issue**: TypeScript errors about missing fields
+**Solution**: Ensure all imports include the updated schema types
+
+**Issue**: Transaction fails with "not is not defined"
+**Solution**: Import `not` from drizzle-orm: `import { not } from 'drizzle-orm'`
+
+**Issue**: Streak stats show zero after update
+**Solution**: Verify queries reference communicationHistory, not dailyOutreachItems
+
+#### 7. Architecture Notes
+
+The implementation uses a **hybrid approach**:
+- `dailyOutreachItems` maintains workflow state (draft emails, editing)
+- `communicationHistory` stores final sent communications (single source of truth)
+- No content duplication - email bodies stored only in communicationHistory once sent
+- `communicationId` field links the two tables
+
+This design preserves the daily outreach editing workflow while eliminating data duplication.
+
+#### 8. Testing Checklist
+
+- [ ] Database migrations applied successfully
+- [ ] Can send email through daily outreach
+- [ ] Email appears in communication_history table
+- [ ] Contact status updates to 'contacted'
+- [ ] Streak statistics show correct counts
+- [ ] No duplicate emails in communication_history on double-click
+- [ ] Transaction rollback works on failure
+
 ## Conclusion
 The CRM communications history system provides a robust foundation for tracking all customer interactions. The architecture supports immediate needs while being extensible for future features like reply tracking, analytics, and multi-channel communications. The threading infrastructure, though not fully utilized, prevents future migration pain and enables sophisticated conversation management capabilities.
