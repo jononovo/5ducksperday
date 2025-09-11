@@ -34,11 +34,17 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
-  // Check if we're in development mode
-  // Note: REPLIT_DEPLOYMENT is not available on frontend, so we check for development domains
-  const isDevelopment = window.location.hostname.includes('.replit.dev') || 
-                       window.location.hostname === 'localhost' ||
-                       window.location.hostname === '0.0.0.0';
+  // Check test mode status
+  const { data: testModeStatus } = useQuery({
+    queryKey: ["/api/test-mode-status"],
+    queryFn: async () => {
+      const res = await fetch("/api/test-mode-status");
+      return res.json();
+    },
+    staleTime: Infinity, // Test mode status doesn't change during runtime
+  });
+  
+  const isAITestMode = testModeStatus?.enabled === true;
   
   const {
     data: user,
@@ -47,8 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<SelectUser | undefined, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    // In development, provide a default guest user
-    initialData: isDevelopment ? {
+    // In AI test mode, provide a default guest user
+    initialData: isAITestMode ? {
       id: 1,
       email: 'guest@5ducks.ai',
       username: 'Guest User',
@@ -380,6 +386,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Monitor Firebase auth state
   useEffect(() => {
+    // Skip Firebase auth monitoring in AI test mode
+    if (isAITestMode) {
+      console.log('AI Test Mode enabled - skipping Firebase auth monitoring');
+      return;
+    }
+
     console.log('Setting up Firebase auth state listener');
 
     if (!firebaseAuth) {
@@ -403,14 +415,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [isAITestMode]);
+
+  // In AI test mode, always return the guest user
+  const finalUser = isAITestMode ? {
+    id: 1,
+    email: 'guest@5ducks.ai',
+    username: 'Guest User',
+    password: '',
+    createdAt: new Date(),
+    isGuest: false
+  } as SelectUser : (user ?? null);
 
   return (
     <AuthContext.Provider
       value={{
-        user: user ?? null,
-        isLoading,
-        error,
+        user: finalUser,
+        isLoading: isLoading && !isAITestMode, // Never loading in test mode
+        error: isAITestMode ? null : error, // No errors in test mode
         logoutMutation,
         signInWithGoogle,
         signInWithEmail,

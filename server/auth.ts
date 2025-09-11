@@ -228,12 +228,12 @@ export function setupAuth(app: Express) {
 
   // Add Firebase token verification to all authenticated routes
   app.use(async (req, res, next) => {
-    // Development mode authentication bypass using REPLIT_DEPLOYMENT
-    // When not in production (REPLIT_DEPLOYMENT !== "1"), bypass auth
-    const isDevelopment = process.env.REPLIT_DEPLOYMENT !== "1";
+    // AI Test Mode authentication bypass
+    // When ENABLE_AI_TEST_MODE is true, bypass all authentication
+    const isAITestMode = process.env.ENABLE_AI_TEST_MODE === 'true';
     
-    if (isDevelopment && !req.isAuthenticated()) {
-      // In development, automatically use user ID 1 (guest user)
+    if (isAITestMode && !req.isAuthenticated()) {
+      // In AI test mode, automatically use user ID 1 (guest user)
       req.user = { 
         id: 1, 
         email: 'guest@5ducks.ai',
@@ -245,11 +245,11 @@ export function setupAuth(app: Express) {
       const originalIsAuthenticated = req.isAuthenticated;
       req.isAuthenticated = function(this: any) { return true; } as any;
       
-      console.log('[DEV MODE] Auth bypassed - using guest user:', {
+      console.log('[AI TEST MODE] Auth bypassed - using guest user:', {
         path: req.path,
         method: req.method,
         userId: 1,
-        replitDeployment: process.env.REPLIT_DEPLOYMENT,
+        aiTestMode: process.env.ENABLE_AI_TEST_MODE,
         timestamp: new Date().toISOString()
       });
       
@@ -394,10 +394,22 @@ export function setupAuth(app: Express) {
     });
   });
 
+  // Endpoint to check if AI test mode is enabled
+  app.get("/api/test-mode-status", (req, res) => {
+    res.json({
+      enabled: process.env.ENABLE_AI_TEST_MODE === 'true',
+      user: process.env.ENABLE_AI_TEST_MODE === 'true' ? {
+        id: 1,
+        email: 'guest@5ducks.ai',
+        username: 'Guest User'
+      } : null
+    });
+  });
+
   app.get("/api/user", (req, res) => {
-    // In development mode, always return guest user
-    const isDevelopment = process.env.REPLIT_DEPLOYMENT !== "1";
-    if (isDevelopment) {
+    // In AI test mode, always return guest user
+    const isAITestMode = process.env.ENABLE_AI_TEST_MODE === 'true';
+    if (isAITestMode) {
       return res.json({
         id: 1,
         email: 'guest@5ducks.ai',
