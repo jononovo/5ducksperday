@@ -84,7 +84,7 @@ export class GmailOAuthService {
     to: string,
     subject: string,
     content: string
-  ): Promise<void> {
+  ): Promise<{ threadId: string; messageId: string }> {
     const gmailToken = await TokenService.getGmailAccessToken(userId);
     
     if (!gmailToken) {
@@ -130,11 +130,17 @@ export class GmailOAuthService {
       .replace(/\//g, '_')
       .replace(/=+$/, '');
 
-    await gmail.users.messages.send({
+    const response = await gmail.users.messages.send({
       userId: 'me',
       requestBody: {
         raw: encodedMessage,
       },
     });
+
+    // Return threadId and messageId from Gmail response
+    return {
+      threadId: response.data.threadId || '',
+      messageId: response.data.id || ''
+    };
   }
 }

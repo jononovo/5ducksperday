@@ -7,9 +7,10 @@ import {
   dailyOutreachJobs,
   users,
   contacts,
-  companies
+  companies,
+  communicationHistory
 } from '@shared/schema';
-import { eq, and, lte, sql } from 'drizzle-orm';
+import { eq, and, lte, sql, not } from 'drizzle-orm';
 import { persistentScheduler as outreachScheduler } from './services/persistent-scheduler';
 import { batchGenerator } from './services/batch-generator';
 import { sendGridService } from './services/sendgrid-service';
@@ -377,26 +378,148 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
       return res.status(404).json({ error: 'Invalid or expired batch' });
     }
     
-    // Update item status
-    const [updated] = await db
-      .update(dailyOutreachItems)
-      .set({
-        status: 'sent',
-        sentAt: new Date()
-      })
+    // Get the full item details before updating
+    const [itemDetails] = await db
+      .select()
+      .from(dailyOutreachItems)
       .where(
         and(
           eq(dailyOutreachItems.id, parseInt(itemId)),
           eq(dailyOutreachItems.batchId, batch.id)
         )
-      )
-      .returning();
+      );
     
-    if (!updated) {
+    if (!itemDetails) {
       return res.status(404).json({ error: 'Item not found' });
     }
     
-    // Check if all items are processed
+    if (itemDetails.status === 'sent') {
+      return res.status(400).json({ error: 'Item already sent' });
+    }
+    
+    const sentAt = new Date();
+    
+    // Execute all critical operations in a single transaction
+    const transactionResult = await db.transaction(async (tx) => {
+      // 1. First, try to update the item status atomically (prevents double-send)
+      const updateResult = await tx
+        .update(dailyOutreachItems)
+        .set({
+          status: 'sent',
+          sentAt
+        })
+        .where(
+          and(
+            eq(dailyOutreachItems.id, parseInt(itemId)),
+            eq(dailyOutreachItems.batchId, batch.id),
+            not(eq(dailyOutreachItems.status, 'sent'))  // Prevent double-send
+          )
+        )
+        .returning();
+      
+      const initialUpdate = Array.isArray(updateResult) ? updateResult[0] : updateResult;
+      
+      if (!initialUpdate) {
+        throw new Error('Item already sent or not found');
+      }
+      
+      // Re-read item inside transaction for fresh data
+      const [currentItem] = await tx
+        .select()
+        .from(dailyOutreachItems)
+        .where(eq(dailyOutreachItems.id, parseInt(itemId)));
+      
+      // Get contact details
+      const [contact] = await tx
+        .select()
+        .from(contacts)
+        .where(eq(contacts.id, currentItem.contactId));
+      
+      if (!contact) {
+        throw new Error('Contact not found');
+      }
+      
+      // Determine final content (use edited content if available)
+      let finalContent = currentItem.emailBody;
+      let finalSubject = currentItem.emailSubject;
+      
+      if (currentItem.editedContent) {
+        try {
+          const edited = JSON.parse(currentItem.editedContent);
+          finalSubject = edited.subject || finalSubject;
+          finalContent = edited.body || finalContent;
+        } catch (e) {
+          console.error('Error parsing edited content:', e);
+        }
+      }
+      
+      // 2. Save to communicationHistory
+      const communicationResult = await tx.insert(communicationHistory).values({
+        userId: batch.userId,
+        contactId: currentItem.contactId,
+        companyId: currentItem.companyId,
+        channel: 'email',
+        direction: 'outbound',
+        subject: finalSubject,
+        content: finalContent,
+        contentPreview: finalContent.substring(0, 200),
+        sentAt,
+        status: 'sent',
+        metadata: {
+          source: 'daily_outreach',
+          batchId: batch.id,
+          itemId: currentItem.id,
+          tone: currentItem.emailTone
+        }
+      }).returning();
+      
+      const communication = Array.isArray(communicationResult) ? communicationResult[0] : communicationResult;
+      
+      if (!communication) {
+        throw new Error('Failed to create communication record');
+      }
+      
+      // 3. Update contact status with atomic increment
+      const contactUpdateResult = await tx
+        .update(contacts)
+        .set({
+          contactStatus: 'contacted',
+          lastContactedAt: sentAt,
+          totalCommunications: sql`COALESCE(${contacts.totalCommunications}, 0) + 1`
+        })
+        .where(eq(contacts.id, currentItem.contactId))
+        .returning();
+      
+      const contactUpdated = Array.isArray(contactUpdateResult) ? contactUpdateResult[0] : contactUpdateResult;
+      
+      if (!contactUpdated) {
+        throw new Error('Failed to update contact');
+      }
+      
+      // 4. Update dailyOutreachItem with communication link
+      const finalUpdateResult = await tx
+        .update(dailyOutreachItems)
+        .set({
+          communicationId: communication.id  // Link to CRM record
+        })
+        .where(
+          and(
+            eq(dailyOutreachItems.id, parseInt(itemId)),
+            eq(dailyOutreachItems.batchId, batch.id)
+          )
+        )
+        .returning();
+      
+      const updatedItem = Array.isArray(finalUpdateResult) ? finalUpdateResult[0] : finalUpdateResult;
+      
+      if (!updatedItem) {
+        throw new Error('Failed to update item with communication link');
+      }
+      
+      return { communication, updatedItem };
+    });
+    
+    // Update batch status (outside transaction - this is housekeeping)
     const pendingItems = await db
       .select()
       .from(dailyOutreachItems)
@@ -407,7 +530,6 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
         )
       );
     
-    // Update batch status if all items are processed
     if (pendingItems.length === 0) {
       await db
         .update(dailyOutreachBatches)
@@ -420,7 +542,7 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
         .where(eq(dailyOutreachBatches.id, batch.id));
     }
     
-    res.json({ success: true, item: updated });
+    res.json({ success: true, item: transactionResult.updatedItem });
   } catch (error) {
     console.error('Error marking item as sent:', error);
     res.status(500).json({ error: 'Failed to mark as sent' });

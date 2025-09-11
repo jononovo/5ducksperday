@@ -195,7 +195,12 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
   // Send email endpoint (outside of /api/gmail prefix for backward compatibility)
   app.post('/api/send-gmail', requireAuth, async (req: Request, res: Response) => {
     try {
-      const { to, subject, content } = req.body as SendGmailRequest;
+      const { to, subject, content, contactId, companyId, tone, offerStrategy } = req.body as SendGmailRequest & {
+        contactId?: number;
+        companyId?: number;
+        tone?: string;
+        offerStrategy?: string;
+      };
 
       if (!to || !subject || !content) {
         res.status(400).json({ message: "Missing required email fields" });
@@ -206,9 +211,58 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
       const userEmail = (req as any).user.email;
       
       try {
-        await GmailOAuthService.sendEmail(userId, userEmail, to, subject, content);
+        // Send email via Gmail API and get threadId/messageId
+        const gmailResult = await GmailOAuthService.sendEmail(userId, userEmail, to, subject, content);
         
-        const response: SendGmailResponse = { success: true };
+        // If contactId and companyId are provided, save to CRM communications history
+        if (contactId && companyId) {
+          const { db } = await import('../db');
+          const { communicationHistory, contacts } = await import('@shared/schema');
+          const { eq, sql } = await import('drizzle-orm');
+          
+          // Save to communication history
+          await db.insert(communicationHistory).values({
+            userId,
+            contactId,
+            companyId,
+            channel: 'email',
+            direction: 'outbound',
+            subject,
+            content,
+            contentPreview: content.substring(0, 200),
+            status: 'sent',
+            sentAt: new Date(),
+            threadId: gmailResult.threadId,
+            metadata: {
+              from: userEmail,
+              to,
+              messageId: gmailResult.messageId,
+              gmailThreadId: gmailResult.threadId,
+              tone: tone || 'professional',
+              offerStrategy: offerStrategy || 'standard',
+              sourceTable: 'manual_outreach'
+            }
+          });
+          
+          // Update contact status
+          await db.update(contacts)
+            .set({
+              contactStatus: 'contacted',
+              lastContactedAt: new Date(),
+              lastContactChannel: 'email',
+              lastThreadId: gmailResult.threadId,
+              totalCommunications: sql`COALESCE(${contacts.totalCommunications}, 0) + 1`
+            })
+            .where(eq(contacts.id, contactId));
+          
+          console.log(`Email saved to CRM for contact ${contactId}, thread: ${gmailResult.threadId}`);
+        }
+        
+        const response: SendGmailResponse = { 
+          success: true,
+          threadId: gmailResult.threadId,
+          messageId: gmailResult.messageId
+        };
         res.json(response);
       } catch (error: any) {
         if (error.status === 401) {

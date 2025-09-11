@@ -71,7 +71,14 @@ export const contacts = pgTable("contacts", {
   feedbackCount: integer("feedback_count").default(0), 
   lastValidated: timestamp("last_validated", { withTimezone: true }), 
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  completedSearches: jsonb("completed_searches").$type<string[]>().default([])
+  completedSearches: jsonb("completed_searches").$type<string[]>().default([]),
+  // CRM tracking fields
+  contactStatus: text("contact_status").default('uncontacted'), // 'uncontacted', 'contacted', 'replied', 'qualified', 'unqualified'
+  lastContactedAt: timestamp("last_contacted_at", { withTimezone: true }),
+  lastContactChannel: text("last_contact_channel"), // 'email', 'sms', 'phone'
+  totalCommunications: integer("total_communications").default(0),
+  totalReplies: integer("total_replies").default(0),
+  lastThreadId: text("last_thread_id") // Most recent conversation thread
 }, (table) => [
   index('idx_contacts_company_id').on(table.companyId),
   index('idx_contacts_user_id').on(table.userId),
@@ -329,6 +336,7 @@ export const dailyOutreachItems = pgTable("daily_outreach_items", {
   batchId: integer("batch_id").notNull().references(() => dailyOutreachBatches.id),
   contactId: integer("contact_id").notNull().references(() => contacts.id),
   companyId: integer("company_id").notNull().references(() => companies.id),
+  communicationId: integer("communication_id").references(() => communicationHistory.id), // Link to CRM record when sent
   emailSubject: text("email_subject").notNull(),
   emailBody: text("email_body").notNull(),
   emailTone: text("email_tone").notNull(),
@@ -339,6 +347,94 @@ export const dailyOutreachItems = pgTable("daily_outreach_items", {
 }, (table) => [
   index('idx_outreach_item_batch_id').on(table.batchId),
   index('idx_outreach_item_contact_id').on(table.contactId),
+  index('idx_outreach_item_communication_id').on(table.communicationId),
+]);
+
+// CRM Communications History Table
+export const communicationHistory = pgTable("communication_history", {
+  // Core identification
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  contactId: integer("contact_id").notNull().references(() => contacts.id),
+  companyId: integer("company_id").notNull().references(() => companies.id),
+  
+  // Channel & type
+  channel: text("channel").notNull().default('email'), // 'email', 'sms', 'phone', 'linkedin', 'whatsapp'
+  direction: text("direction").notNull().default('outbound'), // 'outbound', 'inbound'
+  
+  // Content
+  subject: text("subject"), // Email subject, SMS first line, call topic
+  content: text("content").notNull(), // Full message content
+  contentPreview: text("content_preview"), // First 200 chars for list views
+  
+  // Status tracking
+  status: text("status").notNull().default('pending'),
+  // Email: 'pending', 'sent', 'delivered', 'bounced', 'opened', 'clicked', 'replied', 'unsubscribed'
+  // SMS: 'pending', 'sent', 'delivered', 'failed', 'replied'
+  // Phone: 'scheduled', 'completed', 'no_answer', 'voicemail', 'busy'
+  
+  // Threading (critical for email replies)
+  threadId: text("thread_id"), // Gmail threadId or generated UUID
+  parentId: integer("parent_id").references(() => communicationHistory.id),
+  inReplyTo: text("in_reply_to"), // Email Message-ID for standard threading
+  references: text("references"), // Email References header chain
+  
+  // Timestamps
+  scheduledFor: timestamp("scheduled_for", { withTimezone: true }),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+  openedAt: timestamp("opened_at", { withTimezone: true }),
+  repliedAt: timestamp("replied_at", { withTimezone: true }),
+  
+  // Attribution
+  campaignId: integer("campaign_id"), // Future campaigns
+  batchId: integer("batch_id").references(() => dailyOutreachBatches.id),
+  templateId: integer("template_id").references(() => emailTemplates.id),
+  
+  // Enhanced metadata
+  metadata: jsonb("metadata").default({}),
+  // Structure:
+  // {
+  //   from: string,
+  //   to: string,
+  //   cc: string[],
+  //   bcc: string[],
+  //   replyTo: string,
+  //   messageId: string,
+  //   gmailThreadId: string,
+  //   gmailHistoryId: string,
+  //   tone: string,
+  //   offerStrategy: string,
+  //   sourceTable: 'manual_outreach' | 'daily_outreach',
+  //   originalId: number, // ID from source table
+  //   headers: object
+  // }
+  
+  // Engagement metrics
+  openCount: integer("open_count").default(0),
+  clickCount: integer("click_count").default(0),
+  clickedLinks: jsonb("clicked_links").$type<string[]>().default([]),
+  
+  // Error handling
+  errorCode: text("error_code"),
+  errorMessage: text("error_message"),
+  retryCount: integer("retry_count").default(0),
+  
+  // Audit
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  // Standard indexes
+  index('idx_comm_contact_id').on(table.contactId),
+  index('idx_comm_company_id').on(table.companyId),
+  index('idx_comm_user_id').on(table.userId),
+  index('idx_comm_channel').on(table.channel),
+  index('idx_comm_status').on(table.status),
+  index('idx_comm_thread_id').on(table.threadId),
+  index('idx_comm_sent_at').on(table.sentAt),
+  index('idx_comm_created_at').on(table.createdAt),
+  // Composite index for contact history queries
+  index('idx_comm_contact_sent').on(table.contactId, table.sentAt),
 ]);
 
 export const userOutreachPreferences = pgTable("user_outreach_preferences", {

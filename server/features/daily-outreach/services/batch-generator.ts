@@ -172,6 +172,7 @@ export class DailyBatchGenerator {
       return {
         contactId: contact.id,
         companyId: company.id,
+        communicationId: null,  // Will be set when email is sent
         emailSubject: emailContent.subject,
         emailBody: emailContent.content,
         emailTone: 'professional',
@@ -185,6 +186,7 @@ export class DailyBatchGenerator {
       return {
         contactId: contact.id,
         companyId: company.id,
+        communicationId: null,  // Will be set when email is sent
         emailSubject: `Quick question for ${company.name}`,
         emailBody: `Hi ${contact.name},\n\nI noticed ${company.name} and wanted to reach out about how we might be able to help with your business needs.\n\nWould you be open to a brief conversation?\n\nBest regards`,
         emailTone: 'professional',
