@@ -92,10 +92,15 @@ This application supports Replit AI agent browser testing through an authenticat
 - All pages and API endpoints are accessible without login
 - Database operations use the demo user account
 
-**Current Status:** ❌ DISABLED
+**To Toggle Test Mode:**
+- **Enable:** Set `ENABLE_AI_TEST_MODE=true` in `.env` file (line 1)
+- **Disable:** Set `ENABLE_AI_TEST_MODE=false` in `.env` file (line 1)
+- Restart the app after changing
+
+**Current Status:** ✅ ENABLED
 - Environment: Development
-- Test User ID: N/A (disabled)
-- Email: N/A (disabled)
+- Test User ID: 1
+- Email: demo@5ducks.ai
 
 **For AI Testing Agents:**
 1. No authentication required - proceed directly to any page
