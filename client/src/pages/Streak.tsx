@@ -597,7 +597,7 @@ export default function StreakPage() {
             </div>
           );
         } else {
-          // Show intro banner for new users
+          // Show simplified intro banner (same size as metrics banner)
           return (
             <div className="mb-8 bg-gradient-to-br from-amber-400 via-orange-400 to-yellow-400 rounded-xl p-10 text-white shadow-2xl relative overflow-hidden">
               {/* Background decoration */}
@@ -606,97 +606,54 @@ export default function StreakPage() {
               <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
               
               <div className="relative z-10">
-                <div className="flex items-center gap-10">
-                  {/* Fluffy mascot section */}
-                  <div className="flex-shrink-0">
-                    <div className="w-32 h-32 bg-white/20 backdrop-blur-lg rounded-full flex items-center justify-center border-4 border-white/30">
-                      <span className="text-6xl">🐦</span>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-3 h-3 bg-yellow-300 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium uppercase tracking-wider opacity-90">Campaign Setup</span>
+                    </div>
+                    <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-white/80 bg-clip-text">
+                      Build Your Outreach Campaign 🎯
+                    </h2>
+                    <p className="text-lg opacity-90 mb-4">Configure the 3 components below to start generating daily leads</p>
+                    
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 opacity-80" />
+                        <span className="text-sm opacity-90">{hasSenderProfile ? '✓ Profile Set' : 'Add Your Profile'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Package className="w-4 h-4 opacity-80" />
+                        <span className="text-sm opacity-90">{hasProduct ? '✓ Product Added' : 'Define Product'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Target className="w-4 h-4 opacity-80" />
+                        <span className="text-sm opacity-90">{hasCustomerProfile ? '✓ Customer Defined' : 'Set Target'}</span>
+                      </div>
                     </div>
                   </div>
                   
-                  {/* Welcome message and progress */}
-                  <div className="flex-1">
-                    <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-white to-white/90 bg-clip-text">
-                      Welcome to my nest! 🪶
-                    </h2>
-                    <p className="text-lg opacity-95 mb-6">
-                      For you to catch the worm, I need you to fill in three things:
-                    </p>
-                    
-                    {/* Progress indicators */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
-                      <div className={cn(
-                        "bg-white/20 backdrop-blur-lg rounded-lg p-4 border-2 transition-all",
-                        hasSenderProfile ? "border-green-300 bg-green-400/20" : "border-white/30"
-                      )}>
-                        <div className="flex items-center gap-2 mb-1">
-                          {hasSenderProfile ? (
-                            <Check className="w-5 h-5 text-green-300" />
-                          ) : (
-                            <User className="w-5 h-5 opacity-70" />
-                          )}
-                          <span className="font-semibold">Me</span>
-                        </div>
-                        <p className="text-xs opacity-80">Your sender profile</p>
-                      </div>
-                      
-                      <div className={cn(
-                        "bg-white/20 backdrop-blur-lg rounded-lg p-4 border-2 transition-all",
-                        hasProduct ? "border-green-300 bg-green-400/20" : "border-white/30"
-                      )}>
-                        <div className="flex items-center gap-2 mb-1">
-                          {hasProduct ? (
-                            <Check className="w-5 h-5 text-green-300" />
-                          ) : (
-                            <Package className="w-5 h-5 opacity-70" />
-                          )}
-                          <span className="font-semibold">My Product</span>
-                        </div>
-                        <p className="text-xs opacity-80">What you're offering</p>
-                      </div>
-                      
-                      <div className={cn(
-                        "bg-white/20 backdrop-blur-lg rounded-lg p-4 border-2 transition-all",
-                        hasCustomerProfile ? "border-green-300 bg-green-400/20" : "border-white/30"
-                      )}>
-                        <div className="flex items-center gap-2 mb-1">
-                          {hasCustomerProfile ? (
-                            <Check className="w-5 h-5 text-green-300" />
-                          ) : (
-                            <Target className="w-5 h-5 opacity-70" />
-                          )}
-                          <span className="font-semibold">Ideal Customer</span>
-                        </div>
-                        <p className="text-xs opacity-80">Who you're targeting</p>
-                      </div>
+                  <div className="flex gap-4">
+                    <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
+                      <p className="text-sm opacity-90 mb-1">Setup Progress</p>
+                      <p className="text-4xl font-bold">{componentsFilledCount}/3</p>
+                      <p className="text-xs opacity-70 mt-1">
+                        {componentsFilledCount === 0 && "Let's start"}
+                        {componentsFilledCount === 1 && "Good progress"}
+                        {componentsFilledCount === 2 && "Almost ready"}
+                        {componentsFilledCount === 3 && "Ready to launch"}
+                      </p>
                     </div>
-                    
-                    {/* Progress message */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm opacity-90">
-                          {componentsFilledCount === 0 && "Let's get started! Fill in the three components below."}
-                          {componentsFilledCount === 1 && "Great start! Two more components to go."}
-                          {componentsFilledCount === 2 && "Almost there! Just one more component."}
-                          {componentsFilledCount === 3 && !isActivated && "Perfect! Now activate your campaign to start reaching customers."}
-                        </p>
-                      </div>
-                      <div className="bg-white/20 backdrop-blur-lg rounded-full px-4 py-2">
-                        <span className="font-bold">{componentsFilledCount}/3</span>
-                        <span className="text-sm opacity-80 ml-1">Ready</span>
-                      </div>
-                    </div>
-                    
-                    {/* Activation prompt when all components are filled */}
-                    {componentsFilledCount === 3 && !isActivated && (
-                      <div className="mt-4 p-3 bg-green-400/20 rounded-lg border border-green-300">
-                        <p className="text-sm flex items-center gap-2">
-                          <Sparkles className="w-4 h-4" />
-                          All set! Click "Start Daily Outreach" above to activate your campaign.
-                        </p>
-                      </div>
-                    )}
                   </div>
+                </div>
+                
+                {/* Progress bar */}
+                <div className="mt-6">
+                  <div className="bg-white/20 rounded-full h-2 overflow-hidden">
+                    <div className="bg-white h-full rounded-full transition-all duration-500" 
+                         style={{width: `${(componentsFilledCount / 3) * 100}%`}}></div>
+                  </div>
+                  <p className="text-xs opacity-70 mt-2">Setup Progress: {Math.round((componentsFilledCount / 3) * 100)}% Complete</p>
                 </div>
               </div>
             </div>
@@ -946,6 +903,14 @@ export default function StreakPage() {
             ? "border-primary bg-primary/5 shadow-lg" 
             : "hover:shadow-xl hover:border-primary/30"
         )}>
+          {/* Progress indicator */}
+          {selectedSenderProfileId && (
+            <div className="absolute -top-2 -right-2 z-10">
+              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                <Check className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          )}
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
@@ -1024,6 +989,14 @@ export default function StreakPage() {
             ? "border-primary bg-primary/5 shadow-lg" 
             : "hover:shadow-xl hover:border-primary/30"
         )}>
+          {/* Progress indicator */}
+          {selectedProductId && (
+            <div className="absolute -top-2 -right-2 z-10">
+              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                <Check className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          )}
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
@@ -1106,6 +1079,14 @@ export default function StreakPage() {
             ? "border-primary bg-primary/5 shadow-lg" 
             : "hover:shadow-xl hover:border-primary/30"
         )}>
+          {/* Progress indicator */}
+          {selectedCustomerProfileId && (
+            <div className="absolute -top-2 -right-2 z-10">
+              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                <Check className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          )}
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
@@ -1217,6 +1198,46 @@ export default function StreakPage() {
             : "hover:shadow-lg"
         )}>
           <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] p-4">
+            {/* Progress indicators at the top */}
+            <div className="flex gap-2 mb-4">
+              <div className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                selectedSenderProfileId 
+                  ? "bg-green-100 dark:bg-green-900/50 border-2 border-green-500" 
+                  : "bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
+              )}>
+                {selectedSenderProfileId ? (
+                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                ) : (
+                  <span className="text-xs text-gray-400">1</span>
+                )}
+              </div>
+              <div className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                selectedProductId 
+                  ? "bg-green-100 dark:bg-green-900/50 border-2 border-green-500" 
+                  : "bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
+              )}>
+                {selectedProductId ? (
+                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                ) : (
+                  <span className="text-xs text-gray-400">2</span>
+                )}
+              </div>
+              <div className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                selectedCustomerProfileId 
+                  ? "bg-green-100 dark:bg-green-900/50 border-2 border-green-500" 
+                  : "bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
+              )}>
+                {selectedCustomerProfileId ? (
+                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                ) : (
+                  <span className="text-xs text-gray-400">3</span>
+                )}
+              </div>
+            </div>
+            
             {preferences?.enabled ? (
               <div className="text-center">
                 <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mb-3">
