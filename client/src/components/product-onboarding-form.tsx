@@ -42,28 +42,34 @@ export function ProductOnboardingForm({ open, onClose, onComplete }: ProductOnbo
   // Save product profile mutation
   const saveProduct = useMutation({
     mutationFn: async (data: FormData) => {
-      const res = await apiRequest('POST', '/api/strategic-profiles/quick-setup', {
+      const res = await apiRequest('POST', '/api/products', {
+        title: data.productService.slice(0, 50) || 'My Product', // Use first 50 chars as title
         businessType: data.businessType,
         productService: data.productService,
         customerFeedback: data.customerFeedback,
         website: data.website,
-        title: data.productService.slice(0, 50) // Use first 50 chars as title
+        targetCustomers: '', // Will be filled later
+        primaryCustomerType: '', // Will be filled later
+        marketNiche: '', // Will be filled later
+        status: 'active'
       });
       return res.json();
     },
-    onSuccess: async () => {
+    onSuccess: async (newProduct) => {
       // Enable daily outreach
       await apiRequest('PUT', '/api/daily-outreach/preferences', {
         enabled: true,
-        minContactsRequired: 5
+        minContactsRequired: 5,
+        activeProductId: newProduct.id // Set the new product as active
       });
       
       toast({
         title: 'Success!',
-        description: 'Your daily sales companion is now active. You\'ll receive your first batch of leads tomorrow!',
+        description: 'Your product has been added and is now active.',
       });
       
-      // Refresh the streak stats and preferences
+      // Refresh the products list and related data
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/preferences'] });
       queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/streak-stats'] });
       
