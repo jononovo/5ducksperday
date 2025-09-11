@@ -88,7 +88,7 @@ export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingC
         </div>
         <div className="text-xs text-gray-600 mr-4 flex items-center gap-1">
           {currentIndex !== undefined && pendingCount !== undefined && (
-            <span>Email {currentIndex + 1} of {pendingCount}</span>
+            <span>Email {currentIndex + 1} of {totalEmails}</span>
           )}
           {currentIndex !== undefined && date && (
             <span className="mx-1">•</span>
@@ -132,7 +132,7 @@ export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingC
             <span>Ready for email {totalEmails}</span>
           )}
           {sentEmails > 0 && sentEmails < totalEmails && (
-            <span>Skipped {sentEmails}, Ready for email {sentEmails + 1}</span>
+            <span>Sent {sentEmails}, Ready for email {sentEmails + 1}</span>
           )}
           {sentEmails === totalEmails && totalEmails > 0 && (
             <span className="text-green-600 font-semibold">All done! Great job! 🎉</span>
