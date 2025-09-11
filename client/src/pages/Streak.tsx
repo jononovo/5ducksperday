@@ -527,6 +527,186 @@ export default function StreakPage() {
         </Card>
       </div>
 
+      {/* Adaptive Campaign Banner - Shows intro or metrics based on campaign status */}
+      {(() => {
+        // Check if all campaign components are filled
+        const hasSenderProfile = !!selectedSenderProfileId;
+        const hasProduct = !!selectedProductId;
+        const hasCustomerProfile = !!selectedCustomerProfileId;
+        const isActivated = !!preferences?.enabled;
+        
+        const allComponentsFilled = hasSenderProfile && hasProduct && hasCustomerProfile;
+        const campaignIsActive = allComponentsFilled && isActivated;
+        
+        // Calculate progress for intro banner
+        const componentsFilledCount = [hasSenderProfile, hasProduct, hasCustomerProfile].filter(Boolean).length;
+        
+        if (campaignIsActive) {
+          // Show metrics banner for active campaigns
+          return (
+            <div className="mb-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-10 text-white shadow-2xl relative overflow-hidden">
+              {/* Background decoration */}
+              <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+              <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium uppercase tracking-wider opacity-90">Campaign Active</span>
+                    </div>
+                    <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-white/80 bg-clip-text">
+                      Your Campaign is Live! 🎯
+                    </h2>
+                    <p className="text-lg opacity-90 mb-4">Targeting ideal customers with personalized outreach</p>
+                    
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon2 className="w-4 h-4 opacity-80" />
+                        <span className="text-sm opacity-90">Day {Math.min(stats?.currentStreak || 0, 14)} of 14</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 opacity-80" />
+                        <span className="text-sm opacity-90">{Math.max(14 - (stats?.currentStreak || 0), 0)} days remaining</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
+                      <p className="text-sm opacity-90 mb-1">Emails Sent</p>
+                      <p className="text-4xl font-bold">{stats?.emailsSentThisMonth || 0}</p>
+                      <p className="text-xs opacity-70 mt-1">+{stats?.emailsSentToday || 0} today</p>
+                    </div>
+                    <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
+                      <p className="text-sm opacity-90 mb-1">Companies Reached</p>
+                      <p className="text-4xl font-bold">{stats?.companiesContactedThisMonth || 0}</p>
+                      <p className="text-xs opacity-70 mt-1">This month</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Progress bar */}
+                <div className="mt-6">
+                  <div className="bg-white/20 rounded-full h-2 overflow-hidden">
+                    <div className="bg-white h-full rounded-full transition-all duration-500" 
+                         style={{width: `${Math.min(((stats?.currentStreak || 0) / 14) * 100, 100)}%`}}></div>
+                  </div>
+                  <p className="text-xs opacity-70 mt-2">Campaign Progress: {Math.round(Math.min(((stats?.currentStreak || 0) / 14) * 100, 100))}% Complete</p>
+                </div>
+              </div>
+            </div>
+          );
+        } else {
+          // Show intro banner for new users
+          return (
+            <div className="mb-8 bg-gradient-to-br from-amber-400 via-orange-400 to-yellow-400 rounded-xl p-10 text-white shadow-2xl relative overflow-hidden">
+              {/* Background decoration */}
+              <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+              <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-10">
+                  {/* Fluffy mascot section */}
+                  <div className="flex-shrink-0">
+                    <div className="w-32 h-32 bg-white/20 backdrop-blur-lg rounded-full flex items-center justify-center border-4 border-white/30">
+                      <span className="text-6xl">🐦</span>
+                    </div>
+                  </div>
+                  
+                  {/* Welcome message and progress */}
+                  <div className="flex-1">
+                    <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-white to-white/90 bg-clip-text">
+                      Welcome to my nest! 🪶
+                    </h2>
+                    <p className="text-lg opacity-95 mb-6">
+                      For you to catch the worm, I need you to fill in three things:
+                    </p>
+                    
+                    {/* Progress indicators */}
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      <div className={cn(
+                        "bg-white/20 backdrop-blur-lg rounded-lg p-4 border-2 transition-all",
+                        hasSenderProfile ? "border-green-300 bg-green-400/20" : "border-white/30"
+                      )}>
+                        <div className="flex items-center gap-2 mb-1">
+                          {hasSenderProfile ? (
+                            <Check className="w-5 h-5 text-green-300" />
+                          ) : (
+                            <User className="w-5 h-5 opacity-70" />
+                          )}
+                          <span className="font-semibold">Me</span>
+                        </div>
+                        <p className="text-xs opacity-80">Your sender profile</p>
+                      </div>
+                      
+                      <div className={cn(
+                        "bg-white/20 backdrop-blur-lg rounded-lg p-4 border-2 transition-all",
+                        hasProduct ? "border-green-300 bg-green-400/20" : "border-white/30"
+                      )}>
+                        <div className="flex items-center gap-2 mb-1">
+                          {hasProduct ? (
+                            <Check className="w-5 h-5 text-green-300" />
+                          ) : (
+                            <Package className="w-5 h-5 opacity-70" />
+                          )}
+                          <span className="font-semibold">My Product</span>
+                        </div>
+                        <p className="text-xs opacity-80">What you're offering</p>
+                      </div>
+                      
+                      <div className={cn(
+                        "bg-white/20 backdrop-blur-lg rounded-lg p-4 border-2 transition-all",
+                        hasCustomerProfile ? "border-green-300 bg-green-400/20" : "border-white/30"
+                      )}>
+                        <div className="flex items-center gap-2 mb-1">
+                          {hasCustomerProfile ? (
+                            <Check className="w-5 h-5 text-green-300" />
+                          ) : (
+                            <Target className="w-5 h-5 opacity-70" />
+                          )}
+                          <span className="font-semibold">Ideal Customer</span>
+                        </div>
+                        <p className="text-xs opacity-80">Who you're targeting</p>
+                      </div>
+                    </div>
+                    
+                    {/* Progress message */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm opacity-90">
+                          {componentsFilledCount === 0 && "Let's get started! Fill in the three components below."}
+                          {componentsFilledCount === 1 && "Great start! Two more components to go."}
+                          {componentsFilledCount === 2 && "Almost there! Just one more component."}
+                          {componentsFilledCount === 3 && !isActivated && "Perfect! Now activate your campaign to start reaching customers."}
+                        </p>
+                      </div>
+                      <div className="bg-white/20 backdrop-blur-lg rounded-full px-4 py-2">
+                        <span className="font-bold">{componentsFilledCount}/3</span>
+                        <span className="text-sm opacity-80 ml-1">Ready</span>
+                      </div>
+                    </div>
+                    
+                    {/* Activation prompt when all components are filled */}
+                    {allComponentsFilled && !isActivated && (
+                      <div className="mt-4 p-3 bg-green-400/20 rounded-lg border border-green-300">
+                        <p className="text-sm flex items-center gap-2">
+                          <Sparkles className="w-4 h-4" />
+                          All set! Click "Start Daily Outreach" above to activate your campaign.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+      })()}
+
       {/* Settings Section */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Schedule Settings */}
