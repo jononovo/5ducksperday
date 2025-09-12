@@ -18,6 +18,16 @@ import { CustomerProfileForm } from '@/components/customer-profile-form';
 import { SenderProfileForm } from '@/components/sender-profile-form';
 import { useLocation } from 'wouter';
 import { type TargetCustomerProfile } from '@shared/schema';
+import { 
+  SenderProfileCard, 
+  ProductCard, 
+  CustomerProfileCard, 
+  ActivationCard 
+} from '@/components/campaign-setup';
+import {
+  ActivationCTABanner,
+  AdaptiveCampaignBanner
+} from '@/components/campaign/banners';
 
 interface StreakStats {
   currentStreak: number;
@@ -446,30 +456,7 @@ export default function StreakPage() {
 
       {/* Activation CTA */}
       {preferences && !preferences.enabled && (
-        <Card className="mb-8 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
-          <CardContent className="py-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex-1 text-center md:text-left">
-                <div className="flex items-center gap-3 justify-center md:justify-start mb-3">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                  <h2 className="text-2xl font-bold">Activate Your Daily Sales Companion</h2>
-                </div>
-                <p className="text-muted-foreground">
-                  Get 5 personalized prospects delivered to your inbox every day.
-                  Takes just 2 minutes to set up.
-                </p>
-              </div>
-              <Button 
-                size="lg" 
-                className="min-w-[200px]"
-                onClick={() => setShowOnboarding(true)}
-              >
-                <Rocket className="h-5 w-5 mr-2" />
-                Start Daily Outreach
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <ActivationCTABanner onStartClick={() => setShowOnboarding(true)} />
       )}
 
       {/* Quick Actions */}
@@ -551,138 +538,13 @@ export default function StreakPage() {
       </div>
 
       {/* Adaptive Campaign Banner - Shows intro or metrics based on campaign status */}
-      {(() => {
-        // Simply check if campaign is activated (play button pressed)
-        const isActivated = !!preferences?.enabled;
-        
-        // Calculate progress for intro banner
-        const hasSenderProfile = !!selectedSenderProfileId;
-        const hasProduct = !!selectedProductId;
-        const hasCustomerProfile = !!selectedCustomerProfileId;
-        const componentsFilledCount = [hasSenderProfile, hasProduct, hasCustomerProfile].filter(Boolean).length;
-        
-        if (isActivated) {
-          // Show metrics banner for active campaigns
-          return (
-            <div className="mb-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-10 text-white shadow-2xl relative overflow-hidden">
-              {/* Background decoration */}
-              <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-              <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
-              
-              <div className="relative z-10">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium uppercase tracking-wider opacity-90">Campaign Active</span>
-                    </div>
-                    <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-white/80 bg-clip-text">
-                      Your Campaign is Live! 🎯
-                    </h2>
-                    <p className="text-lg opacity-90 mb-4">Targeting ideal customers with personalized outreach</p>
-                    
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2">
-                        <CalendarIcon2 className="w-4 h-4 opacity-80" />
-                        <span className="text-sm opacity-90">Day {Math.min(stats?.currentStreak || 0, 14)} of 14</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 opacity-80" />
-                        <span className="text-sm opacity-90">{Math.max(14 - (stats?.currentStreak || 0), 0)} days remaining</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-4">
-                    <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
-                      <p className="text-sm opacity-90 mb-1">Emails Sent</p>
-                      <p className="text-4xl font-bold">{stats?.emailsSentThisMonth || 0}</p>
-                      <p className="text-xs opacity-70 mt-1">+{stats?.emailsSentToday || 0} today</p>
-                    </div>
-                    <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
-                      <p className="text-sm opacity-90 mb-1">Companies Reached</p>
-                      <p className="text-4xl font-bold">{stats?.companiesContactedThisMonth || 0}</p>
-                      <p className="text-xs opacity-70 mt-1">This month</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Progress bar */}
-                <div className="mt-6">
-                  <div className="bg-white/20 rounded-full h-2 overflow-hidden">
-                    <div className="bg-white h-full rounded-full transition-all duration-500" 
-                         style={{width: `${Math.min(((stats?.currentStreak || 0) / 14) * 100, 100)}%`}}></div>
-                  </div>
-                  <p className="text-xs opacity-70 mt-2">Campaign Progress: {Math.round(Math.min(((stats?.currentStreak || 0) / 14) * 100, 100))}% Complete</p>
-                </div>
-              </div>
-            </div>
-          );
-        } else {
-          // Show simplified intro banner (same size as metrics banner)
-          return (
-            <div className="mb-8 bg-gradient-to-br from-amber-400 via-orange-400 to-yellow-400 rounded-xl p-10 text-white shadow-2xl relative overflow-hidden">
-              {/* Background decoration */}
-              <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-              <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
-              
-              <div className="relative z-10">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-3 h-3 bg-yellow-300 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium uppercase tracking-wider opacity-90">Campaign Setup</span>
-                    </div>
-                    <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-white/80 bg-clip-text">
-                      Build Your Outreach Campaign 🎯
-                    </h2>
-                    <p className="text-lg opacity-90 mb-4">Configure the 3 components below to start generating daily leads</p>
-                    
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 opacity-80" />
-                        <span className="text-sm opacity-90">{hasSenderProfile ? '✓ Profile Set' : 'Add Your Profile'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Package className="w-4 h-4 opacity-80" />
-                        <span className="text-sm opacity-90">{hasProduct ? '✓ Product Added' : 'Define Product'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Target className="w-4 h-4 opacity-80" />
-                        <span className="text-sm opacity-90">{hasCustomerProfile ? '✓ Customer Defined' : 'Set Target'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-4">
-                    <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
-                      <p className="text-sm opacity-90 mb-1">Setup Progress</p>
-                      <p className="text-4xl font-bold">{componentsFilledCount}/3</p>
-                      <p className="text-xs opacity-70 mt-1">
-                        {componentsFilledCount === 0 && "Let's start"}
-                        {componentsFilledCount === 1 && "Good progress"}
-                        {componentsFilledCount === 2 && "Almost ready"}
-                        {componentsFilledCount === 3 && "Ready to launch"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Progress bar */}
-                <div className="mt-6">
-                  <div className="bg-white/20 rounded-full h-2 overflow-hidden">
-                    <div className="bg-white h-full rounded-full transition-all duration-500" 
-                         style={{width: `${(componentsFilledCount / 3) * 100}%`}}></div>
-                  </div>
-                  <p className="text-xs opacity-70 mt-2">Setup Progress: {Math.round((componentsFilledCount / 3) * 100)}% Complete</p>
-                </div>
-              </div>
-            </div>
-          );
-        }
-      })()}
+      <AdaptiveCampaignBanner
+        isActivated={!!preferences?.enabled}
+        stats={stats}
+        hasSenderProfile={!!selectedSenderProfileId}
+        hasProduct={!!selectedProductId}
+        hasCustomerProfile={!!selectedCustomerProfileId}
+      />
 
       {/* Settings Section */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -862,446 +724,58 @@ export default function StreakPage() {
         </Card>
       </div>
 
-      {/* Campaign Status Banner */}
-      <div className="mb-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-10 text-white shadow-2xl relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
-        
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium uppercase tracking-wider opacity-90">Campaign Active</span>
-              </div>
-              <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-white/80 bg-clip-text">
-                Your Campaign is Live! 🎯
-              </h2>
-              <p className="text-lg opacity-90 mb-4">Targeting ideal customers with personalized outreach</p>
-              
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon2 className="w-4 h-4 opacity-80" />
-                  <span className="text-sm opacity-90">Day 3 of 14</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 opacity-80" />
-                  <span className="text-sm opacity-90">11 days remaining</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
-                <p className="text-sm opacity-90 mb-1">Leads Generated</p>
-                <p className="text-4xl font-bold">27</p>
-                <p className="text-xs opacity-70 mt-1">+5 today</p>
-              </div>
-              <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
-                <p className="text-sm opacity-90 mb-1">Response Rate</p>
-                <p className="text-4xl font-bold">32%</p>
-                <p className="text-xs opacity-70 mt-1">↑ 8% vs avg</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Progress bar */}
-          <div className="mt-6">
-            <div className="bg-white/20 rounded-full h-2 overflow-hidden">
-              <div className="bg-white h-full rounded-full transition-all duration-500" style={{width: '21%'}}></div>
-            </div>
-            <p className="text-xs opacity-70 mt-2">Campaign Progress: 21% Complete</p>
-          </div>
-        </div>
-      </div>
 
       {/* Campaign Setup Row - 4 Components */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {/* 1. Me (My Company/Profile) */}
-        <Card className={cn(
-          "relative group transition-all duration-300 border-2",
-          selectedSenderProfileId 
-            ? "border-primary bg-primary/5 shadow-lg" 
-            : "hover:shadow-xl hover:border-primary/30"
-        )}>
-          {/* Progress indicator */}
-          {selectedSenderProfileId && (
-            <div className="absolute -top-2 -right-2 z-10">
-              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                <Check className="w-4 h-4 text-white" />
-              </div>
-            </div>
-          )}
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Me
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  My Company
-                </CardDescription>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => setShowSenderForm(true)}
-                data-testid="button-add-sender-profile"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {senderProfilesLoading ? (
-              <div className="text-xs text-muted-foreground">Loading...</div>
-            ) : senderProfiles && senderProfiles.length > 0 ? (
-              <div className="space-y-2">
-                {senderProfiles
-                  .slice(0, 3)
-                  .map((profile) => (
-                  <div
-                    key={profile.id}
-                    className={cn(
-                      "p-2 rounded-lg border cursor-pointer transition-all",
-                      selectedSenderProfileId === profile.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => handleSenderProfileChange(profile.id)}
-                    data-testid={`sender-profile-${profile.id}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-xs truncate">{profile.displayName}</div>
-                        <div className="text-xs text-muted-foreground truncate">{profile.email}</div>
-                        {profile.title && (
-                          <div className="text-xs text-muted-foreground truncate">{profile.title}</div>
-                        )}
-                      </div>
-                      {selectedSenderProfileId === profile.id && (
-                        <Check className="h-3 w-3 text-primary flex-shrink-0" />
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <div className="p-2 bg-secondary rounded-lg mb-2">
-                  <div className="font-medium text-xs truncate">{user?.username || user?.email}</div>
-                  <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Default profile created
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* 1. Sender Profile Card */}
+        <SenderProfileCard
+          senderProfiles={senderProfiles}
+          selectedSenderProfileId={selectedSenderProfileId}
+          isLoading={senderProfilesLoading}
+          onProfileChange={handleSenderProfileChange}
+          onAddProfile={() => setShowSenderForm(true)}
+          user={user}
+        />
 
-        {/* 2. My Product */}
-        <Card className={cn(
-          "relative transition-all duration-300 border-2",
-          selectedProductId 
-            ? "border-primary bg-primary/5 shadow-lg" 
-            : "hover:shadow-xl hover:border-primary/30"
-        )}>
-          {/* Progress indicator */}
-          {selectedProductId && (
-            <div className="absolute -top-2 -right-2 z-10">
-              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                <Check className="w-4 h-4 text-white" />
-              </div>
-            </div>
-          )}
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  My Product
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  What are you selling?
-                </CardDescription>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => setShowOnboarding(true)}
-                data-testid="button-add-product"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {productsLoading ? (
-              <div className="text-xs text-muted-foreground">Loading...</div>
-            ) : products && products.length > 0 ? (
-              <div className="space-y-2">
-                {products
-                  .sort((a, b) => {
-                    // Stable sort: by creation date, then by ID
-                    const dateA = new Date(a.createdAt || 0).getTime();
-                    const dateB = new Date(b.createdAt || 0).getTime();
-                    if (dateA !== dateB) {
-                      return dateB - dateA; // Most recent first
-                    }
-                    return a.id - b.id;
-                  })
-                  .slice(0, 3)
-                  .map((product) => (
-                  <div
-                    key={product.id}
-                    className={cn(
-                      "p-2 rounded-lg border cursor-pointer transition-all",
-                      selectedProductId === product.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => handleProductChange(product.id)}
-                    data-testid={`product-${product.id}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-xs truncate">{product.title}</div>
-                        <div className="text-xs text-muted-foreground truncate">
-                          {product.productService}
-                        </div>
-                      </div>
-                      {selectedProductId === product.id && (
-                        <Check className="h-3 w-3 text-primary flex-shrink-0" />
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-16 w-16 rounded-full p-0"
-                  onClick={() => setShowOnboarding(true)}
-                  data-testid="button-create-product"
-                >
-                  <Plus className="h-8 w-8 text-muted-foreground/30" />
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Add your product
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* 2. Product Card */}
+        <ProductCard
+          products={products}
+          selectedProductId={selectedProductId}
+          isLoading={productsLoading}
+          onProductChange={handleProductChange}
+          onAddProduct={() => setShowOnboarding(true)}
+        />
 
-        {/* 3. Ideal Customer */}
-        <Card className={cn(
-          "relative transition-all duration-300 border-2",
-          selectedCustomerProfileId 
-            ? "border-primary bg-primary/5 shadow-lg" 
-            : "hover:shadow-xl hover:border-primary/30"
-        )}>
-          {/* Progress indicator */}
-          {selectedCustomerProfileId && (
-            <div className="absolute -top-2 -right-2 z-10">
-              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                <Check className="w-4 h-4 text-white" />
-              </div>
-            </div>
-          )}
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Ideal Customer
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Who are you connecting with?
-                </CardDescription>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => setShowCustomerForm(true)}
-                data-testid="button-add-customer-profile"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {customerProfilesLoading ? (
-              <div className="text-xs text-muted-foreground">Loading...</div>
-            ) : customerProfiles && customerProfiles.length > 0 ? (
-              <div className="space-y-2">
-                {customerProfiles
-                  .sort((a, b) => a.id - b.id) // Stable sort by ID
-                  .slice(0, 3)
-                  .map((profile) => (
-                  <div
-                    key={profile.id}
-                    className={cn(
-                      "p-2 rounded-lg border cursor-pointer transition-all",
-                      selectedCustomerProfileId === profile.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => handleCustomerProfileChange(profile.id)}
-                    data-testid={`customer-profile-${profile.id}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-xs truncate">{profile.label}</div>
-                        {profile.industries && profile.industries.length > 0 && (
-                          <div className="text-xs text-muted-foreground truncate">{profile.industries.join(', ')}</div>
-                        )}
-                        {profile.companySizes && profile.companySizes.length > 0 && profile.companySizes[0] !== 'All sizes' && (
-                          <div className="text-xs text-muted-foreground truncate">{profile.companySizes.join(', ')}</div>
-                        )}
-                      </div>
-                      {selectedCustomerProfileId === profile.id && (
-                        <Check className="h-3 w-3 text-primary flex-shrink-0" />
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-16 w-16 rounded-full p-0"
-                  onClick={() => setShowCustomerForm(true)}
-                  data-testid="button-create-customer-profile"
-                >
-                  <Plus className="h-8 w-8 text-muted-foreground/30" />
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Add ideal customer
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* 3. Customer Profile Card */}
+        <CustomerProfileCard
+          customerProfiles={customerProfiles}
+          selectedCustomerProfileId={selectedCustomerProfileId}
+          isLoading={customerProfilesLoading}
+          onProfileChange={handleCustomerProfileChange}
+          onAddProfile={() => setShowCustomerForm(true)}
+        />
 
-        {/* 4. Play Button */}
-        <Card className={cn(
-          "relative transition-all",
-          preferences?.enabled 
-            ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800" 
-            : "hover:shadow-lg"
-        )}>
-          <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] p-4">
-            {/* Progress indicators at the top */}
-            <div className="flex gap-2 mb-4">
-              <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                selectedSenderProfileId 
-                  ? "bg-green-100 dark:bg-green-900/50 border-2 border-green-500" 
-                  : "bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
-              )}>
-                {selectedSenderProfileId ? (
-                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
-                ) : (
-                  <span className="text-xs text-gray-400">1</span>
-                )}
-              </div>
-              <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                selectedProductId 
-                  ? "bg-green-100 dark:bg-green-900/50 border-2 border-green-500" 
-                  : "bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
-              )}>
-                {selectedProductId ? (
-                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
-                ) : (
-                  <span className="text-xs text-gray-400">2</span>
-                )}
-              </div>
-              <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                selectedCustomerProfileId 
-                  ? "bg-green-100 dark:bg-green-900/50 border-2 border-green-500" 
-                  : "bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
-              )}>
-                {selectedCustomerProfileId ? (
-                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
-                ) : (
-                  <span className="text-xs text-gray-400">3</span>
-                )}
-              </div>
-            </div>
-            
-            {preferences?.enabled ? (
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mb-3">
-                  <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
-                </div>
-                <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                  Campaign Active
-                </p>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                  Sending {daysPerWeek[0]} days/week
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-3"
-                  onClick={() => {
-                    updatePreferences.mutate({ enabled: false });
-                  }}
-                >
-                  Pause Campaign
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center">
-                <Button
-                  size="lg"
-                  className="h-16 w-16 rounded-full p-0 mb-3"
-                  onClick={() => {
-                    if (products && products.length > 0 && selectedProductId) {
-                      // Save all selected profiles when activating the campaign
-                      updatePreferences.mutate({ 
-                        enabled: true,
-                        scheduleDays: ['monday', 'tuesday', 'wednesday'].slice(0, daysPerWeek[0]),
-                        activeProductId: selectedProductId,
-                        activeSenderProfileId: selectedSenderProfileId || 0,
-                        activeCustomerProfileId: selectedCustomerProfileId || 0
-                      });
-                    } else {
-                      toast({
-                        title: "Setup Required",
-                        description: "Please add your product information first",
-                        variant: "destructive"
-                      });
-                    }
-                  }}
-                  disabled={!products || products.length === 0 || !selectedProductId}
-                >
-                  <Play className="h-8 w-8 ml-1" />
-                </Button>
-                <p className="text-sm font-medium">
-                  Start Campaign
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Launch daily outreach
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* 4. Activation Card */}
+        <ActivationCard
+          isEnabled={preferences?.enabled || false}
+          daysPerWeek={daysPerWeek[0]}
+          hasProduct={!!selectedProductId}
+          hasSenderProfile={!!selectedSenderProfileId}
+          hasCustomerProfile={!!selectedCustomerProfileId}
+          onActivate={() => {
+            // Save all selected profiles when activating the campaign
+            updatePreferences.mutate({ 
+              enabled: true,
+              scheduleDays: ['monday', 'tuesday', 'wednesday'].slice(0, daysPerWeek[0]),
+              activeProductId: selectedProductId,
+              activeSenderProfileId: selectedSenderProfileId || 0,
+              activeCustomerProfileId: selectedCustomerProfileId || 0
+            });
+          }}
+          onDeactivate={() => {
+            updatePreferences.mutate({ enabled: false });
+          }}
+        />
       </div>
 
       {/* Product Onboarding Form */}
