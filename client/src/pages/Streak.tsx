@@ -18,6 +18,12 @@ import { CustomerProfileForm } from '@/components/customer-profile-form';
 import { SenderProfileForm } from '@/components/sender-profile-form';
 import { useLocation } from 'wouter';
 import { type TargetCustomerProfile } from '@shared/schema';
+import { 
+  SenderProfileCard, 
+  ProductCard, 
+  CustomerProfileCard, 
+  ActivationCard 
+} from '@/components/campaign-setup';
 
 interface StreakStats {
   currentStreak: number;
@@ -919,389 +925,55 @@ export default function StreakPage() {
 
       {/* Campaign Setup Row - 4 Components */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {/* 1. Me (My Company/Profile) */}
-        <Card className={cn(
-          "relative group transition-all duration-300 border-2",
-          selectedSenderProfileId 
-            ? "border-primary bg-primary/5 shadow-lg" 
-            : "hover:shadow-xl hover:border-primary/30"
-        )}>
-          {/* Progress indicator */}
-          {selectedSenderProfileId && (
-            <div className="absolute -top-2 -right-2 z-10">
-              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                <Check className="w-4 h-4 text-white" />
-              </div>
-            </div>
-          )}
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Me
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  My Company
-                </CardDescription>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => setShowSenderForm(true)}
-                data-testid="button-add-sender-profile"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {senderProfilesLoading ? (
-              <div className="text-xs text-muted-foreground">Loading...</div>
-            ) : senderProfiles && senderProfiles.length > 0 ? (
-              <div className="space-y-2">
-                {senderProfiles
-                  .slice(0, 3)
-                  .map((profile) => (
-                  <div
-                    key={profile.id}
-                    className={cn(
-                      "p-2 rounded-lg border cursor-pointer transition-all",
-                      selectedSenderProfileId === profile.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => handleSenderProfileChange(profile.id)}
-                    data-testid={`sender-profile-${profile.id}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-xs truncate">{profile.displayName}</div>
-                        <div className="text-xs text-muted-foreground truncate">{profile.email}</div>
-                        {profile.title && (
-                          <div className="text-xs text-muted-foreground truncate">{profile.title}</div>
-                        )}
-                      </div>
-                      {selectedSenderProfileId === profile.id && (
-                        <Check className="h-3 w-3 text-primary flex-shrink-0" />
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <div className="p-2 bg-secondary rounded-lg mb-2">
-                  <div className="font-medium text-xs truncate">{user?.username || user?.email}</div>
-                  <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Default profile created
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* 1. Sender Profile Card */}
+        <SenderProfileCard
+          senderProfiles={senderProfiles}
+          selectedSenderProfileId={selectedSenderProfileId}
+          isLoading={senderProfilesLoading}
+          onProfileChange={handleSenderProfileChange}
+          onAddProfile={() => setShowSenderForm(true)}
+          user={user}
+        />
 
-        {/* 2. My Product */}
-        <Card className={cn(
-          "relative transition-all duration-300 border-2",
-          selectedProductId 
-            ? "border-primary bg-primary/5 shadow-lg" 
-            : "hover:shadow-xl hover:border-primary/30"
-        )}>
-          {/* Progress indicator */}
-          {selectedProductId && (
-            <div className="absolute -top-2 -right-2 z-10">
-              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                <Check className="w-4 h-4 text-white" />
-              </div>
-            </div>
-          )}
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  My Product
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  What are you selling?
-                </CardDescription>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => setShowOnboarding(true)}
-                data-testid="button-add-product"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {productsLoading ? (
-              <div className="text-xs text-muted-foreground">Loading...</div>
-            ) : products && products.length > 0 ? (
-              <div className="space-y-2">
-                {products
-                  .sort((a, b) => {
-                    // Stable sort: by creation date, then by ID
-                    const dateA = new Date(a.createdAt || 0).getTime();
-                    const dateB = new Date(b.createdAt || 0).getTime();
-                    if (dateA !== dateB) {
-                      return dateB - dateA; // Most recent first
-                    }
-                    return a.id - b.id;
-                  })
-                  .slice(0, 3)
-                  .map((product) => (
-                  <div
-                    key={product.id}
-                    className={cn(
-                      "p-2 rounded-lg border cursor-pointer transition-all",
-                      selectedProductId === product.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => handleProductChange(product.id)}
-                    data-testid={`product-${product.id}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-xs truncate">{product.title}</div>
-                        <div className="text-xs text-muted-foreground truncate">
-                          {product.productService}
-                        </div>
-                      </div>
-                      {selectedProductId === product.id && (
-                        <Check className="h-3 w-3 text-primary flex-shrink-0" />
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-16 w-16 rounded-full p-0"
-                  onClick={() => setShowOnboarding(true)}
-                  data-testid="button-create-product"
-                >
-                  <Plus className="h-8 w-8 text-muted-foreground/30" />
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Add your product
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* 2. Product Card */}
+        <ProductCard
+          products={products}
+          selectedProductId={selectedProductId}
+          isLoading={productsLoading}
+          onProductChange={handleProductChange}
+          onAddProduct={() => setShowOnboarding(true)}
+        />
 
-        {/* 3. Ideal Customer */}
-        <Card className={cn(
-          "relative transition-all duration-300 border-2",
-          selectedCustomerProfileId 
-            ? "border-primary bg-primary/5 shadow-lg" 
-            : "hover:shadow-xl hover:border-primary/30"
-        )}>
-          {/* Progress indicator */}
-          {selectedCustomerProfileId && (
-            <div className="absolute -top-2 -right-2 z-10">
-              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                <Check className="w-4 h-4 text-white" />
-              </div>
-            </div>
-          )}
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Ideal Customer
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Who are you connecting with?
-                </CardDescription>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => setShowCustomerForm(true)}
-                data-testid="button-add-customer-profile"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {customerProfilesLoading ? (
-              <div className="text-xs text-muted-foreground">Loading...</div>
-            ) : customerProfiles && customerProfiles.length > 0 ? (
-              <div className="space-y-2">
-                {customerProfiles
-                  .sort((a, b) => a.id - b.id) // Stable sort by ID
-                  .slice(0, 3)
-                  .map((profile) => (
-                  <div
-                    key={profile.id}
-                    className={cn(
-                      "p-2 rounded-lg border cursor-pointer transition-all",
-                      selectedCustomerProfileId === profile.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => handleCustomerProfileChange(profile.id)}
-                    data-testid={`customer-profile-${profile.id}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-xs truncate">{profile.label}</div>
-                        {profile.industries && profile.industries.length > 0 && (
-                          <div className="text-xs text-muted-foreground truncate">{profile.industries.join(', ')}</div>
-                        )}
-                        {profile.companySizes && profile.companySizes.length > 0 && profile.companySizes[0] !== 'All sizes' && (
-                          <div className="text-xs text-muted-foreground truncate">{profile.companySizes.join(', ')}</div>
-                        )}
-                      </div>
-                      {selectedCustomerProfileId === profile.id && (
-                        <Check className="h-3 w-3 text-primary flex-shrink-0" />
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-16 w-16 rounded-full p-0"
-                  onClick={() => setShowCustomerForm(true)}
-                  data-testid="button-create-customer-profile"
-                >
-                  <Plus className="h-8 w-8 text-muted-foreground/30" />
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Add ideal customer
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* 3. Customer Profile Card */}
+        <CustomerProfileCard
+          customerProfiles={customerProfiles}
+          selectedCustomerProfileId={selectedCustomerProfileId}
+          isLoading={customerProfilesLoading}
+          onProfileChange={handleCustomerProfileChange}
+          onAddProfile={() => setShowCustomerForm(true)}
+        />
 
-        {/* 4. Play Button */}
-        <Card className={cn(
-          "relative transition-all",
-          preferences?.enabled 
-            ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800" 
-            : "hover:shadow-lg"
-        )}>
-          <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] p-4">
-            {/* Progress indicators at the top */}
-            <div className="flex gap-2 mb-4">
-              <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                selectedSenderProfileId 
-                  ? "bg-green-100 dark:bg-green-900/50 border-2 border-green-500" 
-                  : "bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
-              )}>
-                {selectedSenderProfileId ? (
-                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
-                ) : (
-                  <span className="text-xs text-gray-400">1</span>
-                )}
-              </div>
-              <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                selectedProductId 
-                  ? "bg-green-100 dark:bg-green-900/50 border-2 border-green-500" 
-                  : "bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
-              )}>
-                {selectedProductId ? (
-                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
-                ) : (
-                  <span className="text-xs text-gray-400">2</span>
-                )}
-              </div>
-              <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                selectedCustomerProfileId 
-                  ? "bg-green-100 dark:bg-green-900/50 border-2 border-green-500" 
-                  : "bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
-              )}>
-                {selectedCustomerProfileId ? (
-                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
-                ) : (
-                  <span className="text-xs text-gray-400">3</span>
-                )}
-              </div>
-            </div>
-            
-            {preferences?.enabled ? (
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mb-3">
-                  <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
-                </div>
-                <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                  Campaign Active
-                </p>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                  Sending {daysPerWeek[0]} days/week
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-3"
-                  onClick={() => {
-                    updatePreferences.mutate({ enabled: false });
-                  }}
-                >
-                  Pause Campaign
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center">
-                <Button
-                  size="lg"
-                  className="h-16 w-16 rounded-full p-0 mb-3"
-                  onClick={() => {
-                    if (products && products.length > 0 && selectedProductId) {
-                      // Save all selected profiles when activating the campaign
-                      updatePreferences.mutate({ 
-                        enabled: true,
-                        scheduleDays: ['monday', 'tuesday', 'wednesday'].slice(0, daysPerWeek[0]),
-                        activeProductId: selectedProductId,
-                        activeSenderProfileId: selectedSenderProfileId || 0,
-                        activeCustomerProfileId: selectedCustomerProfileId || 0
-                      });
-                    } else {
-                      toast({
-                        title: "Setup Required",
-                        description: "Please add your product information first",
-                        variant: "destructive"
-                      });
-                    }
-                  }}
-                  disabled={!products || products.length === 0 || !selectedProductId}
-                >
-                  <Play className="h-8 w-8 ml-1" />
-                </Button>
-                <p className="text-sm font-medium">
-                  Start Campaign
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Launch daily outreach
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* 4. Activation Card */}
+        <ActivationCard
+          isEnabled={preferences?.enabled || false}
+          daysPerWeek={daysPerWeek[0]}
+          hasProduct={!!selectedProductId}
+          hasSenderProfile={!!selectedSenderProfileId}
+          hasCustomerProfile={!!selectedCustomerProfileId}
+          onActivate={() => {
+            // Save all selected profiles when activating the campaign
+            updatePreferences.mutate({ 
+              enabled: true,
+              scheduleDays: ['monday', 'tuesday', 'wednesday'].slice(0, daysPerWeek[0]),
+              activeProductId: selectedProductId,
+              activeSenderProfileId: selectedSenderProfileId || 0,
+              activeCustomerProfileId: selectedCustomerProfileId || 0
+            });
+          }}
+          onDeactivate={() => {
+            updatePreferences.mutate({ enabled: false });
+          }}
+        />
       </div>
 
       {/* Product Onboarding Form */}
