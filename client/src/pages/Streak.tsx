@@ -977,7 +977,13 @@ export default function StreakPage() {
             ) : senderProfiles && senderProfiles.length > 0 ? (
               <div className="space-y-2">
                 {senderProfiles
-                  .sort((a, b) => b.isDefault ? 1 : -1) // Default profiles first
+                  .sort((a, b) => {
+                    // Stable sort: Default profiles first, then by ID
+                    if (a.isDefault !== b.isDefault) {
+                      return a.isDefault ? -1 : 1;
+                    }
+                    return a.id - b.id;
+                  })
                   .slice(0, 3)
                   .map((profile) => (
                   <div
@@ -1063,7 +1069,15 @@ export default function StreakPage() {
             ) : products && products.length > 0 ? (
               <div className="space-y-2">
                 {products
-                  .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+                  .sort((a, b) => {
+                    // Stable sort: by creation date, then by ID
+                    const dateA = new Date(a.createdAt || 0).getTime();
+                    const dateB = new Date(b.createdAt || 0).getTime();
+                    if (dateA !== dateB) {
+                      return dateB - dateA; // Most recent first
+                    }
+                    return a.id - b.id;
+                  })
                   .slice(0, 3)
                   .map((product) => (
                   <div
@@ -1153,6 +1167,7 @@ export default function StreakPage() {
             ) : customerProfiles && customerProfiles.length > 0 ? (
               <div className="space-y-2">
                 {customerProfiles
+                  .sort((a, b) => a.id - b.id) // Stable sort by ID
                   .slice(0, 3)
                   .map((profile) => (
                   <div
