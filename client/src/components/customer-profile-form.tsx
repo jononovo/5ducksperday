@@ -61,15 +61,13 @@ export function CustomerProfileForm({ open, onClose, onComplete }: CustomerProfi
   });
 
   const handleClose = () => {
-    if (!saveProfile.isPending) {
-      setStep(1);
-      setFormData({
-        exampleCompany: '',
-        searchPrompt: '',
-        additionalContext: ''
-      });
-      onClose();
-    }
+    setStep(1);
+    setFormData({
+      exampleCompany: '',
+      searchPrompt: '',
+      additionalContext: ''
+    });
+    onClose();
   };
 
   const handleNext = () => {

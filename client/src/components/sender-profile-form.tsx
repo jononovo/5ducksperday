@@ -79,20 +79,18 @@ export function SenderProfileForm({ open, onClose, onComplete }: SenderProfileFo
   });
 
   const handleClose = () => {
-    if (!saveProfile.isPending) {
-      setStep(1);
-      setFormData({
-        email: '',
-        displayName: '',
-        firstName: '',
-        lastName: '',
-        title: '',
-        company: '',
-        city: '',
-        website: ''
-      });
-      onClose();
-    }
+    setStep(1);
+    setFormData({
+      email: '',
+      displayName: '',
+      firstName: '',
+      lastName: '',
+      title: '',
+      company: '',
+      city: '',
+      website: ''
+    });
+    onClose();
   };
 
   const handleNext = () => {
