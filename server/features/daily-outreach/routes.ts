@@ -266,6 +266,8 @@ router.post('/trigger', requireAuth, async (req: Request, res: Response) => {
 router.post('/send-test-email', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
+    const { email: targetEmail } = req.body; // Accept email from request body
+    
     if (!userId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
@@ -323,13 +325,16 @@ router.post('/send-test-email', requireAuth, async (req: Request, res: Response)
       };
     }
     
+    // Create a modified user object with the target email if provided
+    const testUser = targetEmail ? { ...user, email: targetEmail } : user;
+    
     // Send test email
-    const sent = await sendGridService.sendDailyNudgeEmail(user, testBatch);
+    const sent = await sendGridService.sendDailyNudgeEmail(testUser, testBatch);
     
     res.json({ 
       success: sent, 
       message: sent 
-        ? `Test email sent successfully to ${user.email}` 
+        ? `Test email sent successfully to ${testUser.email}` 
         : 'Failed to send test email. Please check SendGrid configuration.'
     });
   } catch (error) {
