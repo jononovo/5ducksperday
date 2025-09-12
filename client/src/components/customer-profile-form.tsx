@@ -61,15 +61,13 @@ export function CustomerProfileForm({ open, onClose, onComplete }: CustomerProfi
   });
 
   const handleClose = () => {
-    if (!saveProfile.isPending) {
-      setStep(1);
-      setFormData({
-        exampleCompany: '',
-        searchPrompt: '',
-        additionalContext: ''
-      });
-      onClose();
-    }
+    setStep(1);
+    setFormData({
+      exampleCompany: '',
+      searchPrompt: '',
+      additionalContext: ''
+    });
+    onClose();
   };
 
   const handleNext = () => {
@@ -218,7 +216,7 @@ export function CustomerProfileForm({ open, onClose, onComplete }: CustomerProfi
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent className="sm:max-w-[500px]">
         {getStepContent()}
         

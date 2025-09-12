@@ -22,7 +22,7 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
         if (user) {
           const defaultProfile = await storage.createSenderProfile({
             userId,
-            name: user.username || user.email.split('@')[0],
+            displayName: user.username || user.email.split('@')[0],
             email: user.email,
             isDefault: true
           });
@@ -69,11 +69,19 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
     try {
       const userId = getUserId(req);
       
-      // Validate request body
-      const parseResult = insertSenderProfileSchema.safeParse({
-        ...req.body,
-        userId
-      });
+      // Map frontend fields to database fields (handle 'name' -> 'displayName')
+      const mappedData = {
+        userId,
+        displayName: req.body.displayName || req.body.name || 'Unknown Sender',
+        email: req.body.email,
+        companyName: req.body.companyName,
+        companyWebsite: req.body.companyWebsite,
+        title: req.body.title,
+        isDefault: req.body.isDefault || false
+      };
+      
+      // Validate mapped data
+      const parseResult = insertSenderProfileSchema.safeParse(mappedData);
       
       if (!parseResult.success) {
         return res.status(400).json({
@@ -109,9 +117,22 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
         return res.status(404).json({ message: 'Sender profile not found' });
       }
       
+      // Map frontend fields to database fields for update
+      const mappedData: any = {};
+      
+      // Handle both 'name' and 'displayName' from frontend
+      if (req.body.displayName !== undefined) mappedData.displayName = req.body.displayName;
+      if (req.body.name !== undefined && !req.body.displayName) mappedData.displayName = req.body.name;
+      
+      if (req.body.email !== undefined) mappedData.email = req.body.email;
+      if (req.body.companyName !== undefined) mappedData.companyName = req.body.companyName;
+      if (req.body.companyWebsite !== undefined) mappedData.companyWebsite = req.body.companyWebsite;
+      if (req.body.title !== undefined) mappedData.title = req.body.title;
+      if (req.body.isDefault !== undefined) mappedData.isDefault = req.body.isDefault;
+      
       // Validate update data
       const updateSchema = insertSenderProfileSchema.partial().omit({ userId: true });
-      const parseResult = updateSchema.safeParse(req.body);
+      const parseResult = updateSchema.safeParse(mappedData);
       
       if (!parseResult.success) {
         return res.status(400).json({
