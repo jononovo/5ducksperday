@@ -1320,7 +1320,7 @@ export default function StreakPage() {
         onComplete={(profileId) => {
           if (profileId) {
             setSelectedProductId(profileId);
-            // Product onboarding already sets the active profile in preferences
+            setActiveProduct.mutate(profileId);
           }
           refetchPreferences();
           refetchStats();
