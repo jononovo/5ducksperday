@@ -62,7 +62,7 @@ export function registerCustomerProfilesRoutes(app: Application, requireAuth: an
         industries: req.body.industry ? [req.body.industry] : [],
         roles: req.body.jobTitles || [],
         locations: req.body.geography ? [req.body.geography] : [],
-        companySizes: req.body.companySize ? [req.body.companySize] : [],
+        companySizes: [],
         techStack: req.body.currentSolutions ? [req.body.currentSolutions] : [],
         notes: req.body.additionalContext || ''
       };

@@ -38,7 +38,7 @@ export function CustomerProfileForm({ open, onClose, onComplete }: CustomerProfi
         searchPrompt: data.searchPrompt,
         additionalContext: data.additionalContext,
         industry: data.searchPrompt.split(' ').slice(0, 2).join(' '), // Extract first 2 words as industry
-        companySize: 'All sizes' // Default value
+        companySize: '' // No default value
       });
       return res.json();
     },
