@@ -520,16 +520,13 @@ export default function StreakPage() {
                   <RefreshCw className={cn("h-4 w-4 mr-2", triggerEmail.isPending && "animate-spin")} />
                   Re-generate
                 </Button>
-                <Button 
+                <button 
                   onClick={() => sendTestEmail.mutate()} 
-                  size="sm" 
-                  className="w-full text-xs h-7 mt-4"
-                  variant="ghost"
+                  className="w-full text-[10px] h-5 mt-1 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
                   disabled={sendTestEmail.isPending}
                 >
-                  <Mail className={cn("h-3 w-3 mr-1", sendTestEmail.isPending && "animate-pulse")} />
                   Send Test Email
-                </Button>
+                </button>
               </div>
             ) : (
               <div className="space-y-3">
@@ -544,16 +541,13 @@ export default function StreakPage() {
                   <RefreshCw className={cn("h-4 w-4 mr-2", triggerEmail.isPending && "animate-spin")} />
                   Generate Now
                 </Button>
-                <Button 
+                <button 
                   onClick={() => sendTestEmail.mutate()} 
-                  size="sm" 
-                  className="w-full text-xs h-7 mt-4"
-                  variant="ghost"
+                  className="w-full text-[10px] h-5 mt-1 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
                   disabled={sendTestEmail.isPending}
                 >
-                  <Mail className={cn("h-3 w-3 mr-1", sendTestEmail.isPending && "animate-pulse")} />
                   Send Test Email
-                </Button>
+                </button>
               </div>
             )}
           </CardContent>
