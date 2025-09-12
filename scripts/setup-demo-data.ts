@@ -53,7 +53,7 @@ I hope this email finds you well. I came across {{company_name}} and was impress
 [Your message here]
 
 Best regards,
-{{sender_name}}`
+{{full_sender_name}}`
         },
         {
           userId: 1,
@@ -68,7 +68,7 @@ I wanted to follow up on my previous email regarding {{company_name}}.
 Looking forward to hearing from you.
 
 Best,
-{{sender_name}}`
+{{full_sender_name}}`
         },
         {
           userId: 1,
@@ -83,7 +83,7 @@ I'm reaching out to explore potential partnership opportunities between our comp
 Would you be open to a brief conversation?
 
 Best regards,
-{{sender_name}}`
+{{full_sender_name}}`
         },
         {
           userId: 1,
@@ -98,7 +98,7 @@ I noticed that {{company_name}} might benefit from our services.
 Would you be interested in learning more?
 
 Best,
-{{sender_name}}`
+{{full_sender_name}}`
         }
       ];
 
