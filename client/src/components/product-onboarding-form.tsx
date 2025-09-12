@@ -19,7 +19,7 @@ import { ArrowRight, ArrowLeft, CheckCircle, Rocket, Package, Briefcase } from '
 interface ProductOnboardingFormProps {
   open: boolean;
   onClose: () => void;
-  onComplete: () => void;
+  onComplete: (profileId?: number) => void;
 }
 
 interface FormData {
@@ -69,7 +69,7 @@ export function ProductOnboardingForm({ open, onClose, onComplete }: ProductOnbo
       queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/preferences'] });
       queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/streak-stats'] });
       
-      onComplete();
+      onComplete(newProfile.id);
       handleClose();
     },
     onError: () => {

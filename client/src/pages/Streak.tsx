@@ -1317,7 +1317,11 @@ export default function StreakPage() {
       <ProductOnboardingForm
         open={showOnboarding}
         onClose={() => setShowOnboarding(false)}
-        onComplete={() => {
+        onComplete={(profileId) => {
+          if (profileId) {
+            setSelectedProductId(profileId);
+            // Product onboarding already sets the active profile in preferences
+          }
           refetchPreferences();
           refetchStats();
         }}
@@ -1327,7 +1331,11 @@ export default function StreakPage() {
       <CustomerProfileForm
         open={showCustomerForm}
         onClose={() => setShowCustomerForm(false)}
-        onComplete={() => {
+        onComplete={(profileId) => {
+          if (profileId) {
+            setSelectedCustomerProfileId(profileId);
+            setActiveCustomerProfile.mutate(profileId);
+          }
           refetchPreferences();
           refetchStats();
         }}
@@ -1337,7 +1345,11 @@ export default function StreakPage() {
       <SenderProfileForm
         open={showSenderForm}
         onClose={() => setShowSenderForm(false)}
-        onComplete={() => {
+        onComplete={(profileId) => {
+          if (profileId) {
+            setSelectedSenderProfileId(profileId);
+            setActiveSenderProfile.mutate(profileId);
+          }
           refetchPreferences();
           refetchStats();
         }}
