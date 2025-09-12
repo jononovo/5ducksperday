@@ -313,7 +313,7 @@ export function SenderProfileForm({ open, onClose, onComplete }: SenderProfileFo
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent className="sm:max-w-[500px]">
         {getStepContent()}
         
