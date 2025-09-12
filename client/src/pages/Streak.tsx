@@ -1334,8 +1334,13 @@ export default function StreakPage() {
       <ProductOnboardingForm
         open={showOnboarding}
         onClose={() => setShowOnboarding(false)}
-        onComplete={() => {
-          // Only refetch stats, not preferences to avoid card refresh
+        onComplete={(profileId) => {
+          if (profileId) {
+            setSelectedProductId(profileId);
+            setActiveProduct.mutate(profileId);
+          }
+          refetchPreferences();
+
           refetchStats();
         }}
       />
@@ -1344,8 +1349,12 @@ export default function StreakPage() {
       <CustomerProfileForm
         open={showCustomerForm}
         onClose={() => setShowCustomerForm(false)}
-        onComplete={() => {
-          // Only refetch stats, not preferences to avoid card refresh
+        onComplete={(profileId) => {
+          if (profileId) {
+            setSelectedCustomerProfileId(profileId);
+            setActiveCustomerProfile.mutate(profileId);
+          }
+          refetchPreferences();
           refetchStats();
         }}
       />
@@ -1354,8 +1363,13 @@ export default function StreakPage() {
       <SenderProfileForm
         open={showSenderForm}
         onClose={() => setShowSenderForm(false)}
-        onComplete={() => {
-          // Only refetch stats, not preferences to avoid card refresh
+        onComplete={(profileId) => {
+          if (profileId) {
+            setSelectedSenderProfileId(profileId);
+            setActiveSenderProfile.mutate(profileId);
+          }
+          refetchPreferences();
+
           refetchStats();
         }}
       />

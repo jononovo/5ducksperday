@@ -11,7 +11,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 interface SenderProfileFormProps {
   open: boolean;
   onClose: () => void;
-  onComplete?: () => void;
+  onComplete?: (profileId?: number) => void;
 }
 
 interface FormData {
@@ -60,13 +60,13 @@ export function SenderProfileForm({ open, onClose, onComplete }: SenderProfileFo
       });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/sender-profiles'] });
       toast({
         title: 'Sender profile created',
         description: 'Your sender profile has been saved'
       });
-      if (onComplete) onComplete();
+      if (onComplete) onComplete(data?.id);
       handleClose();
     },
     onError: () => {

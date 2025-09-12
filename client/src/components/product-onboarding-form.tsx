@@ -19,7 +19,7 @@ import { ArrowRight, ArrowLeft, CheckCircle, Rocket, Package, Briefcase } from '
 interface ProductOnboardingFormProps {
   open: boolean;
   onClose: () => void;
-  onComplete: () => void;
+  onComplete: (profileId?: number) => void;
 }
 
 interface FormData {
@@ -52,11 +52,12 @@ export function ProductOnboardingForm({ open, onClose, onComplete }: ProductOnbo
       return res.json();
     },
     onSuccess: async (newProfile) => {
+      const profileId = newProfile?.profile?.id || newProfile?.id;
       // Enable daily outreach
       await apiRequest('PUT', '/api/daily-outreach/preferences', {
         enabled: true,
         minContactsRequired: 5,
-        activeStrategicProfileId: newProfile.id // Set the new profile as active
+        activeStrategicProfileId: profileId // Set the new profile as active
       });
       
       toast({
@@ -69,7 +70,7 @@ export function ProductOnboardingForm({ open, onClose, onComplete }: ProductOnbo
       queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/preferences'] });
       queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/streak-stats'] });
       
-      onComplete();
+      onComplete(profileId);
       handleClose();
     },
     onError: () => {

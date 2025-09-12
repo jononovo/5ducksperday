@@ -12,7 +12,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 interface CustomerProfileFormProps {
   open: boolean;
   onClose: () => void;
-  onComplete?: () => void;
+  onComplete?: (profileId?: number) => void;
 }
 
 interface FormData {
@@ -42,13 +42,13 @@ export function CustomerProfileForm({ open, onClose, onComplete }: CustomerProfi
       });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/customer-profiles'] });
       toast({
         title: 'Customer profile created',
         description: 'Your ideal customer profile has been saved'
       });
-      if (onComplete) onComplete();
+      if (onComplete) onComplete(data?.id);
       handleClose();
     },
     onError: () => {
