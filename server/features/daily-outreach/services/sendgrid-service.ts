@@ -48,8 +48,11 @@ export class SendGridNotificationService {
       
       console.log(`Daily nudge email sent to ${user.email}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('SendGrid email error:', error);
+      if (error.response?.body) {
+        console.error('SendGrid error details:', JSON.stringify(error.response.body, null, 2));
+      }
       return false;
     }
   }
