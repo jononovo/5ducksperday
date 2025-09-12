@@ -24,6 +24,10 @@ import {
   CustomerProfileCard, 
   ActivationCard 
 } from '@/components/campaign-setup';
+import {
+  ActivationCTABanner,
+  AdaptiveCampaignBanner
+} from '@/components/campaign/banners';
 
 interface StreakStats {
   currentStreak: number;
@@ -452,30 +456,7 @@ export default function StreakPage() {
 
       {/* Activation CTA */}
       {preferences && !preferences.enabled && (
-        <Card className="mb-8 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
-          <CardContent className="py-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex-1 text-center md:text-left">
-                <div className="flex items-center gap-3 justify-center md:justify-start mb-3">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                  <h2 className="text-2xl font-bold">Activate Your Daily Sales Companion</h2>
-                </div>
-                <p className="text-muted-foreground">
-                  Get 5 personalized prospects delivered to your inbox every day.
-                  Takes just 2 minutes to set up.
-                </p>
-              </div>
-              <Button 
-                size="lg" 
-                className="min-w-[200px]"
-                onClick={() => setShowOnboarding(true)}
-              >
-                <Rocket className="h-5 w-5 mr-2" />
-                Start Daily Outreach
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <ActivationCTABanner onStartClick={() => setShowOnboarding(true)} />
       )}
 
       {/* Quick Actions */}
@@ -557,138 +538,13 @@ export default function StreakPage() {
       </div>
 
       {/* Adaptive Campaign Banner - Shows intro or metrics based on campaign status */}
-      {(() => {
-        // Simply check if campaign is activated (play button pressed)
-        const isActivated = !!preferences?.enabled;
-        
-        // Calculate progress for intro banner
-        const hasSenderProfile = !!selectedSenderProfileId;
-        const hasProduct = !!selectedProductId;
-        const hasCustomerProfile = !!selectedCustomerProfileId;
-        const componentsFilledCount = [hasSenderProfile, hasProduct, hasCustomerProfile].filter(Boolean).length;
-        
-        if (isActivated) {
-          // Show metrics banner for active campaigns
-          return (
-            <div className="mb-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-10 text-white shadow-2xl relative overflow-hidden">
-              {/* Background decoration */}
-              <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-              <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
-              
-              <div className="relative z-10">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium uppercase tracking-wider opacity-90">Campaign Active</span>
-                    </div>
-                    <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-white/80 bg-clip-text">
-                      Your Campaign is Live! 🎯
-                    </h2>
-                    <p className="text-lg opacity-90 mb-4">Targeting ideal customers with personalized outreach</p>
-                    
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2">
-                        <CalendarIcon2 className="w-4 h-4 opacity-80" />
-                        <span className="text-sm opacity-90">Day {Math.min(stats?.currentStreak || 0, 14)} of 14</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 opacity-80" />
-                        <span className="text-sm opacity-90">{Math.max(14 - (stats?.currentStreak || 0), 0)} days remaining</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-4">
-                    <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
-                      <p className="text-sm opacity-90 mb-1">Emails Sent</p>
-                      <p className="text-4xl font-bold">{stats?.emailsSentThisMonth || 0}</p>
-                      <p className="text-xs opacity-70 mt-1">+{stats?.emailsSentToday || 0} today</p>
-                    </div>
-                    <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
-                      <p className="text-sm opacity-90 mb-1">Companies Reached</p>
-                      <p className="text-4xl font-bold">{stats?.companiesContactedThisMonth || 0}</p>
-                      <p className="text-xs opacity-70 mt-1">This month</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Progress bar */}
-                <div className="mt-6">
-                  <div className="bg-white/20 rounded-full h-2 overflow-hidden">
-                    <div className="bg-white h-full rounded-full transition-all duration-500" 
-                         style={{width: `${Math.min(((stats?.currentStreak || 0) / 14) * 100, 100)}%`}}></div>
-                  </div>
-                  <p className="text-xs opacity-70 mt-2">Campaign Progress: {Math.round(Math.min(((stats?.currentStreak || 0) / 14) * 100, 100))}% Complete</p>
-                </div>
-              </div>
-            </div>
-          );
-        } else {
-          // Show simplified intro banner (same size as metrics banner)
-          return (
-            <div className="mb-8 bg-gradient-to-br from-amber-400 via-orange-400 to-yellow-400 rounded-xl p-10 text-white shadow-2xl relative overflow-hidden">
-              {/* Background decoration */}
-              <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-              <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
-              
-              <div className="relative z-10">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-3 h-3 bg-yellow-300 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium uppercase tracking-wider opacity-90">Campaign Setup</span>
-                    </div>
-                    <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-white/80 bg-clip-text">
-                      Build Your Outreach Campaign 🎯
-                    </h2>
-                    <p className="text-lg opacity-90 mb-4">Configure the 3 components below to start generating daily leads</p>
-                    
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 opacity-80" />
-                        <span className="text-sm opacity-90">{hasSenderProfile ? '✓ Profile Set' : 'Add Your Profile'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Package className="w-4 h-4 opacity-80" />
-                        <span className="text-sm opacity-90">{hasProduct ? '✓ Product Added' : 'Define Product'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Target className="w-4 h-4 opacity-80" />
-                        <span className="text-sm opacity-90">{hasCustomerProfile ? '✓ Customer Defined' : 'Set Target'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-4">
-                    <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
-                      <p className="text-sm opacity-90 mb-1">Setup Progress</p>
-                      <p className="text-4xl font-bold">{componentsFilledCount}/3</p>
-                      <p className="text-xs opacity-70 mt-1">
-                        {componentsFilledCount === 0 && "Let's start"}
-                        {componentsFilledCount === 1 && "Good progress"}
-                        {componentsFilledCount === 2 && "Almost ready"}
-                        {componentsFilledCount === 3 && "Ready to launch"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Progress bar */}
-                <div className="mt-6">
-                  <div className="bg-white/20 rounded-full h-2 overflow-hidden">
-                    <div className="bg-white h-full rounded-full transition-all duration-500" 
-                         style={{width: `${(componentsFilledCount / 3) * 100}%`}}></div>
-                  </div>
-                  <p className="text-xs opacity-70 mt-2">Setup Progress: {Math.round((componentsFilledCount / 3) * 100)}% Complete</p>
-                </div>
-              </div>
-            </div>
-          );
-        }
-      })()}
+      <AdaptiveCampaignBanner
+        isActivated={!!preferences?.enabled}
+        stats={stats}
+        hasSenderProfile={!!selectedSenderProfileId}
+        hasProduct={!!selectedProductId}
+        hasCustomerProfile={!!selectedCustomerProfileId}
+      />
 
       {/* Settings Section */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -868,60 +724,6 @@ export default function StreakPage() {
         </Card>
       </div>
 
-      {/* Campaign Status Banner */}
-      <div className="mb-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-10 text-white shadow-2xl relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl"></div>
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
-        
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium uppercase tracking-wider opacity-90">Campaign Active</span>
-              </div>
-              <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-white/80 bg-clip-text">
-                Your Campaign is Live! 🎯
-              </h2>
-              <p className="text-lg opacity-90 mb-4">Targeting ideal customers with personalized outreach</p>
-              
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon2 className="w-4 h-4 opacity-80" />
-                  <span className="text-sm opacity-90">Day 3 of 14</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 opacity-80" />
-                  <span className="text-sm opacity-90">11 days remaining</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
-                <p className="text-sm opacity-90 mb-1">Leads Generated</p>
-                <p className="text-4xl font-bold">27</p>
-                <p className="text-xs opacity-70 mt-1">+5 today</p>
-              </div>
-              <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[140px] border border-white/20">
-                <p className="text-sm opacity-90 mb-1">Response Rate</p>
-                <p className="text-4xl font-bold">32%</p>
-                <p className="text-xs opacity-70 mt-1">↑ 8% vs avg</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Progress bar */}
-          <div className="mt-6">
-            <div className="bg-white/20 rounded-full h-2 overflow-hidden">
-              <div className="bg-white h-full rounded-full transition-all duration-500" style={{width: '21%'}}></div>
-            </div>
-            <p className="text-xs opacity-70 mt-2">Campaign Progress: 21% Complete</p>
-          </div>
-        </div>
-      </div>
 
       {/* Campaign Setup Row - 4 Components */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
