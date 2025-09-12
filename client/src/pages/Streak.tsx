@@ -1165,7 +1165,7 @@ export default function StreakPage() {
                         {profile.industries && profile.industries.length > 0 && (
                           <div className="text-xs text-muted-foreground truncate">{profile.industries.join(', ')}</div>
                         )}
-                        {profile.companySizes && profile.companySizes.length > 0 && (
+                        {profile.companySizes && profile.companySizes.length > 0 && profile.companySizes[0] !== 'All sizes' && (
                           <div className="text-xs text-muted-foreground truncate">{profile.companySizes.join(', ')}</div>
                         )}
                       </div>
@@ -1176,45 +1176,19 @@ export default function StreakPage() {
                   </div>
                 ))}
               </div>
-            ) : products && products.length > 0 && selectedProductId ? (
-              <div className="space-y-2">
-                {products
-                  .filter(p => p.id === selectedProductId)
-                  .slice(0, 1)
-                  .map((product) => (
-                  <div key={product.id} className="space-y-2">
-                    {product.targetCustomers && (
-                      <div className="p-2 bg-secondary rounded-lg">
-                        <div className="font-medium text-xs">Target</div>
-                        <div className="text-xs text-muted-foreground truncate">
-                          {product.targetCustomers}
-                        </div>
-                      </div>
-                    )}
-                    {product.primaryCustomerType && (
-                      <div className="p-2 bg-secondary rounded-lg">
-                        <div className="font-medium text-xs">Type</div>
-                        <div className="text-xs text-muted-foreground truncate">
-                          {product.primaryCustomerType}
-                        </div>
-                      </div>
-                    )}
-                    {product.marketNiche && (
-                      <div className="p-2 bg-secondary rounded-lg">
-                        <div className="font-medium text-xs">Market</div>
-                        <div className="text-xs text-muted-foreground truncate">
-                          {product.marketNiche}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
             ) : (
               <div className="text-center py-4">
-                <Plus className="h-8 w-8 mx-auto text-muted-foreground/30 mb-2" />
-                <p className="text-xs text-muted-foreground">
-                  Define your audience
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-16 w-16 rounded-full p-0"
+                  onClick={() => setShowCustomerForm(true)}
+                  data-testid="button-create-customer-profile"
+                >
+                  <Plus className="h-8 w-8 text-muted-foreground/30" />
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Add ideal customer
                 </p>
               </div>
             )}
