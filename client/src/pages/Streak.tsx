@@ -207,7 +207,7 @@ export default function StreakPage() {
         title: 'Product selected',
         description: 'Your active product has been updated'
       });
-      refetchPreferences();
+      // Removed refetchPreferences() to prevent card refresh
     }
   });
 
@@ -224,7 +224,7 @@ export default function StreakPage() {
         title: 'Sender profile selected',
         description: 'Your active sender profile has been updated'
       });
-      refetchPreferences();
+      // Removed refetchPreferences() to prevent card refresh
     }
   });
 
@@ -241,12 +241,13 @@ export default function StreakPage() {
         title: 'Customer profile selected',
         description: 'Your active customer profile has been updated'
       });
-      refetchPreferences();
+      // Removed refetchPreferences() to prevent card refresh
     }
   });
 
+  // Initial load effect - only runs once to set up initial state from preferences
   useEffect(() => {
-    if (preferences) {
+    if (!hasInitialized && preferences && products && senderProfiles && customerProfiles) {
       // Set days per week based on schedule days length
       const scheduleDays = preferences.scheduleDays || ['monday', 'tuesday', 'wednesday'];
       setDaysPerWeek([scheduleDays.length]);
@@ -265,7 +266,7 @@ export default function StreakPage() {
       // Set active product
       if (preferences.activeProductId) {
         setSelectedProductId(preferences.activeProductId);
-      } else if (products && products.length > 0 && !selectedProductId) {
+      } else if (products.length > 0) {
         // Default to first product if none selected
         setSelectedProductId(products[0].id);
       }
@@ -273,43 +274,52 @@ export default function StreakPage() {
       // Set active sender profile
       if (preferences.activeSenderProfileId) {
         setSelectedSenderProfileId(preferences.activeSenderProfileId);
+      } else if (senderProfiles.length > 0) {
+        // Auto-select default sender profile
+        const defaultProfile = senderProfiles.find(p => p.isDefault) || senderProfiles[0];
+        setSelectedSenderProfileId(defaultProfile.id);
       }
 
       // Set active customer profile
       if (preferences.activeCustomerProfileId) {
         setSelectedCustomerProfileId(preferences.activeCustomerProfileId);
-      }
-    }
-
-    // Only auto-select profiles on initial load, not after user interaction
-    if (!hasInitialized) {
-      // Auto-select default sender profile
-      if (senderProfiles && senderProfiles.length > 0 && !selectedSenderProfileId) {
-        const defaultProfile = senderProfiles.find(p => p.isDefault) || senderProfiles[0];
-        setSelectedSenderProfileId(defaultProfile.id);
-      }
-
-      // Auto-select first customer profile if available
-      if (customerProfiles && customerProfiles.length > 0 && !selectedCustomerProfileId) {
+      } else if (customerProfiles.length > 0) {
+        // Auto-select first customer profile if available
         setSelectedCustomerProfileId(customerProfiles[0].id);
       }
 
-      // Mark as initialized once we have data
-      if (senderProfiles && customerProfiles && products) {
-        setHasInitialized(true);
+      // Mark as initialized
+      setHasInitialized(true);
+    }
+  }, [hasInitialized, preferences, products, senderProfiles, customerProfiles]);
+
+  // Separate effect for vacation mode updates only
+  useEffect(() => {
+    if (hasInitialized && preferences) {
+      // Only update vacation mode settings, not profile selections
+      const scheduleDays = preferences.scheduleDays || ['monday', 'tuesday', 'wednesday'];
+      setDaysPerWeek([scheduleDays.length]);
+      
+      if (preferences.vacationMode) {
+        setVacationMode(true);
+        if (preferences.vacationStartDate && preferences.vacationEndDate) {
+          setVacationDates({
+            from: new Date(preferences.vacationStartDate),
+            to: new Date(preferences.vacationEndDate)
+          });
+        }
+      } else {
+        setVacationMode(false);
       }
     }
-  }, [preferences, products, senderProfiles, customerProfiles, hasInitialized]);
+  }, [hasInitialized, preferences]);
 
   const handleProductChange = (productId: number) => {
     // Toggle selection - if already selected, deselect it
     if (selectedProductId === productId) {
       setSelectedProductId(null);
-      // Optionally clear the active product in preferences
-      setActiveProduct.mutate(0); // or pass null if API supports it
     } else {
       setSelectedProductId(productId);
-      setActiveProduct.mutate(productId);
     }
   };
 
@@ -317,11 +327,8 @@ export default function StreakPage() {
     // Toggle selection - if already selected, deselect it
     if (selectedSenderProfileId === profileId) {
       setSelectedSenderProfileId(null);
-      // Optionally clear the active sender profile in preferences
-      setActiveSenderProfile.mutate(0); // or pass null if API supports it
     } else {
       setSelectedSenderProfileId(profileId);
-      setActiveSenderProfile.mutate(profileId);
     }
   };
 
@@ -329,11 +336,8 @@ export default function StreakPage() {
     // Toggle selection - if already selected, deselect it
     if (selectedCustomerProfileId === profileId) {
       setSelectedCustomerProfileId(null);
-      // Optionally clear the active customer profile in preferences
-      setActiveCustomerProfile.mutate(0); // or pass null if API supports it
     } else {
       setSelectedCustomerProfileId(profileId);
-      setActiveCustomerProfile.mutate(profileId);
     }
   };
 
@@ -1043,7 +1047,15 @@ export default function StreakPage() {
             ) : products && products.length > 0 ? (
               <div className="space-y-2">
                 {products
-                  .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+                  .sort((a, b) => {
+                    // Stable sort: by creation date, then by ID
+                    const dateA = new Date(a.createdAt || 0).getTime();
+                    const dateB = new Date(b.createdAt || 0).getTime();
+                    if (dateA !== dateB) {
+                      return dateB - dateA; // Most recent first
+                    }
+                    return a.id - b.id;
+                  })
                   .slice(0, 3)
                   .map((product) => (
                   <div
@@ -1133,6 +1145,7 @@ export default function StreakPage() {
             ) : customerProfiles && customerProfiles.length > 0 ? (
               <div className="space-y-2">
                 {customerProfiles
+                  .sort((a, b) => a.id - b.id) // Stable sort by ID
                   .slice(0, 3)
                   .map((profile) => (
                   <div
@@ -1285,9 +1298,13 @@ export default function StreakPage() {
                   className="h-16 w-16 rounded-full p-0 mb-3"
                   onClick={() => {
                     if (products && products.length > 0 && selectedProductId) {
+                      // Save all selected profiles when activating the campaign
                       updatePreferences.mutate({ 
                         enabled: true,
-                        scheduleDays: ['monday', 'tuesday', 'wednesday'].slice(0, daysPerWeek[0])
+                        scheduleDays: ['monday', 'tuesday', 'wednesday'].slice(0, daysPerWeek[0]),
+                        activeProductId: selectedProductId,
+                        activeSenderProfileId: selectedSenderProfileId || 0,
+                        activeCustomerProfileId: selectedCustomerProfileId || 0
                       });
                     } else {
                       toast({
@@ -1318,7 +1335,7 @@ export default function StreakPage() {
         open={showOnboarding}
         onClose={() => setShowOnboarding(false)}
         onComplete={() => {
-          refetchPreferences();
+          // Only refetch stats, not preferences to avoid card refresh
           refetchStats();
         }}
       />
@@ -1328,7 +1345,7 @@ export default function StreakPage() {
         open={showCustomerForm}
         onClose={() => setShowCustomerForm(false)}
         onComplete={() => {
-          refetchPreferences();
+          // Only refetch stats, not preferences to avoid card refresh
           refetchStats();
         }}
       />
@@ -1338,7 +1355,7 @@ export default function StreakPage() {
         open={showSenderForm}
         onClose={() => setShowSenderForm(false)}
         onComplete={() => {
-          refetchPreferences();
+          // Only refetch stats, not preferences to avoid card refresh
           refetchStats();
         }}
       />
