@@ -67,7 +67,7 @@ Available merge fields for personalization:
 - {{contact_name}} - Target contact's full name  
 - {{company_name}} - Target company name
 - {{sender_first_name}} - Your first name: "${senderNames?.firstName || 'User'}"
-- {{sender_name}} - Your full name: "${senderNames?.fullName || 'User'}"
+- {{full_sender_name}} - Your full name: "${senderNames?.fullName || 'User'}"
 
 TARGET COMPANY: ${company.name}
 ${company.description ? `About: ${company.description}` : ''}
@@ -86,7 +86,7 @@ Format requirements:
 - Add generous white space between paragraphs (use double line breaks)
 - Add extra line spacing after the signature
 - Use one of these merge fields for the signature:
-  For full name use {{sender_name}} . 
+  For full name use {{full_sender_name}} . 
   For first name use {{sender_first_name}} .`;
 }
 
