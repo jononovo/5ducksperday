@@ -32,14 +32,6 @@ export function CustomerProfileForm({ open, onClose, onComplete }: CustomerProfi
 
   const saveProfile = useMutation({
     mutationFn: async (data: FormData) => {
-      console.log('[CustomerProfileForm] Sending data to API:', {
-        title: data.searchPrompt.slice(0, 50),
-        exampleCompany: data.exampleCompany,
-        searchPrompt: data.searchPrompt,
-        additionalContext: data.additionalContext,
-        industry: data.searchPrompt.split(' ').slice(0, 2).join(' '),
-        companySize: 'All sizes'
-      });
       const res = await apiRequest('POST', '/api/customer-profiles', {
         title: data.searchPrompt.slice(0, 50), // Use search prompt as title
         exampleCompany: data.exampleCompany,
@@ -48,28 +40,18 @@ export function CustomerProfileForm({ open, onClose, onComplete }: CustomerProfi
         industry: data.searchPrompt.split(' ').slice(0, 2).join(' '), // Extract first 2 words as industry
         companySize: 'All sizes' // Default value
       });
-      const result = await res.json();
-      console.log('[CustomerProfileForm] API response:', result);
-      return result;
+      return res.json();
     },
-    onSuccess: (data) => {
-      console.log('[CustomerProfileForm] Save successful, data:', data);
-      console.log('[CustomerProfileForm] onComplete exists?', !!onComplete);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customer-profiles'] });
-      const toastResult = toast({
+      toast({
         title: 'Customer profile created',
         description: 'Your ideal customer profile has been saved'
       });
-      console.log('[CustomerProfileForm] Toast shown:', toastResult);
-      if (onComplete) {
-        console.log('[CustomerProfileForm] Calling onComplete');
-        onComplete();
-      }
-      console.log('[CustomerProfileForm] Calling handleClose');
+      if (onComplete) onComplete();
       handleClose();
     },
-    onError: (error) => {
-      console.error('[CustomerProfileForm] Save failed:', error);
+    onError: () => {
       toast({
         title: 'Error',
         description: 'Failed to save customer profile',
@@ -79,7 +61,6 @@ export function CustomerProfileForm({ open, onClose, onComplete }: CustomerProfi
   });
 
   const handleClose = () => {
-    console.log('[CustomerProfileForm] handleClose called, isPending:', saveProfile.isPending);
     if (!saveProfile.isPending) {
       setStep(1);
       setFormData({
@@ -87,7 +68,6 @@ export function CustomerProfileForm({ open, onClose, onComplete }: CustomerProfi
         searchPrompt: '',
         additionalContext: ''
       });
-      console.log('[CustomerProfileForm] Calling onClose callback');
       onClose();
     }
   };
@@ -120,7 +100,6 @@ export function CustomerProfileForm({ open, onClose, onComplete }: CustomerProfi
   };
 
   const handleSubmit = () => {
-    console.log('[CustomerProfileForm] Save button clicked, formData:', formData);
     saveProfile.mutate(formData);
   };
 
@@ -239,7 +218,7 @@ export function CustomerProfileForm({ open, onClose, onComplete }: CustomerProfi
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent className="sm:max-w-[500px]">
         {getStepContent()}
         

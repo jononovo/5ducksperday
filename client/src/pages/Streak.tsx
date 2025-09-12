@@ -17,6 +17,7 @@ import { ProductOnboardingForm } from '@/components/product-onboarding-form';
 import { CustomerProfileForm } from '@/components/customer-profile-form';
 import { SenderProfileForm } from '@/components/sender-profile-form';
 import { useLocation } from 'wouter';
+import { type TargetCustomerProfile } from '@shared/schema';
 
 interface StreakStats {
   currentStreak: number;
@@ -78,7 +79,7 @@ interface Product {
 interface SenderProfile {
   id: number;
   userId: number;
-  name: string;
+  displayName: string;
   email: string;
   companyName?: string;
   companyWebsite?: string;
@@ -88,23 +89,7 @@ interface SenderProfile {
   updatedAt?: string;
 }
 
-interface CustomerProfile {
-  id: number;
-  userId: number;
-  title: string;
-  industry?: string;
-  companySize?: string;
-  jobTitles?: string[];
-  painPoints?: string[];
-  goals?: string[];
-  geography?: string;
-  budget?: string;
-  decisionMakingProcess?: string;
-  currentSolutions?: string;
-  buyingTriggers?: string[];
-  createdAt?: string;
-  updatedAt?: string;
-}
+// Using TargetCustomerProfile from shared/schema instead of local interface
 
 export default function StreakPage() {
   const { user } = useAuth();
@@ -144,7 +129,7 @@ export default function StreakPage() {
   });
 
   // Fetch customer profiles
-  const { data: customerProfiles, isLoading: customerProfilesLoading } = useQuery<CustomerProfile[]>({
+  const { data: customerProfiles, isLoading: customerProfilesLoading } = useQuery<TargetCustomerProfile[]>({
     queryKey: ['/api/customer-profiles'],
     enabled: !!user
   });
@@ -1164,12 +1149,12 @@ export default function StreakPage() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-xs truncate">{profile.title}</div>
-                        {profile.industry && (
-                          <div className="text-xs text-muted-foreground truncate">{profile.industry}</div>
+                        <div className="font-medium text-xs truncate">{profile.label}</div>
+                        {profile.industries && profile.industries.length > 0 && (
+                          <div className="text-xs text-muted-foreground truncate">{profile.industries.join(', ')}</div>
                         )}
-                        {profile.companySize && (
-                          <div className="text-xs text-muted-foreground truncate">{profile.companySize}</div>
+                        {profile.companySizes && profile.companySizes.length > 0 && (
+                          <div className="text-xs text-muted-foreground truncate">{profile.companySizes.join(', ')}</div>
                         )}
                       </div>
                       {selectedCustomerProfileId === profile.id && (
