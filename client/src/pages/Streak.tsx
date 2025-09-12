@@ -958,7 +958,6 @@ export default function StreakPage() {
             ) : senderProfiles && senderProfiles.length > 0 ? (
               <div className="space-y-2">
                 {senderProfiles
-                  .sort((a, b) => b.isDefault ? 1 : -1) // Default profiles first
                   .slice(0, 3)
                   .map((profile) => (
                   <div
