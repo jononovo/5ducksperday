@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { ActiveCampaignBanner } from './ActiveCampaignBanner';
 import { SetupProgressBanner } from './SetupProgressBanner';
-import { ActivationCTABanner } from './ActivationCTABanner';
 
 interface AdaptiveCampaignBannerProps {
   isActivated: boolean;
@@ -74,10 +73,10 @@ export function AdaptiveCampaignBanner({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') {
         e.preventDefault();
-        setTestModeIndex(prev => (prev + 1) % 3);
+        setTestModeIndex(prev => (prev + 1) % 2);
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        setTestModeIndex(prev => (prev - 1 + 3) % 3);
+        setTestModeIndex(prev => (prev - 1 + 2) % 2);
       } else if (e.key === 'Escape') {
         // Exit test mode
         localStorage.removeItem('bannerTestMode');
@@ -93,21 +92,19 @@ export function AdaptiveCampaignBanner({
     e.stopPropagation();
     if (e.shiftKey) {
       // Go backwards
-      setTestModeIndex(prev => (prev - 1 + 3) % 3);
+      setTestModeIndex(prev => (prev - 1 + 2) % 2);
     } else {
       // Go forwards
-      setTestModeIndex(prev => (prev + 1) % 3);
+      setTestModeIndex(prev => (prev + 1) % 2);
     }
   };
   
   // Render banner based on test mode or normal logic
   const renderBanner = () => {
     if (testMode) {
-      // In test mode, cycle through all banners
+      // In test mode, cycle through SetupProgressBanner and ActiveCampaignBanner only
       switch (testModeIndex) {
         case 0:
-          return <ActivationCTABanner onStartClick={() => {}} />;
-        case 1:
           return (
             <SetupProgressBanner
               hasSenderProfile={hasSenderProfile}
@@ -115,7 +112,7 @@ export function AdaptiveCampaignBanner({
               hasCustomerProfile={hasCustomerProfile}
             />
           );
-        case 2:
+        case 1:
           return <ActiveCampaignBanner stats={stats || {}} />;
         default:
           return null;
