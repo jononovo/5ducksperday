@@ -228,12 +228,18 @@ export function setupAuth(app: Express) {
 
   // Add Firebase token verification to all authenticated routes
   app.use(async (req, res, next) => {
-    // AI Test Mode authentication bypass
-    // When ENABLE_AI_TEST_MODE is true, bypass all authentication
-    const isAITestMode = process.env.ENABLE_AI_TEST_MODE === 'true';
+    // Development domain authentication bypass
+    // Allow easy testing on configured development domains
+    const host = req.get('host') || '';
+    const exemptedDomains = process.env.AUTH_EXEMPT_DOMAINS ? 
+      process.env.AUTH_EXEMPT_DOMAINS.split(',').map(d => d.trim()) : [];
     
-    if (isAITestMode && !req.isAuthenticated()) {
-      // In AI test mode, automatically use user ID 1 (guest user)
+    const isDevelopmentDomain = exemptedDomains.some(domain => 
+      domain.startsWith('*') ? host.endsWith(domain.slice(1)) : host === domain
+    );
+    
+    if (isDevelopmentDomain && !req.isAuthenticated()) {
+      // For development environments, automatically use demo user (ID 1)
       req.user = { 
         id: 1, 
         email: 'demo@5ducks.ai',
@@ -241,15 +247,14 @@ export function setupAuth(app: Express) {
         password: '' // Empty password for Firebase compatibility
       } as any;
       
-      // Override isAuthenticated to return true
-      const originalIsAuthenticated = req.isAuthenticated;
+      // Override isAuthenticated to return true for this request
       req.isAuthenticated = function(this: any) { return true; } as any;
       
-      console.log('[AI TEST MODE] Auth bypassed - using guest user:', {
+      console.log('[DEV MODE] Auth bypassed for development domain:', {
+        host,
         path: req.path,
         method: req.method,
         userId: 1,
-        aiTestMode: process.env.ENABLE_AI_TEST_MODE,
         timestamp: new Date().toISOString()
       });
       
