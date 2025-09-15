@@ -28,6 +28,7 @@ import {
   ActivationCTABanner,
   AdaptiveCampaignBanner
 } from '@/components/campaign/banners';
+import { WeeklyStreakRow } from '@/components/weekly-streak-row';
 
 interface StreakStats {
   currentStreak: number;
@@ -446,6 +447,11 @@ export default function StreakPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {/* Weekly Streak Row - At the very top */}
+      <div className="mb-6">
+        <WeeklyStreakRow />
+      </div>
+
       {/* Header with Streak Counter */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
