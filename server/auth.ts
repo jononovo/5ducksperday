@@ -234,9 +234,21 @@ export function setupAuth(app: Express) {
     const exemptedDomains = process.env.AUTH_EXEMPT_DOMAINS ? 
       process.env.AUTH_EXEMPT_DOMAINS.split(',').map(d => d.trim()) : [];
     
-    const isDevelopmentDomain = exemptedDomains.some(domain => 
-      domain.startsWith('*') ? host.endsWith(domain.slice(1)) : host === domain
-    );
+    // Debug logging for domain matching
+    console.log('Domain bypass check:', {
+      host,
+      exemptedDomains,
+      envValue: process.env.AUTH_EXEMPT_DOMAINS,
+      timestamp: new Date().toISOString()
+    });
+    
+    const isDevelopmentDomain = exemptedDomains.some(domain => {
+      const matches = domain.startsWith('*') ? host.endsWith(domain.slice(1)) : host === domain;
+      console.log(`Checking domain pattern '${domain}' against host '${host}': ${matches}`);
+      return matches;
+    });
+    
+    console.log('Domain match result:', { isDevelopmentDomain, isAuthenticated: req.isAuthenticated() });
     
     if (isDevelopmentDomain && !req.isAuthenticated()) {
       // For development environments, automatically use demo user (ID 1)
@@ -399,11 +411,20 @@ export function setupAuth(app: Express) {
     });
   });
 
-  // Endpoint to check if AI test mode is enabled
+  // Endpoint to check if development domain bypass is enabled
   app.get("/api/test-mode-status", (req, res) => {
+    // Check if current domain is in AUTH_EXEMPT_DOMAINS
+    const host = req.get('host') || '';
+    const exemptedDomains = process.env.AUTH_EXEMPT_DOMAINS ? 
+      process.env.AUTH_EXEMPT_DOMAINS.split(',').map(d => d.trim()) : [];
+    
+    const isDevelopmentDomain = exemptedDomains.some(domain => 
+      domain.startsWith('*') ? host.endsWith(domain.slice(1)) : host === domain
+    );
+    
     res.json({
-      enabled: process.env.ENABLE_AI_TEST_MODE === 'true',
-      user: process.env.ENABLE_AI_TEST_MODE === 'true' ? {
+      enabled: isDevelopmentDomain,
+      user: isDevelopmentDomain ? {
         id: 1,
         email: 'demo@5ducks.ai',
         username: 'Guest User'
@@ -412,25 +433,16 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
-    // In AI test mode, always return guest user
-    const isAITestMode = process.env.ENABLE_AI_TEST_MODE === 'true';
-    if (isAITestMode) {
-      return res.json({
-        id: 1,
-        email: 'demo@5ducks.ai',
-        username: 'Guest User',
-        createdAt: new Date()
-      });
-    }
-    
-    if (!req.isAuthenticated()) {
+    // Check for req.user presence (set by AUTH_EXEMPT_DOMAINS or regular auth)
+    if (!req.user) {
       return res.status(401).json({ error: "Not authenticated" });
     }
     res.json(req.user);
   });
 
   app.get("/api/user/profile", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    // Check for req.user presence (set by AUTH_EXEMPT_DOMAINS or regular auth)
+    if (!req.user) {
       return res.status(401).json({ error: "Not authenticated" });
     }
     
@@ -455,7 +467,8 @@ export function setupAuth(app: Express) {
   });
 
   app.put("/api/user/profile", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    // Check for req.user presence (set by AUTH_EXEMPT_DOMAINS or regular auth)
+    if (!req.user) {
       return res.status(401).json({ error: "Not authenticated" });
     }
     

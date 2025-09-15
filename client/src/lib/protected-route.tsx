@@ -32,16 +32,7 @@ export function ProtectedRoute({
   }
 
   if (!user) {
-    return (
-      <Route path={path}>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Access Restricted</h2>
-            <p className="text-gray-600">Please log in to access this feature.</p>
-          </div>
-        </div>
-      </Route>
-    );
+    return <Route path={path}>{null}</Route>;
   }
 
   return <Route path={path} component={Component} />;

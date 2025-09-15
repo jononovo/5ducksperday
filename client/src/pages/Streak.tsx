@@ -589,6 +589,59 @@ export default function StreakPage() {
         hasCustomerProfile={!!selectedCustomerProfileId}
       />
 
+      {/* Campaign Setup Row - 4 Components */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* 1. Sender Profile Card */}
+        <SenderProfileCard
+          senderProfiles={senderProfiles}
+          selectedSenderProfileId={selectedSenderProfileId}
+          isLoading={senderProfilesLoading}
+          onProfileChange={handleSenderProfileChange}
+          onAddProfile={() => setShowSenderForm(true)}
+          user={user}
+        />
+
+        {/* 2. Product Card */}
+        <ProductCard
+          products={products}
+          selectedProductId={selectedProductId}
+          isLoading={productsLoading}
+          onProductChange={handleProductChange}
+          onAddProduct={() => setShowOnboarding(true)}
+        />
+
+        {/* 3. Customer Profile Card */}
+        <CustomerProfileCard
+          customerProfiles={customerProfiles}
+          selectedCustomerProfileId={selectedCustomerProfileId}
+          isLoading={customerProfilesLoading}
+          onProfileChange={handleCustomerProfileChange}
+          onAddProfile={() => setShowCustomerForm(true)}
+        />
+
+        {/* 4. Activation Card */}
+        <ActivationCard
+          isEnabled={preferences?.enabled || false}
+          daysPerWeek={daysPerWeek[0]}
+          hasProduct={!!selectedProductId}
+          hasSenderProfile={!!selectedSenderProfileId}
+          hasCustomerProfile={!!selectedCustomerProfileId}
+          onActivate={() => {
+            // Save all selected profiles when activating the campaign
+            updatePreferences.mutate({ 
+              enabled: true,
+              scheduleDays: ['monday', 'tuesday', 'wednesday'].slice(0, daysPerWeek[0]),
+              activeProductId: selectedProductId,
+              activeSenderProfileId: selectedSenderProfileId || 0,
+              activeCustomerProfileId: selectedCustomerProfileId || 0
+            });
+          }}
+          onDeactivate={() => {
+            updatePreferences.mutate({ enabled: false });
+          }}
+        />
+      </div>
+
       {/* Settings Section */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Schedule Settings */}
@@ -765,60 +818,6 @@ export default function StreakPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
-
-
-      {/* Campaign Setup Row - 4 Components */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {/* 1. Sender Profile Card */}
-        <SenderProfileCard
-          senderProfiles={senderProfiles}
-          selectedSenderProfileId={selectedSenderProfileId}
-          isLoading={senderProfilesLoading}
-          onProfileChange={handleSenderProfileChange}
-          onAddProfile={() => setShowSenderForm(true)}
-          user={user}
-        />
-
-        {/* 2. Product Card */}
-        <ProductCard
-          products={products}
-          selectedProductId={selectedProductId}
-          isLoading={productsLoading}
-          onProductChange={handleProductChange}
-          onAddProduct={() => setShowOnboarding(true)}
-        />
-
-        {/* 3. Customer Profile Card */}
-        <CustomerProfileCard
-          customerProfiles={customerProfiles}
-          selectedCustomerProfileId={selectedCustomerProfileId}
-          isLoading={customerProfilesLoading}
-          onProfileChange={handleCustomerProfileChange}
-          onAddProfile={() => setShowCustomerForm(true)}
-        />
-
-        {/* 4. Activation Card */}
-        <ActivationCard
-          isEnabled={preferences?.enabled || false}
-          daysPerWeek={daysPerWeek[0]}
-          hasProduct={!!selectedProductId}
-          hasSenderProfile={!!selectedSenderProfileId}
-          hasCustomerProfile={!!selectedCustomerProfileId}
-          onActivate={() => {
-            // Save all selected profiles when activating the campaign
-            updatePreferences.mutate({ 
-              enabled: true,
-              scheduleDays: ['monday', 'tuesday', 'wednesday'].slice(0, daysPerWeek[0]),
-              activeProductId: selectedProductId,
-              activeSenderProfileId: selectedSenderProfileId || 0,
-              activeCustomerProfileId: selectedCustomerProfileId || 0
-            });
-          }}
-          onDeactivate={() => {
-            updatePreferences.mutate({ enabled: false });
-          }}
-        />
       </div>
 
       {/* Product Onboarding Form */}
