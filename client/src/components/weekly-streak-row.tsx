@@ -29,11 +29,11 @@ export function WeeklyStreakRow() {
 
   if (isLoading || !activityData) {
     return (
-      <div className="flex gap-1.5 p-2 bg-card rounded-lg border">
+      <div className="flex gap-1.5">
         {[0, 1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="flex-1 h-10 bg-muted animate-pulse rounded"
+            className="flex-1 h-8 bg-muted animate-pulse rounded"
           />
         ))}
       </div>
@@ -51,10 +51,10 @@ export function WeeklyStreakRow() {
     <TooltipProvider>
       <div 
         className={cn(
-          "relative flex gap-1.5 p-2 rounded-lg border transition-all duration-500",
+          "relative flex gap-1.5 transition-all duration-500",
           allActiveDaysComplete 
-            ? "bg-green-50 dark:bg-green-950/20 border-green-500 shadow-lg shadow-green-500/20" 
-            : "bg-card"
+            ? "bg-green-50 dark:bg-green-950/20 rounded-lg p-1" 
+            : ""
         )}
         data-testid="weekly-streak-row"
       >
@@ -80,43 +80,60 @@ export function WeeklyStreakRow() {
             <TooltipTrigger asChild>
               <div
                 className={cn(
-                  "flex-1 flex flex-col items-center justify-center p-2 rounded-md border-2 transition-all duration-300 relative",
+                  "flex-1 flex items-center justify-between px-3 py-1.5 rounded-md border-2 transition-all duration-300 relative",
                   // Base border styles
                   !day.isScheduledDay && !isCurrentDay && "border-border opacity-50",
                   day.isScheduledDay && !isCurrentDay && "border-primary/50",
-                  // Today's special styling with gradient
-                  isCurrentDay && day.isScheduledDay && "shadow-lg bg-primary/5",
+                  // Today's special styling with proper gradient
+                  isCurrentDay && "bg-gradient-to-br from-yellow-400/10 to-pink-500/10 border-transparent",
                   // Success state
-                  hasReachedThreshold && "bg-green-50 dark:bg-green-950/30 border-green-500",
+                  hasReachedThreshold && !isCurrentDay && "bg-green-50 dark:bg-green-950/30 border-green-500",
+                  hasReachedThreshold && isCurrentDay && "bg-green-50 dark:bg-green-950/30 border-transparent",
                   // Hover effect
                   "hover:scale-105 cursor-default"
                 )}
                 style={{
                   ...(isCurrentDay && {
-                    borderImage: 'linear-gradient(135deg, #fbbf24 0%, #ec4899 100%) 1',
-                    borderWidth: '3px',
-                    borderStyle: 'solid'
+                    background: hasReachedThreshold 
+                      ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%)' 
+                      : day.isScheduledDay 
+                        ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%)' 
+                        : undefined,
+                    boxShadow: hasReachedThreshold
+                      ? 'inset 0 0 0 3px rgb(34 197 94)'
+                      : 'inset 0 0 0 3px transparent, 0 0 0 3px transparent, inset 0 0 0 3px transparent',
+                    backgroundImage: !hasReachedThreshold 
+                      ? 'linear-gradient(white, white), linear-gradient(135deg, #fbbf24 0%, #ec4899 100%)'
+                      : undefined,
+                    backgroundOrigin: !hasReachedThreshold ? 'border-box' : undefined,
+                    backgroundClip: !hasReachedThreshold ? 'padding-box, border-box' : undefined,
+                    border: isCurrentDay && !hasReachedThreshold ? '3px solid transparent' : undefined,
                   })
                 }}
                 data-testid={`day-cell-${day.dayOfWeek.toLowerCase()}`}
               >
-                <div className="text-[10px] font-medium text-muted-foreground">
+                <div className="text-[11px] font-medium text-muted-foreground">
                   {day.dayOfWeek.slice(0, 3).toUpperCase()}
                 </div>
                 
-                <div className="h-6 w-6 flex items-center justify-center">
+                <div className="flex items-center gap-1">
+                  {day.emailsSent > 0 && (
+                    <div className="text-[10px] text-muted-foreground">
+                      {day.emailsSent}
+                    </div>
+                  )}
                   {hasReachedThreshold ? (
                     <Flame 
-                      className="h-5 w-5 text-orange-500 animate-pulse" 
+                      className="h-4 w-4 text-orange-500 animate-pulse" 
                       data-testid={`icon-fire-${day.dayOfWeek.toLowerCase()}`}
                     />
                   ) : hasSomeActivity ? (
                     <Star 
-                      className="h-4 w-4 text-yellow-500" 
+                      className="h-3.5 w-3.5 text-yellow-500" 
                       data-testid={`icon-star-${day.dayOfWeek.toLowerCase()}`}
                     />
                   ) : isActiveIncomplete ? (
-                    <span className="text-base" data-testid={`icon-egg-${day.dayOfWeek.toLowerCase()}`}>🥚</span>
+                    <span className="text-sm" data-testid={`icon-egg-${day.dayOfWeek.toLowerCase()}`}>🥚</span>
                   ) : (
                     <div 
                       className={cn(
@@ -127,12 +144,6 @@ export function WeeklyStreakRow() {
                     />
                   )}
                 </div>
-                
-                {day.emailsSent > 0 && (
-                  <div className="text-[9px] text-muted-foreground">
-                    {day.emailsSent}
-                  </div>
-                )}
               </div>
             </TooltipTrigger>
             <TooltipContent>
