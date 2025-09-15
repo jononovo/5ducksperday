@@ -1,7 +1,7 @@
 // Firebase configuration - using environment variables
 const firebaseConfig = {
   apiKey: "AIzaSyATWWlnIrPWNgxKgk5y8k71vGbJi9aDbuzU",
-  authDomain: "fire-5-ducks.firebaseapp.com",
+  authDomain: "auth.5ducks.ai",  // Custom domain for authentication
   projectId: "fire-5-ducks",
   appId: "1:1072598853946:web:15b5efc5feda6b133e8"
 };
