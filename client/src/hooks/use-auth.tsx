@@ -220,9 +220,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Authentication service is not properly configured");
       }
 
-      // Force re-authentication for fresh Firebase ID token
+      // Use 'select_account' for better UX - allows account switching
+      // without forcing re-consent every time (Firebase auth uses minimal scopes)
+      // Note: This is for Firebase authentication only, not Gmail API permissions
       firebaseGoogleProvider.setCustomParameters({
-        prompt: 'consent'
+        prompt: 'select_account'
       });
 
       console.log('Calling signInWithPopup...');
