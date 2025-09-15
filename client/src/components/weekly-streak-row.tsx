@@ -44,7 +44,7 @@ export function WeeklyStreakRow() {
   return (
     <div 
       className={cn(
-        "flex gap-2 p-4 rounded-lg border transition-all duration-500",
+        "relative flex gap-2 p-4 rounded-lg border transition-all duration-500",
         allActiveDaysComplete 
           ? "bg-green-50 dark:bg-green-950/20 border-green-500 shadow-lg shadow-green-500/20" 
           : "bg-card"
@@ -63,7 +63,7 @@ export function WeeklyStreakRow() {
             className={cn(
               "flex-1 flex flex-col items-center justify-center p-3 rounded-md border-2 transition-all duration-300",
               // Base border styles
-              !day.isScheduledDay && !isCurrentDay && "border-muted",
+              !day.isScheduledDay && !isCurrentDay && "border-border opacity-50",
               day.isScheduledDay && !isCurrentDay && "border-primary/50",
               // Today's special styling
               isCurrentDay && !day.isScheduledDay && "border-primary border-[3px] shadow-md",
