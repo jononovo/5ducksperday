@@ -80,7 +80,7 @@ export function WeeklyStreakRow() {
             <TooltipTrigger asChild>
               <div
                 className={cn(
-                  "flex-1 flex items-center justify-between px-3 py-1.5 rounded-md border-2 transition-all duration-300 relative",
+                  "flex-1 flex items-center px-3 py-1.5 rounded-md border-2 transition-all duration-300 relative",
                   // Base border styles
                   !day.isScheduledDay && !isCurrentDay && "border-border opacity-50",
                   day.isScheduledDay && !isCurrentDay && "border-primary/50",
@@ -112,16 +112,11 @@ export function WeeklyStreakRow() {
                 }}
                 data-testid={`day-cell-${day.dayOfWeek.toLowerCase()}`}
               >
-                <div className="text-[11px] font-medium text-muted-foreground">
-                  {day.dayOfWeek.slice(0, 3).toUpperCase()}
-                </div>
-                
-                <div className="flex items-center gap-1">
-                  {day.emailsSent > 0 && (
-                    <div className="text-[10px] text-muted-foreground">
-                      {day.emailsSent}
-                    </div>
-                  )}
+                <div className="flex items-center gap-1.5">
+                  <div className="text-[11px] font-medium text-muted-foreground">
+                    {day.dayOfWeek.slice(0, 3).toUpperCase()}
+                  </div>
+                  
                   {hasReachedThreshold ? (
                     <Flame 
                       className="h-4 w-4 text-orange-500 animate-pulse" 
@@ -144,6 +139,12 @@ export function WeeklyStreakRow() {
                     />
                   )}
                 </div>
+                
+                {day.emailsSent > 0 && (
+                  <div className="text-[10px] text-muted-foreground ml-auto">
+                    {day.emailsSent}
+                  </div>
+                )}
               </div>
             </TooltipTrigger>
             <TooltipContent>
