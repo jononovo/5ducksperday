@@ -446,9 +446,9 @@ export default function StreakPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-4 max-w-6xl">
       {/* Weekly Streak Row - At the very top */}
-      <div className="mb-6">
+      <div className="mb-3">
         <WeeklyStreakRow />
       </div>
 
