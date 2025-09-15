@@ -286,6 +286,86 @@ router.get('/streak-stats', requireAuth, async (req: Request, res: Response) => 
   }
 });
 
+// Get weekly activity data for streak row
+router.get('/weekly-activity', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    // Check if all days should be returned
+    const allDays = req.query.allDays === 'true';
+
+    const today = new Date();
+    // Use Sunday as week start when showing all days, Monday otherwise
+    const weekStart = startOfWeek(today, { weekStartsOn: allDays ? 0 : 1 });
+    
+    // Get user preferences for scheduled days
+    const [preferences] = await db
+      .select()
+      .from(userOutreachPreferences)
+      .where(eq(userOutreachPreferences.userId, userId));
+
+    const scheduleDays = preferences?.scheduleDays || ['mon', 'tue', 'wed'];
+    const targetDailyThreshold = 5; // Default threshold for "goal reached"
+
+    // Configure days based on allDays parameter
+    const daysOfWeek = allDays 
+      ? ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+      : ['mon', 'tue', 'wed', 'thu', 'fri'];
+    
+    const dayNames = allDays
+      ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    
+    // Adjust starting index based on whether we're showing all days
+    const startIndex = allDays ? 0 : 1;
+    const numDays = allDays ? 7 : 5;
+
+    // Get email counts for each day of this week
+    const dayActivity = [];
+    
+    for (let i = 0; i < numDays; i++) {
+      const currentDate = new Date(weekStart);
+      currentDate.setDate(weekStart.getDate() + (allDays ? i : i + 1)); // If Monday start, add 1 to skip Sunday
+      const dayStart = startOfDay(currentDate);
+      const dayEnd = endOfDay(currentDate);
+      
+      // Get email count for this day
+      const [emailCount] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(communicationHistory)
+        .where(
+          and(
+            eq(communicationHistory.userId, userId),
+            eq(communicationHistory.channel, 'email'),
+            eq(communicationHistory.direction, 'outbound'),
+            gte(communicationHistory.sentAt, dayStart),
+            sql`${communicationHistory.sentAt} <= ${dayEnd}`,
+            isNotNull(communicationHistory.sentAt)
+          )
+        );
+      
+      dayActivity.push({
+        date: currentDate.toISOString(),
+        dayOfWeek: dayNames[i],
+        emailsSent: emailCount?.count || 0,
+        isScheduledDay: scheduleDays.includes(daysOfWeek[i])
+      });
+    }
+
+    res.json({
+      dayActivity,
+      scheduleDays,
+      targetDailyThreshold
+    });
+  } catch (error) {
+    console.error('Error fetching weekly activity:', error);
+    res.status(500).json({ error: 'Failed to fetch weekly activity' });
+  }
+});
+
 // Update vacation mode settings
 router.put('/vacation', async (req: Request, res: Response) => {
   try {
