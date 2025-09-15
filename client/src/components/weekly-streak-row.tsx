@@ -245,7 +245,7 @@ export function WeeklyStreakRow() {
                             checked={isChecked}
                             onCheckedChange={() => handleDayToggle(day.dayOfWeek)}
                             onClick={(e) => e.stopPropagation()}
-                            className="h-3.5 w-3.5"
+                            className="h-5 w-5"
                             data-testid={`checkbox-${day.dayOfWeek.toLowerCase()}`}
                           />
                         ) : (
