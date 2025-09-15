@@ -214,7 +214,7 @@ export function WeeklyStreakRow() {
         {/* Edit mode instruction message */}
         {isEditMode && (
           <div className="text-sm text-muted-foreground px-1">
-            Select the days you wish to be active. Then click save.
+            Select the days you are active. Then click save.
           </div>
         )}
         
