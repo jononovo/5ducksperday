@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { Flame, Star, TrendingUp, Pencil, Check } from 'lucide-react';
+import { Flame, Star, TrendingUp, Pencil, Save } from 'lucide-react';
 import { format, startOfWeek, addDays, isToday, isSameDay } from 'date-fns';
 import {
   Tooltip,
@@ -42,7 +42,9 @@ export function WeeklyStreakRow() {
   // Initialize pending schedule days when entering edit mode
   useEffect(() => {
     if (isEditMode && activityData) {
-      setPendingScheduleDays(activityData.scheduleDays);
+      // Ensure the days are in lowercase format for comparison
+      const normalizedDays = activityData.scheduleDays.map(day => day.toLowerCase());
+      setPendingScheduleDays(normalizedDays);
       setHasChanges(false);
     }
   }, [isEditMode, activityData]);
@@ -309,7 +311,7 @@ export function WeeklyStreakRow() {
                 data-testid="edit-save-button"
               >
                 {isEditMode ? (
-                  <Check className="h-4 w-4" />
+                  <Save className="h-4 w-4" />
                 ) : (
                   <Pencil className="h-4 w-4" />
                 )}
