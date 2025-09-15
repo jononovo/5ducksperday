@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { Flame, Star, TrendingUp, Pencil, Save } from 'lucide-react';
-import { format, startOfWeek, addDays, isToday, isSameDay } from 'date-fns';
+import { Flame, Star, TrendingUp, Pencil, Save, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, startOfWeek, addDays, isToday, isSameDay, subWeeks, addWeeks } from 'date-fns';
 import {
   Tooltip,
   TooltipContent,
@@ -30,13 +30,16 @@ export function WeeklyStreakRow() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [pendingScheduleDays, setPendingScheduleDays] = useState<string[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = previous week
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const autoRevertTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch weekly activity data - use allDays parameter in edit mode
+  // Fetch weekly activity data - use allDays parameter in edit mode and weekOffset for navigation
   const { data: activityData, isLoading, refetch } = useQuery<WeeklyActivityData>({
     queryKey: isEditMode 
       ? ['/api/daily-outreach/weekly-activity', { allDays: true }]
-      : ['/api/daily-outreach/weekly-activity'],
-    refetchInterval: isEditMode ? false : 60000, // Don't auto-refresh in edit mode
+      : ['/api/daily-outreach/weekly-activity', { weekOffset }],
+    refetchInterval: isEditMode || weekOffset !== 0 ? false : 60000, // Don't auto-refresh in edit mode or when viewing past weeks
   });
 
   // Initialize pending schedule days when entering edit mode
@@ -48,6 +51,33 @@ export function WeeklyStreakRow() {
       setHasChanges(false);
     }
   }, [isEditMode, activityData]);
+
+  // Auto-revert to current week after 10 seconds
+  useEffect(() => {
+    if (weekOffset !== 0) {
+      // Clear any existing timer
+      if (autoRevertTimer.current) {
+        clearTimeout(autoRevertTimer.current);
+      }
+      
+      // Set new timer
+      autoRevertTimer.current = setTimeout(() => {
+        handleWeekNavigation(0);
+      }, 10000);
+      
+      return () => {
+        if (autoRevertTimer.current) {
+          clearTimeout(autoRevertTimer.current);
+        }
+      };
+    } else {
+      // Clear timer when back to current week
+      if (autoRevertTimer.current) {
+        clearTimeout(autoRevertTimer.current);
+        autoRevertTimer.current = null;
+      }
+    }
+  }, [weekOffset]);
 
   // Save preferences mutation
   const savePreferences = useMutation({
@@ -79,6 +109,11 @@ export function WeeklyStreakRow() {
   });
 
   const handleEditToggle = () => {
+    // Reset to current week when entering edit mode
+    if (!isEditMode && weekOffset !== 0) {
+      setWeekOffset(0);
+    }
+    
     if (isEditMode && hasChanges) {
       // Save changes
       savePreferences.mutate(pendingScheduleDays);
@@ -90,6 +125,16 @@ export function WeeklyStreakRow() {
         refetch();
       }
     }
+  };
+
+  const handleWeekNavigation = (newOffset: number) => {
+    if (isTransitioning || isEditMode) return;
+    
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setWeekOffset(newOffset);
+      setIsTransitioning(false);
+    }, 150);
   };
 
   const handleDayToggle = (dayOfWeek: string) => {
@@ -121,13 +166,17 @@ export function WeeklyStreakRow() {
 
   if (isLoading || !activityData) {
     return (
-      <div className="flex gap-1.5">
-        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-          <div
-            key={i}
-            className="flex-1 h-8 bg-muted animate-pulse rounded"
-          />
-        ))}
+      <div className="flex items-center gap-2">
+        <div className="h-8 w-8" />
+        <div className="flex gap-1.5 flex-1">
+          {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+            <div
+              key={i}
+              className="flex-1 h-8 bg-muted animate-pulse rounded"
+            />
+          ))}
+        </div>
+        <div className="h-8 w-8" />
       </div>
     );
   }
@@ -138,6 +187,15 @@ export function WeeklyStreakRow() {
   const allActiveDaysComplete = dayActivity
     .filter(day => day.isScheduledDay)
     .every(day => day.emailsSent >= targetDailyThreshold);
+
+  // Get week date range for display
+  const getWeekLabel = () => {
+    if (weekOffset === 0) return '';
+    if (weekOffset === -1) return 'Last week';
+    const weekStart = startOfWeek(addWeeks(new Date(), weekOffset));
+    const weekEnd = addDays(weekStart, 6);
+    return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
+  };
 
   // Day name mapping for checkbox state
   const dayMapping: { [key: string]: string } = {
@@ -153,6 +211,13 @@ export function WeeklyStreakRow() {
   return (
     <TooltipProvider>
       <div className="space-y-2">
+        {/* Week indicator when viewing past weeks */}
+        {weekOffset !== 0 && !isEditMode && (
+          <div className="text-sm text-muted-foreground px-1 animate-in fade-in slide-in-from-bottom-1 duration-300">
+            {getWeekLabel()}
+          </div>
+        )}
+        
         {/* Edit mode instruction message */}
         {isEditMode && (
           <div className="text-sm text-muted-foreground px-1">
@@ -161,13 +226,43 @@ export function WeeklyStreakRow() {
         )}
         
         <div className="flex items-center gap-2">
-          {/* Days row */}
+          {/* Left Chevron Button */}
+          {!isEditMode && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={cn(
+                    "h-8 w-8 transition-all",
+                    weekOffset === -1 && "opacity-50 cursor-not-allowed",
+                    isTransitioning && "opacity-30"
+                  )}
+                  onClick={() => weekOffset === 0 ? handleWeekNavigation(-1) : handleWeekNavigation(0)}
+                  disabled={isTransitioning || weekOffset === -1}
+                  data-testid="week-nav-left"
+                >
+                  {weekOffset === 0 ? (
+                    <ChevronLeft className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{weekOffset === 0 ? 'View last week' : 'Back to current week'}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {/* Days row with slide animation */}
           <div 
             className={cn(
-              "relative flex gap-1.5 transition-all duration-500 flex-1",
+              "relative flex gap-1.5 flex-1 transition-all duration-300",
               allActiveDaysComplete && !isEditMode
                 ? "bg-green-50 dark:bg-green-950/20 rounded-lg p-1" 
-                : ""
+                : "",
+              isTransitioning && "opacity-0 transform translate-x-4",
+              !isTransitioning && "opacity-100 transform translate-x-0"
             )}
             data-testid="weekly-streak-row"
           >
@@ -296,31 +391,54 @@ export function WeeklyStreakRow() {
             )}
           </div>
           
-          {/* Edit/Save Button */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                variant={isEditMode && hasChanges ? "default" : "ghost"}
-                className={cn(
-                  "h-8 w-8 transition-all",
-                  isEditMode && hasChanges && "animate-pulse"
-                )}
-                onClick={handleEditToggle}
-                disabled={savePreferences.isPending}
-                data-testid="edit-save-button"
-              >
-                {isEditMode ? (
-                  <Save className="h-4 w-4" />
-                ) : (
-                  <Pencil className="h-4 w-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{isEditMode ? (hasChanges ? 'Save changes' : 'Cancel') : 'Edit schedule'}</p>
-            </TooltipContent>
-          </Tooltip>
+          {/* Edit/Save Button or Right Chevron */}
+          {weekOffset === 0 ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant={isEditMode && hasChanges ? "default" : "ghost"}
+                  className={cn(
+                    "h-8 w-8 transition-all",
+                    isEditMode && hasChanges && "animate-pulse"
+                  )}
+                  onClick={handleEditToggle}
+                  disabled={savePreferences.isPending}
+                  data-testid="edit-save-button"
+                >
+                  {isEditMode ? (
+                    <Save className="h-4 w-4" />
+                  ) : (
+                    <Pencil className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isEditMode ? (hasChanges ? 'Save changes' : 'Cancel') : 'Edit schedule'}</p>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={cn(
+                    "h-8 w-8 transition-all",
+                    isTransitioning && "opacity-30"
+                  )}
+                  onClick={() => handleWeekNavigation(0)}
+                  disabled={isTransitioning}
+                  data-testid="week-nav-right"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Back to current week</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
       </div>
     </TooltipProvider>
