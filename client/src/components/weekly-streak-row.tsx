@@ -273,7 +273,7 @@ export function WeeklyStreakRow() {
             )}
             {dayActivity.map((day) => {
               const date = new Date(day.date);
-              const isCurrentDay = isToday(date);
+              const isCurrentDay = weekOffset === 0 && isToday(date);
               const hasReachedThreshold = day.emailsSent >= targetDailyThreshold;
               const hasSomeActivity = day.emailsSent > 0 && day.emailsSent < targetDailyThreshold;
               const isActiveIncomplete = day.isScheduledDay && !hasReachedThreshold;
