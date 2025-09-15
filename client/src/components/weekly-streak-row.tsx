@@ -214,7 +214,7 @@ export function WeeklyStreakRow() {
         {/* Edit mode instruction message */}
         {isEditMode && (
           <div className="text-sm text-muted-foreground px-1">
-            Select the days of the week you wish to be active
+            Select the days you wish to be active. Then click save.
           </div>
         )}
         
@@ -263,7 +263,7 @@ export function WeeklyStreakRow() {
             {/* Floating week indicator badge */}
             {weekOffset !== 0 && !isEditMode && (
               <div 
-                className="absolute -top-2 -left-8 z-10 pointer-events-none animate-in fade-in duration-300"
+                className="absolute -top-4 -left-8 z-10 pointer-events-none animate-in fade-in duration-300"
                 data-testid="badge-week-label"
               >
                 <span className="inline-block rounded-full bg-amber-500/60 dark:bg-amber-600/60 backdrop-blur-sm text-white text-[10px] sm:text-xs px-2 py-0.5 shadow-sm font-medium">
@@ -345,7 +345,7 @@ export function WeeklyStreakRow() {
                             checked={isChecked}
                             onCheckedChange={() => handleDayToggle(day.dayOfWeek)}
                             onClick={(e) => e.stopPropagation()}
-                            className="h-5 w-5"
+                            className="h-4 w-4 sm:h-5 sm:w-5"
                             data-testid={`checkbox-${day.dayOfWeek.toLowerCase()}`}
                           />
                         ) : (
