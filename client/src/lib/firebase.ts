@@ -45,7 +45,7 @@ function validateFirebaseConfig() {
 
   const config = {
     apiKey,
-    authDomain: `${projectId}.firebaseapp.com`,
+    authDomain: 'auth.5ducks.ai',  // Custom domain for authentication
     projectId,
     storageBucket: `${projectId}.appspot.com`,
     messagingSenderId: projectId?.split('-')[1] || '',
