@@ -105,9 +105,25 @@ try {
     
   googleProvider = new GoogleAuthProvider();
 
-  // Add basic profile scopes for Firebase authentication only
-  googleProvider.addScope('email');
-  googleProvider.addScope('profile');
+  // ============================================================
+  // FIREBASE AUTHENTICATION VS GMAIL API - SCOPE SEPARATION
+  // ============================================================
+  // 
+  // FIREBASE AUTH (This file):
+  // - Handles app authentication only (login/signup)
+  // - Firebase automatically includes 'email' and 'profile' scopes
+  // - NO additional scopes needed or should be added here
+  // - Minimal permissions for better user experience
+  //
+  // GMAIL API (Separate OAuth flow):
+  // - Handled through gmail-api-service module
+  // - Requires extensive Gmail permissions (read, send, modify)
+  // - Uses Google People API OAuth flow
+  // - Only requested when user needs email features
+  //
+  // IMPORTANT: Keep these two auth systems completely separate!
+  // Never add Gmail scopes to Firebase auth configuration.
+  // ============================================================
 
   // Set up auth state change listener
   if (auth) {
