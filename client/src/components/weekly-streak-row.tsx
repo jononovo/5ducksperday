@@ -211,13 +211,6 @@ export function WeeklyStreakRow() {
   return (
     <TooltipProvider>
       <div className="space-y-2">
-        {/* Week indicator when viewing past weeks */}
-        {weekOffset !== 0 && !isEditMode && (
-          <div className="text-sm text-muted-foreground px-1 animate-in fade-in slide-in-from-bottom-1 duration-300">
-            {getWeekLabel()}
-          </div>
-        )}
-        
         {/* Edit mode instruction message */}
         {isEditMode && (
           <div className="text-sm text-muted-foreground px-1">
@@ -261,11 +254,23 @@ export function WeeklyStreakRow() {
               allActiveDaysComplete && !isEditMode
                 ? "bg-green-50 dark:bg-green-950/20 rounded-lg p-1" 
                 : "",
+              weekOffset !== 0 && !isEditMode && "ring-1 ring-amber-400/30 bg-amber-50/10 dark:bg-amber-950/10 rounded-lg",
               isTransitioning && "opacity-0 transform translate-x-4",
               !isTransitioning && "opacity-100 transform translate-x-0"
             )}
             data-testid="weekly-streak-row"
           >
+            {/* Floating week indicator badge */}
+            {weekOffset !== 0 && !isEditMode && (
+              <div 
+                className="absolute -top-2 left-2 z-10 pointer-events-none animate-in fade-in duration-300"
+                data-testid="badge-week-label"
+              >
+                <span className="inline-block rounded-full bg-amber-500 dark:bg-amber-600 text-white text-[10px] sm:text-xs px-2 py-0.5 shadow-md font-medium">
+                  {getWeekLabel()}
+                </span>
+              </div>
+            )}
             {dayActivity.map((day) => {
               const date = new Date(day.date);
               const isCurrentDay = isToday(date);
