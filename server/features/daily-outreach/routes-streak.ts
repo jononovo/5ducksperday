@@ -294,8 +294,12 @@ router.get('/weekly-activity', requireAuth, async (req: Request, res: Response) 
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
+    // Check if all days should be returned
+    const allDays = req.query.allDays === 'true';
+
     const today = new Date();
-    const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Monday
+    // Use Sunday as week start when showing all days, Monday otherwise
+    const weekStart = startOfWeek(today, { weekStartsOn: allDays ? 0 : 1 });
     
     // Get user preferences for scheduled days
     const [preferences] = await db
@@ -306,14 +310,25 @@ router.get('/weekly-activity', requireAuth, async (req: Request, res: Response) 
     const scheduleDays = preferences?.scheduleDays || ['mon', 'tue', 'wed'];
     const targetDailyThreshold = 5; // Default threshold for "goal reached"
 
-    // Get email counts for each day of this week (Monday-Friday)
-    const dayActivity = [];
-    const daysOfWeek = ['mon', 'tue', 'wed', 'thu', 'fri'];
-    const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    // Configure days based on allDays parameter
+    const daysOfWeek = allDays 
+      ? ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+      : ['mon', 'tue', 'wed', 'thu', 'fri'];
     
-    for (let i = 0; i < 5; i++) {
+    const dayNames = allDays
+      ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    
+    // Adjust starting index based on whether we're showing all days
+    const startIndex = allDays ? 0 : 1;
+    const numDays = allDays ? 7 : 5;
+
+    // Get email counts for each day of this week
+    const dayActivity = [];
+    
+    for (let i = 0; i < numDays; i++) {
       const currentDate = new Date(weekStart);
-      currentDate.setDate(weekStart.getDate() + i);
+      currentDate.setDate(weekStart.getDate() + (allDays ? i : i + 1)); // If Monday start, add 1 to skip Sunday
       const dayStart = startOfDay(currentDate);
       const dayEnd = endOfDay(currentDate);
       
