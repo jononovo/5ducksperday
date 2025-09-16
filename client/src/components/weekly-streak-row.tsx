@@ -283,7 +283,7 @@ export function WeeklyStreakRow() {
                         !isEditMode && hasReachedThreshold && isCurrentDay && "bg-green-50 dark:bg-green-950/30 border-transparent",
                         // Hover effect and cursor
                         !isEditMode && "hover:scale-105",
-                        !isEditMode && (day.emailsSent > 0 || day.batchToken) && "cursor-pointer hover:shadow-lg transition-all"
+                        !isEditMode && (day.emailsSent > 0 || day.batchToken || (weekOffset === 0 && day.isScheduledDay)) && "cursor-pointer hover:shadow-lg transition-all"
                       )}
                       style={{
                         ...(!isEditMode && isCurrentDay && {
@@ -306,16 +306,16 @@ export function WeeklyStreakRow() {
                       onClick={async () => {
                         if (isEditMode) {
                           handleDayToggle(day.dayOfWeek);
-                        } else if (day.emailsSent > 0 || day.batchToken) {
-                          // Navigate to daily outreach view in new tab
+                        } else if (day.emailsSent > 0 || day.batchToken || (weekOffset === 0 && day.isScheduledDay)) {
+                          // Navigate to daily outreach view in new tab (allow scheduled days in current week)
                           if (day.batchToken) {
                             // Use the batch token directly if available
                             window.open(`/outreach/daily/${day.batchToken}`, '_blank');
                           } else {
                             // Fallback: fetch the batch token for this date
                             try {
-                              // Format date as YYYY-MM-DD
-                              const dateString = new Date(day.date).toISOString().split('T')[0];
+                              // Use dateKey directly (already in YYYY-MM-DD format)
+                              const dateString = (day as any).dateKey || new Date(day.date).toISOString().split('T')[0];
                               const response = await fetch(`/api/daily-outreach/token-by-date?date=${dateString}`);
                               
                               if (!response.ok) {
