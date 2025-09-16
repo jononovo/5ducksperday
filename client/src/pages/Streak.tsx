@@ -460,33 +460,18 @@ export default function StreakPage() {
               <Flame className="h-8 w-8 text-orange-500" />
               Your Sales Streak {getStreakEmoji()}
             </h1>
-            <p className="text-muted-foreground mt-2">
-              Track your outreach progress and maintain your momentum
-            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">Weekly Goal Progress</span>
+              <span className={cn("text-sm font-bold", getProgressColor())}>
+                {stats?.weeklyProgress || 0} / {stats?.weeklyGoal || daysPerWeek[0]} days
+              </span>
+            </div>
           </div>
           <div className="text-right">
             <div className="text-4xl font-bold">{stats?.currentStreak || 0}</div>
             <div className="text-sm text-muted-foreground">Days</div>
           </div>
         </div>
-
-        {/* Weekly Progress Bar */}
-        <Card className="mt-4">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">Weekly Goal Progress</span>
-              <span className={cn("text-sm font-bold", getProgressColor())}>
-                {stats?.weeklyProgress || 0} / {stats?.weeklyGoal || daysPerWeek[0]} days
-              </span>
-            </div>
-            <div className="w-full bg-secondary rounded-full h-3">
-              <div 
-                className="bg-primary h-3 rounded-full transition-all"
-                style={{ width: `${Math.min(((stats?.weeklyProgress || 0) / (stats?.weeklyGoal || daysPerWeek[0])) * 100, 100)}%` }}
-              />
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Activation CTA */}
