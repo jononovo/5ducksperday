@@ -10,7 +10,8 @@ import {
   companies,
   communicationHistory
 } from '@shared/schema';
-import { eq, and, lte, sql, not, desc } from 'drizzle-orm';
+import { eq, and, lte, gte, lt, sql, not, desc } from 'drizzle-orm';
+import { startOfDay, endOfDay } from 'date-fns';
 import { persistentScheduler as outreachScheduler } from './services/persistent-scheduler';
 import { batchGenerator } from './services/batch-generator';
 import { sendGridService } from './services/sendgrid-service';
@@ -807,6 +808,64 @@ router.get('/job-status/:userId', requireAuth, async (req: Request, res: Respons
   } catch (error) {
     console.error('Error getting job status:', error);
     res.status(500).json({ error: 'Failed to get job status' });
+  }
+});
+
+// Get batch token by date (for historical view from weekly streak)
+router.get('/token-by-date', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const { date } = req.query;
+    if (!date || typeof date !== 'string') {
+      return res.status(400).json({ error: 'Date parameter required (YYYY-MM-DD format)' });
+    }
+    
+    // Parse date and get day boundaries
+    const targetDate = new Date(date);
+    if (isNaN(targetDate.getTime())) {
+      return res.status(400).json({ error: 'Invalid date format' });
+    }
+    
+    const dayStart = startOfDay(targetDate);
+    const dayEnd = endOfDay(targetDate);
+    
+    // Find batch for this user and date
+    const [batch] = await db
+      .select({
+        id: dailyOutreachBatches.id,
+        token: dailyOutreachBatches.secureToken,
+        batchDate: dailyOutreachBatches.batchDate,
+        status: dailyOutreachBatches.status
+      })
+      .from(dailyOutreachBatches)
+      .where(
+        and(
+          eq(dailyOutreachBatches.userId, userId),
+          gte(dailyOutreachBatches.createdAt, dayStart),
+          lt(dailyOutreachBatches.createdAt, dayEnd),
+          not(eq(dailyOutreachBatches.status, 'preview')),
+          not(eq(dailyOutreachBatches.status, 'test'))
+        )
+      )
+      .orderBy(desc(dailyOutreachBatches.createdAt))
+      .limit(1);
+    
+    if (!batch) {
+      return res.status(404).json({ error: 'No outreach batch found for this date' });
+    }
+    
+    res.json({
+      token: batch.token,
+      batchId: batch.id,
+      batchDate: batch.batchDate
+    });
+  } catch (error) {
+    console.error('Error getting batch token by date:', error);
+    res.status(500).json({ error: 'Failed to get batch token' });
   }
 });
 
