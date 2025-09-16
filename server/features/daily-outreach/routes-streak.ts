@@ -120,15 +120,7 @@ router.get('/streak-stats', requireAuth, async (req: Request, res: Response) => 
       (todaysBatch as any).itemCount = itemCount;
     }
     
-    // Debug logging
-    console.log('[Streak Stats] Today\'s batch for user', userId, ':', {
-      found: !!todaysBatch,
-      batchId: todaysBatch?.id,
-      token: todaysBatch?.token?.substring(0, 8) + '...',
-      itemCount: itemCount,
-      todayStart: todayStart.toISOString(),
-      createdAt: todaysBatch?.createdAt
-    });
+    // Removed debug logging for production
 
     // Get available companies and contacts count
     const availableCompaniesResult = await db
@@ -316,6 +308,7 @@ router.get('/weekly-activity', requireAuth, async (req: Request, res: Response) 
 
     const scheduleDays = (preferences?.scheduleDays || ['monday', 'tuesday', 'wednesday']).map(d => d.toLowerCase());
     const targetDailyThreshold = 5; // Default threshold for "goal reached"
+    const userTimezone = preferences?.timezone || 'America/New_York'; // Get user's timezone preference
 
     // Configure days based on allDays parameter
     const daysOfWeek = allDays 
@@ -354,11 +347,30 @@ router.get('/weekly-activity', requireAuth, async (req: Request, res: Response) 
           )
         );
       
+      // Check if there's a batch for this day (even if no emails sent yet)
+      const [dayBatch] = await db
+        .select({
+          id: dailyOutreachBatches.id,
+          token: dailyOutreachBatches.secureToken,
+          createdAt: dailyOutreachBatches.createdAt
+        })
+        .from(dailyOutreachBatches)
+        .where(
+          and(
+            eq(dailyOutreachBatches.userId, userId),
+            gte(dailyOutreachBatches.createdAt, dayStart),
+            sql`${dailyOutreachBatches.createdAt} <= ${dayEnd}`
+          )
+        )
+        .orderBy(desc(dailyOutreachBatches.createdAt))
+        .limit(1);
+      
       dayActivity.push({
         date: currentDate.toISOString(),
         dayOfWeek: dayNames[i],
         emailsSent: emailCount?.count || 0,
-        isScheduledDay: scheduleDays.includes(daysOfWeek[i])
+        isScheduledDay: scheduleDays.includes(daysOfWeek[i]),
+        batchToken: dayBatch?.token || null
       });
     }
 
@@ -366,11 +378,57 @@ router.get('/weekly-activity', requireAuth, async (req: Request, res: Response) 
       dayActivity,
       scheduleDays,
       targetDailyThreshold,
-      weekStartDate: weekStart.toISOString()
+      weekStartDate: weekStart.toISOString(),
+      timezone: userTimezone
     });
   } catch (error) {
     console.error('Error fetching weekly activity:', error);
     res.status(500).json({ error: 'Failed to fetch weekly activity' });
+  }
+});
+
+// Get batch token by date
+router.get('/token-by-date', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const { date } = req.query;
+    if (!date || typeof date !== 'string') {
+      return res.status(400).json({ error: 'Date parameter is required' });
+    }
+    
+    // Parse the date and get day boundaries
+    const targetDate = new Date(date);
+    const dayStart = startOfDay(targetDate);
+    const dayEnd = endOfDay(targetDate);
+    
+    // Find batch for this date
+    const [batch] = await db
+      .select({
+        token: dailyOutreachBatches.secureToken
+      })
+      .from(dailyOutreachBatches)
+      .where(
+        and(
+          eq(dailyOutreachBatches.userId, userId),
+          gte(dailyOutreachBatches.createdAt, dayStart),
+          sql`${dailyOutreachBatches.createdAt} <= ${dayEnd}`
+        )
+      )
+      .orderBy(desc(dailyOutreachBatches.createdAt))
+      .limit(1);
+    
+    if (!batch) {
+      return res.status(404).json({ error: 'No batch found for this date' });
+    }
+    
+    res.json({ token: batch.token });
+  } catch (error) {
+    console.error('Error fetching batch by date:', error);
+    res.status(500).json({ error: 'Failed to fetch batch token' });
   }
 });
 
