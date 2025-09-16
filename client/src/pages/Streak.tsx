@@ -505,7 +505,7 @@ export default function StreakPage() {
                   onClick={() => triggerEmail.mutate()} 
                   size="sm" 
                   className="w-full"
-                  variant="ghost"
+                  variant="outline"
                   disabled={triggerEmail.isPending}
                 >
                   <RefreshCw className={cn("h-4 w-4 mr-2", triggerEmail.isPending && "animate-spin")} />
