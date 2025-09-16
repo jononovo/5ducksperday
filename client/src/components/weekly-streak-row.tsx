@@ -29,30 +29,18 @@ export function WeeklyStreakRow() {
   const { toast } = useToast();
   const [isEditMode, setIsEditMode] = useState(false);
   const [pendingScheduleDays, setPendingScheduleDays] = useState<string[]>([]);
-  const [hasChanges, setHasChanges] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = previous week
   const [isTransitioning, setIsTransitioning] = useState(false);
   const autoRevertTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch weekly activity data - use allDays parameter in edit mode and weekOffset for navigation
-  const { data: activityData, isLoading, refetch } = useQuery<WeeklyActivityData>({
-    queryKey: isEditMode 
-      ? ['/api/daily-outreach/weekly-activity', { allDays: true }]
-      : ['/api/daily-outreach/weekly-activity', { weekOffset }],
+  // Fetch weekly activity data
+  const { data: activityData, isLoading } = useQuery<WeeklyActivityData>({
+    queryKey: ['/api/daily-outreach/weekly-activity', { weekOffset }],
     refetchInterval: isEditMode || weekOffset !== 0 ? false : 60000, // Don't auto-refresh in edit mode or when viewing past weeks
     placeholderData: keepPreviousData, // Show old data while loading new data
     staleTime: 30000 // Cache for 30 seconds
   });
 
-  // Initialize pending schedule days when entering edit mode
-  useEffect(() => {
-    if (isEditMode && activityData) {
-      // Ensure the days are in lowercase format for comparison
-      const normalizedDays = activityData.scheduleDays.map(day => day.toLowerCase());
-      setPendingScheduleDays(normalizedDays);
-      setHasChanges(false);
-    }
-  }, [isEditMode, activityData]);
 
   // Auto-revert to current week after 10 seconds
   useEffect(() => {
@@ -96,7 +84,6 @@ export function WeeklyStreakRow() {
         description: 'Your active days have been saved'
       });
       setIsEditMode(false);
-      setHasChanges(false);
       // Refresh the query to get updated data
       queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/weekly-activity'] });
     },
@@ -110,17 +97,19 @@ export function WeeklyStreakRow() {
   });
 
   const handleEditToggle = () => {
-    // Reset to current week when entering edit mode
-    if (!isEditMode && weekOffset !== 0) {
-      setWeekOffset(0);
-    }
-    
-    if (isEditMode && hasChanges) {
+    if (!isEditMode) {
+      // Entering edit mode
+      if (weekOffset !== 0) {
+        setWeekOffset(0);
+      }
+      setIsEditMode(true);
+      // Initialize pending schedule days from current data
+      if (activityData) {
+        setPendingScheduleDays(activityData.scheduleDays.map(day => day.toLowerCase()));
+      }
+    } else {
       // Save changes
       savePreferences.mutate(pendingScheduleDays);
-    } else {
-      // Enter or exit edit mode
-      setIsEditMode(!isEditMode);
     }
   };
 
@@ -135,27 +124,12 @@ export function WeeklyStreakRow() {
   };
 
   const handleDayToggle = (dayOfWeek: string) => {
-    const dayMapping: { [key: string]: string } = {
-      'Sunday': 'sunday',
-      'Monday': 'monday',
-      'Tuesday': 'tuesday',
-      'Wednesday': 'wednesday',
-      'Thursday': 'thursday',
-      'Friday': 'friday',
-      'Saturday': 'saturday'
-    };
-    
-    const dayKey = dayMapping[dayOfWeek];
+    const dayKey = dayOfWeek.toLowerCase();
     
     setPendingScheduleDays(prev => {
       const newDays = prev.includes(dayKey)
         ? prev.filter(d => d !== dayKey)
         : [...prev, dayKey];
-      
-      // Check if there are changes
-      const originalDays = activityData?.scheduleDays || [];
-      const hasChanges = JSON.stringify(newDays.sort()) !== JSON.stringify(originalDays.sort());
-      setHasChanges(hasChanges);
       
       return newDays;
     });
@@ -194,16 +168,6 @@ export function WeeklyStreakRow() {
     return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
   };
 
-  // Day name mapping for checkbox state
-  const dayMapping: { [key: string]: string } = {
-    'Sunday': 'sunday',
-    'Monday': 'monday',
-    'Tuesday': 'tuesday',
-    'Wednesday': 'wednesday',
-    'Thursday': 'thursday',
-    'Friday': 'friday',
-    'Saturday': 'saturday'
-  };
 
   return (
     <TooltipProvider>
@@ -274,7 +238,7 @@ export function WeeklyStreakRow() {
               const hasReachedThreshold = day.emailsSent >= targetDailyThreshold;
               const hasSomeActivity = day.emailsSent > 0 && day.emailsSent < targetDailyThreshold;
               const isActiveIncomplete = day.isScheduledDay && !hasReachedThreshold;
-              const dayKey = dayMapping[day.dayOfWeek];
+              const dayKey = day.dayOfWeek.toLowerCase();
               const isChecked = pendingScheduleDays.includes(dayKey);
               
               // Determine tooltip content
@@ -399,11 +363,8 @@ export function WeeklyStreakRow() {
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
-                  variant={isEditMode && hasChanges ? "default" : "ghost"}
-                  className={cn(
-                    "h-8 w-8 transition-all",
-                    isEditMode && hasChanges && "animate-pulse"
-                  )}
+                  variant={isEditMode ? "default" : "ghost"}
+                  className="h-8 w-8 transition-all"
                   onClick={handleEditToggle}
                   disabled={savePreferences.isPending}
                   data-testid="edit-save-button"
@@ -416,7 +377,7 @@ export function WeeklyStreakRow() {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{isEditMode ? (hasChanges ? 'Save changes' : 'Cancel') : 'Edit schedule'}</p>
+                <p>{isEditMode ? 'Save changes' : 'Edit schedule'}</p>
               </TooltipContent>
             </Tooltip>
           ) : (
