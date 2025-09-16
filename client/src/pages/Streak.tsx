@@ -466,7 +466,7 @@ export default function StreakPage() {
           </div>
           <div className="text-right">
             <div className="text-4xl font-bold">{stats?.currentStreak || 0}</div>
-            <div className="text-sm text-muted-foreground">day streak</div>
+            <div className="text-sm text-muted-foreground">Days</div>
           </div>
         </div>
 
