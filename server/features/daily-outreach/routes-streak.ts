@@ -314,13 +314,13 @@ router.get('/weekly-activity', requireAuth, async (req: Request, res: Response) 
       .from(userOutreachPreferences)
       .where(eq(userOutreachPreferences.userId, userId));
 
-    const scheduleDays = preferences?.scheduleDays || ['mon', 'tue', 'wed'];
+    const scheduleDays = (preferences?.scheduleDays || ['monday', 'tuesday', 'wednesday']).map(d => d.toLowerCase());
     const targetDailyThreshold = 5; // Default threshold for "goal reached"
 
     // Configure days based on allDays parameter
     const daysOfWeek = allDays 
-      ? ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
-      : ['mon', 'tue', 'wed', 'thu', 'fri'];
+      ? ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+      : ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
     
     const dayNames = allDays
       ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
