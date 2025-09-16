@@ -9,7 +9,7 @@ import {
   communicationHistory
 } from '@shared/schema';
 import { eq, and, gte, sql, desc, isNotNull, count } from 'drizzle-orm';
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay, differenceInDays } from 'date-fns';
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay, differenceInDays, format } from 'date-fns';
 import { requireAuth } from '../../utils/auth';
 
 const router = Router();
@@ -367,6 +367,7 @@ router.get('/weekly-activity', requireAuth, async (req: Request, res: Response) 
       
       dayActivity.push({
         date: currentDate.toISOString(),
+        dateKey: format(currentDate, 'yyyy-MM-dd'), // Simple date string for timezone-safe operations
         dayOfWeek: dayNames[i],
         emailsSent: emailCount?.count || 0,
         isScheduledDay: scheduleDays.includes(daysOfWeek[i]),
