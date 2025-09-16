@@ -447,11 +447,6 @@ export default function StreakPage() {
 
   return (
     <div className="container mx-auto px-4 py-4 max-w-6xl">
-      {/* Weekly Streak Row - At the very top */}
-      <div className="mb-3">
-        <WeeklyStreakRow />
-      </div>
-
       {/* Header with Streak Counter */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -472,6 +467,11 @@ export default function StreakPage() {
             <div className="text-sm text-muted-foreground">Days</div>
           </div>
         </div>
+      </div>
+
+      {/* Weekly Streak Row - Below header */}
+      <div className="mb-8">
+        <WeeklyStreakRow />
       </div>
 
       {/* Activation CTA */}
