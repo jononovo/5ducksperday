@@ -314,8 +314,8 @@ export function WeeklyStreakRow() {
                           } else {
                             // Fallback: fetch the batch token for this date
                             try {
-                              // Format date as YYYY-MM-DD
-                              const dateString = new Date(day.date).toISOString().split('T')[0];
+                              // Use dateKey directly (already in YYYY-MM-DD format)
+                              const dateString = (day as any).dateKey || new Date(day.date).toISOString().split('T')[0];
                               const response = await fetch(`/api/daily-outreach/token-by-date?date=${dateString}`);
                               
                               if (!response.ok) {
