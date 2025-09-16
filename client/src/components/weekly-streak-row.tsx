@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, keepPreviousData } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { Flame, Star, TrendingUp, Pencil, Save, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, startOfWeek, addDays, isToday, isSameDay, subWeeks, addWeeks } from 'date-fns';
@@ -40,6 +40,8 @@ export function WeeklyStreakRow() {
       ? ['/api/daily-outreach/weekly-activity', { allDays: true }]
       : ['/api/daily-outreach/weekly-activity', { weekOffset }],
     refetchInterval: isEditMode || weekOffset !== 0 ? false : 60000, // Don't auto-refresh in edit mode or when viewing past weeks
+    placeholderData: keepPreviousData, // Show old data while loading new data
+    staleTime: 30000 // Cache for 30 seconds
   });
 
   // Initialize pending schedule days when entering edit mode
@@ -97,7 +99,6 @@ export function WeeklyStreakRow() {
       setHasChanges(false);
       // Refresh the query to get updated data
       queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/weekly-activity'] });
-      refetch();
     },
     onError: () => {
       toast({
@@ -120,10 +121,6 @@ export function WeeklyStreakRow() {
     } else {
       // Enter or exit edit mode
       setIsEditMode(!isEditMode);
-      if (!isEditMode) {
-        // Entering edit mode - refetch with allDays=true
-        refetch();
-      }
     }
   };
 
