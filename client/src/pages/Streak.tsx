@@ -456,7 +456,7 @@ export default function StreakPage() {
               Your Sales Streak {getStreakEmoji()}
             </h1>
             <div className="mt-2 flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">Weekly Goal Progress;</span>
+              <span className="text-sm font-medium text-muted-foreground">Weekly Goal Progress:</span>
               <span className={cn("text-sm text-muted-foreground", getProgressColor())}>
                 {stats?.weeklyProgress || 0} of {stats?.weeklyGoal || daysPerWeek[0]} Days
               </span>
