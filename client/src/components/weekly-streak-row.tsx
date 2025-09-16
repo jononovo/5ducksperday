@@ -28,7 +28,7 @@ interface WeeklyActivityData {
 
 export function WeeklyStreakRow() {
   const { toast } = useToast();
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const [isEditMode, setIsEditMode] = useState(false);
   const [pendingScheduleDays, setPendingScheduleDays] = useState<string[]>([]);
   const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = previous week
@@ -277,7 +277,7 @@ export function WeeklyStreakRow() {
                         !isEditMode && hasReachedThreshold && isCurrentDay && "bg-green-50 dark:bg-green-950/30 border-transparent",
                         // Hover effect and cursor
                         !isEditMode && "hover:scale-105",
-                        !isEditMode && day.emailsSent > 0 && "cursor-pointer"
+                        !isEditMode && day.emailsSent > 0 && "cursor-pointer hover:shadow-lg transition-all"
                       )}
                       style={{
                         ...(!isEditMode && isCurrentDay && {
@@ -301,14 +301,17 @@ export function WeeklyStreakRow() {
                         if (isEditMode) {
                           handleDayToggle(day.dayOfWeek);
                         } else if (day.emailsSent > 0) {
+                          console.log('Day clicked with emails:', { day, emailsSent: day.emailsSent, date: day.date });
                           // Navigate to historical daily outreach view
                           try {
                             // Format date as YYYY-MM-DD
                             const dateString = new Date(day.date).toISOString().split('T')[0];
+                            console.log('Fetching token for date:', dateString);
                             const response = await fetch(`/api/daily-outreach/token-by-date?date=${dateString}`);
                             
                             if (!response.ok) {
                               if (response.status === 404) {
+                                console.log('No batch found for date:', dateString);
                                 toast({
                                   title: 'No outreach data',
                                   description: 'No batch found for this date',
@@ -321,7 +324,8 @@ export function WeeklyStreakRow() {
                             }
                             
                             const { token } = await response.json();
-                            navigate(`/daily-outreach/${token}`);
+                            console.log('Got token, navigating to:', `/outreach/daily/${token}`);
+                            setLocation(`/outreach/daily/${token}`);
                           } catch (error) {
                             console.error('Error navigating to daily outreach:', error);
                             toast({
