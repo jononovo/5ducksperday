@@ -296,10 +296,17 @@ router.get('/weekly-activity', requireAuth, async (req: Request, res: Response) 
 
     // Check if all days should be returned
     const allDays = req.query.allDays === 'true';
+    
+    // Parse weekOffset parameter (default to 0 for current week)
+    const weekOffset = parseInt(req.query.weekOffset as string) || 0;
 
     const today = new Date();
+    // Calculate the target week based on offset
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + (weekOffset * 7));
+    
     // Use Sunday as week start when showing all days, Monday otherwise
-    const weekStart = startOfWeek(today, { weekStartsOn: allDays ? 0 : 1 });
+    const weekStart = startOfWeek(targetDate, { weekStartsOn: allDays ? 0 : 1 });
     
     // Get user preferences for scheduled days
     const [preferences] = await db
@@ -307,13 +314,13 @@ router.get('/weekly-activity', requireAuth, async (req: Request, res: Response) 
       .from(userOutreachPreferences)
       .where(eq(userOutreachPreferences.userId, userId));
 
-    const scheduleDays = preferences?.scheduleDays || ['mon', 'tue', 'wed'];
+    const scheduleDays = (preferences?.scheduleDays || ['monday', 'tuesday', 'wednesday']).map(d => d.toLowerCase());
     const targetDailyThreshold = 5; // Default threshold for "goal reached"
 
     // Configure days based on allDays parameter
     const daysOfWeek = allDays 
-      ? ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
-      : ['mon', 'tue', 'wed', 'thu', 'fri'];
+      ? ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+      : ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
     
     const dayNames = allDays
       ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -358,7 +365,8 @@ router.get('/weekly-activity', requireAuth, async (req: Request, res: Response) 
     res.json({
       dayActivity,
       scheduleDays,
-      targetDailyThreshold
+      targetDailyThreshold,
+      weekStartDate: weekStart.toISOString()
     });
   } catch (error) {
     console.error('Error fetching weekly activity:', error);

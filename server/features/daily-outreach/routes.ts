@@ -72,10 +72,9 @@ router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
     
     let preferences;
     if (existing) {
-      // Update existing preferences
-      [preferences] = await db
-        .update(userOutreachPreferences)
-        .set({
+      // Update existing preferences - only update fields that were provided
+      const updateData = Object.fromEntries(
+        Object.entries({
           enabled,
           scheduleDays,
           scheduleTime,
@@ -85,32 +84,45 @@ router.put('/preferences', requireAuth, async (req: Request, res: Response) => {
           activeSenderProfileId,
           activeCustomerProfileId,
           updatedAt: new Date()
-        })
+        }).filter(([_, v]) => v !== undefined)
+      );
+      
+      [preferences] = await db
+        .update(userOutreachPreferences)
+        .set(updateData)
         .where(eq(userOutreachPreferences.userId, userId))
         .returning();
     } else {
-      // Create new preferences
+      // Create new preferences - only include fields that were provided
+      const insertData: any = {
+        userId, // userId is always required
+        ...Object.fromEntries(
+          Object.entries({
+            enabled,
+            scheduleDays,
+            scheduleTime,
+            timezone,
+            minContactsRequired,
+            activeProductId,
+            activeSenderProfileId,
+            activeCustomerProfileId
+          }).filter(([_, v]) => v !== undefined)
+        )
+      };
+      
       [preferences] = await db
         .insert(userOutreachPreferences)
-        .values({
-          userId,
-          enabled,
-          scheduleDays,
-          scheduleTime,
-          timezone,
-          minContactsRequired,
-          activeProductId,
-          activeSenderProfileId,
-          activeCustomerProfileId
-        })
+        .values(insertData)
         .returning();
     }
     
-    // Update scheduler
-    if (enabled) {
-      await outreachScheduler.updateUserPreferences(userId, preferences);
-    } else {
-      await outreachScheduler.disableUserOutreach(userId);
+    // Update scheduler only if enabled field was explicitly provided
+    if (enabled !== undefined) {
+      if (enabled) {
+        await outreachScheduler.updateUserPreferences(userId, preferences);
+      } else {
+        await outreachScheduler.disableUserOutreach(userId);
+      }
     }
     
     res.json(preferences);
