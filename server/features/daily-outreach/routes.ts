@@ -183,8 +183,7 @@ router.get('/preview', requireAuth, async (req: Request, res: Response) => {
           contact,
           company
         })),
-        hasContacts: items.length > 0,
-        companiesByType: [{ type: 'prospects', count: items.length }]
+        hasContacts: items.length > 0
       };
     } else {
       // Generate a sample batch for preview
@@ -202,8 +201,7 @@ router.get('/preview', requireAuth, async (req: Request, res: Response) => {
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         createdAt: new Date(),
         items: [],
-        hasContacts: true,
-        companiesByType: [{ type: 'B2B prospects', count: 5 }]
+        hasContacts: true
       };
     }
     
@@ -317,7 +315,6 @@ router.post('/send-test-email', requireAuth, async (req: Request, res: Response)
       createdAt: new Date(),
       items: mockContactsForTesting, // Use the static mock contacts
       hasContacts: true,
-      companiesByType: [{ type: 'Sample Companies', count: 5 }],
       isSampleData: true // Flag to indicate this is sample data
     };
     

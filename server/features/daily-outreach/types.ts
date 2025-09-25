@@ -3,7 +3,6 @@ import { DailyOutreachBatch, DailyOutreachItem, Contact, Company } from "@shared
 export interface DailyBatch extends DailyOutreachBatch {
   items: DailyOutreachItemWithDetails[];
   hasContacts: boolean;
-  companiesByType: { type: string; count: number }[];
 }
 
 export interface DailyOutreachItemWithDetails extends DailyOutreachItem {

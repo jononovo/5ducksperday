@@ -3,9 +3,6 @@ import { DailyBatch, EmailNotificationContent } from '../types';
 export function buildContactsReadyEmail(batch: DailyBatch & { isSampleData?: boolean }, appUrl: string): EmailNotificationContent {
   const secureUrl = `${appUrl}/outreach/daily/${batch.secureToken}`;
   
-  const companiesBreakdown = batch.companiesByType
-    ?.map(c => `<li>${c.count} ${c.type}</li>`)
-    .join('') || '<li>5 carefully selected prospects</li>';
   
   // Add sample data banner if this is test data
   const sampleDataBanner = batch.isSampleData ? `
@@ -75,11 +72,7 @@ export function buildContactsReadyEmail(batch: DailyBatch & { isSampleData?: boo
         
         <p>Hi there,</p>
         
-        <p>Your personalized outreach emails are waiting:</p>
-        
-        <ul class="list">
-          ${companiesBreakdown}
-        </ul>
+        <p>Your personalized outreach emails are waiting.</p>
         
         ${sampleDataBanner}
         
