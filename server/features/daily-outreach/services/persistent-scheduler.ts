@@ -7,7 +7,8 @@ import {
   dailyOutreachBatches,
   dailyOutreachItems,
   contacts,
-  companies
+  companies,
+  strategicProfiles
 } from '@shared/schema';
 import { eq, and, lte, isNull, sql, inArray, not } from 'drizzle-orm';
 import { batchGenerator } from './batch-generator';
@@ -35,6 +36,22 @@ export class PersistentDailyOutreachScheduler {
   
   async initialize() {
     console.log('Initializing Persistent Daily Outreach Scheduler...');
+    
+    // CRITICAL: Reset any jobs stuck in 'running' state from previous server instance
+    // This handles server crashes/restarts where jobs were left in running state
+    const resetResult = await db
+      .update(dailyOutreachJobs)
+      .set({ 
+        status: 'scheduled',
+        lastError: 'Server restarted - job reset from running state',
+        updatedAt: new Date()
+      })
+      .where(eq(dailyOutreachJobs.status, 'running'))
+      .returning();
+    
+    if (resetResult.length > 0) {
+      console.log(`Reset ${resetResult.length} stuck jobs from previous server instance:`, resetResult.map(j => j.userId));
+    }
     
     // Load all users with outreach enabled
     const activePreferences = await db
@@ -100,11 +117,39 @@ export class PersistentDailyOutreachScheduler {
     try {
       // Clean up stale running jobs (older than 5 minutes)
       const staleThreshold = new Date(Date.now() - 5 * 60 * 1000);
+      
+      // Check in-memory running jobs
       for (const [userId, startTime] of Array.from(this.runningJobs.entries())) {
         if (startTime < staleThreshold) {
-          console.log(`Removing stale job for user ${userId}`);
+          console.log(`Removing stale job from memory for user ${userId}`);
           this.runningJobs.delete(userId);
         }
+      }
+      
+      // CRITICAL: Also check database for stuck jobs (handles server restarts)
+      const stuckJobs = await db
+        .select()
+        .from(dailyOutreachJobs)
+        .where(
+          and(
+            eq(dailyOutreachJobs.status, 'running'),
+            lte(dailyOutreachJobs.updatedAt, staleThreshold)
+          )
+        );
+      
+      // Reset each stuck job found in database
+      for (const job of stuckJobs) {
+        console.log(`Recovering stuck job ${job.id} for user ${job.userId} (stuck since ${job.updatedAt})`);
+        await db.update(dailyOutreachJobs)
+          .set({ 
+            status: 'scheduled',
+            lastError: `Job recovered - was stuck since ${job.updatedAt}`,
+            updatedAt: new Date()
+          })
+          .where(eq(dailyOutreachJobs.id, job.id));
+        
+        // Also clean from memory map if present
+        this.runningJobs.delete(job.userId);
       }
       
       // Check current concurrency
@@ -167,10 +212,14 @@ export class PersistentDailyOutreachScheduler {
     try {
       console.log(`Starting job execution for user ${job.userId}`);
       
-      // Mark as running
+      // Mark as running with timestamp for tracking
       await db
         .update(dailyOutreachJobs)
-        .set({ status: 'running', updatedAt: new Date() })
+        .set({ 
+          status: 'running', 
+          lastError: `Job started at ${new Date().toISOString()}`,
+          updatedAt: new Date() 
+        })
         .where(eq(dailyOutreachJobs.id, job.id));
       
       // Execute the actual outreach process
@@ -195,13 +244,14 @@ export class PersistentDailyOutreachScheduler {
       const nextRun = this.calculateNextRun(preferences);
       
       // Mark as completed and schedule next run (reset retry count on success)
+      // Keep the success status in lastError for production visibility
       await db
         .update(dailyOutreachJobs)
         .set({ 
           status: 'scheduled',
           lastRunAt: new Date(),
           nextRunAt: nextRun,
-          lastError: null,
+          lastError: `✅ Last run successful: Generated batch ${batchId} with ${contactsProcessed} contacts`,
           retryCount: 0,
           nextRetryAt: null,
           updatedAt: new Date()
@@ -319,9 +369,11 @@ export class PersistentDailyOutreachScheduler {
   
   private async processUserOutreach(userId: number): Promise<{ batchId: number | null; contactsProcessed: number }> {
     console.log(`Processing daily outreach for user ${userId}`);
+    const statusUpdates: string[] = [];
     
     try {
-      // Get user details
+      // Track step 1: Get user details
+      statusUpdates.push('Step 1: Fetching user details');
       const [user] = await db
         .select()
         .from(users)
@@ -330,22 +382,48 @@ export class PersistentDailyOutreachScheduler {
       if (!user) {
         throw new Error(`User ${userId} not found`);
       }
+      statusUpdates.push(`Step 1 ✓: Found user ${user.email}`);
       
       // Check vacation mode
+      statusUpdates.push('Step 2: Checking user preferences');
       const [preferences] = await db
         .select()
         .from(userOutreachPreferences)
         .where(eq(userOutreachPreferences.userId, userId));
       
-      // Check if user is on vacation (if vacation mode fields exist)
-      // This is for future implementation when vacation fields are added
+      if (!preferences?.enabled) {
+        statusUpdates.push('Step 2 ⚠️: User has disabled outreach');
+        await this.updateJobStatus(userId, statusUpdates.join(' | '));
+        return { batchId: null, contactsProcessed: 0 };
+      }
+      statusUpdates.push('Step 2 ✓: Outreach enabled');
+      
+      // Check for strategic profiles (products)
+      statusUpdates.push('Step 3: Checking strategic profiles');
+      const [profileCount] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(strategicProfiles)
+        .where(eq(strategicProfiles.userId, userId));
+      
+      if (profileCount.count === 0) {
+        statusUpdates.push('Step 3 ❌: No strategic profiles (products) configured');
+        await this.updateJobStatus(userId, statusUpdates.join(' | '));
+        console.log(`User ${userId} has no strategic profiles`);
+        return { batchId: null, contactsProcessed: 0 };
+      }
+      statusUpdates.push(`Step 3 ✓: Found ${profileCount.count} strategic profiles`);
       
       // Check available contacts
+      statusUpdates.push('Step 4: Checking available contacts');
       const availableCount = await this.checkAvailableContacts(userId);
       
       if (availableCount < 5) {
+        statusUpdates.push(`Step 4 ❌: Insufficient contacts (${availableCount}/5 required)`);
+        await this.updateJobStatus(userId, statusUpdates.join(' | '));
         console.log(`User ${userId} has insufficient contacts (${availableCount})`);
+        
         // Send "need more contacts" email
+        statusUpdates.push('Step 5: Sending nudge email for more contacts');
         await sendGridService.sendDailyNudgeEmail(user, null);
         
         // Update last nudge sent
@@ -356,13 +434,19 @@ export class PersistentDailyOutreachScheduler {
         
         return { batchId: null, contactsProcessed: 0 };
       }
+      statusUpdates.push(`Step 4 ✓: Found ${availableCount} available contacts`);
       
       // Generate batch
+      statusUpdates.push('Step 5: Generating AI email batch');
       const batch = await batchGenerator.generateDailyBatch(userId);
       
       if (batch) {
+        statusUpdates.push(`Step 5 ✓: Generated batch with ${batch.items.length} emails`);
+        
         // Send notification email with batch details
+        statusUpdates.push('Step 6: Sending notification email');
         await sendGridService.sendDailyNudgeEmail(user, batch);
+        statusUpdates.push('Step 6 ✓: Notification sent successfully');
         
         // Update last nudge sent
         await db
@@ -370,17 +454,34 @@ export class PersistentDailyOutreachScheduler {
           .set({ lastNudgeSent: new Date() })
           .where(eq(userOutreachPreferences.userId, userId));
         
+        // Success status is handled by the executeJob method after this returns
         console.log(`Daily outreach processed successfully for user ${userId}`);
         return { batchId: batch.id, contactsProcessed: batch.items.length };
       } else {
+        statusUpdates.push('Step 5 ❌: Failed to generate batch');
+        await this.updateJobStatus(userId, `FAILED: ${statusUpdates.join(' | ')}`);
         console.log(`Failed to generate batch for user ${userId}`);
         return { batchId: null, contactsProcessed: 0 };
       }
       
-    } catch (error) {
+    } catch (error: any) {
+      const errorMsg = `ERROR at ${statusUpdates[statusUpdates.length - 1] || 'unknown step'}: ${error.message}`;
+      await this.updateJobStatus(userId, errorMsg);
       console.error(`Error processing outreach for user ${userId}:`, error);
       throw error;
     }
+  }
+  
+  private async updateJobStatus(userId: number, status: string) {
+    // Update the job's lastError field with the status information
+    // We're repurposing lastError as a status tracking field
+    await db
+      .update(dailyOutreachJobs)
+      .set({ 
+        lastError: status,
+        updatedAt: new Date()
+      })
+      .where(eq(dailyOutreachJobs.userId, userId));
   }
   
   private async checkAvailableContacts(userId: number): Promise<number> {

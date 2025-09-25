@@ -852,4 +852,78 @@ router.get('/token-by-date', requireAuth, async (req: Request, res: Response) =>
   }
 });
 
+// Manual trigger endpoint for testing/debugging
+router.post('/trigger-scheduler', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    console.log(`Manual scheduler trigger requested by user ${userId}`);
+    
+    // Trigger the scheduler to check and run due jobs immediately
+    await (outreachScheduler as any).checkAndRunDueJobs();
+    
+    // Get the current job status to return
+    const [job] = await db
+      .select()
+      .from(dailyOutreachJobs)
+      .where(eq(dailyOutreachJobs.userId, userId));
+    
+    res.json({
+      message: 'Scheduler triggered successfully',
+      jobStatus: job ? {
+        status: job.status,
+        lastError: job.lastError,
+        nextRunAt: job.nextRunAt,
+        lastRunAt: job.lastRunAt
+      } : null
+    });
+  } catch (error) {
+    console.error('Error triggering scheduler:', error);
+    res.status(500).json({ error: 'Failed to trigger scheduler' });
+  }
+});
+
+// Reset stuck jobs endpoint (resets only current user's jobs)
+router.post('/reset-stuck-jobs', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    console.log(`Resetting stuck jobs requested by user ${userId}`);
+    
+    // Reset only the current user's jobs that are stuck in running state
+    const result = await db
+      .update(dailyOutreachJobs)
+      .set({ 
+        status: 'scheduled',
+        lastError: `Manually reset by user at ${new Date().toISOString()}`,
+        updatedAt: new Date(),
+        retryCount: 0,
+        nextRetryAt: null
+      })
+      .where(and(
+        eq(dailyOutreachJobs.status, 'running'),
+        eq(dailyOutreachJobs.userId, userId)
+      ))
+      .returning();
+    
+    res.json({
+      message: `Reset ${result.length} stuck jobs`,
+      resetJobs: result.map(j => ({
+        userId: j.userId,
+        status: j.status,
+        nextRunAt: j.nextRunAt
+      }))
+    });
+  } catch (error) {
+    console.error('Error resetting stuck jobs:', error);
+    res.status(500).json({ error: 'Failed to reset stuck jobs' });
+  }
+});
+
 export default router;
