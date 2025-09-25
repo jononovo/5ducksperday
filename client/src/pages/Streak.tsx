@@ -596,8 +596,14 @@ export default function StreakPage() {
       )}
 
       {/* Adaptive Campaign Banner - Shows intro, setup, or metrics based on status */}
+      {/* Campaign is only "active" when ALL components are configured AND explicitly enabled */}
       <AdaptiveCampaignBanner
-        isActivated={!!preferences?.enabled}
+        isActivated={
+          !!preferences?.enabled && // User has explicitly activated the campaign
+          !!selectedProductId && // Product/service is configured
+          !!selectedSenderProfileId && // Sender identity is set
+          !!selectedCustomerProfileId // Target customer is defined
+        }
         stats={stats}
         hasSenderProfile={!!selectedSenderProfileId}
         hasProduct={!!selectedProductId}
@@ -636,24 +642,43 @@ export default function StreakPage() {
         />
 
         {/* 4. Activation Card */}
+        {/* Shows campaign control - only "active" when fully configured AND enabled */}
         <ActivationCard
-          isEnabled={preferences?.enabled || false}
+          isEnabled={
+            (preferences?.enabled || false) && // Campaign must be explicitly enabled
+            !!selectedProductId && // Product/service must be configured
+            !!selectedSenderProfileId && // Sender identity must be set
+            !!selectedCustomerProfileId // Target customer must be defined
+          }
           daysPerWeek={preferences?.scheduleDays?.length || 3}
           hasProduct={!!selectedProductId}
           hasSenderProfile={!!selectedSenderProfileId}
           hasCustomerProfile={!!selectedCustomerProfileId}
           onActivate={() => {
-            // Save all selected profiles when activating the campaign
+            // Only allow activation when all components are configured
+            if (!selectedProductId || !selectedSenderProfileId || !selectedCustomerProfileId) {
+              toast({
+                title: "Setup Incomplete",
+                description: "Please configure all campaign components before activating",
+                variant: "destructive"
+              });
+              return;
+            }
+            
+            // Save all selected profiles and activate the campaign
             updatePreferences.mutate({ 
-              enabled: true,
+              enabled: true, // This flag means "campaign is active" in the database
               scheduleDays: preferences?.scheduleDays || ['monday', 'tuesday', 'wednesday'],
               activeProductId: selectedProductId,
-              activeSenderProfileId: selectedSenderProfileId || 0,
-              activeCustomerProfileId: selectedCustomerProfileId || 0
+              activeSenderProfileId: selectedSenderProfileId,
+              activeCustomerProfileId: selectedCustomerProfileId
             });
           }}
           onDeactivate={() => {
-            updatePreferences.mutate({ enabled: false });
+            // Pause the campaign but keep configuration
+            updatePreferences.mutate({ 
+              enabled: false // Sets campaign to inactive/paused state
+            });
           }}
         />
       </div>
