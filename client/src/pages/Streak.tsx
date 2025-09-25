@@ -471,8 +471,9 @@ export default function StreakPage() {
 
       {/* Activation CTA is now integrated into AdaptiveCampaignBanner carousel */}
 
-      {/* Quick Actions */}
-      <div className="grid gap-6 md:grid-cols-2 mb-8">
+      {/* Quick Actions - Only show when product is selected */}
+      {selectedProductId && (
+        <div className="grid gap-6 md:grid-cols-2 mb-8">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -592,6 +593,7 @@ export default function StreakPage() {
           </CardContent>
         </Card>
       </div>
+      )}
 
       {/* Adaptive Campaign Banner - Shows intro, setup, or metrics based on status */}
       <AdaptiveCampaignBanner
