@@ -8,7 +8,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { format, differenceInDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { format, parse, differenceInDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { CalendarIcon, Mail, Zap, Building2, Users, TrendingUp, Pause, Play, ExternalLink, RefreshCw, Target, Flame, Sparkles, Rocket, Package, Plus, Check, Clock, Calendar as CalendarIcon2, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
@@ -305,10 +305,13 @@ export default function StreakPage() {
         setVacationMode(true);
         if (preferences.vacationStartDate && preferences.vacationEndDate) {
           setVacationDates({
-            from: new Date(preferences.vacationStartDate),
-            to: new Date(preferences.vacationEndDate)
+            from: parse(preferences.vacationStartDate, 'yyyy-MM-dd', new Date()),
+            to: parse(preferences.vacationEndDate, 'yyyy-MM-dd', new Date())
           });
         }
+      } else {
+        setVacationMode(false);
+        setVacationDates({ from: undefined, to: undefined });
       }
       
       // Set active product
@@ -341,24 +344,6 @@ export default function StreakPage() {
     }
   }, [hasInitialized, preferences, products, senderProfiles, customerProfiles]);
 
-  // Separate effect for vacation mode updates only
-  useEffect(() => {
-    if (hasInitialized && preferences) {
-      // Only update vacation mode settings, not profile selections
-      
-      if (preferences.vacationMode) {
-        setVacationMode(true);
-        if (preferences.vacationStartDate && preferences.vacationEndDate) {
-          setVacationDates({
-            from: new Date(preferences.vacationStartDate),
-            to: new Date(preferences.vacationEndDate)
-          });
-        }
-      } else {
-        setVacationMode(false);
-      }
-    }
-  }, [hasInitialized, preferences]);
 
   const handleProductChange = (productId: number) => {
     // Toggle selection - if already selected, deselect it
