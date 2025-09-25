@@ -15,6 +15,7 @@ import { startOfDay, endOfDay } from 'date-fns';
 import { persistentScheduler as outreachScheduler } from './services/persistent-scheduler';
 import { batchGenerator } from './services/batch-generator';
 import { sendGridService } from './services/sendgrid-service';
+import { buildContactsReadyEmail } from './email-templates/contacts-ready';
 import type { Request, Response } from 'express';
 import streakRoutes from './routes-streak';
 import { requireAuth } from '../../utils/auth';
@@ -205,8 +206,9 @@ router.get('/preview', requireAuth, async (req: Request, res: Response) => {
       };
     }
     
-    // Generate the email HTML using the SendGrid service
-    const emailContent = sendGridService.buildContactsReadyEmail(batch);
+    // Generate the email HTML using the imported template
+    const appUrl = process.env.APP_URL || 'https://5ducks.ai';
+    const emailContent = buildContactsReadyEmail(batch, appUrl);
     
     // Return HTML directly with proper content type
     res.setHeader('Content-Type', 'text/html');
