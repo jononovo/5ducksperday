@@ -36,6 +36,12 @@ const StrategyDashboard = lazy(() => import("@/features/strategy-chat").then(mod
 const DailyOutreach = lazy(() => import("@/pages/DailyOutreach"));
 const Streak = lazy(() => import("@/pages/Streak"));
 
+// Lazy imports for admin pages
+const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
+const AdminUsers = lazy(() => import("@/pages/admin/Users"));
+const AdminEmailTesting = lazy(() => import("@/pages/admin/EmailTesting"));
+const AdminApiTesting = lazy(() => import("@/pages/admin/ApiTesting"));
+
 // Lazy imports for marketing pages
 const Terms = lazy(() => import("@/pages/terms"));
 const Blog = lazy(() => import("@/pages/blog"));
@@ -200,6 +206,28 @@ function Router() {
                 <ProtectedRoute path="/strategy" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <StrategyDashboard />
+                  </Suspense>
+                } />
+                
+                {/* Admin routes - require login and admin privileges */}
+                <ProtectedRoute path="/admin" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <AdminDashboard />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/admin/users" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <AdminUsers />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/admin/email" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <AdminEmailTesting />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/admin/testing" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <AdminApiTesting />
                   </Suspense>
                 } />
                 

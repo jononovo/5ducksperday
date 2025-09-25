@@ -1,0 +1,103 @@
+index-RA2OYfJD.js:1769 Starting Firebase initialization... {timestamp: '2025-09-25T19:56:24.145Z', domain: '5ducks.ai'}
+index-RA2OYfJD.js:1769 Raw environment variables: {apiKey: '....aDbuzU', projectId: 'fire-5-ducks', appId: '....b133e8', mode: 'production', dev: false, …}
+index-RA2OYfJD.js:1769 Firebase Configuration: {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: 'auth.5ducks.ai', environment: 'production', …}
+index-RA2OYfJD.js:1771 Firebase initialized successfully: {domain: '5ducks.ai', isAuth: true, isProvider: true, authDomain: 'auth.5ducks.ai', timestamp: '2025-09-25T19:56:24.147Z'}
+index-RA2OYfJD.js:1771 Setting up Firebase auth state listener
+index-RA2OYfJD.js:49  GET https://5ducks.ai/api/user 401 (Unauthorized)
+(anonymous) @ index-RA2OYfJD.js:49
+i @ index-RA2OYfJD.js:49
+x @ index-RA2OYfJD.js:49
+start @ index-RA2OYfJD.js:49
+fetch @ index-RA2OYfJD.js:49
+$l @ index-RA2OYfJD.js:49
+onSubscribe @ index-RA2OYfJD.js:49
+subscribe @ index-RA2OYfJD.js:49
+(anonymous) @ index-RA2OYfJD.js:49
+gP @ index-RA2OYfJD.js:39
+wh @ index-RA2OYfJD.js:41
+pa @ index-RA2OYfJD.js:41
+Dw @ index-RA2OYfJD.js:41
+Ai @ index-RA2OYfJD.js:39
+D4 @ index-RA2OYfJD.js:41
+Mi @ index-RA2OYfJD.js:41
+qP @ index-RA2OYfJD.js:41
+S @ index-RA2OYfJD.js:26
+V @ index-RA2OYfJD.js:26
+index-RA2OYfJD.js:1771 Firebase auth state changed: jon@5ducks.ai
+index-RA2OYfJD.js:1771 Firebase persistence set to LOCAL
+index-RA2OYfJD.js:1771 Making backend sync request {endpoint: '/api/google-auth', domain: '5ducks.ai', selectedPlan: null, planSource: null, joinWaitlist: null}
+index-RA2OYfJD.js:1771 Auth token set successfully: {uid: 'mG2rEdiQ7GhQVExp3XIm4YaPyoz2', email: 'jon@...', timestamp: '2025-09-25T19:56:24.695Z'}
+index-RA2OYfJD.js:1771  POST https://5ducks.ai/api/google-auth 500 (Internal Server Error)
+h @ index-RA2OYfJD.js:1771
+await in h
+(anonymous) @ index-RA2OYfJD.js:1771
+(anonymous) @ index-RA2OYfJD.js:1004
+Promise.then
+registerStateListener @ index-RA2OYfJD.js:1004
+onAuthStateChanged @ index-RA2OYfJD.js:1004
+(anonymous) @ index-RA2OYfJD.js:1771
+wh @ index-RA2OYfJD.js:41
+pa @ index-RA2OYfJD.js:41
+Dw @ index-RA2OYfJD.js:41
+Ai @ index-RA2OYfJD.js:39
+D4 @ index-RA2OYfJD.js:41
+Mi @ index-RA2OYfJD.js:41
+qP @ index-RA2OYfJD.js:41
+S @ index-RA2OYfJD.js:26
+V @ index-RA2OYfJD.js:26
+index-RA2OYfJD.js:1771 Backend sync error response: {status: 500, statusText: '', responseText: '{"error":"Authentication failed"}'}
+h @ index-RA2OYfJD.js:1771
+await in h
+(anonymous) @ index-RA2OYfJD.js:1771
+(anonymous) @ index-RA2OYfJD.js:1004
+Promise.then
+registerStateListener @ index-RA2OYfJD.js:1004
+onAuthStateChanged @ index-RA2OYfJD.js:1004
+(anonymous) @ index-RA2OYfJD.js:1771
+wh @ index-RA2OYfJD.js:41
+pa @ index-RA2OYfJD.js:41
+Dw @ index-RA2OYfJD.js:41
+Ai @ index-RA2OYfJD.js:39
+D4 @ index-RA2OYfJD.js:41
+Mi @ index-RA2OYfJD.js:41
+qP @ index-RA2OYfJD.js:41
+S @ index-RA2OYfJD.js:26
+V @ index-RA2OYfJD.js:26
+index-RA2OYfJD.js:1771 Error syncing with backend: {error: Error: Failed to sync with backend: 500
+    at h (https://5ducks.ai/assets/index-RA2OYfJD.js:1771:6…, domain: '5ducks.ai', environment: 'production'}
+h @ index-RA2OYfJD.js:1771
+await in h
+(anonymous) @ index-RA2OYfJD.js:1771
+(anonymous) @ index-RA2OYfJD.js:1004
+Promise.then
+registerStateListener @ index-RA2OYfJD.js:1004
+onAuthStateChanged @ index-RA2OYfJD.js:1004
+(anonymous) @ index-RA2OYfJD.js:1771
+wh @ index-RA2OYfJD.js:41
+pa @ index-RA2OYfJD.js:41
+Dw @ index-RA2OYfJD.js:41
+Ai @ index-RA2OYfJD.js:39
+D4 @ index-RA2OYfJD.js:41
+Mi @ index-RA2OYfJD.js:41
+qP @ index-RA2OYfJD.js:41
+S @ index-RA2OYfJD.js:26
+V @ index-RA2OYfJD.js:26
+index-RA2OYfJD.js:1771 Error during auth state sync: Error: Failed to sync with backend: 500
+    at h (index-RA2OYfJD.js:1771:6914)
+    at async index-RA2OYfJD.js:1771:7887
+(anonymous) @ index-RA2OYfJD.js:1771
+await in (anonymous)
+(anonymous) @ index-RA2OYfJD.js:1004
+Promise.then
+registerStateListener @ index-RA2OYfJD.js:1004
+onAuthStateChanged @ index-RA2OYfJD.js:1004
+(anonymous) @ index-RA2OYfJD.js:1771
+wh @ index-RA2OYfJD.js:41
+pa @ index-RA2OYfJD.js:41
+Dw @ index-RA2OYfJD.js:41
+Ai @ index-RA2OYfJD.js:39
+D4 @ index-RA2OYfJD.js:41
+Mi @ index-RA2OYfJD.js:41
+qP @ index-RA2OYfJD.js:41
+S @ index-RA2OYfJD.js:26
+V @ index-RA2OYfJD.js:26
