@@ -450,6 +450,10 @@ export const userOutreachPreferences = pgTable("user_outreach_preferences", {
   activeProductId: integer("active_product_id").references(() => strategicProfiles.id),
   activeSenderProfileId: integer("active_sender_profile_id").references(() => senderProfiles.id),
   activeCustomerProfileId: integer("active_customer_profile_id").references(() => customerProfiles.id),
+  // Vacation mode fields
+  vacationMode: boolean("vacation_mode").default(false),
+  vacationStartDate: timestamp("vacation_start_date", { withTimezone: true }),
+  vacationEndDate: timestamp("vacation_end_date", { withTimezone: true }),
   lastNudgeSent: timestamp("last_nudge_sent", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
@@ -674,6 +678,9 @@ export const userOutreachPreferencesSchema = z.object({
   activeProductId: z.number().optional(),
   activeSenderProfileId: z.number().optional(),
   activeCustomerProfileId: z.number().optional(),
+  vacationMode: z.boolean().default(false),
+  vacationStartDate: z.string().optional(),
+  vacationEndDate: z.string().optional(),
   lastNudgeSent: z.string().optional()
 });
 

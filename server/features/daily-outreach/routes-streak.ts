@@ -471,20 +471,25 @@ router.put('/vacation', async (req: Request, res: Response) => {
       .where(eq(userOutreachPreferences.userId, userId))
       .limit(1);
 
+    const vacationData = {
+      vacationMode: isOnVacation,
+      vacationStartDate: isOnVacation && vacationStartDate ? new Date(vacationStartDate) : null,
+      vacationEndDate: isOnVacation && vacationEndDate ? new Date(vacationEndDate) : null,
+      updatedAt: new Date()
+    };
+
     if (existingPrefs.length > 0) {
       await db
         .update(userOutreachPreferences)
-        .set({
-          enabled: existingPrefs[0].enabled,
-          updatedAt: new Date()
-        })
+        .set(vacationData)
         .where(eq(userOutreachPreferences.userId, userId));
     } else {
       await db
         .insert(userOutreachPreferences)
         .values({
           userId,
-          enabled: true
+          enabled: true,
+          ...vacationData
         });
     }
 
