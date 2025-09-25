@@ -3,7 +3,6 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -106,7 +105,6 @@ export default function StreakPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const [daysPerWeek, setDaysPerWeek] = useState<number[]>([3]);
   const [vacationMode, setVacationMode] = useState(false);
   const [vacationDates, setVacationDates] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
@@ -288,9 +286,7 @@ export default function StreakPage() {
   // Initial load effect - only runs once to set up initial state from preferences
   useEffect(() => {
     if (!hasInitialized && preferences && products && senderProfiles && customerProfiles) {
-      // Set days per week based on schedule days length
-      const scheduleDays = preferences.scheduleDays || ['monday', 'tuesday', 'wednesday'];
-      setDaysPerWeek([scheduleDays.length]);
+      // No longer need to set days per week from preferences
       
       // Set vacation mode
       if (preferences.vacationMode) {
@@ -337,8 +333,6 @@ export default function StreakPage() {
   useEffect(() => {
     if (hasInitialized && preferences) {
       // Only update vacation mode settings, not profile selections
-      const scheduleDays = preferences.scheduleDays || ['monday', 'tuesday', 'wednesday'];
-      setDaysPerWeek([scheduleDays.length]);
       
       if (preferences.vacationMode) {
         setVacationMode(true);
@@ -381,17 +375,6 @@ export default function StreakPage() {
     }
   };
 
-  const handleDaysPerWeekChange = (value: number[]) => {
-    setDaysPerWeek(value);
-    // Map number of days to specific days
-    const dayOptions = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const selectedDays = dayOptions.slice(0, value[0]);
-    
-    updatePreferences.mutate({
-      scheduleDays: selectedDays,
-      minContactsRequired: 5
-    });
-  };
 
   const handleVacationToggle = () => {
     const newVacationMode = !vacationMode;
@@ -427,7 +410,7 @@ export default function StreakPage() {
 
   const getProgressColor = () => {
     const progress = stats?.weeklyProgress || 0;
-    const goal = stats?.weeklyGoal || daysPerWeek[0];
+    const goal = stats?.weeklyGoal || preferences?.scheduleDays?.length || 3;
     const percentage = (progress / goal) * 100;
     
     if (percentage >= 100) return 'text-green-600';
@@ -458,7 +441,7 @@ export default function StreakPage() {
             <div className="mt-2 flex items-center gap-2">
               <span className="text-sm font-medium text-muted-foreground">Weekly Goal Progress:</span>
               <span className="text-sm font-medium text-muted-foreground">
-                {stats?.weeklyProgress || 0} of {stats?.weeklyGoal || daysPerWeek[0]} Days
+                {stats?.weeklyProgress || 0} of {stats?.weeklyGoal || preferences?.scheduleDays?.length || 3} Days
               </span>
             </div>
           </div>
@@ -613,7 +596,7 @@ export default function StreakPage() {
         {/* 4. Activation Card */}
         <ActivationCard
           isEnabled={preferences?.enabled || false}
-          daysPerWeek={daysPerWeek[0]}
+          daysPerWeek={preferences?.scheduleDays?.length || 3}
           hasProduct={!!selectedProductId}
           hasSenderProfile={!!selectedSenderProfileId}
           hasCustomerProfile={!!selectedCustomerProfileId}
@@ -621,7 +604,7 @@ export default function StreakPage() {
             // Save all selected profiles when activating the campaign
             updatePreferences.mutate({ 
               enabled: true,
-              scheduleDays: ['monday', 'tuesday', 'wednesday'].slice(0, daysPerWeek[0]),
+              scheduleDays: preferences?.scheduleDays || ['monday', 'tuesday', 'wednesday'],
               activeProductId: selectedProductId,
               activeSenderProfileId: selectedSenderProfileId || 0,
               activeCustomerProfileId: selectedCustomerProfileId || 0
@@ -640,32 +623,14 @@ export default function StreakPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5" />
-              Outreach Schedule
+              Outreach Settings
             </CardTitle>
             <CardDescription>
-              Configure how often you want to receive daily prospects
+              Pause or preview daily prospects emails
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Days per week</Label>
-                <span className="text-sm font-medium">{daysPerWeek[0]} days</span>
-              </div>
-              <Slider
-                value={daysPerWeek}
-                onValueChange={handleDaysPerWeekChange}
-                min={1}
-                max={7}
-                step={1}
-                className="w-full"
-              />
-              <p className="text-xs text-muted-foreground">
-                Emails will be sent on the first {daysPerWeek[0]} days of the week
-              </p>
-            </div>
-
-            <div className="border-t pt-6">
+            <div className="pt-2">
               <Button
                 variant="outline"
                 className="w-full"
