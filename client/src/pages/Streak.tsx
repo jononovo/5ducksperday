@@ -493,11 +493,12 @@ export default function StreakPage() {
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {stats.todaysBatch.prospects.map((prospect, idx) => (
                       <div key={idx} className="py-2 border-b last:border-0">
-                        <div className="font-medium text-sm">{prospect.contact.name}</div>
+                        <div className="font-medium text-sm">
+                          {prospect.contact.name} @ {prospect.company.name}
+                        </div>
                         {prospect.contact.role && (
                           <div className="text-xs text-muted-foreground">{prospect.contact.role}</div>
                         )}
-                        <div className="text-xs text-muted-foreground">{prospect.company.name}</div>
                       </div>
                     ))}
                   </div>
