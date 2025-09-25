@@ -623,10 +623,10 @@ export default function StreakPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5" />
-              Outreach Schedule
+              Outreach Settings
             </CardTitle>
             <CardDescription>
-              Configure how often you want to receive daily prospects
+              Pause or preview daily prospects emails
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
