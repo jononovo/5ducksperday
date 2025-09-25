@@ -495,7 +495,7 @@ export default function StreakPage() {
                       <div key={idx} className="py-2 border-b last:border-0">
                         <div className="text-sm">
                           <span className="font-medium">{prospect.contact.name}</span>
-                          <span className="text-xs text-muted-foreground"> @ {prospect.company.name}</span>
+                          <span className="text-muted-foreground"> @ {prospect.company.name}</span>
                         </div>
                         {prospect.contact.role && (
                           <div className="text-xs text-muted-foreground">{prospect.contact.role}</div>
