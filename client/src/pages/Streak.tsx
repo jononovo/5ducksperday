@@ -469,10 +469,7 @@ export default function StreakPage() {
         <WeeklyStreakRow />
       </div>
 
-      {/* Activation CTA */}
-      {preferences && !preferences.enabled && (
-        <ActivationCTABanner onStartClick={() => setShowOnboarding(true)} />
-      )}
+      {/* Activation CTA is now integrated into AdaptiveCampaignBanner carousel */}
 
       {/* Quick Actions */}
       <div className="grid gap-6 md:grid-cols-2 mb-8">
@@ -596,13 +593,14 @@ export default function StreakPage() {
         </Card>
       </div>
 
-      {/* Adaptive Campaign Banner - Shows intro or metrics based on campaign status */}
+      {/* Adaptive Campaign Banner - Shows intro, setup, or metrics based on status */}
       <AdaptiveCampaignBanner
         isActivated={!!preferences?.enabled}
         stats={stats}
         hasSenderProfile={!!selectedSenderProfileId}
         hasProduct={!!selectedProductId}
         hasCustomerProfile={!!selectedCustomerProfileId}
+        onStartClick={() => setShowOnboarding(true)}
       />
 
       {/* Campaign Setup Row - 4 Components */}

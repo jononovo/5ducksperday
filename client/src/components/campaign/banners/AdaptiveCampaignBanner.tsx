@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { ActiveCampaignBanner } from './ActiveCampaignBanner';
 import { SetupProgressBanner } from './SetupProgressBanner';
+import { ActivationCTABanner } from './ActivationCTABanner';
 
 interface AdaptiveCampaignBannerProps {
   isActivated: boolean;
@@ -14,6 +15,7 @@ interface AdaptiveCampaignBannerProps {
   hasSenderProfile: boolean;
   hasProduct: boolean;
   hasCustomerProfile: boolean;
+  onStartClick?: () => void;
   enableTestCycle?: boolean; // Optional prop for external control
 }
 
@@ -23,6 +25,7 @@ export function AdaptiveCampaignBanner({
   hasSenderProfile,
   hasProduct,
   hasCustomerProfile,
+  onStartClick,
   enableTestCycle
 }: AdaptiveCampaignBannerProps) {
   const [testModeIndex, setTestModeIndex] = useState(0);
@@ -73,10 +76,10 @@ export function AdaptiveCampaignBanner({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') {
         e.preventDefault();
-        setTestModeIndex(prev => (prev + 1) % 2);
+        setTestModeIndex(prev => (prev + 1) % 3);
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        setTestModeIndex(prev => (prev - 1 + 2) % 2);
+        setTestModeIndex(prev => (prev - 1 + 3) % 3);
       } else if (e.key === 'Escape') {
         // Exit test mode
         localStorage.removeItem('bannerTestMode');
@@ -92,19 +95,21 @@ export function AdaptiveCampaignBanner({
     e.stopPropagation();
     if (e.shiftKey) {
       // Go backwards
-      setTestModeIndex(prev => (prev - 1 + 2) % 2);
+      setTestModeIndex(prev => (prev - 1 + 3) % 3);
     } else {
       // Go forwards
-      setTestModeIndex(prev => (prev + 1) % 2);
+      setTestModeIndex(prev => (prev + 1) % 3);
     }
   };
   
   // Render banner based on test mode or normal logic
   const renderBanner = () => {
     if (testMode) {
-      // In test mode, cycle through SetupProgressBanner and ActiveCampaignBanner only
+      // In test mode, cycle through all 3 banners
       switch (testModeIndex) {
         case 0:
+          return <ActivationCTABanner onStartClick={onStartClick || (() => {})} />;
+        case 1:
           return (
             <SetupProgressBanner
               hasSenderProfile={hasSenderProfile}
@@ -112,25 +117,30 @@ export function AdaptiveCampaignBanner({
               hasCustomerProfile={hasCustomerProfile}
             />
           );
-        case 1:
+        case 2:
           return <ActiveCampaignBanner stats={stats || {}} />;
         default:
           return null;
       }
     }
     
-    // Normal production logic
-    if (isActivated) {
+    // Normal production logic - 3 states based on product and activation
+    if (!hasProduct) {
+      // No product yet - show the initial CTA
+      return <ActivationCTABanner onStartClick={onStartClick || (() => {})} />;
+    } else if (!isActivated) {
+      // Has product but not activated - show setup progress
+      return (
+        <SetupProgressBanner
+          hasSenderProfile={hasSenderProfile}
+          hasProduct={hasProduct}
+          hasCustomerProfile={hasCustomerProfile}
+        />
+      );
+    } else {
+      // Fully activated - show live campaign stats
       return <ActiveCampaignBanner stats={stats || {}} />;
     }
-    
-    return (
-      <SetupProgressBanner
-        hasSenderProfile={hasSenderProfile}
-        hasProduct={hasProduct}
-        hasCustomerProfile={hasCustomerProfile}
-      />
-    );
   };
   
   return (
