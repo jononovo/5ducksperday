@@ -13,8 +13,8 @@ import {
 import { eq, and, lte, isNull, sql, inArray, not } from 'drizzle-orm';
 import { batchGenerator } from './batch-generator';
 import { sendGridService } from './sendgrid-service';
-import { differenceInMinutes } from 'date-fns';
-import { fromZonedTime, toZonedTime } from 'date-fns-tz';
+import { differenceInMinutes, addDays, startOfDay, format } from 'date-fns';
+import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 export class PersistentDailyOutreachScheduler {
   private pollingInterval: NodeJS.Timeout | null = null;
@@ -346,52 +346,43 @@ export class PersistentDailyOutreachScheduler {
       .map((d: string) => dayMap[d.toLowerCase()])
       .filter((n: number | undefined) => n !== undefined);
     
-    // Get the current time in UTC
+    // Get current UTC time
     const nowUtc = new Date();
     
-    // Convert UTC time to user's timezone to get their current date/time
-    const nowInUserTz = toZonedTime(nowUtc, userTimezone);
-    
-    // Start iterating from the user's current date in their timezone
-    let testDate = new Date(nowInUserTz);
-    
-    // Try up to 8 days (covers all possibilities)
-    for (let i = 0; i < 8; i++) {
-      // Build a date at the scheduled time in the user's timezone
-      const candidateDate = new Date(testDate);
-      candidateDate.setHours(hour, minute, 0, 0);
+    // Try up to 8 days to find the next scheduled run
+    for (let daysAhead = 0; daysAhead < 8; daysAhead++) {
+      // Calculate the candidate date by adding days to current UTC time
+      const candidateUtc = addDays(nowUtc, daysAhead);
       
-      // Format as ISO string representing the user's local time
-      const year = candidateDate.getFullYear();
-      const month = String(candidateDate.getMonth() + 1).padStart(2, '0');
-      const day = String(candidateDate.getDate()).padStart(2, '0');
+      // Format this UTC date in the user's timezone to get their local date
+      const localDateStr = formatInTimeZone(candidateUtc, userTimezone, 'yyyy-MM-dd');
+      
+      // Build the scheduled time on this date in the user's timezone
       const hourStr = String(hour).padStart(2, '0');
       const minuteStr = String(minute).padStart(2, '0');
-      const localTimeStr = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00`;
+      const localDateTimeStr = `${localDateStr}T${hourStr}:${minuteStr}:00`;
       
-      // Convert from user's timezone to UTC
-      const utcTime = fromZonedTime(localTimeStr, userTimezone);
+      // Convert this local time to UTC
+      const scheduledUtc = fromZonedTime(localDateTimeStr, userTimezone);
       
-      // Get the day of week in the user's timezone
-      const userTzCandidateDate = toZonedTime(utcTime, userTimezone);
-      const dayOfWeek = userTzCandidateDate.getDay();
+      // Get the day of week for this date in the user's timezone
+      // We need to check what day it is in THEIR timezone, not ours
+      const dayInUserTz = new Date(localDateTimeStr);
+      const dayOfWeek = dayInUserTz.getDay();
       
-      // Check if this is a valid scheduled day and in the future
-      if (scheduledDayNumbers.includes(dayOfWeek) && utcTime > nowUtc) {
+      // Check if this is a valid scheduled day and is in the future
+      if (scheduledDayNumbers.includes(dayOfWeek) && scheduledUtc > nowUtc) {
         // Log only in development mode
         if (process.env.NODE_ENV === 'development') {
-          console.log(`Next run: ${localTimeStr} ${userTimezone} (day ${dayOfWeek}) -> ${utcTime.toISOString()} UTC`);
+          console.log(`Next run: ${localDateTimeStr} ${userTimezone} (${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dayOfWeek]}) -> ${scheduledUtc.toISOString()} UTC`);
         }
-        return utcTime;
+        return scheduledUtc;
       }
-      
-      // Move to the next day in the user's timezone
-      testDate.setDate(testDate.getDate() + 1);
     }
     
-    // Fallback (should never happen)
+    // Fallback (should never happen with 8 days of checking)
     console.warn(`Could not find valid scheduled day for user, using fallback`);
-    return new Date(nowUtc.getTime() + 24 * 60 * 60 * 1000);
+    return addDays(nowUtc, 1);
   }
 
   // One-time method to fix all existing schedules with correct timezone handling
