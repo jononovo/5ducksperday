@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Rocket, Mail, Clock, TrendingUp } from 'lucide-react';
+import { Rocket, Clock, TrendingUp } from 'lucide-react';
 
 interface ActivationCTABannerProps {
   onStartClick: () => void;
@@ -28,10 +28,6 @@ export function ActivationCTABanner({ onStartClick }: ActivationCTABannerProps) 
             </p>
             
             <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 opacity-80" />
-                <span className="text-sm opacity-90">5 prospects daily</span>
-              </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 opacity-80" />
                 <span className="text-sm opacity-90">2 minute setup</span>
