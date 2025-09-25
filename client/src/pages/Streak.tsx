@@ -492,7 +492,19 @@ export default function StreakPage() {
                 {stats.todaysBatch.prospects && stats.todaysBatch.prospects.length > 0 && (
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {stats.todaysBatch.prospects.map((prospect, idx) => (
-                      <div key={idx} className="py-2 border-b last:border-0">
+                      <div 
+                        key={idx} 
+                        className="py-2 border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors rounded px-2 -mx-2"
+                        onClick={() => window.open(`/outreach/daily/${stats.todaysBatch?.token}`, '_blank')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            window.open(`/outreach/daily/${stats.todaysBatch?.token}`, '_blank');
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`View outreach email for ${prospect.contact.name}`}
+                      >
                         <div className="text-sm">
                           <span className="font-medium">{prospect.contact.name}</span>
                           <span className="text-muted-foreground"> @ {prospect.company.name}</span>
