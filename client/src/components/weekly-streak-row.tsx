@@ -523,12 +523,18 @@ export function WeeklyStreakRow() {
               <Label htmlFor="enable-daily" className="text-xs font-medium cursor-pointer">
                 Enable
               </Label>
-              <Tooltip>
+              <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
-                  <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                  </button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-[250px]">
-                  <p className="text-xs">Enable the daily (on active days) email content batch generation and notifications.</p>
+                  <p className="text-xs">Enable the daily email content generation and notifications (on active days.)</p>
                 </TooltipContent>
               </Tooltip>
             </div>
