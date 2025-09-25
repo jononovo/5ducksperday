@@ -44,15 +44,66 @@ const TIMES = [
 ];
 
 const TIMEZONES = [
+  // North America
   { value: 'America/New_York', label: 'EST/EDT - Eastern Time' },
   { value: 'America/Chicago', label: 'CST/CDT - Central Time' },
   { value: 'America/Denver', label: 'MST/MDT - Mountain Time' },
   { value: 'America/Los_Angeles', label: 'PST/PDT - Pacific Time' },
   { value: 'America/Phoenix', label: 'MST - Arizona Time' },
-  { value: 'Europe/London', label: 'GMT/BST - London Time' },
-  { value: 'Europe/Paris', label: 'CET/CEST - Central European' },
-  { value: 'Asia/Tokyo', label: 'JST - Japan Standard Time' },
-  { value: 'Australia/Sydney', label: 'AEST/AEDT - Sydney Time' }
+  { value: 'America/Anchorage', label: 'AKST/AKDT - Alaska Time' },
+  { value: 'Pacific/Honolulu', label: 'HST - Hawaii Time' },
+  { value: 'America/Toronto', label: 'EST/EDT - Toronto' },
+  { value: 'America/Vancouver', label: 'PST/PDT - Vancouver' },
+  { value: 'America/Mexico_City', label: 'CST/CDT - Mexico City' },
+  
+  // South America
+  { value: 'America/Sao_Paulo', label: 'BRT/BRST - São Paulo' },
+  { value: 'America/Buenos_Aires', label: 'ART - Buenos Aires' },
+  { value: 'America/Santiago', label: 'CLT/CLST - Santiago' },
+  { value: 'America/Lima', label: 'PET - Lima' },
+  { value: 'America/Bogota', label: 'COT - Bogotá' },
+  
+  // Europe
+  { value: 'Europe/London', label: 'GMT/BST - London' },
+  { value: 'Europe/Paris', label: 'CET/CEST - Paris' },
+  { value: 'Europe/Berlin', label: 'CET/CEST - Berlin' },
+  { value: 'Europe/Rome', label: 'CET/CEST - Rome' },
+  { value: 'Europe/Madrid', label: 'CET/CEST - Madrid' },
+  { value: 'Europe/Amsterdam', label: 'CET/CEST - Amsterdam' },
+  { value: 'Europe/Athens', label: 'EET/EEST - Athens' },
+  { value: 'Europe/Moscow', label: 'MSK - Moscow' },
+  { value: 'Europe/Stockholm', label: 'CET/CEST - Stockholm' },
+  { value: 'Europe/Helsinki', label: 'EET/EEST - Helsinki' },
+  
+  // Asia
+  { value: 'Asia/Tokyo', label: 'JST - Tokyo' },
+  { value: 'Asia/Shanghai', label: 'CST - China/Shanghai' },
+  { value: 'Asia/Hong_Kong', label: 'HKT - Hong Kong' },
+  { value: 'Asia/Singapore', label: 'SGT - Singapore' },
+  { value: 'Asia/Seoul', label: 'KST - Seoul' },
+  { value: 'Asia/Taipei', label: 'CST - Taipei' },
+  { value: 'Asia/Bangkok', label: 'ICT - Bangkok' },
+  { value: 'Asia/Jakarta', label: 'WIB - Jakarta' },
+  { value: 'Asia/Manila', label: 'PHT - Manila' },
+  { value: 'Asia/Kolkata', label: 'IST - India' },
+  { value: 'Asia/Dubai', label: 'GST - Dubai' },
+  { value: 'Asia/Tel_Aviv', label: 'IST/IDT - Tel Aviv' },
+  { value: 'Asia/Karachi', label: 'PKT - Karachi' },
+  
+  // Oceania
+  { value: 'Australia/Sydney', label: 'AEST/AEDT - Sydney' },
+  { value: 'Australia/Melbourne', label: 'AEST/AEDT - Melbourne' },
+  { value: 'Australia/Brisbane', label: 'AEST - Brisbane' },
+  { value: 'Australia/Perth', label: 'AWST - Perth' },
+  { value: 'Pacific/Auckland', label: 'NZST/NZDT - Auckland' },
+  { value: 'Pacific/Fiji', label: 'FJT/FJST - Fiji' },
+  
+  // Africa
+  { value: 'Africa/Cairo', label: 'EET - Cairo' },
+  { value: 'Africa/Lagos', label: 'WAT - Lagos' },
+  { value: 'Africa/Johannesburg', label: 'SAST - Johannesburg' },
+  { value: 'Africa/Nairobi', label: 'EAT - Nairobi' },
+  { value: 'Africa/Casablanca', label: 'WET/WEST - Casablanca' }
 ];
 
 export function WeeklyStreakRow() {
