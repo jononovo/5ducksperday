@@ -513,13 +513,6 @@ export function WeeklyStreakRow() {
           <div className="flex items-center gap-3 px-1 py-1.5 bg-muted/30 rounded-lg">
             {/* Enable toggle */}
             <div className="flex items-center gap-2">
-              <Switch
-                id="enable-daily"
-                checked={pendingEnabled}
-                onCheckedChange={setPendingEnabled}
-                className="h-4 scale-90"
-                data-testid="switch-enable-daily"
-              />
               <Label htmlFor="enable-daily" className="text-xs font-medium cursor-pointer">
                 Enable
               </Label>
@@ -537,6 +530,13 @@ export function WeeklyStreakRow() {
                   <p className="text-xs">Enable the daily email content generation and notifications (on active days.)</p>
                 </TooltipContent>
               </Tooltip>
+              <Switch
+                id="enable-daily"
+                checked={pendingEnabled}
+                onCheckedChange={setPendingEnabled}
+                className="h-4 scale-90"
+                data-testid="switch-enable-daily"
+              />
             </div>
             
             {/* Divider */}
