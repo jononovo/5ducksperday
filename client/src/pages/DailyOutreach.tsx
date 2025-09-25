@@ -477,7 +477,7 @@ export default function DailyOutreach() {
                 </div>
                 <h2 className="text-2xl font-semibold text-gray-900">Link Expired</h2>
                 <p className="text-gray-600 px-4">
-                  This daily outreach link has expired. Daily links are valid for 24 hours to ensure email freshness.
+                  This daily outreach link is no longer available.
                 </p>
                 <div className="flex flex-col gap-3 px-4 pt-2">
                   <Button 

@@ -81,8 +81,7 @@ export function buildContactsReadyEmail(batch: DailyBatch & { isSampleData?: boo
         <a href="${secureUrl}" class="button">Review and Send Emails →</a>
         
         <p class="footer">
-          <strong>Pro tip:</strong> Send these before noon for 23% higher response rates.<br><br>
-          This link expires in 24 hours for security.
+          <strong>Pro tip:</strong> Send these before noon for 23% higher response rates.
         </p>
       </div>
     </body>
@@ -99,9 +98,7 @@ Your personalized outreach emails are waiting.${sampleDataText}
 ${contactsListText}
 Review and send them here: ${secureUrl}
 
-Pro tip: Send these before noon for 23% higher response rates.
-
-This link expires in 24 hours for security.`;
+Pro tip: Send these before noon for 23% higher response rates.`;
   
   return {
     subject: 'Your 5 leads for today are ready',
