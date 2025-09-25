@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, keepPreviousData } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { Flame, Star, TrendingUp, Pencil, Save, ChevronLeft, ChevronRight, Clock, Globe } from 'lucide-react';
+import { Flame, Star, TrendingUp, Pencil, Save, ChevronLeft, ChevronRight, Clock, Globe, Info } from 'lucide-react';
 import { format, startOfWeek, addDays, isToday, isSameDay, subWeeks, addWeeks } from 'date-fns';
 import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import {
@@ -523,6 +523,14 @@ export function WeeklyStreakRow() {
               <Label htmlFor="enable-daily" className="text-xs font-medium cursor-pointer">
                 Enable
               </Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[250px]">
+                  <p className="text-xs">Enable the daily (on active days) email content batch generation and notifications.</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
             
             {/* Divider */}
@@ -531,6 +539,7 @@ export function WeeklyStreakRow() {
             {/* Send time */}
             <div className="flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Send Time</span>
               <Select
                 value={pendingScheduleTime}
                 onValueChange={setPendingScheduleTime}
@@ -550,14 +559,14 @@ export function WeeklyStreakRow() {
             </div>
             
             {/* Timezone */}
-            <div className="flex items-center gap-1.5 flex-1">
+            <div className="flex items-center gap-1.5">
               <Globe className="h-3.5 w-3.5 text-muted-foreground" />
               <Select
                 value={pendingTimezone}
                 onValueChange={setPendingTimezone}
                 disabled={!pendingEnabled}
               >
-                <SelectTrigger className="h-7 text-xs" data-testid="select-timezone">
+                <SelectTrigger className="h-7 w-[160px] text-xs" data-testid="select-timezone">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -569,6 +578,9 @@ export function WeeklyStreakRow() {
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Spacer to push cancel button to the right */}
+            <div className="flex-1" />
             
             {/* Cancel button */}
             <Button
