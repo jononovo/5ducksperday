@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect } from "react";
+import { createContext, ReactNode, useContext, useEffect, useRef } from "react";
 import {
   useQuery,
   useMutation,
@@ -33,6 +33,9 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  
+  // Track ongoing sync operations to prevent duplicate user creation
+  const syncPromiseRef = useRef<Promise<void> | null>(null);
   
   // Check test mode status
   const { data: testModeStatus } = useQuery({
@@ -309,81 +312,96 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Function to get Firebase ID token and sync with backend
   const syncWithBackend = async (firebaseUser: FirebaseUser, credential?: AuthCredential | null) => {
-    try {
-      // Get the ID token for authentication
-      const idToken = await firebaseUser.getIdToken(true);
+    // Prevent duplicate sync calls that cause duplicate user creation
+    // This happens when both onAuthStateChanged and signInWithGoogle call syncWithBackend simultaneously
+    if (syncPromiseRef.current) {
+      console.log('Sync already in progress, waiting for it to complete');
+      return syncPromiseRef.current;
+    }
+    
+    // Create the sync promise and store it
+    syncPromiseRef.current = (async () => {
+      try {
+        // Get the ID token for authentication
+        const idToken = await firebaseUser.getIdToken(true);
 
-      // Check for selected plan from pricing page
-      const selectedPlan = localStorage.getItem('selectedPlan');
-      const planSource = localStorage.getItem('planSource');
-      const joinWaitlist = localStorage.getItem('joinWaitlist');
+        // Check for selected plan from pricing page
+        const selectedPlan = localStorage.getItem('selectedPlan');
+        const planSource = localStorage.getItem('planSource');
+        const joinWaitlist = localStorage.getItem('joinWaitlist');
 
-      console.log('Making backend sync request', {
-        endpoint: '/api/google-auth',
-        domain: window.location.hostname,
-        selectedPlan,
-        planSource,
-        joinWaitlist
-      });
-
-      const createRes = await fetch("/api/google-auth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${idToken}`
-        },
-        body: JSON.stringify({
-          email: firebaseUser.email,
-          username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-          firebaseUid: firebaseUser.uid,
+        console.log('Making backend sync request', {
+          endpoint: '/api/google-auth',
+          domain: window.location.hostname,
           selectedPlan,
           planSource,
-          joinWaitlist: joinWaitlist === 'true'
-        })
-      });
-
-      if (!createRes.ok) {
-        let errorText;
-        try {
-          errorText = await createRes.text();
-        } catch (textError) {
-          errorText = 'Could not read error response';
-        }
-        
-        console.error('Backend sync error response:', {
-          status: createRes.status,
-          statusText: createRes.statusText,
-          responseText: errorText
+          joinWaitlist
         });
-        throw new Error(`Failed to sync with backend: ${createRes.status}`);
-      }
 
-      console.log('Successfully synced with backend');
-      
-      try {
-        const user = await safeJsonParse(createRes);
-        queryClient.setQueryData(["/api/user"], user);
-        
-        // Clean up localStorage after successful sync
-        if (selectedPlan) {
-          localStorage.removeItem('selectedPlan');
-          localStorage.removeItem('planSource');
-          localStorage.removeItem('joinWaitlist');
-          console.log('Cleaned up plan selection from localStorage');
+        const createRes = await fetch("/api/google-auth", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}`
+          },
+          body: JSON.stringify({
+            email: firebaseUser.email,
+            username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+            firebaseUid: firebaseUser.uid,
+            selectedPlan,
+            planSource,
+            joinWaitlist: joinWaitlist === 'true'
+          })
+        });
+
+        if (!createRes.ok) {
+          let errorText;
+          try {
+            errorText = await createRes.text();
+          } catch (textError) {
+            errorText = 'Could not read error response';
+          }
+          
+          console.error('Backend sync error response:', {
+            status: createRes.status,
+            statusText: createRes.statusText,
+            responseText: errorText
+          });
+          throw new Error(`Failed to sync with backend: ${createRes.status}`);
         }
-      } catch (parseError) {
-        console.error('Error parsing user data from sync response:', parseError);
-        throw new Error('Failed to parse user data from backend response');
-      }
 
-    } catch (error) {
-      console.error("Error syncing with backend:", {
-        error,
-        domain: window.location.hostname,
-        environment: import.meta.env.MODE
-      });
-      throw error;
-    }
+        console.log('Successfully synced with backend');
+        
+        try {
+          const user = await safeJsonParse(createRes);
+          queryClient.setQueryData(["/api/user"], user);
+          
+          // Clean up localStorage after successful sync
+          if (selectedPlan) {
+            localStorage.removeItem('selectedPlan');
+            localStorage.removeItem('planSource');
+            localStorage.removeItem('joinWaitlist');
+            console.log('Cleaned up plan selection from localStorage');
+          }
+        } catch (parseError) {
+          console.error('Error parsing user data from sync response:', parseError);
+          throw new Error('Failed to parse user data from backend response');
+        }
+
+      } catch (error) {
+        console.error("Error syncing with backend:", {
+          error,
+          domain: window.location.hostname,
+          environment: import.meta.env.MODE
+        });
+        throw error;
+      } finally {
+        // Clear the promise ref when sync completes (success or failure)
+        syncPromiseRef.current = null;
+      }
+    })();
+    
+    return syncPromiseRef.current;
   };
 
   // Monitor Firebase auth state
