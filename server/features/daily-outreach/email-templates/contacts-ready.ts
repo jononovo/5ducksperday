@@ -7,16 +7,18 @@ export function buildContactsReadyEmail(batch: DailyBatch, appUrl: string): Emai
     ?.map(c => `<li>${c.count} ${c.type}</li>`)
     .join('') || '<li>5 carefully selected prospects</li>';
   
-  // Build the contact list HTML
+  // Build the contact list HTML - each contact is clickable and opens outreach page in new tab
   const contactsListHtml = batch.items && batch.items.length > 0 ? `
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
       <h3 style="color: #333; margin-top: 0; margin-bottom: 15px; font-size: 16px;">Your prospects for today:</h3>
       <ul style="list-style: none; padding: 0; margin: 0;">
         ${batch.items.map((item, index) => `
-          <li style="padding: 10px 0; ${index < batch.items!.length - 1 ? 'border-bottom: 1px solid #e0e0e0;' : ''}">
-            <strong style="color: #333;">${item.contact.name}</strong>
-            <span style="color: #666;"> @ ${item.company.name}</span>
-            ${item.contact.role ? `<br><small style="color: #888; font-size: 13px;">${item.contact.role}</small>` : ''}
+          <li style="padding: 0; ${index < batch.items!.length - 1 ? 'border-bottom: 1px solid #e0e0e0;' : ''}">
+            <a href="${secureUrl}" target="_blank" style="display: block; padding: 10px 0; text-decoration: none; color: inherit;">
+              <strong style="color: #333;">${item.contact.name}</strong>
+              <span style="color: #666;"> @ ${item.company.name}</span>
+              ${item.contact.role ? `<br><small style="color: #888; font-size: 13px;">${item.contact.role}</small>` : ''}
+            </a>
           </li>
         `).join('')}
       </ul>
@@ -52,6 +54,8 @@ export function buildContactsReadyEmail(batch: DailyBatch, appUrl: string): Emai
         }
         .list { margin: 16px 0; padding-left: 20px; }
         .footer { color: #666; font-size: 14px; margin-top: 30px; }
+        /* Hover effect for clickable contacts - works in email clients that support it */
+        a:hover { background-color: #f0f0f0 !important; }
       </style>
     </head>
     <body>
