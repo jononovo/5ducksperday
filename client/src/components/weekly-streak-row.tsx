@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, keepPreviousData } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { Flame, Star, TrendingUp, Pencil, Save, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Flame, Star, TrendingUp, Pencil, Save, ChevronLeft, ChevronRight, Clock, Globe } from 'lucide-react';
 import { format, startOfWeek, addDays, isToday, isSameDay, subWeeks, addWeeks } from 'date-fns';
 import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import {
@@ -12,6 +12,9 @@ import {
 } from '@/components/ui/tooltip';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
@@ -28,10 +31,37 @@ interface WeeklyActivityData {
   timezone?: string;
 }
 
+interface OutreachPreferences {
+  enabled: boolean;
+  scheduleDays: string[];
+  scheduleTime: string;
+  timezone: string;
+}
+
+const TIMES = [
+  '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', 
+  '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'
+];
+
+const TIMEZONES = [
+  'America/New_York',
+  'America/Chicago',
+  'America/Denver',
+  'America/Los_Angeles',
+  'America/Phoenix',
+  'Europe/London',
+  'Europe/Paris',
+  'Asia/Tokyo',
+  'Australia/Sydney'
+];
+
 export function WeeklyStreakRow() {
   const { toast } = useToast();
   const [isEditMode, setIsEditMode] = useState(false);
   const [pendingScheduleDays, setPendingScheduleDays] = useState<string[]>([]);
+  const [pendingEnabled, setPendingEnabled] = useState(false);
+  const [pendingScheduleTime, setPendingScheduleTime] = useState('09:00');
+  const [pendingTimezone, setPendingTimezone] = useState('America/New_York');
   const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = previous week
   const [isTransitioning, setIsTransitioning] = useState(false);
   const autoRevertTimer = useRef<NodeJS.Timeout | null>(null);
@@ -42,6 +72,13 @@ export function WeeklyStreakRow() {
     refetchInterval: isEditMode || weekOffset !== 0 ? false : 60000, // Don't auto-refresh in edit mode or when viewing past weeks
     placeholderData: keepPreviousData, // Show old data while loading new data
     staleTime: 30000 // Cache for 30 seconds
+  });
+
+  // Fetch full preferences for edit mode
+  const { data: preferences } = useQuery<OutreachPreferences>({
+    queryKey: ['/api/daily-outreach/preferences'],
+    enabled: isEditMode,
+    staleTime: 60000
   });
 
 
@@ -74,9 +111,9 @@ export function WeeklyStreakRow() {
 
   // Save preferences mutation
   const savePreferences = useMutation({
-    mutationFn: async (scheduleDays: string[]) => {
+    mutationFn: async (data: Partial<OutreachPreferences>) => {
       const res = await apiRequest('PUT', '/api/daily-outreach/preferences', {
-        scheduleDays,
+        ...data,
         minContactsRequired: 5
       });
       return res.json();
@@ -89,6 +126,7 @@ export function WeeklyStreakRow() {
       setIsEditMode(false);
       // Refresh the query to get updated data
       queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/weekly-activity'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/preferences'] });
     },
     onError: () => {
       toast({
@@ -106,15 +144,30 @@ export function WeeklyStreakRow() {
         setWeekOffset(0);
       }
       setIsEditMode(true);
-      // Initialize pending schedule days from current data
+      // Initialize pending values from current data
       if (activityData) {
         setPendingScheduleDays(activityData.scheduleDays.map(day => day.toLowerCase()));
       }
     } else {
       // Save changes
-      savePreferences.mutate(pendingScheduleDays);
+      savePreferences.mutate({
+        enabled: pendingEnabled,
+        scheduleDays: pendingScheduleDays,
+        scheduleTime: pendingScheduleTime,
+        timezone: pendingTimezone
+      });
     }
   };
+
+  // Update pending values when preferences load
+  useEffect(() => {
+    if (preferences && isEditMode) {
+      setPendingEnabled(preferences.enabled);
+      setPendingScheduleTime(preferences.scheduleTime);
+      setPendingTimezone(preferences.timezone);
+      setPendingScheduleDays(preferences.scheduleDays.map(d => d.toLowerCase()));
+    }
+  }, [preferences, isEditMode]);
 
   const handleWeekNavigation = (newOffset: number) => {
     if (isTransitioning || isEditMode) return;
@@ -178,7 +231,7 @@ export function WeeklyStreakRow() {
         {/* Edit mode instruction message */}
         {isEditMode && (
           <div className="text-sm text-muted-foreground px-1">
-            Select the days you are active. Then click save.
+            Configure your daily outreach schedule.
           </div>
         )}
         
@@ -454,6 +507,87 @@ export function WeeklyStreakRow() {
             </Tooltip>
           )}
         </div>
+        
+        {/* Compact scheduling controls row - only visible in edit mode */}
+        {isEditMode && (
+          <div className="flex items-center gap-3 px-1 py-1.5 bg-muted/30 rounded-lg">
+            {/* Enable toggle */}
+            <div className="flex items-center gap-2">
+              <Switch
+                id="enable-daily"
+                checked={pendingEnabled}
+                onCheckedChange={setPendingEnabled}
+                className="h-4 scale-90"
+                data-testid="switch-enable-daily"
+              />
+              <Label htmlFor="enable-daily" className="text-xs font-medium cursor-pointer">
+                Enable
+              </Label>
+            </div>
+            
+            {/* Divider */}
+            <div className="h-4 w-px bg-border" />
+            
+            {/* Send time */}
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <Select
+                value={pendingScheduleTime}
+                onValueChange={setPendingScheduleTime}
+                disabled={!pendingEnabled}
+              >
+                <SelectTrigger className="h-7 w-[80px] text-xs" data-testid="select-send-time">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIMES.map((time) => (
+                    <SelectItem key={time} value={time} className="text-xs">
+                      {time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Timezone */}
+            <div className="flex items-center gap-1.5 flex-1">
+              <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+              <Select
+                value={pendingTimezone}
+                onValueChange={setPendingTimezone}
+                disabled={!pendingEnabled}
+              >
+                <SelectTrigger className="h-7 text-xs" data-testid="select-timezone">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIMEZONES.map((tz) => (
+                    <SelectItem key={tz} value={tz} className="text-xs">
+                      {tz.replace(/_/g, ' ')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Cancel button */}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs"
+              onClick={() => {
+                setIsEditMode(false);
+                // Reset pending values
+                if (activityData) {
+                  setPendingScheduleDays(activityData.scheduleDays.map(day => day.toLowerCase()));
+                }
+              }}
+              data-testid="button-cancel"
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );
