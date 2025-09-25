@@ -246,7 +246,7 @@ router.post('/trigger', requireAuth, async (req: Request, res: Response) => {
     if (!batch) {
       return res.json({ 
         success: false, 
-        message: 'Not enough contacts available. Please add more contacts first.' 
+        message: 'Not enough contacts with emails available. Please add more emails first.' 
       });
     }
     
