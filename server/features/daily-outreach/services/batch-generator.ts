@@ -20,22 +20,27 @@ import { generateEmailContent } from '../../../email-content-generation/service'
 export class DailyBatchGenerator {
   async generateDailyBatch(userId: number): Promise<DailyBatch | null> {
     try {
+      console.log(`[Batch Generator] Starting batch generation for user ${userId}`);
+      
       // Get uncontacted contacts with emails
       const uncontactedContacts = await this.getUncontactedContacts(userId);
+      console.log(`[Batch Generator] Found ${uncontactedContacts.length} uncontacted contacts`);
       
       if (uncontactedContacts.length < 5) {
         // Try to get more contacts from new companies
         const newContacts = await this.getContactsFromNewCompanies(userId, 5 - uncontactedContacts.length);
         uncontactedContacts.push(...newContacts);
+        console.log(`[Batch Generator] After adding new company contacts: ${uncontactedContacts.length} total`);
       }
       
       if (uncontactedContacts.length < 5) {
-        console.log(`Not enough contacts for user ${userId}. Found ${uncontactedContacts.length}`);
+        console.log(`[Batch Generator] Not enough contacts for user ${userId}. Found ${uncontactedContacts.length}/5 required`);
         return null;
       }
       
       // Select top 5 based on confidence score
       const selectedContacts = this.selectTopContacts(uncontactedContacts, 5);
+      console.log(`[Batch Generator] Selected ${selectedContacts.length} contacts based on confidence scores`);
       
       // Get company details for selected contacts
       const companyIds = Array.from(new Set(selectedContacts.map(c => c.companyId)));
@@ -45,21 +50,25 @@ export class DailyBatchGenerator {
         .where(inArray(companies.id, companyIds));
       
       const companyMap = new Map(companiesData.map(c => [c.id, c]));
+      console.log(`[Batch Generator] Fetched data for ${companiesData.length} companies`);
       
       // Generate personalized emails for each contact
+      console.log(`[Batch Generator] Starting AI email generation for ${selectedContacts.length} contacts`);
       const batchItems = await Promise.all(
         selectedContacts.map(contact => 
           this.generateEmailForContact(contact, companyMap.get(contact.companyId)!, userId)
         )
       );
+      console.log(`[Batch Generator] Generated ${batchItems.length} AI emails`);
       
       // Create batch record with secure token
       const batch = await this.createBatch(userId, batchItems, selectedContacts, companiesData);
+      console.log(`[Batch Generator] Created batch ${batch.id} with ${batch.items.length} items`);
       
       return batch;
     } catch (error) {
-      console.error('Error generating daily batch:', error);
-      return null;
+      console.error('[Batch Generator] Error generating daily batch:', error);
+      throw error; // Re-throw to propagate to scheduler
     }
   }
   
@@ -185,14 +194,14 @@ export class DailyBatchGenerator {
         : 'Introduce our services and explore potential collaboration';
         
       if (customerProfile) {
-        emailPrompt += `. Target customer profile: ${customerProfile.title}`;
-        if (customerProfile.painPoints && customerProfile.painPoints.length > 0) {
-          emailPrompt += `. Address these pain points: ${customerProfile.painPoints.join(', ')}`;
+        emailPrompt += `. Target customer profile: ${customerProfile.label}`;
+        if (customerProfile.targetDescription) {
+          emailPrompt += `. Target description: ${customerProfile.targetDescription}`;
         }
       }
       
       if (senderProfile) {
-        emailPrompt += `. Email from ${senderProfile.name} at ${senderProfile.companyName || 'our company'}`;
+        emailPrompt += `. Email from ${senderProfile.displayName} at ${senderProfile.companyName || 'our company'}`;
         if (senderProfile.title) {
           emailPrompt += ` (${senderProfile.title})`;
         }
@@ -220,7 +229,7 @@ export class DailyBatchGenerator {
         editedContent: null
       };
     } catch (error) {
-      console.error('Error generating email for contact:', error);
+      console.error(`[Batch Generator] Error generating email for contact ${contact.id}:`, error);
       // Fallback to simple template
       return {
         contactId: contact.id,

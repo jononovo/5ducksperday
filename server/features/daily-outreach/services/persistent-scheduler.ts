@@ -7,12 +7,14 @@ import {
   dailyOutreachBatches,
   dailyOutreachItems,
   contacts,
-  companies
+  companies,
+  strategicProfiles
 } from '@shared/schema';
 import { eq, and, lte, isNull, sql, inArray, not } from 'drizzle-orm';
 import { batchGenerator } from './batch-generator';
 import { sendGridService } from './sendgrid-service';
-import { differenceInMinutes } from 'date-fns';
+import { differenceInMinutes, addDays, startOfDay, format } from 'date-fns';
+import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 export class PersistentDailyOutreachScheduler {
   private pollingInterval: NodeJS.Timeout | null = null;
@@ -35,6 +37,22 @@ export class PersistentDailyOutreachScheduler {
   
   async initialize() {
     console.log('Initializing Persistent Daily Outreach Scheduler...');
+    
+    // CRITICAL: Reset any jobs stuck in 'running' state from previous server instance
+    // This handles server crashes/restarts where jobs were left in running state
+    const resetResult = await db
+      .update(dailyOutreachJobs)
+      .set({ 
+        status: 'scheduled',
+        lastError: 'Server restarted - job reset from running state',
+        updatedAt: new Date()
+      })
+      .where(eq(dailyOutreachJobs.status, 'running'))
+      .returning();
+    
+    if (resetResult.length > 0) {
+      console.log(`Reset ${resetResult.length} stuck jobs from previous server instance:`, resetResult.map(j => j.userId));
+    }
     
     // Load all users with outreach enabled
     const activePreferences = await db
@@ -69,7 +87,8 @@ export class PersistentDailyOutreachScheduler {
         status: 'scheduled'
       });
       
-      console.log(`Created job for user ${userId}, next run: ${nextRun}`);
+      // Log creation in production for monitoring
+    console.log(`Job created for user ${userId}`);
     } else if (existingJob.status === 'failed') {
       // Reset failed jobs
       const nextRun = this.calculateNextRun(preferences);
@@ -82,7 +101,7 @@ export class PersistentDailyOutreachScheduler {
         })
         .where(eq(dailyOutreachJobs.userId, userId));
         
-      console.log(`Reset failed job for user ${userId}, next run: ${nextRun}`);
+      console.log(`Job reset for user ${userId}`);
     }
   }
   
@@ -100,11 +119,39 @@ export class PersistentDailyOutreachScheduler {
     try {
       // Clean up stale running jobs (older than 5 minutes)
       const staleThreshold = new Date(Date.now() - 5 * 60 * 1000);
+      
+      // Check in-memory running jobs
       for (const [userId, startTime] of Array.from(this.runningJobs.entries())) {
         if (startTime < staleThreshold) {
-          console.log(`Removing stale job for user ${userId}`);
+          console.log(`Removing stale job from memory for user ${userId}`);
           this.runningJobs.delete(userId);
         }
+      }
+      
+      // CRITICAL: Also check database for stuck jobs (handles server restarts)
+      const stuckJobs = await db
+        .select()
+        .from(dailyOutreachJobs)
+        .where(
+          and(
+            eq(dailyOutreachJobs.status, 'running'),
+            lte(dailyOutreachJobs.updatedAt, staleThreshold)
+          )
+        );
+      
+      // Reset each stuck job found in database
+      for (const job of stuckJobs) {
+        console.log(`Recovering stuck job ${job.id} for user ${job.userId} (stuck since ${job.updatedAt})`);
+        await db.update(dailyOutreachJobs)
+          .set({ 
+            status: 'scheduled',
+            lastError: `Job recovered - was stuck since ${job.updatedAt}`,
+            updatedAt: new Date()
+          })
+          .where(eq(dailyOutreachJobs.id, job.id));
+        
+        // Also clean from memory map if present
+        this.runningJobs.delete(job.userId);
       }
       
       // Check current concurrency
@@ -167,10 +214,14 @@ export class PersistentDailyOutreachScheduler {
     try {
       console.log(`Starting job execution for user ${job.userId}`);
       
-      // Mark as running
+      // Mark as running with timestamp for tracking
       await db
         .update(dailyOutreachJobs)
-        .set({ status: 'running', updatedAt: new Date() })
+        .set({ 
+          status: 'running', 
+          lastError: `Job started at ${new Date().toISOString()}`,
+          updatedAt: new Date() 
+        })
         .where(eq(dailyOutreachJobs.id, job.id));
       
       // Execute the actual outreach process
@@ -195,13 +246,14 @@ export class PersistentDailyOutreachScheduler {
       const nextRun = this.calculateNextRun(preferences);
       
       // Mark as completed and schedule next run (reset retry count on success)
+      // Keep the success status in lastError for production visibility
       await db
         .update(dailyOutreachJobs)
         .set({ 
           status: 'scheduled',
           lastRunAt: new Date(),
           nextRunAt: nextRun,
-          lastError: null,
+          lastError: `✅ Last run successful: Generated batch ${batchId} with ${contactsProcessed} contacts`,
           retryCount: 0,
           nextRetryAt: null,
           updatedAt: new Date()
@@ -220,7 +272,7 @@ export class PersistentDailyOutreachScheduler {
         contactsProcessed: contactsProcessed
       });
       
-      console.log(`Job completed for user ${job.userId}, next run: ${nextRun}, processing time: ${processingTime}ms`);
+      console.log(`✅ User ${job.userId}: Batch ${batchId} created (${contactsProcessed} contacts, ${processingTime}ms)`);
       
     } catch (error: any) {
       console.error(`Job failed for user ${job.userId}:`, error);
@@ -278,50 +330,103 @@ export class PersistentDailyOutreachScheduler {
   }
   
   private calculateNextRun(preferences: any): Date {
-    const now = new Date();
+    const userTimezone = preferences.timezone || 'America/New_York';
     const scheduleTime = preferences.scheduleTime || '09:00';
-    const [hour, minute] = scheduleTime.split(':').map(Number);
     const scheduleDays = preferences.scheduleDays || ['mon', 'tue', 'wed'];
+    const [hour, minute] = scheduleTime.split(':').map(Number);
     
-    // Find next scheduled day
+    // Day mapping - support both abbreviated and full names
     const dayMap: { [key: string]: number } = { 
       'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 
-      'thu': 4, 'fri': 5, 'sat': 6 
+      'thu': 4, 'fri': 5, 'sat': 6,
+      'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
+      'thursday': 4, 'friday': 5, 'saturday': 6
     };
+    const scheduledDayNumbers = scheduleDays
+      .map((d: string) => dayMap[d.toLowerCase()])
+      .filter((n: number | undefined) => n !== undefined);
     
-    const scheduledDayNumbers = scheduleDays.map((d: string) => dayMap[d]);
-    let nextRun = new Date(now);
+    // Get current UTC time
+    const nowUtc = new Date();
     
-    // Set time
-    nextRun.setHours(hour, minute, 0, 0);
-    
-    // If today's time has passed, start from tomorrow
-    if (nextRun <= now) {
-      nextRun.setDate(nextRun.getDate() + 1);
+    // Try up to 8 days to find the next scheduled run
+    for (let daysAhead = 0; daysAhead < 8; daysAhead++) {
+      // Calculate the candidate date by adding days to current UTC time
+      const candidateUtc = addDays(nowUtc, daysAhead);
+      
+      // Format this UTC date in the user's timezone to get their local date
+      const localDateStr = formatInTimeZone(candidateUtc, userTimezone, 'yyyy-MM-dd');
+      
+      // Build the scheduled time on this date in the user's timezone
+      const hourStr = String(hour).padStart(2, '0');
+      const minuteStr = String(minute).padStart(2, '0');
+      const localDateTimeStr = `${localDateStr}T${hourStr}:${minuteStr}:00`;
+      
+      // Convert this local time to UTC
+      const scheduledUtc = fromZonedTime(localDateTimeStr, userTimezone);
+      
+      // Get the day of week for this date in the user's timezone
+      // We need to check what day it is in THEIR timezone, not ours
+      const dayInUserTz = new Date(localDateTimeStr);
+      const dayOfWeek = dayInUserTz.getDay();
+      
+      // Check if this is a valid scheduled day and is in the future
+      if (scheduledDayNumbers.includes(dayOfWeek) && scheduledUtc > nowUtc) {
+        // Log only in development mode
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Next run: ${localDateTimeStr} ${userTimezone} (${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dayOfWeek]}) -> ${scheduledUtc.toISOString()} UTC`);
+        }
+        return scheduledUtc;
+      }
     }
     
-    // Find next scheduled day
-    let daysChecked = 0;
-    while (!scheduledDayNumbers.includes(nextRun.getDay()) && daysChecked < 7) {
-      nextRun.setDate(nextRun.getDate() + 1);
-      daysChecked++;
+    // Fallback (should never happen with 8 days of checking)
+    console.warn(`Could not find valid scheduled day for user, using fallback`);
+    return addDays(nowUtc, 1);
+  }
+
+  // One-time method to fix all existing schedules with correct timezone handling
+  async recalculateAllSchedules() {
+    console.log('Starting recalculation of all job schedules with correct timezones...');
+    
+    const jobs = await db
+      .select({
+        userId: dailyOutreachJobs.userId,
+        jobId: dailyOutreachJobs.id,
+        oldNextRun: dailyOutreachJobs.nextRunAt,
+        preferences: userOutreachPreferences
+      })
+      .from(dailyOutreachJobs)
+      .innerJoin(userOutreachPreferences, eq(dailyOutreachJobs.userId, userOutreachPreferences.userId));
+    
+    let updatedCount = 0;
+    for (const job of jobs) {
+      const nextRun = this.calculateNextRun(job.preferences);
+      
+      await db
+        .update(dailyOutreachJobs)
+        .set({ 
+          nextRunAt: nextRun,
+          lastError: `Schedule recalculated with timezone fix: ${job.preferences.timezone}`,
+          updatedAt: new Date()
+        })
+        .where(eq(dailyOutreachJobs.id, job.jobId));
+      
+      console.log(`Updated job for user ${job.userId}: ${job.oldNextRun.toISOString()} -> ${nextRun.toISOString()}`);
+      updatedCount++;
     }
     
-    // If no valid day found (shouldn't happen), default to tomorrow
-    if (daysChecked >= 7) {
-      nextRun = new Date(now);
-      nextRun.setDate(nextRun.getDate() + 1);
-      nextRun.setHours(hour, minute, 0, 0);
-    }
-    
-    return nextRun;
+    console.log(`✅ Recalculated ${updatedCount} job schedules with correct timezones`);
+    return updatedCount;
   }
   
   private async processUserOutreach(userId: number): Promise<{ batchId: number | null; contactsProcessed: number }> {
-    console.log(`Processing daily outreach for user ${userId}`);
+    // Log processing start
+    const statusUpdates: string[] = [];
     
     try {
-      // Get user details
+      // Track step 1: Get user details
+      statusUpdates.push('Step 1: Fetching user details');
       const [user] = await db
         .select()
         .from(users)
@@ -330,22 +435,48 @@ export class PersistentDailyOutreachScheduler {
       if (!user) {
         throw new Error(`User ${userId} not found`);
       }
+      statusUpdates.push(`Step 1 ✓: Found user ${user.email}`);
       
       // Check vacation mode
+      statusUpdates.push('Step 2: Checking user preferences');
       const [preferences] = await db
         .select()
         .from(userOutreachPreferences)
         .where(eq(userOutreachPreferences.userId, userId));
       
-      // Check if user is on vacation (if vacation mode fields exist)
-      // This is for future implementation when vacation fields are added
+      if (!preferences?.enabled) {
+        statusUpdates.push('Step 2 ⚠️: User has disabled outreach');
+        await this.updateJobStatus(userId, statusUpdates.join(' | '));
+        return { batchId: null, contactsProcessed: 0 };
+      }
+      statusUpdates.push('Step 2 ✓: Outreach enabled');
+      
+      // Check for strategic profiles (products)
+      statusUpdates.push('Step 3: Checking strategic profiles');
+      const [profileCount] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(strategicProfiles)
+        .where(eq(strategicProfiles.userId, userId));
+      
+      if (profileCount.count === 0) {
+        statusUpdates.push('Step 3 ❌: No strategic profiles (products) configured');
+        await this.updateJobStatus(userId, statusUpdates.join(' | '));
+        console.log(`User ${userId} has no strategic profiles`);
+        return { batchId: null, contactsProcessed: 0 };
+      }
+      statusUpdates.push(`Step 3 ✓: Found ${profileCount.count} strategic profiles`);
       
       // Check available contacts
+      statusUpdates.push('Step 4: Checking available contacts');
       const availableCount = await this.checkAvailableContacts(userId);
       
       if (availableCount < 5) {
+        statusUpdates.push(`Step 4 ❌: Insufficient contacts (${availableCount}/5 required)`);
+        await this.updateJobStatus(userId, statusUpdates.join(' | '));
         console.log(`User ${userId} has insufficient contacts (${availableCount})`);
+        
         // Send "need more contacts" email
+        statusUpdates.push('Step 5: Sending nudge email for more contacts');
         await sendGridService.sendDailyNudgeEmail(user, null);
         
         // Update last nudge sent
@@ -356,13 +487,19 @@ export class PersistentDailyOutreachScheduler {
         
         return { batchId: null, contactsProcessed: 0 };
       }
+      statusUpdates.push(`Step 4 ✓: Found ${availableCount} available contacts`);
       
       // Generate batch
+      statusUpdates.push('Step 5: Generating AI email batch');
       const batch = await batchGenerator.generateDailyBatch(userId);
       
       if (batch) {
+        statusUpdates.push(`Step 5 ✓: Generated batch with ${batch.items.length} emails`);
+        
         // Send notification email with batch details
+        statusUpdates.push('Step 6: Sending notification email');
         await sendGridService.sendDailyNudgeEmail(user, batch);
+        statusUpdates.push('Step 6 ✓: Notification sent successfully');
         
         // Update last nudge sent
         await db
@@ -370,17 +507,34 @@ export class PersistentDailyOutreachScheduler {
           .set({ lastNudgeSent: new Date() })
           .where(eq(userOutreachPreferences.userId, userId));
         
+        // Success status is handled by the executeJob method after this returns
         console.log(`Daily outreach processed successfully for user ${userId}`);
         return { batchId: batch.id, contactsProcessed: batch.items.length };
       } else {
+        statusUpdates.push('Step 5 ❌: Failed to generate batch');
+        await this.updateJobStatus(userId, `FAILED: ${statusUpdates.join(' | ')}`);
         console.log(`Failed to generate batch for user ${userId}`);
         return { batchId: null, contactsProcessed: 0 };
       }
       
-    } catch (error) {
+    } catch (error: any) {
+      const errorMsg = `ERROR at ${statusUpdates[statusUpdates.length - 1] || 'unknown step'}: ${error.message}`;
+      await this.updateJobStatus(userId, errorMsg);
       console.error(`Error processing outreach for user ${userId}:`, error);
       throw error;
     }
+  }
+  
+  private async updateJobStatus(userId: number, status: string) {
+    // Update the job's lastError field with the status information
+    // We're repurposing lastError as a status tracking field
+    await db
+      .update(dailyOutreachJobs)
+      .set({ 
+        lastError: status,
+        updatedAt: new Date()
+      })
+      .where(eq(dailyOutreachJobs.userId, userId));
   }
   
   private async checkAvailableContacts(userId: number): Promise<number> {
@@ -434,7 +588,7 @@ export class PersistentDailyOutreachScheduler {
         })
         .where(eq(dailyOutreachJobs.userId, userId));
       
-      console.log(`Updated job for user ${userId}, next run: ${nextRun}`);
+      console.log(`Schedule updated for user ${userId}`);
     } else if (preferences.enabled) {
       // Create new job if doesn't exist
       await db.insert(dailyOutreachJobs).values({
@@ -443,7 +597,7 @@ export class PersistentDailyOutreachScheduler {
         status: 'scheduled'
       });
       
-      console.log(`Created new job for user ${userId}, next run: ${nextRun}`);
+      console.log(`New job created for user ${userId}`);
     }
   }
   
