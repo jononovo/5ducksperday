@@ -14,6 +14,7 @@ import { eq, and, lte, isNull, sql, inArray, not } from 'drizzle-orm';
 import { batchGenerator } from './batch-generator';
 import { sendGridService } from './sendgrid-service';
 import { differenceInMinutes } from 'date-fns';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 
 export class PersistentDailyOutreachScheduler {
   private pollingInterval: NodeJS.Timeout | null = null;
@@ -86,7 +87,8 @@ export class PersistentDailyOutreachScheduler {
         status: 'scheduled'
       });
       
-      console.log(`Created job for user ${userId}, next run: ${nextRun}`);
+      // Log creation in production for monitoring
+    console.log(`Job created for user ${userId}`);
     } else if (existingJob.status === 'failed') {
       // Reset failed jobs
       const nextRun = this.calculateNextRun(preferences);
@@ -99,7 +101,7 @@ export class PersistentDailyOutreachScheduler {
         })
         .where(eq(dailyOutreachJobs.userId, userId));
         
-      console.log(`Reset failed job for user ${userId}, next run: ${nextRun}`);
+      console.log(`Job reset for user ${userId}`);
     }
   }
   
@@ -270,7 +272,7 @@ export class PersistentDailyOutreachScheduler {
         contactsProcessed: contactsProcessed
       });
       
-      console.log(`Job completed for user ${job.userId}, next run: ${nextRun}, processing time: ${processingTime}ms`);
+      console.log(`✅ User ${job.userId}: Batch ${batchId} created (${contactsProcessed} contacts, ${processingTime}ms)`);
       
     } catch (error: any) {
       console.error(`Job failed for user ${job.userId}:`, error);
@@ -328,47 +330,107 @@ export class PersistentDailyOutreachScheduler {
   }
   
   private calculateNextRun(preferences: any): Date {
-    const now = new Date();
+    const userTimezone = preferences.timezone || 'America/New_York';
     const scheduleTime = preferences.scheduleTime || '09:00';
-    const [hour, minute] = scheduleTime.split(':').map(Number);
     const scheduleDays = preferences.scheduleDays || ['mon', 'tue', 'wed'];
+    const [hour, minute] = scheduleTime.split(':').map(Number);
     
-    // Find next scheduled day
+    // Day mapping - support both abbreviated and full names
     const dayMap: { [key: string]: number } = { 
       'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 
-      'thu': 4, 'fri': 5, 'sat': 6 
+      'thu': 4, 'fri': 5, 'sat': 6,
+      'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
+      'thursday': 4, 'friday': 5, 'saturday': 6
     };
+    const scheduledDayNumbers = scheduleDays
+      .map((d: string) => dayMap[d.toLowerCase()])
+      .filter((n: number | undefined) => n !== undefined);
     
-    const scheduledDayNumbers = scheduleDays.map((d: string) => dayMap[d]);
-    let nextRun = new Date(now);
+    // Get the current time in UTC
+    const nowUtc = new Date();
     
-    // Set time
-    nextRun.setHours(hour, minute, 0, 0);
+    // Convert UTC time to user's timezone to get their current date/time
+    const nowInUserTz = toZonedTime(nowUtc, userTimezone);
     
-    // If today's time has passed, start from tomorrow
-    if (nextRun <= now) {
-      nextRun.setDate(nextRun.getDate() + 1);
+    // Start iterating from the user's current date in their timezone
+    let testDate = new Date(nowInUserTz);
+    
+    // Try up to 8 days (covers all possibilities)
+    for (let i = 0; i < 8; i++) {
+      // Build a date at the scheduled time in the user's timezone
+      const candidateDate = new Date(testDate);
+      candidateDate.setHours(hour, minute, 0, 0);
+      
+      // Format as ISO string representing the user's local time
+      const year = candidateDate.getFullYear();
+      const month = String(candidateDate.getMonth() + 1).padStart(2, '0');
+      const day = String(candidateDate.getDate()).padStart(2, '0');
+      const hourStr = String(hour).padStart(2, '0');
+      const minuteStr = String(minute).padStart(2, '0');
+      const localTimeStr = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00`;
+      
+      // Convert from user's timezone to UTC
+      const utcTime = fromZonedTime(localTimeStr, userTimezone);
+      
+      // Get the day of week in the user's timezone
+      const userTzCandidateDate = toZonedTime(utcTime, userTimezone);
+      const dayOfWeek = userTzCandidateDate.getDay();
+      
+      // Check if this is a valid scheduled day and in the future
+      if (scheduledDayNumbers.includes(dayOfWeek) && utcTime > nowUtc) {
+        // Log only in development mode
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Next run: ${localTimeStr} ${userTimezone} (day ${dayOfWeek}) -> ${utcTime.toISOString()} UTC`);
+        }
+        return utcTime;
+      }
+      
+      // Move to the next day in the user's timezone
+      testDate.setDate(testDate.getDate() + 1);
     }
     
-    // Find next scheduled day
-    let daysChecked = 0;
-    while (!scheduledDayNumbers.includes(nextRun.getDay()) && daysChecked < 7) {
-      nextRun.setDate(nextRun.getDate() + 1);
-      daysChecked++;
+    // Fallback (should never happen)
+    console.warn(`Could not find valid scheduled day for user, using fallback`);
+    return new Date(nowUtc.getTime() + 24 * 60 * 60 * 1000);
+  }
+
+  // One-time method to fix all existing schedules with correct timezone handling
+  async recalculateAllSchedules() {
+    console.log('Starting recalculation of all job schedules with correct timezones...');
+    
+    const jobs = await db
+      .select({
+        userId: dailyOutreachJobs.userId,
+        jobId: dailyOutreachJobs.id,
+        oldNextRun: dailyOutreachJobs.nextRunAt,
+        preferences: userOutreachPreferences
+      })
+      .from(dailyOutreachJobs)
+      .innerJoin(userOutreachPreferences, eq(dailyOutreachJobs.userId, userOutreachPreferences.userId));
+    
+    let updatedCount = 0;
+    for (const job of jobs) {
+      const nextRun = this.calculateNextRun(job.preferences);
+      
+      await db
+        .update(dailyOutreachJobs)
+        .set({ 
+          nextRunAt: nextRun,
+          lastError: `Schedule recalculated with timezone fix: ${job.preferences.timezone}`,
+          updatedAt: new Date()
+        })
+        .where(eq(dailyOutreachJobs.id, job.jobId));
+      
+      console.log(`Updated job for user ${job.userId}: ${job.oldNextRun.toISOString()} -> ${nextRun.toISOString()}`);
+      updatedCount++;
     }
     
-    // If no valid day found (shouldn't happen), default to tomorrow
-    if (daysChecked >= 7) {
-      nextRun = new Date(now);
-      nextRun.setDate(nextRun.getDate() + 1);
-      nextRun.setHours(hour, minute, 0, 0);
-    }
-    
-    return nextRun;
+    console.log(`✅ Recalculated ${updatedCount} job schedules with correct timezones`);
+    return updatedCount;
   }
   
   private async processUserOutreach(userId: number): Promise<{ batchId: number | null; contactsProcessed: number }> {
-    console.log(`Processing daily outreach for user ${userId}`);
+    // Log processing start
     const statusUpdates: string[] = [];
     
     try {
@@ -535,7 +597,7 @@ export class PersistentDailyOutreachScheduler {
         })
         .where(eq(dailyOutreachJobs.userId, userId));
       
-      console.log(`Updated job for user ${userId}, next run: ${nextRun}`);
+      console.log(`Schedule updated for user ${userId}`);
     } else if (preferences.enabled) {
       // Create new job if doesn't exist
       await db.insert(dailyOutreachJobs).values({
@@ -544,7 +606,7 @@ export class PersistentDailyOutreachScheduler {
         status: 'scheduled'
       });
       
-      console.log(`Created new job for user ${userId}, next run: ${nextRun}`);
+      console.log(`New job created for user ${userId}`);
     }
   }
   
