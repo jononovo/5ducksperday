@@ -16,6 +16,7 @@ import { persistentScheduler as outreachScheduler } from './services/persistent-
 import { batchGenerator } from './services/batch-generator';
 import { sendGridService } from './services/sendgrid-service';
 import { buildContactsReadyEmail } from './email-templates/contacts-ready';
+import { mockContactsForTesting } from './email-templates/mock-contacts-for-testing';
 import type { Request, Response } from 'express';
 import streakRoutes from './routes-streak';
 import { requireAuth } from '../../utils/auth';
@@ -305,40 +306,20 @@ router.post('/send-test-email', requireAuth, async (req: Request, res: Response)
       });
     }
     
-    // Try to get the most recent batch for the user (for testing with real data)
-    const [recentBatch] = await db
-      .select()
-      .from(dailyOutreachBatches)
-      .where(eq(dailyOutreachBatches.userId, userId))
-      .orderBy(desc(dailyOutreachBatches.createdAt))
-      .limit(1);
-    
-    // Create a sample batch if no real batch exists
-    let testBatch: any = recentBatch;
-    
-    if (!testBatch) {
-      // Create a minimal test batch structure for the email
-      testBatch = {
-        id: 0,
-        userId,
-        batchDate: new Date(),
-        secureToken: 'test-email-token',
-        status: 'test',
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        createdAt: new Date(),
-        items: [],
-        hasContacts: true,
-        companiesByType: [{ type: 'Test prospects', count: 5 }]
-      };
-    } else {
-      // Add required properties for existing batch
-      testBatch = {
-        ...testBatch,
-        items: [],
-        hasContacts: true,
-        companiesByType: [{ type: 'B2B prospects', count: 5 }]
-      };
-    }
+    // Always use mock contacts for test emails
+    const testBatch: any = {
+      id: 0,
+      userId,
+      batchDate: new Date(),
+      secureToken: 'test-email-token',
+      status: 'test',
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      createdAt: new Date(),
+      items: mockContactsForTesting, // Use the static mock contacts
+      hasContacts: true,
+      companiesByType: [{ type: 'Sample Companies', count: 5 }],
+      isSampleData: true // Flag to indicate this is sample data
+    };
     
     // Create a modified user object with the target email if provided
     const testUser = targetEmail ? { ...user, email: targetEmail } : user;

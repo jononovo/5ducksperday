@@ -1,11 +1,22 @@
 import { DailyBatch, EmailNotificationContent } from '../types';
 
-export function buildContactsReadyEmail(batch: DailyBatch, appUrl: string): EmailNotificationContent {
+export function buildContactsReadyEmail(batch: DailyBatch & { isSampleData?: boolean }, appUrl: string): EmailNotificationContent {
   const secureUrl = `${appUrl}/outreach/daily/${batch.secureToken}`;
   
   const companiesBreakdown = batch.companiesByType
     ?.map(c => `<li>${c.count} ${c.type}</li>`)
     .join('') || '<li>5 carefully selected prospects</li>';
+  
+  // Add sample data banner if this is test data
+  const sampleDataBanner = batch.isSampleData ? `
+    <div style="background: #FEF3C7; border: 1px solid #F59E0B; padding: 12px 16px; border-radius: 6px; margin: 20px 0;">
+      <strong style="color: #92400E; font-size: 14px;">📋 SAMPLE DATA</strong>
+      <br>
+      <span style="color: #78350F; font-size: 13px;">
+        This is example data for testing. Your actual emails will contain real prospects from your contact list.
+      </span>
+    </div>
+  ` : '';
   
   // Build the contact list HTML - each contact is clickable and opens outreach page in new tab
   const contactsListHtml = batch.items && batch.items.length > 0 ? `
@@ -70,6 +81,8 @@ export function buildContactsReadyEmail(batch: DailyBatch, appUrl: string): Emai
           ${companiesBreakdown}
         </ul>
         
+        ${sampleDataBanner}
+        
         ${contactsListHtml}
         
         <a href="${secureUrl}" class="button">Review and Send Emails →</a>
@@ -83,11 +96,13 @@ export function buildContactsReadyEmail(batch: DailyBatch, appUrl: string): Emai
     </html>
   `;
   
+  const sampleDataText = batch.isSampleData ? '\n[SAMPLE DATA - This is example data for testing]\n' : '';
+  
   const text = `Your 5 leads for today are ready
 
 Hi there,
 
-Your personalized outreach emails are waiting.
+Your personalized outreach emails are waiting.${sampleDataText}
 ${contactsListText}
 Review and send them here: ${secureUrl}
 
