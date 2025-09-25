@@ -267,9 +267,6 @@ export class DailyBatchGenerator {
       .values(itemsToInsert)
       .returning();
     
-    // Calculate companies by type
-    const companiesByType = this.categorizeCompanies(companiesData);
-    
     // Build complete batch object with details
     const itemsWithDetails: DailyOutreachItemWithDetails[] = insertedItems.map((item, index) => ({
       ...item,
@@ -280,37 +277,8 @@ export class DailyBatchGenerator {
     return {
       ...batch,
       items: itemsWithDetails,
-      hasContacts: true,
-      companiesByType
+      hasContacts: true
     };
-  }
-  
-  private categorizeCompanies(companies: Company[]): { type: string; count: number }[] {
-    const categories = new Map<string, number>();
-    
-    companies.forEach(company => {
-      // Try to categorize based on description or services
-      let category = 'Companies';
-      
-      if (company.description) {
-        const desc = company.description.toLowerCase();
-        if (desc.includes('software') || desc.includes('saas') || desc.includes('tech')) {
-          category = 'Software Companies';
-        } else if (desc.includes('marketing') || desc.includes('agency')) {
-          category = 'Marketing Agencies';
-        } else if (desc.includes('consulting') || desc.includes('services')) {
-          category = 'Service Providers';
-        } else if (desc.includes('retail') || desc.includes('ecommerce')) {
-          category = 'Retail Businesses';
-        }
-      }
-      
-      categories.set(category, (categories.get(category) || 0) + 1);
-    });
-    
-    return Array.from(categories.entries())
-      .map(([type, count]) => ({ type, count }))
-      .sort((a, b) => b.count - a.count);
   }
 }
 

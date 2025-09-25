@@ -118,6 +118,28 @@ router.get('/streak-stats', requireAuth, async (req: Request, res: Response) => 
       
       // Add itemCount to the batch object
       (todaysBatch as any).itemCount = itemCount;
+      
+      // Fetch the actual items with contact/company details for display
+      const batchItems = await db
+        .select({
+          contact: {
+            id: contacts.id,
+            name: contacts.name,
+            role: contacts.role,
+            email: contacts.email
+          },
+          company: {
+            id: companies.id,
+            name: companies.name
+          }
+        })
+        .from(dailyOutreachItems)
+        .innerJoin(contacts, eq(dailyOutreachItems.contactId, contacts.id))
+        .innerJoin(companies, eq(dailyOutreachItems.companyId, companies.id))
+        .where(eq(dailyOutreachItems.batchId, todaysBatch.id));
+      
+      // Add prospects to the batch object
+      (todaysBatch as any).prospects = batchItems;
     }
     
     // Removed debug logging for production

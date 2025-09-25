@@ -48,6 +48,18 @@ interface StreakStats {
     token: string;
     createdAt: string;
     itemCount: number;
+    prospects?: Array<{
+      contact: {
+        id: number;
+        name: string;
+        role: string | null;
+        email: string | null;
+      };
+      company: {
+        id: number;
+        name: string;
+      };
+    }>;
   };
 }
 
@@ -475,6 +487,36 @@ export default function StreakPage() {
             {stats?.todaysBatch ? (
               <div className="space-y-3">
                 <div className="text-2xl font-bold">{stats.todaysBatch.itemCount} ready</div>
+                
+                {/* Prospect list */}
+                {stats.todaysBatch.prospects && stats.todaysBatch.prospects.length > 0 && (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {stats.todaysBatch.prospects.map((prospect, idx) => (
+                      <div 
+                        key={idx} 
+                        className="py-2 cursor-pointer hover:bg-muted/50 transition-colors rounded px-2 -mx-2"
+                        onClick={() => window.open(`/outreach/daily/${stats.todaysBatch?.token}`, '_blank')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            window.open(`/outreach/daily/${stats.todaysBatch?.token}`, '_blank');
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`View outreach email for ${prospect.contact.name}`}
+                      >
+                        <div className="text-sm">
+                          <span className="font-medium">{prospect.contact.name}</span>
+                          <span className="text-muted-foreground"> @ {prospect.company.name}</span>
+                        </div>
+                        {prospect.contact.role && (
+                          <div className="text-xs text-muted-foreground">{prospect.contact.role}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
                 <Button 
                   onClick={openTodaysEmail} 
                   size="sm" 
