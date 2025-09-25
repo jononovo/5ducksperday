@@ -1,4 +1,5 @@
 import { DailyBatch, EmailNotificationContent } from '../types';
+import { getRandomSubjectLine } from './subject-line-templates';
 
 export function buildContactsReadyEmail(batch: DailyBatch & { isSampleData?: boolean }, appUrl: string): EmailNotificationContent {
   const secureUrl = `${appUrl}/outreach/daily/${batch.secureToken}`;
@@ -101,7 +102,7 @@ Review and send them here: ${secureUrl}
 Pro tip: Send these before noon for 23% higher response rates.`;
   
   return {
-    subject: 'Your 5 leads for today are ready',
+    subject: getRandomSubjectLine(batch),
     html,
     text
   };
