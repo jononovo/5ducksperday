@@ -742,7 +742,7 @@ export default function StreakPage() {
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start">
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {vacationDates.from && vacationDates.to ? (
+                        {vacationDates.from && vacationDates.to && !isNaN(vacationDates.from.getTime()) && !isNaN(vacationDates.to.getTime()) ? (
                           <>
                             {format(vacationDates.from, 'MMM d')} - {format(vacationDates.to, 'MMM d, yyyy')}
                           </>
