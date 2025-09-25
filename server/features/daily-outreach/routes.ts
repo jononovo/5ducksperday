@@ -198,7 +198,7 @@ router.get('/preview', requireAuth, async (req: Request, res: Response) => {
         batchDate: new Date(),
         secureToken: 'preview-token',
         status: 'preview',
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000), // Set to 100 years (effectively no expiration)
         createdAt: new Date(),
         items: [],
         hasContacts: true
@@ -311,7 +311,7 @@ router.post('/send-test-email', requireAuth, async (req: Request, res: Response)
       batchDate: new Date(),
       secureToken: 'test-email-token',
       status: 'test',
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000), // Set to 100 years (effectively no expiration)
       createdAt: new Date(),
       items: mockContactsForTesting, // Use the static mock contacts
       hasContacts: true,
@@ -355,15 +355,15 @@ router.get('/batch/:token', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Batch not found or expired' });
     }
     
-    // Check if expired
-    if (new Date() > new Date(batch.expiresAt)) {
-      await db
-        .update(dailyOutreachBatches)
-        .set({ status: 'expired' })
-        .where(eq(dailyOutreachBatches.id, batch.id));
-      
-      return res.status(410).json({ error: 'This link has expired' });
-    }
+    // Comment out expiration validation for now - links don't expire
+    // if (new Date() > new Date(batch.expiresAt)) {
+    //   await db
+    //     .update(dailyOutreachBatches)
+    //     .set({ status: 'expired' })
+    //     .where(eq(dailyOutreachBatches.id, batch.id));
+    //   
+    //   return res.status(410).json({ error: 'This link has expired' });
+    // }
     
     // Get batch items with contact and company details
     const items = await db
@@ -407,9 +407,10 @@ router.put('/batch/:token/item/:itemId', async (req: Request, res: Response) => 
       return res.status(404).json({ error: 'Batch not found' });
     }
     
-    if (new Date() > new Date(batch.expiresAt)) {
-      return res.status(410).json({ error: 'This link has expired' });
-    }
+    // Comment out expiration check - links no longer expire
+    // if (new Date() > new Date(batch.expiresAt)) {
+    //   return res.status(410).json({ error: 'This link has expired' });
+    // }
     
     // Verify item belongs to this batch
     const [item] = await db
@@ -456,8 +457,9 @@ router.post('/batch/:token/item/:itemId/sent', async (req: Request, res: Respons
       .from(dailyOutreachBatches)
       .where(eq(dailyOutreachBatches.secureToken, token));
     
-    if (!batch || new Date() > new Date(batch.expiresAt)) {
-      return res.status(404).json({ error: 'Invalid or expired batch' });
+    // Only check if batch exists, not expiration
+    if (!batch) {
+      return res.status(404).json({ error: 'Invalid batch' });
     }
     
     // Get the full item details before updating
@@ -642,8 +644,9 @@ router.post('/batch/:token/item/:itemId/skip', async (req: Request, res: Respons
       .from(dailyOutreachBatches)
       .where(eq(dailyOutreachBatches.secureToken, token));
     
-    if (!batch || new Date() > new Date(batch.expiresAt)) {
-      return res.status(404).json({ error: 'Invalid or expired batch' });
+    // Only check if batch exists, not expiration
+    if (!batch) {
+      return res.status(404).json({ error: 'Invalid batch' });
     }
     
     // Update item status
