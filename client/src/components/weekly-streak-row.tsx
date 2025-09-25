@@ -44,15 +44,15 @@ const TIMES = [
 ];
 
 const TIMEZONES = [
-  'America/New_York',
-  'America/Chicago',
-  'America/Denver',
-  'America/Los_Angeles',
-  'America/Phoenix',
-  'Europe/London',
-  'Europe/Paris',
-  'Asia/Tokyo',
-  'Australia/Sydney'
+  { value: 'America/New_York', label: 'EST/EDT - Eastern Time' },
+  { value: 'America/Chicago', label: 'CST/CDT - Central Time' },
+  { value: 'America/Denver', label: 'MST/MDT - Mountain Time' },
+  { value: 'America/Los_Angeles', label: 'PST/PDT - Pacific Time' },
+  { value: 'America/Phoenix', label: 'MST - Arizona Time' },
+  { value: 'Europe/London', label: 'GMT/BST - London Time' },
+  { value: 'Europe/Paris', label: 'CET/CEST - Central European' },
+  { value: 'Asia/Tokyo', label: 'JST - Japan Standard Time' },
+  { value: 'Australia/Sydney', label: 'AEST/AEDT - Sydney Time' }
 ];
 
 export function WeeklyStreakRow() {
@@ -577,8 +577,8 @@ export function WeeklyStreakRow() {
                 </SelectTrigger>
                 <SelectContent>
                   {TIMEZONES.map((tz) => (
-                    <SelectItem key={tz} value={tz} className="text-xs">
-                      {tz.replace(/_/g, ' ')}
+                    <SelectItem key={tz.value} value={tz.value} className="text-xs">
+                      {tz.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
