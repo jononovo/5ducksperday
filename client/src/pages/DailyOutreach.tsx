@@ -481,7 +481,7 @@ export default function DailyOutreach() {
                 </p>
                 <div className="flex flex-col gap-3 px-4 pt-2">
                   <Button 
-                    onClick={() => window.location.href = '/app/streak'} 
+                    onClick={() => window.location.href = '/streak'} 
                     className="w-full"
                   >
                     Go to Streak Dashboard
@@ -491,7 +491,7 @@ export default function DailyOutreach() {
                     onClick={() => window.location.href = '/app'} 
                     className="w-full"
                   >
-                    Browse New Leads
+                    Find More Leads
                   </Button>
                   <p className="text-sm text-gray-500">
                     💡 Check your email for today's outreach link
@@ -520,7 +520,7 @@ export default function DailyOutreach() {
                 </p>
                 <div className="flex flex-col gap-3 px-4 pt-2">
                   <Button 
-                    onClick={() => window.location.href = '/app/streak'} 
+                    onClick={() => window.location.href = '/streak'} 
                     className="w-full"
                   >
                     View Today's Batch
