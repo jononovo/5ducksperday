@@ -494,7 +494,7 @@ export default function StreakPage() {
                     {stats.todaysBatch.prospects.map((prospect, idx) => (
                       <div 
                         key={idx} 
-                        className="py-2 border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors rounded px-2 -mx-2"
+                        className="py-2 cursor-pointer hover:bg-muted/50 transition-colors rounded px-2 -mx-2"
                         onClick={() => window.open(`/outreach/daily/${stats.todaysBatch?.token}`, '_blank')}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
