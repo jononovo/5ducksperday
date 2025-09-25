@@ -25,15 +25,37 @@ export function ActivationCard({
 }: ActivationCardProps) {
   const { toast } = useToast();
   
+  // Validate all required components before activation
   const handleActivate = () => {
-    if (!hasProduct) {
+    // Check each required component and provide specific feedback
+    if (!hasSenderProfile) {
       toast({
         title: "Setup Required",
-        description: "Please add your product information first",
+        description: "Please add your sender identity first (Box 1)",
         variant: "destructive"
       });
       return;
     }
+    
+    if (!hasProduct) {
+      toast({
+        title: "Setup Required",
+        description: "Please add your product information first (Box 2)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!hasCustomerProfile) {
+      toast({
+        title: "Setup Required",
+        description: "Please define your ideal customer first (Box 3)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // All components configured - proceed with activation
     onActivate();
   };
 
@@ -111,7 +133,8 @@ export function ActivationCard({
               size="lg"
               className="h-16 w-16 rounded-full p-0 mb-3"
               onClick={handleActivate}
-              disabled={!hasProduct}
+              disabled={!hasProduct || !hasSenderProfile || !hasCustomerProfile}
+              title={!hasProduct || !hasSenderProfile || !hasCustomerProfile ? "Complete all setup steps first" : "Start your campaign"}
             >
               <Play className="h-8 w-8 ml-1" />
             </Button>

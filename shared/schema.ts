@@ -439,7 +439,9 @@ export const communicationHistory = pgTable("communication_history", {
 
 export const userOutreachPreferences = pgTable("user_outreach_preferences", {
   userId: integer("user_id").primaryKey().references(() => users.id),
-  enabled: boolean("enabled").default(true),
+  // Campaign activation status - true means the user has explicitly started their campaign
+  // Note: Campaign only runs when enabled=true AND all components configured (product, sender, customer)
+  enabled: boolean("enabled").default(true), // TODO: Consider renaming to 'isCampaignActive' for clarity
   scheduleDays: text("schedule_days").array().default(['mon', 'tue', 'wed']),
   scheduleTime: text("schedule_time").default('09:00'), // Store as string for simplicity
   timezone: text("timezone").default('America/New_York'),

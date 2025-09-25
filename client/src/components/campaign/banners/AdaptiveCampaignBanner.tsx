@@ -5,16 +5,16 @@ import { SetupProgressBanner } from './SetupProgressBanner';
 import { ActivationCTABanner } from './ActivationCTABanner';
 
 interface AdaptiveCampaignBannerProps {
-  isActivated: boolean;
+  isActivated: boolean; // True only when campaign is fully configured AND explicitly enabled by user
   stats?: {
     currentStreak?: number;
     emailsSentToday?: number;
     emailsSentThisMonth?: number;
     companiesContactedThisMonth?: number;
   };
-  hasSenderProfile: boolean;
-  hasProduct: boolean;
-  hasCustomerProfile: boolean;
+  hasSenderProfile: boolean; // Has sender identity configured
+  hasProduct: boolean; // Has product/service configured
+  hasCustomerProfile: boolean; // Has target customer defined
   onStartClick?: () => void;
   enableTestCycle?: boolean; // Optional prop for external control
 }
@@ -126,10 +126,12 @@ export function AdaptiveCampaignBanner({
     
     // Normal production logic - 3 states based on product and activation
     if (!hasProduct) {
-      // No product yet - show the initial CTA
+      // State 1: No product configured yet - show the initial CTA to get started
       return <ActivationCTABanner onStartClick={onStartClick || (() => {})} />;
     } else if (!isActivated) {
-      // Has product but not activated - show setup progress
+      // State 2: Has product but campaign not active 
+      // (either missing components OR user hasn't clicked "Start Campaign")
+      // Show setup progress to guide completion
       return (
         <SetupProgressBanner
           hasSenderProfile={hasSenderProfile}
@@ -138,7 +140,9 @@ export function AdaptiveCampaignBanner({
         />
       );
     } else {
-      // Fully activated - show live campaign stats
+      // State 3: Campaign is fully active 
+      // (all components configured AND user explicitly started campaign)
+      // Show live campaign metrics
       return <ActiveCampaignBanner stats={stats || {}} />;
     }
   };
