@@ -45,6 +45,7 @@ import { registerReactChatRoutes } from "./user-chatbox/react";
 import { registerUserAccountSettingsRoutes } from "./user-account-settings";
 import { dailyOutreachRoutes } from "./features/daily-outreach";
 import { registerCampaignsRoutes } from "./features/campaigns";
+import { registerAdminRoutes } from "./features/admin/routes";
 
 
 // Import centralized auth utilities
@@ -128,6 +129,9 @@ export function registerRoutes(app: Express) {
   
   // Register modular health monitoring routes
   registerHealthMonitoringRoutes(app);
+  
+  // Register admin routes (protected by requireAdmin middleware)
+  registerAdminRoutes(app);
   
   // Register modular lists management routes
   registerListsRoutes(app, requireAuth);

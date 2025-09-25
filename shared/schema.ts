@@ -7,7 +7,8 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
-  isGuest: boolean("is_guest").default(false)
+  isGuest: boolean("is_guest").default(false),
+  isAdmin: boolean("is_admin").default(false)
 });
 
 export const lists = pgTable("lists", {
