@@ -43,13 +43,7 @@ export function ActivationCTABanner({ onStartClick }: ActivationCTABannerProps) 
             </div>
           </div>
           
-          <div className="flex flex-col items-end gap-4">
-            <div className="bg-white/15 backdrop-blur-lg rounded-xl p-6 min-w-[200px] border border-white/20">
-              <p className="text-sm opacity-90 mb-1">Daily Emails</p>
-              <p className="text-4xl font-bold">70</p>
-              <p className="text-xs opacity-70 mt-1">per 14-day sprint</p>
-            </div>
-            
+          <div>
             <Button 
               size="lg" 
               className="min-w-[200px] bg-white text-emerald-600 hover:bg-white/90 font-semibold shadow-lg"
