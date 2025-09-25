@@ -486,7 +486,7 @@ export default function StreakPage() {
           <CardContent>
             {stats?.todaysBatch ? (
               <div className="space-y-3">
-                <div className="text-2xl font-bold">{stats.todaysBatch.itemCount} ready</div>
+                <div className="text-2xl font-bold">{stats.todaysBatch.itemCount} Emails Ready</div>
                 
                 {/* Prospect list */}
                 {stats.todaysBatch.prospects && stats.todaysBatch.prospects.length > 0 && (
