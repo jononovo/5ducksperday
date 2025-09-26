@@ -246,9 +246,9 @@ export default function CompanyCards({
               size="sm"
               onClick={handlePrevSlide}
               disabled={currentSlideIndex === 0}
-              className="h-6 w-6 p-0 border-muted-foreground/20"
+              className="h-8 w-8 p-0 border-muted-foreground/20"
             >
-              <ChevronLeft className="h-3 w-3" />
+              <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-xs text-muted-foreground px-1">
               {currentSlideIndex + 1} of {companies.length}
@@ -258,9 +258,9 @@ export default function CompanyCards({
               size="sm"
               onClick={handleNextSlide}
               disabled={currentSlideIndex === companies.length - 1}
-              className="h-6 w-6 p-0 border-muted-foreground/20"
+              className="h-8 w-8 p-0 border-muted-foreground/20"
             >
-              <ChevronRight className="h-3 w-3" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         )}
