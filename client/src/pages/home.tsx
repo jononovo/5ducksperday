@@ -130,6 +130,7 @@ export default function Home() {
   const [selectedEmailContact, setSelectedEmailContact] = useState<Contact | null>(null);
   const [selectedEmailCompany, setSelectedEmailCompany] = useState<Company | null>(null);
   const [selectedCompanyContacts, setSelectedCompanyContacts] = useState<Contact[]>([]);
+  const [searchSectionCollapsed, setSearchSectionCollapsed] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -152,11 +153,23 @@ export default function Home() {
     setSelectedCompanyContacts(companyContacts);
     
     setEmailDrawerOpen(true);
+    // Auto-collapse search section when email drawer opens
+    setSearchSectionCollapsed(true);
   };
   
   const handleEmailContactChange = (newContact: Contact) => {
     setSelectedEmailContact(newContact);
   };
+
+  // Auto-collapse search section when email drawer opens
+  useEffect(() => {
+    if (emailDrawerOpen) {
+      setSearchSectionCollapsed(true);
+    } else {
+      // Optionally expand when drawer closes
+      setSearchSectionCollapsed(false);
+    }
+  }, [emailDrawerOpen]);
   
   const { 
     handleComprehensiveEmailSearch: comprehensiveSearchHook, 
@@ -2215,6 +2228,8 @@ export default function Home() {
             setSelectedEmailContact(null);
             setSelectedEmailCompany(null);
             setSelectedCompanyContacts([]);
+            // Expand search section when closing drawer
+            setSearchSectionCollapsed(false);
           }}
         />
       )}
@@ -2227,48 +2242,91 @@ export default function Home() {
           <div className="grid grid-cols-12 gap-3 md:gap-6">
             {/* Main Content Area - full width */}
             <div className="col-span-12 space-y-2 md:space-y-4 mt-[-10px]">
-          {/* Search Section - border removed and moved up */}
-          <div className="px-3 md:px-6 py-1"> {/* Reduced mobile padding, matched desktop padding with CardHeader (p-6) */}
-            {!currentResults && (
-              <div className="flex flex-col-reverse md:flex-row items-center gap-4 mb-3">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-2xl font-semibold mt-2 md:mt-0">Search for target businesses</h2>
+          {/* Search Section - Collapsible with Focus State */}
+          <div className="relative transition-all duration-300 ease-in-out">
+            {/* Collapsed Header - Only visible when collapsed */}
+            {searchSectionCollapsed && (
+              <button
+                onClick={() => setSearchSectionCollapsed(false)}
+                className="w-full px-3 md:px-6 py-2 bg-background border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors flex items-center justify-between group mb-2"
+                data-testid="button-expand-search"
+              >
+                <div className="flex items-center gap-2">
+                  <Search className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Open search</span>
+                  {currentQuery && (
+                    <span className="text-sm text-muted-foreground italic truncate max-w-[200px] md:max-w-[400px]">
+                      "{currentQuery}"
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <EggAnimation />
-                </div>
-              </div>
+                <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </button>
             )}
-            <Suspense fallback={<div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>}>
-              <PromptEditor
-                onAnalyze={() => setIsAnalyzing(true)}
-                onComplete={handleAnalysisComplete}
-                onSearchResults={handleSearchResults}
-                onCompaniesReceived={handleCompaniesReceived}
-                isAnalyzing={isAnalyzing}
-                initialPrompt={currentQuery || ""}
-                isFromLandingPage={isFromLandingPage}
-                onDismissLandingHint={() => setIsFromLandingPage(false)}
-                lastExecutedQuery={lastExecutedQuery}
-                onInputChange={(newValue) => {
-                  setCurrentQuery(newValue);
-                  setInputHasChanged(newValue !== lastExecutedQuery);
-                }}
-                onSearchSuccess={() => {
-                  const selectedSearchType = localStorage.getItem('searchType') || 'contacts';
-                  if (selectedSearchType === 'emails') {
-                    // Auto-trigger email search for full flow
-                    setTimeout(() => runConsolidatedEmailSearch(), 500);
-                  } else {
-                    // Standard behavior - highlight email button
-                    setHighlightEmailButton(true);
-                    setTimeout(() => setHighlightEmailButton(false), 25000);
-                  }
-                }}
-                hasSearchResults={currentResults ? currentResults.length > 0 : false}
-                onSessionIdChange={setCurrentSessionId}
-            />
-            </Suspense>
+            
+            {/* Expandable Search Content */}
+            <div 
+              className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                searchSectionCollapsed 
+                  ? 'max-h-0 opacity-0 pointer-events-none' 
+                  : 'max-h-[500px] opacity-100'
+              }`}
+            >
+              <div className="px-3 md:px-6 py-1"> {/* Reduced mobile padding, matched desktop padding with CardHeader (p-6) */}
+                {/* Collapse button when expanded */}
+                {!searchSectionCollapsed && emailDrawerOpen && (
+                  <button
+                    onClick={() => setSearchSectionCollapsed(true)}
+                    className="absolute right-3 md:right-6 top-2 z-10 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                    data-testid="button-collapse-search"
+                    title="Minimize search"
+                  >
+                    <ChevronUp className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                  </button>
+                )}
+                
+                {!currentResults && (
+                  <div className="flex flex-col-reverse md:flex-row items-center gap-4 mb-3">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-2xl font-semibold mt-2 md:mt-0">Search for target businesses</h2>
+                    </div>
+                    <div>
+                      <EggAnimation />
+                    </div>
+                  </div>
+                )}
+                <Suspense fallback={<div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>}>
+                  <PromptEditor
+                    onAnalyze={() => setIsAnalyzing(true)}
+                    onComplete={handleAnalysisComplete}
+                    onSearchResults={handleSearchResults}
+                    onCompaniesReceived={handleCompaniesReceived}
+                    isAnalyzing={isAnalyzing}
+                    initialPrompt={currentQuery || ""}
+                    isFromLandingPage={isFromLandingPage}
+                    onDismissLandingHint={() => setIsFromLandingPage(false)}
+                    lastExecutedQuery={lastExecutedQuery}
+                    onInputChange={(newValue) => {
+                      setCurrentQuery(newValue);
+                      setInputHasChanged(newValue !== lastExecutedQuery);
+                    }}
+                    onSearchSuccess={() => {
+                      const selectedSearchType = localStorage.getItem('searchType') || 'contacts';
+                      if (selectedSearchType === 'emails') {
+                        // Auto-trigger email search for full flow
+                        setTimeout(() => runConsolidatedEmailSearch(), 500);
+                      } else {
+                        // Standard behavior - highlight email button
+                        setHighlightEmailButton(true);
+                        setTimeout(() => setHighlightEmailButton(false), 25000);
+                      }
+                    }}
+                    hasSearchResults={currentResults ? currentResults.length > 0 : false}
+                    onSessionIdChange={setCurrentSessionId}
+                  />
+                </Suspense>
+              </div>
+            </div>
           </div>
 
           {/* Companies Analysis Section - Moved to top */}
@@ -2655,6 +2713,8 @@ export default function Home() {
                   setSelectedEmailContact(null);
                   setSelectedEmailCompany(null);
                   setSelectedCompanyContacts([]);
+                  // Expand search section when closing drawer
+                  setSearchSectionCollapsed(false);
                 }}
                 className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors group"
                 aria-label="Close email panel"
