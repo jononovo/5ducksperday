@@ -2218,11 +2218,11 @@ export default function Home() {
 
           {/* Companies Analysis Section - Moved to top */}
           {currentResults && currentResults.length > 0 ? (
-            <Card className="w-full">
+            <Card className="w-full rounded-none md:rounded-lg">
               
               {/* Contact Discovery Report - with reduced padding */}
               {contactReportVisible && (
-                <div className="px-4 pt-0 pb-2">
+                <div className="px-0 md:px-4 pt-0 pb-2">
                   <ContactDiscoveryReport 
                     companiesWithContacts={currentResults?.filter(company => 
                       company.contacts && company.contacts.length > 0).length || 0}
@@ -2237,7 +2237,7 @@ export default function Home() {
 
               {/* Email Search Summary - with reduced padding */}
               {summaryVisible && (
-                <div className="px-4 pt-1 pb-0">
+                <div className="px-0 md:px-4 pt-1 pb-0">
                   <EmailSearchSummary 
                     companiesWithEmails={currentResults?.filter(company => 
                       getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)).length || 0}
@@ -2253,7 +2253,7 @@ export default function Home() {
               
               {/* Email Search Progress - with reduced padding */}
               {isConsolidatedSearching && (
-                <div className="px-4 pt-0 pb-3">
+                <div className="px-0 md:px-4 pt-0 pb-3">
                   <SearchProgress 
                     phase={searchProgress.phase}
                     completed={searchProgress.completed}
@@ -2265,7 +2265,7 @@ export default function Home() {
               
               {/* Action buttons menu */}
               {currentResults && currentResults.length > 0 && (
-                <div className="px-6 py-3 flex items-center justify-between bg-white dark:bg-transparent">
+                <div className="px-2 md:px-6 py-3 flex items-center justify-between bg-white dark:bg-transparent">
                   <div className="flex items-center gap-2">
                   <div className="relative">
                     <Button 
@@ -2348,7 +2348,7 @@ export default function Home() {
               )}
               
               <CardContent className="p-0">
-                <div className="px-4 pb-4">
+                <div className="px-0 md:px-4 pb-4">
                   <Suspense fallback={<TableSkeleton />}>
                     <CompanyCards
                       companies={currentResults || []}
@@ -2372,7 +2372,7 @@ export default function Home() {
 
           {/* Top Prospects Section - Moved below Companies Analysis */}
           {currentResults && currentResults.length > 0 && (
-            <Card className="w-full">
+            <Card className="w-full rounded-none md:rounded-lg">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">

@@ -175,7 +175,7 @@ export default function CompanyCards({
           <Card
             key={`company-${company.id}`}
             className={cn(
-              "rounded-lg transition-all duration-200 cursor-pointer",
+              "rounded-none md:rounded-lg transition-all duration-200 cursor-pointer",
               "hover:shadow-sm",
               isSelected && "border-blue-400 dark:border-blue-600",
               !isSelected && "border-border"
