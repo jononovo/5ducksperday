@@ -510,8 +510,8 @@ export default function CompanyCards({
               size="sm"
               onClick={handlePrevSlide}
               className={cn(
-                "h-8 w-8 p-0 border-muted-foreground/20 transition-all",
-                highlightNavButtons && "animate-pulse bg-primary/10 border-primary shadow-sm"
+                "h-8 w-8 p-0 transition-all",
+                highlightNavButtons ? "bg-primary/20 border-primary" : "border-muted-foreground/20"
               )}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -524,8 +524,8 @@ export default function CompanyCards({
               size="sm"
               onClick={handleNextSlide}
               className={cn(
-                "h-8 w-8 p-0 border-muted-foreground/20 transition-all",
-                highlightNavButtons && "animate-pulse bg-primary/10 border-primary shadow-sm"
+                "h-8 w-8 p-0 transition-all",
+                highlightNavButtons ? "bg-primary/20 border-primary" : "border-muted-foreground/20"
               )}
             >
               <ChevronRight className="h-4 w-4" />
