@@ -14,6 +14,7 @@ const PromptEditor = lazy(() => import("@/components/prompt-editor"));
 // Import components with named exports directly for now
 import { EmailSearchSummary } from "@/components/email-search-summary";
 import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
+import { EmailDrawer } from "@/components/email-drawer";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
@@ -86,9 +87,11 @@ interface SavedSearchState {
   navigationRefreshTimestamp?: number;
 }
 
-// Define SourceBreakdown interface
+// Define SourceBreakdown interface to match EmailSearchSummary
 interface SourceBreakdown {
-  [source: string]: number;
+  Perplexity: number;
+  Apollo: number;
+  Hunter: number;
 }
 
 export default function Home() {
@@ -118,6 +121,13 @@ export default function Home() {
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
   const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
+  
+  // State for email drawer
+  const [emailDrawerOpen, setEmailDrawerOpen] = useState(false);
+  const [selectedEmailContact, setSelectedEmailContact] = useState<Contact | null>(null);
+  const [selectedEmailCompany, setSelectedEmailCompany] = useState<Company | null>(null);
+  const [selectedCompanyContacts, setSelectedCompanyContacts] = useState<Contact[]>([]);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -127,6 +137,24 @@ export default function Home() {
   const { setState: setStrategyOverlayState } = useStrategyOverlay();
   
   // Use shared comprehensive email search hook
+  // Handler for contact click to open email drawer
+  const handleContactClick = (contact: ContactWithCompanyInfo, company: Company) => {
+    setSelectedEmailContact(contact);
+    setSelectedEmailCompany(company);
+    
+    // Get all contacts from the same company
+    const companyContacts = currentResults
+      ?.find(c => c.id === company.id)
+      ?.contacts || [];
+    setSelectedCompanyContacts(companyContacts);
+    
+    setEmailDrawerOpen(true);
+  };
+  
+  const handleEmailContactChange = (newContact: Contact) => {
+    setSelectedEmailContact(newContact);
+  };
+  
   const { 
     handleComprehensiveEmailSearch: comprehensiveSearchHook, 
     pendingSearchIds: pendingComprehensiveSearchIds 
@@ -138,7 +166,9 @@ export default function Home() {
         const updatedResults = prev.map(company => ({
           ...company,
           contacts: company.contacts?.map(contact =>
-            contact.id === updatedContact.id ? updatedContact : contact
+            contact.id === updatedContact.id 
+              ? { ...updatedContact, companyName: company.name, companyId: company.id } as ContactWithCompanyInfo
+              : contact
           )
         }));
         
@@ -1109,7 +1139,13 @@ export default function Home() {
             const contacts = await queryClient.fetchQuery({
               queryKey: [`/api/companies/${company.id}/contacts`]
             }) as Contact[];
-            return { ...company, contacts };
+            // Add companyName and companyId to each contact
+            const contactsWithCompanyInfo: ContactWithCompanyInfo[] = contacts.map(contact => ({
+              ...contact,
+              companyName: company.name,
+              companyId: company.id
+            }));
+            return { ...company, contacts: contactsWithCompanyInfo };
           } catch (error) {
             console.error(`Failed to load contacts for company ${company.id}:`, error);
             return { ...company, contacts: [] };
@@ -2125,8 +2161,8 @@ export default function Home() {
     // Call the shared hook function
     await comprehensiveSearchHook(contactId, contact, {
       companyName: company?.name,
-      companyWebsite: company?.website,
-      companyDescription: company?.description
+      companyWebsite: company?.website || undefined,
+      companyDescription: company?.description || undefined
     });
   };
   
@@ -2354,15 +2390,14 @@ export default function Home() {
                       companies={currentResults || []}
                       handleCompanyView={handleCompanyView}
                       handleHunterSearch={handleHunterSearch}
-
                       handleApolloSearch={handleApolloSearch}
                       handleEnrichContact={handleEnrichContact}
                       handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
                       pendingHunterIds={pendingHunterIds}
-
                       pendingApolloIds={pendingApolloIds}
                       pendingContactIds={pendingContactIds}
                       pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
+                      onContactClick={handleContactClick}
                   />
                   </Suspense>
                 </div>
@@ -2572,6 +2607,16 @@ export default function Home() {
         open={savedSearchesDrawerOpen}
         onOpenChange={setSavedSearchesDrawerOpen}
         onLoadSearch={handleLoadSavedSearch}
+      />
+      
+      {/* Email drawer for outreach */}
+      <EmailDrawer
+        isOpen={emailDrawerOpen}
+        onClose={() => setEmailDrawerOpen(false)}
+        contact={selectedEmailContact}
+        company={selectedEmailCompany}
+        companyContacts={selectedCompanyContacts}
+        onContactChange={handleEmailContactChange}
       />
 
 
