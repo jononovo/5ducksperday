@@ -15,10 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navigation = [
-  { name: "Search", href: "/app", icon: "dashboard" },
-  { name: "Outreach", href: "/outreach", icon: "mail" },
-  { name: "Streak", href: "/streak", icon: "flame" },
-  // { name: "Replies", href: "/replies", icon: "message" }
+  // Navigation items removed - now in hamburger menu
 ];
 
 export function MainNav() {
@@ -50,31 +47,6 @@ export function MainNav() {
     <nav className="flex items-center justify-between border-b mb-2 px-4 py-1.5">
       <div className="flex items-center space-x-4">
         <Logo size="sm" className="mr-8" />
-        {navigation.map((item) => {
-          const isActive = item.href === location || 
-            (item.href === "/" && location === "/");
-
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`${
-                isActive
-                  ? "text-primary font-semibold border-b-2 border-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              } px-2 py-1.5 text-sm font-medium transition-colors`}
-            >
-              <div className="flex items-center">
-                {item.icon === "dashboard" && <LayoutDashboard className="mr-1 h-4 w-4" />}
-                {item.icon === "mail" && <Mail className="mr-1 h-4 w-4" />}
-                {item.icon === "flame" && <Flame className="mr-1 h-4 w-4" />}
-                {item.icon === "target" && <Target className="mr-1 h-4 w-4" />}
-                {item.icon === "message" && <MessageCircle className="mr-1 h-4 w-4" />}
-                <span className="md:inline hidden">{item.name}</span>
-              </div>
-            </Link>
-          );
-        })}
       </div>
       <div className="flex items-center ml-auto gap-3">
         {user ? (
@@ -87,12 +59,18 @@ export function MainNav() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {logoutMutation && (
-                  <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    <span>Logout</span>
+                <Link href="/outreach">
+                  <DropdownMenuItem>
+                    <Mail className="h-4 w-4 mr-2" />
+                    <span>Outreach</span>
                   </DropdownMenuItem>
-                )}
+                </Link>
+                <Link href="/streak">
+                  <DropdownMenuItem>
+                    <Flame className="h-4 w-4 mr-2" />
+                    <span>Streak</span>
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuSeparator />
                 <Link href="/account">
                   <DropdownMenuItem>
@@ -113,6 +91,13 @@ export function MainNav() {
                   <Headphones className="h-4 w-4 mr-2" />
                   <span>Contact</span>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {logoutMutation && (
+                  <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </>
