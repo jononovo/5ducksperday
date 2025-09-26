@@ -6,6 +6,7 @@ import { useStrategyOverlay } from "@/features/strategy-chat";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { CreditUpgradeDropdown } from "@/components/credit-upgrade-dropdown";
+import { StreakIndicator } from "@/components/streak-indicator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +52,7 @@ export function MainNav() {
       <div className="flex items-center ml-auto gap-3">
         {user ? (
           <>
+            <StreakIndicator />
             <CreditUpgradeDropdown />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
