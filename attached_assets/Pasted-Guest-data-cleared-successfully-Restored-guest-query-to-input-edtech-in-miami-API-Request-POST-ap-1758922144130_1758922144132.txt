@@ -1,0 +1,52 @@
+Guest data cleared successfully
+Restored guest query to input: edtech in miami
+API Request: POST /api/notifications/trigger 
+Object {hasData: true, timestamp: "2025-09-26T21:27:32.356Z"}
+Refreshed 1 contacts for Lectera: 
+Array [{…}]
+Refreshed 7 contacts for EdisonLearning: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Refreshed 8 contacts for Miami EdTech: 
+(8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Refreshed 3 contacts for Careerist: 
+(3) [{…}, {…}, {…}]
+Refreshed 0 contacts for Genius Plaza: 
+Array []
+Refreshed 7 contacts for Brainfeed: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Refreshed 0 contacts for Game Strategies: 
+Array []
+Contact data refresh completed from database
+NAVIGATION: Database refresh completed with 6 emails
+NAVIGATION: Companies after refresh: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+NAVIGATION: Successfully restored 6 emails
+API Request Error: POST /api/notifications/trigger 
+Object {error: "409: {"shouldShow":false,"message":"Notification already shown or not found"}", timestamp: "2025-09-26T21:27:32.679Z"}
+
+Failed to trigger notification: 
+Error {}
+
+Auto-expanding first company to show contacts: EdisonLearning
+Saving search state: 
+Object {query: "edtech in miami", resultsCount: 7, listId: null, companies: Array(7)}
+`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+Saving search state: 
+Object {query: "edtech in manhattan", resultsCount: 7, listId: 1053, companies: Array(7)}
+API Request: POST /api/contacts/2250/apollo 
+Object {hasData: true, timestamp: "2025-09-26T21:27:52.504Z"}
+API Request Error: POST /api/contacts/2250/apollo 
+Object {error: "422: {"message":"No email…", timestamp: "2025-09-26T21:27:53.038Z"}
+
+Comprehensive search error: 
+Error {}
+
+API Request: POST /api/contacts/2250/comprehensive-search-complete 
+Object {hasData: true, timestamp: "2025-09-26T21:27:53.038Z"}
+Saving search state: 
+Object {query: "edtech in manhattan", resultsCount: 7, listId: 1053, companies: Array(7)}

@@ -46,105 +46,120 @@ export function useComprehensiveEmailSearch(options: UseComprehensiveEmailSearch
     try {
       // 1. Try Apollo first
       if (!contact.completedSearches?.includes('apollo_search')) {
-        const apolloResponse = await apiRequest("POST", `/api/contacts/${contactId}/apollo`, {
-          searchContext,
-          silent: true
-        });
-        const apolloResult = await apolloResponse.json();
-        
-        // Wait for the result to be saved
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Fetch updated contact
-        const updatedResponse = await apiRequest("GET", `/api/contacts/${contactId}`);
-        const updatedContact = await updatedResponse.json();
-        
-        if (updatedContact.email) {
-          // Apollo found email - success!
-          setPendingSearchIds(prev => {
-            const next = new Set(prev);
-            next.delete(contactId);
-            return next;
+        try {
+          const apolloResponse = await apiRequest("POST", `/api/contacts/${contactId}/apollo`, {
+            searchContext,
+            silent: true
           });
+          const apolloResult = await apolloResponse.json();
           
-          toast({
-            title: "Email Found!",
-            description: `Found email via Apollo: ${updatedContact.email}`,
-            variant: "default",
-          });
+          // Wait for the result to be saved
+          await new Promise(resolve => setTimeout(resolve, 500));
           
-          options.onContactUpdate?.(updatedContact);
-          options.onSearchComplete?.(contactId, true);
-          return;
+          // Fetch updated contact
+          const updatedResponse = await apiRequest("GET", `/api/contacts/${contactId}`);
+          const updatedContact = await updatedResponse.json();
+          
+          if (updatedContact.email) {
+            // Apollo found email - success!
+            setPendingSearchIds(prev => {
+              const next = new Set(prev);
+              next.delete(contactId);
+              return next;
+            });
+            
+            toast({
+              title: "Email Found!",
+              description: `Found email via Apollo: ${updatedContact.email}`,
+              variant: "default",
+            });
+            
+            options.onContactUpdate?.(updatedContact);
+            options.onSearchComplete?.(contactId, true);
+            return;
+          }
+        } catch (apolloError) {
+          console.log('Apollo search failed, continuing to next tier:', apolloError);
+          // Continue to next tier - this is expected behavior
         }
       }
       
       // 2. Try Perplexity AI if Apollo didn't find email
       if (!contact.completedSearches?.includes('contact_enrichment')) {
-        const enrichResponse = await apiRequest("POST", `/api/contacts/${contactId}/enrich`, {
-          includeEmail: true,
-          silent: true
-        });
-        const enrichResult = await enrichResponse.json();
-        
-        // Wait for the result to be saved
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Fetch updated contact
-        const updatedResponse = await apiRequest("GET", `/api/contacts/${contactId}`);
-        const updatedContact = await updatedResponse.json();
-        
-        if (updatedContact.email) {
-          // Perplexity found email - success!
-          setPendingSearchIds(prev => {
-            const next = new Set(prev);
-            next.delete(contactId);
-            return next;
+        try {
+          const enrichResponse = await apiRequest("POST", `/api/contacts/${contactId}/enrich`, {
+            includeEmail: true,
+            silent: true
           });
+          const enrichResult = await enrichResponse.json();
           
-          toast({
-            title: "Email Found!",
-            description: `Found email via Perplexity: ${updatedContact.email}`,
-            variant: "default",
-          });
+          // Wait for the result to be saved
+          await new Promise(resolve => setTimeout(resolve, 500));
           
-          options.onContactUpdate?.(updatedContact);
-          options.onSearchComplete?.(contactId, true);
-          return;
+          // Fetch updated contact
+          const updatedResponse = await apiRequest("GET", `/api/contacts/${contactId}`);
+          const updatedContact = await updatedResponse.json();
+          
+          if (updatedContact.email) {
+            // Perplexity found email - success!
+            setPendingSearchIds(prev => {
+              const next = new Set(prev);
+              next.delete(contactId);
+              return next;
+            });
+            
+            toast({
+              title: "Email Found!",
+              description: `Found email via Perplexity: ${updatedContact.email}`,
+              variant: "default",
+            });
+            
+            options.onContactUpdate?.(updatedContact);
+            options.onSearchComplete?.(contactId, true);
+            return;
+          }
+        } catch (perplexityError) {
+          console.log('Perplexity search failed, continuing to next tier:', perplexityError);
+          // Continue to next tier - this is expected behavior
         }
       }
       
       // 3. Try Hunter as last resort
       if (!contact.completedSearches?.includes('hunter_search')) {
-        const hunterResponse = await apiRequest("POST", `/api/contacts/${contactId}/hunter`, {
-          silent: true
-        });
-        const hunterResult = await hunterResponse.json();
-        
-        // Wait for the result to be saved
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Fetch updated contact
-        const updatedResponse = await apiRequest("GET", `/api/contacts/${contactId}`);
-        const updatedContact = await updatedResponse.json();
-        
-        if (updatedContact.email) {
-          // Hunter found email - success!
-          setPendingSearchIds(prev => {
-            const next = new Set(prev);
-            next.delete(contactId);
-            return next;
+        try {
+          const hunterResponse = await apiRequest("POST", `/api/contacts/${contactId}/hunter`, {
+            silent: true
           });
+          const hunterResult = await hunterResponse.json();
           
-          toast({
-            title: "Email Found!",
-            description: `Found email via Hunter: ${updatedContact.email}`,
-            variant: "default",
-          });
+          // Wait for the result to be saved
+          await new Promise(resolve => setTimeout(resolve, 500));
           
-          options.onContactUpdate?.(updatedContact);
-          options.onSearchComplete?.(contactId, true);
-          return;
+          // Fetch updated contact
+          const updatedResponse = await apiRequest("GET", `/api/contacts/${contactId}`);
+          const updatedContact = await updatedResponse.json();
+          
+          if (updatedContact.email) {
+            // Hunter found email - success!
+            setPendingSearchIds(prev => {
+              const next = new Set(prev);
+              next.delete(contactId);
+              return next;
+            });
+            
+            toast({
+              title: "Email Found!",
+              description: `Found email via Hunter: ${updatedContact.email}`,
+              variant: "default",
+            });
+            
+            options.onContactUpdate?.(updatedContact);
+            options.onSearchComplete?.(contactId, true);
+            return;
+          }
+        } catch (hunterError) {
+          console.log('Hunter search failed, continuing:', hunterError);
+          // All tiers exhausted
         }
       }
       
