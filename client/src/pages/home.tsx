@@ -130,6 +130,7 @@ export default function Home() {
   const [selectedEmailContact, setSelectedEmailContact] = useState<Contact | null>(null);
   const [selectedEmailCompany, setSelectedEmailCompany] = useState<Company | null>(null);
   const [selectedCompanyContacts, setSelectedCompanyContacts] = useState<Contact[]>([]);
+  const [searchSectionCollapsed, setSearchSectionCollapsed] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -152,11 +153,23 @@ export default function Home() {
     setSelectedCompanyContacts(companyContacts);
     
     setEmailDrawerOpen(true);
+    // Auto-collapse search section when email drawer opens
+    setSearchSectionCollapsed(true);
   };
   
   const handleEmailContactChange = (newContact: Contact) => {
     setSelectedEmailContact(newContact);
   };
+
+  // Auto-collapse search section when email drawer opens
+  useEffect(() => {
+    if (emailDrawerOpen) {
+      setSearchSectionCollapsed(true);
+    } else {
+      // Optionally expand when drawer closes
+      setSearchSectionCollapsed(false);
+    }
+  }, [emailDrawerOpen]);
   
   const { 
     handleComprehensiveEmailSearch: comprehensiveSearchHook, 
@@ -405,6 +418,7 @@ export default function Home() {
         setCurrentResults(savedState.currentResults);
         setCurrentListId(savedState.currentListId);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
+        setInputHasChanged(false); // Set to false when loading saved state
         
         // Always refresh contact data when restoring from localStorage to ensure emails are preserved
         console.log('Refreshing contact data from database to preserve emails after navigation');
@@ -422,6 +436,7 @@ export default function Home() {
         setCurrentListId(savedState.currentListId);
         setCurrentResults(savedState.currentResults);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
+        setInputHasChanged(false); // Set to false when loading saved state
         
         // Always refresh from database to ensure fresh data (including emails)
         refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
@@ -1156,12 +1171,18 @@ export default function Home() {
         })
       );
       
+      // Set all state for loaded search
       setCurrentQuery(list.prompt);
       setLastExecutedQuery(list.prompt); // Update lastExecutedQuery to sync the search input
       setCurrentResults(companiesWithContacts);
       setCurrentListId(list.listId);
       setIsSaved(true);
       setSavedSearchesDrawerOpen(false);
+      
+      // Force input change flag to false after a small delay to ensure proper state update
+      setTimeout(() => {
+        setInputHasChanged(false);
+      }, 0);
       
       const totalContacts = companiesWithContacts.reduce((sum, company) => 
         sum + (company.contacts?.length || 0), 0);
@@ -2205,59 +2226,205 @@ export default function Home() {
   };
 
   return (
-    <div className={`container mx-auto py-6 px-0 md:px-6 ${emailDrawerOpen ? 'mr-[500px]' : ''}`}>
-      {/* Intro tour modal has been removed */}
+    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden relative">
+      {/* Backdrop for mobile */}
+      {emailDrawerOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => {
+            setEmailDrawerOpen(false);
+            setSelectedEmailContact(null);
+            setSelectedEmailCompany(null);
+            setSelectedCompanyContacts([]);
+            // Expand search section when closing drawer
+            setSearchSectionCollapsed(false);
+          }}
+        />
+      )}
+      
+      {/* Main Content Container - will be compressed when drawer opens on desktop */}
+      <div className={`flex-1 overflow-y-auto main-content-compressed ${emailDrawerOpen ? 'compressed-view' : ''}`}>
+        <div className="container mx-auto py-6 px-0 md:px-6">
+          {/* Intro tour modal has been removed */}
 
-      <div className="grid grid-cols-12 gap-3 md:gap-6">
-        {/* Main Content Area - full width */}
-        <div className="col-span-12 space-y-2 md:space-y-4 mt-[-10px]">
-          {/* Search Section - border removed and moved up */}
-          <div className="px-3 md:px-6 py-1"> {/* Reduced mobile padding, matched desktop padding with CardHeader (p-6) */}
-            {!currentResults && (
-              <div className="flex flex-col-reverse md:flex-row items-center gap-4 mb-3">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-2xl font-semibold mt-2 md:mt-0">Search for target businesses</h2>
+          <div className="grid grid-cols-12 gap-3 md:gap-6">
+            {/* Main Content Area - full width */}
+            <div className="col-span-12 space-y-2 md:space-y-4 mt-[-10px]">
+          {/* Search Section - Collapsible with Focus State */}
+          <div className="relative transition-all duration-300 ease-in-out">
+            {/* Collapsed Header - Only visible when collapsed */}
+            {searchSectionCollapsed && (
+              <button
+                onClick={() => setSearchSectionCollapsed(false)}
+                className="w-full px-3 md:px-6 py-2 bg-background border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors flex items-center justify-between group mb-2"
+                data-testid="button-expand-search"
+              >
+                <div className="flex items-center gap-2">
+                  <Search className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Open search</span>
+                  {currentQuery && (
+                    <span className="text-sm text-muted-foreground italic truncate max-w-[200px] md:max-w-[400px]">
+                      "{currentQuery}"
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <EggAnimation />
-                </div>
-              </div>
+                <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </button>
             )}
-            <Suspense fallback={<div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>}>
-              <PromptEditor
-                onAnalyze={() => setIsAnalyzing(true)}
-                onComplete={handleAnalysisComplete}
-                onSearchResults={handleSearchResults}
-                onCompaniesReceived={handleCompaniesReceived}
-                isAnalyzing={isAnalyzing}
-                initialPrompt={currentQuery || ""}
-                isFromLandingPage={isFromLandingPage}
-                onDismissLandingHint={() => setIsFromLandingPage(false)}
-                lastExecutedQuery={lastExecutedQuery}
-                onInputChange={(newValue) => {
-                  setCurrentQuery(newValue);
-                  setInputHasChanged(newValue !== lastExecutedQuery);
-                }}
-                onSearchSuccess={() => {
-                  const selectedSearchType = localStorage.getItem('searchType') || 'contacts';
-                  if (selectedSearchType === 'emails') {
-                    // Auto-trigger email search for full flow
-                    setTimeout(() => runConsolidatedEmailSearch(), 500);
-                  } else {
-                    // Standard behavior - highlight email button
-                    setHighlightEmailButton(true);
-                    setTimeout(() => setHighlightEmailButton(false), 25000);
-                  }
-                }}
-                hasSearchResults={currentResults ? currentResults.length > 0 : false}
-                onSessionIdChange={setCurrentSessionId}
-            />
-            </Suspense>
+            
+            {/* Expandable Search Content */}
+            <div 
+              className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                searchSectionCollapsed 
+                  ? 'max-h-0 opacity-0 pointer-events-none' 
+                  : 'max-h-[500px] opacity-100'
+              }`}
+            >
+              <div className="px-3 md:px-6 py-1"> {/* Reduced mobile padding, matched desktop padding with CardHeader (p-6) */}
+                {/* Collapse button when expanded */}
+                {!searchSectionCollapsed && emailDrawerOpen && (
+                  <button
+                    onClick={() => setSearchSectionCollapsed(true)}
+                    className="absolute right-3 md:right-6 top-2 z-10 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                    data-testid="button-collapse-search"
+                    title="Minimize search"
+                  >
+                    <ChevronUp className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                  </button>
+                )}
+                
+                {!currentResults && (
+                  <div className="flex flex-col-reverse md:flex-row items-center gap-4 mb-3">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-2xl font-semibold mt-2 md:mt-0">Search for target businesses</h2>
+                    </div>
+                    <div>
+                      <EggAnimation />
+                    </div>
+                  </div>
+                )}
+                <Suspense fallback={<div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>}>
+                  <PromptEditor
+                    onAnalyze={() => setIsAnalyzing(true)}
+                    onComplete={handleAnalysisComplete}
+                    onSearchResults={handleSearchResults}
+                    onCompaniesReceived={handleCompaniesReceived}
+                    isAnalyzing={isAnalyzing}
+                    initialPrompt={currentQuery || ""}
+                    isFromLandingPage={isFromLandingPage}
+                    onDismissLandingHint={() => setIsFromLandingPage(false)}
+                    lastExecutedQuery={lastExecutedQuery}
+                    onInputChange={(newValue) => {
+                      setCurrentQuery(newValue);
+                      setInputHasChanged(newValue !== lastExecutedQuery);
+                    }}
+                    onSearchSuccess={() => {
+                      const selectedSearchType = localStorage.getItem('searchType') || 'contacts';
+                      if (selectedSearchType === 'emails') {
+                        // Auto-trigger email search for full flow
+                        setTimeout(() => runConsolidatedEmailSearch(), 500);
+                      } else {
+                        // Standard behavior - highlight email button
+                        setHighlightEmailButton(true);
+                        setTimeout(() => setHighlightEmailButton(false), 25000);
+                      }
+                    }}
+                    hasSearchResults={currentResults ? currentResults.length > 0 : false}
+                    onSessionIdChange={setCurrentSessionId}
+                    hideRoleButtons={!!(currentResults && currentResults.length > 0 && !inputHasChanged)}
+                  />
+                </Suspense>
+                
+                {/* Action buttons menu - Moved here from search results, Hidden in focus mode and active search state */}
+                {currentResults && currentResults.length > 0 && !inputHasChanged && !emailDrawerOpen && (
+                  <div className="px-0 py-3 flex items-center justify-between bg-white dark:bg-transparent transition-all duration-300">
+                    <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className={`flex items-center gap-1 h-8 ${
+                          highlightEmailButton 
+                            ? 'email-button-highlight' 
+                            : 'opacity-45 hover:opacity-100 hover:bg-white'
+                        } transition-all`}
+                        onClick={() => {
+                          try {
+                            if (isFromLandingPage && setIsFromLandingPage) {
+                              setIsFromLandingPage(false);
+                            }
+                          } catch (e) {
+                            // Silent fail - prevents error from showing to users
+                          }
+                          runConsolidatedEmailSearch();
+                        }}
+                        disabled={isConsolidatedSearching}
+                      >
+                        <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
+                        <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
+                      </Button>
+                      
+                      <LandingPageTooltip
+                        message="Click here to find Egg-cellent emails of wonderful people."
+                        visible={showEmailTooltip && !(isAnalyzing || isConsolidatedSearching)}
+                        position="custom"
+                        offsetX={-10}
+                      />
+                    </div>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                            onClick={() => {
+                              if (!auth.user) {
+                                registrationModal.openModal();
+                                return;
+                              }
+                              // If user is logged in, the actual functionality would go here
+                              console.log("5 More button clicked by authenticated user");
+                            }}
+                          >
+                            <Plus className="h-4 w-4" />
+                            <span className="hidden md:inline">5 More</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p className="text-xs">Expand the search to include another five companies with the same prompt</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                            <span className="hidden md:inline">Expand</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p className="text-xs">Expand or collapse all company rows of contacts</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Companies Analysis Section - Moved to top */}
           {currentResults && currentResults.length > 0 ? (
-            <Card className="w-full rounded-none md:rounded-lg">
+            <Card className={`w-full rounded-none md:rounded-lg border-0 transition-all duration-300 ${emailDrawerOpen ? 'shadow-none' : ''}`}>
               
               {/* Contact Discovery Report - with reduced padding */}
               {contactReportVisible && (
@@ -2299,90 +2466,6 @@ export default function Home() {
                     total={searchProgress.total}
                     isVisible={isConsolidatedSearching}
                   />
-                </div>
-              )}
-              
-              {/* Action buttons menu */}
-              {currentResults && currentResults.length > 0 && (
-                <div className="px-2 md:px-6 py-3 flex items-center justify-between bg-white dark:bg-transparent">
-                  <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className={`flex items-center gap-1 h-8 ${
-                        highlightEmailButton 
-                          ? 'email-button-highlight' 
-                          : 'opacity-45 hover:opacity-100 hover:bg-white'
-                      } transition-all`}
-                      onClick={() => {
-                        try {
-                          if (isFromLandingPage && setIsFromLandingPage) {
-                            setIsFromLandingPage(false);
-                          }
-                        } catch (e) {
-                          // Silent fail - prevents error from showing to users
-                        }
-                        runConsolidatedEmailSearch();
-                      }}
-                      disabled={isConsolidatedSearching}
-                    >
-                      <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
-                      <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
-                    </Button>
-                    
-                    <LandingPageTooltip
-                      message="Click here to find Egg-cellent emails of wonderful people."
-                      visible={showEmailTooltip && !(isAnalyzing || isConsolidatedSearching)}
-                      position="custom"
-                      offsetX={-10}
-                    />
-                  </div>
-                  
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                          onClick={() => {
-                            if (!auth.user) {
-                              registrationModal.openModal();
-                              return;
-                            }
-                            // If user is logged in, the actual functionality would go here
-                            console.log("5 More button clicked by authenticated user");
-                          }}
-                        >
-                          <Plus className="h-4 w-4" />
-                          <span className="hidden md:inline">5 More</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="text-xs">Expand the search to include another five companies with the same prompt</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                          <span className="hidden md:inline">Expand</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="text-xs">Expand or collapse all company rows of contacts</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  </div>
                 </div>
               )}
               
@@ -2600,79 +2683,87 @@ export default function Home() {
               </CardContent>
             </Card>
           )}
-        </div>
-
-        {/* API Templates Button moved to settings drawer */}
-      </div>
-
-      {/* Fixed position saved searches drawer */}
-      <SavedSearchesDrawer 
-        open={savedSearchesDrawerOpen}
-        onOpenChange={setSavedSearchesDrawerOpen}
-        onLoadSearch={handleLoadSavedSearch}
-      />
-      
-      {/* Email Panel - Simple second column */}
-      {emailDrawerOpen && (
-        <div className="fixed top-0 right-0 h-full w-[500px] bg-background border-l overflow-y-auto">
-          <div className="h-full">
-            {/* Header */}
-            <div className="sticky top-0 bg-background border-b px-4 py-3 flex items-center justify-between z-10">
-              <div className="flex items-center gap-2 flex-1">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-sm">Compose Email</h3>
-                  {selectedEmailContact && (
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {selectedEmailContact.name} • {selectedEmailCompany?.name}
-                    </p>
-                  )}
-                </div>
-                {/* Prominent Close Button */}
-                <button
-                  onClick={() => {
-                    setEmailDrawerOpen(false);
-                    setSelectedEmailContact(null);
-                    setSelectedEmailCompany(null);
-                    setSelectedCompanyContacts([]);
-                  }}
-                  className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors group"
-                  aria-label="Close email panel"
-                >
-                  <X className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
-                </button>
-              </div>
-              
-              {/* Contact navigation */}
-              {selectedCompanyContacts.length > 1 && (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => {
-                      const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
-                      const prevIndex = currentIndex > 0 ? currentIndex - 1 : selectedCompanyContacts.length - 1;
-                      handleEmailContactChange(selectedCompanyContacts[prevIndex]);
-                    }}
-                    className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <span className="text-xs text-muted-foreground">
-                    {selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id) + 1} / {selectedCompanyContacts.length}
-                  </span>
-                  <button
-                    onClick={() => {
-                      const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
-                      const nextIndex = currentIndex < selectedCompanyContacts.length - 1 ? currentIndex + 1 : 0;
-                      handleEmailContactChange(selectedCompanyContacts[nextIndex]);
-                    }}
-                    className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
             </div>
 
-            {/* Email Composer */}
+            {/* API Templates Button moved to settings drawer */}
+          </div>
+
+          {/* Fixed position saved searches drawer */}
+          <SavedSearchesDrawer 
+            open={savedSearchesDrawerOpen}
+            onOpenChange={setSavedSearchesDrawerOpen}
+            onLoadSearch={handleLoadSavedSearch}
+          />
+        </div>
+      </div>
+      
+      {/* Email Drawer - Overlay on mobile, push-aside on desktop */}
+      <div className={`email-drawer-transition ${
+        emailDrawerOpen 
+          ? 'fixed md:relative top-0 right-0 h-full md:h-auto w-[90%] sm:w-[400px] md:w-[400px] lg:w-[450px] xl:w-[500px] z-50 md:z-auto' 
+          : 'md:relative w-0'
+      } overflow-hidden border-l bg-background`}>
+        <div className="h-full overflow-y-auto" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
+          {/* Header */}
+          <div className="sticky top-0 bg-background border-b px-4 py-3 flex items-center justify-between z-10">
+            <div className="flex items-center gap-2 flex-1">
+              <div className="flex-1">
+                <h3 className="font-semibold text-sm">Compose Email</h3>
+                {selectedEmailContact && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {selectedEmailContact.name} • {selectedEmailCompany?.name}
+                  </p>
+                )}
+              </div>
+              {/* Prominent Close Button */}
+              <button
+                onClick={() => {
+                  setEmailDrawerOpen(false);
+                  setSelectedEmailContact(null);
+                  setSelectedEmailCompany(null);
+                  setSelectedCompanyContacts([]);
+                  // Expand search section when closing drawer
+                  setSearchSectionCollapsed(false);
+                }}
+                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors group"
+                aria-label="Close email panel"
+              >
+                <X className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
+              </button>
+            </div>
+            
+            {/* Contact navigation */}
+            {selectedCompanyContacts.length > 1 && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
+                    const prevIndex = currentIndex > 0 ? currentIndex - 1 : selectedCompanyContacts.length - 1;
+                    handleEmailContactChange(selectedCompanyContacts[prevIndex]);
+                  }}
+                  className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-xs text-muted-foreground">
+                  {selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id) + 1} / {selectedCompanyContacts.length}
+                </span>
+                <button
+                  onClick={() => {
+                    const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
+                    const nextIndex = currentIndex < selectedCompanyContacts.length - 1 ? currentIndex + 1 : 0;
+                    handleEmailContactChange(selectedCompanyContacts[nextIndex]);
+                  }}
+                  className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Email Composer */}
+          {emailDrawerOpen && (
             <div className="p-4">
               <EmailComposer
                 selectedContact={selectedEmailContact}
@@ -2680,13 +2771,13 @@ export default function Home() {
                 onContactChange={handleEmailContactChange}
               />
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
 
 
-      {/* Notification System */}
+      {/* Notification System - Outside flex container */}
       <NotificationToast
         notificationState={notificationState}
         onClose={closeNotification}

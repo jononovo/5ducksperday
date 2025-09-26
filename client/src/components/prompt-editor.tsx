@@ -40,6 +40,7 @@ interface PromptEditorProps {
   onSearchSuccess?: () => void; // Callback when search completes successfully
   hasSearchResults?: boolean; // Flag to indicate if search results exist
   onSessionIdChange?: (sessionId: string | null) => void; // Callback for session ID changes
+  hideRoleButtons?: boolean; // Flag to hide role selection buttons when search is inactive
 }
 
 export default function PromptEditor({ 
@@ -55,7 +56,8 @@ export default function PromptEditor({
   onInputChange,
   onSearchSuccess,
   hasSearchResults = false,
-  onSessionIdChange
+  onSessionIdChange,
+  hideRoleButtons = false
 }: PromptEditorProps) {
   const [query, setQuery] = useState(initialPrompt);
   const { toast } = useToast();
@@ -973,8 +975,30 @@ export default function PromptEditor({
         </div>
 
         {/* Mobile layout: Search type selector and Contact chips on same row */}
-        <div className="md:hidden flex items-start justify-between">
-          <div className="flex-1">
+        {!hideRoleButtons && (
+          <div className="md:hidden flex items-start justify-between">
+            <div className="flex-1">
+              <ContactSearchChips
+                onConfigChange={handleContactSearchConfigChange}
+                disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+                isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+                hasSearchResults={hasSearchResults}
+                inputHasChanged={hasSearchResults && query !== lastExecutedQuery}
+              />
+            </div>
+            <div className="ml-2 mt-5">
+              <SearchTypeSelector
+                selectedType={searchType}
+                onTypeChange={setSearchType}
+                disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Desktop Contact Search Chips - positioned below search input */}
+        {!hideRoleButtons && (
+          <div className="hidden md:block">
             <ContactSearchChips
               onConfigChange={handleContactSearchConfigChange}
               disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
@@ -983,25 +1007,7 @@ export default function PromptEditor({
               inputHasChanged={hasSearchResults && query !== lastExecutedQuery}
             />
           </div>
-          <div className="ml-2 mt-5">
-            <SearchTypeSelector
-              selectedType={searchType}
-              onTypeChange={setSearchType}
-              disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-            />
-          </div>
-        </div>
-        
-        {/* Desktop Contact Search Chips - positioned below search input */}
-        <div className="hidden md:block">
-          <ContactSearchChips
-            onConfigChange={handleContactSearchConfigChange}
-            disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-            isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-            hasSearchResults={hasSearchResults}
-            inputHasChanged={hasSearchResults && query !== lastExecutedQuery}
-          />
-        </div>
+        )}
         
         {/* Progress Bar - moved below search input/button */}
         {(quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (
