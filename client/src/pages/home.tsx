@@ -99,7 +99,7 @@ interface SourceBreakdown {
 
 export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [currentQuery, setCurrentQuery] = useState<string | null>(null);
+  const [currentQuery, setCurrentQuery] = useState<string>("");
   const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [currentListId, setCurrentListId] = useState<number | null>(null);
@@ -174,7 +174,7 @@ export default function Home() {
       } else {
         toast({
           title: "No email found",
-          description: `${contact.name} doesn't have an email yet. Use the search buttons to find their email address.`,
+          description: `Click the "Find email" button to search for it.`,
           variant: "default",
         });
       }
@@ -442,7 +442,7 @@ export default function Home() {
         });
         
         // Always restore the data first
-        setCurrentQuery(savedState.currentQuery);
+        setCurrentQuery(savedState.currentQuery || "");
         setCurrentResults(savedState.currentResults);
         setCurrentListId(savedState.currentListId);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
@@ -460,7 +460,7 @@ export default function Home() {
         console.log('NAVIGATION: Restoring search state and refreshing from database');
         
         // Set basic state first
-        setCurrentQuery(savedState.currentQuery);
+        setCurrentQuery(savedState.currentQuery || "");
         setCurrentListId(savedState.currentListId);
         setCurrentResults(savedState.currentResults);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
@@ -783,6 +783,15 @@ export default function Home() {
     setIsAnalyzing(false);
   };
 
+  // Helper function to sort companies by contact count
+  const sortCompaniesByContactCount = (companies: CompanyWithContacts[]): CompanyWithContacts[] => {
+    return [...companies].sort((a, b) => {
+      const contactsA = a.contacts?.length || 0;
+      const contactsB = b.contacts?.length || 0;
+      return contactsB - contactsA; // Descending order (most contacts first)
+    });
+  };
+
   // New handler for initial companies data
   const handleCompaniesReceived = (query: string, companies: Company[]) => {
     console.log('Companies received:', companies.length);
@@ -791,7 +800,10 @@ export default function Home() {
     // Update the UI with just the companies data
     setCurrentQuery(query);
     // Convert Company[] to CompanyWithContacts[] with empty contacts arrays
-    setCurrentResults(companies.map(company => ({ ...company, contacts: [] })));
+    const companiesWithEmptyContacts = companies.map(company => ({ ...company, contacts: [] }));
+    // Apply sorting even though all have 0 contacts - maintains consistency
+    const sortedCompanies = sortCompaniesByContactCount(companiesWithEmptyContacts);
+    setCurrentResults(sortedCompanies);
     setIsSaved(false);
     setIsLoadingContacts(true);
     setContactsLoaded(false);
@@ -817,11 +829,7 @@ export default function Home() {
     hasSessionRestoredDataRef.current = true;
     
     // Sort companies by contact count (most contacts first)
-    const sortedResults = [...results].sort((a, b) => {
-      const contactsA = a.contacts?.length || 0;
-      const contactsB = b.contacts?.length || 0;
-      return contactsB - contactsA; // Descending order
-    });
+    const sortedResults = sortCompaniesByContactCount(results);
     
     console.log('Companies reordered by contact count:', 
       sortedResults.map(c => ({ name: c.name, contacts: c.contacts?.length || 0 }))
@@ -2325,10 +2333,9 @@ export default function Home() {
               >
                 <div className="flex items-center gap-2">
                   <Search className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Open search</span>
                   {currentQuery && (
-                    <span className="text-sm text-muted-foreground italic truncate max-w-[200px] md:max-w-[400px]">
-                      "{currentQuery}"
+                    <span className="text-sm text-muted-foreground truncate max-w-[200px] md:max-w-[400px]">
+                      {currentQuery}
                     </span>
                   )}
                 </div>
@@ -2374,14 +2381,14 @@ export default function Home() {
                     onSearchResults={handleSearchResults}
                     onCompaniesReceived={handleCompaniesReceived}
                     isAnalyzing={isAnalyzing}
-                    initialPrompt={currentQuery || ""}
-                    isFromLandingPage={isFromLandingPage}
-                    onDismissLandingHint={() => setIsFromLandingPage(false)}
-                    lastExecutedQuery={lastExecutedQuery}
-                    onInputChange={(newValue) => {
+                    value={currentQuery || ""}
+                    onChange={(newValue) => {
                       setCurrentQuery(newValue);
                       setInputHasChanged(newValue !== lastExecutedQuery);
                     }}
+                    isFromLandingPage={isFromLandingPage}
+                    onDismissLandingHint={() => setIsFromLandingPage(false)}
+                    lastExecutedQuery={lastExecutedQuery}
                     onSearchSuccess={() => {
                       const selectedSearchType = localStorage.getItem('searchType') || 'contacts';
                       if (selectedSearchType === 'emails') {

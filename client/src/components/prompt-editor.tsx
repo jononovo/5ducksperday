@@ -32,11 +32,11 @@ interface PromptEditorProps {
   onSearchResults: (query: string, results: any[]) => void;
   onCompaniesReceived: (query: string, companies: any[]) => void; // New callback for quick results
   isAnalyzing: boolean;
-  initialPrompt?: string;
+  value: string; // Controlled value from parent
+  onChange: (value: string) => void; // Direct setter from parent
   isFromLandingPage?: boolean; // Flag to indicate if user came from landing page
   onDismissLandingHint?: () => void; // Callback to dismiss landing page hint
   lastExecutedQuery?: string | null; // Last executed search query
-  onInputChange?: (newValue: string) => void; // Callback for input changes
   onSearchSuccess?: () => void; // Callback when search completes successfully
   hasSearchResults?: boolean; // Flag to indicate if search results exist
   onSessionIdChange?: (sessionId: string | null) => void; // Callback for session ID changes
@@ -49,17 +49,16 @@ export default function PromptEditor({
   onSearchResults, 
   onCompaniesReceived,
   isAnalyzing,
-  initialPrompt = "",
+  value,
+  onChange,
   isFromLandingPage = false,
   onDismissLandingHint,
   lastExecutedQuery = null,
-  onInputChange,
   onSearchSuccess,
   hasSearchResults = false,
   onSessionIdChange,
   hideRoleButtons = false
 }: PromptEditorProps) {
-  const [query, setQuery] = useState(initialPrompt);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { triggerConfetti } = useConfetti();
@@ -422,7 +421,7 @@ export default function PromptEditor({
         // If we have quick results, show them immediately
         if (session.quickResults && session.quickResults.length > 0) {
           stableOnCompaniesReceived.current(session.query, session.quickResults);
-          setQuery(session.query);
+          onChange(session.query);
         }
         
         stableToast.current({
@@ -436,7 +435,7 @@ export default function PromptEditor({
         console.log('Restoring recent complete session:', recentCompleteSession);
         console.log('Session has complete contact data:', sessionHasCompleteData);
         
-        setQuery(recentCompleteSession.query);
+        onChange(recentCompleteSession.query);
         
         if (recentCompleteSession.fullResults && sessionHasCompleteData) {
           // Full search with contacts completed - use session data
@@ -461,45 +460,27 @@ export default function PromptEditor({
 
   // Track input changes to update UI accordingly
   useEffect(() => {
-    if (lastExecutedQuery !== null && query !== lastExecutedQuery) {
+    if (lastExecutedQuery !== null && value !== lastExecutedQuery) {
       setInputHasChanged(true);
-      if (onInputChange) {
-        onInputChange(query);
-      }
     }
-  }, [query, lastExecutedQuery, onInputChange]);
+  }, [value, lastExecutedQuery]);
   
   // State to track if we should apply the gradient text effect
   const [showGradientText, setShowGradientText] = useState(false);
   
-  // Set initial query only once when component mounts or when coming from landing page
+  // Apply gradient text effect when coming from landing page
   useEffect(() => {
-    if (initialPrompt && query === "") {
-      setQuery(initialPrompt);
+    if (isFromLandingPage) {
+      setShowGradientText(true);
       
-      // If we're coming from the landing page, apply the gradient text effect temporarily
-      if (isFromLandingPage) {
-        setShowGradientText(true);
-        
-        // Reset after 6 seconds or when the user changes the input
-        const timer = setTimeout(() => {
-          setShowGradientText(false);
-        }, 3000);
-        
-        return () => clearTimeout(timer);
-      }
+      // Reset after 3 seconds
+      const timer = setTimeout(() => {
+        setShowGradientText(false);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
     }
-  }, [initialPrompt, isFromLandingPage]);
-
-  // Sync query when initialPrompt changes (e.g., when loading saved searches)
-  useEffect(() => {
-    // Only sync if initialPrompt has meaningfully changed and is different from current query
-    // AND if this matches lastExecutedQuery (indicating a saved search was loaded)
-    if (initialPrompt && initialPrompt !== query && initialPrompt === lastExecutedQuery) {
-      setQuery(initialPrompt);
-      setInputHasChanged(false); // Reset input changed flag since we're loading a saved search
-    }
-  }, [initialPrompt, lastExecutedQuery]);
+  }, [isFromLandingPage]);
 
   // Handle tooltip dismissal
   useEffect(() => {
@@ -591,7 +572,7 @@ export default function PromptEditor({
         console.log(`Started polling for session ${currentSessionId} completion`);
       }
       
-      onCompaniesReceived(query, data.companies);
+      onCompaniesReceived(value, data.companies);
       
       // Handle search completion based on selected search type
       if (searchType === 'companies') {
@@ -760,7 +741,7 @@ export default function PromptEditor({
       // Small delay to ensure cache invalidation completes before UI update
       setTimeout(() => {
         console.log("[Database Sync] Cache invalidated, sending results to UI...");
-        onSearchResults(query, data.companies);
+        onSearchResults(value, data.companies);
       }, 100);
       
       // Calculate search duration and show summary
@@ -808,7 +789,7 @@ export default function PromptEditor({
   });
 
   const handleSearch = async () => {
-    if (!query.trim()) {
+    if (!value.trim()) {
       toast({
         title: "Empty Query",
         description: "Please enter a search query.",
@@ -818,10 +799,10 @@ export default function PromptEditor({
     }
 
     // Easter egg check - intercept before normal search
-    const trimmedQuery = query.trim().toLowerCase();
+    const trimmedQuery = value.trim().toLowerCase();
     if (trimmedQuery === "5ducks" || trimmedQuery === "free palestine" || trimmedQuery === "he is risen") {
       try {
-        const response = await apiRequest("POST", "/api/credits/easter-egg", { query: query.trim() });
+        const response = await apiRequest("POST", "/api/credits/easter-egg", { query: value.trim() });
         const result = await response.json();
         
         toast({
@@ -857,7 +838,7 @@ export default function PromptEditor({
     
     // Initialize search metrics
     setSearchMetrics({
-      query: query,
+      query: value,
       totalCompanies: 0,
       totalContacts: 0,
       searchDuration: 0,
@@ -872,10 +853,10 @@ export default function PromptEditor({
     // Choose search strategy based on selected search type
     if (searchType === 'companies') {
       // Companies-only search - use quick search without contact enrichment
-      quickSearchMutation.mutate(query);
+      quickSearchMutation.mutate(value);
     } else {
       // Full search with contacts (and potentially emails)
-      quickSearchMutation.mutate(query);
+      quickSearchMutation.mutate(value);
     }
     
     // Semi-protected logic: Show registration modal after 35 seconds if not authenticated
@@ -905,12 +886,9 @@ export default function PromptEditor({
         <div className="flex flex-row md:gap-2 gap-0 pl-0">
           <div className="relative flex-1">
             <Input
-              value={query}
+              value={value}
               onChange={(e) => {
-                setQuery(e.target.value);
-                if (onInputChange) {
-                  onInputChange(e.target.value);
-                }
+                onChange(e.target.value);
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)) {
@@ -983,7 +961,7 @@ export default function PromptEditor({
                 disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
                 isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
                 hasSearchResults={hasSearchResults}
-                inputHasChanged={hasSearchResults && query !== lastExecutedQuery}
+                inputHasChanged={hasSearchResults && value !== lastExecutedQuery}
               />
             </div>
             <div className="ml-2 mt-5">
@@ -1004,7 +982,7 @@ export default function PromptEditor({
               disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
               isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
               hasSearchResults={hasSearchResults}
-              inputHasChanged={hasSearchResults && query !== lastExecutedQuery}
+              inputHasChanged={hasSearchResults && value !== lastExecutedQuery}
             />
           </div>
         )}
