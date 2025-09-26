@@ -65,7 +65,14 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
           <PanelLeft className="text-gray-400" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-96 pl-0 pr-0">
+      <SheetContent 
+        side="left" 
+        className="w-96 pl-0 pr-0"
+        onMouseLeave={() => {
+          // Auto-close drawer when mouse leaves
+          onOpenChange(false);
+        }}
+      >
         {/* Custom mobile-only close button */}
         <SheetClose className="md:hidden absolute top-4 right-4 z-10 h-11 w-11 rounded-md border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 flex items-center justify-center">
           <X className="h-6 w-6" />
