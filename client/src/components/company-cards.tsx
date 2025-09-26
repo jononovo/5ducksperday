@@ -21,7 +21,11 @@ import {
   ChevronUp,
   Globe,
   Users,
-  Building2
+  Building2,
+  ChevronLeft,
+  ChevronRight,
+  ScrollText,
+  Layers
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -71,6 +75,10 @@ export default function CompanyCards({
 }: CompanyCardsProps) {
   const [, setLocation] = useLocation();
   
+  // State for view mode and current slide
+  const [viewMode, setViewMode] = useState<'scroll' | 'slides'>('scroll');
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  
   // State to track which company cards are expanded
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   
@@ -93,6 +101,22 @@ export default function CompanyCards({
   
   // Check if a company card is expanded
   const isCardExpanded = (companyId: number) => expandedCards.has(companyId);
+  
+  // Navigation functions for slides view
+  const handlePrevSlide = () => {
+    setCurrentSlideIndex(prev => Math.max(0, prev - 1));
+  };
+  
+  const handleNextSlide = () => {
+    setCurrentSlideIndex(prev => Math.min(companies.length - 1, prev + 1));
+  };
+  
+  // Reset slide index when switching to slides view or when companies change
+  useEffect(() => {
+    if (viewMode === 'slides' && currentSlideIndex >= companies.length) {
+      setCurrentSlideIndex(Math.max(0, companies.length - 1));
+    }
+  }, [companies.length, viewMode, currentSlideIndex]);
   
   // Toggle company selection
   const toggleCompanySelection = (e: React.MouseEvent, companyId: number) => {
@@ -168,12 +192,76 @@ export default function CompanyCards({
 
   return (
     <div className="w-full space-y-2">
-      {companies.map((company) => {
-        const isExpanded = isCardExpanded(company.id);
-        const topContacts = getTopContacts(company);
-        const isSelected = selectedCompanies.has(company.id);
+      {/* View Mode Toggle */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1">
+          <Button
+            variant={viewMode === 'scroll' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('scroll')}
+            className={cn(
+              "px-3 h-7 text-xs font-medium transition-all",
+              viewMode === 'scroll' 
+                ? "bg-primary text-primary-foreground" 
+                : "hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <ScrollText className="h-3 w-3 mr-1" />
+            Scroll
+          </Button>
+          <Button
+            variant={viewMode === 'slides' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('slides')}
+            className={cn(
+              "px-3 h-7 text-xs font-medium transition-all",
+              viewMode === 'slides' 
+                ? "bg-primary text-primary-foreground" 
+                : "hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <Layers className="h-3 w-3 mr-1" />
+            Slides
+          </Button>
+        </div>
         
-        return (
+        {/* Slide Counter and Navigation for Slides View */}
+        {viewMode === 'slides' && companies.length > 0 && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevSlide}
+              disabled={currentSlideIndex === 0}
+              className="h-7 w-7 p-0"
+            >
+              <ChevronLeft className="h-3 w-3" />
+            </Button>
+            <span className="text-sm text-muted-foreground px-2">
+              {currentSlideIndex + 1} of {companies.length}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextSlide}
+              disabled={currentSlideIndex === companies.length - 1}
+              className="h-7 w-7 p-0"
+            >
+              <ChevronRight className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
+      </div>
+      
+      {/* Companies Display */}
+      {viewMode === 'scroll' ? (
+        // Scroll View - Show all companies
+        companies.map((company) => {
+          const isExpanded = isCardExpanded(company.id);
+          const topContacts = getTopContacts(company);
+          const isSelected = selectedCompanies.has(company.id);
+          
+          return (
           <Card
             key={`company-${company.id}`}
             className={cn(
@@ -394,7 +482,228 @@ export default function CompanyCards({
             )}
           </Card>
         );
-      })}
+        })
+      ) : (
+        // Slides View - Show one company at a time
+        companies.length > 0 && (() => {
+          const company = companies[currentSlideIndex];
+          const isExpanded = isCardExpanded(company.id);
+          const topContacts = getTopContacts(company);
+          const isSelected = selectedCompanies.has(company.id);
+          
+          return (
+            <Card
+              key={`company-${company.id}`}
+              className={cn(
+                "rounded-none md:rounded-lg transition-all duration-200 cursor-pointer",
+                "hover:shadow-sm",
+                isSelected && "border-blue-400 dark:border-blue-600",
+                !isSelected && "border-border"
+              )}
+            >
+              {/* Company Header - Always visible */}
+              <div 
+                onClick={() => toggleCardExpansion(company.id)}
+                className="p-3"
+              >
+                <div className="flex items-center gap-3">
+                  {/* Checkbox - hidden completely */}
+                  <Checkbox 
+                    checked={isSelected}
+                    onCheckedChange={() => toggleCompanySelection({stopPropagation: () => {}} as React.MouseEvent, company.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label={`Select ${company.name}`}
+                    className="mt-0.5 hidden"
+                  />
+                  
+                  {/* Company Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-base leading-tight flex items-center gap-2">
+                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                          {company.name}
+                        </h3>
+                        
+                        <div className="flex items-center gap-2 mt-1">
+                          {company.website && (
+                            <a
+                              href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                            >
+                              <Globe className="h-3 w-3" />
+                              <span className="truncate max-w-[200px]">{company.website.replace(/^https?:\/\//, '')}</span>
+                            </a>
+                          )}
+                          {company.contacts && company.contacts.length > 0 && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Users className="h-3 w-3" />
+                              <span>{company.contacts.length} contacts</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Expansion indicator and actions */}
+                      <div className="flex items-center gap-2">
+                        {company.contacts && company.contacts.length > 0 && (
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs cursor-pointer hover:bg-accent"
+                          >
+                            {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                          </Badge>
+                        )}
+                        
+                        {/* Company action menu */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Menu className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleCompanyView(company.id)}>
+                              <ExternalLink className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Contacts Section - Only visible when expanded */}
+              {isExpanded && topContacts.length > 0 && (
+                <CardContent className="pt-0 px-3 pb-3">
+                  <div className="border-t pt-2">
+                    <div className="space-y-1.5">
+                      {topContacts.map((contact) => (
+                        <div
+                          key={`${company.id}-contact-${contact.id}`}
+                          className={cn(
+                            "flex items-center gap-3 p-2 rounded-md transition-colors cursor-pointer",
+                            "hover:bg-muted/50",
+                            selectedContacts.has(contact.id) && "bg-blue-50/30 dark:bg-blue-950/10"
+                          )}
+                          onClick={() => onContactClick?.(contact, company)}
+                        >
+                          <Checkbox 
+                            checked={selectedContacts.has(contact.id)}
+                            onCheckedChange={() => toggleContactSelection({stopPropagation: () => {}} as React.MouseEvent, contact.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label={`Select ${contact.name}`}
+                            className="mt-0.5 hidden"
+                          />
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <div className="font-medium text-sm">{contact.name}</div>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  {contact.role || "No role specified"}
+                                </div>
+                                <div className="text-xs mt-1">
+                                  {contact.email ? (
+                                    <span className="text-gray-600">{contact.email}</span>
+                                  ) : (
+                                    handleComprehensiveEmailSearch && (
+                                      <ComprehensiveSearchButton
+                                        contact={contact}
+                                        onSearch={handleComprehensiveEmailSearch}
+                                        isPending={pendingComprehensiveSearchIds?.has(contact.id)}
+                                        displayMode="text"
+                                      />
+                                    )
+                                  )}
+                                  {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
+                                    <div className="mt-0.5 space-y-0.5">
+                                      {contact.alternativeEmails.map((altEmail, index) => (
+                                        <div key={index} className="text-xs text-muted-foreground/70 italic">
+                                          {altEmail}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                {contact.probability && (
+                                  <TooltipProvider delayDuration={300}>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span>
+                                          <Badge
+                                            variant="secondary"
+                                            className="text-xs cursor-help"
+                                          >
+                                            {contact.probability}%
+                                          </Badge>
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Score reflects the contact's affinity to the target role/designation searched.</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
+                                
+                                <ContactActionColumn
+                                  contact={contact}
+                                  handleContactView={(id) => {
+                                    setLocation(`/contacts/${id}`);
+                                  }}
+                                  handleEnrichContact={handleEnrichContact}
+                                  handleHunterSearch={handleHunterSearch}
+                                  handleApolloSearch={handleApolloSearch}
+                                  pendingContactIds={pendingContactIds}
+                                  pendingHunterIds={pendingHunterIds}
+                                  pendingApolloIds={pendingApolloIds}
+                                  standalone={true}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {company.contacts && company.contacts.length > 3 && (
+                        <div className="text-center pt-2">
+                          <span className="text-xs text-muted-foreground">
+                            +{company.contacts.length - 3} more contacts available
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+              
+              {/* No contacts message */}
+              {isExpanded && topContacts.length === 0 && (
+                <CardContent className="pt-0 px-4 pb-4">
+                  <div className="border-t pt-3">
+                    <div className="text-center py-4 text-sm text-muted-foreground">
+                      No contacts found for this company
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          );
+        })()
+      )}
     </div>
   );
 }
