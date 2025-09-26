@@ -176,9 +176,11 @@ export default function CompanyCards({
             key={`company-${company.id}`}
             className={cn(
               "rounded-lg transition-all duration-200 cursor-pointer",
-              "hover:shadow-md hover:bg-accent/5",
+              "hover:shadow-md",
               isSelected && "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800",
-              !isSelected && "bg-card border-border"
+              !isSelected && !isExpanded && "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800",
+              !isSelected && isExpanded && "bg-white dark:bg-gray-950 border-border",
+              !isSelected && "hover:bg-white hover:dark:bg-gray-950"
             )}
           >
             {/* Company Header - Always visible */}
