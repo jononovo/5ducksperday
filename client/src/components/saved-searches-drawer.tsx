@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Sheet,
@@ -31,19 +31,48 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
   });
   
   const [clickedId, setClickedId] = useState<number | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <>
+      {/* Invisible hover zone for desktop - opens drawer on hover with delay */}
+      <div 
+        className="hidden min-[700px]:block fixed left-0 top-0 h-full w-[2%] z-40"
+        onMouseEnter={() => {
+          // Only open on wider viewports (700px+) after 500ms delay
+          if (window.innerWidth >= 700) {
+            hoverTimeoutRef.current = setTimeout(() => {
+              onOpenChange(true);
+            }, 500);
+          }
+        }}
+        onMouseLeave={() => {
+          // Clear timeout if mouse leaves before drawer opens
+          if (hoverTimeoutRef.current) {
+            clearTimeout(hoverTimeoutRef.current);
+            hoverTimeoutRef.current = null;
+          }
+        }}
+      />
+      
+      <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         <Button 
           variant="outline" 
           size="icon" 
-          className="fixed left-0 top-32 md:top-20 z-50 h-10 w-10 md:h-12 md:w-12 rounded-l-none rounded-r-lg border-l-0 border-r border-t border-b bg-background/95 backdrop-blur-sm shadow-md hover:bg-accent hover:text-accent-foreground transition-all duration-200 [&_svg]:!size-5 md:[&_svg]:!size-7"
+          className="fixed left-0 top-32 md:top-20 z-50 h-8 w-8 md:h-10 md:w-10 rounded-l-none rounded-r-lg border-l-0 border-r border-t border-b bg-background/95 backdrop-blur-sm shadow-md hover:bg-accent hover:text-accent-foreground transition-all duration-200 [&_svg]:!size-3 md:[&_svg]:!size-5"
         >
           <PanelLeft className="text-gray-400" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-96 pl-0 pr-0">
+      <SheetContent 
+        side="left" 
+        className="w-96 pl-0 pr-0"
+        onMouseLeave={() => {
+          // Auto-close drawer when mouse leaves
+          onOpenChange(false);
+        }}
+      >
         {/* Custom mobile-only close button */}
         <SheetClose className="md:hidden absolute top-4 right-4 z-10 h-11 w-11 rounded-md border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 flex items-center justify-center">
           <X className="h-6 w-6" />
@@ -86,5 +115,6 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
         </div>
       </SheetContent>
     </Sheet>
+    </>
   );
 }
