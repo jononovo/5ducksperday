@@ -2325,6 +2325,90 @@ export default function Home() {
                     onSessionIdChange={setCurrentSessionId}
                   />
                 </Suspense>
+                
+                {/* Action buttons menu - Moved here from search results, Hidden in focus mode */}
+                {currentResults && currentResults.length > 0 && !emailDrawerOpen && (
+                  <div className="px-0 py-3 flex items-center justify-between bg-white dark:bg-transparent transition-all duration-300">
+                    <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className={`flex items-center gap-1 h-8 ${
+                          highlightEmailButton 
+                            ? 'email-button-highlight' 
+                            : 'opacity-45 hover:opacity-100 hover:bg-white'
+                        } transition-all`}
+                        onClick={() => {
+                          try {
+                            if (isFromLandingPage && setIsFromLandingPage) {
+                              setIsFromLandingPage(false);
+                            }
+                          } catch (e) {
+                            // Silent fail - prevents error from showing to users
+                          }
+                          runConsolidatedEmailSearch();
+                        }}
+                        disabled={isConsolidatedSearching}
+                      >
+                        <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
+                        <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
+                      </Button>
+                      
+                      <LandingPageTooltip
+                        message="Click here to find Egg-cellent emails of wonderful people."
+                        visible={showEmailTooltip && !(isAnalyzing || isConsolidatedSearching)}
+                        position="custom"
+                        offsetX={-10}
+                      />
+                    </div>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                            onClick={() => {
+                              if (!auth.user) {
+                                registrationModal.openModal();
+                                return;
+                              }
+                              // If user is logged in, the actual functionality would go here
+                              console.log("5 More button clicked by authenticated user");
+                            }}
+                          >
+                            <Plus className="h-4 w-4" />
+                            <span className="hidden md:inline">5 More</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p className="text-xs">Expand the search to include another five companies with the same prompt</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                            <span className="hidden md:inline">Expand</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p className="text-xs">Expand or collapse all company rows of contacts</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -2373,90 +2457,6 @@ export default function Home() {
                     total={searchProgress.total}
                     isVisible={isConsolidatedSearching}
                   />
-                </div>
-              )}
-              
-              {/* Action buttons menu - Hidden in focus mode */}
-              {currentResults && currentResults.length > 0 && !emailDrawerOpen && (
-                <div className="px-2 md:px-6 py-3 flex items-center justify-between bg-white dark:bg-transparent transition-all duration-300">
-                  <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className={`flex items-center gap-1 h-8 ${
-                        highlightEmailButton 
-                          ? 'email-button-highlight' 
-                          : 'opacity-45 hover:opacity-100 hover:bg-white'
-                      } transition-all`}
-                      onClick={() => {
-                        try {
-                          if (isFromLandingPage && setIsFromLandingPage) {
-                            setIsFromLandingPage(false);
-                          }
-                        } catch (e) {
-                          // Silent fail - prevents error from showing to users
-                        }
-                        runConsolidatedEmailSearch();
-                      }}
-                      disabled={isConsolidatedSearching}
-                    >
-                      <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
-                      <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
-                    </Button>
-                    
-                    <LandingPageTooltip
-                      message="Click here to find Egg-cellent emails of wonderful people."
-                      visible={showEmailTooltip && !(isAnalyzing || isConsolidatedSearching)}
-                      position="custom"
-                      offsetX={-10}
-                    />
-                  </div>
-                  
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                          onClick={() => {
-                            if (!auth.user) {
-                              registrationModal.openModal();
-                              return;
-                            }
-                            // If user is logged in, the actual functionality would go here
-                            console.log("5 More button clicked by authenticated user");
-                          }}
-                        >
-                          <Plus className="h-4 w-4" />
-                          <span className="hidden md:inline">5 More</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="text-xs">Expand the search to include another five companies with the same prompt</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                          <span className="hidden md:inline">Expand</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="text-xs">Expand or collapse all company rows of contacts</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  </div>
                 </div>
               )}
               
