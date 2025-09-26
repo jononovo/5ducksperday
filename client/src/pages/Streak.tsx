@@ -169,9 +169,14 @@ export default function StreakPage() {
       
       // Set vacation dates if they exist
       if (preferences.vacationStartDate && preferences.vacationEndDate) {
+        // Parse dates as local dates, not UTC, to prevent timezone shift
+        // Extract just the date part (YYYY-MM-DD) and parse as local date
+        const startDateStr = preferences.vacationStartDate.split('T')[0];
+        const endDateStr = preferences.vacationEndDate.split('T')[0];
+        
         setVacationDates({
-          from: new Date(preferences.vacationStartDate),
-          to: new Date(preferences.vacationEndDate)
+          from: parse(startDateStr, 'yyyy-MM-dd', new Date()),
+          to: parse(endDateStr, 'yyyy-MM-dd', new Date())
         });
       }
     }
