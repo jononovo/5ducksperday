@@ -2323,11 +2323,12 @@ export default function Home() {
                     }}
                     hasSearchResults={currentResults ? currentResults.length > 0 : false}
                     onSessionIdChange={setCurrentSessionId}
+                    hideRoleButtons={!!(currentResults && currentResults.length > 0 && !inputHasChanged)}
                   />
                 </Suspense>
                 
-                {/* Action buttons menu - Moved here from search results, Hidden in focus mode */}
-                {currentResults && currentResults.length > 0 && !emailDrawerOpen && (
+                {/* Action buttons menu - Moved here from search results, Hidden in focus mode and active search state */}
+                {currentResults && currentResults.length > 0 && !inputHasChanged && !emailDrawerOpen && (
                   <div className="px-0 py-3 flex items-center justify-between bg-white dark:bg-transparent transition-all duration-300">
                     <div className="flex items-center gap-2">
                     <div className="relative">
