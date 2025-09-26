@@ -2265,7 +2265,7 @@ export default function Home() {
               
               {/* Action buttons menu */}
               {currentResults && currentResults.length > 0 && (
-                <div className="px-6 py-3 flex items-center justify-between border-b">
+                <div className="px-6 py-3 flex items-center justify-between border-b bg-white dark:bg-transparent">
                   <div className="flex items-center gap-2">
                   <div className="relative">
                     <Button 
