@@ -2769,7 +2769,7 @@ export default function Home() {
 
           {/* Email Composer */}
           {emailDrawerOpen && (
-            <div className="p-4 overflow-y-auto flex-1">
+            <div className="p-4 overflow-y-auto">
               <EmailComposer
                 selectedContact={selectedEmailContact}
                 selectedCompany={selectedEmailCompany}
