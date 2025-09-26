@@ -389,7 +389,7 @@ export function EmailComposer({
       <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
         <Textarea
           ref={promptTextareaRef}
-          placeholder="Sell dog-grooming services"
+          placeholder="I help real-estate contractors secure large-scale loans"
           value={getDisplayValue(emailPrompt, originalEmailPrompt)}
           onChange={(e) => {
             setEmailPrompt(e.target.value);
