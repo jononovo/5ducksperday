@@ -214,7 +214,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                     selectedEmailContact?.id === contact.id 
                       ? contact.email 
                         ? "border-l-4 border-dashed border-yellow-400/40 border-4 border-yellow-400/20 border-dashed shadow-md transition-all duration-200" 
-                        : "border-l-4 border-dotted border-gray-400 border-2 border-gray-300/50 border-dotted transition-all duration-200"
+                        : "border-l-4 border-dotted border-gray-400 border-4 border-gray-300/50 border-dotted shadow-md transition-all duration-200"
                       : "",
                     selectedContacts.has(contact.id) && "bg-blue-50/30 dark:bg-blue-950/10"
                   )}
