@@ -82,6 +82,7 @@ interface CompanyCardProps {
   onContactClick?: (contact: ContactWithCompanyInfo, company: Company) => void;
   setLocation: (path: string) => void;
   topContacts: ContactWithCompanyInfo[];
+  viewMode: 'scroll' | 'slides';
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({
@@ -103,7 +104,8 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   pendingComprehensiveSearchIds,
   onContactClick,
   setLocation,
-  topContacts
+  topContacts,
+  viewMode
 }) => {
   return (
     <Card
@@ -162,7 +164,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
               
               {/* Expansion indicator and actions - unified design */}
               <div className="flex items-center gap-2">
-                {company.contacts && company.contacts.length > 0 && (
+                {company.contacts && company.contacts.length > 0 && viewMode === 'scroll' && (
                   <Badge 
                     variant="outline" 
                     className="text-xs cursor-pointer hover:bg-accent"
@@ -545,6 +547,7 @@ export default function CompanyCards({
             onContactClick={onContactClick}
             setLocation={setLocation}
             topContacts={getTopContacts(company)}
+            viewMode={viewMode}
           />
         ))
       ) : (
@@ -571,6 +574,7 @@ export default function CompanyCards({
             onContactClick={onContactClick}
             setLocation={setLocation}
             topContacts={getTopContacts(companies[currentSlideIndex])}
+            viewMode={viewMode}
           />
         )
       )}
