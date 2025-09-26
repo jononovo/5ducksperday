@@ -165,7 +165,7 @@ export default function CompanyCards({
   };
 
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full space-y-2">
       {companies.map((company) => {
         const isExpanded = isCardExpanded(company.id);
         const topContacts = getTopContacts(company);
@@ -175,27 +175,25 @@ export default function CompanyCards({
           <Card
             key={`company-${company.id}`}
             className={cn(
-              "rounded-lg transition-all duration-200 cursor-pointer",
-              "hover:shadow-md",
-              isSelected && "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800",
-              !isSelected && !isExpanded && "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800",
-              !isSelected && isExpanded && "bg-white dark:bg-gray-950 border-border",
-              !isSelected && "hover:bg-white hover:dark:bg-gray-950"
+              "rounded-none md:rounded-lg transition-all duration-200 cursor-pointer",
+              "hover:shadow-sm",
+              isSelected && "border-blue-400 dark:border-blue-600",
+              !isSelected && "border-border"
             )}
           >
             {/* Company Header - Always visible */}
             <div 
               onClick={() => toggleCardExpansion(company.id)}
-              className="p-4"
+              className="p-3"
             >
               <div className="flex items-center gap-3">
-                {/* Checkbox */}
+                {/* Checkbox - hidden completely */}
                 <Checkbox 
                   checked={isSelected}
                   onCheckedChange={() => toggleCompanySelection({stopPropagation: () => {}} as React.MouseEvent, company.id)}
                   onClick={(e) => e.stopPropagation()}
                   aria-label={`Select ${company.name}`}
-                  className="mt-0.5"
+                  className="mt-0.5 hidden"
                 />
                 
                 {/* Company Info */}
@@ -225,7 +223,8 @@ export default function CompanyCards({
                         
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <Users className="h-3 w-3" />
-                          <span>{company.contacts?.length || 0} contacts</span>
+                          <span className="md:hidden">{company.contacts?.length || 0}</span>
+                          <span className="hidden md:inline">{company.contacts?.length || 0} contacts</span>
                         </div>
                         
                         {company.totalScore && company.totalScore > 0 && (
@@ -276,17 +275,16 @@ export default function CompanyCards({
             
             {/* Contacts Section - Only visible when expanded */}
             {isExpanded && topContacts.length > 0 && (
-              <CardContent className="pt-0 px-4 pb-4">
-                <div className="border-t pt-3">
-                  <div className="space-y-2">
+              <CardContent className="pt-0 px-3 pb-3">
+                <div className="border-t pt-2">
+                  <div className="space-y-1.5">
                     {topContacts.map((contact) => (
                       <div
                         key={`${company.id}-contact-${contact.id}`}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-md transition-colors",
-                          "bg-background/50 hover:bg-background",
-                          "border border-border/50 hover:border-border",
-                          selectedContacts.has(contact.id) && "bg-blue-50/50 dark:bg-blue-950/10 border-blue-200/50 dark:border-blue-800/50"
+                          "flex items-center gap-3 p-2 rounded-md transition-colors",
+                          "hover:bg-muted/50",
+                          selectedContacts.has(contact.id) && "bg-blue-50/30 dark:bg-blue-950/10"
                         )}
                       >
                         <Checkbox 
@@ -294,7 +292,7 @@ export default function CompanyCards({
                           onCheckedChange={() => toggleContactSelection({stopPropagation: () => {}} as React.MouseEvent, contact.id)}
                           onClick={(e) => e.stopPropagation()}
                           aria-label={`Select ${contact.name}`}
-                          className="mt-0.5"
+                          className="mt-0.5 hidden"
                         />
                         
                         <div className="flex-1 min-w-0">
