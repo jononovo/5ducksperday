@@ -747,7 +747,7 @@ export function EmailComposer({
           onClick={() => setIsTemplatesExpanded(!isTemplatesExpanded)}
           className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
         >
-          <span>View Templates</span>
+          <span>{isTemplatesExpanded ? 'Hide Templates' : 'View Templates'}</span>
           {isTemplatesExpanded ? (
             <ChevronUp className="w-3.5 h-3.5" />
           ) : (
