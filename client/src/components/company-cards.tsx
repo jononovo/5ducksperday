@@ -210,7 +210,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                 <div
                   key={`${company.id}-contact-${contact.id}`}
                   className={cn(
-                    "flex items-center gap-3 p-2 rounded-md cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200",
+                    "group flex items-center gap-3 p-2 rounded-md cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200",
                     selectedEmailContact?.id === contact.id 
                       ? contact.email 
                         ? "border-l-4 border-dashed border-yellow-400/40 border-4 border-yellow-400/20 border-dashed shadow-md" 
