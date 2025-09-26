@@ -711,7 +711,7 @@ export function EmailComposer({
 
 
     {/* Quick Templates Section - Collapsible */}
-    <div className="mt-3 mb-24">
+    <div className="mt-3">
       {/* View Templates Toggle Button - Right aligned */}
       <div className="flex justify-end">
         <button
@@ -794,6 +794,9 @@ export function EmailComposer({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    
+    {/* Spacer to ensure Templates button is visible */}
+    <div className="h-24" aria-hidden="true" />
     </div>
   );
 }
