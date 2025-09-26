@@ -760,9 +760,12 @@ export default function StreakPage() {
                           setVacationDates(range || { from: undefined, to: undefined });
                           
                           // Only save to backend when we have a complete, valid range
+                          // Check that both dates exist, are Date objects, and are valid (not NaN)
                           if (range?.from && range?.to && 
                               range.from instanceof Date && 
-                              range.to instanceof Date) {
+                              range.to instanceof Date &&
+                              !isNaN(range.from.getTime()) &&
+                              !isNaN(range.to.getTime())) {
                             updateVacationMode.mutate({
                               isOnVacation: true,
                               vacationStartDate: format(range.from, 'yyyy-MM-dd'),
