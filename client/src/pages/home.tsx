@@ -418,6 +418,7 @@ export default function Home() {
         setCurrentResults(savedState.currentResults);
         setCurrentListId(savedState.currentListId);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
+        setInputHasChanged(false); // Set to false when loading saved state
         
         // Always refresh contact data when restoring from localStorage to ensure emails are preserved
         console.log('Refreshing contact data from database to preserve emails after navigation');
@@ -435,6 +436,7 @@ export default function Home() {
         setCurrentListId(savedState.currentListId);
         setCurrentResults(savedState.currentResults);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
+        setInputHasChanged(false); // Set to false when loading saved state
         
         // Always refresh from database to ensure fresh data (including emails)
         refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
@@ -1169,13 +1171,18 @@ export default function Home() {
         })
       );
       
+      // Set all state for loaded search
       setCurrentQuery(list.prompt);
       setLastExecutedQuery(list.prompt); // Update lastExecutedQuery to sync the search input
-      setInputHasChanged(false); // Reset input change flag for loaded search
       setCurrentResults(companiesWithContacts);
       setCurrentListId(list.listId);
       setIsSaved(true);
       setSavedSearchesDrawerOpen(false);
+      
+      // Force input change flag to false after a small delay to ensure proper state update
+      setTimeout(() => {
+        setInputHasChanged(false);
+      }, 0);
       
       const totalContacts = companiesWithContacts.reduce((sum, company) => 
         sum + (company.contacts?.length || 0), 0);
