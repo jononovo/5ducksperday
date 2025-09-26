@@ -783,6 +783,15 @@ export default function Home() {
     setIsAnalyzing(false);
   };
 
+  // Helper function to sort companies by contact count
+  const sortCompaniesByContactCount = (companies: CompanyWithContacts[]): CompanyWithContacts[] => {
+    return [...companies].sort((a, b) => {
+      const contactsA = a.contacts?.length || 0;
+      const contactsB = b.contacts?.length || 0;
+      return contactsB - contactsA; // Descending order (most contacts first)
+    });
+  };
+
   // New handler for initial companies data
   const handleCompaniesReceived = (query: string, companies: Company[]) => {
     console.log('Companies received:', companies.length);
@@ -791,7 +800,10 @@ export default function Home() {
     // Update the UI with just the companies data
     setCurrentQuery(query);
     // Convert Company[] to CompanyWithContacts[] with empty contacts arrays
-    setCurrentResults(companies.map(company => ({ ...company, contacts: [] })));
+    const companiesWithEmptyContacts = companies.map(company => ({ ...company, contacts: [] }));
+    // Apply sorting even though all have 0 contacts - maintains consistency
+    const sortedCompanies = sortCompaniesByContactCount(companiesWithEmptyContacts);
+    setCurrentResults(sortedCompanies);
     setIsSaved(false);
     setIsLoadingContacts(true);
     setContactsLoaded(false);
@@ -817,11 +829,7 @@ export default function Home() {
     hasSessionRestoredDataRef.current = true;
     
     // Sort companies by contact count (most contacts first)
-    const sortedResults = [...results].sort((a, b) => {
-      const contactsA = a.contacts?.length || 0;
-      const contactsB = b.contacts?.length || 0;
-      return contactsB - contactsA; // Descending order
-    });
+    const sortedResults = sortCompaniesByContactCount(results);
     
     console.log('Companies reordered by contact count:', 
       sortedResults.map(c => ({ name: c.name, contacts: c.contacts?.length || 0 }))
