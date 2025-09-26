@@ -308,22 +308,14 @@ export default function CompanyCards({
                                 {contact.email ? (
                                   <span className="text-blue-600">{contact.email}</span>
                                 ) : (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (handleComprehensiveEmailSearch) {
-                                        handleComprehensiveEmailSearch(contact.id);
-                                      }
-                                    }}
-                                    disabled={pendingComprehensiveSearchIds?.has(contact.id)}
-                                    className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-blue-600 transition-colors"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <rect width="20" height="16" x="2" y="4" rx="2"/>
-                                      <path d="m22 7-10 5L2 7"/>
-                                    </svg>
-                                    <span>Find email</span>
-                                  </button>
+                                  handleComprehensiveEmailSearch && (
+                                    <ComprehensiveSearchButton
+                                      contact={contact}
+                                      onSearch={handleComprehensiveEmailSearch}
+                                      isPending={pendingComprehensiveSearchIds?.has(contact.id)}
+                                      displayMode="text"
+                                    />
+                                  )
                                 )}
                                 {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
                                   <div className="mt-0.5 space-y-0.5">
