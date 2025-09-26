@@ -79,6 +79,7 @@ export function EmailComposer({
   const [pendingProduct, setPendingProduct] = useState<StrategicProfile | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [isMergeViewMode, setIsMergeViewMode] = useState(false);
   const [isGmailButtonHovered, setIsGmailButtonHovered] = useState(false);
 
