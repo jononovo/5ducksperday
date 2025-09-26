@@ -2335,10 +2335,9 @@ export default function Home() {
               >
                 <div className="flex items-center gap-2">
                   <Search className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Open search</span>
                   {currentQuery && (
-                    <span className="text-sm text-muted-foreground italic truncate max-w-[200px] md:max-w-[400px]">
-                      "{currentQuery}"
+                    <span className="text-sm text-muted-foreground truncate max-w-[200px] md:max-w-[400px]">
+                      {currentQuery}
                     </span>
                   )}
                 </div>
