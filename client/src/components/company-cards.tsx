@@ -213,7 +213,7 @@ export default function CompanyCards({
               "px-2 h-6 text-[11px] font-medium transition-all",
               viewMode === 'scroll' 
                 ? "bg-background text-gray-600 shadow-sm" 
-                : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+                : "hover:bg-muted/50 text-gray-400/60 hover:text-gray-500"
             )}
           >
             <ScrollText className="h-3 w-3 mr-0.5" />
@@ -230,7 +230,7 @@ export default function CompanyCards({
               "px-2 h-6 text-[11px] font-medium transition-all",
               viewMode === 'slides' 
                 ? "bg-background text-gray-600 shadow-sm" 
-                : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+                : "hover:bg-muted/50 text-gray-400/60 hover:text-gray-500"
             )}
           >
             <Layers className="h-3 w-3 mr-0.5" />
