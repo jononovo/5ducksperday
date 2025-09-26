@@ -187,13 +187,13 @@ export default function CompanyCards({
               className="p-3"
             >
               <div className="flex items-center gap-3">
-                {/* Checkbox */}
+                {/* Checkbox - hidden on mobile */}
                 <Checkbox 
                   checked={isSelected}
                   onCheckedChange={() => toggleCompanySelection({stopPropagation: () => {}} as React.MouseEvent, company.id)}
                   onClick={(e) => e.stopPropagation()}
                   aria-label={`Select ${company.name}`}
-                  className="mt-0.5"
+                  className="mt-0.5 hidden md:block"
                 />
                 
                 {/* Company Info */}
@@ -223,7 +223,8 @@ export default function CompanyCards({
                         
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <Users className="h-3 w-3" />
-                          <span>{company.contacts?.length || 0} contacts</span>
+                          <span className="md:hidden">{company.contacts?.length || 0}</span>
+                          <span className="hidden md:inline">{company.contacts?.length || 0} contacts</span>
                         </div>
                         
                         {company.totalScore && company.totalScore > 0 && (
@@ -291,7 +292,7 @@ export default function CompanyCards({
                           onCheckedChange={() => toggleContactSelection({stopPropagation: () => {}} as React.MouseEvent, contact.id)}
                           onClick={(e) => e.stopPropagation()}
                           aria-label={`Select ${contact.name}`}
-                          className="mt-0.5"
+                          className="mt-0.5 hidden md:block"
                         />
                         
                         <div className="flex-1 min-w-0">
