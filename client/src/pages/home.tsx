@@ -2879,7 +2879,7 @@ export default function Home() {
       } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`}>
         {emailDrawerOpen && (
           <>
-            <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] pb-4" style={{ minWidth: '320px' }}>
+            <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] pb-20" style={{ minWidth: '320px' }}>
               {/* Same header content */}
               <div className="sticky top-0 bg-background px-4 py-1.5 flex items-center justify-between z-10">
                 <div className="flex-1">
