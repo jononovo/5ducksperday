@@ -105,7 +105,7 @@ export default function CompanyCards({
         if (company?.contacts) {
           setSelectedContacts(prev => {
             const updatedContacts = new Set(prev);
-            company.contacts.forEach(contact => updatedContacts.delete(contact.id));
+            company.contacts?.forEach(contact => updatedContacts.delete(contact.id));
             return updatedContacts;
           });
         }
@@ -116,7 +116,7 @@ export default function CompanyCards({
         if (company?.contacts) {
           setSelectedContacts(prev => {
             const updatedContacts = new Set(prev);
-            company.contacts.forEach(contact => updatedContacts.add(contact.id));
+            company.contacts?.forEach(contact => updatedContacts.add(contact.id));
             return updatedContacts;
           });
         }
