@@ -438,7 +438,7 @@ export class PersistentDailyOutreachScheduler {
       statusUpdates.push(`Step 1 ✓: Found user ${user.email}`);
       
       // Check vacation mode
-      statusUpdates.push('Step 2: Checking user preferences');
+      statusUpdates.push('Step 2: Checking user preferences and vacation mode');
       const [preferences] = await db
         .select()
         .from(userOutreachPreferences)
@@ -449,7 +449,22 @@ export class PersistentDailyOutreachScheduler {
         await this.updateJobStatus(userId, statusUpdates.join(' | '));
         return { batchId: null, contactsProcessed: 0 };
       }
-      statusUpdates.push('Step 2 ✓: Outreach enabled');
+      
+      // Check if user is on vacation
+      if (preferences.vacationMode && preferences.vacationStartDate && preferences.vacationEndDate) {
+        const now = new Date();
+        const vacationStart = new Date(preferences.vacationStartDate);
+        const vacationEnd = new Date(preferences.vacationEndDate);
+        
+        if (now >= vacationStart && now <= vacationEnd) {
+          statusUpdates.push(`Step 2 🏖️: User on vacation until ${vacationEnd.toDateString()}`);
+          await this.updateJobStatus(userId, statusUpdates.join(' | '));
+          console.log(`User ${userId} is on vacation until ${vacationEnd.toDateString()}`);
+          return { batchId: null, contactsProcessed: 0 };
+        }
+      }
+      
+      statusUpdates.push('Step 2 ✓: Outreach enabled, not on vacation');
       
       // Check for strategic profiles (products)
       statusUpdates.push('Step 3: Checking strategic profiles');

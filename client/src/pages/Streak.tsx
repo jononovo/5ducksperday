@@ -8,7 +8,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { format, differenceInDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { format, parse, differenceInDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { CalendarIcon, Mail, Zap, Building2, Users, TrendingUp, Pause, Play, ExternalLink, RefreshCw, Target, Flame, Sparkles, Rocket, Package, Plus, Check, Clock, Calendar as CalendarIcon2, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
@@ -161,6 +161,27 @@ export default function StreakPage() {
     enabled: !!user
   });
 
+  // Sync vacation state from loaded preferences
+  useEffect(() => {
+    if (preferences) {
+      // Set vacation mode from preferences
+      setVacationMode(preferences.vacationMode || false);
+      
+      // Set vacation dates if they exist
+      if (preferences.vacationStartDate && preferences.vacationEndDate) {
+        // Parse dates as local dates, not UTC, to prevent timezone shift
+        // Extract just the date part (YYYY-MM-DD) and parse as local date
+        const startDateStr = preferences.vacationStartDate.split('T')[0];
+        const endDateStr = preferences.vacationEndDate.split('T')[0];
+        
+        setVacationDates({
+          from: parse(startDateStr, 'yyyy-MM-dd', new Date()),
+          to: parse(endDateStr, 'yyyy-MM-dd', new Date())
+        });
+      }
+    }
+  }, [preferences]);
+
   // Update preferences mutation
   const updatePreferences = useMutation({
     mutationFn: async (data: any) => {
@@ -305,10 +326,13 @@ export default function StreakPage() {
         setVacationMode(true);
         if (preferences.vacationStartDate && preferences.vacationEndDate) {
           setVacationDates({
-            from: new Date(preferences.vacationStartDate),
-            to: new Date(preferences.vacationEndDate)
+            from: parse(preferences.vacationStartDate, 'yyyy-MM-dd', new Date()),
+            to: parse(preferences.vacationEndDate, 'yyyy-MM-dd', new Date())
           });
         }
+      } else {
+        setVacationMode(false);
+        setVacationDates({ from: undefined, to: undefined });
       }
       
       // Set active product
@@ -341,24 +365,6 @@ export default function StreakPage() {
     }
   }, [hasInitialized, preferences, products, senderProfiles, customerProfiles]);
 
-  // Separate effect for vacation mode updates only
-  useEffect(() => {
-    if (hasInitialized && preferences) {
-      // Only update vacation mode settings, not profile selections
-      
-      if (preferences.vacationMode) {
-        setVacationMode(true);
-        if (preferences.vacationStartDate && preferences.vacationEndDate) {
-          setVacationDates({
-            from: new Date(preferences.vacationStartDate),
-            to: new Date(preferences.vacationEndDate)
-          });
-        }
-      } else {
-        setVacationMode(false);
-      }
-    }
-  }, [hasInitialized, preferences]);
 
   const handleProductChange = (productId: number) => {
     // Toggle selection - if already selected, deselect it
@@ -392,17 +398,17 @@ export default function StreakPage() {
     const newVacationMode = !vacationMode;
     setVacationMode(newVacationMode);
     
-    if (newVacationMode && vacationDates.from && vacationDates.to) {
-      updateVacationMode.mutate({
-        isOnVacation: true,
-        vacationStartDate: format(vacationDates.from, 'yyyy-MM-dd'),
-        vacationEndDate: format(vacationDates.to, 'yyyy-MM-dd')
-      });
-    } else if (!newVacationMode) {
-      updateVacationMode.mutate({
-        isOnVacation: false
-      });
-    }
+    // Only update the vacation mode status, keep existing dates if any
+    updateVacationMode.mutate({
+      isOnVacation: newVacationMode,
+      // Include dates only if they are valid Date objects
+      vacationStartDate: vacationDates.from && !isNaN(vacationDates.from.getTime()) 
+        ? format(vacationDates.from, 'yyyy-MM-dd') 
+        : undefined,
+      vacationEndDate: vacationDates.to && !isNaN(vacationDates.to.getTime()) 
+        ? format(vacationDates.to, 'yyyy-MM-dd') 
+        : undefined
+    });
   };
 
   const openTodaysEmail = () => {
@@ -753,38 +759,65 @@ export default function StreakPage() {
 
               {vacationMode && (
                 <div className="mt-4 space-y-3">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {vacationDates.from && vacationDates.to ? (
-                          <>
-                            {format(vacationDates.from, 'MMM d')} - {format(vacationDates.to, 'MMM d, yyyy')}
-                          </>
-                        ) : (
-                          'Select vacation dates'
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="range"
-                        selected={vacationDates}
-                        onSelect={(range: any) => {
-                          setVacationDates(range || { from: undefined, to: undefined });
-                          if (range?.from && range?.to) {
-                            updateVacationMode.mutate({
-                              isOnVacation: true,
-                              vacationStartDate: format(range.from, 'yyyy-MM-dd'),
-                              vacationEndDate: format(range.to, 'yyyy-MM-dd')
-                            });
-                          }
-                        }}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <div className="flex gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="flex-1 justify-start">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {vacationDates.from && vacationDates.to && !isNaN(vacationDates.from.getTime()) && !isNaN(vacationDates.to.getTime()) ? (
+                            <>
+                              {format(vacationDates.from, 'MMM d')} - {format(vacationDates.to, 'MMM d, yyyy')}
+                            </>
+                          ) : (
+                            'Select vacation dates'
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="range"
+                          selected={{
+                            from: vacationDates.from,
+                            to: vacationDates.to
+                          }}
+                          onSelect={(range: any) => {
+                            // Update local state with the selected range
+                            if (range) {
+                              setVacationDates({
+                                from: range.from || undefined,
+                                to: range.to || undefined
+                              });
+                            } else {
+                              setVacationDates({ from: undefined, to: undefined });
+                            }
+                          }}
+                          disabled={(date) => {
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            return date < today;
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <Button 
+                      onClick={() => {
+                        // Save vacation dates when button is clicked
+                        if (vacationDates.from && vacationDates.to && 
+                            !isNaN(vacationDates.from.getTime()) && 
+                            !isNaN(vacationDates.to.getTime())) {
+                          updateVacationMode.mutate({
+                            isOnVacation: vacationMode,
+                            vacationStartDate: format(vacationDates.from, 'yyyy-MM-dd'),
+                            vacationEndDate: format(vacationDates.to, 'yyyy-MM-dd')
+                          });
+                        }
+                      }}
+                      disabled={!vacationDates.from || !vacationDates.to}
+                    >
+                      Save
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
