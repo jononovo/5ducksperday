@@ -11,7 +11,7 @@ import {
   PlayCircle, 
   ChevronRight,
   Sparkles,
-  Menu,
+  Columns,
   MessageSquare,
   Users,
   Mail,
@@ -118,7 +118,7 @@ export default function LandingPage() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
-                    <Menu className="h-5 w-5" />
+                    <Columns className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">

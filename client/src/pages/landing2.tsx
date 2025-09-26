@@ -13,7 +13,7 @@ import {
   Users, 
   ChevronRight,
   PlayCircle,
-  Menu
+  Columns
 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 import { SEOHead } from "@/components/ui/seo-head";
@@ -111,7 +111,7 @@ export default function Landing2Page() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
-                    <Menu className="h-5 w-5" />
+                    <Columns className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
