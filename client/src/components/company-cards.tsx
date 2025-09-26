@@ -59,6 +59,7 @@ interface CompanyCardsProps {
   pendingComprehensiveSearchIds?: Set<number>;
   onContactClick?: (contact: ContactWithCompanyInfo, company: Company) => void;
   onViewModeChange?: (viewMode: 'scroll' | 'slides') => void;
+  selectedEmailContact?: Contact | null;
 }
 
 // Unified CompanyCard component
@@ -83,6 +84,7 @@ interface CompanyCardProps {
   setLocation: (path: string) => void;
   topContacts: ContactWithCompanyInfo[];
   viewMode: 'scroll' | 'slides';
+  selectedEmailContact?: Contact | null;
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({
@@ -105,7 +107,8 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   onContactClick,
   setLocation,
   topContacts,
-  viewMode
+  viewMode,
+  selectedEmailContact
 }) => {
   return (
     <Card
@@ -207,8 +210,12 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                 <div
                   key={`${company.id}-contact-${contact.id}`}
                   className={cn(
-                    "flex items-center gap-3 p-2 rounded-md transition-colors cursor-pointer",
-                    "hover:bg-muted/50",
+                    "group flex items-center gap-3 p-2 rounded-md cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200",
+                    selectedEmailContact?.id === contact.id 
+                      ? contact.email 
+                        ? "border-l-4 border-dashed border-yellow-400/40 border-4 border-yellow-400/20 border-dashed shadow-md" 
+                        : "border-l-4 border-dotted border-gray-400 border-4 border-gray-300/50 border-dotted shadow-md"
+                      : "",
                     selectedContacts.has(contact.id) && "bg-blue-50/30 dark:bg-blue-950/10"
                   )}
                   onClick={() => onContactClick?.(contact, company)}
@@ -331,7 +338,8 @@ export default function CompanyCards({
   pendingContactIds,
   pendingComprehensiveSearchIds,
   onContactClick,
-  onViewModeChange
+  onViewModeChange,
+  selectedEmailContact
 }: CompanyCardsProps) {
   const [, setLocation] = useLocation();
   
@@ -560,6 +568,7 @@ export default function CompanyCards({
             setLocation={setLocation}
             topContacts={getTopContacts(company)}
             viewMode={viewMode}
+            selectedEmailContact={selectedEmailContact}
           />
         ))
       ) : (
@@ -587,6 +596,7 @@ export default function CompanyCards({
             setLocation={setLocation}
             topContacts={getTopContacts(companies[currentSlideIndex])}
             viewMode={viewMode}
+            selectedEmailContact={selectedEmailContact}
           />
         )
       )}
