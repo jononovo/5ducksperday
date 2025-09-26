@@ -64,7 +64,7 @@ export function ComprehensiveSearchButton({
         title={tooltipMessage}
       >
         {renderIcon()}
-        <span className="text-xs group-hover:text-yellow-500 transition-colors">{buttonText}</span>
+        <span className="text-xs">{buttonText}</span>
       </button>
     );
   }
