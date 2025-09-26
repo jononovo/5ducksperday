@@ -2710,9 +2710,12 @@ export default function Home() {
           <div className="sticky top-0 bg-background border-b px-4 py-3 flex items-center justify-between z-10">
             {/* Title section */}
             <div className="flex-1">
-              <h3 className="font-semibold text-sm">Compose Email</h3>
+              <h3 className="text-xs text-muted-foreground font-normal flex items-center gap-1">
+                <Mail className="h-3.5 w-3.5" />
+                Compose
+              </h3>
               {selectedEmailContact && (
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-sm font-medium mt-0.5">
                   {selectedEmailContact.name} • {selectedEmailCompany?.name}
                 </p>
               )}
