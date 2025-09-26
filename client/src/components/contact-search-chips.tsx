@@ -265,11 +265,11 @@ function ContactSearchChips({
             >
               {config.enableDepartmentHeads && <Check className="h-3 w-3" />}
               <Building className="h-3 w-3" />
-              <span className={`text-sm font-medium ${!isMobileExpanded ? 'max-md:hidden' : ''}`}>Department Heads</span>
+              <span className={`text-sm font-medium ${!isMobileExpanded ? 'max-md:hidden' : ''}`}>Marketing</span>
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Sales, Marketing, IT, Finance department leaders</p>
+            <p>CMO, VP Marketing, Marketing Directors, Growth Leaders</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -303,11 +303,11 @@ function ContactSearchChips({
             >
               {config.enableMiddleManagement && <Check className="h-3 w-3" />}
               <Users className="h-3 w-3" />
-              <span className={`text-sm font-medium ${!isMobileExpanded ? 'max-md:hidden' : ''}`}>Middle Management</span>
+              <span className={`text-sm font-medium ${!isMobileExpanded ? 'max-md:hidden' : ''}`}>CTO</span>
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Team leads, senior managers, project managers</p>
+            <p>Chief Technology Officer, VP Engineering, Technical Leaders</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

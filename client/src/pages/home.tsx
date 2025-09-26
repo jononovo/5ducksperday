@@ -103,6 +103,7 @@ export default function Home() {
   const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [currentListId, setCurrentListId] = useState<number | null>(null);
+  const [companiesViewMode, setCompaniesViewMode] = useState<'scroll' | 'slides'>('scroll');
   const [pendingContactIds, setPendingContactIds] = useState<Set<number>>(new Set());
   // State for selected contacts (for multi-select checkboxes)
   const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
@@ -2484,6 +2485,7 @@ export default function Home() {
                       pendingContactIds={pendingContactIds}
                       pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
                       onContactClick={handleContactClick}
+                      onViewModeChange={setCompaniesViewMode}
                   />
                   </Suspense>
                 </div>
@@ -2491,8 +2493,8 @@ export default function Home() {
             </Card>
           ) : null}
 
-          {/* Top Prospects Section - Moved below Companies Analysis */}
-          {currentResults && currentResults.length > 0 && (
+          {/* Top Prospects Section - Moved below Companies Analysis - Hidden in slides view */}
+          {currentResults && currentResults.length > 0 && companiesViewMode !== 'slides' && (
             <Card className="w-full rounded-none md:rounded-lg">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -2705,36 +2707,23 @@ export default function Home() {
       } overflow-hidden border-l bg-background`}>
         <div className="h-full overflow-y-auto" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
           {/* Header */}
-          <div className="sticky top-0 bg-background border-b px-4 py-3 flex items-center justify-between z-10">
-            <div className="flex items-center gap-2 flex-1">
-              <div className="flex-1">
-                <h3 className="font-semibold text-sm">Compose Email</h3>
-                {selectedEmailContact && (
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {selectedEmailContact.name} • {selectedEmailCompany?.name}
-                  </p>
-                )}
-              </div>
-              {/* Prominent Close Button */}
-              <button
-                onClick={() => {
-                  setEmailDrawerOpen(false);
-                  setSelectedEmailContact(null);
-                  setSelectedEmailCompany(null);
-                  setSelectedCompanyContacts([]);
-                  // Expand search section when closing drawer
-                  setSearchSectionCollapsed(false);
-                }}
-                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors group"
-                aria-label="Close email panel"
-              >
-                <X className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
-              </button>
+          <div className="sticky top-0 bg-background border-b px-4 py-1.5 flex items-center justify-between z-10">
+            {/* Title section */}
+            <div className="flex-1">
+              <h3 className="text-xs text-muted-foreground font-normal flex items-center gap-1">
+                <Mail className="h-3.5 w-3.5" />
+                Compose
+              </h3>
+              {selectedEmailContact && (
+                <p className="text-sm font-medium mt-0.5">
+                  {selectedEmailContact.name} • {selectedEmailCompany?.name}
+                </p>
+              )}
             </div>
             
             {/* Contact navigation */}
             {selectedCompanyContacts.length > 1 && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 mx-3">
                 <button
                   onClick={() => {
                     const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
@@ -2760,6 +2749,22 @@ export default function Home() {
                 </button>
               </div>
             )}
+            
+            {/* Close Button - moved to far right */}
+            <button
+              onClick={() => {
+                setEmailDrawerOpen(false);
+                setSelectedEmailContact(null);
+                setSelectedEmailCompany(null);
+                setSelectedCompanyContacts([]);
+                // Expand search section when closing drawer
+                setSearchSectionCollapsed(false);
+              }}
+              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors group"
+              aria-label="Close email panel"
+            >
+              <X className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
+            </button>
           </div>
 
           {/* Email Composer */}

@@ -880,64 +880,65 @@ IMPORTANT: If you cannot find data, return an empty array. Do NOT make up data.`
 }
 
 /**
- * Search for department heads
+ * Search for marketing leaders
  */
 async function searchDepartmentHeads(
   companyName: string,
   industry?: string
 ): Promise<Partial<Contact>[]> {
-  const systemPrompt = `You are an expert in identifying department leaders at companies.
-Your task is to identify key people leading various departments at the specified company.`;
+  const systemPrompt = `You are an expert in identifying marketing leadership and key marketing personnel at companies.
+Your task is to identify marketing leaders and decision-makers at the specified company.`;
 
   let industryContext = "";
   let departmentFocus = `
-- Engineering/Development/IT
-- Sales/Business Development
-- Marketing/Communications
-- Finance/Accounting
-- Operations
-- Human Resources
-- Product Management`;
+- Chief Marketing Officer (CMO)
+- VP of Marketing
+- Marketing Directors
+- Head of Growth/Growth Marketing
+- Head of Digital Marketing
+- Brand Marketing Leaders
+- Product Marketing Leaders`;
 
-  // Customize departments based on industry
+  // Industry-specific marketing roles
   if (industry) {
     switch (industry.toLowerCase()) {
       case "technology":
         departmentFocus = `
-- Engineering/Development
-- Product Management
-- Customer Success
-- Data Science
-- Information Security
-- Technical Operations
-- UX/Design`;
+- CMO / Chief Marketing Officer
+- VP of Marketing
+- VP of Growth
+- Head of Product Marketing
+- Head of Demand Generation
+- Director of Marketing Operations
+- Head of Brand Marketing`;
         break;
       case "healthcare":
         departmentFocus = `
-- Medical Affairs
-- Clinical Operations
-- Patient Services
-- Healthcare Administration
-- Medical Research
-- Regulatory Affairs
-- Care Management`;
+- CMO / Chief Marketing Officer
+- VP of Marketing
+- Director of Healthcare Marketing
+- Head of Patient Engagement
+- Medical Marketing Director
+- Digital Health Marketing Leader`;
         break;
       case "financial":
         departmentFocus = `
-- Investment Banking
-- Asset Management
-- Risk Management
-- Wealth Management
-- Trading
-- Financial Analysis
-- Credit Operations`;
+- CMO / Chief Marketing Officer
+- VP of Marketing
+- Head of Financial Services Marketing
+- Director of Digital Marketing
+- Brand Marketing Director
+- Customer Acquisition Leader`;
         break;
-      // Add more industry-specific departments as needed
+      // Default marketing roles for other industries
+      default:
+        // Keep default marketing focus
+        break;
     }
-    industryContext = `This company is in the ${industry} industry. Focus on industry-specific department leaders.`;
+    industryContext = `This company is in the ${industry} industry. Focus on marketing leaders specific to this industry.`;
   }
 
-  const userPrompt = `Identify the key department leaders at ${companyName}. Focus on these departments:
+  const userPrompt = `Identify the key marketing leaders and decision-makers at ${companyName}. Focus specifically on marketing roles:
 ${departmentFocus}
 
 ${industryContext}
@@ -949,17 +950,17 @@ For each person, provide their:
 IMPORTANT: If you cannot find data, return an empty array. Do NOT make up data.`;
 
   const responseFormat = `{ 
-  "departmentLeaders": [
+  "marketingLeaders": [
     {
       "name": "Jane Doe", 
-      "role": "Head of Marketing"
+      "role": "Chief Marketing Officer"
     }
   ]
 }`;
 
   try {
     const result = await analyzeWithPerplexity(userPrompt, systemPrompt, responseFormat);
-    return parseContactsFromResponse(result, 'department_head', companyName);
+    return parseContactsFromResponse(result, 'marketing', companyName);
   } catch (error) {
     console.error(`Error in searchDepartmentHeads:`, error);
     return [];
@@ -969,21 +970,21 @@ IMPORTANT: If you cannot find data, return an empty array. Do NOT make up data.`
 
 
 /**
- * Search for middle management and key technical staff
+ * Search for CTO and technical leadership
  */
 async function searchMiddleManagement(
   companyName: string,
   industry?: string
 ): Promise<Partial<Contact>[]> {
-  const systemPrompt = `You are an expert in identifying influential middle managers and technical leaders at companies.
-Your task is to identify key people who make important decisions but may not be in the C-suite.`;
+  const systemPrompt = `You are an expert in identifying technical leadership and engineering leaders at companies.
+Your task is to identify the CTO and other key technical decision-makers at the specified company.`;
 
-  let userPrompt = `Identify important middle managers and key technical leaders at ${companyName}. Focus on:
-1. Team leads
-2. Senior managers
-3. Project managers
-4. Technical specialists with authority
-5. Key decision-makers below C-level
+  let userPrompt = `Identify the CTO and key technical leaders at ${companyName}. Focus on:
+1. Chief Technology Officer (CTO)
+2. VP of Engineering
+3. VP of Technology
+4. Head of Engineering
+5. Technical Directors
 
 For each person, provide their:
 - Full name (first and last name)
@@ -999,17 +1000,17 @@ ${industryRoles.join("\n")}`;
   }
 
   const responseFormat = `{ 
-  "managers": [
+  "technicalLeaders": [
     {
       "name": "Alice Johnson", 
-      "role": "Senior Product Manager"
+      "role": "Chief Technology Officer"
     }
   ]
 }`;
 
   try {
     const result = await analyzeWithPerplexity(userPrompt, systemPrompt, responseFormat);
-    return parseContactsFromResponse(result, 'middle_management', companyName);
+    return parseContactsFromResponse(result, 'technical_leadership', companyName);
   } catch (error) {
     console.error(`Error in searchMiddleManagement:`, error);
     return [];

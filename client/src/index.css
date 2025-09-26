@@ -2,10 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global focus styles - Light blue instead of harsh black */
-*:focus {
-  outline: 2px solid rgb(147, 197, 253) !important; /* light-blue-300 */
-  outline-offset: 1px;
+/* Global focus styles - Only show for keyboard navigation, not mouse clicks */
+*:focus:not(:focus-visible) {
+  outline: none !important;
 }
 
 *:focus-visible {
