@@ -174,7 +174,7 @@ export default function Home() {
       } else {
         toast({
           title: "No email found",
-          description: `${contact.name} doesn't have an email yet. Click "Find email" button to search for it.`,
+          description: `${contact.name} doesn't have an email yet. Click the "Find email" button to search for it.`,
           variant: "default",
         });
       }
