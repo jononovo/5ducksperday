@@ -58,6 +58,7 @@ interface CompanyCardsProps {
   pendingContactIds?: Set<number>;
   pendingComprehensiveSearchIds?: Set<number>;
   onContactClick?: (contact: ContactWithCompanyInfo, company: Company) => void;
+  onViewModeChange?: (viewMode: 'scroll' | 'slides') => void;
 }
 
 export default function CompanyCards({ 
@@ -71,7 +72,8 @@ export default function CompanyCards({
   pendingApolloIds,
   pendingContactIds,
   pendingComprehensiveSearchIds,
-  onContactClick
+  onContactClick,
+  onViewModeChange
 }: CompanyCardsProps) {
   const [, setLocation] = useLocation();
   
@@ -203,7 +205,10 @@ export default function CompanyCards({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setViewMode('scroll')}
+            onClick={() => {
+              setViewMode('scroll');
+              onViewModeChange?.('scroll');
+            }}
             className={cn(
               "px-2 h-6 text-[11px] font-medium transition-all",
               viewMode === 'scroll' 
@@ -217,7 +222,10 @@ export default function CompanyCards({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setViewMode('slides')}
+            onClick={() => {
+              setViewMode('slides');
+              onViewModeChange?.('slides');
+            }}
             className={cn(
               "px-2 h-6 text-[11px] font-medium transition-all",
               viewMode === 'slides' 

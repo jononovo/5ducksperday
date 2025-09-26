@@ -103,6 +103,7 @@ export default function Home() {
   const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [currentListId, setCurrentListId] = useState<number | null>(null);
+  const [companiesViewMode, setCompaniesViewMode] = useState<'scroll' | 'slides'>('scroll');
   const [pendingContactIds, setPendingContactIds] = useState<Set<number>>(new Set());
   // State for selected contacts (for multi-select checkboxes)
   const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
@@ -2484,6 +2485,7 @@ export default function Home() {
                       pendingContactIds={pendingContactIds}
                       pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
                       onContactClick={handleContactClick}
+                      onViewModeChange={setCompaniesViewMode}
                   />
                   </Suspense>
                 </div>
@@ -2491,8 +2493,8 @@ export default function Home() {
             </Card>
           ) : null}
 
-          {/* Top Prospects Section - Moved below Companies Analysis */}
-          {currentResults && currentResults.length > 0 && (
+          {/* Top Prospects Section - Moved below Companies Analysis - Hidden in slides view */}
+          {currentResults && currentResults.length > 0 && companiesViewMode !== 'slides' && (
             <Card className="w-full rounded-none md:rounded-lg">
               <CardHeader>
                 <div className="flex items-center justify-between">
