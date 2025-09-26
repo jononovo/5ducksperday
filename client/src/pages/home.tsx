@@ -2331,7 +2331,7 @@ export default function Home() {
 
           {/* Companies Analysis Section - Moved to top */}
           {currentResults && currentResults.length > 0 ? (
-            <Card className="w-full rounded-none md:rounded-lg">
+            <Card className={`w-full rounded-none md:rounded-lg transition-all duration-300 ${emailDrawerOpen ? 'border-0 shadow-none' : ''}`}>
               
               {/* Contact Discovery Report - with reduced padding */}
               {contactReportVisible && (
@@ -2376,9 +2376,9 @@ export default function Home() {
                 </div>
               )}
               
-              {/* Action buttons menu */}
-              {currentResults && currentResults.length > 0 && (
-                <div className="px-2 md:px-6 py-3 flex items-center justify-between bg-white dark:bg-transparent">
+              {/* Action buttons menu - Hidden in focus mode */}
+              {currentResults && currentResults.length > 0 && !emailDrawerOpen && (
+                <div className="px-2 md:px-6 py-3 flex items-center justify-between bg-white dark:bg-transparent transition-all duration-300">
                   <div className="flex items-center gap-2">
                   <div className="relative">
                     <Button 
