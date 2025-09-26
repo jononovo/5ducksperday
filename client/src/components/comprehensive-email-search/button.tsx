@@ -45,7 +45,7 @@ export function ComprehensiveSearchButton({
         </div>
       );
     }
-    return <Mail className={cn(iconSize, "text-gray-400 group-hover:text-yellow-500 hover:text-blue-500 transition-colors")} />;
+    return <Mail className={cn(iconSize, "text-gray-400 group-hover:text-green-600/70 hover:text-blue-500 transition-colors")} />;
   };
 
   if (displayMode === 'text') {
