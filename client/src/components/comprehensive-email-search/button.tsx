@@ -40,12 +40,12 @@ export function ComprehensiveSearchButton({
     if (state === 'failed') {
       return (
         <div className="flex items-center gap-0.5">
-          <Mail className={cn(iconSize, "text-gray-400 group-hover:text-gray-600 hover:text-blue-500 transition-colors")} />
+          <Mail className={cn(iconSize, "text-gray-400 group-hover:text-yellow-500 hover:text-blue-500 transition-colors")} />
           <Ban className="text-gray-400" style={{ width: '10px', height: '10px' }} />
         </div>
       );
     }
-    return <Mail className={cn(iconSize, "text-gray-400 group-hover:text-gray-600 hover:text-blue-500 transition-colors")} />;
+    return <Mail className={cn(iconSize, "text-gray-400 group-hover:text-yellow-500 hover:text-blue-500 transition-colors")} />;
   };
 
   if (displayMode === 'text') {
@@ -64,7 +64,7 @@ export function ComprehensiveSearchButton({
         title={tooltipMessage}
       >
         {renderIcon()}
-        <span className="text-xs group-hover:text-gray-600 transition-colors">{buttonText}</span>
+        <span className="text-xs group-hover:text-yellow-500 transition-colors">{buttonText}</span>
       </button>
     );
   }
