@@ -44,7 +44,7 @@ export function MainNav() {
   }
 
   return (
-    <nav className="flex items-center justify-between border-b mb-2 px-4 py-1.5">
+    <nav className="flex items-center justify-between mb-2 px-4 py-1.5">
       <div className="flex items-center space-x-4">
         <Logo size="sm" className="mr-8" />
       </div>
