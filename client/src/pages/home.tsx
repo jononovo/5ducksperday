@@ -2813,10 +2813,10 @@ export default function Home() {
                     // Expand search section when closing drawer
                     setSearchSectionCollapsed(false);
                   }}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
                   aria-label="Close email panel"
                 >
-                  <X className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                  <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
               
@@ -2900,10 +2900,10 @@ export default function Home() {
                         setSelectedCompanyContacts([]);
                         setSearchSectionCollapsed(false);
                       }}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
                       aria-label="Close email panel"
                     >
-                      <X className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                      <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                     </button>
                   </div>
                   
