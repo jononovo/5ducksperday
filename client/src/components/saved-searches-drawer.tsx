@@ -37,10 +37,22 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
       <SheetTrigger asChild>
         <Button 
           variant="outline" 
-          size="icon" 
-          className="fixed left-0 top-32 md:top-20 z-50 h-12 w-12 md:h-14 md:w-14 rounded-l-none rounded-r-lg border-l-0 border-r border-t border-b bg-background/95 backdrop-blur-sm shadow-md hover:bg-accent hover:text-accent-foreground transition-all duration-200 [&_svg]:!size-8 md:[&_svg]:!size-10"
+          className="fixed left-0 top-32 md:top-20 z-50 h-12 w-12 md:h-14 md:w-14 rounded-l-none rounded-r-lg border-l-0 border-r border-t border-b bg-background/95 backdrop-blur-sm shadow-md hover:bg-accent hover:text-accent-foreground transition-all duration-200 p-2"
         >
-          <PanelLeft className="text-gray-400" />
+          <svg 
+            width="100%" 
+            height="100%" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            className="text-gray-400"
+          >
+            <rect x="3" y="3" width="7" height="18" />
+            <rect x="14" y="3" width="7" height="18" />
+          </svg>
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-96 pl-0 pr-0">
