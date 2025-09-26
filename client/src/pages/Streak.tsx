@@ -161,6 +161,22 @@ export default function StreakPage() {
     enabled: !!user
   });
 
+  // Sync vacation state from loaded preferences
+  useEffect(() => {
+    if (preferences) {
+      // Set vacation mode from preferences
+      setVacationMode(preferences.vacationMode || false);
+      
+      // Set vacation dates if they exist
+      if (preferences.vacationStartDate && preferences.vacationEndDate) {
+        setVacationDates({
+          from: new Date(preferences.vacationStartDate),
+          to: new Date(preferences.vacationEndDate)
+        });
+      }
+    }
+  }, [preferences]);
+
   // Update preferences mutation
   const updatePreferences = useMutation({
     mutationFn: async (data: any) => {
