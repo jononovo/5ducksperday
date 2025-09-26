@@ -2702,12 +2702,12 @@ export default function Home() {
       {/* Email Drawer - Overlay on mobile, push-aside on desktop */}
       <div className={`email-drawer-transition ${
         emailDrawerOpen 
-          ? 'fixed md:relative top-0 right-0 h-full md:h-auto w-[90%] sm:w-[400px] md:w-[400px] lg:w-[450px] xl:w-[500px] z-50 md:z-auto' 
+          ? 'fixed md:relative top-[2.5rem] md:top-0 right-0 h-[calc(100vh-2.5rem)] md:h-full w-[90%] sm:w-[400px] md:w-[400px] lg:w-[450px] xl:w-[500px] z-50 md:z-auto' 
           : 'md:relative w-0'
-      } overflow-hidden border-l bg-background`}>
+      } overflow-hidden border-l border-t rounded-tl-lg bg-background shadow-xl md:shadow-none`}>
         <div className="h-full overflow-y-auto" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
           {/* Header */}
-          <div className="sticky top-0 bg-background border-b px-4 py-1.5 flex items-center justify-between z-10">
+          <div className="sticky top-0 bg-background px-4 py-1.5 flex items-center justify-between z-10">
             {/* Title section */}
             <div className="flex-1">
               <h3 className="text-xs text-muted-foreground font-normal flex items-center gap-1">
