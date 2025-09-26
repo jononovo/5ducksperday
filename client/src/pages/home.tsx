@@ -99,7 +99,7 @@ interface SourceBreakdown {
 
 export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [currentQuery, setCurrentQuery] = useState<string | null>(null);
+  const [currentQuery, setCurrentQuery] = useState<string>("");
   const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [currentListId, setCurrentListId] = useState<number | null>(null);
@@ -125,7 +125,6 @@ export default function Home() {
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
   const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
-  const [isLoadingSavedSearch, setIsLoadingSavedSearch] = useState(false);
   
   // State for email drawer
   const [emailDrawerOpen, setEmailDrawerOpen] = useState(false);
@@ -443,7 +442,7 @@ export default function Home() {
         });
         
         // Always restore the data first
-        setCurrentQuery(savedState.currentQuery);
+        setCurrentQuery(savedState.currentQuery || "");
         setCurrentResults(savedState.currentResults);
         setCurrentListId(savedState.currentListId);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
@@ -461,7 +460,7 @@ export default function Home() {
         console.log('NAVIGATION: Restoring search state and refreshing from database');
         
         // Set basic state first
-        setCurrentQuery(savedState.currentQuery);
+        setCurrentQuery(savedState.currentQuery || "");
         setCurrentListId(savedState.currentListId);
         setCurrentResults(savedState.currentResults);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
@@ -1174,9 +1173,6 @@ export default function Home() {
   // Handle loading a saved search from the drawer
   const handleLoadSavedSearch = async (list: List) => {
     try {
-      // Set flag to prevent race condition with PromptEditor
-      setIsLoadingSavedSearch(true);
-      
       // First fetch the companies
       const companies = await queryClient.fetchQuery({
         queryKey: [`/api/lists/${list.listId}/companies`]
@@ -1223,13 +1219,7 @@ export default function Home() {
         title: "Search Loaded",
         description: `Loaded "${list.prompt}" with ${list.resultCount} companies and ${totalContacts} contacts`,
       });
-      
-      // Clear the flag after successful load
-      setIsLoadingSavedSearch(false);
     } catch (error) {
-      // Clear the flag on error as well
-      setIsLoadingSavedSearch(false);
-      
       toast({
         title: "Failed to load search",
         description: "Could not load the selected search.",
@@ -2383,17 +2373,14 @@ export default function Home() {
                     onSearchResults={handleSearchResults}
                     onCompaniesReceived={handleCompaniesReceived}
                     isAnalyzing={isAnalyzing}
-                    initialPrompt={currentQuery || ""}
+                    value={currentQuery || ""}
+                    onChange={(newValue) => {
+                      setCurrentQuery(newValue);
+                      setInputHasChanged(newValue !== lastExecutedQuery);
+                    }}
                     isFromLandingPage={isFromLandingPage}
                     onDismissLandingHint={() => setIsFromLandingPage(false)}
                     lastExecutedQuery={lastExecutedQuery}
-                    onInputChange={(newValue) => {
-                      // Skip updates when loading a saved search to prevent race condition
-                      if (!isLoadingSavedSearch) {
-                        setCurrentQuery(newValue);
-                        setInputHasChanged(newValue !== lastExecutedQuery);
-                      }
-                    }}
                     onSearchSuccess={() => {
                       const selectedSearchType = localStorage.getItem('searchType') || 'contacts';
                       if (selectedSearchType === 'emails') {
