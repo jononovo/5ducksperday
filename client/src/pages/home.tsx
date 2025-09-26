@@ -8,7 +8,7 @@ import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 // Lazy load heavy components
-const CompanyTable = lazy(() => import("@/components/company-table"));
+const CompanyCards = lazy(() => import("@/components/company-cards"));
 const PromptEditor = lazy(() => import("@/components/prompt-editor"));
 
 // Import components with named exports directly for now
@@ -2348,9 +2348,9 @@ export default function Home() {
               )}
               
               <CardContent className="p-0">
-                <div className="overflow-x-auto">
+                <div className="px-4 pb-4">
                   <Suspense fallback={<TableSkeleton />}>
-                    <CompanyTable
+                    <CompanyCards
                       companies={currentResults || []}
                       handleCompanyView={handleCompanyView}
                       handleHunterSearch={handleHunterSearch}
