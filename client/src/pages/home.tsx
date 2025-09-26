@@ -2486,6 +2486,7 @@ export default function Home() {
                       pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
                       onContactClick={handleContactClick}
                       onViewModeChange={setCompaniesViewMode}
+                      selectedEmailContact={selectedEmailContact}
                   />
                   </Suspense>
                 </div>
