@@ -100,7 +100,12 @@ export default function CompanyCards({
   };
   
   // Check if a company card is expanded
-  const isCardExpanded = (companyId: number) => expandedCards.has(companyId);
+  const isCardExpanded = (companyId: number) => {
+    // In slides view, always show companies expanded
+    if (viewMode === 'slides') return true;
+    // In scroll view, use the normal expansion state
+    return expandedCards.has(companyId);
+  };
   
   // Navigation functions for slides view
   const handlePrevSlide = () => {
