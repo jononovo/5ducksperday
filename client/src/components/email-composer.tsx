@@ -711,7 +711,7 @@ export function EmailComposer({
 
 
     {/* Quick Templates Section - Collapsible */}
-    <div className="mt-3">
+    <div className="mt-3 mb-24">
       {/* View Templates Toggle Button - Right aligned */}
       <div className="flex justify-end">
         <button
