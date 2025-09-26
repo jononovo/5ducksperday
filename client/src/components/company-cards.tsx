@@ -212,7 +212,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                   className={cn(
                     "flex items-center gap-3 p-2 rounded-md cursor-pointer",
                     selectedEmailContact?.id === contact.id 
-                      ? "border-l-4 border-dashed border-yellow-500 border-4 border-yellow-200/60 border-dashed shadow-md transition-all duration-200" 
+                      ? "bg-yellow-400/20 border-l-4 border-dashed border-yellow-400/50 border-2 border-yellow-400/30 border-dashed transition-all duration-200" 
                       : "hover:bg-muted/50 transition-colors",
                     selectedContacts.has(contact.id) && "bg-blue-50/30 dark:bg-blue-950/10"
                   )}
