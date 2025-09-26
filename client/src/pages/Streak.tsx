@@ -398,17 +398,14 @@ export default function StreakPage() {
     const newVacationMode = !vacationMode;
     setVacationMode(newVacationMode);
     
-    if (newVacationMode && vacationDates.from && vacationDates.to) {
-      updateVacationMode.mutate({
-        isOnVacation: true,
-        vacationStartDate: format(vacationDates.from, 'yyyy-MM-dd'),
-        vacationEndDate: format(vacationDates.to, 'yyyy-MM-dd')
-      });
-    } else if (!newVacationMode) {
-      updateVacationMode.mutate({
-        isOnVacation: false
-      });
-    }
+    // Only update the vacation mode status, not the dates
+    // Dates are saved separately when selected in the calendar
+    updateVacationMode.mutate({
+      isOnVacation: newVacationMode,
+      // Always include current dates if they exist
+      vacationStartDate: vacationDates.from ? format(vacationDates.from, 'yyyy-MM-dd') : undefined,
+      vacationEndDate: vacationDates.to ? format(vacationDates.to, 'yyyy-MM-dd') : undefined
+    });
   };
 
   const openTodaysEmail = () => {
@@ -787,8 +784,9 @@ export default function StreakPage() {
                               range.to instanceof Date &&
                               !isNaN(range.from.getTime()) &&
                               !isNaN(range.to.getTime())) {
+                            // Save dates without changing vacation mode status
                             updateVacationMode.mutate({
-                              isOnVacation: true,
+                              isOnVacation: vacationMode, // Keep current vacation mode status
                               vacationStartDate: format(range.from, 'yyyy-MM-dd'),
                               vacationEndDate: format(range.to, 'yyyy-MM-dd')
                             });
