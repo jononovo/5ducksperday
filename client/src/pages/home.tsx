@@ -2220,7 +2220,7 @@ export default function Home() {
       )}
       
       {/* Main Content Container - will be compressed when drawer opens on desktop */}
-      <div className={`flex-1 overflow-y-auto transition-all duration-300`}>
+      <div className={`flex-1 overflow-y-auto main-content-compressed ${emailDrawerOpen ? 'compressed-view' : ''}`}>
         <div className="container mx-auto py-6 px-0 md:px-6">
           {/* Intro tour modal has been removed */}
 
@@ -2631,11 +2631,11 @@ export default function Home() {
       </div>
       
       {/* Email Drawer - Overlay on mobile, push-aside on desktop */}
-      <div className={`${
+      <div className={`email-drawer-transition ${
         emailDrawerOpen 
           ? 'fixed md:relative top-0 right-0 h-full md:h-auto w-[90%] sm:w-[400px] md:w-[400px] lg:w-[450px] xl:w-[500px] z-50 md:z-auto' 
           : 'md:relative w-0'
-      } transition-all duration-300 overflow-hidden border-l bg-background`}>
+      } overflow-hidden border-l bg-background`}>
         <div className="h-full overflow-y-auto" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
           {/* Header */}
           <div className="sticky top-0 bg-background border-b px-4 py-3 flex items-center justify-between z-10">
