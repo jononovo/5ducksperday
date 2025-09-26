@@ -125,6 +125,7 @@ export default function Home() {
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
   const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
+  const [isLoadingSavedSearch, setIsLoadingSavedSearch] = useState(false);
   
   // State for email drawer
   const [emailDrawerOpen, setEmailDrawerOpen] = useState(false);
@@ -1173,6 +1174,9 @@ export default function Home() {
   // Handle loading a saved search from the drawer
   const handleLoadSavedSearch = async (list: List) => {
     try {
+      // Set flag to prevent race condition with PromptEditor
+      setIsLoadingSavedSearch(true);
+      
       // First fetch the companies
       const companies = await queryClient.fetchQuery({
         queryKey: [`/api/lists/${list.listId}/companies`]
@@ -1207,17 +1211,6 @@ export default function Home() {
       setIsSaved(true);
       setSavedSearchesDrawerOpen(false);
       
-      // Immediately persist to localStorage to prevent race condition with collapsed button label
-      const stateToSave: SavedSearchState = {
-        currentQuery: list.prompt,
-        currentResults: companiesWithContacts,
-        currentListId: list.listId,
-        lastExecutedQuery: list.prompt
-      };
-      const stateString = JSON.stringify(stateToSave);
-      localStorage.setItem('searchState', stateString);
-      sessionStorage.setItem('searchState', stateString);
-      
       // Force input change flag to false after a small delay to ensure proper state update
       setTimeout(() => {
         setInputHasChanged(false);
@@ -1230,7 +1223,13 @@ export default function Home() {
         title: "Search Loaded",
         description: `Loaded "${list.prompt}" with ${list.resultCount} companies and ${totalContacts} contacts`,
       });
+      
+      // Clear the flag after successful load
+      setIsLoadingSavedSearch(false);
     } catch (error) {
+      // Clear the flag on error as well
+      setIsLoadingSavedSearch(false);
+      
       toast({
         title: "Failed to load search",
         description: "Could not load the selected search.",
@@ -2390,8 +2389,11 @@ export default function Home() {
                     onDismissLandingHint={() => setIsFromLandingPage(false)}
                     lastExecutedQuery={lastExecutedQuery}
                     onInputChange={(newValue) => {
-                      setCurrentQuery(newValue);
-                      setInputHasChanged(newValue !== lastExecutedQuery);
+                      // Skip updates when loading a saved search to prevent race condition
+                      if (!isLoadingSavedSearch) {
+                        setCurrentQuery(newValue);
+                        setInputHasChanged(newValue !== lastExecutedQuery);
+                      }
                     }}
                     onSearchSuccess={() => {
                       const selectedSearchType = localStorage.getItem('searchType') || 'contacts';
