@@ -40,7 +40,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
           size="icon" 
           className="fixed left-0 top-32 md:top-20 z-50 h-10 w-10 md:h-12 md:w-12 rounded-l-none rounded-r-lg border-l-0 border-r border-t border-b bg-background/95 backdrop-blur-sm shadow-md hover:bg-accent hover:text-accent-foreground transition-all duration-200"
         >
-          <PanelLeft className="h-5 w-5 md:h-6 md:w-6 text-gray-400" />
+          <PanelLeft className="h-8 w-8 md:h-9 md:w-9 text-gray-400" />
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-96 pl-0 pr-0">
