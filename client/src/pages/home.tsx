@@ -131,6 +131,8 @@ export default function Home() {
   const [selectedEmailContact, setSelectedEmailContact] = useState<Contact | null>(null);
   const [selectedEmailCompany, setSelectedEmailCompany] = useState<Company | null>(null);
   const [selectedCompanyContacts, setSelectedCompanyContacts] = useState<Contact[]>([]);
+  const [drawerWidth, setDrawerWidth] = useState(400);
+  const [isResizing, setIsResizing] = useState(false);
   const [searchSectionCollapsed, setSearchSectionCollapsed] = useState(false);
   
   const { toast } = useToast();
@@ -1607,6 +1609,42 @@ export default function Home() {
     return sorted.slice(0, count);
   };
 
+  // Resize handle for email drawer
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      
+      const newWidth = window.innerWidth - e.clientX;
+      // Constrain width between 320px and 600px
+      const constrainedWidth = Math.max(320, Math.min(600, newWidth));
+      setDrawerWidth(constrainedWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      // Prevent text selection during resize
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'col-resize';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+  }, [isResizing]);
+
   // Helper to get the best contact from a company for email search
   const getBestContact = (company: any) => {
     return getTopContacts(company, 1)[0];
@@ -2702,15 +2740,28 @@ export default function Home() {
       {/* Email Drawer Container - keeps column aligned */}
       <div className={`duplicate-full-height-drawer-to-keep-column-aligned ${
         emailDrawerOpen 
-          ? 'hidden md:block md:relative md:h-full w-[400px] lg:w-[450px] xl:w-[500px]' 
+          ? 'hidden md:block md:relative md:h-full' 
           : 'hidden md:block md:relative w-0'
-      }`}>
+      }`} style={{ ...(emailDrawerOpen && window.innerWidth >= 768 ? { width: `${drawerWidth}px` } : {}) }}>
         {/* Actual Email Drawer with dynamic height - Overlay on mobile, absolute on desktop */}
-        <div className={`email-drawer-transition ${
+        <div className={`${!isResizing ? 'email-drawer-transition' : ''} ${
           emailDrawerOpen 
-            ? 'fixed md:absolute top-[2.5rem] md:top-0 right-0 bottom-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen w-[90%] sm:w-[400px] md:w-[400px] lg:w-[450px] xl:w-[500px] z-50' 
+            ? 'fixed md:absolute top-[2.5rem] md:top-0 right-0 bottom-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen w-[90%] sm:w-[400px] z-50' 
             : 'fixed md:absolute w-0 right-0 top-0'
-        } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`}>
+        } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`} 
+        style={{ 
+          ...(emailDrawerOpen && window.innerWidth >= 768 ? { width: `${drawerWidth}px` } : {}),
+          ...(isResizing ? { transition: 'none' } : {})
+        }}>
+          {/* Resize Handle - Only show on desktop */}
+          {emailDrawerOpen && (
+            <div
+              onMouseDown={handleMouseDown}
+              className="hidden md:block absolute -left-1.5 top-0 bottom-0 w-3 cursor-col-resize z-10 group"
+            >
+              <div className="absolute left-1 top-1/2 -translate-y-1/2 w-2 h-12 bg-muted-foreground/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+          )}
           <div className="overflow-y-auto" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
             {/* Header */}
             <div className="sticky top-0 bg-background px-4 py-1.5 flex items-center justify-between z-10">
