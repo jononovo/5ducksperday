@@ -2205,7 +2205,7 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto py-6 px-0 md:px-6">
+    <div className={`container mx-auto py-6 px-0 md:px-6 ${emailDrawerOpen ? 'mr-[500px]' : ''}`}>
       {/* Intro tour modal has been removed */}
 
       <div className="grid grid-cols-12 gap-3 md:gap-6">
@@ -2612,17 +2612,12 @@ export default function Home() {
         onLoadSearch={handleLoadSavedSearch}
       />
       
-      {/* Email Panel - Non-blocking sliding panel */}
-      <div 
-        className={`fixed top-0 right-0 h-full bg-white dark:bg-gray-900 shadow-2xl transition-transform duration-300 ease-in-out z-40 overflow-y-auto ${
-          emailDrawerOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        style={{ width: '400px' }}
-      >
-        {emailDrawerOpen && (
+      {/* Email Panel - Simple second column */}
+      {emailDrawerOpen && (
+        <div className="fixed top-0 right-0 h-full w-[500px] bg-background border-l overflow-y-auto">
           <div className="h-full">
             {/* Header */}
-            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b px-4 py-3 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-background border-b px-4 py-3 flex items-center justify-between z-10">
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
@@ -2684,20 +2679,7 @@ export default function Home() {
               />
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Overlay for closing panel when clicking outside on mobile */}
-      {emailDrawerOpen && (
-        <div 
-          className="fixed inset-0 bg-black/20 z-30 lg:hidden"
-          onClick={() => {
-            setEmailDrawerOpen(false);
-            setSelectedEmailContact(null);
-            setSelectedEmailCompany(null);
-            setSelectedCompanyContacts([]);
-          }}
-        />
+        </div>
       )}
 
 
