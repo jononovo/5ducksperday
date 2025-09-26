@@ -153,6 +153,31 @@ export default function Home() {
       ?.contacts || [];
     setSelectedCompanyContacts(companyContacts);
     
+    // Check if contact has an email and show appropriate notification
+    if (contact.email) {
+      toast({
+        title: "Email populated",
+        description: `${contact.name}'s email added to recipient field`,
+      });
+    } else {
+      // Check if we've already searched comprehensively for this contact
+      const hasSearchedComprehensively = contact.completedSearches?.includes('comprehensive_search');
+      
+      if (hasSearchedComprehensively) {
+        toast({
+          title: "No email available",
+          description: `All search methods have been exhausted for ${contact.name}. Consider selecting another contact.`,
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "No email found",
+          description: `${contact.name} doesn't have an email yet. Use the search buttons to find their email address.`,
+          variant: "default",
+        });
+      }
+    }
+    
     setEmailDrawerOpen(true);
     // Auto-collapse search section when email drawer opens
     setSearchSectionCollapsed(true);
