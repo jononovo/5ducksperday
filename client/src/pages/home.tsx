@@ -14,7 +14,7 @@ const PromptEditor = lazy(() => import("@/components/prompt-editor"));
 // Import components with named exports directly for now
 import { EmailSearchSummary } from "@/components/email-search-summary";
 import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
-import { EmailDrawer } from "@/components/email-drawer";
+import { EmailComposer } from "@/components/email-composer";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
@@ -29,6 +29,9 @@ import {
   Eye,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  X,
   ThumbsUp,
   ThumbsDown,
   Star,
@@ -2609,15 +2612,93 @@ export default function Home() {
         onLoadSearch={handleLoadSavedSearch}
       />
       
-      {/* Email drawer for outreach */}
-      <EmailDrawer
-        isOpen={emailDrawerOpen}
-        onClose={() => setEmailDrawerOpen(false)}
-        contact={selectedEmailContact}
-        company={selectedEmailCompany}
-        companyContacts={selectedCompanyContacts}
-        onContactChange={handleEmailContactChange}
-      />
+      {/* Email Panel - Non-blocking sliding panel */}
+      <div 
+        className={`fixed top-0 right-0 h-full bg-white dark:bg-gray-900 shadow-2xl transition-transform duration-300 ease-in-out z-40 overflow-y-auto ${
+          emailDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+        style={{ width: '400px' }}
+      >
+        {emailDrawerOpen && (
+          <div className="h-full">
+            {/* Header */}
+            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b px-4 py-3 flex items-center justify-between z-10">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setEmailDrawerOpen(false);
+                    setSelectedEmailContact(null);
+                    setSelectedEmailCompany(null);
+                    setSelectedCompanyContacts([]);
+                  }}
+                  className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                <div>
+                  <h3 className="font-semibold text-sm">Compose Email</h3>
+                  {selectedEmailContact && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {selectedEmailContact.name} • {selectedEmailCompany?.name}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Contact navigation */}
+              {selectedCompanyContacts.length > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
+                      const prevIndex = currentIndex > 0 ? currentIndex - 1 : selectedCompanyContacts.length - 1;
+                      handleEmailContactChange(selectedCompanyContacts[prevIndex]);
+                    }}
+                    className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <span className="text-xs text-muted-foreground">
+                    {selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id) + 1} / {selectedCompanyContacts.length}
+                  </span>
+                  <button
+                    onClick={() => {
+                      const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
+                      const nextIndex = currentIndex < selectedCompanyContacts.length - 1 ? currentIndex + 1 : 0;
+                      handleEmailContactChange(selectedCompanyContacts[nextIndex]);
+                    }}
+                    className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Email Composer */}
+            <div className="p-4">
+              <EmailComposer
+                selectedContact={selectedEmailContact}
+                selectedCompany={selectedEmailCompany}
+                onContactChange={handleEmailContactChange}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Overlay for closing panel when clicking outside on mobile */}
+      {emailDrawerOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-30 lg:hidden"
+          onClick={() => {
+            setEmailDrawerOpen(false);
+            setSelectedEmailContact(null);
+            setSelectedEmailCompany(null);
+            setSelectedCompanyContacts([]);
+          }}
+        />
+      )}
 
 
 
