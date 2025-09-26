@@ -740,24 +740,26 @@ export function EmailComposer({
     </div>
 
     {/* Quick Templates Section - Collapsible */}
-    <div className="mt-8 pt-6 border-t">
-      {/* View Templates Toggle Button */}
-      <button
-        onClick={() => setIsTemplatesExpanded(!isTemplatesExpanded)}
-        className="w-full flex items-center justify-between px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <span className="font-medium">View Templates</span>
-        {isTemplatesExpanded ? (
-          <ChevronUp className="w-4 h-4" />
-        ) : (
-          <ChevronDown className="w-4 h-4" />
-        )}
-      </button>
+    <div className="mt-3">
+      {/* View Templates Toggle Button - Right aligned */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => setIsTemplatesExpanded(!isTemplatesExpanded)}
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
+        >
+          <span>View Templates</span>
+          {isTemplatesExpanded ? (
+            <ChevronUp className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronDown className="w-3.5 h-3.5" />
+          )}
+        </button>
+      </div>
       
       {/* Collapsible Templates Container */}
       <div className={cn(
         "overflow-hidden transition-all duration-300 ease-in-out",
-        isTemplatesExpanded ? "max-h-[500px] opacity-100 mt-4" : "max-h-0 opacity-0"
+        isTemplatesExpanded ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
       )}>
         <QuickTemplates
           onSelectTemplate={(template: EmailTemplate) => {
