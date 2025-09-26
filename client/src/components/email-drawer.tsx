@@ -491,7 +491,7 @@ export function EmailDrawer({
   return (
     <>
       <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="right" className="w-full md:w-[600px] lg:w-[700px] xl:w-[800px] overflow-y-auto p-0 border-t rounded-tl-xl">
+        <SheetContent side="right" className="w-full md:w-[600px] lg:w-[700px] xl:w-[800px] overflow-y-auto p-0 border-t rounded-tl-xl z-[70]">
           {/* Header */}
           <SheetHeader className="px-6 pt-6 pb-4 border-b">
             <div className="flex items-start justify-between">
