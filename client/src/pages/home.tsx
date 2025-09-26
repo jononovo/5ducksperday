@@ -1207,6 +1207,17 @@ export default function Home() {
       setIsSaved(true);
       setSavedSearchesDrawerOpen(false);
       
+      // Immediately persist to localStorage to prevent race condition with collapsed button label
+      const stateToSave: SavedSearchState = {
+        currentQuery: list.prompt,
+        currentResults: companiesWithContacts,
+        currentListId: list.listId,
+        lastExecutedQuery: list.prompt
+      };
+      const stateString = JSON.stringify(stateToSave);
+      localStorage.setItem('searchState', stateString);
+      sessionStorage.setItem('searchState', stateString);
+      
       // Force input change flag to false after a small delay to ensure proper state update
       setTimeout(() => {
         setInputHasChanged(false);
