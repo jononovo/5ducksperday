@@ -2795,7 +2795,7 @@ export default function Home() {
               <div className="absolute left-1 top-1/2 -translate-y-1/2 w-2 h-12 bg-muted-foreground/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
           )}
-          <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen pb-96" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
+          <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen pb-20" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
             {/* Header */}
             <div className="sticky top-0 bg-background px-4 py-1.5 flex items-center justify-between z-10">
             {/* Title section */}
@@ -2879,7 +2879,7 @@ export default function Home() {
       } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`}>
         {emailDrawerOpen && (
           <>
-            <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] pb-96" style={{ minWidth: '320px' }}>
+            <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] pb-20" style={{ minWidth: '320px' }}>
               {/* Same header content */}
               <div className="sticky top-0 bg-background px-4 py-1.5 flex items-center justify-between z-10">
                 <div className="flex-1">
