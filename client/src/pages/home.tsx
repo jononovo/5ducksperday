@@ -2424,7 +2424,7 @@ export default function Home() {
 
           {/* Companies Analysis Section - Moved to top */}
           {currentResults && currentResults.length > 0 ? (
-            <Card className={`w-full rounded-none md:rounded-lg transition-all duration-300 ${emailDrawerOpen ? 'border-0 shadow-none' : ''}`}>
+            <Card className={`w-full rounded-none md:rounded-lg border-0 transition-all duration-300 ${emailDrawerOpen ? 'shadow-none' : ''}`}>
               
               {/* Contact Discovery Report - with reduced padding */}
               {contactReportVisible && (
