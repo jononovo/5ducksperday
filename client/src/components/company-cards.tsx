@@ -292,7 +292,7 @@ export default function CompanyCards({
                           onCheckedChange={() => toggleContactSelection({stopPropagation: () => {}} as React.MouseEvent, contact.id)}
                           onClick={(e) => e.stopPropagation()}
                           aria-label={`Select ${contact.name}`}
-                          className="mt-0.5 hidden md:block"
+                          className="mt-0.5 hidden"
                         />
                         
                         <div className="flex-1 min-w-0">
