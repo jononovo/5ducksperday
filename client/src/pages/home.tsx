@@ -2805,8 +2805,9 @@ export default function Home() {
                   Compose
                 </h3>
                 {selectedEmailContact && (
-                  <p className="text-sm font-medium mt-0.5 truncate">
-                    {selectedEmailContact.name} • {selectedEmailCompany?.name}
+                  <p className="text-sm mt-0.5 truncate">
+                    <span className="font-medium">{selectedEmailContact.name}</span>
+                    <span className="text-xs text-muted-foreground"> • {selectedEmailCompany?.name}</span>
                   </p>
                 )}
               </div>
@@ -2889,8 +2890,9 @@ export default function Home() {
                       Compose
                     </h3>
                     {selectedEmailContact && (
-                      <p className="text-sm font-medium mt-0.5 truncate">
-                        {selectedEmailContact.name} • {selectedEmailCompany?.name}
+                      <p className="text-sm mt-0.5 truncate">
+                        <span className="font-medium">{selectedEmailContact.name}</span>
+                        <span className="text-xs text-muted-foreground"> • {selectedEmailCompany?.name}</span>
                       </p>
                     )}
                   </div>
