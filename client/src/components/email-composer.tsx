@@ -31,40 +31,14 @@ import { EmailSendButton } from "./email-fallback/EmailSendButton";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { Contact, Company, StrategicProfile, EmailTemplate } from "@shared/schema";
+import { useEmailGeneration } from "@/email-content-generation/useOutreachGeneration";
+import { resolveFrontendSenderNames } from "@/email-content-generation/outreach-utils";
+import { useAuth } from "@/hooks/use-auth";
+import { TONE_OPTIONS, DEFAULT_TONE } from "@/lib/tone-options";
+import { OFFER_OPTIONS, DEFAULT_OFFER } from "@/lib/offer-options";
 
-// Types
-interface Contact {
-  id: number;
-  name?: string;
-  title?: string;
-  email?: string;
-  phone?: string;
-  linkedIn?: string;
-}
-
-interface Company {
-  id?: number;
-  name?: string;
-  website?: string;
-  description?: string;
-  alternativeProfileUrl?: string;
-}
-
-interface StrategicProfile {
-  id: number;
-  title?: string;
-  productService?: string;
-  uniqueBenefit?: string;
-}
-
-interface EmailTemplate {
-  id?: number;
-  name: string;
-  subject?: string;
-  content: string;
-  description?: string;
-}
-
+// Component prop types
 interface EmailComposerProps {
   selectedContact: Contact | null;
   selectedCompany: Company | null;
@@ -72,26 +46,6 @@ interface EmailComposerProps {
   onCompanyChange?: (company: Company | null) => void;
 }
 
-// Constants
-const TONE_OPTIONS = [
-  { id: 'casual', name: 'Casual', description: 'Friendly and approachable' },
-  { id: 'professional', name: 'Professional', description: 'Formal business tone' },
-  { id: 'conversational', name: 'Conversational', description: 'Natural and flowing' },
-  { id: 'confident', name: 'Confident', description: 'Assertive and direct' },
-  { id: 'enthusiastic', name: 'Enthusiastic', description: 'Energetic and passionate' },
-  { id: 'consultative', name: 'Consultative', description: 'Advisory and helpful' },
-  { id: 'curious', name: 'Curious', description: 'Inquisitive and engaging' }
-];
-
-const OFFER_OPTIONS = [
-  { id: 'none', name: 'None', description: 'No offer strategy' },
-  { id: 'hormozi', name: 'Hormozi', description: 'Value stack method' },
-  { id: 'formula', name: 'Formula', description: 'Problem-solution approach' },
-  { id: '1on1', name: '1-on-1', description: 'Personal consultation' },
-  { id: 'guarantee', name: 'Guarantee', description: 'Risk reversal offer' },
-  { id: 'shiny', name: 'Shiny', description: 'Exciting opportunity' },
-  { id: 'study', name: 'Study', description: 'Research-based approach' }
-];
 
 export function EmailComposer({
   selectedContact,
@@ -100,6 +54,7 @@ export function EmailComposer({
   onCompanyChange
 }: EmailComposerProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // State
   const [emailPrompt, setEmailPrompt] = useState("");
@@ -111,9 +66,9 @@ export function EmailComposer({
   const [originalEmailContent, setOriginalEmailContent] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
   const [selectedProductData, setSelectedProductData] = useState<StrategicProfile | null>(null);
-  const [selectedTone, setSelectedTone] = useState('casual');
-  const [selectedOfferStrategy, setSelectedOfferStrategy] = useState('none');
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedTone, setSelectedTone] = useState<string>(DEFAULT_TONE);
+  const [selectedOfferStrategy, setSelectedOfferStrategy] = useState<string>(DEFAULT_OFFER);
+  // Removed isGenerating state - will come from the hook
   const [isSent, setIsSent] = useState(false);
   const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [tonePopoverOpen, setTonePopoverOpen] = useState(false);
@@ -133,25 +88,42 @@ export function EmailComposer({
   const toEmailRef = useRef<HTMLInputElement>(null);
   const emailSubjectRef = useRef<HTMLInputElement>(null);
 
+  // Email generation hook
+  const { generateEmail: performGeneration, isGenerating } = useEmailGeneration({
+    selectedContact,
+    selectedCompany,
+    emailPrompt,
+    emailSubject,
+    emailContent,
+    toEmail,
+    tone: selectedTone,
+    offerStrategy: selectedOfferStrategy,
+    setEmailSubject,
+    setOriginalEmailSubject,
+    setToEmail,
+    setEmailContent,
+    setOriginalEmailContent
+  });
+
   // Queries
   const { data: products = [] } = useQuery<StrategicProfile[]>({
     queryKey: ['/api/strategic-profiles']
   });
 
-  const { data: gmailStatus } = useQuery({
+  const { data: gmailStatus } = useQuery<{authorized: boolean}>({
     queryKey: ['/api/gmail/status'],
     refetchInterval: 5000
   });
 
-  const { data: gmailUserInfo } = useQuery({
+  const { data: gmailUserInfo } = useQuery<{email: string}>({
     queryKey: ['/api/gmail/user-info'],
-    enabled: !!gmailStatus?.authorized
+    enabled: !!(gmailStatus as any)?.authorized
   });
 
   // Mutations
   const sendEmailMutation = useMutation({
     mutationFn: async (data: { to: string; subject: string; body: string }) => {
-      const res = await apiRequest('POST', '/api/gmail/send', data);
+      const res = await apiRequest("POST", '/api/gmail/send', data);
       return await res.json();
     },
     onSuccess: () => {
@@ -174,7 +146,7 @@ export function EmailComposer({
 
   const updateMutation = useMutation({
     mutationFn: async (template: EmailTemplate) => {
-      const res = await apiRequest('PUT', `/api/email-templates/${template.id}`, template);
+      const res = await apiRequest("PUT", `/api/email-templates/${template.id}`, template);
       return await res.json();
     },
     onSuccess: () => {
@@ -274,52 +246,35 @@ export function EmailComposer({
   };
 
   const handleGenerateEmail = () => {
+    // Validation checks
+    if (!selectedCompany) {
+      toast({
+        title: "No Company Selected",
+        description: "Please select a company to generate an email.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!emailPrompt || emailPrompt.trim() === '') {
+      toast({
+        title: "No Prompt Provided",
+        description: "Please provide details about your product or service.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (emailContent || emailSubject) {
       setGenerateConfirmDialogOpen(true);
     } else {
-      generateEmail();
+      performGeneration();
     }
   };
 
   const handleConfirmGenerate = () => {
     setGenerateConfirmDialogOpen(false);
-    generateEmail();
-  };
-
-  const generateEmail = async () => {
-    setIsGenerating(true);
-    try {
-      const res = await apiRequest('POST', '/api/generate-email', {
-        prompt: emailPrompt,
-        contactName: selectedContact?.name,
-        contactTitle: selectedContact?.title,
-        companyName: selectedCompany?.name,
-        companyDescription: selectedCompany?.description,
-        product: selectedProductData,
-        tone: selectedTone,
-        offerStrategy: selectedOfferStrategy
-      });
-      const response = await res.json();
-
-      setEmailSubject(response.subject);
-      setEmailContent(response.body);
-      setOriginalEmailSubject(response.subject);
-      setOriginalEmailContent(response.body);
-      
-      toast({
-        title: "Email generated successfully!",
-        description: "Your personalized email is ready to send."
-      });
-    } catch (error: any) {
-      console.error('Generate email error:', error);
-      toast({
-        title: "Failed to generate email",
-        description: error.message || "Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGenerating(false);
-    }
+    performGeneration();
   };
 
   const handleSendEmail = () => {
@@ -349,7 +304,7 @@ export function EmailComposer({
 
   const handleSaveEmail = async (templateName: string) => {
     try {
-      await apiRequest('POST', '/api/email-templates', {
+      await apiRequest("POST", '/api/email-templates', {
         name: templateName,
         subject: originalEmailSubject || emailSubject,
         content: originalEmailContent || emailContent,
@@ -369,15 +324,14 @@ export function EmailComposer({
   };
 
   const saveCurrentTemplate = async () => {
-    if (!editingTemplateId) return;
+    if (!editingTemplateId || !editingTemplate) return;
     
     updateMutation.mutate({
-      id: editingTemplateId,
-      name: '',
+      ...editingTemplate,
       subject: originalEmailSubject || emailSubject,
       content: originalEmailContent || emailContent,
       description: originalEmailPrompt || emailPrompt
-    });
+    } as EmailTemplate);
   };
 
   const handleMergeFieldInsert = (field: string) => {
@@ -398,9 +352,10 @@ export function EmailComposer({
     }
   };
 
-  const enterEditMode = (templateId: number) => {
+  const enterEditMode = (template: any) => {
     setIsEditMode(true);
-    setEditingTemplateId(templateId);
+    setEditingTemplateId(template.id);
+    setEditingTemplate(template);
   };
 
   const exitEditMode = () => {
@@ -681,10 +636,10 @@ export function EmailComposer({
       />
       <div className="absolute bottom-2 right-2 flex items-center gap-2">
         {/* Gmail Status Badge */}
-        {(gmailStatus as any)?.authorized ? (
+        {gmailStatus?.authorized ? (
           <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-300">
             <Mail className="w-3 h-3 mr-1" />
-            {(gmailUserInfo as any)?.email 
+            {gmailUserInfo?.email 
               ? (gmailUserInfo as any).email.length > 20 
                 ? `${(gmailUserInfo as any).email.substring(0, 20)}...`
                 : (gmailUserInfo as any).email
@@ -741,7 +696,7 @@ export function EmailComposer({
     {/* Quick Templates Section */}
     <div className="mt-8 pt-6 border-t">
       <QuickTemplates
-        onSelectTemplate={(template: EmailTemplate) => {
+        onSelectTemplate={(template: any) => {
           setEmailPrompt(template.description || "");
           setEmailContent(template.content);
           setEmailSubject(template.subject || "");
@@ -752,7 +707,7 @@ export function EmailComposer({
         onSaveTemplate={handleSaveEmail}
         onUpdateTemplate={saveCurrentTemplate}
         onMergeFieldInsert={handleMergeFieldInsert}
-        onEditTemplate={enterEditMode}
+        onEditTemplate={(template: any) => enterEditMode(template)}
         isEditMode={isEditMode}
         editingTemplateId={editingTemplateId}
         onExitEditMode={exitEditMode}
