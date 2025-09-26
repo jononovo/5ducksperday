@@ -2618,19 +2618,8 @@ export default function Home() {
           <div className="h-full">
             {/* Header */}
             <div className="sticky top-0 bg-background border-b px-4 py-3 flex items-center justify-between z-10">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    setEmailDrawerOpen(false);
-                    setSelectedEmailContact(null);
-                    setSelectedEmailCompany(null);
-                    setSelectedCompanyContacts([]);
-                  }}
-                  className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-                <div>
+              <div className="flex items-center gap-2 flex-1">
+                <div className="flex-1">
                   <h3 className="font-semibold text-sm">Compose Email</h3>
                   {selectedEmailContact && (
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -2638,6 +2627,19 @@ export default function Home() {
                     </p>
                   )}
                 </div>
+                {/* Prominent Close Button */}
+                <button
+                  onClick={() => {
+                    setEmailDrawerOpen(false);
+                    setSelectedEmailContact(null);
+                    setSelectedEmailCompany(null);
+                    setSelectedCompanyContacts([]);
+                  }}
+                  className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors group"
+                  aria-label="Close email panel"
+                >
+                  <X className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
+                </button>
               </div>
               
               {/* Contact navigation */}
