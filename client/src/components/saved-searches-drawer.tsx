@@ -36,10 +36,10 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
     <>
       {/* Invisible hover zone for desktop - opens drawer on hover */}
       <div 
-        className="hidden lg:block fixed left-0 top-0 h-full w-[3%] z-40"
+        className="hidden min-[700px]:block fixed left-0 top-0 h-full w-[3%] z-40"
         onMouseEnter={() => {
-          // Only open on wider viewports (lg and up, which is 1024px+)
-          if (window.innerWidth >= 1024) {
+          // Only open on wider viewports (700px+)
+          if (window.innerWidth >= 700) {
             onOpenChange(true);
           }
         }}
