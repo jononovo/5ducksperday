@@ -33,7 +33,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Contact, Company, StrategicProfile, EmailTemplate } from "@shared/schema";
 import { useEmailGeneration } from "@/email-content-generation/useOutreachGeneration";
-import { resolveFrontendSenderNames } from "@/email-content-generation/outreach-utils";
+import { resolveFrontendSenderNames, createMergeFieldContext } from "@/email-content-generation/outreach-utils";
+import { resolveAllMergeFields } from "@/lib/merge-field-resolver";
 import { useAuth } from "@/hooks/use-auth";
 import { TONE_OPTIONS, DEFAULT_TONE } from "@/lib/tone-options";
 import { OFFER_OPTIONS, DEFAULT_OFFER } from "@/lib/offer-options";
@@ -88,6 +89,15 @@ export function EmailComposer({
   const emailContentRef = useRef<HTMLTextAreaElement>(null);
   const toEmailRef = useRef<HTMLInputElement>(null);
   const emailSubjectRef = useRef<HTMLInputElement>(null);
+
+  // Create merge field context for resolving merge fields
+  const senderNames = resolveFrontendSenderNames(user);
+  const mergeFieldContext = createMergeFieldContext(
+    selectedContact,
+    selectedCompany,
+    senderNames.fullName,
+    senderNames.firstName
+  );
 
   // Email generation hook
   const { generateEmail: performGeneration, isGenerating } = useEmailGeneration({
@@ -192,10 +202,14 @@ export function EmailComposer({
   };
 
   const getDisplayValue = (currentValue: string, originalValue?: string) => {
-    if (isMergeViewMode && originalValue) {
-      return originalValue;
-    }
-    return currentValue;
+    // In edit mode, show the current value being edited
+    if (isEditMode) return currentValue;
+    
+    // In merge view mode, show the raw template with merge fields
+    if (isMergeViewMode) return originalValue || currentValue;
+    
+    // Default: resolve merge fields to show actual values
+    return resolveAllMergeFields(originalValue || currentValue, mergeFieldContext);
   };
 
   const handleSelectProduct = (product: StrategicProfile) => {
