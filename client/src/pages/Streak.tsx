@@ -756,8 +756,13 @@ export default function StreakPage() {
                         mode="range"
                         selected={vacationDates}
                         onSelect={(range: any) => {
+                          // Always update local state
                           setVacationDates(range || { from: undefined, to: undefined });
-                          if (range?.from && range?.to) {
+                          
+                          // Only save to backend when we have a complete, valid range
+                          if (range?.from && range?.to && 
+                              range.from instanceof Date && 
+                              range.to instanceof Date) {
                             updateVacationMode.mutate({
                               isOnVacation: true,
                               vacationStartDate: format(range.from, 'yyyy-MM-dd'),
