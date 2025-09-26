@@ -14,6 +14,7 @@ const PromptEditor = lazy(() => import("@/components/prompt-editor"));
 // Import components with named exports directly for now
 import { EmailSearchSummary } from "@/components/email-search-summary";
 import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
+import { EmailComposer } from "@/components/email-composer";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
@@ -28,6 +29,9 @@ import {
   Eye,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  X,
   ThumbsUp,
   ThumbsDown,
   Star,
@@ -86,9 +90,11 @@ interface SavedSearchState {
   navigationRefreshTimestamp?: number;
 }
 
-// Define SourceBreakdown interface
+// Define SourceBreakdown interface to match EmailSearchSummary
 interface SourceBreakdown {
-  [source: string]: number;
+  Perplexity: number;
+  Apollo: number;
+  Hunter: number;
 }
 
 export default function Home() {
@@ -118,6 +124,13 @@ export default function Home() {
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
   const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
+  
+  // State for email drawer
+  const [emailDrawerOpen, setEmailDrawerOpen] = useState(false);
+  const [selectedEmailContact, setSelectedEmailContact] = useState<Contact | null>(null);
+  const [selectedEmailCompany, setSelectedEmailCompany] = useState<Company | null>(null);
+  const [selectedCompanyContacts, setSelectedCompanyContacts] = useState<Contact[]>([]);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -127,6 +140,24 @@ export default function Home() {
   const { setState: setStrategyOverlayState } = useStrategyOverlay();
   
   // Use shared comprehensive email search hook
+  // Handler for contact click to open email drawer
+  const handleContactClick = (contact: ContactWithCompanyInfo, company: Company) => {
+    setSelectedEmailContact(contact);
+    setSelectedEmailCompany(company);
+    
+    // Get all contacts from the same company
+    const companyContacts = currentResults
+      ?.find(c => c.id === company.id)
+      ?.contacts || [];
+    setSelectedCompanyContacts(companyContacts);
+    
+    setEmailDrawerOpen(true);
+  };
+  
+  const handleEmailContactChange = (newContact: Contact) => {
+    setSelectedEmailContact(newContact);
+  };
+  
   const { 
     handleComprehensiveEmailSearch: comprehensiveSearchHook, 
     pendingSearchIds: pendingComprehensiveSearchIds 
@@ -138,7 +169,9 @@ export default function Home() {
         const updatedResults = prev.map(company => ({
           ...company,
           contacts: company.contacts?.map(contact =>
-            contact.id === updatedContact.id ? updatedContact : contact
+            contact.id === updatedContact.id 
+              ? { ...updatedContact, companyName: company.name, companyId: company.id } as ContactWithCompanyInfo
+              : contact
           )
         }));
         
@@ -1109,7 +1142,13 @@ export default function Home() {
             const contacts = await queryClient.fetchQuery({
               queryKey: [`/api/companies/${company.id}/contacts`]
             }) as Contact[];
-            return { ...company, contacts };
+            // Add companyName and companyId to each contact
+            const contactsWithCompanyInfo: ContactWithCompanyInfo[] = contacts.map(contact => ({
+              ...contact,
+              companyName: company.name,
+              companyId: company.id
+            }));
+            return { ...company, contacts: contactsWithCompanyInfo };
           } catch (error) {
             console.error(`Failed to load contacts for company ${company.id}:`, error);
             return { ...company, contacts: [] };
@@ -2125,8 +2164,8 @@ export default function Home() {
     // Call the shared hook function
     await comprehensiveSearchHook(contactId, contact, {
       companyName: company?.name,
-      companyWebsite: company?.website,
-      companyDescription: company?.description
+      companyWebsite: company?.website || undefined,
+      companyDescription: company?.description || undefined
     });
   };
   
@@ -2166,7 +2205,7 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto py-6 px-0 md:px-6">
+    <div className={`container mx-auto py-6 px-0 md:px-6 ${emailDrawerOpen ? 'mr-[500px]' : ''}`}>
       {/* Intro tour modal has been removed */}
 
       <div className="grid grid-cols-12 gap-3 md:gap-6">
@@ -2354,15 +2393,14 @@ export default function Home() {
                       companies={currentResults || []}
                       handleCompanyView={handleCompanyView}
                       handleHunterSearch={handleHunterSearch}
-
                       handleApolloSearch={handleApolloSearch}
                       handleEnrichContact={handleEnrichContact}
                       handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
                       pendingHunterIds={pendingHunterIds}
-
                       pendingApolloIds={pendingApolloIds}
                       pendingContactIds={pendingContactIds}
                       pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
+                      onContactClick={handleContactClick}
                   />
                   </Suspense>
                 </div>
@@ -2573,6 +2611,78 @@ export default function Home() {
         onOpenChange={setSavedSearchesDrawerOpen}
         onLoadSearch={handleLoadSavedSearch}
       />
+      
+      {/* Email Panel - Simple second column */}
+      {emailDrawerOpen && (
+        <div className="fixed top-0 right-0 h-full w-[500px] bg-background border-l overflow-y-auto">
+          <div className="h-full">
+            {/* Header */}
+            <div className="sticky top-0 bg-background border-b px-4 py-3 flex items-center justify-between z-10">
+              <div className="flex items-center gap-2 flex-1">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-sm">Compose Email</h3>
+                  {selectedEmailContact && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {selectedEmailContact.name} • {selectedEmailCompany?.name}
+                    </p>
+                  )}
+                </div>
+                {/* Prominent Close Button */}
+                <button
+                  onClick={() => {
+                    setEmailDrawerOpen(false);
+                    setSelectedEmailContact(null);
+                    setSelectedEmailCompany(null);
+                    setSelectedCompanyContacts([]);
+                  }}
+                  className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors group"
+                  aria-label="Close email panel"
+                >
+                  <X className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
+                </button>
+              </div>
+              
+              {/* Contact navigation */}
+              {selectedCompanyContacts.length > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
+                      const prevIndex = currentIndex > 0 ? currentIndex - 1 : selectedCompanyContacts.length - 1;
+                      handleEmailContactChange(selectedCompanyContacts[prevIndex]);
+                    }}
+                    className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <span className="text-xs text-muted-foreground">
+                    {selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id) + 1} / {selectedCompanyContacts.length}
+                  </span>
+                  <button
+                    onClick={() => {
+                      const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
+                      const nextIndex = currentIndex < selectedCompanyContacts.length - 1 ? currentIndex + 1 : 0;
+                      handleEmailContactChange(selectedCompanyContacts[nextIndex]);
+                    }}
+                    className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Email Composer */}
+            <div className="p-4">
+              <EmailComposer
+                selectedContact={selectedEmailContact}
+                selectedCompany={selectedEmailCompany}
+                onContactChange={handleEmailContactChange}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
 
 

@@ -53,6 +53,7 @@ interface CompanyCardsProps {
   pendingApolloIds?: Set<number>;
   pendingContactIds?: Set<number>;
   pendingComprehensiveSearchIds?: Set<number>;
+  onContactClick?: (contact: ContactWithCompanyInfo, company: Company) => void;
 }
 
 export default function CompanyCards({ 
@@ -65,7 +66,8 @@ export default function CompanyCards({
   pendingHunterIds,
   pendingApolloIds,
   pendingContactIds,
-  pendingComprehensiveSearchIds
+  pendingComprehensiveSearchIds,
+  onContactClick
 }: CompanyCardsProps) {
   const [, setLocation] = useLocation();
   
@@ -282,10 +284,11 @@ export default function CompanyCards({
                       <div
                         key={`${company.id}-contact-${contact.id}`}
                         className={cn(
-                          "flex items-center gap-3 p-2 rounded-md transition-colors",
+                          "flex items-center gap-3 p-2 rounded-md transition-colors cursor-pointer",
                           "hover:bg-muted/50",
                           selectedContacts.has(contact.id) && "bg-blue-50/30 dark:bg-blue-950/10"
                         )}
+                        onClick={() => onContactClick?.(contact, company)}
                       >
                         <Checkbox 
                           checked={selectedContacts.has(contact.id)}
