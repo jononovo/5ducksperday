@@ -52,8 +52,8 @@ export function MainNav() {
       <div className="flex items-center ml-auto gap-3">
         {user ? (
           <>
-            <StreakButton />
             <CreditUpgradeDropdown />
+            <StreakButton />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">

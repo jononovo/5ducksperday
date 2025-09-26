@@ -78,12 +78,7 @@ export function StreakButton() {
         </TooltipTrigger>
         <TooltipContent>
           <p className="text-xs">
-            {streakCount === 0 
-              ? "Start your sales streak today!" 
-              : `${streakCount} day${streakCount !== 1 ? 's' : ''} streak! ${
-                  streakCount >= 7 ? "🔥 Keep it up!" : ""
-                }`
-            }
+            Streak: Number of consecutive days you were active on scheduled days.
           </p>
         </TooltipContent>
       </Tooltip>
