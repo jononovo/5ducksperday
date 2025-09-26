@@ -2408,7 +2408,7 @@ export default function Home() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-10">
+                        <TableHead className="w-10 hidden md:table-cell">
                           <Checkbox 
                             checked={getTopProspects().length > 0 && 
                               getTopProspects().every(contact => selectedContacts.has(contact.id))}
@@ -2426,7 +2426,7 @@ export default function Home() {
                     <TableBody>
                       {getTopProspects().map((contact) => (
                         <TableRow key={contact.id} className="group">
-                          <TableCell className="w-10">
+                          <TableCell className="w-10 hidden md:table-cell">
                             <Checkbox 
                               checked={isContactSelected(contact.id)}
                               onCheckedChange={() => handleCheckboxChange(contact.id)}
