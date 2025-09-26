@@ -2205,9 +2205,22 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
-      {/* Main Content Container - will be compressed when drawer opens */}
-      <div className={`flex-1 overflow-y-auto transition-all duration-300 ${emailDrawerOpen ? 'md:pr-0' : ''}`}>
+    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden relative">
+      {/* Backdrop for mobile */}
+      {emailDrawerOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => {
+            setEmailDrawerOpen(false);
+            setSelectedEmailContact(null);
+            setSelectedEmailCompany(null);
+            setSelectedCompanyContacts([]);
+          }}
+        />
+      )}
+      
+      {/* Main Content Container - will be compressed when drawer opens on desktop */}
+      <div className={`flex-1 overflow-y-auto transition-all duration-300`}>
         <div className="container mx-auto py-6 px-0 md:px-6">
           {/* Intro tour modal has been removed */}
 
@@ -2617,13 +2630,13 @@ export default function Home() {
         </div>
       </div>
       
-      {/* Email Drawer - Push-aside panel */}
-      <div className={`transition-all duration-300 overflow-hidden border-l bg-background ${
+      {/* Email Drawer - Overlay on mobile, push-aside on desktop */}
+      <div className={`${
         emailDrawerOpen 
-          ? 'w-full md:w-[400px] lg:w-[450px] xl:w-[500px]' 
-          : 'w-0'
-      }`}>
-        <div className="h-full overflow-y-auto" style={{ minWidth: emailDrawerOpen ? '400px' : '0' }}>
+          ? 'fixed md:relative top-0 right-0 h-full md:h-auto w-[90%] sm:w-[400px] md:w-[400px] lg:w-[450px] xl:w-[500px] z-50 md:z-auto' 
+          : 'md:relative w-0'
+      } transition-all duration-300 overflow-hidden border-l bg-background`}>
+        <div className="h-full overflow-y-auto" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
           {/* Header */}
           <div className="sticky top-0 bg-background border-b px-4 py-3 flex items-center justify-between z-10">
             <div className="flex items-center gap-2 flex-1">
