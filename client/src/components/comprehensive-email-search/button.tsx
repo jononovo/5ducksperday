@@ -40,12 +40,12 @@ export function ComprehensiveSearchButton({
     if (state === 'failed') {
       return (
         <div className="flex items-center gap-0.5">
-          <Mail className={cn(iconSize, "text-gray-400 hover:text-blue-500 transition-colors")} />
+          <Mail className={cn(iconSize, "text-gray-400 group-hover:text-gray-600 hover:text-blue-500 transition-colors")} />
           <Ban className="text-gray-400" style={{ width: '10px', height: '10px' }} />
         </div>
       );
     }
-    return <Mail className={cn(iconSize, "text-gray-400 hover:text-blue-500 transition-colors")} />;
+    return <Mail className={cn(iconSize, "text-gray-400 group-hover:text-gray-600 hover:text-blue-500 transition-colors")} />;
   };
 
   if (displayMode === 'text') {
@@ -55,7 +55,7 @@ export function ComprehensiveSearchButton({
     return (
       <button
         className={cn(
-          "email-search-btn flex items-center gap-1.5 text-muted-foreground hover:text-blue-600 transition-all relative",
+          "flex items-center gap-1.5 text-muted-foreground hover:text-blue-600 transition-colors",
           state === 'failed' && "opacity-75",
           className
         )}
@@ -64,7 +64,7 @@ export function ComprehensiveSearchButton({
         title={tooltipMessage}
       >
         {renderIcon()}
-        <span className="text-xs">{buttonText}</span>
+        <span className="text-xs group-hover:text-gray-600 transition-colors">{buttonText}</span>
       </button>
     );
   }
