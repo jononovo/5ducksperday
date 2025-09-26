@@ -1171,6 +1171,7 @@ export default function Home() {
       
       setCurrentQuery(list.prompt);
       setLastExecutedQuery(list.prompt); // Update lastExecutedQuery to sync the search input
+      setInputHasChanged(false); // Reset input change flag for loaded search
       setCurrentResults(companiesWithContacts);
       setCurrentListId(list.listId);
       setIsSaved(true);
