@@ -2205,12 +2205,15 @@ export default function Home() {
   };
 
   return (
-    <div className={`container mx-auto py-6 px-0 md:px-6 ${emailDrawerOpen ? 'mr-[500px]' : ''}`}>
-      {/* Intro tour modal has been removed */}
+    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+      {/* Main Content Container - will be compressed when drawer opens */}
+      <div className={`flex-1 overflow-y-auto transition-all duration-300 ${emailDrawerOpen ? 'md:pr-0' : ''}`}>
+        <div className="container mx-auto py-6 px-0 md:px-6">
+          {/* Intro tour modal has been removed */}
 
-      <div className="grid grid-cols-12 gap-3 md:gap-6">
-        {/* Main Content Area - full width */}
-        <div className="col-span-12 space-y-2 md:space-y-4 mt-[-10px]">
+          <div className="grid grid-cols-12 gap-3 md:gap-6">
+            {/* Main Content Area - full width */}
+            <div className="col-span-12 space-y-2 md:space-y-4 mt-[-10px]">
           {/* Search Section - border removed and moved up */}
           <div className="px-3 md:px-6 py-1"> {/* Reduced mobile padding, matched desktop padding with CardHeader (p-6) */}
             {!currentResults && (
@@ -2600,79 +2603,85 @@ export default function Home() {
               </CardContent>
             </Card>
           )}
-        </div>
-
-        {/* API Templates Button moved to settings drawer */}
-      </div>
-
-      {/* Fixed position saved searches drawer */}
-      <SavedSearchesDrawer 
-        open={savedSearchesDrawerOpen}
-        onOpenChange={setSavedSearchesDrawerOpen}
-        onLoadSearch={handleLoadSavedSearch}
-      />
-      
-      {/* Email Panel - Simple second column */}
-      {emailDrawerOpen && (
-        <div className="fixed top-0 right-0 h-full w-[500px] bg-background border-l overflow-y-auto">
-          <div className="h-full">
-            {/* Header */}
-            <div className="sticky top-0 bg-background border-b px-4 py-3 flex items-center justify-between z-10">
-              <div className="flex items-center gap-2 flex-1">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-sm">Compose Email</h3>
-                  {selectedEmailContact && (
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {selectedEmailContact.name} • {selectedEmailCompany?.name}
-                    </p>
-                  )}
-                </div>
-                {/* Prominent Close Button */}
-                <button
-                  onClick={() => {
-                    setEmailDrawerOpen(false);
-                    setSelectedEmailContact(null);
-                    setSelectedEmailCompany(null);
-                    setSelectedCompanyContacts([]);
-                  }}
-                  className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors group"
-                  aria-label="Close email panel"
-                >
-                  <X className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
-                </button>
-              </div>
-              
-              {/* Contact navigation */}
-              {selectedCompanyContacts.length > 1 && (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => {
-                      const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
-                      const prevIndex = currentIndex > 0 ? currentIndex - 1 : selectedCompanyContacts.length - 1;
-                      handleEmailContactChange(selectedCompanyContacts[prevIndex]);
-                    }}
-                    className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <span className="text-xs text-muted-foreground">
-                    {selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id) + 1} / {selectedCompanyContacts.length}
-                  </span>
-                  <button
-                    onClick={() => {
-                      const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
-                      const nextIndex = currentIndex < selectedCompanyContacts.length - 1 ? currentIndex + 1 : 0;
-                      handleEmailContactChange(selectedCompanyContacts[nextIndex]);
-                    }}
-                    className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
             </div>
 
-            {/* Email Composer */}
+            {/* API Templates Button moved to settings drawer */}
+          </div>
+
+          {/* Fixed position saved searches drawer */}
+          <SavedSearchesDrawer 
+            open={savedSearchesDrawerOpen}
+            onOpenChange={setSavedSearchesDrawerOpen}
+            onLoadSearch={handleLoadSavedSearch}
+          />
+        </div>
+      </div>
+      
+      {/* Email Drawer - Push-aside panel */}
+      <div className={`transition-all duration-300 overflow-hidden border-l bg-background ${
+        emailDrawerOpen 
+          ? 'w-full md:w-[400px] lg:w-[450px] xl:w-[500px]' 
+          : 'w-0'
+      }`}>
+        <div className="h-full overflow-y-auto" style={{ minWidth: emailDrawerOpen ? '400px' : '0' }}>
+          {/* Header */}
+          <div className="sticky top-0 bg-background border-b px-4 py-3 flex items-center justify-between z-10">
+            <div className="flex items-center gap-2 flex-1">
+              <div className="flex-1">
+                <h3 className="font-semibold text-sm">Compose Email</h3>
+                {selectedEmailContact && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {selectedEmailContact.name} • {selectedEmailCompany?.name}
+                  </p>
+                )}
+              </div>
+              {/* Prominent Close Button */}
+              <button
+                onClick={() => {
+                  setEmailDrawerOpen(false);
+                  setSelectedEmailContact(null);
+                  setSelectedEmailCompany(null);
+                  setSelectedCompanyContacts([]);
+                }}
+                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors group"
+                aria-label="Close email panel"
+              >
+                <X className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
+              </button>
+            </div>
+            
+            {/* Contact navigation */}
+            {selectedCompanyContacts.length > 1 && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
+                    const prevIndex = currentIndex > 0 ? currentIndex - 1 : selectedCompanyContacts.length - 1;
+                    handleEmailContactChange(selectedCompanyContacts[prevIndex]);
+                  }}
+                  className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-xs text-muted-foreground">
+                  {selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id) + 1} / {selectedCompanyContacts.length}
+                </span>
+                <button
+                  onClick={() => {
+                    const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
+                    const nextIndex = currentIndex < selectedCompanyContacts.length - 1 ? currentIndex + 1 : 0;
+                    handleEmailContactChange(selectedCompanyContacts[nextIndex]);
+                  }}
+                  className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Email Composer */}
+          {emailDrawerOpen && (
             <div className="p-4">
               <EmailComposer
                 selectedContact={selectedEmailContact}
@@ -2680,13 +2689,13 @@ export default function Home() {
                 onContactChange={handleEmailContactChange}
               />
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
 
 
-      {/* Notification System */}
+      {/* Notification System - Outside flex container */}
       <NotificationToast
         notificationState={notificationState}
         onClose={closeNotification}
