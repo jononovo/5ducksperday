@@ -216,7 +216,7 @@ export default function CompanyCards({
                               target="_blank" 
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              className="text-blue-600 hover:text-blue-800 transition-colors hover:underline"
+                              className="text-gray-600 hover:text-gray-800 transition-colors hover:underline"
                             >
                               {company.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                             </a>
@@ -306,7 +306,7 @@ export default function CompanyCards({
                               </div>
                               <div className="text-xs mt-1">
                                 {contact.email ? (
-                                  <span className="text-blue-600">{contact.email}</span>
+                                  <span className="text-gray-600">{contact.email}</span>
                                 ) : (
                                   handleComprehensiveEmailSearch && (
                                     <ComprehensiveSearchButton
@@ -331,12 +331,23 @@ export default function CompanyCards({
                             
                             <div className="flex items-center gap-2">
                               {contact.probability && (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-xs"
-                                >
-                                  {contact.probability}%
-                                </Badge>
+                                <TooltipProvider delayDuration={300}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span>
+                                        <Badge
+                                          variant="secondary"
+                                          className="text-xs cursor-help"
+                                        >
+                                          {contact.probability}%
+                                        </Badge>
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Score reflects the contact's affinity to the target role/designation searched.</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               )}
                               
                               <ContactActionColumn
