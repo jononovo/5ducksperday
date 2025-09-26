@@ -776,12 +776,26 @@ export default function StreakPage() {
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="range"
-                          selected={vacationDates}
-                          onSelect={(range: any) => {
-                            // Only update local state, don't save automatically
-                            setVacationDates(range || { from: undefined, to: undefined });
+                          selected={{
+                            from: vacationDates.from,
+                            to: vacationDates.to
                           }}
-                          disabled={(date) => date < new Date()}
+                          onSelect={(range: any) => {
+                            // Update local state with the selected range
+                            if (range) {
+                              setVacationDates({
+                                from: range.from || undefined,
+                                to: range.to || undefined
+                              });
+                            } else {
+                              setVacationDates({ from: undefined, to: undefined });
+                            }
+                          }}
+                          disabled={(date) => {
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            return date < today;
+                          }}
                           initialFocus
                         />
                       </PopoverContent>
