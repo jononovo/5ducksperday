@@ -202,7 +202,7 @@ export default function CompanyCards({
             className={cn(
               "px-2 h-6 text-[11px] font-medium transition-all",
               viewMode === 'scroll' 
-                ? "bg-background text-foreground shadow-sm" 
+                ? "bg-background text-gray-600 shadow-sm" 
                 : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
             )}
           >
@@ -216,7 +216,7 @@ export default function CompanyCards({
             className={cn(
               "px-2 h-6 text-[11px] font-medium transition-all",
               viewMode === 'slides' 
-                ? "bg-background text-foreground shadow-sm" 
+                ? "bg-background text-gray-600 shadow-sm" 
                 : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
             )}
           >
