@@ -109,13 +109,13 @@ export default function CompanyCards({
     return expandedCards.has(companyId);
   };
   
-  // Navigation functions for slides view
+  // Navigation functions for slides view (with infinite loop)
   const handlePrevSlide = () => {
-    setCurrentSlideIndex(prev => Math.max(0, prev - 1));
+    setCurrentSlideIndex(prev => prev > 0 ? prev - 1 : companies.length - 1);
   };
   
   const handleNextSlide = () => {
-    setCurrentSlideIndex(prev => Math.min(companies.length - 1, prev + 1));
+    setCurrentSlideIndex(prev => prev < companies.length - 1 ? prev + 1 : 0);
   };
   
   // Reset slide index when switching to slides view or when companies change
@@ -245,7 +245,6 @@ export default function CompanyCards({
               variant="outline"
               size="sm"
               onClick={handlePrevSlide}
-              disabled={currentSlideIndex === 0}
               className="h-8 w-8 p-0 border-muted-foreground/20"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -257,7 +256,6 @@ export default function CompanyCards({
               variant="outline"
               size="sm"
               onClick={handleNextSlide}
-              disabled={currentSlideIndex === companies.length - 1}
               className="h-8 w-8 p-0 border-muted-foreground/20"
             >
               <ChevronRight className="h-4 w-4" />
