@@ -66,8 +66,8 @@ Available merge fields for personalization:
 - {{first_name}} - Target contact's first name
 - {{contact_name}} - Target contact's full name  
 - {{company_name}} - Target company name
-- {{sender_first_name}} - Your first name: "${senderNames?.firstName || 'User'}"
-- {{full_sender_name}} - Your full name: "${senderNames?.fullName || 'User'}"
+- {{sender_first_name}} - Your first name
+- {{full_sender_name}} - Your full name
 
 TARGET COMPANY: ${company.name}
 ${company.description ? `About: ${company.description}` : ''}
