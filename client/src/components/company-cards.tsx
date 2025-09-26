@@ -346,6 +346,9 @@ export default function CompanyCards({
   const [selectedCompanies, setSelectedCompanies] = useState<Set<number>>(new Set());
   const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
   
+  // State to highlight navigation buttons
+  const [highlightNavButtons, setHighlightNavButtons] = useState(false);
+  
   // Toggle expansion state for a company card
   const toggleCardExpansion = (companyId: number) => {
     setExpandedCards(prev => {
@@ -483,6 +486,9 @@ export default function CompanyCards({
             onClick={() => {
               setViewMode('slides');
               onViewModeChange?.('slides');
+              // Highlight navigation buttons for 1 second
+              setHighlightNavButtons(true);
+              setTimeout(() => setHighlightNavButtons(false), 1000);
             }}
             className={cn(
               "px-2 h-6 text-[11px] font-medium transition-all",
@@ -503,7 +509,10 @@ export default function CompanyCards({
               variant="outline"
               size="sm"
               onClick={handlePrevSlide}
-              className="h-8 w-8 p-0 border-muted-foreground/20"
+              className={cn(
+                "h-8 w-8 p-0 border-muted-foreground/20 transition-all",
+                highlightNavButtons && "animate-pulse bg-primary/10 border-primary shadow-sm"
+              )}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -514,7 +523,10 @@ export default function CompanyCards({
               variant="outline"
               size="sm"
               onClick={handleNextSlide}
-              className="h-8 w-8 p-0 border-muted-foreground/20"
+              className={cn(
+                "h-8 w-8 p-0 border-muted-foreground/20 transition-all",
+                highlightNavButtons && "animate-pulse bg-primary/10 border-primary shadow-sm"
+              )}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
