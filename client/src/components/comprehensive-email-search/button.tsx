@@ -55,7 +55,8 @@ export function ComprehensiveSearchButton({
     return (
       <button
         className={cn(
-          "flex items-center gap-1.5 text-muted-foreground hover:text-blue-600 transition-colors",
+          "flex items-center gap-1.5 text-muted-foreground hover:text-blue-600 transition-all",
+          state === 'default' && "shadow-[0_0_10px_rgba(250,204,21,0.2)] hover:shadow-[0_0_15px_rgba(250,204,21,0.3)]",
           state === 'failed' && "opacity-75",
           className
         )}
