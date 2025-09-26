@@ -187,13 +187,13 @@ export default function CompanyCards({
               className="p-3"
             >
               <div className="flex items-center gap-3">
-                {/* Checkbox - hidden on mobile */}
+                {/* Checkbox - hidden completely */}
                 <Checkbox 
                   checked={isSelected}
                   onCheckedChange={() => toggleCompanySelection({stopPropagation: () => {}} as React.MouseEvent, company.id)}
                   onClick={(e) => e.stopPropagation()}
                   aria-label={`Select ${company.name}`}
-                  className="mt-0.5 hidden md:block"
+                  className="mt-0.5 hidden"
                 />
                 
                 {/* Company Info */}
