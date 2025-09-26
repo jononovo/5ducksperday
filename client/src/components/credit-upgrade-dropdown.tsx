@@ -193,16 +193,18 @@ export function CreditUpgradeDropdown() {
         <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="flex items-center gap-2 text-sm font-medium h-auto p-2 hover:bg-accent hover:text-accent-foreground"
+          className="group relative flex items-center text-sm font-medium h-auto p-2 hover:bg-accent hover:text-accent-foreground transition-all overflow-hidden"
         >
           <Coins className={cn(
-            "h-4 w-4",
+            "h-4 w-4 transition-all",
             credits.balance >= 1 ? "text-yellow-500" : "text-red-600"
           )} />
-          <span className="text-muted-foreground">
-            {credits.balance < 0 ? credits.balance : `${credits.balance.toLocaleString()}`}
-          </span>
-          <ChevronDown className="w-4 h-4" />
+          <div className="flex items-center gap-2 max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 transition-all duration-200 ease-in-out overflow-hidden">
+            <span className="text-muted-foreground ml-2">
+              {credits.balance < 0 ? credits.balance : `${credits.balance.toLocaleString()}`}
+            </span>
+            <ChevronDown className="w-4 h-4" />
+          </div>
         </Button>
       </DropdownMenuTrigger>
       
