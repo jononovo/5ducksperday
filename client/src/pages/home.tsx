@@ -2699,15 +2699,21 @@ export default function Home() {
         </div>
       </div>
       
-      {/* Email Drawer - Overlay on mobile, push-aside on desktop */}
-      <div className={`email-drawer-transition ${
+      {/* Email Drawer Container - keeps column aligned */}
+      <div className={`duplicate-full-height-drawer-to-keep-column-aligned ${
         emailDrawerOpen 
-          ? 'fixed md:relative top-[2.5rem] md:top-0 right-0 h-[calc(100vh-2.5rem)] md:h-full w-[90%] sm:w-[400px] md:w-[400px] lg:w-[450px] xl:w-[500px] z-50 md:z-auto' 
-          : 'md:relative w-0'
-      } overflow-hidden border-l border-t rounded-tl-lg bg-background shadow-xl md:shadow-none`}>
-        <div className="h-full overflow-y-auto" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
-          {/* Header */}
-          <div className="sticky top-0 bg-background px-4 py-1.5 flex items-center justify-between z-10">
+          ? 'hidden md:block md:relative md:h-full w-[400px] lg:w-[450px] xl:w-[500px]' 
+          : 'hidden md:block md:relative w-0'
+      }`}>
+        {/* Actual Email Drawer with dynamic height - Overlay on mobile, absolute on desktop */}
+        <div className={`email-drawer-transition ${
+          emailDrawerOpen 
+            ? 'fixed md:absolute top-[2.5rem] md:top-0 right-0 bottom-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen w-[90%] sm:w-[400px] md:w-[400px] lg:w-[450px] xl:w-[500px] z-50' 
+            : 'fixed md:absolute w-0 right-0 top-0'
+        } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`}>
+          <div className="overflow-y-auto" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
+            {/* Header */}
+            <div className="sticky top-0 bg-background px-4 py-1.5 flex items-center justify-between z-10">
             {/* Title section */}
             <div className="flex-1">
               <h3 className="text-xs text-muted-foreground font-normal flex items-center gap-1">
@@ -2779,8 +2785,86 @@ export default function Home() {
           )}
         </div>
       </div>
+      </div>
 
+      {/* For mobile: Render drawer without wrapper since it's fixed positioned */}
+      <div className={`md:hidden email-drawer-transition ${
+        emailDrawerOpen 
+          ? 'fixed top-[2.5rem] right-0 bottom-auto max-h-[calc(100vh-2.5rem)] w-[90%] sm:w-[400px] z-50' 
+          : 'fixed w-0 right-0 top-[2.5rem]'
+      } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`}>
+        {emailDrawerOpen && (
+          <>
+            <div className="overflow-y-auto" style={{ minWidth: '320px' }}>
+              {/* Same header content */}
+              <div className="sticky top-0 bg-background px-4 py-1.5 flex items-center justify-between z-10">
+                <div className="flex-1">
+                  <h3 className="text-xs text-muted-foreground font-normal flex items-center gap-1">
+                    <Mail className="h-3.5 w-3.5" />
+                    Compose
+                  </h3>
+                  {selectedEmailContact && (
+                    <p className="text-sm font-medium mt-0.5">
+                      {selectedEmailContact.name} • {selectedEmailCompany?.name}
+                    </p>
+                  )}
+                </div>
+                
+                {selectedCompanyContacts.length > 1 && (
+                  <div className="flex items-center gap-1 mx-3">
+                    <button
+                      onClick={() => {
+                        const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
+                        const prevIndex = currentIndex > 0 ? currentIndex - 1 : selectedCompanyContacts.length - 1;
+                        handleEmailContactChange(selectedCompanyContacts[prevIndex]);
+                      }}
+                      className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <span className="text-xs text-muted-foreground">
+                      {selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id) + 1} / {selectedCompanyContacts.length}
+                    </span>
+                    <button
+                      onClick={() => {
+                        const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
+                        const nextIndex = currentIndex < selectedCompanyContacts.length - 1 ? currentIndex + 1 : 0;
+                        handleEmailContactChange(selectedCompanyContacts[nextIndex]);
+                      }}
+                      className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+                
+                <button
+                  onClick={() => {
+                    setEmailDrawerOpen(false);
+                    setSelectedEmailContact(null);
+                    setSelectedEmailCompany(null);
+                    setSelectedCompanyContacts([]);
+                    setSearchSectionCollapsed(false);
+                  }}
+                  className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors group"
+                  aria-label="Close email panel"
+                >
+                  <X className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
+                </button>
+              </div>
 
+              {/* Email Composer for mobile */}
+              <div className="p-4">
+                <EmailComposer
+                  selectedContact={selectedEmailContact}
+                  selectedCompany={selectedEmailCompany}
+                  onContactChange={handleEmailContactChange}
+                />
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Notification System - Outside flex container */}
       <NotificationToast
