@@ -47,9 +47,11 @@ export function Logo({
   };
   
   const LogoContent = (
-    <div className={`font-bold flex items-center ${sizeClasses[size]} ${className}`}>
-      <span className="text-gray-500 dark:text-gray-400">5</span>
-      <span className="text-gray-700 dark:text-gray-300">Ducks</span>
+    <div className={`font-bold flex items-center ${sizeClasses[size]} ${className} group`}>
+      <div className="max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 transition-all duration-200 ease-in-out overflow-hidden flex">
+        <span className="text-gray-500 dark:text-gray-400">5</span>
+        <span className="text-gray-700 dark:text-gray-300">Ducks</span>
+      </div>
       
       {showEmojis && (
         <div className={`flex items-end ${emojiContainerClasses[size]}`}>
