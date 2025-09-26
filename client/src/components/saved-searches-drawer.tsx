@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ListChecks, X } from "lucide-react";
+import { PanelLeft, X } from "lucide-react";
 import type { List } from "@shared/schema";
 import { generateListDisplayName } from "@/lib/list-utils";
 
@@ -38,9 +38,9 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
         <Button 
           variant="outline" 
           size="icon" 
-          className="fixed left-0 top-32 md:top-20 z-50 h-8 w-8 md:h-10 md:w-10 rounded-l-none rounded-r-lg border-l-0 border-r border-t border-b bg-background/95 backdrop-blur-sm shadow-md hover:bg-accent hover:text-accent-foreground transition-all duration-200"
+          className="fixed left-0 top-32 md:top-20 z-50 h-10 w-10 md:h-12 md:w-12 rounded-l-none rounded-r-lg border-l-0 border-r border-t border-b bg-background/95 backdrop-blur-sm shadow-md hover:bg-accent hover:text-accent-foreground transition-all duration-200 [&_svg]:!size-5 md:[&_svg]:!size-7"
         >
-          <ListChecks className="h-4 w-4 md:h-5 md:w-5" />
+          <PanelLeft className="text-gray-400" />
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-96 pl-0 pr-0">
