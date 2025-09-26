@@ -191,53 +191,53 @@ export default function CompanyCards({
   };
 
   return (
-    <div className="w-full space-y-2">
+    <div className="w-full space-y-1">
       {/* View Mode Toggle */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1">
+      <div className="flex items-center justify-between -mt-1 mb-2">
+        <div className="flex items-center gap-0.5 bg-muted/20 rounded-md p-0.5">
           <Button
-            variant={viewMode === 'scroll' ? 'default' : 'ghost'}
+            variant="ghost"
             size="sm"
             onClick={() => setViewMode('scroll')}
             className={cn(
-              "px-3 h-7 text-xs font-medium transition-all",
+              "px-2 h-6 text-[11px] font-medium transition-all",
               viewMode === 'scroll' 
-                ? "bg-primary text-primary-foreground" 
-                : "hover:bg-muted hover:text-foreground"
+                ? "bg-background text-foreground shadow-sm" 
+                : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
             )}
           >
-            <ScrollText className="h-3 w-3 mr-1" />
+            <ScrollText className="h-3 w-3 mr-0.5" />
             Scroll
           </Button>
           <Button
-            variant={viewMode === 'slides' ? 'default' : 'ghost'}
+            variant="ghost"
             size="sm"
             onClick={() => setViewMode('slides')}
             className={cn(
-              "px-3 h-7 text-xs font-medium transition-all",
+              "px-2 h-6 text-[11px] font-medium transition-all",
               viewMode === 'slides' 
-                ? "bg-primary text-primary-foreground" 
-                : "hover:bg-muted hover:text-foreground"
+                ? "bg-background text-foreground shadow-sm" 
+                : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
             )}
           >
-            <Layers className="h-3 w-3 mr-1" />
+            <Layers className="h-3 w-3 mr-0.5" />
             Slides
           </Button>
         </div>
         
         {/* Slide Counter and Navigation for Slides View */}
         {viewMode === 'slides' && companies.length > 0 && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
               size="sm"
               onClick={handlePrevSlide}
               disabled={currentSlideIndex === 0}
-              className="h-7 w-7 p-0"
+              className="h-6 w-6 p-0 border-muted-foreground/20"
             >
               <ChevronLeft className="h-3 w-3" />
             </Button>
-            <span className="text-sm text-muted-foreground px-2">
+            <span className="text-xs text-muted-foreground px-1">
               {currentSlideIndex + 1} of {companies.length}
             </span>
             <Button
@@ -245,7 +245,7 @@ export default function CompanyCards({
               size="sm"
               onClick={handleNextSlide}
               disabled={currentSlideIndex === companies.length - 1}
-              className="h-7 w-7 p-0"
+              className="h-6 w-6 p-0 border-muted-foreground/20"
             >
               <ChevronRight className="h-3 w-3" />
             </Button>
