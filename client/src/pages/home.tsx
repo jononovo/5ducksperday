@@ -2218,7 +2218,7 @@ export default function Home() {
 
           {/* Companies Analysis Section - Moved to top */}
           {currentResults && currentResults.length > 0 ? (
-            <Card className="w-full fluffy-gradient-bg">
+            <Card className="w-full">
               
               {/* Contact Discovery Report - with reduced padding */}
               {contactReportVisible && (
