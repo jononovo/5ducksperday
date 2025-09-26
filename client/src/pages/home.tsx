@@ -298,6 +298,7 @@ export default function Home() {
   const isInitializedRef = useRef(false);
   const hasSessionRestoredDataRef = useRef(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const refreshVersionRef = useRef(0);  // For preventing race conditions in refresh operations
 
   // Helper function to load valid search state with fallback
   const loadSearchState = (): SavedSearchState | null => {
@@ -339,23 +340,19 @@ export default function Home() {
         if (timeSinceSearch < 120000) { // 2 minutes
           console.log('Recent email search detected, refreshing contact data...');
           
-          const refreshedResults = await refreshContactDataFromDatabase(companies);
-          setCurrentResults(refreshedResults);
+          // Use the unified refresh helper with email search timestamp clearing
+          const refreshedResults = await refreshAndUpdateResults(
+            companies,
+            {
+              currentQuery: currentQuery,
+              currentListId: currentListId,
+              lastExecutedQuery: lastExecutedQuery
+            },
+            {
+              clearEmailSearchTimestamp: true
+            }
+          );
           
-          // Update localStorage with refreshed data
-          // Save lastExecutedQuery as currentQuery to ensure consistency
-          const queryToSave = lastExecutedQuery || currentQuery;
-          const stateToSave = {
-            currentQuery: queryToSave,
-            currentResults: refreshedResults,
-            currentListId,
-            lastExecutedQuery
-          };
-          localStorage.setItem('searchState', JSON.stringify(stateToSave));
-          sessionStorage.setItem('searchState', JSON.stringify(stateToSave));
-          
-          // Clear the timestamp as we've refreshed the data
-          localStorage.removeItem('lastEmailSearchTimestamp');
           console.log('Contact data refresh completed');
           
           // Return the refreshed results for immediate use
@@ -381,16 +378,22 @@ export default function Home() {
   };
 
   // Enhanced data refresh logic for navigation persistence
-  const refreshContactDataFromDatabase = async (companies: CompanyWithContacts[]): Promise<CompanyWithContacts[]> => {
+  const refreshContactDataFromDatabase = async (
+    companies: CompanyWithContacts[],
+    options?: { forceFresh?: boolean }
+  ): Promise<CompanyWithContacts[]> => {
     try {
       console.log('Refreshing contact data from database for navigation persistence...');
       
       const refreshedResults = await Promise.all(
         companies.map(async (company) => {
           try {
-            // Add cache-busting timestamp to ensure fresh data
-            const timestamp = Date.now();
-            const response = await apiRequest("GET", `/api/companies/${company.id}/contacts?t=${timestamp}`);
+            // Add cache-busting timestamp to ensure fresh data when requested
+            const timestamp = options?.forceFresh ? Date.now() : null;
+            const url = timestamp 
+              ? `/api/companies/${company.id}/contacts?t=${timestamp}`
+              : `/api/companies/${company.id}/contacts`;
+            const response = await apiRequest("GET", url);
             const freshContacts = await response.json();
             
             console.log(`Refreshed ${freshContacts.length} contacts for ${company.name}:`, 
@@ -467,7 +470,21 @@ export default function Home() {
         setInputHasChanged(false); // Set to false when loading saved state
         
         // Always refresh from database to ensure fresh data (including emails)
-        refreshContactDataFromDatabase(savedState.currentResults).then(refreshedResults => {
+        refreshAndUpdateResults(
+          savedState.currentResults,
+          {
+            currentQuery: savedState.currentQuery || "",
+            currentListId: savedState.currentListId,
+            lastExecutedQuery: savedState.lastExecutedQuery || savedState.currentQuery
+          },
+          {
+            additionalStateFields: {
+              emailSearchCompleted: savedState.emailSearchCompleted || false,
+              emailSearchTimestamp: savedState.emailSearchTimestamp || null,
+              navigationRefreshTimestamp: Date.now()
+            }
+          }
+        ).then(refreshedResults => {
           const emailsAfterRefresh = refreshedResults.reduce((total, company) => 
             total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
           );
@@ -478,24 +495,6 @@ export default function Home() {
             contactCount: c.contacts?.length || 0,
             contactsWithEmails: c.contacts?.filter(contact => contact.email && contact.email.length > 0).length || 0
           })));
-          
-          // Update state with refreshed data
-          setCurrentResults(refreshedResults);
-          
-          // Update localStorage with complete fresh data
-          // Save lastExecutedQuery as currentQuery to ensure consistency
-          const queryToSave = savedState.lastExecutedQuery || savedState.currentQuery;
-          const updatedState = {
-            currentQuery: queryToSave,
-            currentResults: refreshedResults,
-            currentListId: savedState.currentListId,
-            lastExecutedQuery: savedState.lastExecutedQuery || savedState.currentQuery,
-            emailSearchCompleted: savedState.emailSearchCompleted || false,
-            emailSearchTimestamp: savedState.emailSearchTimestamp || null,
-            navigationRefreshTimestamp: Date.now()
-          };
-          localStorage.setItem('searchState', JSON.stringify(updatedState));
-          sessionStorage.setItem('searchState', JSON.stringify(updatedState));
           
           if (emailsAfterRefresh > 0) {
             console.log(`NAVIGATION: Successfully restored ${emailsAfterRefresh} emails`);
@@ -790,6 +789,122 @@ export default function Home() {
       const contactsB = b.contacts?.length || 0;
       return contactsB - contactsA; // Descending order (most contacts first)
     });
+  };
+
+  // Unified helper function to persist search state to localStorage and sessionStorage
+  const persistSearchState = (
+    state: {
+      currentResults: CompanyWithContacts[];
+      emailSearchCompleted?: boolean;
+      emailSearchTimestamp?: number | null;
+      navigationRefreshTimestamp?: number;
+    },
+    currentValues: {
+      currentQuery: string;
+      currentListId: number | null;
+      lastExecutedQuery: string | null;
+    }
+  ) => {
+    const queryToSave = currentValues.lastExecutedQuery || currentValues.currentQuery;
+    const stateToSave = {
+      currentQuery: queryToSave,
+      currentResults: state.currentResults,
+      currentListId: currentValues.currentListId,
+      lastExecutedQuery: currentValues.lastExecutedQuery || queryToSave,
+      ...(state.emailSearchCompleted !== undefined && { emailSearchCompleted: state.emailSearchCompleted }),
+      ...(state.emailSearchTimestamp !== undefined && { emailSearchTimestamp: state.emailSearchTimestamp }),
+      ...(state.navigationRefreshTimestamp !== undefined && { navigationRefreshTimestamp: state.navigationRefreshTimestamp })
+    };
+    
+    const stateString = JSON.stringify(stateToSave);
+    localStorage.setItem('searchState', stateString);
+    sessionStorage.setItem('searchState', stateString);
+    
+    console.log('Persisted search state to storage:', {
+      companyCount: state.currentResults.length,
+      emailCount: state.currentResults.reduce((total, company) => 
+        total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
+      ),
+      hasListId: !!currentValues.currentListId
+    });
+  };
+
+  // Unified helper function to refresh and update results with sorting
+  const refreshAndUpdateResults = async (
+    companies: CompanyWithContacts[],
+    stateValues: {
+      currentQuery: string;
+      currentListId: number | null;
+      lastExecutedQuery: string | null;
+    },
+    options: {
+      forceUiReset?: boolean;
+      clearEmailSearchTimestamp?: boolean;
+      forceFresh?: boolean;
+      additionalStateFields?: {
+        emailSearchCompleted?: boolean;
+        emailSearchTimestamp?: number | null;
+        navigationRefreshTimestamp?: number;
+      };
+    } = {}
+  ): Promise<CompanyWithContacts[]> => {
+    try {
+      // Increment version to track this refresh operation
+      const thisVersion = ++refreshVersionRef.current;
+      
+      // Refresh contact data from database with optional cache-busting
+      const refreshedResults = await refreshContactDataFromDatabase(
+        companies,
+        { forceFresh: options.forceFresh }
+      );
+      
+      // Check if this is still the latest refresh request
+      if (thisVersion !== refreshVersionRef.current) {
+        console.log('Skipping stale refresh result from version', thisVersion);
+        return companies; // Return original without updating
+      }
+      
+      // Apply sorting to ensure companies with contacts appear first
+      const sortedResults = sortCompaniesByContactCount(refreshedResults);
+      
+      // Update state (with optional UI reset for animation effects)
+      if (options.forceUiReset) {
+        // Force UI re-render for animations and state resets
+        setCurrentResults([]);
+        setTimeout(() => {
+          // Double-check version is still current before updating
+          if (thisVersion === refreshVersionRef.current) {
+            setCurrentResults(sortedResults);
+          }
+        }, 100);
+      } else {
+        // Normal state update
+        setCurrentResults(sortedResults);
+      }
+      
+      // Persist to storage
+      persistSearchState({
+        currentResults: sortedResults,
+        ...options.additionalStateFields
+      }, stateValues);
+      
+      // Clear email search timestamp if requested
+      if (options.clearEmailSearchTimestamp) {
+        localStorage.removeItem('lastEmailSearchTimestamp');
+        console.log('Cleared lastEmailSearchTimestamp');
+      }
+      
+      console.log('Refreshed and updated results:', {
+        companyCount: sortedResults.length,
+        companiesWithContacts: sortedResults.filter(c => c.contacts && c.contacts.length > 0).length
+      });
+      
+      return sortedResults;
+    } catch (error) {
+      console.error('Failed to refresh and update results:', error);
+      // Return original companies if refresh fails
+      return companies;
+    }
   };
 
   // New handler for initial companies data
@@ -1698,53 +1813,19 @@ export default function Home() {
       const cacheTimestamp = Date.now();
       
       if (currentResults && currentResults.length > 0) {
-        const refreshedResults = await Promise.all(
-          currentResults.map(async (company) => {
-            try {
-              const response = await fetch(`/api/companies/${company.id}/contacts?t=${cacheTimestamp}`, {
-                method: 'GET',
-                cache: 'no-cache',
-                headers: {
-                  'Cache-Control': 'no-cache, no-store, must-revalidate',
-                  'Pragma': 'no-cache',
-                  'Expires': '0',
-                  'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
-                }
-              });
-              
-              if (response.ok) {
-                const freshContacts = await response.json();
-                return {
-                  ...company,
-                  contacts: freshContacts
-                };
-              } else {
-                return company;
-              }
-            } catch (error) {
-              return company;
-            }
-          })
+        // Use unified refresh helper with UI reset for animation effects
+        await refreshAndUpdateResults(
+          currentResults,
+          {
+            currentQuery: currentQuery,
+            currentListId: currentListId,
+            lastExecutedQuery: lastExecutedQuery
+          },
+          {
+            forceUiReset: true,  // Force UI re-render for animations
+            forceFresh: true  // Enable cache-busting
+          }
         );
-        
-        // Update state with fresh data
-        setCurrentResults([]);
-        setTimeout(() => {
-          setCurrentResults(refreshedResults);
-        }, 100);
-        
-        // Update localStorage with fresh data
-        // Save lastExecutedQuery as currentQuery to ensure consistency
-        const queryToSave = lastExecutedQuery || currentQuery;
-        const stateToSave = {
-          currentQuery: queryToSave,
-          currentResults: refreshedResults,
-          currentListId,
-          lastExecutedQuery
-        };
-        const stateString = JSON.stringify(stateToSave);
-        localStorage.setItem('searchState', stateString);
-        sessionStorage.setItem('searchState', stateString);
         
         await new Promise(resolve => setTimeout(resolve, 200));
       }
@@ -1769,42 +1850,19 @@ export default function Home() {
     try {
       // All the cache refresh logic from finishSearch() but without save operations
       if (currentResults && currentResults.length > 0) {
-        const refreshedResults = await Promise.all(
-          currentResults.map(async (company) => {
-            // Fetch fresh contact data for ALL companies (removed faulty skip logic)
-            try {
-              const response = await apiRequest("GET", `/api/companies/${company.id}/contacts`);
-              const freshContacts = await response.json();
-              
-              return {
-                ...company,
-                contacts: freshContacts
-              };
-            } catch (error) {
-              console.error(`Failed to refresh contacts for ${company.name}:`, error);
-              return company; // Return original if refresh fails
-            }
-          })
+        // Use unified refresh helper with UI reset for animation effects
+        await refreshAndUpdateResults(
+          currentResults,
+          {
+            currentQuery: currentQuery,
+            currentListId: currentListId,
+            lastExecutedQuery: lastExecutedQuery
+          },
+          {
+            forceUiReset: true,  // Force UI re-render for animations
+            forceFresh: true  // Enable cache-busting
+          }
         );
-        
-        // Brief UI refresh to show updated data
-        setCurrentResults([]);
-        setTimeout(() => {
-          setCurrentResults(refreshedResults);
-        }, 100);
-        
-        // Update localStorage with fresh data (simplified)
-        // Save lastExecutedQuery as currentQuery to ensure consistency
-        const queryToSave = lastExecutedQuery || currentQuery;
-        const stateToSave = {
-          currentQuery: queryToSave,
-          currentResults: refreshedResults,
-          currentListId,
-          lastExecutedQuery
-        };
-        const stateString = JSON.stringify(stateToSave);
-        localStorage.setItem('searchState', stateString);
-        sessionStorage.setItem('searchState', stateString);
         
         console.log('finishSearchWithoutSave: Updated localStorage with refreshed data');
         
@@ -1967,9 +2025,23 @@ export default function Home() {
       // Step 2: Wait for backend to fully complete (ensure database consistency)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Step 3: Fetch completely fresh data from database
+      // Step 3: Fetch completely fresh data from database with sorting
       console.log('Fetching complete fresh data from database...');
-      const freshResults = await refreshContactDataFromDatabase(currentResults);
+      const freshResults = await refreshAndUpdateResults(
+        currentResults,
+        {
+          currentQuery: currentQuery,
+          currentListId: currentListId,
+          lastExecutedQuery: lastExecutedQuery
+        },
+        {
+          forceFresh: true,  // Force fresh data
+          additionalStateFields: {
+            emailSearchCompleted: true,
+            emailSearchTimestamp: Date.now()
+          }
+        }
+      );
       
       // Step 4: Count emails to verify success
       const emailCount = freshResults.reduce((total, company) => 
@@ -1977,26 +2049,6 @@ export default function Home() {
       );
       
       console.log(`Database reload completed with ${emailCount} emails found`);
-      
-      // Step 5: Update UI with fresh data
-      setCurrentResults(freshResults);
-      
-      // Step 6: Save complete fresh state to localStorage (single authoritative save)
-      // Save lastExecutedQuery as currentQuery to ensure consistency
-      const queryToSave = lastExecutedQuery || currentQuery;
-      const completeState = {
-        currentQuery: queryToSave,
-        currentResults: freshResults,
-        currentListId,
-        lastExecutedQuery,
-        emailSearchCompleted: true,
-        emailSearchTimestamp: Date.now()
-      };
-      
-      const stateString = JSON.stringify(completeState);
-      localStorage.setItem('searchState', stateString);
-      sessionStorage.setItem('searchState', stateString);
-      
       console.log(`Complete state saved to localStorage with ${emailCount} emails`);
       console.log('Email search completion: Database reload approach successful');
       
