@@ -1748,6 +1748,3 @@ export default function Outreach() {
     </div>
   );
 }
-                      <PopoverTrigger asChild>
-                        <button 
-                          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
