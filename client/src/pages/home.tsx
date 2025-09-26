@@ -2702,10 +2702,10 @@ export default function Home() {
       {/* Email Drawer - Overlay on mobile, push-aside on desktop */}
       <div className={`email-drawer-transition ${
         emailDrawerOpen 
-          ? 'fixed md:relative top-[2.5rem] md:top-0 right-0 max-h-[calc(100vh-2.5rem)] md:max-h-[calc(100vh-4rem)] w-[90%] sm:w-[400px] md:w-[400px] lg:w-[450px] xl:w-[500px] z-50 md:z-auto' 
+          ? 'fixed md:relative top-[2.5rem] md:top-0 right-0 h-[calc(100vh-2.5rem)] md:h-full w-[90%] sm:w-[400px] md:w-[400px] lg:w-[450px] xl:w-[500px] z-50 md:z-auto' 
           : 'md:relative w-0'
       } overflow-hidden border-l border-t rounded-tl-lg bg-background shadow-xl md:shadow-none`}>
-        <div className="flex flex-col max-h-[calc(100vh-2.5rem)] md:max-h-[calc(100vh-4rem)]" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
+        <div className="h-full overflow-y-auto" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
           {/* Header */}
           <div className="sticky top-0 bg-background px-4 py-1.5 flex items-center justify-between z-10">
             {/* Title section */}
@@ -2769,7 +2769,7 @@ export default function Home() {
 
           {/* Email Composer */}
           {emailDrawerOpen && (
-            <div className="p-4 overflow-y-auto">
+            <div className="p-4">
               <EmailComposer
                 selectedContact={selectedEmailContact}
                 selectedCompany={selectedEmailCompany}
