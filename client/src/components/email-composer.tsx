@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, Type, Wand2, Loader2, Box, Palette, Gift, Check, Info, Lock } from "lucide-react";
+import { Mail, Type, Wand2, Loader2, Box, Palette, Gift, Check, Info, Lock, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QuickTemplates from "./quick-templates";
 import { EmailSendButton } from "./email-fallback/EmailSendButton";
@@ -126,6 +126,7 @@ export function EmailComposer({
   const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
   const [isMergeViewMode, setIsMergeViewMode] = useState(false);
   const [isGmailButtonHovered, setIsGmailButtonHovered] = useState(false);
+  const [isTemplatesExpanded, setIsTemplatesExpanded] = useState(false);
 
   // Refs
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -738,28 +739,49 @@ export function EmailComposer({
       </div>
     </div>
 
-    {/* Quick Templates Section */}
-    <div className="mt-8 pt-6 border-t">
-      <QuickTemplates
-        onSelectTemplate={(template: EmailTemplate) => {
-          setEmailPrompt(template.description || "");
-          setEmailContent(template.content);
-          setEmailSubject(template.subject || "");
-          setOriginalEmailPrompt(template.description || "");
-          setOriginalEmailContent(template.content);
-          setOriginalEmailSubject(template.subject || "");
-        }}
-        onSaveTemplate={handleSaveEmail}
-        onUpdateTemplate={saveCurrentTemplate}
-        onMergeFieldInsert={handleMergeFieldInsert}
-        onEditTemplate={enterEditMode}
-        isEditMode={isEditMode}
-        editingTemplateId={editingTemplateId}
-        onExitEditMode={exitEditMode}
-        isMergeViewMode={isMergeViewMode}
-        onToggleMergeView={toggleMergeView}
-        isSavingTemplate={updateMutation.isPending}
-      />
+    {/* Quick Templates Section - Collapsible */}
+    <div className="mt-3">
+      {/* View Templates Toggle Button - Right aligned */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => setIsTemplatesExpanded(!isTemplatesExpanded)}
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
+        >
+          <span>Templates</span>
+          {isTemplatesExpanded ? (
+            <ChevronUp className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronDown className="w-3.5 h-3.5" />
+          )}
+        </button>
+      </div>
+      
+      {/* Collapsible Templates Container */}
+      <div className={cn(
+        "overflow-hidden transition-all duration-300 ease-in-out",
+        isTemplatesExpanded ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
+      )}>
+        <QuickTemplates
+          onSelectTemplate={(template: EmailTemplate) => {
+            setEmailPrompt(template.description || "");
+            setEmailContent(template.content);
+            setEmailSubject(template.subject || "");
+            setOriginalEmailPrompt(template.description || "");
+            setOriginalEmailContent(template.content);
+            setOriginalEmailSubject(template.subject || "");
+          }}
+          onSaveTemplate={handleSaveEmail}
+          onUpdateTemplate={saveCurrentTemplate}
+          onMergeFieldInsert={handleMergeFieldInsert}
+          onEditTemplate={enterEditMode}
+          isEditMode={isEditMode}
+          editingTemplateId={editingTemplateId}
+          onExitEditMode={exitEditMode}
+          isMergeViewMode={isMergeViewMode}
+          onToggleMergeView={toggleMergeView}
+          isSavingTemplate={updateMutation.isPending}
+        />
+      </div>
     </div>
 
     {/* Generate Email Confirmation Dialog */}
