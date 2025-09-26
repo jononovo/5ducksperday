@@ -2880,8 +2880,9 @@ export default function Home() {
         {emailDrawerOpen && (
           <>
             <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)]" style={{ minWidth: '320px' }}>
-              {/* Same header content */}
-              <div className="sticky top-0 bg-background px-4 py-1.5 flex items-center justify-between z-10">
+              <div className="flex flex-col min-h-full pb-24">
+                {/* Same header content */}
+                <div className="sticky top-0 bg-background px-4 py-1.5 flex items-center justify-between z-10">
                 <div className="flex-1">
                   <h3 className="text-xs text-muted-foreground font-normal flex items-center gap-1">
                     <Mail className="h-3.5 w-3.5" />
@@ -2945,6 +2946,7 @@ export default function Home() {
                   onContactChange={handleEmailContactChange}
                 />
               </div>
+            </div>
             </div>
           </>
         )}

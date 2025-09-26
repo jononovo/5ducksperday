@@ -794,9 +794,6 @@ export function EmailComposer({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-    
-    {/* Spacer to ensure Templates button is visible */}
-    <div className="h-24" aria-hidden="true" />
     </div>
   );
 }
