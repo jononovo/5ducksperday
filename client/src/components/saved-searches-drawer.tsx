@@ -38,7 +38,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
         <Button 
           variant="outline" 
           size="icon" 
-          className="fixed left-0 top-32 md:top-20 z-50 h-12 w-12 md:h-14 md:w-14 rounded-l-none rounded-r-lg border-l-0 border-r border-t border-b bg-background/95 backdrop-blur-sm shadow-md hover:bg-accent hover:text-accent-foreground transition-all duration-200 [&_svg]:!size-8 md:[&_svg]:!size-10"
+          className="fixed left-0 top-32 md:top-20 z-50 h-10 w-10 md:h-11 md:w-11 rounded-l-none rounded-r-lg border-l-0 border-r border-t border-b bg-background/95 backdrop-blur-sm shadow-md hover:bg-accent hover:text-accent-foreground transition-all duration-200 [&_svg]:!size-4 md:[&_svg]:!size-5"
         >
           <PanelLeft className="text-gray-400" />
         </Button>
