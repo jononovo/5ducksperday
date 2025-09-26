@@ -33,7 +33,19 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
   const [clickedId, setClickedId] = useState<number | null>(null);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <>
+      {/* Invisible hover zone for desktop - opens drawer on hover */}
+      <div 
+        className="hidden lg:block fixed left-0 top-0 h-full w-[3%] z-40"
+        onMouseEnter={() => {
+          // Only open on wider viewports (lg and up, which is 1024px+)
+          if (window.innerWidth >= 1024) {
+            onOpenChange(true);
+          }
+        }}
+      />
+      
+      <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         <Button 
           variant="outline" 
@@ -86,5 +98,6 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
         </div>
       </SheetContent>
     </Sheet>
+    </>
   );
 }
