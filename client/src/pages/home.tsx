@@ -2419,10 +2419,8 @@ export default function Home() {
                 {!currentResults && (
                   <div className="flex flex-col-reverse md:flex-row items-center gap-4 mb-3">
                     <div className="flex items-center gap-3">
-                      <h2 className="text-2xl font-semibold mt-2 md:mt-0">Search for target businesses</h2>
-                    </div>
-                    <div>
                       <EggAnimation />
+                      <h2 className="text-2xl mt-2 md:mt-0">Search for target businesses</h2>
                     </div>
                   </div>
                 )}

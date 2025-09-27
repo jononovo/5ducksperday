@@ -77,10 +77,6 @@ export function EggAnimation() {
          state === 'hatching' ? '🐣' : 
          '🐥'}
       </span>
-      <span className="text-4xl">🥚</span>
-      <span className="text-4xl">🥚</span>
-      <span className="text-4xl">🥚</span>
-      <span className="text-4xl">🥚</span>
     </div>
   );
 }
