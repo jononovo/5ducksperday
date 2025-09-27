@@ -594,6 +594,16 @@ class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
+  async getFailedJobsForRetry(): Promise<SearchJob[]> {
+    return db.select()
+      .from(searchJobs)
+      .where(and(
+        eq(searchJobs.status, 'failed'),
+        sql`${searchJobs.retryCount} < ${searchJobs.maxRetries}`
+      ))
+      .orderBy(desc(searchJobs.priority), searchJobs.createdAt);
+  }
+
   async deleteOldSearchJobs(cutoffDate: Date): Promise<number> {
     const result = await db.delete(searchJobs)
       .where(and(

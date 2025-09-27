@@ -283,4 +283,68 @@ export class SearchJobService {
     
     return deleted;
   }
+
+  /**
+   * Get failed jobs that can be retried
+   */
+  static async getFailedJobsForRetry(): Promise<SearchJob[]> {
+    return storage.getFailedJobsForRetry();
+  }
+
+  /**
+   * Retry a failed job
+   */
+  static async retryJob(jobId: string): Promise<void> {
+    const job = await storage.getSearchJobByJobId(jobId);
+    
+    if (!job) {
+      throw new Error(`Job ${jobId} not found`);
+    }
+    
+    await storage.updateSearchJob(job.id, {
+      status: 'pending',
+      retryCount: (job.retryCount || 0) + 1,
+      error: null,
+      progress: {
+        phase: 'Retrying',
+        completed: 0,
+        total: 1,
+        message: `Retrying attempt ${(job.retryCount || 0) + 1}`
+      }
+    });
+    
+    console.log(`[SearchJobService] Job ${jobId} marked for retry (attempt ${(job.retryCount || 0) + 1})`);
+  }
+
+  /**
+   * Update job status directly
+   */
+  static async updateJobStatus(
+    jobId: string, 
+    status: string, 
+    results?: any, 
+    error?: string
+  ): Promise<void> {
+    const job = await storage.getSearchJobByJobId(jobId);
+    
+    if (!job) {
+      throw new Error(`Job ${jobId} not found`);
+    }
+    
+    await storage.updateSearchJob(job.id, {
+      status,
+      results,
+      error,
+      completedAt: status === 'completed' || status === 'failed' ? new Date() : undefined
+    });
+  }
+
+  /**
+   * Delete old jobs (wrapper for cleanupOldJobs for consistency with cron examples)
+   */
+  static async deleteOldJobs(cutoffDate: Date): Promise<number> {
+    const deleted = await storage.deleteOldSearchJobs(cutoffDate);
+    console.log(`[SearchJobService] Deleted ${deleted} jobs older than ${cutoffDate.toISOString()}`);
+    return deleted;
+  }
 }
