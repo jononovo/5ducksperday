@@ -145,7 +145,7 @@ export const searchJobs = pgTable("search_jobs", {
   userId: integer("user_id").notNull().references(() => users.id),
   jobId: uuid("job_id").notNull().unique().defaultRandom(),
   query: text("query").notNull(),
-  searchType: text("search_type").notNull().default('companies'), // 'companies', 'contacts', 'emails'
+  searchType: text("search_type").notNull().default('companies'), // 'companies', 'contacts', 'emails', 'contact-only'
   contactSearchConfig: jsonb("contact_search_config").default('{}'),
   status: text("status").notNull().default('pending'), // 'pending', 'processing', 'completed', 'failed'
   progress: jsonb("progress").default('{}'), // {phase, completed, total, message}

@@ -8,7 +8,7 @@ import type { ContactSearchConfig } from "../types";
 export interface CreateJobParams {
   userId: number;
   query: string;
-  searchType: 'companies' | 'contacts' | 'emails';
+  searchType: 'companies' | 'contacts' | 'emails' | 'contact-only';
   contactSearchConfig?: ContactSearchConfig;
   source: 'frontend' | 'api' | 'cron';
   metadata?: Record<string, any>;

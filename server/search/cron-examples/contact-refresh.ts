@@ -18,7 +18,7 @@ async function refreshCompanyContacts() {
     // Get companies that need contact refresh
     // In production, you'd query your database for companies without contacts
     // or with contacts older than a certain date
-    const companyIds = [/* Get from database */];
+    const companyIds: number[] = [/* Get from database */];
     
     // Configuration for contact search
     const contactSearchConfig = {
@@ -74,7 +74,7 @@ async function refreshListContacts(listId: number) {
     
     // First, get all company IDs in the list
     // In production, query your database
-    const companyIds = [/* Get company IDs from list */];
+    const companyIds: number[] = [/* Get company IDs from list */];
     
     // Create job for all companies in list
     const response = await fetch('http://localhost:5000/api/search-jobs/contacts', {
