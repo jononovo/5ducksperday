@@ -7,6 +7,61 @@ import { getUserId } from "../../utils/auth";
  */
 export function registerSearchJobRoutes(app: Express) {
   /**
+   * Create an email search job for a single contact
+   */
+  app.post("/api/contacts/:contactId/find-email-job", async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const contactId = parseInt(req.params.contactId);
+      const { priority = 0, executeImmediately = false } = req.body;
+
+      if (!contactId || isNaN(contactId)) {
+        res.status(400).json({
+          error: "Invalid contact ID"
+        });
+        return;
+      }
+
+      // Create the job for email search
+      const jobId = await SearchJobService.createJob({
+        userId,
+        query: `email-search-${contactId}`, // Query is just for identification
+        searchType: 'email-single',
+        source: 'frontend',
+        metadata: { 
+          contactId 
+        },
+        priority
+      });
+
+      console.log(`[SearchJobRoutes] Created email search job ${jobId} for contact ${contactId}`);
+
+      // Option to execute immediately (for testing) or let processor handle it
+      if (executeImmediately) {
+        console.log(`[SearchJobRoutes] Executing email job ${jobId} immediately`);
+        try {
+          await SearchJobService.executeJob(jobId);
+        } catch (error) {
+          console.error(`[SearchJobRoutes] Error executing email job ${jobId}:`, error);
+          // Job will be retried by processor if it failed
+        }
+      }
+
+      res.json({ 
+        jobId,
+        contactId,
+        message: executeImmediately ? "Email search started" : "Email search queued"
+      });
+
+    } catch (error) {
+      console.error("[SearchJobRoutes] Error creating email search job:", error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Failed to create email search job"
+      });
+    }
+  });
+
+  /**
    * Create a new search job
    */
   app.post("/api/search-jobs", async (req: Request, res: Response) => {

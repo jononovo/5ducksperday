@@ -8,7 +8,7 @@ import { Request, Response } from "express";
 import { storage } from "../../storage";
 import { getUserId } from "../utils";
 
-async function searchHunterDirect(contact: any, company: any, apiKey: string): Promise<any> {
+export async function searchHunterDirect(contact: any, company: any, apiKey: string): Promise<any> {
   try {
     const axios = (await import('axios')).default;
     const response = await axios.get('https://api.hunter.io/v2/email-finder', {

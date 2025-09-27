@@ -8,7 +8,7 @@ import type { ContactSearchConfig } from "../types";
 export interface CreateJobParams {
   userId: number;
   query: string;
-  searchType: 'companies' | 'contacts' | 'emails' | 'contact-only';
+  searchType: 'companies' | 'contacts' | 'emails' | 'contact-only' | 'email-single';
   contactSearchConfig?: ContactSearchConfig;
   source: 'frontend' | 'api' | 'cron';
   metadata?: Record<string, any>;
@@ -89,6 +89,12 @@ export class SearchJobService {
       if (isContactOnly) {
         // Contact-only search: Use existing companies
         await this.executeContactOnlySearch(job, jobId);
+        return;
+      }
+      
+      // Handle single email search
+      if (job.searchType === 'email-single') {
+        await this.executeEmailSearch(job, jobId);
         return;
       }
       
@@ -233,6 +239,157 @@ export class SearchJobService {
     }
   }
 
+  /**
+   * Execute an individual email search for a single contact
+   * Used for programmatic triggers (cron, webhooks, etc.)
+   */
+  private static async executeEmailSearch(job: SearchJob, jobId: string): Promise<void> {
+    try {
+      console.log(`[SearchJobService] Executing email search for job ${jobId}`);
+      
+      const contactId = (job.metadata as any)?.contactId;
+      if (!contactId) {
+        throw new Error('contactId required in metadata for email search');
+      }
+      
+      // Get the contact
+      const contact = await storage.getContact(contactId, job.userId);
+      if (!contact) {
+        throw new Error(`Contact ${contactId} not found`);
+      }
+      
+      // Check if already has email
+      if (contact.email && contact.email.includes('@')) {
+        console.log(`[SearchJobService] Contact ${contactId} already has email: ${contact.email}`);
+        await storage.updateSearchJob(job.id, {
+          status: 'completed',
+          completedAt: new Date(),
+          results: {
+            contactId,
+            email: contact.email,
+            source: 'existing',
+            message: 'Contact already has email'
+          },
+          resultCount: 1
+        });
+        return;
+      }
+      
+      // Get the company
+      const company = await storage.getCompany(contact.companyId, job.userId);
+      if (!company) {
+        throw new Error(`Company ${contact.companyId} not found`);
+      }
+      
+      // Update progress
+      await this.updateJobProgress(job.id, {
+        phase: 'Searching for email',
+        completed: 1,
+        total: 3,
+        message: `Finding email for ${contact.name}`
+      });
+      
+      // Try providers in waterfall order (same as orchestrator)
+      let emailFound = false;
+      let source = '';
+      let updatedContact = contact;
+      
+      // Try Apollo first
+      const apolloApiKey = process.env.APOLLO_API_KEY;
+      if (apolloApiKey && !emailFound) {
+        console.log(`[SearchJobService] Trying Apollo for ${contact.name}`);
+        const { searchApolloDirect } = await import('../providers/apollo');
+        const result = await searchApolloDirect(contact, company, apolloApiKey);
+        if (result.success && result.contact.email) {
+          updatedContact = result.contact;
+          emailFound = true;
+          source = 'apollo';
+        }
+      }
+      
+      // Try Perplexity if no email yet
+      if (!emailFound) {
+        console.log(`[SearchJobService] Trying Perplexity for ${contact.name}`);
+        const { searchContactDetails } = await import('../enrichment/contact-details');
+        const details = await searchContactDetails(contact.name, company.name);
+        if (details.email) {
+          updatedContact = { ...contact, email: details.email };
+          emailFound = true;
+          source = 'perplexity';
+        }
+      }
+      
+      // Try Hunter as fallback
+      const hunterApiKey = process.env.HUNTER_API_KEY;
+      if (hunterApiKey && !emailFound) {
+        console.log(`[SearchJobService] Trying Hunter for ${contact.name}`);
+        const { searchHunterDirect } = await import('../providers/hunter');
+        const result = await searchHunterDirect(contact, company, hunterApiKey);
+        if (result.success && result.contact.email) {
+          updatedContact = result.contact;
+          emailFound = true;
+          source = 'hunter';
+        }
+      }
+      
+      // Update contact if email found
+      if (emailFound) {
+        await this.updateJobProgress(job.id, {
+          phase: 'Updating contact',
+          completed: 2,
+          total: 3,
+          message: `Found email via ${source}`
+        });
+        
+        await storage.updateContact(contactId, { 
+          email: updatedContact.email,
+          role: updatedContact.role || contact.role
+        });
+        
+        // Deduct credits
+        await CreditService.deductCredits(job.userId, 'email_search', true);
+      }
+      
+      // Complete the job
+      await storage.updateSearchJob(job.id, {
+        status: 'completed',
+        completedAt: new Date(),
+        results: {
+          contactId,
+          email: emailFound ? updatedContact.email : null,
+          source: emailFound ? source : 'not_found',
+          message: emailFound ? `Email found via ${source}` : 'No email found'
+        },
+        resultCount: emailFound ? 1 : 0,
+        progress: {
+          phase: 'Complete',
+          completed: 3,
+          total: 3,
+          message: emailFound ? 'Email found successfully' : 'No email found'
+        }
+      });
+      
+      console.log(`[SearchJobService] Completed email search job ${jobId}: ${emailFound ? 'found' : 'not found'}`);
+      
+    } catch (error) {
+      console.error(`[SearchJobService] Error in email search job ${jobId}:`, error);
+      
+      await storage.updateSearchJob(job.id, {
+        status: 'failed',
+        error: error instanceof Error ? error.message : String(error),
+        completedAt: new Date(),
+        progress: {
+          phase: 'Error',
+          completed: 0,
+          total: 1,
+          message: error instanceof Error ? error.message : 'Email search failed'
+        }
+      });
+      
+      throw error;
+    }
+  }
+  
   /**
    * Execute a contact-only search (no company search)
    * Used when companies already exist and we just need contacts

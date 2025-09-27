@@ -8,7 +8,7 @@ import { Request, Response } from "express";
 import { storage } from "../../storage";
 import { getUserId } from "../utils";
 
-async function searchApolloDirect(contact: any, company: any, apiKey: string): Promise<any> {
+export async function searchApolloDirect(contact: any, company: any, apiKey: string): Promise<any> {
   try {
     const axios = (await import('axios')).default;
     const response = await axios.post('https://api.apollo.io/v1/people/match', {
