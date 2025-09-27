@@ -72,15 +72,13 @@ async function testProgrammaticSearch() {
   }
 }
 
-// Run the test if this file is executed directly
-if (require.main === module) {
-  testProgrammaticSearch()
-    .then(() => {
-      console.log("Test completed. The job will continue processing in the background.");
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error("Test failed:", error);
-      process.exit(1);
-    });
-}
+// Run the test
+testProgrammaticSearch()
+  .then(() => {
+    console.log("Test completed. The job will continue processing in the background.");
+    process.exit(0);
+  })
+  .catch(error => {
+    console.error("Test failed:", error);
+    process.exit(1);
+  });
