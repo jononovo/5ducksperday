@@ -257,7 +257,33 @@ export class SearchJobService {
       }
       
       if (!companies || companies.length === 0) {
-        throw new Error('No companies found for contact search');
+        // No companies found - mark job as completed with 0 results
+        console.log(`[SearchJobService] No companies found for contact search in job ${jobId}`);
+        
+        await storage.updateSearchJob(job.id, {
+          status: 'completed',
+          completedAt: new Date(),
+          results: {
+            companies: [],
+            contacts: [],
+            searchType: 'contact-only',
+            metadata: {
+              companiesSearched: 0,
+              contactsFound: 0,
+              message: 'No companies available for contact search'
+            }
+          },
+          resultCount: 0,
+          progress: {
+            phase: 'Complete',
+            completed: 1,
+            total: 1,
+            message: 'No companies found to search contacts'
+          }
+        });
+        
+        console.log(`[SearchJobService] Completed job ${jobId} with no companies to search`);
+        return;
       }
       
       console.log(`[SearchJobService] Searching contacts for ${companies.length} companies`);

@@ -58,22 +58,73 @@ export class ContactSearchService {
         
         console.log(`[ContactSearchService] Found ${contacts.length} contacts for ${company.name}`);
 
-        // Save contacts to database
+        // Save contacts to database with deduplication
         const savedContacts: Contact[] = [];
         for (const contactData of contacts) {
           try {
-            const contact = await storage.createContact({
-              ...contactData,
-              companyId: company.id,
-              userId: userId,
-              // Add job tracking metadata
-              completedSearches: jobId ? [jobId] : [],
-              lastValidated: new Date()
-            } as any);
+            // Check if contact already exists (by email or name+company)
+            const existingContacts = await storage.listContactsByCompany(company.id, userId);
             
-            savedContacts.push(contact);
+            let existingContact = null;
+            
+            // First check by email if available
+            if (contactData.email) {
+              existingContact = existingContacts.find(c => 
+                c.email?.toLowerCase() === contactData.email?.toLowerCase()
+              );
+            }
+            
+            // If no email match, check by name (case-insensitive)
+            if (!existingContact && contactData.name) {
+              existingContact = existingContacts.find(c => 
+                c.name?.toLowerCase() === contactData.name?.toLowerCase()
+              );
+            }
+            
+            if (existingContact) {
+              // Update existing contact instead of creating duplicate
+              console.log(`[ContactSearchService] Updating existing contact: ${existingContact.name}`);
+              
+              // Merge new data with existing (prefer new data if available)
+              const updateData: any = {
+                ...contactData,
+                // Preserve existing data if new data is null/undefined
+                email: contactData.email || existingContact.email,
+                role: contactData.role || existingContact.role,
+                linkedinUrl: contactData.linkedinUrl || existingContact.linkedinUrl,
+                phoneNumber: contactData.phoneNumber || existingContact.phoneNumber,
+                lastValidated: new Date()
+              };
+              
+              // Add jobId to completedSearches if not already present
+              if (jobId) {
+                const completedSearches = existingContact.completedSearches || [];
+                if (!completedSearches.includes(jobId)) {
+                  completedSearches.push(jobId);
+                  updateData.completedSearches = completedSearches;
+                }
+              }
+              
+              const updatedContact = await storage.updateContact(existingContact.id, updateData);
+              savedContacts.push(updatedContact);
+              
+            } else {
+              // Create new contact
+              console.log(`[ContactSearchService] Creating new contact: ${contactData.name}`);
+              
+              const contact = await storage.createContact({
+                ...contactData,
+                companyId: company.id,
+                userId: userId,
+                // Add job tracking metadata
+                completedSearches: jobId ? [jobId] : [],
+                lastValidated: new Date()
+              } as any);
+              
+              savedContacts.push(contact);
+            }
           } catch (error) {
-            console.error(`[ContactSearchService] Error saving contact:`, error);
+            console.error(`[ContactSearchService] Error saving/updating contact:`, error);
           }
         }
 
