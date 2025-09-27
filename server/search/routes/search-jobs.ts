@@ -170,6 +170,69 @@ export function registerSearchJobRoutes(app: Express) {
   });
 
   /**
+   * Create a contact-only search job (search contacts for existing companies)
+   */
+  app.post("/api/search-jobs/contacts", async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const { 
+        companyIds,  // Optional: specific company IDs to search
+        contactSearchConfig,  // Contact search configuration
+        metadata,
+        priority = 3,
+        executeImmediately = false 
+      } = req.body;
+
+      // Create contact-only job
+      const jobId = await SearchJobService.createJob({
+        userId,
+        query: companyIds?.length > 0 
+          ? `Contact search for ${companyIds.length} companies`
+          : `Contact search for all companies`,
+        searchType: 'contact-only',  // Special type for contact-only searches
+        contactSearchConfig: contactSearchConfig || {
+          enableCoreLeadership: true,
+          enableDepartmentHeads: false,
+          enableMiddleManagement: false,
+          enableCustomSearch: false,
+          enableCustomSearch2: false
+        },
+        source: 'frontend',
+        metadata: {
+          ...metadata,
+          companyIds: companyIds || []
+        },
+        priority
+      });
+
+      console.log(`[SearchJobRoutes] Created contact-only job ${jobId} for user ${userId}`);
+
+      // Option to execute immediately (synchronous) or let processor handle it (async)
+      if (executeImmediately) {
+        console.log(`[SearchJobRoutes] Executing contact job ${jobId} immediately`);
+        try {
+          await SearchJobService.executeJob(jobId);
+        } catch (error) {
+          console.error(`[SearchJobRoutes] Error executing contact job ${jobId}:`, error);
+        }
+      }
+
+      res.json({ 
+        jobId,
+        message: executeImmediately 
+          ? "Contact search job created and processing" 
+          : "Contact search job created and queued for processing"
+      });
+
+    } catch (error) {
+      console.error("[SearchJobRoutes] Error creating contact search job:", error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Failed to create contact search job"
+      });
+    }
+  });
+
+  /**
    * Create a programmatic search job (for API/cron usage)
    */
   app.post("/api/search-jobs/programmatic", async (req: Request, res: Response) => {
