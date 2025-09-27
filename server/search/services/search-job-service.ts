@@ -249,6 +249,29 @@ export class SearchJobService {
   }
 
   /**
+   * Cancel a pending job
+   */
+  static async cancelJob(jobId: string): Promise<void> {
+    const job = await storage.getSearchJobByJobId(jobId);
+    
+    if (!job) {
+      throw new Error(`Job ${jobId} not found`);
+    }
+    
+    if (job.status !== 'pending') {
+      throw new Error(`Cannot cancel job with status: ${job.status}`);
+    }
+    
+    await storage.updateSearchJob(job.id, {
+      status: 'failed',
+      error: 'Job cancelled by user',
+      completedAt: new Date()
+    });
+    
+    console.log(`[SearchJobService] Cancelled job ${jobId}`);
+  }
+
+  /**
    * Clean up old completed jobs
    */
   static async cleanupOldJobs(daysToKeep: number = 7): Promise<number> {
