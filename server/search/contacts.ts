@@ -286,7 +286,8 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
         const completedJob = await SearchJobService.getJob(jobId, userId);
         
         // Extract contacts from job results
-        const contacts = completedJob?.results?.contacts || [];
+        const jobResults = completedJob?.results as any;
+        const contacts = jobResults?.contacts || [];
         console.log(`[ContactEnrich] Job ${jobId} completed with ${contacts.length} contacts`);
         
         res.json(contacts);

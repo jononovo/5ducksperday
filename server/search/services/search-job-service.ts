@@ -27,13 +27,19 @@ export class SearchJobService {
    * Create a new search job and save it to database
    */
   static async createJob(params: CreateJobParams): Promise<string> {
+    // Map 'contact-only' to 'contacts' for database storage
+    const searchType = params.searchType === 'contact-only' ? 'contacts' : params.searchType;
+    
     const jobData: InsertSearchJob = {
       userId: params.userId,
       query: params.query,
-      searchType: params.searchType || 'companies',
+      searchType: searchType || 'companies',
       contactSearchConfig: params.contactSearchConfig || {},
       source: params.source,
-      metadata: params.metadata || {},
+      metadata: {
+        ...params.metadata,
+        isContactOnly: params.searchType === 'contact-only'  // Store flag in metadata
+      },
       priority: params.priority || 0,
       maxRetries: 3
     };
@@ -78,7 +84,9 @@ export class SearchJobService {
       let contacts: any[] = [];
       
       // Handle different search types
-      if (job.searchType === 'contact-only') {
+      // Check metadata for contact-only flag (since we store it as 'contacts' in DB)
+      const isContactOnly = (job.metadata as any)?.isContactOnly === true;
+      if (isContactOnly) {
         // Contact-only search: Use existing companies
         await this.executeContactOnlySearch(job, jobId);
         return;
