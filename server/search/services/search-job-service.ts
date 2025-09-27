@@ -74,6 +74,17 @@ export class SearchJobService {
 
       console.log(`[SearchJobService] Starting execution of job ${jobId}`);
 
+      let savedCompanies = [];
+      let contacts: any[] = [];
+      
+      // Handle different search types
+      if (job.searchType === 'contact-only') {
+        // Contact-only search: Use existing companies
+        await this.executeContactOnlySearch(job, jobId);
+        return;
+      }
+      
+      // Regular flow: Search companies first
       // Phase 1: Search for companies
       await this.updateJobProgress(job.id, {
         phase: 'Finding companies',
@@ -93,7 +104,6 @@ export class SearchJobService {
         message: `Processing ${companies.length} companies`
       });
 
-      const savedCompanies = [];
       for (const company of companies) {
         const companyData: any = {
           ...company,
@@ -103,8 +113,6 @@ export class SearchJobService {
         const savedCompany = await storage.createCompany(companyData);
         savedCompanies.push(savedCompany);
       }
-
-      let contacts: any[] = [];
       
       // Phase 3: Find contacts if requested
       if (job.searchType === 'contacts' || job.searchType === 'emails') {
@@ -115,25 +123,30 @@ export class SearchJobService {
           message: 'Discovering key decision makers'
         });
 
-        for (const company of savedCompanies) {
-          const companyContacts = await findKeyDecisionMakers(
-            `${company.name} ${company.website}`,
-            job.contactSearchConfig as ContactSearchConfig
-          );
-
-          // Save contacts to database
-          for (const contact of companyContacts) {
-            const contactData: any = {
-              ...contact,
-              companyId: company.id,
-              userId: job.userId
-            };
-            const savedContact = await storage.createContact(contactData);
-            contacts.push({
-              ...savedContact,
-              companyName: company.name
+        // Use the new ContactSearchService
+        const { ContactSearchService } = await import('./contact-search-service');
+        
+        const contactResults = await ContactSearchService.searchContacts({
+          companies: savedCompanies,
+          userId: job.userId,
+          searchConfig: job.contactSearchConfig as ContactSearchConfig || ContactSearchService.getDefaultConfig(),
+          jobId: job.jobId,
+          onProgress: async (message: string) => {
+            await this.updateJobProgress(job.id, {
+              phase: 'Finding contacts',
+              completed: 3,
+              total: 5,
+              message
             });
           }
+        });
+
+        // Flatten all contacts from results
+        for (const result of contactResults) {
+          contacts.push(...result.contacts.map(contact => ({
+            ...contact,
+            companyName: result.companyName
+          })));
         }
 
         console.log(`[SearchJobService] Found ${contacts.length} contacts for job ${jobId}`);
@@ -207,6 +220,126 @@ export class SearchJobService {
           console.log(`[SearchJobService] Job ${jobId} will be retried (attempt ${(job.retryCount || 0) + 1}/${job.maxRetries || 3})`);
         }
       }
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Execute a contact-only search (no company search)
+   * Used when companies already exist and we just need contacts
+   */
+  private static async executeContactOnlySearch(job: SearchJob, jobId: string): Promise<void> {
+    try {
+      console.log(`[SearchJobService] Executing contact-only search for job ${jobId}`);
+      
+      // Get company IDs from metadata or search all user's companies
+      const companyIds = (job.metadata as any)?.companyIds || [];
+      let companies;
+      
+      if (companyIds.length > 0) {
+        // Search specific companies
+        companies = await Promise.all(
+          companyIds.map((id: number) => storage.getCompany(id, job.userId))
+        );
+        companies = companies.filter(c => c); // Remove nulls
+      } else {
+        // Search all user's companies
+        companies = await storage.listCompanies(job.userId);
+      }
+      
+      if (!companies || companies.length === 0) {
+        throw new Error('No companies found for contact search');
+      }
+      
+      console.log(`[SearchJobService] Searching contacts for ${companies.length} companies`);
+      
+      // Update progress
+      await this.updateJobProgress(job.id, {
+        phase: 'Finding contacts',
+        completed: 1,
+        total: 3,
+        message: `Searching contacts for ${companies.length} companies`
+      });
+      
+      // Use the ContactSearchService
+      const { ContactSearchService } = await import('./contact-search-service');
+      
+      const contactResults = await ContactSearchService.searchContacts({
+        companies,
+        userId: job.userId,
+        searchConfig: job.contactSearchConfig as ContactSearchConfig || ContactSearchService.getDefaultConfig(),
+        jobId: job.jobId,
+        onProgress: async (message: string) => {
+          await this.updateJobProgress(job.id, {
+            phase: 'Finding contacts',
+            completed: 2,
+            total: 3,
+            message
+          });
+        }
+      });
+      
+      // Collect all contacts
+      const allContacts = [];
+      for (const result of contactResults) {
+        allContacts.push(...result.contacts.map(contact => ({
+          ...contact,
+          companyName: result.companyName
+        })));
+      }
+      
+      console.log(`[SearchJobService] Found ${allContacts.length} contacts across ${companies.length} companies`);
+      
+      // Update job as completed
+      const results = {
+        companies: companies.map(c => ({
+          id: c.id,
+          name: c.name,
+          website: c.website,
+          description: c.description
+        })),
+        contacts: allContacts,
+        searchType: 'contact-only',
+        metadata: {
+          companiesSearched: companies.length,
+          contactsFound: allContacts.length,
+          config: job.contactSearchConfig
+        }
+      };
+      
+      await storage.updateSearchJob(job.id, {
+        status: 'completed',
+        completedAt: new Date(),
+        results: results,
+        resultCount: allContacts.length,
+        progress: {
+          phase: 'Complete',
+          completed: 3,
+          total: 3,
+          message: `Found ${allContacts.length} contacts`
+        }
+      });
+      
+      console.log(`[SearchJobService] Completed contact-only job ${jobId}`);
+      
+    } catch (error) {
+      console.error(`[SearchJobService] Error in contact-only search:`, error);
+      
+      // Handle retry logic
+      const shouldRetry = (job.retryCount || 0) < (job.maxRetries || 3);
+      
+      await storage.updateSearchJob(job.id, {
+        status: shouldRetry ? 'pending' : 'failed',
+        error: error instanceof Error ? error.message : String(error),
+        retryCount: (job.retryCount || 0) + 1,
+        progress: {
+          phase: 'Error',
+          completed: 0,
+          total: 1,
+          message: error instanceof Error ? error.message : 'Contact search failed'
+        }
+      });
       
       throw error;
     }
