@@ -560,205 +560,175 @@ export default function PromptEditor({
       // Reset input changed state since job is created
       setInputHasChanged(false);
       
-      // Update session with job ID and start polling for completion
+      // Update session with job ID
       if (currentSessionId) {
         SearchSessionManager.updateSessionWithJob(currentSessionId, data.jobId);
         setIsPolling(true);
-        console.log(`Started polling for job ${data.jobId} completion`);
+        console.log(`Started SSE connection for job ${data.jobId}`);
       }
       
-      // Start polling the job status
-      const pollJobStatus = async () => {
-        if (!isPollingRef.current) return;
-        
+      // Connect to Server-Sent Events for real-time updates
+      const eventSource = new EventSource(`/api/search-jobs/${data.jobId}/stream`);
+      let companiesReceived = false;
+      let allCompanies: any[] = [];
+      
+      eventSource.onmessage = (event) => {
         try {
-          const response = await apiRequest("GET", `/api/search-jobs/${data.jobId}`);
-          if (response.ok) {
-            const jobData = await response.json();
+          const update = JSON.parse(event.data);
+          
+          if (update.type === 'companies') {
+            // Companies discovered - display immediately
+            companiesReceived = true;
+            allCompanies = update.data;
+            console.log(`SSE: Received ${allCompanies.length} companies`);
             
-            // Display partial results even when processing
-            if ((jobData.status === 'processing' || jobData.status === 'completed') && jobData.results) {
-              const companies = jobData.results?.companies || [];
-              const totalContacts = companies.reduce((sum: number, company: any) => 
-                sum + (company.contacts?.length || 0), 0);
-              
-              // Update UI with current results (progressive display)
-              if (companies.length > 0) {
-                if (currentSessionId) {
-                  if (searchType === 'companies') {
-                    SearchSessionManager.updateWithQuickResults(currentSessionId, companies);
-                    onCompaniesReceived(value, companies);
-                  } else {
-                    SearchSessionManager.updateWithFullResults(currentSessionId, companies);
-                    onSearchResults(value, companies);
-                  }
-                }
-                
-                console.log(`Progressive update: ${companies.length} companies, ${totalContacts} contacts`);
-              }
-            }
-            
-            if (jobData.status === 'completed') {
-              console.log(`Job ${data.jobId} completed`);
-              isPollingRef.current = false;
-              setIsPolling(false);
-              
-              // Process final results
-              const companies = jobData.results?.companies || [];
-              const totalContacts = companies.reduce((sum: number, company: any) => 
-                sum + (company.contacts?.length || 0), 0);
-              
-              console.log(`Final results: ${companies.length} companies with ${totalContacts} contacts`);
-              
-              // Final update to session
-              if (currentSessionId) {
-                if (searchType === 'companies') {
-                  SearchSessionManager.markQuickResultsComplete(currentSessionId);
-                }
-              }
-              
-              // Handle completion
+            if (currentSessionId) {
               if (searchType === 'companies') {
-                toast({
-                  title: "Search Complete",
-                  description: `Found ${companies.length} companies.`,
-                });
-                setSearchProgress(prev => ({ ...prev, phase: "Search Complete", completed: 5, total: 5 }));
+                SearchSessionManager.updateWithQuickResults(currentSessionId, allCompanies);
+                onCompaniesReceived(value, allCompanies);
               } else {
-                const searchDuration = Math.round((Date.now() - searchMetrics.startTime) / 1000);
-                setSearchMetrics(prev => ({
-                  ...prev,
-                  totalCompanies: companies.length,
-                  totalContacts: totalContacts,
-                  searchDuration: searchDuration,
-                  companies: companies
-                }));
-                
-                // Show summary
-                setTimeout(() => {
-                  setSummaryVisible(true);
-                  setTimeout(() => {
-                    setSummaryVisible(false);
-                  }, 8000);
-                }, 1000);
-                
-                // Trigger confetti
-                triggerConfetti();
+                SearchSessionManager.updateWithFullResults(currentSessionId, allCompanies);
+                onSearchResults(value, allCompanies);
               }
-              
-              // Refresh credits display
-              if (user) {
-                queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
-              }
-              
-              onComplete();
-            } else if (jobData.status === 'failed') {
-              console.error(`Job ${data.jobId} failed:`, jobData.error);
-              isPollingRef.current = false;
-              setIsPolling(false);
-              
-              toast({
-                title: "Search Failed",
-                description: jobData.error || "An error occurred during search",
-                variant: "destructive",
-              });
-              
-              onComplete();
-            } else {
-              // Job still processing, continue polling
-              if (jobData.progress) {
-                setSearchProgress(prev => ({ 
-                  ...prev, 
-                  phase: jobData.progress.phase || "Processing",
-                  completed: jobData.progress.completed || 0,
-                  total: jobData.progress.total || 5
-                }));
-              }
-              
-              setTimeout(pollJobStatus, 2000);
             }
+            
+            // Update progress
+            setSearchProgress(prev => ({ 
+              ...prev, 
+              phase: "Companies Found", 
+              completed: 2,
+              total: searchType === 'companies' ? 3 : 5
+            }));
+          } else if (update.type === 'contacts') {
+            // Contacts discovered for a company - update progressively
+            const { company, contacts } = update.data;
+            console.log(`SSE: Received ${contacts.length} contacts for ${company.name}`);
+            
+            // Update the company's contacts in our list
+            allCompanies = allCompanies.map(c => 
+              c.id === company.id ? { ...c, contacts: contacts } : c
+            );
+            
+            const totalContacts = allCompanies.reduce((sum: number, c: any) => 
+              sum + (c.contacts?.length || 0), 0);
+            
+            // Update UI with progressive results
+            if (currentSessionId) {
+              if (searchType === 'companies') {
+                SearchSessionManager.updateWithQuickResults(currentSessionId, allCompanies);
+                onCompaniesReceived(value, allCompanies);
+              } else {
+                SearchSessionManager.updateWithFullResults(currentSessionId, allCompanies);
+                onSearchResults(value, allCompanies);
+              }
+            }
+            
+            console.log(`Progressive update: ${allCompanies.length} companies, ${totalContacts} contacts`);
+            
+            // Update progress
+            setSearchProgress(prev => ({ 
+              ...prev, 
+              phase: "Finding Contacts", 
+              completed: 3,
+              total: searchType === 'emails' ? 5 : 4
+            }));
+          } else if (update.type === 'complete') {
+            // Search completed
+            console.log(`Job ${data.jobId} completed via SSE`);
+            eventSource.close();
+            isPollingRef.current = false;
+            setIsPolling(false);
+            
+            const finalResults = update.data;
+            const companies = finalResults.companies || allCompanies;
+            const totalContacts = companies.reduce((sum: number, company: any) => 
+              sum + (company.contacts?.length || 0), 0);
+            
+            console.log(`Final results: ${companies.length} companies with ${totalContacts} contacts`);
+            
+            // Final update to session
+            if (currentSessionId) {
+              if (searchType === 'companies') {
+                SearchSessionManager.markQuickResultsComplete(currentSessionId);
+              }
+            }
+            
+            // Handle completion
+            if (searchType === 'companies') {
+              toast({
+                title: "Search Complete",
+                description: `Found ${companies.length} companies.`,
+              });
+              setSearchProgress(prev => ({ ...prev, phase: "Search Complete", completed: 3, total: 3 }));
+            } else {
+              const searchDuration = Math.round((Date.now() - searchMetrics.startTime) / 1000);
+              setSearchMetrics(prev => ({
+                ...prev,
+                totalCompanies: companies.length,
+                totalContacts: totalContacts,
+                searchDuration: searchDuration,
+                companies: companies
+              }));
+              
+              // Show summary
+              setTimeout(() => {
+                setSummaryVisible(true);
+                setTimeout(() => {
+                  setSummaryVisible(false);
+                }, 8000);
+              }, 1000);
+              
+              // Trigger confetti
+              triggerConfetti();
+            }
+            
+            // Refresh credits display
+            if (user) {
+              queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+            }
+            
+            onComplete();
+          } else if (update.type === 'error') {
+            // Search failed
+            console.error(`Job ${data.jobId} failed via SSE:`, update.data);
+            eventSource.close();
+            isPollingRef.current = false;
+            setIsPolling(false);
+            
+            toast({
+              title: "Search Failed",
+              description: update.data || "An error occurred during search",
+              variant: "destructive",
+            });
+            
+            onComplete();
           }
         } catch (error) {
-          console.error("Polling error:", error);
-          if (isPollingRef.current) {
-            setTimeout(pollJobStatus, 2000);
-          }
+          console.error("SSE message error:", error);
         }
       };
       
-      // Start polling immediately
+      eventSource.onerror = (error) => {
+        console.error("SSE connection error:", error);
+        eventSource.close();
+        isPollingRef.current = false;
+        setIsPolling(false);
+        
+        // Fallback to show error
+        toast({
+          title: "Connection Error",
+          description: "Lost connection to search service",
+          variant: "destructive",
+        });
+        
+        onComplete();
+      };
+      
+      // Clean up on unmount - SSE will be closed when component unmounts or job completes
       isPollingRef.current = true;
-      pollJobStatus();
       
       // Show initial progress
       setSearchProgress(prev => ({ ...prev, phase: "Starting Search", completed: 1 }));
-      
-      // Update progress indicators
-      setTimeout(() => {
-        setSearchProgress(prev => ({ ...prev, phase: "Analyzing Companies", completed: 2 }));
-      }, 2000);
-      
-      // Show search phase notifications conditionally based on configuration
-      const showPhaseNotifications = () => {
-        // 3s: Leadership (only if enabled)
-        if (contactSearchConfig?.enableCoreLeadership) {
-          setTimeout(() => {
-            toast({
-              title: "Leadership Search",
-              description: "Searching for C-level executives and founders...",
-            });
-            setSearchProgress(prev => ({ ...prev, phase: "Contact Discovery", completed: 3 }));
-          }, 3000);
-        }
-        
-        // 5s: Department heads (only if enabled)  
-        if (contactSearchConfig?.enableDepartmentHeads) {
-          setTimeout(() => {
-            toast({
-              title: "Department Search",
-              description: "Identifying department leaders and key managers...",
-            });
-          }, 5000);
-        }
-        
-        // 7s: Middle management (only if enabled)
-        if (contactSearchConfig?.enableMiddleManagement) {
-          setTimeout(() => {
-            toast({
-              title: "Senior Staff Search",
-              description: "Finding senior staff and decision makers...",
-            });
-          }, 7000);
-        }
-        
-        // 9s: First custom search (only if enabled)
-        if (contactSearchConfig?.enableCustomSearch && contactSearchConfig?.customSearchTarget) {
-          setTimeout(() => {
-            toast({
-              title: "Custom Search",
-              description: `Searching for ${contactSearchConfig.customSearchTarget} specialists...`,
-            });
-          }, 9000);
-        }
-        
-        // 11s: Second custom search (only if enabled)
-        if (contactSearchConfig?.enableCustomSearch2 && contactSearchConfig?.customSearchTarget2) {
-          setTimeout(() => {
-            toast({
-              title: "Custom Search",
-              description: `Searching for ${contactSearchConfig.customSearchTarget2} specialists...`,
-            });
-          }, 11000);
-        }
-      };
-      
-      // Execute the conditional notification system
-      showPhaseNotifications();
-      
-      // Update progress to scoring contacts phase
-      setTimeout(() => {
-        setSearchProgress(prev => ({ ...prev, phase: "Scoring Contacts", completed: 4 }));
-      }, 25000);
     },
     onError: (error: Error) => {
       // Check if it's a credit blocking error (402 status)
