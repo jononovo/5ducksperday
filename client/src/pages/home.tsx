@@ -2141,8 +2141,16 @@ export default function Home() {
         // The first auto-creation from search completion will handle list creation
       }
 
-      // Call finishSearch without auto-save trigger (will do additional refresh)
-      await finishSearchWithoutSave();
+      // Finish the search UI without doing another refresh (we already updated the state)
+      setIsConsolidatedSearching(false);
+      isAutomatedSearchRef.current = false;
+      setSummaryVisible(true);
+      
+      // Clear progress timer
+      if (progressTimerRef.current) {
+        clearTimeout(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
       
     } catch (error) {
       console.error("Backend email orchestration error:", error);

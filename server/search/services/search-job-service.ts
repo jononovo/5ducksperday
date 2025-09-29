@@ -449,21 +449,28 @@ export class SearchJobService {
         throw new Error('No valid companies found');
       }
       
-      // Phase 2: Load contacts for all companies
+      // Phase 2: Load TOP 3 contacts for each company (by probability score)
       await this.updateJobProgress(job.id, {
         phase: 'Loading contacts',
         completed: 2,
         total: 5,
-        message: `Loading contacts for ${validCompanies.length} companies`
+        message: `Loading top contacts for ${validCompanies.length} companies`
       });
       
       const allContacts: any[] = [];
       for (const company of validCompanies) {
         const contacts = await storage.listContactsByCompany(company.id, job.userId);
-        allContacts.push(...contacts);
+        
+        // Sort by probability score (higher is better) and take top 3
+        const topContacts = contacts
+          .sort((a, b) => (b.probability || 0) - (a.probability || 0))
+          .slice(0, 3);
+        
+        console.log(`[SearchJobService] Company ${company.name}: ${contacts.length} total contacts, taking top ${topContacts.length}`);
+        allContacts.push(...topContacts);
       }
       
-      console.log(`[SearchJobService] Found ${allContacts.length} contacts to enrich`);
+      console.log(`[SearchJobService] Selected ${allContacts.length} top contacts to enrich (from ${validCompanies.length} companies)`);
       
       // Phase 3: Enrich contacts with emails
       await this.updateJobProgress(job.id, {
@@ -493,18 +500,25 @@ export class SearchJobService {
         message: 'Email search completed successfully'
       });
       
-      // Prepare results with enriched contacts
+      // Prepare results - fetch ALL contacts for display, not just top 3
+      const allContactsForDisplay: any[] = [];
+      for (const company of validCompanies) {
+        const contacts = await storage.listContactsByCompany(company.id, job.userId);
+        allContactsForDisplay.push(...contacts);
+      }
+      
       const results = {
         companies: validCompanies.map(company => ({
           ...company,
-          contacts: allContacts.filter(c => c.companyId === company.id)
+          contacts: allContactsForDisplay.filter(c => c.companyId === company.id)
         })),
-        contacts: allContacts,
+        contacts: allContactsForDisplay,
         searchType: 'bulk-email',
         metadata: {
           companiesSearched: validCompanies.length,
-          contactsEnriched: allContacts.length,
-          emailsFound: allContacts.filter(c => c.email).length
+          contactsEnriched: allContacts.length,  // Number we actually searched
+          totalContacts: allContactsForDisplay.length,  // Total contacts in companies
+          emailsFound: allContactsForDisplay.filter(c => c.email).length
         }
       };
       
