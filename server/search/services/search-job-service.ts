@@ -178,10 +178,11 @@ export class SearchJobService {
           }
         });
 
-        // Flatten all contacts from results
+        // Flatten all contacts from results, preserving companyId for mapping
         for (const result of contactResults) {
           contacts.push(...result.contacts.map(contact => ({
             ...contact,
+            companyId: result.companyId,  // CRITICAL: Include companyId for filtering
             companyName: result.companyName
           })));
         }
