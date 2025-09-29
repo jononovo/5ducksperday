@@ -104,8 +104,9 @@ export function registerCompanyRoutes(app: Express, requireAuth: any) {
         }
       }
       
-      // Import SearchJobService
+      // Import SearchJobService and JobProcessor
       const { SearchJobService } = await import("./services/search-job-service");
+      const { jobProcessor } = await import("./services/job-processor");
       
       // Create a job instead of processing directly
       const jobId = await SearchJobService.createJob({
@@ -135,6 +136,14 @@ export function registerCompanyRoutes(app: Express, requireAuth: any) {
         });
         console.log(`[Quick Search] Session ${sessionId} created with job ${jobId}`);
       }
+      
+      // Process the job immediately instead of waiting for the next polling cycle
+      // This happens asynchronously - we don't wait for it
+      jobProcessor.processJobImmediately(jobId).catch((error) => {
+        console.error(`[Quick Search] Failed to process job ${jobId} immediately:`, error);
+        // Job will still be picked up by the regular polling if immediate processing fails
+      });
+      console.log(`[Quick Search] Triggered immediate processing for job ${jobId}`);
       
       // Return job information for frontend to poll
       res.json({

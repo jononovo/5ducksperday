@@ -117,6 +117,39 @@ export class JobProcessor {
   }
 
   /**
+   * Process a specific job immediately (bypasses queue and polling)
+   */
+  async processJobImmediately(jobId: string): Promise<void> {
+    // Check if already being processed
+    if (this.processingJobs.has(jobId)) {
+      console.log(`[JobProcessor] Job ${jobId} already being processed`);
+      return;
+    }
+
+    console.log(`[JobProcessor] Immediately processing job ${jobId}`);
+    this.processingJobs.add(jobId);
+
+    try {
+      // Execute the job with timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Job execution timeout')), 120000) // 2 minute timeout
+      );
+      
+      await Promise.race([
+        SearchJobService.executeJob(jobId),
+        timeoutPromise
+      ]);
+      
+      console.log(`[JobProcessor] Successfully completed immediate job ${jobId}`);
+    } catch (error) {
+      console.error(`[JobProcessor] Failed to process immediate job ${jobId}:`, error);
+      throw error; // Re-throw for caller to handle
+    } finally {
+      this.processingJobs.delete(jobId);
+    }
+  }
+
+  /**
    * Check if processor is running
    */
   isRunning(): boolean {
