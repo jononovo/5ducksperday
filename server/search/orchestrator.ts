@@ -9,7 +9,9 @@ import { storage } from "../storage";
 import { CreditService } from "../features/billing/credits/service";
 import { getUserId } from "./utils";
 import { searchContactDetails } from "./enrichment/contact-details";
-import type { Contact } from "./types";
+import { searchApolloDirect } from "./providers/apollo";
+import { searchHunterDirect } from "./providers/hunter";
+import type { Contact } from "@shared/schema";
 
 export function registerOrchestratorRoutes(app: Express, requireAuth: any) {
   
@@ -94,31 +96,38 @@ export function registerOrchestratorRoutes(app: Express, requireAuth: any) {
             let contactsProcessed = 0;
             const sources = [];
             
+            // Check if Apollo API key is available
+            const apolloApiKey = process.env.APOLLO_API_KEY;
+            if (!apolloApiKey) {
+              console.log(`⚠️ [APOLLO] API key not configured, skipping Apollo search`);
+              return { emailsFound: 0, contactsProcessed: 0, sources: [] };
+            }
+            
             for (const contact of contacts) {
               try {
                 console.log(`🔍 [APOLLO] Searching contact ${contact.id} (${contact.name}) in ${company.name}`);
                 
-                const apolloResponse = await fetch(`http://localhost:5000/api/contacts/${contact.id}/apollo`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': req.headers.authorization || '' }
-                });
+                // Direct function call instead of HTTP request
+                const searchResult = await searchApolloDirect(contact, company, apolloApiKey);
                 
-                console.log(`🔍 [APOLLO] Response for ${contact.name}: status ${apolloResponse.status}`);
-                
-                const apolloData = await apolloResponse.json();
-                if (apolloResponse.status === 200 || apolloResponse.status === 422) {
-                  const contactData = apolloResponse.status === 200 ? apolloData : apolloData.contact;
-                  if (contactData.email && contactData.email.length > 5) {
-                    emailsFound++;
-                    sources.push(`Apollo-${contact.name}`);
-                    console.log(`✅ [APOLLO SUCCESS] Found email for ${contact.name}: ${contactData.email}`);
-                  } else {
-                    console.log(`❌ [APOLLO] No email found for ${contact.name}`);
-                  }
-                  contactsProcessed++;
+                if (searchResult.success && searchResult.contact.email) {
+                  // Update contact in database
+                  await storage.updateContact(contact.id, {
+                    email: searchResult.contact.email,
+                    role: searchResult.contact.role || contact.role,
+                    linkedinUrl: searchResult.contact.linkedinUrl || contact.linkedinUrl,
+                    phoneNumber: searchResult.contact.phoneNumber || contact.phoneNumber,
+                    completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
+                    lastValidated: new Date()
+                  });
+                  
+                  emailsFound++;
+                  sources.push(`Apollo-${contact.name}`);
+                  console.log(`✅ [APOLLO SUCCESS] Found email for ${contact.name}: ${searchResult.contact.email}`);
                 } else {
-                  console.log(`❌ [APOLLO ERROR] Unexpected status ${apolloResponse.status} for ${contact.name}:`, apolloData);
+                  console.log(`❌ [APOLLO] No email found for ${contact.name}`);
                 }
+                contactsProcessed++;
               } catch (error) {
                 console.error(`❌ [APOLLO ERROR] Search failed for contact ${contact.id} (${contact.name}):`, error);
                 contactsProcessed++;
@@ -149,7 +158,7 @@ export function registerOrchestratorRoutes(app: Express, requireAuth: any) {
                   await storage.updateContact(contact.id, {
                     ...enrichedDetails,
                     completedSearches: [...(contact.completedSearches || []), 'contact_enrichment']
-                  }, userId);
+                  });
                   emailsFound++;
                   sources.push(`Perplexity-${contact.name}`);
                   console.log(`✅ [PERPLEXITY SUCCESS] Found email for ${contact.name}: ${enrichedDetails.email}`);
@@ -169,33 +178,49 @@ export function registerOrchestratorRoutes(app: Express, requireAuth: any) {
 
           // Helper function: Search multiple contacts with Hunter
           const searchHunterContacts = async (contacts: Contact[]) => {
+            console.log(`🎯 [HUNTER SEARCH] Starting Hunter search for ${contacts.length} contacts`);
+            
             let emailsFound = 0;
             let contactsProcessed = 0;
             const sources = [];
             
+            // Check if Hunter API key is available
+            const hunterApiKey = process.env.HUNTER_API_KEY;
+            if (!hunterApiKey) {
+              console.log(`⚠️ [HUNTER] API key not configured, skipping Hunter search`);
+              return { emailsFound: 0, contactsProcessed: 0, sources: [] };
+            }
+            
             for (const contact of contacts) {
               try {
-                const hunterResponse = await fetch(`http://localhost:5000/api/contacts/${contact.id}/hunter`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': req.headers.authorization || '' }
-                });
+                console.log(`🎯 [HUNTER] Searching contact ${contact.id} (${contact.name})`);
                 
-                const hunterData = await hunterResponse.json();
-                if (hunterResponse.status === 200 || hunterResponse.status === 422) {
-                  const contactData = hunterResponse.status === 200 ? hunterData : hunterData.contact;
-                  if (contactData.email && contactData.email.length > 5) {
-                    emailsFound++;
-                    sources.push(`Hunter-${contact.name}`);
-                    console.log(`Hunter found email for ${contact.name}: ${contactData.email}`);
-                  }
-                  contactsProcessed++;
+                // Direct function call instead of HTTP request
+                const searchResult = await searchHunterDirect(contact, company, hunterApiKey);
+                
+                if (searchResult.success && searchResult.contact.email) {
+                  // Update contact in database
+                  await storage.updateContact(contact.id, {
+                    email: searchResult.contact.email,
+                    role: searchResult.contact.role || contact.role,
+                    completedSearches: [...(contact.completedSearches || []), 'hunter_search'],
+                    lastValidated: new Date()
+                  });
+                  
+                  emailsFound++;
+                  sources.push(`Hunter-${contact.name}`);
+                  console.log(`✅ [HUNTER SUCCESS] Found email for ${contact.name}: ${searchResult.contact.email}`);
+                } else {
+                  console.log(`❌ [HUNTER] No email found for ${contact.name}`);
                 }
+                contactsProcessed++;
               } catch (error) {
-                console.error(`Hunter search failed for contact ${contact.id}:`, error);
+                console.error(`❌ [HUNTER ERROR] Search failed for contact ${contact.id}:`, error);
                 contactsProcessed++;
               }
             }
             
+            console.log(`🎯 [HUNTER COMPLETE] Processed ${contactsProcessed} contacts, found ${emailsFound} emails`);
             return { emailsFound, contactsProcessed, sources };
           };
 
