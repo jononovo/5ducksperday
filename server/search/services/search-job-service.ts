@@ -137,6 +137,20 @@ export class SearchJobService {
         savedCompanies.push(savedCompany);
       }
       
+      // Save companies to job results immediately so frontend can display them
+      const companiesOnlyResults = {
+        companies: savedCompanies.map(company => ({ ...company, contacts: [] })),
+        contacts: [],
+        totalCompanies: savedCompanies.length,
+        totalContacts: 0
+      };
+      
+      await storage.updateSearchJob(job.id, {
+        results: companiesOnlyResults
+      });
+      
+      console.log(`[SearchJobService] Saved ${savedCompanies.length} companies to job results for progressive display`);
+      
       // Phase 3: Find contacts if requested
       if (job.searchType === 'contacts' || job.searchType === 'emails') {
         await this.updateJobProgress(job.id, {
@@ -173,6 +187,28 @@ export class SearchJobService {
         }
 
         console.log(`[SearchJobService] Found ${contacts.length} contacts for job ${jobId}`);
+        
+        // Save companies with contacts to job results for progressive display
+        const companiesWithContactsResults = {
+          companies: savedCompanies.map(company => {
+            const companyContacts = contacts.filter((contact: any) => 
+              contact.companyId === company.id
+            );
+            return {
+              ...company,
+              contacts: companyContacts
+            };
+          }),
+          contacts: contacts,
+          totalCompanies: savedCompanies.length,
+          totalContacts: contacts.length
+        };
+        
+        await storage.updateSearchJob(job.id, {
+          results: companiesWithContactsResults
+        });
+        
+        console.log(`[SearchJobService] Updated job results with ${contacts.length} contacts for progressive display`);
         
         // Phase 3.5: Find emails for contacts if searchType is 'emails'
         if (job.searchType === 'emails' && contacts.length > 0) {
@@ -773,6 +809,26 @@ export class SearchJobService {
           completed: 4,
           total: totalPhases,
           message: `Finding emails: ${companiesProcessed}/${totalCompanies} companies processed (${totalEmailsFound} emails found)`
+        });
+        
+        // Update job results with current email data for progressive display
+        const companiesWithCurrentEmails = companies.map(company => {
+          const companyContacts = contacts.filter((contact: any) => 
+            contact.companyId === company.id
+          );
+          return {
+            ...company,
+            contacts: companyContacts
+          };
+        });
+        
+        await storage.updateSearchJob(job.id, {
+          results: {
+            companies: companiesWithCurrentEmails,
+            contacts: contacts,
+            totalCompanies: companies.length,
+            totalContacts: contacts.length
+          }
         });
         
         console.log(`[SearchJobService] Batch ${batchIndex + 1} complete in ${Date.now() - batchStartTime}ms - ${companiesProcessed}/${totalCompanies} companies processed`);
