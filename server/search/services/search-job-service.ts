@@ -176,7 +176,7 @@ export class SearchJobService {
         });
 
         const creditType = job.searchType === 'emails' ? 'email_search' : 
-                          job.searchType === 'contacts' ? 'contact_search' : 
+                          job.searchType === 'contacts' ? 'contact_discovery' : 
                           'company_search';
         
         await CreditService.deductCredits(
@@ -194,9 +194,20 @@ export class SearchJobService {
         message: 'Search completed successfully'
       });
 
+      // Nest contacts within their respective companies for frontend compatibility
+      const companiesWithContacts = savedCompanies.map(company => {
+        const companyContacts = contacts.filter((contact: any) => 
+          contact.companyId === company.id
+        );
+        return {
+          ...company,
+          contacts: companyContacts
+        };
+      });
+
       const results = {
-        companies: savedCompanies,
-        contacts: contacts,
+        companies: companiesWithContacts,
+        contacts: contacts,  // Keep separate array for backward compatibility
         totalCompanies: savedCompanies.length,
         totalContacts: contacts.length
       };
