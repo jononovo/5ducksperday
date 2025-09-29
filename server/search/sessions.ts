@@ -10,28 +10,83 @@ declare global {
   var searchSessions: Map<string, SearchSessionResult>;
 }
 
+// Constants for session management
+const MAX_SESSIONS = 500; // Limit to prevent memory issues
+const MAX_SESSION_AGE = 60 * 60 * 1000; // 1 hour
+const CLEANUP_INTERVAL = 10 * 60 * 1000; // 10 minutes
+
 // Initialize global search sessions storage
 global.searchSessions = global.searchSessions || new Map();
 
 /**
- * Clean up old or completed sessions periodically
+ * Check if a session should be cleaned up
+ * Single source of truth for cleanup logic
  */
-function cleanupSessions() {
+function shouldCleanupSession(session: SearchSessionResult): boolean {
   const now = Date.now();
-  for (const [sessionId, session] of global.searchSessions.entries()) {
-    // Clean up sessions older than 1 hour or completed email searches
-    const isOld = now - session.timestamp > (60 * 60 * 1000); // 1 hour
-    const isEmailComplete = session.emailSearchStatus === 'completed';
-    
-    if (isOld || (isEmailComplete && now - (session.emailSearchCompleted || 0) > 5 * 60 * 1000)) {
+  const age = now - session.timestamp;
+  
+  // Remove if older than max age
+  if (age > MAX_SESSION_AGE) return true;
+  
+  // Remove if email search completed and 5+ minutes old
+  if (session.emailSearchStatus === 'completed' && 
+      session.emailSearchCompleted && 
+      (now - session.emailSearchCompleted) > 5 * 60 * 1000) {
+    return true;
+  }
+  
+  // Remove if exceeded TTL
+  if (age > session.ttl) return true;
+  
+  return false;
+}
+
+/**
+ * Clean up old or completed sessions
+ * Consolidated cleanup function used everywhere
+ */
+function cleanupSessions(): number {
+  let cleanedCount = 0;
+  const sessions = Array.from(global.searchSessions.entries());
+  
+  for (const [sessionId, session] of sessions) {
+    if (shouldCleanupSession(session)) {
       global.searchSessions.delete(sessionId);
+      cleanedCount++;
       console.log(`[Session Cleanup] Removed expired session: ${sessionId}`);
     }
+  }
+  
+  return cleanedCount;
+}
+
+/**
+ * Enforce maximum session limit
+ * Removes oldest sessions when limit exceeded
+ */
+function enforceSessionLimit(): void {
+  if (global.searchSessions.size >= MAX_SESSIONS) {
+    const sortedSessions = Array.from(global.searchSessions.entries())
+      .sort((a, b) => a[1].timestamp - b[1].timestamp);
+    
+    // Remove oldest 20% to make room
+    const toRemove = Math.ceil(MAX_SESSIONS * 0.2);
+    sortedSessions.slice(0, toRemove).forEach(([id]) => {
+      global.searchSessions.delete(id);
+      console.log(`[Session Limit] Removed old session to enforce limit: ${id}`);
+    });
   }
 }
 
 // Run cleanup every 10 minutes
-setInterval(cleanupSessions, 10 * 60 * 1000);
+const cleanupInterval = setInterval(cleanupSessions, CLEANUP_INTERVAL);
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  clearInterval(cleanupInterval);
+  console.log('[Sessions] Cleanup interval cleared on shutdown');
+});
 
 /**
  * Register session management routes
@@ -46,6 +101,9 @@ export function registerSessionRoutes(app: Express) {
       // Get or create session
       let session = global.searchSessions.get(sessionId);
       if (!session) {
+        // Enforce size limit before creating new session
+        enforceSessionLimit();
+        
         session = {
           sessionId,
           query: '',
@@ -89,8 +147,8 @@ export function registerSessionRoutes(app: Express) {
         return;
       }
       
-      // Check if session has expired
-      if (Date.now() - session.timestamp > session.ttl) {
+      // Check if session should be cleaned up
+      if (shouldCleanupSession(session)) {
         global.searchSessions.delete(sessionId);
         res.status(404).json({
           success: false,
@@ -160,10 +218,7 @@ export function registerSessionRoutes(app: Express) {
   // Session cleanup endpoint
   app.post("/api/sessions/cleanup", (req: Request, res: Response) => {
     try {
-      const before = global.searchSessions.size;
-      cleanupSessions();
-      const after = global.searchSessions.size;
-      const cleanedCount = before - after;
+      const cleanedCount = cleanupSessions();
       
       res.json({
         success: true,
@@ -180,23 +235,10 @@ export function registerSessionRoutes(app: Express) {
     }
   });
 
-  // Bulk session cleanup endpoint
+  // Bulk session cleanup endpoint (reuses same cleanup logic)
   app.delete("/api/search-sessions", (req: Request, res: Response) => {
     try {
-      const userSessions = Array.from(global.searchSessions.values());
-      let cleanedCount = 0;
-      
-      for (const [sessionId, session] of global.searchSessions.entries()) {
-        // Clean up sessions older than 1 hour or completed email searches
-        const isOld = Date.now() - session.timestamp > (60 * 60 * 1000); // 1 hour
-        const isEmailComplete = session.emailSearchStatus === 'completed';
-        
-        if (isOld || isEmailComplete) {
-          global.searchSessions.delete(sessionId);
-          cleanedCount++;
-          console.log(`[Bulk Cleanup] Removed session: ${sessionId}`);
-        }
-      }
+      const cleanedCount = cleanupSessions();
       
       res.json({
         success: true,
@@ -209,6 +251,39 @@ export function registerSessionRoutes(app: Express) {
       res.status(500).json({
         success: false,
         error: "Failed to clean up sessions"
+      });
+    }
+  });
+
+  // Session monitoring endpoint
+  app.get("/api/sessions/stats", (req: Request, res: Response) => {
+    try {
+      const sessions = Array.from(global.searchSessions.values());
+      const now = Date.now();
+      
+      res.json({
+        success: true,
+        total: sessions.length,
+        maxAllowed: MAX_SESSIONS,
+        byStatus: {
+          pending: sessions.filter(s => s.status === 'pending').length,
+          companies_found: sessions.filter(s => s.status === 'companies_found').length,
+          contacts_complete: sessions.filter(s => s.status === 'contacts_complete').length,
+          failed: sessions.filter(s => s.status === 'failed').length,
+          email_running: sessions.filter(s => s.emailSearchStatus === 'running').length,
+          email_completed: sessions.filter(s => s.emailSearchStatus === 'completed').length
+        },
+        oldestAge: sessions.length ? Math.max(...sessions.map(s => now - s.timestamp)) : 0,
+        newestAge: sessions.length ? Math.min(...sessions.map(s => now - s.timestamp)) : 0,
+        averageAge: sessions.length ? sessions.reduce((sum, s) => sum + (now - s.timestamp), 0) / sessions.length : 0,
+        memoryEstimate: JSON.stringify(sessions).length // Rough estimate in bytes
+      });
+      
+    } catch (error) {
+      console.error('Session stats error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to get session statistics"
       });
     }
   });
@@ -227,6 +302,9 @@ export const SessionManager = {
       Object.assign(existing, data);
       global.searchSessions.set(sessionId, existing);
     } else {
+      // Enforce size limit before adding new session
+      enforceSessionLimit();
+      
       global.searchSessions.set(sessionId, {
         sessionId,
         query: '',
