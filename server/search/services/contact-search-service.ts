@@ -10,33 +10,7 @@ import { findKeyDecisionMakers } from "../contacts/finder";
 import { storage } from "../../storage";
 import type { Contact, Company } from "@shared/schema";
 import type { ContactSearchConfig } from "../types";
-
-// Helper function for batch processing with error isolation
-async function processBatchWithErrors<T, R>(
-  items: T[], 
-  processor: (item: T) => Promise<R>, 
-  batchSize: number = 5
-): Promise<R[]> {
-  const results: R[] = [];
-  for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize);
-    
-    // Use Promise.allSettled for error isolation
-    const batchResults = await Promise.allSettled(
-      batch.map(processor)
-    );
-    
-    // Extract successful results
-    batchResults.forEach(result => {
-      if (result.status === 'fulfilled') {
-        results.push(result.value);
-      } else {
-        console.error('[Batch Processing] Item failed:', result.reason);
-      }
-    });
-  }
-  return results;
-}
+import { processBatch } from "../utils/batch-processing";
 
 export interface ContactSearchParams {
   companies: Company[];
@@ -211,7 +185,7 @@ export class ContactSearchService {
     }
 
     // Process companies in parallel batches of 5
-    const results = await processBatchWithErrors(
+    const results = await processBatch(
       companies,
       async (company) => {
         const result = await this.processCompanyForContacts(company, {

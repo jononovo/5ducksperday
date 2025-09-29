@@ -12,6 +12,7 @@ import { SearchType } from "../features/billing/credits/types";
 import { SessionManager } from "./sessions";
 import { getUserId } from "../utils/auth";
 import rateLimit from "express-rate-limit";
+import { processBatch } from "./utils/batch-processing";
 import type { 
   QuickSearchRequest, 
   CompanySearchRequest,
@@ -41,20 +42,6 @@ const demoSearchLimiter = rateLimit({
     });
   }
 });
-
-
-/**
- * Process items in batches for rate limiting
- */
-async function processBatch<T, R>(items: T[], processor: (item: T) => Promise<R>, batchSize: number = 4): Promise<R[]> {
-  const results: R[] = [];
-  for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize);
-    const batchResults = await Promise.all(batch.map(processor));
-    results.push(...batchResults);
-  }
-  return results;
-}
 
 /**
  * Map frontend search type to backend search type for billing
