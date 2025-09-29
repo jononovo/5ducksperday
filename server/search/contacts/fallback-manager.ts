@@ -16,9 +16,9 @@ export interface ContactThresholds {
 
 export class SmartFallbackManager {
   private static readonly CONTACT_THRESHOLDS: ContactThresholds = {
-    MINIMUM: 5,    // Always trigger fallback if below this
-    OPTIMAL: 10,   // Trigger fallback for better coverage
-    MAXIMUM: 15    // Stop additional searches if above this
+    MINIMUM: 2,    // Trigger fallback if below this (per company)
+    OPTIMAL: 5,    // Target number of contacts per company
+    MAXIMUM: 10    // Stop additional searches if above this (per company)
   };
 
   /**
@@ -38,22 +38,18 @@ export class SmartFallbackManager {
     
     let reasoning = `Found ${contactCount} contacts (${qualityContacts.length} high-quality)`;
     
-    // Priority-based fallback logic
+    // Simplified fallback logic: Only trigger if < 2 contacts per company
     if (contactCount < this.CONTACT_THRESHOLDS.MINIMUM) {
-      // Critical shortage - enable core leadership first
+      // Only add ONE fallback search, prioritized by most likely to yield results
       if (!originalConfig.enableCoreLeadership) {
         fallbacks.push('enableCoreLeadership');
-      }
-      if (!originalConfig.enableDepartmentHeads && contactCount < 3) {
+        reasoning += `. Only ${contactCount} contacts found - adding core leadership fallback`;
+      } else if (!originalConfig.enableDepartmentHeads) {
         fallbacks.push('enableDepartmentHeads');
+        reasoning += `. Only ${contactCount} contacts found - adding department heads fallback`;
+      } else {
+        reasoning += `. Only ${contactCount} contacts found - all search types already enabled`;
       }
-      reasoning += `. Critical shortage - need minimum ${this.CONTACT_THRESHOLDS.MINIMUM} contacts`;
-    } else if (contactCount < this.CONTACT_THRESHOLDS.OPTIMAL && qualityContacts.length < 5) {
-      // Suboptimal but not critical - be more selective
-      if (!originalConfig.enableCoreLeadership) {
-        fallbacks.push('enableCoreLeadership');
-      }
-      reasoning += `. Below optimal threshold - need ${this.CONTACT_THRESHOLDS.OPTIMAL} contacts or 5+ high-quality`;
     }
     
     return {
@@ -125,15 +121,15 @@ export class SmartFallbackManager {
       (contact.probability || 0) >= 70
     );
     
-    // Stop if we have too many contacts already
-    if (contactCount >= this.CONTACT_THRESHOLDS.MAXIMUM) {
-      console.log(`Stopping ${nextSearchType} search: Already have ${contactCount} contacts (max: ${this.CONTACT_THRESHOLDS.MAXIMUM})`);
+    // Stop if we have enough contacts for this company
+    if (contactCount >= this.CONTACT_THRESHOLDS.OPTIMAL) {
+      console.log(`Stopping ${nextSearchType} search: Already have ${contactCount} contacts (optimal: ${this.CONTACT_THRESHOLDS.OPTIMAL})`);
       return false;
     }
     
-    // Stop if we have enough high-quality contacts
-    if (qualityContacts.length >= 8 && contactCount >= this.CONTACT_THRESHOLDS.OPTIMAL) {
-      console.log(`Stopping ${nextSearchType} search: Already have ${qualityContacts.length} high-quality contacts`);
+    // Also stop if we have too many contacts
+    if (contactCount >= this.CONTACT_THRESHOLDS.MAXIMUM) {
+      console.log(`Stopping ${nextSearchType} search: Already have ${contactCount} contacts (max: ${this.CONTACT_THRESHOLDS.MAXIMUM})`);
       return false;
     }
     

@@ -521,8 +521,8 @@ const DEFAULT_OPTIONS: EnhancedContactFinderOptions = {
 };
 
 /**
- * Find key decision makers at a company using multiple specialized queries
- * to improve contact discovery
+ * Find key decision makers at a company using ONE primary search
+ * with intelligent per-company fallback when < 2 contacts found
  */
 export async function findKeyDecisionMakers(
   companyName: string,
@@ -536,261 +536,130 @@ export async function findKeyDecisionMakers(
     const sessionId = SearchPerformanceLogger.startSession(companyName, mergedOptions);
     
     // Initialize empty contacts array
-    const allContacts: Partial<Contact>[] = [];
+    let allContacts: Partial<Contact>[] = [];
     
-    // Run different searches based on context for better coverage
-    console.log(`Running enhanced decision maker search for ${companyName}`);
+    console.log(`Running optimized contact search for ${companyName}`);
     
     // Get industry-specific roles if available
     const industry = mergedOptions.industry || detectIndustry(companyName);
-    console.log(`Detected industry context: ${industry || "unknown"}`);
+    console.log(`Industry context: ${industry || "unknown"}`);
     
-    // 1. Core leadership search - only if enabled, with threshold checking
-    const coreStartTime = Date.now();
-    if (mergedOptions.enableCoreLeadership) {
-      console.log(`Running core leadership search for ${companyName}`);
-      const coreLeadership = await searchCoreLeadership(companyName, industry);
-      allContacts.push(...coreLeadership);
+    // STEP 1: Determine and run ONE primary search based on user selection
+    let primarySearchType: string = '';
+    const primaryStartTime = Date.now();
+    
+    // Priority order: Custom Search > Core Leadership > Department Heads > Middle Management
+    if ((mergedOptions.enableCustomSearch || mergedOptions.enableCustomSearch2)) {
+      const activeCustomTarget = mergedOptions.enableCustomSearch2 
+        ? mergedOptions.customSearchTarget2 
+        : mergedOptions.customSearchTarget;
       
-      SearchPerformanceLogger.logSearchPhase(
-        sessionId, 
-        'Core Leadership', 
-        true, 
-        true, 
-        coreLeadership, 
-        Date.now() - coreStartTime
-      );
+      if (activeCustomTarget?.trim()) {
+        primarySearchType = 'Custom Search';
+        console.log(`PRIMARY SEARCH: Custom - "${activeCustomTarget}" at ${companyName}`);
+        allContacts = await searchCustomTarget(companyName, activeCustomTarget, industry);
+      }
+    }
+    
+    // If no custom search or it wasn't configured properly, run the next priority
+    if (!primarySearchType) {
+      if (mergedOptions.enableCoreLeadership) {
+        primarySearchType = 'Core Leadership';
+        console.log(`PRIMARY SEARCH: Core Leadership at ${companyName}`);
+        allContacts = await searchCoreLeadership(companyName, industry);
+      } else if (mergedOptions.enableDepartmentHeads) {
+        primarySearchType = 'Department Heads';
+        console.log(`PRIMARY SEARCH: Department Heads at ${companyName}`);
+        allContacts = await searchDepartmentHeads(companyName, industry);
+      } else if (mergedOptions.enableMiddleManagement) {
+        primarySearchType = 'Middle Management';
+        console.log(`PRIMARY SEARCH: Middle Management at ${companyName}`);
+        allContacts = await searchMiddleManagement(companyName, industry);
+      } else {
+        // Default to core leadership if nothing is enabled
+        primarySearchType = 'Core Leadership (default)';
+        console.log(`PRIMARY SEARCH: Core Leadership (default) at ${companyName}`);
+        allContacts = await searchCoreLeadership(companyName, industry);
+      }
+    }
+    
+    // Log primary search results
+    SearchPerformanceLogger.logSearchPhase(
+      sessionId, 
+      primarySearchType, 
+      true, 
+      true, 
+      allContacts, 
+      Date.now() - primaryStartTime
+    );
+    
+    console.log(`Primary search found ${allContacts.length} contacts`);
+    
+    // STEP 2: Check if we need a fallback (< 2 contacts per company)
+    if (allContacts.length < 2) {
+      console.log(`Triggering fallback: Only ${allContacts.length} contacts found (minimum: 2)`);
       
-      // Check if we should continue searching
-      const willContinue = SmartFallbackManager.shouldContinueSearching(allContacts, 'department heads');
+      const fallbackStartTime = Date.now();
+      let fallbackContacts: Partial<Contact>[] = [];
+      let fallbackType = '';
       
-      if (!willContinue) {
-        console.log(`Early termination: Sufficient contacts found after core leadership search`);
+      // Run ONE fallback search - different from the primary
+      if (primarySearchType !== 'Core Leadership' && primarySearchType !== 'Core Leadership (default)' && !mergedOptions.enableCoreLeadership) {
+        fallbackType = 'Core Leadership';
+        console.log(`FALLBACK SEARCH: Core Leadership at ${companyName}`);
+        fallbackContacts = await searchCoreLeadership(companyName, industry);
+      } else if (primarySearchType !== 'Department Heads' && !mergedOptions.enableDepartmentHeads) {
+        fallbackType = 'Department Heads';
+        console.log(`FALLBACK SEARCH: Department Heads at ${companyName}`);
+        fallbackContacts = await searchDepartmentHeads(companyName, industry);
+      } else if (primarySearchType !== 'Middle Management' && !mergedOptions.enableMiddleManagement) {
+        fallbackType = 'Middle Management';
+        console.log(`FALLBACK SEARCH: Middle Management at ${companyName}`);
+        fallbackContacts = await searchMiddleManagement(companyName, industry);
+      } else {
+        console.log(`No additional fallback available - all search types already attempted`);
+      }
+      
+      if (fallbackContacts.length > 0) {
+        allContacts.push(...fallbackContacts);
+        
+        // Log fallback results
+        SearchPerformanceLogger.logFallback(
+          sessionId,
+          true,
+          `Per-company threshold: ${allContacts.length - fallbackContacts.length} < 2`,
+          [fallbackType],
+          fallbackContacts.length,
+          Date.now() - fallbackStartTime
+        );
+        
+        console.log(`Fallback added ${fallbackContacts.length} contacts (total now: ${allContacts.length})`);
       }
     } else {
-      SearchPerformanceLogger.logSearchPhase(
-        sessionId, 
-        'Core Leadership', 
-        false, 
-        false, 
-        [], 
-        0, 
-        'disabled'
-      );
+      console.log(`No fallback needed: ${allContacts.length} contacts meets threshold`);
     }
     
-    // 2. Department heads search - only if enabled and we should continue
-    const deptStartTime = Date.now();
-    if (mergedOptions.enableDepartmentHeads && SmartFallbackManager.shouldContinueSearching(allContacts, 'department heads')) {
-      console.log(`Running department heads search for ${companyName}`);
-      const departmentHeads = await searchDepartmentHeads(companyName, industry);
-      allContacts.push(...departmentHeads);
-      
-      SearchPerformanceLogger.logSearchPhase(
-        sessionId, 
-        'Department Heads', 
-        true, 
-        true, 
-        departmentHeads, 
-        Date.now() - deptStartTime
-      );
-      
-    } else if (mergedOptions.enableDepartmentHeads) {
-      SearchPerformanceLogger.logSearchPhase(
-        sessionId, 
-        'Department Heads', 
-        true, 
-        false, 
-        [], 
-        0, 
-        'sufficient contacts found'
-      );
-    } else {
-      SearchPerformanceLogger.logSearchPhase(
-        sessionId, 
-        'Department Heads', 
-        false, 
-        false, 
-        [], 
-        0, 
-        'disabled'
-      );
-    }
-    
-    // 3. Middle management search - only if enabled and we should continue
-    const middleStartTime = Date.now();
-    if (mergedOptions.enableMiddleManagement && SmartFallbackManager.shouldContinueSearching(allContacts, 'middle management')) {
-      console.log(`Running middle management search for ${companyName}`);
-      const middleManagement = await searchMiddleManagement(companyName, industry);
-      allContacts.push(...middleManagement);
-      
-      SearchPerformanceLogger.logSearchPhase(
-        sessionId, 
-        'Middle Management', 
-        true, 
-        true, 
-        middleManagement, 
-        Date.now() - middleStartTime
-      );
-      
-    } else if (mergedOptions.enableMiddleManagement) {
-      SearchPerformanceLogger.logSearchPhase(
-        sessionId, 
-        'Middle Management', 
-        true, 
-        false, 
-        [], 
-        0, 
-        'sufficient contacts found'
-      );
-    } else {
-      SearchPerformanceLogger.logSearchPhase(
-        sessionId, 
-        'Middle Management', 
-        false, 
-        false, 
-        [], 
-        0, 
-        'disabled'
-      );
-    }
-    
-    // 4. Custom search - determine which custom search is active
-    const customStartTime = Date.now();
-    const activeCustomTarget = mergedOptions.enableCustomSearch2 
-      ? mergedOptions.customSearchTarget2 
-      : mergedOptions.customSearchTarget;
-    
-    const isCustomSearchActive = (mergedOptions.enableCustomSearch || mergedOptions.enableCustomSearch2) && activeCustomTarget?.trim();
-    
-    if (isCustomSearchActive && activeCustomTarget &&
-        SmartFallbackManager.shouldContinueSearching(allContacts, 'custom search')) {
-      console.log(`Running custom search for "${activeCustomTarget}" at ${companyName}`);
-      const customContacts = await searchCustomTarget(companyName, activeCustomTarget!, industry);
-      allContacts.push(...customContacts);
-      
-      SearchPerformanceLogger.logSearchPhase(
-        sessionId, 
-        'Custom Search', 
-        true, 
-        true, 
-        customContacts, 
-        Date.now() - customStartTime
-      );
-      
-      // No rate limiting delay needed - this is the final phase
-    } else if (isCustomSearchActive) {
-      SearchPerformanceLogger.logSearchPhase(
-        sessionId, 
-        'Custom Search', 
-        true, 
-        false, 
-        [], 
-        0, 
-        'sufficient contacts found'
-      );
-    } else {
-      SearchPerformanceLogger.logSearchPhase(
-        sessionId, 
-        'Custom Search', 
-        false, 
-        false, 
-        [], 
-        0, 
-        'disabled or no target specified'
-      );
-    }
-    
-    // Deduplicate contacts based on name
+    // STEP 3: Deduplicate contacts based on name
     const uniqueContacts = deduplicateContacts(allContacts);
     
-    // Filter contacts by confidence score
+    // STEP 4: Filter contacts by confidence score
     const filteredContacts = uniqueContacts.filter(contact => 
       (contact.probability || 0) >= (mergedOptions.minimumConfidence || 30)
     );
     
-    // Sort contacts by probability and limit to max contacts
+    // STEP 5: Sort contacts by probability and limit to max contacts
     const sortedContacts = filteredContacts
       .sort((a, b) => (b.probability || 0) - (a.probability || 0))
       .slice(0, mergedOptions.maxContacts || 10);
     
-    // Apply smart fallback logic if we don't have enough contacts
-    const fallbackAnalysis = SmartFallbackManager.analyzeFallbackNeeds(sortedContacts, mergedOptions);
-    
-    if (fallbackAnalysis.shouldTriggerFallback) {
-      console.log(`Smart fallback triggered: ${fallbackAnalysis.reasoning}`);
-      console.log(`Executing fallbacks: ${fallbackAnalysis.recommendedFallbacks.join(', ')}`);
+    // STEP 6: Apply custom role affinity scoring if custom search was used
+    const activeCustomTarget = mergedOptions.enableCustomSearch2 
+      ? mergedOptions.customSearchTarget2 
+      : mergedOptions.customSearchTarget;
       
-      const fallbackStartTime = Date.now();
-      const fallbackContacts = await SmartFallbackManager.executeFallbackSearches(
-        companyName,
-        fallbackAnalysis.recommendedFallbacks,
-        industry,
-        {
-          searchCoreLeadership,
-          searchDepartmentHeads
-        }
-      );
-      
-      // Log fallback performance
-      SearchPerformanceLogger.logFallback(
-        sessionId,
-        true,
-        fallbackAnalysis.reasoning,
-        fallbackAnalysis.recommendedFallbacks,
-        fallbackContacts.length,
-        Date.now() - fallbackStartTime
-      );
-      
-      // Apply validation to fallback contacts
-      const validatedFallbacks = fallbackContacts.filter(contact => 
-        (contact.probability || 0) >= (mergedOptions.minimumConfidence || 30)
-      );
-      
-      // Combine and optimize all contacts
-      const optimizedContacts = SmartFallbackManager.optimizeContactResults(
-        sortedContacts,
-        validatedFallbacks,
-        mergedOptions.maxContacts || 10
-      );
-      
-      // Apply custom role affinity scoring if enabled
-      if (isCustomSearchActive && activeCustomTarget) {
-        const customScoredContacts = await applyCustomRoleAffinityScoring(optimizedContacts, {
-          customSearchTarget: activeCustomTarget,
-          enableCustomScoring: true
-        });
-        
-        const finalContacts = customScoredContacts
-          .sort((a, b) => (b.probability || 0) - (a.probability || 0))
-          .slice(0, mergedOptions.maxContacts || 10);
-        
-        // End session and return
-        SearchPerformanceLogger.endSession(sessionId, finalContacts);
-        console.log(`Smart fallback + custom scoring complete: ${sortedContacts.length} → ${finalContacts.length} contacts for ${companyName}`);
-        return finalContacts;
-      }
-      
-      // End session and return
-      SearchPerformanceLogger.endSession(sessionId, optimizedContacts);
-      console.log(`Smart fallback complete: ${sortedContacts.length} → ${optimizedContacts.length} contacts for ${companyName}`);
-      return optimizedContacts;
-    } else {
-      // Log that no fallback was needed
-      SearchPerformanceLogger.logFallback(
-        sessionId,
-        false,
-        'Sufficient contacts found - no fallback needed',
-        [],
-        0,
-        0
-      );
-    }
-    
-    // No fallback needed - apply custom role affinity scoring if enabled
-    if (mergedOptions.enableCustomSearch && mergedOptions.customSearchTarget?.trim()) {
+    if ((mergedOptions.enableCustomSearch || mergedOptions.enableCustomSearch2) && activeCustomTarget?.trim()) {
       const customScoredContacts = await applyCustomRoleAffinityScoring(sortedContacts, {
-        customSearchTarget: mergedOptions.customSearchTarget,
+        customSearchTarget: activeCustomTarget,
         enableCustomScoring: true
       });
       
@@ -800,13 +669,13 @@ export async function findKeyDecisionMakers(
       
       // End session and return
       SearchPerformanceLogger.endSession(sessionId, finalContacts);
-      console.log(`Found ${finalContacts.length} validated contacts for ${companyName} with custom role affinity scoring`);
+      console.log(`Contact search complete: ${finalContacts.length} contacts for ${companyName} (with custom scoring)`);
       return finalContacts;
     }
     
     // End session and return
     SearchPerformanceLogger.endSession(sessionId, sortedContacts);
-    console.log(`Found ${sortedContacts.length} validated contacts for ${companyName}`);
+    console.log(`Contact search complete: ${sortedContacts.length} contacts for ${companyName}`);
     return sortedContacts;
   } catch (error) {
     console.error(`Error in findKeyDecisionMakers for ${companyName}:`, error);
