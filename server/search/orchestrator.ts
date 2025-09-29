@@ -46,16 +46,10 @@ export function registerOrchestratorRoutes(app: Express, requireAuth: any) {
       let totalEmailsFound = 0;
       const results = [];
       
-      // Helper function to add delay
-      const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
-      
       // Process individual company with waterfall search
       const processCompany = async (companyId: number, index: number) => {
-        // Add staggered delay before starting each company
-        await delay(index * 400);
-        
         try {
-          console.log(`🏢 [COMPANY ${index + 1}] Starting email search for company ID: ${companyId} (after ${index * 400}ms delay)`);
+          console.log(`🏢 [COMPANY ${index + 1}] Starting email search for company ID: ${companyId}`);
           
           const company = await storage.getCompany(companyId, userId);
           if (!company) {
