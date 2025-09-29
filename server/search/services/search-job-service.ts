@@ -100,10 +100,11 @@ export class SearchJobService {
       
       // Regular flow: Search companies first
       // Phase 1: Search for companies
+      const totalPhases = job.searchType === 'emails' ? 6 : 5;
       await this.updateJobProgress(job.id, {
         phase: 'Finding companies',
         completed: 1,
-        total: 5,
+        total: totalPhases,
         message: 'Searching for matching companies'
       });
 
@@ -114,7 +115,7 @@ export class SearchJobService {
       await this.updateJobProgress(job.id, {
         phase: 'Saving companies',
         completed: 2,
-        total: 5,
+        total: totalPhases,
         message: `Processing ${companies.length} companies`
       });
 
@@ -133,7 +134,7 @@ export class SearchJobService {
         await this.updateJobProgress(job.id, {
           phase: 'Finding contacts',
           completed: 3,
-          total: 5,
+          total: totalPhases,
           message: 'Discovering key decision makers'
         });
 
@@ -149,7 +150,7 @@ export class SearchJobService {
             await this.updateJobProgress(job.id, {
               phase: 'Finding contacts',
               completed: 3,
-              total: 5,
+              total: totalPhases,
               message
             });
           }
@@ -164,14 +165,21 @@ export class SearchJobService {
         }
 
         console.log(`[SearchJobService] Found ${contacts.length} contacts for job ${jobId}`);
+        
+        // Phase 3.5: Find emails for contacts if searchType is 'emails'
+        if (job.searchType === 'emails' && contacts.length > 0) {
+          console.log(`[SearchJobService] Starting email enrichment for ${contacts.length} contacts`);
+          await this.enrichContactsWithEmails(job, contacts, savedCompanies, totalPhases);
+        }
       }
 
       // Phase 4: Deduct credits if applicable
+      const creditPhase = job.searchType === 'emails' ? 5 : 4;
       if (job.source !== 'cron' && savedCompanies.length > 0) {
         await this.updateJobProgress(job.id, {
           phase: 'Processing credits',
-          completed: 4,
-          total: 5,
+          completed: creditPhase,
+          total: totalPhases,
           message: 'Updating account credits'
         });
 
@@ -187,10 +195,11 @@ export class SearchJobService {
       }
 
       // Phase 5: Mark job as completed
+      const completedPhase = job.searchType === 'emails' ? 6 : 5;
       await this.updateJobProgress(job.id, {
         phase: 'Completed',
-        completed: 5,
-        total: 5,
+        completed: completedPhase,
+        total: totalPhases,
         message: 'Search completed successfully'
       });
 
@@ -545,6 +554,158 @@ export class SearchJobService {
       
       throw error;
     }
+  }
+
+  /**
+   * Enrich contacts with emails using waterfall approach
+   * This uses the exact same logic as the frontend "Find Key Emails" button
+   */
+  private static async enrichContactsWithEmails(
+    job: SearchJob, 
+    contacts: any[], 
+    companies: any[],
+    totalPhases: number
+  ): Promise<void> {
+    const { processBatchWithProgress } = await import('../utils/batch-processing');
+    
+    let emailsFoundCount = 0;
+    let totalProcessed = 0;
+    
+    console.log(`[SearchJobService] Starting email enrichment for ${contacts.length} contacts`);
+    
+    // Process contacts in batches of 5 for efficiency
+    const results = await processBatchWithProgress(
+      contacts,
+      async (contact, index) => {
+        const company = companies.find(c => c.id === contact.companyId);
+        if (!company) {
+          console.warn(`[SearchJobService] Company not found for contact ${contact.name}`);
+          return false;
+        }
+        
+        const emailFound = await this.waterfallEmailSearch(contact, company, job.userId);
+        if (emailFound) {
+          emailsFoundCount++;
+          // Update the contact object in place so results include emails
+          const updatedContact = await storage.getContact(contact.id, job.userId);
+          if (updatedContact && updatedContact.email) {
+            contact.email = updatedContact.email;
+          }
+        }
+        return emailFound;
+      },
+      {
+        batchSize: 5,
+        onProgress: async (completed, total) => {
+          totalProcessed = completed;
+          await this.updateJobProgress(job.id, {
+            phase: 'Finding emails',
+            completed: 4,
+            total: totalPhases,
+            message: `Finding emails: ${completed}/${total} contacts (${emailsFoundCount} emails found)`
+          });
+        }
+      }
+    );
+    
+    console.log(`[SearchJobService] Email enrichment complete: ${emailsFoundCount}/${contacts.length} emails found`);
+  }
+
+  /**
+   * Try to find email for a single contact using waterfall approach
+   * Apollo -> Perplexity -> Hunter (exact same as frontend)
+   */
+  private static async waterfallEmailSearch(
+    contact: any, 
+    company: any, 
+    userId: number
+  ): Promise<boolean> {
+    // Skip if already has email
+    if (contact.email && contact.email.includes('@')) {
+      console.log(`[SearchJobService] Contact ${contact.name} already has email: ${contact.email}`);
+      return false;
+    }
+    
+    let emailFound = false;
+    let source = '';
+    
+    // 1. Try Apollo first
+    const apolloApiKey = process.env.APOLLO_API_KEY;
+    if (apolloApiKey && !emailFound) {
+      try {
+        console.log(`[SearchJobService] Trying Apollo for ${contact.name}`);
+        const { searchApolloDirect } = await import('../providers/apollo');
+        const result = await searchApolloDirect(contact, company, apolloApiKey);
+        if (result.success && result.contact.email) {
+          await storage.updateContact(contact.id, { 
+            email: result.contact.email,
+            role: result.contact.role || contact.role,
+            completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
+            lastValidated: new Date()
+          });
+          emailFound = true;
+          source = 'apollo';
+          console.log(`[SearchJobService] Found email via Apollo: ${result.contact.email}`);
+        }
+      } catch (error) {
+        console.log(`[SearchJobService] Apollo search failed for ${contact.name}:`, error);
+      }
+    }
+    
+    // 2. Try Perplexity if no email yet
+    if (!emailFound) {
+      try {
+        console.log(`[SearchJobService] Trying Perplexity for ${contact.name}`);
+        const { searchContactDetails } = await import('../enrichment/contact-details');
+        const details = await searchContactDetails(contact.name, company.name);
+        if (details.email) {
+          await storage.updateContact(contact.id, { 
+            email: details.email,
+            completedSearches: [...(contact.completedSearches || []), 'contact_enrichment'],
+            lastValidated: new Date()
+          });
+          emailFound = true;
+          source = 'perplexity';
+          console.log(`[SearchJobService] Found email via Perplexity: ${details.email}`);
+        }
+      } catch (error) {
+        console.log(`[SearchJobService] Perplexity search failed for ${contact.name}:`, error);
+      }
+    }
+    
+    // 3. Try Hunter as fallback
+    const hunterApiKey = process.env.HUNTER_API_KEY;
+    if (hunterApiKey && !emailFound) {
+      try {
+        console.log(`[SearchJobService] Trying Hunter for ${contact.name}`);
+        const { searchHunterDirect } = await import('../providers/hunter');
+        const result = await searchHunterDirect(contact, company, hunterApiKey);
+        if (result.success && result.contact.email) {
+          await storage.updateContact(contact.id, { 
+            email: result.contact.email,
+            role: result.contact.role || contact.role,
+            completedSearches: [...(contact.completedSearches || []), 'hunter_search'],
+            lastValidated: new Date()
+          });
+          emailFound = true;
+          source = 'hunter';
+          console.log(`[SearchJobService] Found email via Hunter: ${result.contact.email}`);
+        }
+      } catch (error) {
+        console.log(`[SearchJobService] Hunter search failed for ${contact.name}:`, error);
+      }
+    }
+    
+    // Mark as comprehensive search completed even if no email found
+    if (!emailFound) {
+      await storage.updateContact(contact.id, {
+        completedSearches: [...(contact.completedSearches || []), 'comprehensive_search'],
+        lastValidated: new Date()
+      });
+      console.log(`[SearchJobService] No email found for ${contact.name} after trying all providers`);
+    }
+    
+    return emailFound;
   }
 
   /**
