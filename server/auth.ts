@@ -546,68 +546,133 @@ export function setupAuth(app: Express) {
         hasFirebaseUid: !!firebaseUid,
         selectedPlan,
         planSource,
-        joinWaitlist
+        joinWaitlist,
+        timestamp: new Date().toISOString()
       });
 
       if (!email) {
+        console.error('[/api/google-auth] Missing email in request body');
         return res.status(400).json({ error: "Email is required" });
       }
 
       // Try to find user by email
-      let user = await storage.getUserByEmail(email);
+      console.log(`[/api/google-auth] Looking up user by email: ${email.split('@')[0]}@...`);
+      let user = null;
+      
+      try {
+        user = await storage.getUserByEmail(email);
+        if (user) {
+          console.log(`[/api/google-auth] Found existing user: id=${user.id}`);
+        } else {
+          console.log(`[/api/google-auth] No existing user found for email`);
+        }
+      } catch (lookupError) {
+        console.error('[/api/google-auth] Error looking up user by email:', {
+          error: lookupError instanceof Error ? lookupError.message : lookupError,
+          stack: lookupError instanceof Error ? lookupError.stack : undefined
+        });
+        return res.status(500).json({ 
+          error: "Database error while looking up user",
+          details: lookupError instanceof Error ? lookupError.message : "Unknown database error"
+        });
+      }
 
       if (!user) {
         // Create new user if doesn't exist
+        console.log(`[/api/google-auth] Creating new user for: ${email.split('@')[0]}@...`);
         try {
           user = await storage.createUser({
             email,
             username: username || email.split('@')[0],
             password: '',  // Not used for Google auth
           });
-          console.log('Created new user:', { id: user.id, email: email.split('@')[0] + '@...' });
+          console.log(`[/api/google-auth] Successfully created new user: id=${user.id}`);
         } catch (createError) {
-          console.error('Failed to create user:', createError);
-          return res.status(500).json({ error: "Failed to create user account" });
+          console.error('[/api/google-auth] Failed to create user:', {
+            error: createError instanceof Error ? createError.message : createError,
+            stack: createError instanceof Error ? createError.stack : undefined,
+            email: email.split('@')[0] + '@...'
+          });
+          return res.status(500).json({ 
+            error: "Failed to create user account",
+            details: createError instanceof Error ? createError.message : "Unknown error"
+          });
         }
       }
 
       // Optional: Store Firebase UID mapping for fast lookup
       if (firebaseUid) {
+        console.log(`[/api/google-auth] Attempting to store Firebase UID mapping for user ${user.id}`);
         try {
           await TokenService.storeFirebaseUidMapping(firebaseUid, user.id);
+          console.log(`[/api/google-auth] Successfully stored Firebase UID mapping`);
         } catch (tokenError) {
-          console.error('Failed to store Firebase UID mapping:', tokenError);
-          // Don't fail the authentication if mapping storage fails
+          console.error('[/api/google-auth] Failed to store Firebase UID mapping (non-critical):', {
+            error: tokenError instanceof Error ? tokenError.message : tokenError,
+            stack: tokenError instanceof Error ? tokenError.stack : undefined,
+            userId: user.id
+          });
+          // Don't fail the authentication if mapping storage fails - this is optional
         }
       }
 
       // Handle plan selection from pricing page
       if (selectedPlan && planSource === 'pricing_page') {
+        console.log(`[/api/google-auth] Processing plan selection: ${selectedPlan}`);
         try {
           const { CreditService } = await import("./features/billing/credits/service");
           
           if (selectedPlan === 'ugly-duckling') {
             // User selected The Duckling plan - redirect to Stripe checkout after auth
-            console.log(`User ${user.id} selected The Duckling plan from pricing page`);
+            console.log(`[/api/google-auth] User ${user.id} selected The Duckling plan from pricing page`);
             // The frontend will handle Stripe checkout redirection
           } else if (selectedPlan === 'duckin-awesome' && joinWaitlist) {
             // User selected Mama Duck plan - add to waitlist
-            console.log(`User ${user.id} joined Mama Duck waitlist from pricing page`);
+            console.log(`[/api/google-auth] User ${user.id} joined Mama Duck waitlist from pricing page`);
             // TODO: Implement waitlist logic
           }
-        } catch (error) {
-          console.error('Error handling plan selection:', error);
+        } catch (planError) {
+          console.error('[/api/google-auth] Error handling plan selection (non-critical):', {
+            error: planError instanceof Error ? planError.message : planError,
+            stack: planError instanceof Error ? planError.stack : undefined,
+            userId: user.id,
+            selectedPlan
+          });
           // Don't fail authentication if plan handling fails
         }
       }
 
+      // Create session for the user
+      console.log(`[/api/google-auth] Creating session for user ${user.id}`);
       req.login(user, (err) => {
-        if (err) return next(err);
+        if (err) {
+          console.error('[/api/google-auth] Failed to create session:', {
+            error: err instanceof Error ? err.message : err,
+            stack: err instanceof Error ? err.stack : undefined,
+            userId: user.id
+          });
+          return res.status(500).json({ 
+            error: "Failed to create user session",
+            details: err instanceof Error ? err.message : "Session creation failed"
+          });
+        }
+        console.log(`[/api/google-auth] Successfully authenticated user ${user.id}`);
         res.json(user);
       });
     } catch (err) {
-      console.error('Google auth endpoint error:', err);
-      res.status(500).json({ error: "Authentication failed" });
+      console.error('[/api/google-auth] Unexpected error in authentication flow:', {
+        error: err instanceof Error ? err.message : err,
+        stack: err instanceof Error ? err.stack : undefined,
+        body: {
+          hasEmail: !!req.body.email,
+          hasUsername: !!req.body.username,
+          hasFirebaseUid: !!req.body.firebaseUid
+        }
+      });
+      res.status(500).json({ 
+        error: "Authentication failed",
+        details: err instanceof Error ? err.message : "Unexpected error during authentication"
+      });
     }
   });
 }
