@@ -92,6 +92,14 @@ export class SearchJobService {
         return;
       }
       
+      // Handle bulk email search (Find Key Emails button)
+      const isBulkEmailSearch = job.searchType === 'emails' && (job.metadata as any)?.companyIds;
+      if (isBulkEmailSearch) {
+        // Bulk email search: Use existing companies and enrich with emails
+        await this.executeBulkEmailSearch(job, jobId);
+        return;
+      }
+      
       // Handle single email search
       if (job.searchType === 'email-single') {
         await this.executeEmailSearch(job, jobId);
@@ -403,6 +411,124 @@ export class SearchJobService {
           completed: 0,
           total: 1,
           message: error instanceof Error ? error.message : 'Email search failed'
+        }
+      });
+      
+      throw error;
+    }
+  }
+  
+  /**
+   * Execute bulk email search for existing companies and contacts
+   * Used by "Find Key Emails" button to enrich existing contacts with emails
+   */
+  private static async executeBulkEmailSearch(job: SearchJob, jobId: string): Promise<void> {
+    try {
+      console.log(`[SearchJobService] Executing bulk email search for job ${jobId}`);
+      
+      // Get company IDs from metadata
+      const companyIds = (job.metadata as any)?.companyIds || [];
+      if (companyIds.length === 0) {
+        throw new Error('No company IDs provided for bulk email search');
+      }
+      
+      // Phase 1: Load companies
+      await this.updateJobProgress(job.id, {
+        phase: 'Loading companies',
+        completed: 1,
+        total: 5,
+        message: `Loading ${companyIds.length} companies`
+      });
+      
+      const companies = await Promise.all(
+        companyIds.map((id: number) => storage.getCompany(id, job.userId))
+      );
+      const validCompanies = companies.filter(c => c);
+      
+      if (validCompanies.length === 0) {
+        throw new Error('No valid companies found');
+      }
+      
+      // Phase 2: Load contacts for all companies
+      await this.updateJobProgress(job.id, {
+        phase: 'Loading contacts',
+        completed: 2,
+        total: 5,
+        message: `Loading contacts for ${validCompanies.length} companies`
+      });
+      
+      const allContacts: any[] = [];
+      for (const company of validCompanies) {
+        const contacts = await storage.listContactsByCompany(company.id, job.userId);
+        allContacts.push(...contacts);
+      }
+      
+      console.log(`[SearchJobService] Found ${allContacts.length} contacts to enrich`);
+      
+      // Phase 3: Enrich contacts with emails
+      await this.updateJobProgress(job.id, {
+        phase: 'Finding emails',
+        completed: 3,
+        total: 5,
+        message: `Enriching ${allContacts.length} contacts with emails`
+      });
+      
+      await this.enrichContactsWithEmails(job, allContacts, validCompanies, 5);
+      
+      // Phase 4: Deduct credits
+      await this.updateJobProgress(job.id, {
+        phase: 'Processing credits',
+        completed: 4,
+        total: 5,
+        message: 'Updating account credits'
+      });
+      
+      await CreditService.deductCredits(job.userId, 'email_search', true);
+      
+      // Phase 5: Complete
+      await this.updateJobProgress(job.id, {
+        phase: 'Completed',
+        completed: 5,
+        total: 5,
+        message: 'Email search completed successfully'
+      });
+      
+      // Prepare results with enriched contacts
+      const results = {
+        companies: validCompanies.map(company => ({
+          ...company,
+          contacts: allContacts.filter(c => c.companyId === company.id)
+        })),
+        contacts: allContacts,
+        searchType: 'bulk-email',
+        metadata: {
+          companiesSearched: validCompanies.length,
+          contactsEnriched: allContacts.length,
+          emailsFound: allContacts.filter(c => c.email).length
+        }
+      };
+      
+      await storage.updateSearchJob(job.id, {
+        status: 'completed',
+        completedAt: new Date(),
+        results: results,
+        resultCount: allContacts.filter(c => c.email).length
+      });
+      
+      console.log(`[SearchJobService] Completed bulk email search job ${jobId}: ${results.metadata.emailsFound} emails found`);
+      
+    } catch (error) {
+      console.error(`[SearchJobService] Error in bulk email search:`, error);
+      
+      await storage.updateSearchJob(job.id, {
+        status: 'failed',
+        error: error instanceof Error ? error.message : String(error),
+        completedAt: new Date(),
+        progress: {
+          phase: 'Error',
+          completed: 0,
+          total: 1,
+          message: error instanceof Error ? error.message : 'Bulk email search failed'
         }
       });
       
