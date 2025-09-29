@@ -9,6 +9,7 @@ import { CreditService } from "../features/billing/credits/service";
 import { SearchType } from "../features/billing/credits/types";
 import { SessionManager } from "./sessions";
 import { getUserId } from "../utils/auth";
+import { sseManager } from "./services/sse-manager";
 import rateLimit from "express-rate-limit";
 import type { 
   QuickSearchRequest, 
@@ -292,5 +293,30 @@ export function registerCompanyRoutes(app: Express, requireAuth: any) {
         message: error instanceof Error ? error.message : "An unexpected error occurred"
       });
     }
+  });
+
+  // SSE endpoint for real-time job updates
+  app.get("/api/search-jobs/:jobId/stream", async (req: Request, res: Response) => {
+    const jobId = req.params.jobId;
+    
+    console.log(`[SSE] Client connected for job ${jobId}`);
+    
+    // Add the connection to SSE manager
+    sseManager.addConnection(jobId, res);
+    
+    // Keep connection alive with periodic heartbeat
+    const heartbeatInterval = setInterval(() => {
+      try {
+        res.write(':heartbeat\n\n');
+      } catch (error) {
+        clearInterval(heartbeatInterval);
+      }
+    }, 30000); // Send heartbeat every 30 seconds
+    
+    // Clean up on disconnect
+    req.on('close', () => {
+      console.log(`[SSE] Client disconnected for job ${jobId}`);
+      clearInterval(heartbeatInterval);
+    });
   });
 }
