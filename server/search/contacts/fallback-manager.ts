@@ -16,7 +16,7 @@ export interface ContactThresholds {
 
 export class SmartFallbackManager {
   private static readonly CONTACT_THRESHOLDS: ContactThresholds = {
-    MINIMUM: 2,    // Trigger fallback if below this (per company)
+    MINIMUM: 3,    // Trigger fallback if below this (per company)
     OPTIMAL: 5,    // Target number of contacts per company
     MAXIMUM: 10    // Stop additional searches if above this (per company)
   };
@@ -38,7 +38,7 @@ export class SmartFallbackManager {
     
     let reasoning = `Found ${contactCount} contacts (${qualityContacts.length} high-quality)`;
     
-    // Simplified fallback logic: Only trigger if < 2 contacts per company
+    // Simplified fallback logic: Only trigger if < 3 contacts per company
     if (contactCount < this.CONTACT_THRESHOLDS.MINIMUM) {
       // Only add ONE fallback search, prioritized by most likely to yield results
       if (!originalConfig.enableCoreLeadership) {
