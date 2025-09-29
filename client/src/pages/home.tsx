@@ -1973,18 +1973,50 @@ export default function Home() {
       
 
       
-      // Call backend orchestration endpoint with session ID
-      const response = await apiRequest("POST", "/api/companies/find-all-emails", {
-        companyIds,
-        searchConfig: {},
-        sessionId: currentSessionId
+      // Create a job for email search instead of calling find-all-emails
+      const response = await apiRequest("POST", "/api/search-jobs", {
+        query: `email-search-bulk`,
+        searchType: 'emails',
+        metadata: {
+          companyIds,
+          sessionId: currentSessionId,
+          isBulkEmailSearch: true
+        },
+        priority: 0
       });
       
       if (!response.ok) {
-        throw new Error(`Backend orchestration failed: ${response.status}`);
+        throw new Error(`Job creation failed: ${response.status}`);
       }
       
-      const data = await response.json();
+      const { jobId } = await response.json();
+      
+      // Poll the job status until completion
+      let jobCompleted = false;
+      let pollAttempts = 0;
+      const maxPollAttempts = 60; // 2 minutes maximum
+      let data: any = { summary: { emailsFound: 0, contactsProcessed: 0, companiesProcessed: companyIds.length } };
+      
+      while (!jobCompleted && pollAttempts < maxPollAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+        
+        const statusResponse = await fetch(`/api/search-jobs/${jobId}`);
+        const jobData = await statusResponse.json();
+        
+        if (jobData.status === 'completed') {
+          jobCompleted = true;
+          data = jobData.results || data;
+          console.log(`Backend orchestration completed:`, data);
+        } else if (jobData.status === 'failed') {
+          throw new Error(`Email search job failed: ${jobData.error}`);
+        }
+        
+        pollAttempts++;
+      }
+      
+      if (!jobCompleted) {
+        throw new Error('Email search job timed out');
+      }
       
       console.log(`Backend orchestration completed:`, data.summary);
       
