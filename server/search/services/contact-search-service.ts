@@ -182,7 +182,7 @@ export class ContactSearchService {
 
     console.log(`[ContactSearchService] Starting batch contact search for ${companies.length} companies`);
     console.log(`[ContactSearchService] Config:`, searchConfig);
-    console.log(`[ContactSearchService] Processing in batches of 3 companies concurrently`);
+    console.log(`[ContactSearchService] Processing in batches of 4 companies concurrently`);
 
     // Report initial progress
     if (onProgress) {
@@ -213,7 +213,7 @@ export class ContactSearchService {
         
         return result;
       },
-      3 // Process 3 companies concurrently (3x speedup per optimization report)
+      4 // Process 4 companies concurrently (testing for performance improvement)
     );
 
     console.log(`[ContactSearchService] Completed batch search: ${results.length} companies processed`);
