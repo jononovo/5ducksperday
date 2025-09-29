@@ -174,7 +174,7 @@ export class ContactSearchService {
 
     console.log(`[ContactSearchService] Starting batch contact search for ${companies.length} companies`);
     console.log(`[ContactSearchService] Config:`, searchConfig);
-    console.log(`[ContactSearchService] Processing in batches of 5 companies concurrently`);
+    console.log(`[ContactSearchService] Processing in batches of 15 companies concurrently`);
 
     // Report initial progress
     if (onProgress) {
@@ -184,7 +184,7 @@ export class ContactSearchService {
       );
     }
 
-    // Process companies in parallel batches of 5
+    // Process companies in parallel batches of 15 (matching email search for better performance)
     const results = await processBatch(
       companies,
       async (company) => {
@@ -205,7 +205,7 @@ export class ContactSearchService {
         
         return result;
       },
-      5 // Process 5 companies concurrently
+      15 // Process 15 companies concurrently (increased from 5 for better parallelism)
     );
 
     console.log(`[ContactSearchService] Completed batch search: ${results.length} companies processed`);
