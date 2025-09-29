@@ -584,6 +584,40 @@ export class SearchJobService {
   }
 
   /**
+   * Get jobs stuck in processing state for too long
+   */
+  static async getStuckProcessingJobs(): Promise<SearchJob[]> {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    return storage.getStuckProcessingJobs(fiveMinutesAgo);
+  }
+
+  /**
+   * Reset a stuck job back to pending state
+   */
+  static async resetJobToPending(jobId: string): Promise<void> {
+    const job = await storage.getSearchJobByJobId(jobId);
+    
+    if (!job) {
+      throw new Error(`Job ${jobId} not found`);
+    }
+    
+    if (job.status !== 'processing') {
+      console.log(`[SearchJobService] Job ${jobId} is not stuck (status: ${job.status})`);
+      return;
+    }
+    
+    // Reset to pending with incremented retry count
+    await storage.updateSearchJob(job.id, {
+      status: 'pending',
+      startedAt: null,
+      progress: null,
+      retryCount: (job.retryCount || 0) + 1
+    });
+    
+    console.log(`[SearchJobService] Reset stuck job ${jobId} to pending (retry ${(job.retryCount || 0) + 1})`);
+  }
+
+  /**
    * Cancel a pending job
    */
   static async cancelJob(jobId: string): Promise<void> {

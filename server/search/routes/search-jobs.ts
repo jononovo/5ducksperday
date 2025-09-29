@@ -90,24 +90,43 @@ export function registerSearchJobRoutes(app: Express) {
 
       console.log(`[SearchJobRoutes] Created job ${jobId} for user ${userId}`);
 
-      // PRODUCTION FIX: Always execute immediately in production if job processor isn't running
-      const isProduction = process.env.NODE_ENV === 'production' || process.env.APP_ENV === 'production';
-      const shouldExecuteImmediately = executeImmediately || isProduction;
-      
-      // Option to execute immediately (synchronous) or let processor handle it (async)
-      if (shouldExecuteImmediately) {
-        console.log(`[SearchJobRoutes] Executing job ${jobId} immediately (production=${isProduction})`);
-        try {
-          await SearchJobService.executeJob(jobId);
-        } catch (error) {
-          console.error(`[SearchJobRoutes] Error executing job ${jobId}:`, error);
-          // Job will be retried by processor if it failed
+      // Execute immediately if requested (for testing/urgent needs)
+      if (executeImmediately) {
+        console.log(`[SearchJobRoutes] Executing job ${jobId} immediately as requested`);
+        // Use setTimeout to avoid blocking the HTTP response
+        setTimeout(async () => {
+          try {
+            await SearchJobService.executeJob(jobId);
+          } catch (error) {
+            console.error(`[SearchJobRoutes] Error executing job ${jobId}:`, error);
+            // Job will be retried by processor if available
+          }
+        }, 0);
+      } else {
+        // Ensure job processor is running
+        if (!jobProcessor.isRunning()) {
+          console.warn('[SearchJobRoutes] Job processor not running, attempting to start it');
+          try {
+            jobProcessor.startProcessing();
+            console.log('[SearchJobRoutes] Job processor started successfully');
+          } catch (error) {
+            console.error('[SearchJobRoutes] Failed to start job processor:', error);
+            // Fallback: execute in background to avoid blocking
+            setTimeout(async () => {
+              try {
+                console.log(`[SearchJobRoutes] Fallback: executing job ${jobId} in background`);
+                await SearchJobService.executeJob(jobId);
+              } catch (err) {
+                console.error(`[SearchJobRoutes] Fallback execution failed for ${jobId}:`, err);
+              }
+            }, 100);
+          }
         }
       }
 
       res.json({ 
         jobId,
-        message: shouldExecuteImmediately ? "Job created and processing" : "Job created and queued for processing"
+        message: executeImmediately ? "Job created and will process shortly" : "Job created and queued for processing"
       });
 
     } catch (error) {
