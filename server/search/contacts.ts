@@ -235,6 +235,7 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
   });
 
   // Enrich contacts for a specific company (find decision makers)
+  // REDIRECTED TO JOB QUEUE FOR RESILIENT PROCESSING
   app.post("/api/companies/:companyId/enrich-contacts", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req);
@@ -246,62 +247,63 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
         return;
       }
 
-      console.log('Starting contact discovery for company:', company.name);
-
-      // Direct call to find contacts - it has its own industry detection
-      const newContacts = await findKeyDecisionMakers(company.name, {
-        minimumConfidence: 30,
-        maxContacts: 10,
-        includeMiddleManagement: true,
-        prioritizeLeadership: true,
-        useMultipleQueries: true,
-        // Enable all search types for enrichment
+      console.log('[ContactEnrich] Redirecting contact discovery to job queue for company:', company.name);
+      
+      // Get contact search config from request or use defaults
+      const contactSearchConfig = req.body.contactSearchConfig || {
         enableCoreLeadership: true,
         enableDepartmentHeads: true,
         enableMiddleManagement: true,
         enableCustomSearch: false,
         customSearchTarget: ""
+      };
+
+      // Import SearchJobService to create a job
+      const { SearchJobService } = await import('./services/search-job-service');
+      
+      // Create a contact-only search job for this specific company
+      const jobId = await SearchJobService.createJob({
+        userId,
+        query: `Contact search for ${company.name}`,
+        searchType: 'contact-only',
+        contactSearchConfig,
+        source: 'frontend',
+        metadata: {
+          companyIds: [companyId],
+          companyName: company.name,
+          deleteExisting: true  // Flag to delete existing contacts before adding new ones
+        },
+        priority: 5  // Higher priority for single company enrichment
       });
-      console.log('Contact finder results:', newContacts);
 
-      // Remove existing contacts
-      await storage.deleteContactsByCompany(companyId, userId);
-
-      // Create new contacts with only the essential fields and minimum confidence score
-      const validContacts = newContacts.filter((contact: any) => 
-        contact.name && 
-        contact.name !== "Unknown" && 
-        (!contact.probability || contact.probability >= 40) // Filter out contacts with low confidence/probability scores
-      );
-      console.log('Valid contacts for enrichment:', validContacts);
-
-      const createdContacts = await Promise.all(
-        validContacts.map(async (contact: any) => {
-          console.log(`Processing contact enrichment for: ${contact.name}`);
-
-          return storage.createContact({
-            companyId,
-            name: contact.name!,
-            role: contact.role || null,
-            email: contact.email || null,
-            probability: contact.probability || null,
-            linkedinUrl: null,
-            twitterHandle: null,
-            phoneNumber: null,
-            department: null,
-            location: null,
-            verificationSource: 'Decision-maker Analysis',
-            nameConfidenceScore: null,
-            userFeedbackScore: null,
-            feedbackCount: null
-          });
-        })
-      );
-
-      console.log('Created contacts:', createdContacts);
-      res.json(createdContacts);
+      console.log(`[ContactEnrich] Created job ${jobId} for company ${company.name}`);
+      
+      // Execute immediately for synchronous-like behavior
+      try {
+        await SearchJobService.executeJob(jobId);
+        
+        // Get the completed job
+        const completedJob = await SearchJobService.getJob(jobId, userId);
+        
+        // Extract contacts from job results
+        const jobResults = completedJob?.results as any;
+        const contacts = jobResults?.contacts || [];
+        console.log(`[ContactEnrich] Job ${jobId} completed with ${contacts.length} contacts`);
+        
+        res.json(contacts);
+      } catch (error) {
+        console.error(`[ContactEnrich] Error executing job ${jobId}:`, error);
+        
+        // Return partial results or error
+        res.status(500).json({
+          message: "Contact enrichment job created but processing failed. Check job status.",
+          jobId,
+          error: error instanceof Error ? error.message : "Processing error"
+        });
+      }
+      
     } catch (error) {
-      console.error('Contact enrichment error:', error);
+      console.error('[ContactEnrich] Error creating contact enrichment job:', error);
       res.status(500).json({
         message: error instanceof Error ? error.message : "Failed to enrich contacts"
       });

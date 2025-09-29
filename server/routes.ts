@@ -35,6 +35,8 @@ import { registerListsRoutes } from "./features/lists";
 import { registerEmailTemplatesRoutes } from "./email/email-templates";
 import { registerSearchRoutes, SessionManager } from "./search";
 import { registerSitemapRoutes } from "./features/sitemap";
+import { registerSearchJobRoutes } from "./search/routes/search-jobs";
+import { jobProcessor } from "./search/services/job-processor";
 
 // Import inactive module registration functions
 
@@ -89,6 +91,13 @@ function calculateImprovement(results: any[]): string | null {
 export function registerRoutes(app: Express) {
   // Register modular search routes (sessions and companies)
   registerSearchRoutes(app, requireAuth);
+  
+  // Register search job routes for persistent search execution
+  registerSearchJobRoutes(app);
+  
+  // Start the background job processor
+  jobProcessor.startProcessing();
+  console.log("[Server] Background job processor started");
   
   // Register campaigns module (includes sender profiles, customer profiles, and products)
   registerCampaignsRoutes(app, requireAuth);

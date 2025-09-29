@@ -139,6 +139,36 @@ export const userEmailPreferences = pgTable("user_email_preferences", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+// Search jobs for persistent and resilient search execution
+export const searchJobs = pgTable("search_jobs", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  jobId: uuid("job_id").notNull().unique().defaultRandom(),
+  query: text("query").notNull(),
+  searchType: text("search_type").notNull().default('companies'), // 'companies', 'contacts', 'emails', 'contact-only', 'email-single'
+  contactSearchConfig: jsonb("contact_search_config").default('{}'),
+  status: text("status").notNull().default('pending'), // 'pending', 'processing', 'completed', 'failed'
+  progress: jsonb("progress").default('{}'), // {phase, completed, total, message}
+  results: jsonb("results"), // companies and contacts data
+  resultCount: integer("result_count").default(0),
+  error: text("error"),
+  source: text("source").notNull().default('frontend'), // 'frontend', 'api', 'cron'
+  metadata: jsonb("metadata").default('{}'), // additional data like sessionId, listId
+  priority: integer("priority").default(0), // higher priority jobs get processed first
+  retryCount: integer("retry_count").default(0),
+  maxRetries: integer("max_retries").default(3),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  startedAt: timestamp("started_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }) // for automatic cleanup
+}, (table) => [
+  index('idx_search_jobs_user_id').on(table.userId),
+  index('idx_search_jobs_job_id').on(table.jobId),
+  index('idx_search_jobs_status').on(table.status),
+  index('idx_search_jobs_created_at').on(table.createdAt),
+  index('idx_search_jobs_priority_status').on(table.priority, table.status)
+]);
+
 
 
 // N8N Workflow tables have been removed
@@ -221,6 +251,16 @@ const userEmailPreferencesSchema = z.object({
   successCount: z.number().default(0),
   failureCount: z.number().default(0),
   lastUsedMethod: z.string().optional()
+});
+
+const searchJobSchema = z.object({
+  query: z.string().min(1, "Search query is required"),
+  searchType: z.enum(['companies', 'contacts', 'emails', 'email-single']).default('companies'),
+  contactSearchConfig: z.record(z.any()).optional(),
+  source: z.enum(['frontend', 'api', 'cron']).default('frontend'),
+  metadata: z.record(z.any()).optional(),
+  priority: z.number().int().min(0).default(0),
+  maxRetries: z.number().int().min(0).default(3)
 });
 
 
@@ -828,6 +868,10 @@ export type StrategicProfile = typeof strategicProfiles.$inferSelect;
 export type InsertStrategicProfile = z.infer<typeof insertStrategicProfileSchema>;
 export type OnboardingChat = typeof onboardingChats.$inferSelect;
 export type InsertOnboardingChat = z.infer<typeof insertOnboardingChatSchema>;
+
+// Search jobs types
+export type SearchJob = typeof searchJobs.$inferSelect;
+export type InsertSearchJob = z.infer<typeof searchJobSchema> & { userId: number };
 
 // Backward compatibility exports
 export const targetCustomerProfiles = customerProfiles;

@@ -1,7 +1,7 @@
 import { 
   userPreferences, lists, companies, contacts, emailTemplates, users,
   strategicProfiles, userEmailPreferences,
-  senderProfiles, customerProfiles,
+  senderProfiles, customerProfiles, searchJobs,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type List, type InsertList,
@@ -11,7 +11,8 @@ import {
   type User, type InsertUser,
   type StrategicProfile, type InsertStrategicProfile,
   type SenderProfile, type InsertSenderProfile,
-  type TargetCustomerProfile, type InsertTargetCustomerProfile
+  type TargetCustomerProfile, type InsertTargetCustomerProfile,
+  type SearchJob, type InsertSearchJob
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, sql, desc } from "drizzle-orm";
@@ -92,6 +93,14 @@ export interface IStorage {
   createCustomerProfile(data: InsertTargetCustomerProfile): Promise<TargetCustomerProfile>;
   updateCustomerProfile(id: number, data: Partial<TargetCustomerProfile>): Promise<TargetCustomerProfile>;
   deleteCustomerProfile(id: number, userId: number): Promise<void>;
+
+  // Search Jobs
+  createSearchJob(data: InsertSearchJob): Promise<SearchJob>;
+  getSearchJobByJobId(jobId: string): Promise<SearchJob | undefined>;
+  updateSearchJob(id: number, data: Partial<SearchJob>): Promise<SearchJob | undefined>;
+  listSearchJobs(userId: number, limit?: number): Promise<SearchJob[]>;
+  getPendingSearchJobs(limit?: number): Promise<SearchJob[]>;
+  deleteOldSearchJobs(cutoffDate: Date): Promise<number>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -546,6 +555,64 @@ class DatabaseStorage implements IStorage {
   async deleteCustomerProfile(id: number, userId: number): Promise<void> {
     await db.delete(customerProfiles)
       .where(and(eq(customerProfiles.id, id), eq(customerProfiles.userId, userId)));
+  }
+
+  // Search Jobs
+  async createSearchJob(data: InsertSearchJob): Promise<SearchJob> {
+    const [job] = await db.insert(searchJobs).values(data as any).returning();
+    return job;
+  }
+
+  async getSearchJobByJobId(jobId: string): Promise<SearchJob | undefined> {
+    const [job] = await db.select()
+      .from(searchJobs)
+      .where(eq(searchJobs.jobId, jobId));
+    return job;
+  }
+
+  async updateSearchJob(id: number, data: Partial<SearchJob>): Promise<SearchJob | undefined> {
+    const [updated] = await db.update(searchJobs)
+      .set(data)
+      .where(eq(searchJobs.id, id))
+      .returning();
+    return updated;
+  }
+
+  async listSearchJobs(userId: number, limit: number = 10): Promise<SearchJob[]> {
+    return db.select()
+      .from(searchJobs)
+      .where(eq(searchJobs.userId, userId))
+      .orderBy(desc(searchJobs.createdAt))
+      .limit(limit);
+  }
+
+  async getPendingSearchJobs(limit: number = 1): Promise<SearchJob[]> {
+    return db.select()
+      .from(searchJobs)
+      .where(eq(searchJobs.status, 'pending'))
+      .orderBy(desc(searchJobs.priority), searchJobs.createdAt)
+      .limit(limit);
+  }
+
+  async getFailedJobsForRetry(): Promise<SearchJob[]> {
+    return db.select()
+      .from(searchJobs)
+      .where(and(
+        eq(searchJobs.status, 'failed'),
+        sql`${searchJobs.retryCount} < ${searchJobs.maxRetries}`
+      ))
+      .orderBy(desc(searchJobs.priority), searchJobs.createdAt);
+  }
+
+  async deleteOldSearchJobs(cutoffDate: Date): Promise<number> {
+    const result = await db.delete(searchJobs)
+      .where(and(
+        eq(searchJobs.status, 'completed'),
+        sql`${searchJobs.completedAt} < ${cutoffDate}`
+      ));
+    
+    // Return the number of deleted rows
+    return (result as any).rowCount || 0;
   }
 }
 
