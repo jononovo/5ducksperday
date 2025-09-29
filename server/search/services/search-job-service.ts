@@ -697,8 +697,8 @@ export class SearchJobService {
   }
 
   /**
-   * Enrich contacts with emails using waterfall approach
-   * This uses the exact same logic as the frontend "Find Key Emails" button
+   * Enrich contacts with emails using parallel tiered approach
+   * Processes contacts by company for optimized parallel searching
    */
   private static async enrichContactsWithEmails(
     job: SearchJob, 
@@ -706,49 +706,85 @@ export class SearchJobService {
     companies: any[],
     totalPhases: number
   ): Promise<void> {
-    const { processBatchWithProgress } = await import('../utils/batch-processing');
+    const { parallelTieredEmailSearch } = await import('./parallel-email-search');
     
-    let emailsFoundCount = 0;
-    let totalProcessed = 0;
+    let totalEmailsFound = 0;
+    let companiesProcessed = 0;
+    const totalCompanies = companies.length;
     
-    console.log(`[SearchJobService] Starting email enrichment for ${contacts.length} contacts`);
+    console.log(`[SearchJobService] Starting parallel email enrichment for ${contacts.length} contacts across ${totalCompanies} companies`);
     
-    // Process contacts in batches of 5 for efficiency
-    const results = await processBatchWithProgress(
-      contacts,
-      async (contact, index) => {
-        const company = companies.find(c => c.id === contact.companyId);
-        if (!company) {
-          console.warn(`[SearchJobService] Company not found for contact ${contact.name}`);
-          return false;
+    // Group contacts by company
+    const contactsByCompany = new Map<number, any[]>();
+    for (const contact of contacts) {
+      const companyContacts = contactsByCompany.get(contact.companyId) || [];
+      companyContacts.push(contact);
+      contactsByCompany.set(contact.companyId, companyContacts);
+    }
+    
+    // Process companies in larger batches for true parallel execution
+    const COMPANY_BATCH_SIZE = 15; // Increased from 5 for better parallelism
+    const companyBatches: any[][] = [];
+    
+    for (let i = 0; i < companies.length; i += COMPANY_BATCH_SIZE) {
+      companyBatches.push(companies.slice(i, i + COMPANY_BATCH_SIZE));
+    }
+    
+    // Process each batch of companies
+    for (const companyBatch of companyBatches) {
+      const batchStartTime = Date.now();
+      
+      // Run parallel searches for all companies in this batch
+      const batchPromises = companyBatch.map(async (company) => {
+        const companyContacts = contactsByCompany.get(company.id) || [];
+        if (companyContacts.length === 0) {
+          console.log(`[SearchJobService] No contacts for company ${company.name}, skipping`);
+          return { company: company.name, emailsFound: 0 };
         }
         
-        const emailFound = await this.waterfallEmailSearch(contact, company, job.userId);
-        if (emailFound) {
-          emailsFoundCount++;
-          // Update the contact object in place so results include emails
-          const updatedContact = await storage.getContact(contact.id, job.userId);
-          if (updatedContact && updatedContact.email) {
-            contact.email = updatedContact.email;
+        // Execute parallel tiered search for this company's contacts
+        const results = await parallelTieredEmailSearch(companyContacts, company, job.userId);
+        
+        // Update contact objects in place with found emails
+        for (const result of results) {
+          if (result.email) {
+            const contact = companyContacts.find(c => c.id === result.contactId);
+            if (contact) {
+              contact.email = result.email;
+            }
           }
         }
-        return emailFound;
-      },
-      {
-        batchSize: 5,
-        onProgress: async (completed, total) => {
-          totalProcessed = completed;
-          await this.updateJobProgress(job.id, {
-            phase: 'Finding emails',
-            completed: 4,
-            total: totalPhases,
-            message: `Finding emails: ${completed}/${total} contacts (${emailsFoundCount} emails found)`
-          });
+        
+        const emailsFound = results.filter(r => r.email && r.source !== 'existing').length;
+        return { company: company.name, emailsFound };
+      });
+      
+      // Wait for all companies in this batch to complete
+      const batchResults = await Promise.allSettled(batchPromises);
+      
+      // Process results and update progress
+      for (const result of batchResults) {
+        companiesProcessed++;
+        if (result.status === 'fulfilled') {
+          totalEmailsFound += result.value.emailsFound;
+          console.log(`[SearchJobService] Company "${result.value.company}": ${result.value.emailsFound} emails found`);
+        } else {
+          console.error(`[SearchJobService] Company batch error:`, result.reason);
         }
       }
-    );
+      
+      // Update progress after each batch
+      await this.updateJobProgress(job.id, {
+        phase: 'Finding emails',
+        completed: 4,
+        total: totalPhases,
+        message: `Finding emails: ${companiesProcessed}/${totalCompanies} companies processed (${totalEmailsFound} emails found)`
+      });
+      
+      console.log(`[SearchJobService] Batch complete in ${Date.now() - batchStartTime}ms - ${companiesProcessed}/${totalCompanies} companies processed`);
+    }
     
-    console.log(`[SearchJobService] Email enrichment complete: ${emailsFoundCount}/${contacts.length} emails found`);
+    console.log(`[SearchJobService] Email enrichment complete: ${totalEmailsFound} emails found across ${totalCompanies} companies`);
   }
 
   /**

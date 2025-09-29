@@ -127,7 +127,7 @@ export async function apolloSearch(req: Request, res: Response) {
         Object.assign(updateData, emailUpdates);
       }
 
-      const updatedContact = await storage.updateContact(contactId, updateData, userId);
+      const updatedContact = await storage.updateContact(contactId, updateData);
       console.log('Apollo search completed:', {
         success: true,
         emailFound: !!updatedContact?.email,
@@ -142,7 +142,7 @@ export async function apolloSearch(req: Request, res: Response) {
         lastValidated: new Date()
       };
       
-      const updatedContact = await storage.updateContact(contactId, updateData, userId);
+      const updatedContact = await storage.updateContact(contactId, updateData);
       res.status(422).json({
         message: searchResult.metadata.error || "No email found",
         contact: updatedContact,
