@@ -572,7 +572,7 @@ export default function PromptEditor({
         if (!isPollingRef.current) return;
         
         try {
-          const response = await fetch(`/api/search-jobs/${data.jobId}`);
+          const response = await apiRequest("GET", `/api/search-jobs/${data.jobId}`);
           if (response.ok) {
             const jobData = await response.json();
             

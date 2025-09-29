@@ -2000,7 +2000,7 @@ export default function Home() {
       while (!jobCompleted && pollAttempts < maxPollAttempts) {
         await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
         
-        const statusResponse = await fetch(`/api/search-jobs/${jobId}`);
+        const statusResponse = await apiRequest("GET", `/api/search-jobs/${jobId}`);
         const jobData = await statusResponse.json();
         
         if (jobData.status === 'completed') {
