@@ -2018,7 +2018,14 @@ export default function Home() {
         throw new Error('Email search job timed out');
       }
       
-      console.log(`Backend orchestration completed:`, data.summary);
+      // Use metadata from backend response (not summary)
+      const emailData = data.metadata || data.summary || { 
+        emailsFound: 0, 
+        contactsEnriched: 0, 
+        companiesSearched: 0 
+      };
+      
+      console.log(`Backend orchestration completed with metadata:`, emailData);
       
       // Mark email search as completed in session
       if (currentSessionId) {
@@ -2028,61 +2035,101 @@ export default function Home() {
       // Mark backend as completed
       setProgressState(prev => ({ ...prev, backendCompleted: true }));
       
-      // Store the backend email count and source breakdown for summary display
-      setLastEmailSearchCount(data.summary.emailsFound);
-      setLastSourceBreakdown(data.summary.sourceBreakdown);
+      // Store the backend email count for summary display
+      setLastEmailSearchCount(emailData.emailsFound || 0);
+      // Note: sourceBreakdown not available in new format, set empty
+      setLastSourceBreakdown(emailData.sourceBreakdown || {});
       
-      // Complete search immediately - show credit deduction if available
-      const creditInfo = data.summary.creditsCharged ? ` (${data.summary.creditsCharged} credits used)` : '';
+      // Complete search immediately - show results
+      const contactCount = emailData.contactsEnriched || emailData.contactsProcessed || 0;
+      const companyCount = emailData.companiesSearched || emailData.companiesProcessed || 0;
+      
       toast({
         title: "Email Search Complete",
-        description: `Found ${data.summary.emailsFound} emails for ${data.summary.contactsProcessed} contacts across ${data.summary.companiesProcessed} companies${creditInfo}`,
+        description: `Found ${emailData.emailsFound || 0} emails for ${contactCount} contacts across ${companyCount} companies`,
       });
       
-      // Refresh credits display if credits were charged
-      if (data.summary.creditsCharged) {
-        await queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
-      }
+      // Refresh credits display (credits are always deducted on email search)
+      await queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
       
-      // COMPLETE RELOAD APPROACH: Clear localStorage and reload fresh from database
-      console.log('EMAIL SEARCH COMPLETE: Starting complete database reload to ensure email persistence');
+      // UPDATE APPROACH: Directly merge email data into current results
+      console.log('EMAIL SEARCH COMPLETE: Updating results with email data');
       
-      // Step 1: Clear all localStorage to prevent stale data
-      localStorage.removeItem('searchState');
-      sessionStorage.removeItem('searchState');
-      localStorage.removeItem('lastEmailSearchTimestamp');
-      localStorage.removeItem('emailPreservationData');
-      console.log('Cleared all localStorage state');
-      
-      // Step 2: Wait for backend to fully complete (ensure database consistency)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Step 3: Fetch completely fresh data from database with sorting
-      console.log('Fetching complete fresh data from database...');
-      const freshResults = await refreshAndUpdateResults(
-        currentResults,
-        {
-          currentQuery: currentQuery,
-          currentListId: currentListId,
-          lastExecutedQuery: lastExecutedQuery
-        },
-        {
-          forceFresh: true,  // Force fresh data
-          additionalStateFields: {
-            emailSearchCompleted: true,
-            emailSearchTimestamp: Date.now()
+      // Step 1: Merge the email data directly into current results
+      if (data.companies && Array.isArray(data.companies)) {
+        console.log(`Merging emails from ${data.companies.length} companies into current results`);
+        
+        // Create a map of company ID to updated contacts with emails
+        const companyContactMap = new Map<number, any[]>();
+        data.companies.forEach((company: any) => {
+          if (company.contacts && Array.isArray(company.contacts)) {
+            companyContactMap.set(company.id, company.contacts);
           }
-        }
-      );
-      
-      // Step 4: Count emails to verify success
-      const emailCount = freshResults.reduce((total, company) => 
-        total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
-      );
-      
-      console.log(`Database reload completed with ${emailCount} emails found`);
-      console.log(`Complete state saved to localStorage with ${emailCount} emails`);
-      console.log('Email search completion: Database reload approach successful');
+        });
+        
+        // Update the current results with the new email data
+        const updatedResults = currentResults.map(company => {
+          const updatedContacts = companyContactMap.get(company.id);
+          if (updatedContacts) {
+            // Merge the contacts - update existing ones with emails
+            const mergedContacts = company.contacts?.map(contact => {
+              const updatedContact = updatedContacts.find(c => c.id === contact.id);
+              return updatedContact ? { ...contact, ...updatedContact } : contact;
+            }) || updatedContacts;
+            
+            return { ...company, contacts: mergedContacts };
+          }
+          return company;
+        });
+        
+        // Step 2: Update state with the merged results
+        setCurrentResults(updatedResults);
+        
+        // Step 3: Save to localStorage
+        const searchState = {
+          query: currentQuery,
+          resultsCount: updatedResults.length,
+          listId: currentListId,
+          companies: updatedResults.map(c => ({ id: c.id, name: c.name })),
+          timestamp: Date.now(),
+          emailSearchCompleted: true
+        };
+        localStorage.setItem('searchState', JSON.stringify(searchState));
+        
+        // Step 4: Count emails to verify success
+        const emailCount = updatedResults.reduce((total, company) => 
+          total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
+        );
+        
+        console.log(`Email merge completed with ${emailCount} emails found`);
+        console.log('Email search completion: Direct merge approach successful');
+      } else {
+        // Fallback to database refresh if data format is unexpected
+        console.log('EMAIL SEARCH COMPLETE: Falling back to database reload');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const freshResults = await refreshAndUpdateResults(
+          currentResults,
+          {
+            currentQuery: currentQuery,
+            currentListId: currentListId,
+            lastExecutedQuery: lastExecutedQuery
+          },
+          {
+            forceFresh: true,
+            additionalStateFields: {
+              emailSearchCompleted: true,
+              emailSearchTimestamp: Date.now()
+            }
+          }
+        );
+        
+        const emailCount = freshResults.reduce((total, company) => 
+          total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
+        );
+        
+        console.log(`Database reload completed with ${emailCount} emails found`);
+      }
       
       // Smart list update logic - only update existing lists, never create during email search
       if (currentListId) {
