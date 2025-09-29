@@ -707,6 +707,7 @@ export class SearchJobService {
     totalPhases: number
   ): Promise<void> {
     const { parallelTieredEmailSearch } = await import('./parallel-email-search');
+    const { processBatch } = await import('../utils/batch-processor');
     
     let totalEmailsFound = 0;
     let companiesProcessed = 0;
@@ -724,18 +725,11 @@ export class SearchJobService {
     
     // Process companies in larger batches for true parallel execution
     const COMPANY_BATCH_SIZE = 15; // Increased from 5 for better parallelism
-    const companyBatches: any[][] = [];
     
-    for (let i = 0; i < companies.length; i += COMPANY_BATCH_SIZE) {
-      companyBatches.push(companies.slice(i, i + COMPANY_BATCH_SIZE));
-    }
-    
-    // Process each batch of companies
-    for (const companyBatch of companyBatches) {
-      const batchStartTime = Date.now();
-      
-      // Run parallel searches for all companies in this batch
-      const batchPromises = companyBatch.map(async (company) => {
+    // Use the batch processor utility
+    const batchResults = await processBatch(
+      companies,
+      async (company) => {
         const companyContacts = contactsByCompany.get(company.id) || [];
         if (companyContacts.length === 0) {
           console.log(`[SearchJobService] No contacts for company ${company.name}, skipping`);
@@ -757,31 +751,32 @@ export class SearchJobService {
         
         const emailsFound = results.filter(r => r.email && r.source !== 'existing').length;
         return { company: company.name, emailsFound };
-      });
+      },
+      COMPANY_BATCH_SIZE
+    );
+    
+    // Process results and track progress
+    for (let i = 0; i < batchResults.length; i++) {
+      const result = batchResults[i];
+      companiesProcessed++;
       
-      // Wait for all companies in this batch to complete
-      const batchResults = await Promise.allSettled(batchPromises);
-      
-      // Process results and update progress
-      for (const result of batchResults) {
-        companiesProcessed++;
-        if (result.status === 'fulfilled') {
-          totalEmailsFound += result.value.emailsFound;
-          console.log(`[SearchJobService] Company "${result.value.company}": ${result.value.emailsFound} emails found`);
-        } else {
-          console.error(`[SearchJobService] Company batch error:`, result.reason);
-        }
+      if (result.status === 'fulfilled') {
+        totalEmailsFound += result.value.emailsFound;
+        console.log(`[SearchJobService] Company "${result.value.company}": ${result.value.emailsFound} emails found`);
+      } else {
+        console.error(`[SearchJobService] Company batch error:`, result.reason);
       }
       
-      // Update progress after each batch
-      await this.updateJobProgress(job.id, {
-        phase: 'Finding emails',
-        completed: 4,
-        total: totalPhases,
-        message: `Finding emails: ${companiesProcessed}/${totalCompanies} companies processed (${totalEmailsFound} emails found)`
-      });
-      
-      console.log(`[SearchJobService] Batch complete in ${Date.now() - batchStartTime}ms - ${companiesProcessed}/${totalCompanies} companies processed`);
+      // Update progress periodically (every COMPANY_BATCH_SIZE companies or at the end)
+      if (companiesProcessed % COMPANY_BATCH_SIZE === 0 || companiesProcessed === totalCompanies) {
+        await this.updateJobProgress(job.id, {
+          phase: 'Finding emails',
+          completed: 4,
+          total: totalPhases,
+          message: `Finding emails: ${companiesProcessed}/${totalCompanies} companies processed (${totalEmailsFound} emails found)`
+        });
+        console.log(`[SearchJobService] Batch complete - ${companiesProcessed}/${totalCompanies} companies processed`);
+      }
     }
     
     console.log(`[SearchJobService] Email enrichment complete: ${totalEmailsFound} emails found across ${totalCompanies} companies`);
