@@ -604,20 +604,24 @@ export async function findKeyDecisionMakers(
       let fallbackType = '';
       
       // Run ONE fallback search - different from the primary
-      if (primarySearchType !== 'Core Leadership' && primarySearchType !== 'Core Leadership (default)' && !mergedOptions.enableCoreLeadership) {
+      // Priority: Core Leadership → Department Heads → Middle Management
+      if (primarySearchType !== 'Core Leadership' && primarySearchType !== 'Core Leadership (default)') {
         fallbackType = 'Core Leadership';
         console.log(`FALLBACK SEARCH: Core Leadership at ${companyName}`);
         fallbackContacts = await searchCoreLeadership(companyName, industry);
-      } else if (primarySearchType !== 'Department Heads' && !mergedOptions.enableDepartmentHeads) {
+      } else if (primarySearchType !== 'Department Heads') {
         fallbackType = 'Department Heads';
         console.log(`FALLBACK SEARCH: Department Heads at ${companyName}`);
         fallbackContacts = await searchDepartmentHeads(companyName, industry);
-      } else if (primarySearchType !== 'Middle Management' && !mergedOptions.enableMiddleManagement) {
+      } else if (primarySearchType !== 'Middle Management') {
         fallbackType = 'Middle Management';
         console.log(`FALLBACK SEARCH: Middle Management at ${companyName}`);
         fallbackContacts = await searchMiddleManagement(companyName, industry);
       } else {
-        console.log(`No additional fallback available - all search types already attempted`);
+        // Last resort: If we've tried everything else, try a broader search
+        console.log(`All standard fallbacks exhausted - attempting broad search`);
+        fallbackType = 'Broad Leadership Search';
+        fallbackContacts = await searchCoreLeadership(companyName, industry);
       }
       
       if (fallbackContacts.length > 0) {
