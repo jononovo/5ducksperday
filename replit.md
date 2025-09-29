@@ -1,162 +1,39 @@
 # 5Ducks B2B Prospecting Application
 
 ## Overview
-5Ducks is a comprehensive B2B lead generation and prospecting platform designed to help small businesses acquire new leads daily. It offers AI-powered company search, contact discovery, email enrichment, and campaign management, streamlining the prospecting process and providing a competitive edge in B2B sales. The project's vision is to deliver a unified, efficient solution for lead generation.
+5Ducks is a comprehensive B2B lead generation and prospecting platform. Its purpose is to help small businesses acquire new leads daily by offering AI-powered company search, contact discovery, email enrichment, and campaign management. The platform aims to streamline the prospecting process, provide a competitive edge in B2B sales, and deliver a unified, efficient solution for lead generation.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 Mobile UI preference: Compact, space-efficient design with seamless header-to-content transitions.
 
 ## System Architecture
-The application features a **React SPA frontend** built with TypeScript, Vite, Tailwind CSS (using shadcn/ui), TanStack Query, React Router, and Radix UI. The **backend** is developed with Express.js and TypeScript.
+The application features a **React SPA frontend** (TypeScript, Vite, Tailwind CSS with shadcn/ui, TanStack Query, React Router, Radix UI) and an **Express.js backend** (TypeScript).
 
-**Key Architectural Decisions:**
-- **Modular API Design:** Distinct route handlers and business logic ensure maintainability. Feature-based folder structure with self-contained modules (e.g., server/features/gmail-integration, server/features/health-monitoring, server/features/lists, server/features/email-templates, server/search, server/user-account-settings, server/email-replies, server/campaigns) following the email-content-generation pattern. Major search modularization completed (Sep 2025) reducing routes.ts from 3521 to 2843 lines (19% reduction, 678 lines extracted). Additional modularization (Sep 2025) extracted user-account-settings (~200 lines), email-replies (~140 lines), and campaigns (~100 lines) modules, further reducing routes.ts to ~2400 lines (32% total reduction from original). Final phase completed (Sep 2025) removing duplicate find-all-emails endpoint (339 lines) and moving GET contacts endpoint, reducing routes.ts to 2313 lines (34% total reduction).
-- **Search Module Architecture:** Comprehensive search functionality extracted into dedicated module (Sep 2025) with organized submodules: server/search/sessions (session management), server/search/companies (company search), server/search/contacts (contact discovery), server/search/providers (email providers: Hunter, Apollo, AeroLeads), server/search/orchestrator (multi-stage email enrichment). Major cleanup completed (Sep 2025) removing 40+ defunct files (~15,000 lines) from old search-logic folders, consolidating all active code into well-organized server/search structure with 50 files totaling 408KB. This improves maintainability, testability, and code organization.
-- **Hybrid Storage Architecture:** PostgreSQL is used for structured data (users, lists, companies, contacts, email_templates, strategic_profiles), while Replit Key-Value Database handles volatile data (credits, Gmail tokens, subscriptions, notifications).
-- **Multi-stage Search Process:** Orchestrates company discovery, contact extraction, and email enrichment using AI and external APIs.
-- **Intelligent Contact Discovery:** Includes confidence scoring and email validation through multiple providers.
-- **Resilient Search System:** Database-persistent job queue with background processing (Sep 2025). Search jobs stored in PostgreSQL `search_jobs` table, processed asynchronously every 5 seconds by background job processor. Supports programmatic triggering from cron jobs, webhooks, and APIs. Includes automatic retry logic (3 attempts), priority-based execution, and complete job lifecycle tracking. Survives page refreshes and server restarts.
-- **Unified Contact Search Architecture:** Single source of truth for all contact searches (Sep 2025). ContactSearchService centralizes all contact discovery logic, making it stateless and reusable. All contact searches (browser-initiated and programmatic) go through the job queue system. Supports contact-only searches for existing companies, batch processing, and incremental results. Endpoint `/api/companies/:companyId/enrich-contacts` now redirects to job-based system for resilience.
+**UI/UX Decisions:**
+- Consistent design language with Tailwind CSS and shadcn/ui, prioritizing blues, grays, and greens.
+- Emphasis on clear navigation, responsive design, and intuitive user flows.
+
+**Technical Implementations & Feature Specifications:**
+- **Modular API Design:** Feature-based folder structure for maintainability (e.g., `server/features/gmail-integration`, `server/search`, `server/campaigns`).
+- **Search Module Architecture:** Dedicated `server/search` module with submodules for sessions, companies, contacts, providers (Hunter, Apollo, AeroLeads), orchestrator, and services.
+- **Progressive Search System:** Optimized chained search (Companies → Contacts → Emails) with immediate company display, 7-company concurrent processing, smart contact fallback (if < 3 contacts found), and optimized API calls.
+- **Resilient Search System:** Database-persistent job queue (`search_jobs` table) with asynchronous background processing, automatic retry logic, and priority-based execution.
+- **Unified Contact Search:** All contact searches (browser-initiated and programmatic) go through a job queue system via `ContactSearchService`.
+- **List Management Optimization:** Debounced updates (1.5s delay) and concurrency control prevent duplicate list creation and ensure consistent updates.
 - **Template-based Email Campaigns:** Supports personalization and multi-provider email integration.
-- **Authentication:** Firebase Authentication secures user login, complemented by session-based authentication via Passport.js.
-- **UI/UX:** A consistent design language, utilizing Tailwind CSS and shadcn/ui, ensures a professional and unified aesthetic. Emphasis is placed on clear navigation, responsive design, and intuitive user flows. Color schemes prioritize blues, grays, and greens.
-- **Search Orchestration:** An enhanced search orchestrator includes retry logic, error handling, and real-time status tracking via webhooks.
-- **Email Generation System:** Features a sophisticated system providing 42 unique email combinations derived from 7 distinct tones and 6 offer strategies (Hormozi, Formula, 1-on-1, Guarantee, Shiny, Study). Email content generation is modularized for maintainability.
-- **Email Content Handling:** Preserves paragraph spacing from AI responses in generated emails.
-- **Product Offers Generation:** Complete 6-strategy offer generation system with proper routing fix (Aug 2025) that bypasses boundary API for "Generate product offers" input. Includes clean UX flow that hides generation button after successful completion.
-- **Product Offers Display:** Product offers now display in the Implementation tab of strategy detail pages, positioned below Daily Search Queries with matching design patterns and copy functionality (Aug 2025).
-- **Search State Persistence:** Enhanced search input field synchronization to properly maintain query consistency between typed input and executed searches across page refreshes, ensuring displayed results always match the shown query (Sep 2025).
-- **Lists Management Module:** Extracted lists functionality into self-contained module (Sep 2025), reducing 198 lines from main routes.ts. Module handles list CRUD operations, company associations, and demo list visibility for unauthenticated users.
-- **Email Templates Module:** Extracted email templates functionality into self-contained module (Sep 2025), reducing 122 lines from main routes.ts. Module handles template CRUD operations, default template inheritance (userId=1 templates visible to all users), and integrates with QuickTemplates component and Outreach page.
-- **User Account Settings Module:** Extracted user account management functionality into self-contained module (Sep 2025), reducing ~200 lines from main routes.ts. Module handles user profile management, preferences, email preferences, notifications system, and Easter egg features.
-- **Email Replies Module:** Extracted email reply tracking functionality into self-contained module (Sep 2025), reducing ~140 lines from main routes.ts. Module handles reply tracking, sentiment analysis, and follow-up management (currently inactive feature).
-- **Rate Limiting Implementation:** Session-based rate limiting for demo users (Sep 2025) limiting to 10 searches per hour per session. Prevents external API abuse while maintaining demo experience. Applied to both quick-search and full search endpoints, with friendly message encouraging signup when limit reached.
-- **Streak Page & Campaign System:** Central hub for daily outreach campaigns (Jan 2025). Features 4-component campaign builder: Me (sender profile), My Product (strategic profile), Ideal Customer (customer profile), and Play button (activation). Includes adaptive banner system that switches from intro guidance to live metrics when campaign activates. Components support toggle selection (click to select/deselect). Automated daily batch generation creates 5 personalized prospects with AI-generated emails. Streak tracking motivates consistent outreach with visual progress indicators and achievement milestones.
+- **Authentication:** Firebase Authentication for user login, complemented by Passport.js for session management.
+- **Email Generation System:** Sophisticated system offering 42 unique email combinations from 7 tones and 6 offer strategies, preserving paragraph spacing from AI responses.
+- **Product Offers:** Generation system with 6 strategies, proper routing, and display in the Implementation tab with copy functionality.
+- **Search State Persistence:** Synchronized search input fields maintain query consistency across page refreshes.
+- **Modularization:** Key functionalities like Lists, Email Templates, User Account Settings, and Email Replies are extracted into self-contained modules.
+- **Rate Limiting:** Session-based rate limiting for demo users (10 searches/hour) on quick-search and full search endpoints.
+- **Streak Page & Campaign System:** Central hub for daily outreach campaigns with a 4-component campaign builder, adaptive banners, and automated daily batch generation of personalized prospects with AI-generated emails.
+- **AI Testing Configuration:** `ENABLE_AI_TEST_MODE` secret allows authentication bypass for AI agents, operating as demo user ID 1 for testing purposes.
 
-## Modular Architecture Pattern
-
-New features should follow symmetric frontend-backend structure:
-- Backend: `server/features/[feature-name]/` or `server/[feature-name]/`
-- Frontend: `client/src/features/[feature-name]/`
-
-Each module should be self-contained with:
-- Clear public API via index.ts
-- Internal organization (components, services, hooks, etc.)
-- Shared types between frontend and backend
-- Feature-specific documentation
-
-### Backend Module Structure
-```
-server/features/[feature-name]/
-  ├── index.ts        # Public exports
-  ├── routes.ts       # Express route definitions
-  ├── handlers/       # Route handlers
-  ├── services/       # Business logic
-  └── types.ts        # TypeScript interfaces
-```
-
-### Frontend Module Structure
-```
-client/src/features/[feature-name]/
-  ├── index.ts        # Public exports
-  ├── components/     # React components
-  ├── hooks/          # Custom React hooks
-  ├── services/       # API calls
-  ├── context/        # React context providers
-  └── types.ts        # TypeScript interfaces
-```
-
-### Reference Implementation: Strategy-Chat Module (September 2025)
-The `strategy-chat` module serves as the reference implementation for symmetric frontend modularization. This module encapsulates the React onboarding chat system, previously spread across monolithic components.
-
-**Implementation Progress:**
-- **Phase 1 (Complete):** Module structure created, TypeScript types extracted into dedicated files (chat.types.ts, form.types.ts, strategy.types.ts)
-- **Phase 2 (Complete):** API services extracted (chat.service.ts, strategic-profiles.service.ts, email-templates.service.ts)
-- **Phase 3 (Complete):** Custom hooks created (useStrategyChat, useProductManager, useEmailGeneration)
-- **Phase 4 (Pending):** Component breakdown of 1,274-line StrategyOverlay component
-- **Phase 5 (Pending):** Utilities and helpers extraction
-
-**Architecture Benefits:**
-- Reduced coupling between components
-- Clearer separation of concerns (UI, business logic, API calls)
-- Improved testability through isolated service modules
-- Better code reusability via custom hooks
-- Consistent module pattern for future features
-
-## AI Testing Configuration
-
-### Automated Browser Testing
-This application supports Replit AI agent browser testing through an authentication bypass mechanism.
-
-**How It Works:**
-- When `ENABLE_AI_TEST_MODE=true` is set, all authentication is bypassed
-- The AI agent operates as demo user (ID: 1)
-- All pages and API endpoints are accessible without login
-- Database operations use the demo user account
-
-**Secret Configuration:**
-- The `ENABLE_AI_TEST_MODE` secret is stored in **Replit Account Secrets**
-- This secret is shared across all Replit instances linked to your account
-- **IMPORTANT FOR AI AGENTS:** When working on a clone of this project, you must:
-  1. Open the Secrets tab (🔒 icon) in your Replit workspace
-  2. Go to "Account Secrets" tab
-  3. Find `ENABLE_AI_TEST_MODE` and click the checkbox to link it to your app
-  4. Or add it as a new app-specific secret with value `true` or `false`
-
-**To Toggle Test Mode:**
-- **Enable:** Set `ENABLE_AI_TEST_MODE` to `true` in Secrets vault
-- **Disable:** Set `ENABLE_AI_TEST_MODE` to `false` in Secrets vault
-- The app will automatically restart when secrets are updated
-
-**Current Status:** ✅ ENABLED
-- Environment: Development
-- Test User ID: 1
-- Email: demo@5ducks.ai
-
-**For AI Testing Agents:**
-1. No authentication required - proceed directly to any page
-2. All API calls automatically authenticated
-3. Use the application as a logged-in user
-4. Data operations safe (demo user sandbox)
-
-**Security:**
-- Only works in development environment
-- Cannot be enabled in production
-- Logs all test mode access for audit
-- To disable: Set `ENABLE_AI_TEST_MODE=false` or remove it
-
-## Critical Development Notes for AI Agents
-
-### Database Access
-- Demo user (ID: 1, email: demo@5ducks.ai) is pre-seeded with sample data
-- Rate limit: 10 searches/hour for demo user (session-based)
-- Database migrations: Use `npm run db:push` (never write manual SQL migrations)
-- Force push if data loss warning: `npm run db:push --force`
-
-### Required Secrets (Must be in Secrets vault)
-- `ENABLE_AI_TEST_MODE`: Authentication bypass (true/false)
-- API keys needed for full functionality:
-  - `OPENAI_API_KEY`: Email generation, company research
-  - `PERPLEXITY_API_KEY`: Company/contact discovery
-  - `HUNTER_API_KEY`: Email finder/verification
-  - `APOLLO_API_KEY`: Professional contacts (optional)
-  - `SENDGRID_API_KEY`: Email sending (optional)
-  - Firebase env vars auto-configured in client
-
-### Key Endpoints & Testing
-- `/outreach`: Main app page - test email generation/search here
-- `/api/test-mode-status`: Verify AI test mode is active
-- `/api/user`: Should return demo user when test mode enabled
-- `/api/credits`: Check demo user credits (2980 initial balance)
-
-### Common Gotchas
-- Workflows auto-restart after package installation
-- Port 5000 reserved for frontend (bind nothing else)
-- Session store persists 7 days (survives restarts)
-- Firebase auth bypassed in test mode but still initializes
-- Search orchestrator has 3 retry attempts with exponential backoff
-- Email templates with userId=1 are defaults (visible to all users)
+**System Design Choices:**
+- **Hybrid Storage Architecture:** PostgreSQL for structured data (users, lists, companies, contacts, email_templates, strategic_profiles) and Replit Key-Value Database for volatile data (credits, Gmail tokens, subscriptions, notifications).
+- **Modular Architecture Pattern:** New features follow a symmetric frontend-backend structure (`server/features/[feature-name]/` and `client/src/features/[feature-name]/`) with clear public APIs, internal organization, and shared types.
 
 ## External Dependencies
 - **Perplexity API**: Company research and contact discovery.
@@ -164,6 +41,6 @@ This application supports Replit AI agent browser testing through an authenticat
 - **Hunter.io API**: Email finder and verification.
 - **Apollo.io API**: Professional contact database.
 - **Firebase**: Authentication and user management.
-- **Replit Key-value Database**: Primary data storage.
-- **PostgreSQL**: Primary data storage.
+- **Replit Key-Value Database**: Volatile data storage.
+- **PostgreSQL**: Structured data storage.
 - **Google APIs**: Gmail integration.
