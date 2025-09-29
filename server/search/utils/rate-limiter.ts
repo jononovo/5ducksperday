@@ -21,7 +21,7 @@ const rateLimitStates = new Map<string, RateLimitState>();
 
 // Default rate limits per provider (requests per second)
 const DEFAULT_RATE_LIMITS: Record<string, number> = {
-  perplexity: 10,  // 10 requests per second
+  perplexity: 20,  // 20 requests per second (50ms delay)
   hunter: 5,       // 5 requests per second
   apollo: 5,       // 5 requests per second
   openai: 20,      // 20 requests per second
