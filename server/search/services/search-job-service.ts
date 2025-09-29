@@ -2,6 +2,7 @@ import { storage } from "../../storage";
 import { searchCompanies, discoverCompanies, enrichCompanyDetails } from "../perplexity/company-search";
 import { findKeyDecisionMakers } from "../contacts/finder";
 import { CreditService } from "../../features/billing/credits/service";
+import { sseManager } from "./sse-manager";
 import type { InsertSearchJob, SearchJob } from "@shared/schema";
 import type { ContactSearchConfig } from "../types";
 
@@ -152,6 +153,9 @@ export class SearchJobService {
       
       console.log(`[SearchJobService] Saved ${savedCompanies.length} companies for immediate display`);
       
+      // Send SSE update for discovered companies
+      sseManager.sendCompanyUpdate(jobId, savedCompanies);
+      
       // Phase 3: Parallel enrichment and contact discovery
       if (job.searchType === 'contacts' || job.searchType === 'emails') {
         await this.updateJobProgress(job.id, {
@@ -213,11 +217,18 @@ export class SearchJobService {
         // Process contact results
         if (contactResults && contactResults.length > 0) {
           for (const result of contactResults) {
-            contacts.push(...result.contacts.map((contact: any) => ({
+            const companyContacts = result.contacts.map((contact: any) => ({
               ...contact,
               companyId: result.companyId,  // CRITICAL: Include companyId for filtering
               companyName: result.companyName
-            })));
+            }));
+            contacts.push(...companyContacts);
+            
+            // Send SSE update for each company's contacts
+            const company = savedCompanies.find(c => c.id === result.companyId);
+            if (company) {
+              sseManager.sendContactUpdate(jobId, company, companyContacts);
+            }
           }
           console.log(`[SearchJobService] Found ${contacts.length} contacts`);
         }
@@ -313,6 +324,9 @@ export class SearchJobService {
       });
 
       console.log(`[SearchJobService] Completed job ${jobId} with ${savedCompanies.length} companies and ${contacts.length} contacts`);
+      
+      // Send SSE completion update
+      sseManager.sendCompletionUpdate(jobId, results);
 
     } catch (error) {
       console.error(`[SearchJobService] Error executing job ${jobId}:`, error);
@@ -336,6 +350,9 @@ export class SearchJobService {
 
         if (shouldRetry) {
           console.log(`[SearchJobService] Job ${jobId} will be retried (attempt ${(job.retryCount || 0) + 1}/${job.maxRetries || 3})`);
+        } else {
+          // Send SSE error update only if no more retries
+          sseManager.sendErrorUpdate(jobId, error instanceof Error ? error.message : 'Search failed');
         }
       }
       
