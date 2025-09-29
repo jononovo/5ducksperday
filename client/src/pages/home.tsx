@@ -298,6 +298,8 @@ export default function Home() {
   const isInitializedRef = useRef(false);
   const hasSessionRestoredDataRef = useRef(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const listMutationInProgressRef = useRef(false);
+  const listUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const refreshVersionRef = useRef(0);  // For preventing race conditions in refresh operations
 
   // Helper function to load valid search state with fallback
@@ -655,10 +657,13 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
       setCurrentListId(data.listId); // Track the auto-created list
       setIsSaved(true); // Mark as saved
+      listMutationInProgressRef.current = false; // Reset flag
+      console.log('List created successfully with ID:', data.listId);
       // No toast notification (silent auto-save)
     },
     onError: (error) => {
       console.error("Auto list creation failed:", error);
+      listMutationInProgressRef.current = false; // Reset flag
       // Silent failure - don't show error to user
     },
   });
@@ -704,18 +709,13 @@ export default function Home() {
     onSuccess: (data) => {
       console.log('List update successful:', data);
       queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
-      toast({
-        title: "List Updated",
-        description: "Your search results have been updated.",
-      });
+      listMutationInProgressRef.current = false; // Reset flag
+      // Silent update - no toast for progressive updates
     },
     onError: (error) => {
       console.error('List update failed:', error);
-      toast({
-        title: "Update Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      listMutationInProgressRef.current = false; // Reset flag
+      // Silent failure for progressive updates
     },
   });
 
@@ -975,9 +975,33 @@ export default function Home() {
       setContactReportVisible(true);
     }
     
-    // Auto-create list after search completes with contacts
+    // Auto-create/update list after search completes with contacts
+    // Clear any pending timeout to prevent duplicate calls
+    if (listUpdateTimeoutRef.current) {
+      clearTimeout(listUpdateTimeoutRef.current);
+    }
+    
     if (sortedResults.length > 0) {
-      setTimeout(() => autoCreateListMutation.mutate(), 1000); // Small delay
+      // Debounce list creation/update to prevent duplicate calls during progressive updates
+      listUpdateTimeoutRef.current = setTimeout(() => {
+        // Check if a mutation is already in progress
+        if (listMutationInProgressRef.current) {
+          console.log('List mutation already in progress, skipping duplicate call');
+          return;
+        }
+        
+        if (!currentListId) {
+          // Create new list (only if we don't have one)
+          console.log('Creating new list for search results');
+          listMutationInProgressRef.current = true;
+          autoCreateListMutation.mutate();
+        } else {
+          // Update existing list
+          console.log('Updating existing list:', currentListId);
+          listMutationInProgressRef.current = true;
+          updateListMutation.mutate();
+        }
+      }, 1500); // 1.5 second delay to allow progressive updates to settle
     }
     
     // Keep isFromLandingPage true until email button is clicked
