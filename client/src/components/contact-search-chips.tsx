@@ -76,11 +76,10 @@ function ContactSearchChips({
     }
   }, []);
 
-  // Save config to localStorage and notify parent
+  // Save config to localStorage (parent notification happens in updateConfig)
   useEffect(() => {
     localStorage.setItem('contactSearchConfig', JSON.stringify(config));
-    onConfigChange(config);
-  }, [config, onConfigChange]);
+  }, [config]);
 
   // Cleanup mobile timer on unmount
   useEffect(() => {
@@ -92,7 +91,12 @@ function ContactSearchChips({
   }, []);
 
   const updateConfig = (updates: Partial<ContactSearchConfig>) => {
-    setConfig(prev => ({ ...prev, ...updates }));
+    setConfig(prev => {
+      const newConfig = { ...prev, ...updates };
+      // Notify parent of config change (triggers auto-hide timer)
+      onConfigChange(newConfig);
+      return newConfig;
+    });
   };
 
   // Mobile click handler for expanded/compressed behavior
