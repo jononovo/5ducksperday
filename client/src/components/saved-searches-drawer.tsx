@@ -88,11 +88,9 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
                 onNewSearch();
                 onOpenChange(false);
               }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:bg-gray-100 transition-colors group"
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 transition-all group"
             >
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                <Plus className="h-4 w-4 text-white" />
-              </div>
+              <Plus className="h-5 w-5 font-bold bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent" strokeWidth={3} />
               <span className="text-sm font-medium text-gray-700">New Search</span>
             </button>
           </div>

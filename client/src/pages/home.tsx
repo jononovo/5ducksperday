@@ -1399,11 +1399,6 @@ export default function Home() {
     
     // Close the drawer
     setSavedSearchesDrawerOpen(false);
-    
-    toast({
-      title: "Ready for new search",
-      description: "Start fresh with a new search query",
-    });
   };
 
   //New function added here
