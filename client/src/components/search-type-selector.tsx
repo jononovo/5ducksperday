@@ -27,15 +27,15 @@ const searchTypeConfigs: SearchTypeConfig[] = [
   {
     type: "companies",
     label: "Only Companies",
-    icons: [<Building2 key="company" className="h-3 w-3 md:h-4 md:w-4 lg:h-5 lg:w-5" />],
+    icons: [<Building2 key="company" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />],
     estimatedTime: "~7 secs"
   },
   {
     type: "contacts",
     label: "+ Contacts",
     icons: [
-      <Building2 key="company" className="h-3 w-3 md:h-4 md:w-4 lg:h-5 lg:w-5" />,
-      <Users key="contacts" className="h-3 w-3 md:h-4 md:w-4 lg:h-5 lg:w-5" />
+      <Building2 key="company" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />,
+      <Users key="contacts" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />
     ],
     estimatedTime: "~28 secs"
   },
@@ -43,9 +43,9 @@ const searchTypeConfigs: SearchTypeConfig[] = [
     type: "emails",
     label: "+ Emails",
     icons: [
-      <Building2 key="company" className="h-3 w-3 md:h-4 md:w-4 lg:h-5 lg:w-5" />,
-      <Users key="contacts" className="h-3 w-3 md:h-4 md:w-4 lg:h-5 lg:w-5" />,
-      <Mail key="emails" className="h-3 w-3 md:h-4 md:w-4 lg:h-5 lg:w-5" />
+      <Building2 key="company" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />,
+      <Users key="contacts" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />,
+      <Mail key="emails" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />
     ],
     estimatedTime: "~45 secs"
   }
