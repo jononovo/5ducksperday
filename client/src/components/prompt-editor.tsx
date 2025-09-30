@@ -132,6 +132,9 @@ export default function PromptEditor({
     customSearchTarget2: ""
   });
 
+  // Role selector visibility state
+  const [showRoleSelector, setShowRoleSelector] = useState(false);
+
   // Search type configuration state - initialize with localStorage or default to contacts
   const [searchType, setSearchType] = useState<SearchType>(() => {
     const saved = localStorage.getItem('searchType');
@@ -457,6 +460,11 @@ export default function PromptEditor({
   const handleContactSearchConfigChange = useCallback((config: ContactSearchConfig) => {
     console.log('PromptEditor received config update:', config);
     setContactSearchConfig(config);
+    
+    // Auto-hide role selector 1 second after selection
+    setTimeout(() => {
+      setShowRoleSelector(false);
+    }, 1000);
   }, []);
 
   // Track input changes to update UI accordingly
@@ -950,43 +958,58 @@ export default function PromptEditor({
                 disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
               />
               
-              {/* Active role indicator button */}
+              {/* Active role indicator button - always grayed out */}
               {(() => {
                 // Determine which role is active and display it
                 if (contactSearchConfig.enableCoreLeadership) {
                   return (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 text-sm">
+                    <button
+                      onClick={() => setShowRoleSelector(!showRoleSelector)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm hover:bg-gray-200 transition-colors cursor-pointer"
+                    >
                       <Crown className="h-3.5 w-3.5" />
                       <span className="font-medium">Leadership</span>
-                    </div>
+                    </button>
                   );
                 } else if (contactSearchConfig.enableDepartmentHeads) {
                   return (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-blue-50 text-blue-700 text-sm">
+                    <button
+                      onClick={() => setShowRoleSelector(!showRoleSelector)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm hover:bg-gray-200 transition-colors cursor-pointer"
+                    >
                       <Building className="h-3.5 w-3.5" />
                       <span className="font-medium">Marketing</span>
-                    </div>
+                    </button>
                   );
                 } else if (contactSearchConfig.enableMiddleManagement) {
                   return (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-green-50 text-green-700 text-sm">
+                    <button
+                      onClick={() => setShowRoleSelector(!showRoleSelector)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm hover:bg-gray-200 transition-colors cursor-pointer"
+                    >
                       <Users className="h-3.5 w-3.5" />
                       <span className="font-medium">CTO</span>
-                    </div>
+                    </button>
                   );
                 } else if (contactSearchConfig.enableCustomSearch && contactSearchConfig.customSearchTarget) {
                   return (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-purple-50 text-purple-700 text-sm">
+                    <button
+                      onClick={() => setShowRoleSelector(!showRoleSelector)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm hover:bg-gray-200 transition-colors cursor-pointer"
+                    >
                       <Target className="h-3.5 w-3.5" />
                       <span className="font-medium">{contactSearchConfig.customSearchTarget}</span>
-                    </div>
+                    </button>
                   );
                 } else if (contactSearchConfig.enableCustomSearch2 && contactSearchConfig.customSearchTarget2) {
                   return (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-purple-50 text-purple-700 text-sm">
+                    <button
+                      onClick={() => setShowRoleSelector(!showRoleSelector)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm hover:bg-gray-200 transition-colors cursor-pointer"
+                    >
                       <Target className="h-3.5 w-3.5" />
                       <span className="font-medium">{contactSearchConfig.customSearchTarget2}</span>
-                    </div>
+                    </button>
                   );
                 }
                 return null;
@@ -1025,8 +1048,8 @@ export default function PromptEditor({
           </div>
         </div>
 
-        {/* Mobile layout: Contact chips */}
-        {!hideRoleButtons && (
+        {/* Mobile layout: Contact chips - only shown when showRoleSelector is true */}
+        {!hideRoleButtons && showRoleSelector && (
           <div className="md:hidden">
             <ContactSearchChips
               onConfigChange={handleContactSearchConfigChange}
@@ -1038,8 +1061,8 @@ export default function PromptEditor({
           </div>
         )}
         
-        {/* Desktop Contact Search Chips - positioned below search input */}
-        {!hideRoleButtons && (
+        {/* Desktop Contact Search Chips - positioned below search input, only shown when showRoleSelector is true */}
+        {!hideRoleButtons && showRoleSelector && (
           <div className="hidden md:block">
             <ContactSearchChips
               onConfigChange={handleContactSearchConfigChange}

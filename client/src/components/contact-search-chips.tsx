@@ -140,12 +140,15 @@ function ContactSearchChips({
 
   const toggleCustomSearch = () => {
     if (config.customSearchTarget.trim()) {
-      if (config.enableCustomSearch && !config.enableCustomSearch2) {
+      if (config.enableCustomSearch) {
         // Disable current custom search
         updateConfig({ enableCustomSearch: false });
       } else {
-        // Enable this custom search, disable the other
+        // Enable this custom search, disable all others
         updateConfig({ 
+          enableCoreLeadership: false,
+          enableDepartmentHeads: false,
+          enableMiddleManagement: false,
           enableCustomSearch: true,
           enableCustomSearch2: false
         });
@@ -184,9 +187,11 @@ function ContactSearchChips({
         // Disable current custom search
         updateConfig({ enableCustomSearch2: false });
       } else {
-        // Enable this custom search, disable the other
-        // Don't overwrite saved values - just toggle the enable flags
+        // Enable this custom search, disable all others
         updateConfig({ 
+          enableCoreLeadership: false,
+          enableDepartmentHeads: false,
+          enableMiddleManagement: false,
           enableCustomSearch: false,
           enableCustomSearch2: true
         });
@@ -203,7 +208,13 @@ function ContactSearchChips({
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => handleMobileChipClick(() => updateConfig({ enableCoreLeadership: !config.enableCoreLeadership }))}
+              onClick={() => handleMobileChipClick(() => updateConfig({ 
+                enableCoreLeadership: !config.enableCoreLeadership,
+                enableDepartmentHeads: false,
+                enableMiddleManagement: false,
+                enableCustomSearch: false,
+                enableCustomSearch2: false
+              }))}
               disabled={disabled}
               className={`
                 flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
@@ -241,7 +252,13 @@ function ContactSearchChips({
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => handleMobileChipClick(() => updateConfig({ enableDepartmentHeads: !config.enableDepartmentHeads }))}
+              onClick={() => handleMobileChipClick(() => updateConfig({ 
+                enableCoreLeadership: false,
+                enableDepartmentHeads: !config.enableDepartmentHeads,
+                enableMiddleManagement: false,
+                enableCustomSearch: false,
+                enableCustomSearch2: false
+              }))}
               disabled={disabled}
               className={`
                 flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
@@ -279,7 +296,13 @@ function ContactSearchChips({
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => handleMobileChipClick(() => updateConfig({ enableMiddleManagement: !config.enableMiddleManagement }))}
+              onClick={() => handleMobileChipClick(() => updateConfig({ 
+                enableCoreLeadership: false,
+                enableDepartmentHeads: false,
+                enableMiddleManagement: !config.enableMiddleManagement,
+                enableCustomSearch: false,
+                enableCustomSearch2: false
+              }))}
               disabled={disabled}
               className={`
                 flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200
