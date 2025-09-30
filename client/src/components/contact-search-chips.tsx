@@ -19,6 +19,7 @@ export interface ContactSearchConfig {
 }
 
 interface ContactSearchChipsProps {
+  config?: ContactSearchConfig;
   onConfigChange: (config: ContactSearchConfig) => void;
   disabled?: boolean;
   isSearching?: boolean;
@@ -27,6 +28,7 @@ interface ContactSearchChipsProps {
 }
 
 function ContactSearchChips({ 
+  config: propConfig,
   onConfigChange, 
   disabled = false,
   isSearching = false,
@@ -40,24 +42,17 @@ function ContactSearchChips({
   const [originalCustomTarget, setOriginalCustomTarget] = useState("");
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const mobileExpandTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [config, setConfig] = useState<ContactSearchConfig>({
-    enableCoreLeadership: true,
-    enableDepartmentHeads: false,
-    enableMiddleManagement: false,
-    enableCustomSearch: false,
-    customSearchTarget: "",
-    enableCustomSearch2: false,
-    customSearchTarget2: ""
-  });
-
-  // Load saved config from localStorage
-  useEffect(() => {
+  
+  // Initialize from prop or localStorage
+  const [config, setConfig] = useState<ContactSearchConfig>(() => {
+    if (propConfig) {
+      return propConfig;
+    }
     const savedConfig = localStorage.getItem('contactSearchConfig');
     if (savedConfig) {
       try {
         const parsed = JSON.parse(savedConfig);
-        // Ensure all properties exist for backward compatibility
-        const fullConfig = {
+        return {
           enableCoreLeadership: true,
           enableDepartmentHeads: false,
           enableMiddleManagement: false,
@@ -67,14 +62,29 @@ function ContactSearchChips({
           customSearchTarget2: "",
           ...parsed
         };
-        setConfig(fullConfig);
-        setCustomInputValue(fullConfig.customSearchTarget || "");
-        setCustomInput2Value(fullConfig.customSearchTarget2 || "");
       } catch (error) {
         console.error('Error loading saved contact search config:', error);
       }
     }
-  }, []);
+    return {
+      enableCoreLeadership: true,
+      enableDepartmentHeads: false,
+      enableMiddleManagement: false,
+      enableCustomSearch: false,
+      customSearchTarget: "",
+      enableCustomSearch2: false,
+      customSearchTarget2: ""
+    };
+  });
+
+  // Sync with prop config when it changes
+  useEffect(() => {
+    if (propConfig) {
+      setConfig(propConfig);
+      setCustomInputValue(propConfig.customSearchTarget || "");
+      setCustomInput2Value(propConfig.customSearchTarget2 || "");
+    }
+  }, [propConfig]);
 
   // Save config to localStorage (parent notification happens in updateConfig)
   useEffect(() => {

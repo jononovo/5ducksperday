@@ -1094,6 +1094,7 @@ export default function PromptEditor({
         {!hideRoleButtons && showRoleSelector && (
           <div className="md:hidden">
             <ContactSearchChips
+              config={contactSearchConfig}
               onConfigChange={handleContactSearchConfigChange}
               disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
               isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
@@ -1107,6 +1108,7 @@ export default function PromptEditor({
         {!hideRoleButtons && showRoleSelector && (
           <div className="hidden md:block">
             <ContactSearchChips
+              config={contactSearchConfig}
               onConfigChange={handleContactSearchConfigChange}
               disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
               isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
