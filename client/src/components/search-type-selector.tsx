@@ -3,7 +3,6 @@ import { Building2, Users, Mail, ChevronDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -83,9 +82,6 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Select Your Search Type</DialogTitle>
-            <DialogDescription>
-              Choose what data to include in your search. More comprehensive searches take longer but provide richer results.
-            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-3">
