@@ -134,6 +134,7 @@ export default function PromptEditor({
 
   // Role selector visibility state
   const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const roleAutoHideTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Search type configuration state - initialize with localStorage or default to contacts
   const [searchType, setSearchType] = useState<SearchType>(() => {
@@ -373,6 +374,9 @@ export default function PromptEditor({
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
+      if (roleAutoHideTimerRef.current) {
+        clearTimeout(roleAutoHideTimerRef.current);
+      }
       isPollingRef.current = false;
     };
   }, []);
@@ -456,15 +460,42 @@ export default function PromptEditor({
     handleSessionRestore();
   }, [hasRestoredSession]);
 
+  // Toggle role selector visibility with 12-second auto-hide
+  const toggleRoleSelector = useCallback(() => {
+    const newState = !showRoleSelector;
+    setShowRoleSelector(newState);
+    
+    // Clear any existing timer
+    if (roleAutoHideTimerRef.current) {
+      clearTimeout(roleAutoHideTimerRef.current);
+      roleAutoHideTimerRef.current = null;
+    }
+    
+    // If showing the selector, set 12-second auto-hide timer
+    if (newState) {
+      roleAutoHideTimerRef.current = setTimeout(() => {
+        setShowRoleSelector(false);
+        roleAutoHideTimerRef.current = null;
+      }, 12000);
+    }
+  }, [showRoleSelector]);
+
   // Handle contact search config changes
   const handleContactSearchConfigChange = useCallback((config: ContactSearchConfig) => {
     console.log('PromptEditor received config update:', config);
     setContactSearchConfig(config);
     
-    // Auto-hide role selector 1 second after selection
-    setTimeout(() => {
+    // Clear any existing timer
+    if (roleAutoHideTimerRef.current) {
+      clearTimeout(roleAutoHideTimerRef.current);
+      roleAutoHideTimerRef.current = null;
+    }
+    
+    // Auto-hide role selector 1.5 seconds after selection
+    roleAutoHideTimerRef.current = setTimeout(() => {
       setShowRoleSelector(false);
-    }, 1000);
+      roleAutoHideTimerRef.current = null;
+    }, 1500);
   }, []);
 
   // Track input changes to update UI accordingly
@@ -964,7 +995,7 @@ export default function PromptEditor({
                 if (contactSearchConfig.enableCoreLeadership) {
                   return (
                     <button
-                      onClick={() => setShowRoleSelector(!showRoleSelector)}
+                      onClick={toggleRoleSelector}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm hover:bg-gray-200 transition-colors cursor-pointer"
                     >
                       <Crown className="h-3.5 w-3.5" />
@@ -974,7 +1005,7 @@ export default function PromptEditor({
                 } else if (contactSearchConfig.enableDepartmentHeads) {
                   return (
                     <button
-                      onClick={() => setShowRoleSelector(!showRoleSelector)}
+                      onClick={toggleRoleSelector}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm hover:bg-gray-200 transition-colors cursor-pointer"
                     >
                       <Building className="h-3.5 w-3.5" />
@@ -984,7 +1015,7 @@ export default function PromptEditor({
                 } else if (contactSearchConfig.enableMiddleManagement) {
                   return (
                     <button
-                      onClick={() => setShowRoleSelector(!showRoleSelector)}
+                      onClick={toggleRoleSelector}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm hover:bg-gray-200 transition-colors cursor-pointer"
                     >
                       <Users className="h-3.5 w-3.5" />
@@ -994,7 +1025,7 @@ export default function PromptEditor({
                 } else if (contactSearchConfig.enableCustomSearch && contactSearchConfig.customSearchTarget) {
                   return (
                     <button
-                      onClick={() => setShowRoleSelector(!showRoleSelector)}
+                      onClick={toggleRoleSelector}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm hover:bg-gray-200 transition-colors cursor-pointer"
                     >
                       <Target className="h-3.5 w-3.5" />
@@ -1004,7 +1035,7 @@ export default function PromptEditor({
                 } else if (contactSearchConfig.enableCustomSearch2 && contactSearchConfig.customSearchTarget2) {
                   return (
                     <button
-                      onClick={() => setShowRoleSelector(!showRoleSelector)}
+                      onClick={toggleRoleSelector}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm hover:bg-gray-200 transition-colors cursor-pointer"
                     >
                       <Target className="h-3.5 w-3.5" />
