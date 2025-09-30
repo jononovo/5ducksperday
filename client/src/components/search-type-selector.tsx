@@ -27,7 +27,7 @@ const searchTypeConfigs: SearchTypeConfig[] = [
     type: "companies",
     label: "Only Companies",
     icons: [<Building2 key="company" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />],
-    estimatedTime: "~7 secs"
+    estimatedTime: "7 seconds"
   },
   {
     type: "contacts",
@@ -36,7 +36,7 @@ const searchTypeConfigs: SearchTypeConfig[] = [
       <Building2 key="company" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />,
       <Users key="contacts" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />
     ],
-    estimatedTime: "~28 secs"
+    estimatedTime: "12 seconds"
   },
   {
     type: "emails",
@@ -46,7 +46,7 @@ const searchTypeConfigs: SearchTypeConfig[] = [
       <Users key="contacts" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />,
       <Mail key="emails" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />
     ],
-    estimatedTime: "~45 secs"
+    estimatedTime: "22 seconds"
   }
 ];
 
