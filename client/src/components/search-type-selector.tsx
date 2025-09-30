@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Building2, Users, Mail } from "lucide-react";
+import { Building2, Users, Mail, ChevronDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -75,6 +75,7 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
             {icon}
           </div>
         ))}
+        <ChevronDown className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px] text-gray-400" />
       </div>
 
       {/* Search Type Selection Modal */}
