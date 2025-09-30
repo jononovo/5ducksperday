@@ -941,7 +941,7 @@ export default function PromptEditor({
           />
           
           {/* Bottom controls container - positioned inside textarea */}
-          <div className="absolute bottom-3 left-2 right-2 flex items-center justify-between pointer-events-none">
+          <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
             {/* Left side: Search type selector */}
             <div className="pointer-events-auto">
               <SearchTypeSelector
