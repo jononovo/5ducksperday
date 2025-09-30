@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -913,94 +914,85 @@ export default function PromptEditor({
           companies={searchMetrics.companies}
         />
         
-        <div className="flex flex-row md:gap-2 gap-0 pl-0">
-          <div className="relative flex-1">
-            <Input
-              value={value}
-              onChange={(e) => {
-                onChange(e.target.value);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)) {
-                  e.preventDefault();
-                  handleSearch();
-                }
-              }}
-              placeholder="Recently exited startups in Miami "
-              className={`md:rounded-md rounded-l-md rounded-r-none md:pr-20 pr-4 text-base md:text-lg text-gray-700 hover:border-gray-300 md:focus-visible:border-gray-400 mobile-input-border ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
-            />
-            {/* Desktop search type selector - inside input field */}
-            <div className="hidden md:block absolute right-2 top-1/2 transform -translate-y-1/2">
+        <div className="relative">
+          {/* Component tooltip version for comparison */}
+          <LandingPageTooltip
+            message="If you are happy with this prompt, click search."
+            visible={isFromLandingPage && (!user || !hasShownSearchTooltip) && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)}
+            position="custom"
+            offsetX={0}
+            offsetY={-20}
+          />
+          
+          <Textarea
+            value={value}
+            onChange={(e) => {
+              onChange(e.target.value);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)) {
+                e.preventDefault();
+                handleSearch();
+              }
+            }}
+            placeholder="Recently exited startups in Miami "
+            rows={2}
+            className={`md:rounded-md rounded-md resize-none pb-12 text-base md:text-lg text-gray-700 hover:border-gray-300 md:focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
+          />
+          
+          {/* Bottom controls container - positioned inside textarea */}
+          <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+            {/* Left side: Search type selector */}
+            <div className="pointer-events-auto">
               <SearchTypeSelector
                 selectedType={searchType}
                 onTypeChange={setSearchType}
                 disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
               />
             </div>
-          </div>
-          <div className="flex items-center justify-end md:justify-start relative">
-
             
-            {/* Component tooltip version for comparison */}
-            <LandingPageTooltip
-              message="If you are happy with this prompt, click search."
-              visible={isFromLandingPage && (!user || !hasShownSearchTooltip) && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)}
-              position="custom"
-              offsetX={0}
-              offsetY={-20}
-            />
-            
-            {/* Enhanced search button with dynamic styling based on state */}
-            <Button 
-              type="submit"
-              onClick={handleSearch} 
-              disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-              className={`
-                md:rounded-md rounded-l-none rounded-r-md
-                transition-all duration-300 flex items-center sm:gap-2
-                ${lastExecutedQuery && !inputHasChanged 
-                  ? 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-400 dark:hover:bg-gray-500 shadow-md hover:shadow-lg' 
-                  : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-md hover:shadow-lg'
-                }
-              `}
-              aria-label="Search"
-            >
-              {(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending) ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="hidden sm:inline">Searching...</span>
-                </>
-              ) : (
-                <>
-                  <Search className="h-4 w-4" />
-                  <span className="hidden sm:inline">Search</span>
-                </>
-              )}
-            </Button>
-            
-
+            {/* Right side: Search button */}
+            <div className="pointer-events-auto">
+              <Button 
+                type="submit"
+                onClick={handleSearch} 
+                disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+                className={`
+                  rounded-md
+                  transition-all duration-300 flex items-center gap-2
+                  ${lastExecutedQuery && !inputHasChanged 
+                    ? 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-400 dark:hover:bg-gray-500 shadow-md hover:shadow-lg text-gray-700 dark:text-gray-900' 
+                    : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-md hover:shadow-lg'
+                  }
+                `}
+                aria-label="Search"
+              >
+                {(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending) ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Searching...</span>
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4" />
+                    <span>Search</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Mobile layout: Search type selector and Contact chips on same row */}
+        {/* Mobile layout: Contact chips */}
         {!hideRoleButtons && (
-          <div className="md:hidden flex items-start justify-between">
-            <div className="flex-1">
-              <ContactSearchChips
-                onConfigChange={handleContactSearchConfigChange}
-                disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-                isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-                hasSearchResults={hasSearchResults}
-                inputHasChanged={hasSearchResults && value !== lastExecutedQuery}
-              />
-            </div>
-            <div className="ml-2 mt-5">
-              <SearchTypeSelector
-                selectedType={searchType}
-                onTypeChange={setSearchType}
-                disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-              />
-            </div>
+          <div className="md:hidden">
+            <ContactSearchChips
+              onConfigChange={handleContactSearchConfigChange}
+              disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+              isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+              hasSearchResults={hasSearchResults}
+              inputHasChanged={hasSearchResults && value !== lastExecutedQuery}
+            />
           </div>
         )}
         
