@@ -88,7 +88,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
                 onNewSearch();
                 onOpenChange(false);
               }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 transition-all group"
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group"
             >
               <Plus className="h-5 w-5 text-blue-500" strokeWidth={3} />
               <span className="text-sm font-medium text-gray-700">New Search</span>
