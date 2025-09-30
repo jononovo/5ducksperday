@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, HelpCircle } from "lucide-react";
+import { Loader2, Search, HelpCircle, Crown, Building, Users, Target } from "lucide-react";
 
 
 import { useConfetti } from "@/hooks/use-confetti";
@@ -942,13 +942,55 @@ export default function PromptEditor({
           
           {/* Bottom controls container - positioned inside textarea */}
           <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between pointer-events-none">
-            {/* Left side: Search type selector */}
-            <div className="pointer-events-auto">
+            {/* Left side: Search type selector and role indicator */}
+            <div className="pointer-events-auto flex items-center gap-2">
               <SearchTypeSelector
                 selectedType={searchType}
                 onTypeChange={setSearchType}
                 disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
               />
+              
+              {/* Active role indicator button */}
+              {(() => {
+                // Determine which role is active and display it
+                if (contactSearchConfig.enableCoreLeadership) {
+                  return (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 text-sm">
+                      <Crown className="h-3.5 w-3.5" />
+                      <span className="font-medium">Leadership</span>
+                    </div>
+                  );
+                } else if (contactSearchConfig.enableDepartmentHeads) {
+                  return (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-blue-50 text-blue-700 text-sm">
+                      <Building className="h-3.5 w-3.5" />
+                      <span className="font-medium">Marketing</span>
+                    </div>
+                  );
+                } else if (contactSearchConfig.enableMiddleManagement) {
+                  return (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-green-50 text-green-700 text-sm">
+                      <Users className="h-3.5 w-3.5" />
+                      <span className="font-medium">CTO</span>
+                    </div>
+                  );
+                } else if (contactSearchConfig.enableCustomSearch && contactSearchConfig.customSearchTarget) {
+                  return (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-purple-50 text-purple-700 text-sm">
+                      <Target className="h-3.5 w-3.5" />
+                      <span className="font-medium">{contactSearchConfig.customSearchTarget}</span>
+                    </div>
+                  );
+                } else if (contactSearchConfig.enableCustomSearch2 && contactSearchConfig.customSearchTarget2) {
+                  return (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-purple-50 text-purple-700 text-sm">
+                      <Target className="h-3.5 w-3.5" />
+                      <span className="font-medium">{contactSearchConfig.customSearchTarget2}</span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
             
             {/* Right side: Search button */}
