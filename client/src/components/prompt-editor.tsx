@@ -121,15 +121,26 @@ export default function PromptEditor({
   // Track if input has changed from last executed query
   const [inputHasChanged, setInputHasChanged] = useState(false);
   
-  // Contact search configuration state
-  const [contactSearchConfig, setContactSearchConfig] = useState<ContactSearchConfig>({
-    enableCoreLeadership: true,
-    enableDepartmentHeads: true,
-    enableMiddleManagement: true,
-    enableCustomSearch: false,
-    customSearchTarget: "",
-    enableCustomSearch2: false,
-    customSearchTarget2: ""
+  // Contact search configuration state - initialize from localStorage
+  const [contactSearchConfig, setContactSearchConfig] = useState<ContactSearchConfig>(() => {
+    const saved = localStorage.getItem('contactSearchConfig');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.error('Error loading saved contact search config:', error);
+      }
+    }
+    // Default config if nothing saved
+    return {
+      enableCoreLeadership: true,
+      enableDepartmentHeads: false,
+      enableMiddleManagement: false,
+      enableCustomSearch: false,
+      customSearchTarget: "",
+      enableCustomSearch2: false,
+      customSearchTarget2: ""
+    };
   });
 
   // Role selector visibility state
