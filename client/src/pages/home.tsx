@@ -189,15 +189,18 @@ export default function Home() {
     setSelectedEmailContact(newContact);
   };
 
-  // Auto-collapse search section when email drawer opens
+  // Auto-collapse search section when email drawer opens or when search results exist
   useEffect(() => {
     if (emailDrawerOpen) {
       setSearchSectionCollapsed(true);
+    } else if (currentResults && currentResults.length > 0) {
+      // Also collapse when search results are shown
+      setSearchSectionCollapsed(true);
     } else {
-      // Optionally expand when drawer closes
+      // Expand when drawer closes and no results
       setSearchSectionCollapsed(false);
     }
-  }, [emailDrawerOpen]);
+  }, [emailDrawerOpen, currentResults]);
   
   const { 
     handleComprehensiveEmailSearch: comprehensiveSearchHook, 
@@ -2516,7 +2519,7 @@ export default function Home() {
             >
               <div className="px-3 md:px-6 py-1"> {/* Reduced mobile padding, matched desktop padding with CardHeader (p-6) */}
                 {/* Collapse button when expanded */}
-                {!searchSectionCollapsed && emailDrawerOpen && (
+                {!searchSectionCollapsed && (emailDrawerOpen || (currentResults && currentResults.length > 0)) && (
                   <button
                     onClick={() => setSearchSectionCollapsed(true)}
                     className="absolute right-3 md:right-6 top-2 z-10 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
