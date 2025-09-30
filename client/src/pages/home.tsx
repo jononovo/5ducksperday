@@ -1378,6 +1378,34 @@ export default function Home() {
     }
   };
 
+  // Handle starting a new search - resets to clean state
+  const handleNewSearch = () => {
+    // Clear all search state
+    setCurrentQuery("");
+    setCurrentResults(null);
+    setCurrentListId(null);
+    setLastExecutedQuery(null);
+    setIsSaved(false);
+    setInputHasChanged(false);
+    setSelectedContacts(new Set());
+    setHighlightEmailButton(false);
+    setContactsLoaded(false);
+    
+    // Expand the search section
+    setSearchSectionCollapsed(false);
+    
+    // Clear localStorage saved state
+    localStorage.removeItem('searchState');
+    
+    // Close the drawer
+    setSavedSearchesDrawerOpen(false);
+    
+    toast({
+      title: "Ready for new search",
+      description: "Start fresh with a new search query",
+    });
+  };
+
   //New function added here
   const getEnrichButtonText = (contact: Contact) => {
     if (isContactPending(contact.id)) return "Processing...";
@@ -2930,6 +2958,7 @@ export default function Home() {
             open={savedSearchesDrawerOpen}
             onOpenChange={setSavedSearchesDrawerOpen}
             onLoadSearch={handleLoadSavedSearch}
+            onNewSearch={handleNewSearch}
           />
         </div>
       </div>

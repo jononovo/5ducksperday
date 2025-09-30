@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { PanelLeft, X } from "lucide-react";
+import { PanelLeft, X, Plus } from "lucide-react";
 import type { List } from "@shared/schema";
 import { generateListDisplayName } from "@/lib/list-utils";
 
@@ -23,9 +23,10 @@ interface SavedSearchesDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onLoadSearch: (list: List) => void;
+  onNewSearch: () => void;
 }
 
-export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedSearchesDrawerProps) {
+export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSearch }: SavedSearchesDrawerProps) {
   const { data: lists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
   });
@@ -80,6 +81,21 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch }: SavedS
         </SheetClose>
         
         <div className="h-full overflow-auto">
+          {/* New Search Button */}
+          <div className="px-4 py-3 border-b">
+            <Button
+              onClick={() => {
+                onNewSearch();
+                onOpenChange(false);
+              }}
+              className="w-full flex items-center justify-center gap-2"
+              variant="outline"
+            >
+              <Plus className="h-4 w-4" />
+              New Search
+            </Button>
+          </div>
+          
           <Table>
             <TableHeader>
               <TableRow>
