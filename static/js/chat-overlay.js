@@ -535,10 +535,11 @@ class ChatOverlay {
     this.messages.forEach(message => {
       const time = message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const content = message.content || '';
+      const safeContent = message.isHTML ? content : this.escapeHtml(content).replace(/\n/g, '<br>');
       html += `
         <div class="message ${message.sender}">
           <div class="message-content">
-            ${message.isHTML ? content : content.replace(/\n/g, '<br>')}
+            ${safeContent}
             <span class="message-time">${time}</span>
           </div>
         </div>
@@ -696,6 +697,16 @@ class ChatOverlay {
     }
   }
 
+  escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   renderForm() {
     const questions = [
       {
@@ -724,6 +735,7 @@ class ChatOverlay {
     const currentQuestion = questions[this.currentStep - 1];
     const currentValue = this.formData[currentQuestion.field];
     const isValid = currentValue && currentValue.trim().length > 0;
+    const escapedValue = this.escapeHtml(currentValue);
 
     this.container.innerHTML = `
       <div class="form-modal">
@@ -746,14 +758,14 @@ class ChatOverlay {
               class="form-textarea" 
               placeholder="${currentQuestion.placeholder}"
               id="form-input"
-            >${currentValue || ''}</textarea>
+            >${escapedValue}</textarea>
           ` : `
             <input 
               type="text" 
               class="form-input" 
               placeholder="${currentQuestion.placeholder}"
               id="form-input"
-              value="${currentValue || ''}"
+              value="${escapedValue}"
             />
           `}
           
@@ -1508,8 +1520,9 @@ Let me process your strategy and research your market right now!`;
   }
 
   renderMarkdown(markdown) {
-    // Simple markdown to HTML conversion
-    return markdown
+    // Escape HTML first to prevent XSS, then apply markdown formatting
+    const escaped = this.escapeHtml(markdown);
+    return escaped
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-blue-700 mt-4 mb-2">$1</h3>')
@@ -1523,7 +1536,7 @@ Let me process your strategy and research your market right now!`;
   displayReport(reportData) {
     const reportHtml = `
       <div class="report-container bg-blue-50 border border-blue-200 rounded-lg p-4 my-3">
-        <h3 class="font-bold text-lg text-blue-800 mb-2">${reportData.message}</h3>
+        <h3 class="font-bold text-lg text-blue-800 mb-2">${this.escapeHtml(reportData.message)}</h3>
         <div class="report-content text-gray-700">
           ${this.renderMarkdown(reportData.data.content)}
         </div>
@@ -1557,7 +1570,7 @@ Let me process your strategy and research your market right now!`;
   displayProductProfile(profileData) {
     const profileHtml = `
       <div class="profile-report bg-blue-50 border border-blue-200 rounded-lg p-4 my-3">
-        <h3 class="font-bold text-lg text-blue-800 mb-2">${profileData.title}</h3>
+        <h3 class="font-bold text-lg text-blue-800 mb-2">${this.escapeHtml(profileData.title)}</h3>
         <div class="markdown-content text-gray-700">
           ${this.renderMarkdown(profileData.markdown)}
         </div>
@@ -1580,11 +1593,11 @@ Let me process your strategy and research your market right now!`;
         <h3 class="font-bold text-lg text-green-800 mb-3">90-Day Email Sales Strategy</h3>
         <div class="mb-3">
           <h4 class="font-semibold text-green-700 mb-1">Target Boundary:</h4>
-          <p class="text-gray-700">${strategyData.boundary}</p>
+          <p class="text-gray-700">${this.escapeHtml(strategyData.boundary)}</p>
         </div>
         <div class="mb-3">
           <h4 class="font-semibold text-green-700 mb-1">Sprint Planning:</h4>
-          <p class="text-gray-700">${strategyData.sprintPrompt}</p>
+          <p class="text-gray-700">${this.escapeHtml(strategyData.sprintPrompt)}</p>
         </div>
         <div>
           <h4 class="font-semibold text-green-700 mb-2">Daily Search Queries:</h4>
@@ -1600,7 +1613,7 @@ Let me process your strategy and research your market right now!`;
                 ${strategyData.dailyQueries.map((query, i) => `
                   <tr class="border-t border-green-100">
                     <td class="p-2 font-medium text-green-600">${i + 1}</td>
-                    <td class="p-2 text-gray-700">${query}</td>
+                    <td class="p-2 text-gray-700">${this.escapeHtml(query)}</td>
                   </tr>
                 `).join('')}
               </tbody>
