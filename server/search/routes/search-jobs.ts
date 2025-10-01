@@ -363,6 +363,87 @@ export function registerSearchJobRoutes(app: Express) {
   });
 
   /**
+   * Extend search with additional companies ("+5 More" feature)
+   */
+  app.post("/api/search/extend", async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const { query, excludeCompanyIds = [] } = req.body;
+
+      if (!query || typeof query !== 'string') {
+        res.status(400).json({
+          error: "Invalid request: query must be a non-empty string"
+        });
+        return;
+      }
+
+      console.log(`[SearchExtend] Extending search for user ${userId} with query: "${query}"`);
+      console.log(`[SearchExtend] Excluding ${excludeCompanyIds.length} existing companies`);
+
+      // Import the discovery function
+      const { discoverCompanies } = await import("../perplexity/company-search");
+      
+      // Fetch more companies (request more to account for exclusions)
+      const newCompanies = await discoverCompanies(query);
+      
+      // Filter out companies that are already in the results
+      const filteredCompanies = newCompanies.filter(company => {
+        // Check if this company name already exists in the exclusion list
+        const isExcluded = excludeCompanyIds.some((excludedId: any) => {
+          // If excludedId is an object with a name property
+          if (typeof excludedId === 'object' && excludedId.name) {
+            return excludedId.name.toLowerCase() === company.name.toLowerCase();
+          }
+          return false;
+        });
+        return !isExcluded;
+      });
+
+      // Take only 5 new companies
+      const additionalCompanies = filteredCompanies.slice(0, 5);
+      
+      console.log(`[SearchExtend] Found ${additionalCompanies.length} new companies to add`);
+
+      // Create a search job for these additional companies
+      if (additionalCompanies.length > 0) {
+        const jobId = await SearchJobService.createJob({
+          userId,
+          query,
+          searchType: 'companies',
+          source: 'frontend',
+          metadata: {
+            isExtension: true,
+            excludeCompanyIds,
+            additionalCompanies: additionalCompanies.map(c => c.name)
+          },
+          priority: 1
+        });
+
+        // Execute immediately for better UX
+        SearchJobService.executeJob(jobId).catch(error => {
+          console.error(`[SearchExtend] Background execution failed for job ${jobId}:`, error);
+        });
+
+        res.json({
+          jobId,
+          companies: additionalCompanies,
+          message: `Found ${additionalCompanies.length} additional companies`
+        });
+      } else {
+        res.json({
+          companies: [],
+          message: "No additional companies found"
+        });
+      }
+    } catch (error) {
+      console.error("[SearchExtend] Error extending search:", error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Failed to extend search"
+      });
+    }
+  });
+
+  /**
    * Health check endpoint for job processor status
    */
   app.get("/api/search-jobs/health/status", async (req: Request, res: Response) => {
