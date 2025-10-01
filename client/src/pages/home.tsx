@@ -2655,13 +2655,79 @@ export default function Home() {
                             variant="outline" 
                             size="sm" 
                             className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                            onClick={() => {
+                            onClick={async () => {
                               if (!auth.user) {
                                 registrationModal.openModal();
                                 return;
                               }
-                              // If user is logged in, the actual functionality would go here
-                              console.log("5 More button clicked by authenticated user");
+                              
+                              try {
+                                // Call the extend search API
+                                const res = await apiRequest("POST", "/api/search/extend", {
+                                  query: currentQuery,
+                                  excludeCompanyIds: currentResults?.map(c => ({ name: c.name })) || []
+                                });
+                                
+                                const data = await res.json();
+                                
+                                if (data.jobId && data.companies && data.companies.length > 0) {
+                                  console.log(`[+5 More] Extending search with ${data.companies.length} new companies`);
+                                  toast({
+                                    title: "Finding more companies",
+                                    description: `Adding ${data.companies.length} additional companies to your search results.`,
+                                  });
+                                  
+                                  // Poll for job completion
+                                  const pollInterval = setInterval(async () => {
+                                    try {
+                                      const jobRes = await apiRequest("GET", `/api/search-jobs/${data.jobId}`);
+                                      const jobData = await jobRes.json();
+                                      
+                                      if (jobData.status === 'completed' && jobData.results) {
+                                        clearInterval(pollInterval);
+                                        
+                                        // Merge the new results with existing ones
+                                        const newCompanies = jobData.results.companies || [];
+                                        const mergedResults = [...(currentResults || []), ...newCompanies];
+                                        
+                                        // Update the state with extended results
+                                        handleSearchResults(currentQuery || '', mergedResults);
+                                        
+                                        toast({
+                                          title: "Search extended",
+                                          description: `Added ${newCompanies.length} new companies to your results.`,
+                                        });
+                                      } else if (jobData.status === 'failed') {
+                                        clearInterval(pollInterval);
+                                        toast({
+                                          title: "Extension failed",
+                                          description: "Could not fetch additional companies. Please try again.",
+                                          variant: "destructive"
+                                        });
+                                      }
+                                    } catch (error) {
+                                      console.error("[+5 More] Error polling job:", error);
+                                    }
+                                  }, 2000); // Poll every 2 seconds
+                                  
+                                  // Stop polling after 30 seconds
+                                  setTimeout(() => clearInterval(pollInterval), 30000);
+                                } else if (data.companies && data.companies.length === 0) {
+                                  toast({
+                                    title: "No additional companies found",
+                                    description: "We couldn't find more companies matching your search criteria.",
+                                  });
+                                } else {
+                                  throw new Error(data.error || "Failed to extend search");
+                                }
+                              } catch (error) {
+                                console.error("[+5 More] Error extending search:", error);
+                                toast({
+                                  title: "Error",
+                                  description: error instanceof Error ? error.message : "Failed to extend search",
+                                  variant: "destructive"
+                                });
+                              }
                             }}
                           >
                             <Plus className="h-4 w-4" />
