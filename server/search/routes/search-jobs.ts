@@ -380,22 +380,30 @@ export function registerSearchJobRoutes(app: Express) {
       console.log(`[SearchExtend] Extending search for user ${userId} with query: "${query}"`);
       console.log(`[SearchExtend] Excluding ${excludeCompanyIds.length} existing companies`);
 
+      // Extract company names from the exclusion list
+      const excludeCompanyNames: string[] = excludeCompanyIds.map((item: any) => {
+        if (typeof item === 'object' && item.name) {
+          return item.name;
+        } else if (typeof item === 'string') {
+          return item;
+        }
+        return '';
+      }).filter((name: string) => name !== '');
+
+      console.log(`[SearchExtend] Company names to exclude:`, excludeCompanyNames);
+
       // Import the discovery function
       const { discoverCompanies } = await import("../perplexity/company-search");
       
-      // Fetch more companies (request more to account for exclusions)
-      const newCompanies = await discoverCompanies(query);
+      // Fetch more companies, passing the exclusion list to Perplexity
+      const newCompanies = await discoverCompanies(query, excludeCompanyNames);
       
-      // Filter out companies that are already in the results
+      // Additional filtering as a safety measure - filter out companies that are already in the results
       const filteredCompanies = newCompanies.filter(company => {
         // Check if this company name already exists in the exclusion list
-        const isExcluded = excludeCompanyIds.some((excludedId: any) => {
-          // If excludedId is an object with a name property
-          if (typeof excludedId === 'object' && excludedId.name) {
-            return excludedId.name.toLowerCase() === company.name.toLowerCase();
-          }
-          return false;
-        });
+        const isExcluded = excludeCompanyNames.some((excludedName: string) => 
+          excludedName.toLowerCase() === company.name.toLowerCase()
+        );
         return !isExcluded;
       });
 
@@ -421,6 +429,7 @@ export function registerSearchJobRoutes(app: Express) {
           metadata: {
             isExtension: true,
             excludeCompanyIds,
+            excludeCompanyNames, // Pass the extracted names for additional safety
             additionalCompanies: additionalCompanies.map(c => c.name)
           },
           priority: 1

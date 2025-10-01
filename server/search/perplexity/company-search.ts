@@ -8,9 +8,15 @@ import { cleanPerplexityResponse } from "../../lib/utils";
 // Core search functions
 
 // Fast discovery - just get names and websites for immediate display (5-7 seconds)
-export async function discoverCompanies(query: string): Promise<Array<{name: string, website: string | null}>> {
+export async function discoverCompanies(query: string, excludeCompanies: string[] = []): Promise<Array<{name: string, website: string | null}>> {
   console.log(`[PERPLEXITY API CALL] discoverCompanies called with query: "${query}"`);
+  console.log(`[PERPLEXITY API CALL] Excluding ${excludeCompanies.length} companies:`, excludeCompanies);
   console.log(`[PERPLEXITY API CALL] Timestamp: ${new Date().toISOString()}`);
+  
+  // Create exclusion instruction if we have companies to exclude
+  const excludeInstruction = excludeCompanies.length > 0 
+    ? `\nDO NOT include these companies (they have already been found): ${excludeCompanies.join(', ')}` 
+    : '';
   
   const messages: PerplexityMessage[] = [
     {
@@ -19,7 +25,7 @@ export async function discoverCompanies(query: string): Promise<Array<{name: str
     },
     {
       role: "user",
-      content: `List 7 companies matching: ${query}
+      content: `List 7 companies matching: ${query}${excludeInstruction}
 Return ONLY company names and websites. Be concise.
 Format: JSON array with "name" and "website" fields.`
     }
