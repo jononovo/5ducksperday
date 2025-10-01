@@ -433,9 +433,11 @@ export default function Home() {
       setIsFromLandingPage(true); // Set flag when coming from landing page
       setHasShownEmailTooltip(false); // Reset tooltip flag for new session
       localStorage.removeItem('pendingSearchQuery');
-      // Clear any existing search state when starting fresh search
+      // Clear any existing search state AND list ID when starting fresh search
       localStorage.removeItem('searchState');
       sessionStorage.removeItem('searchState');
+      setCurrentListId(null); // Clear any existing list ID
+      setIsSaved(false);
       // No longer automatically triggering search - user must click the search button
     } else {
       // Enhanced data restoration logic with intelligent merging
@@ -467,12 +469,20 @@ export default function Home() {
         // SIMPLIFIED NAVIGATION RESTORATION: Always refresh from database
         console.log('NAVIGATION: Restoring search state and refreshing from database');
         
+        // IMPORTANT: Only restore the list ID if the query matches
+        const queryToRestore = savedState.currentQuery || "";
+        const shouldRestoreListId = queryToRestore === savedState.lastExecutedQuery;
+        
         // Set basic state first
-        setCurrentQuery(savedState.currentQuery || "");
-        setCurrentListId(savedState.currentListId);
+        setCurrentQuery(queryToRestore);
+        setCurrentListId(shouldRestoreListId ? savedState.currentListId : null);
         setCurrentResults(savedState.currentResults);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
         setInputHasChanged(false); // Set to false when loading saved state
+        
+        if (!shouldRestoreListId) {
+          console.log('Query mismatch detected - clearing list ID to prevent contamination');
+        }
         
         // Always refresh from database to ensure fresh data (including emails)
         refreshAndUpdateResults(
@@ -2586,7 +2596,15 @@ export default function Home() {
                 )}
                 <Suspense fallback={<div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>}>
                   <PromptEditor
-                    onAnalyze={() => setIsAnalyzing(true)}
+                    onAnalyze={() => {
+                      setIsAnalyzing(true);
+                      // Clear list ID when starting a NEW search (different query)
+                      if (currentQuery && currentQuery !== lastExecutedQuery) {
+                        console.log('Starting new search - clearing list ID for query:', currentQuery);
+                        setCurrentListId(null);
+                        setIsSaved(false);
+                      }
+                    }}
                     onComplete={handleAnalysisComplete}
                     onSearchResults={handleSearchResults}
                     onCompaniesReceived={handleCompaniesReceived}
