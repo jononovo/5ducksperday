@@ -694,7 +694,8 @@ export default function PromptEditor({
                   totalContacts: totalContacts,
                   totalEmails: totalEmails,
                   searchDuration: searchDuration,
-                  companies: companies
+                  companies: companies,
+                  searchType: searchType // Include search type to know if emails were searched
                 };
                 
                 setSearchMetrics(updatedMetrics);

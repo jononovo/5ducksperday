@@ -2661,6 +2661,13 @@ export default function Home() {
                       // Also show contact report when search completes
                       if (showSummary && metrics.totalCompanies > 0) {
                         setContactReportVisible(true);
+                        // Show email summary if search type was 'emails' and emails were found
+                        if (metrics.searchType === 'emails' && metrics.totalEmails && metrics.totalEmails > 0) {
+                          setLastEmailSearchCount(metrics.totalEmails);
+                          // Set a basic source breakdown for initial search (will be updated by consolidated search if run)
+                          setLastSourceBreakdown({ Perplexity: metrics.totalEmails, Apollo: 0, Hunter: 0 });
+                          setSummaryVisible(true);
+                        }
                       }
                     }}
                   />
