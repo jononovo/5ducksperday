@@ -682,17 +682,8 @@ export default function PromptEditor({
               
               // Show summary
               setTimeout(() => {
-                console.log('Setting summary visible to true');
-                console.log('Current search metrics:', {
-                  query: searchMetrics.query,
-                  totalCompanies: companies.length,
-                  totalContacts: totalContacts,
-                  searchDuration: searchDuration,
-                  companies: companies
-                });
                 setSummaryVisible(true);
                 setTimeout(() => {
-                  console.log('Setting summary visible to false (auto-hide after 8s)');
                   setSummaryVisible(false);
                 }, 8000);
               }, 1000);

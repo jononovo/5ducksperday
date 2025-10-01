@@ -21,15 +21,6 @@ export function MainSearchSummary({
   onClose,
   companies
 }: MainSearchSummaryProps) {
-  console.log('MainSearchSummary component render:', {
-    isVisible,
-    query,
-    totalCompanies,
-    totalContacts,
-    searchDuration,
-    companiesCount: companies?.length || 0
-  });
-  
   if (!isVisible) return null;
 
   // Calculate metrics from real data
@@ -76,7 +67,7 @@ export function MainSearchSummary({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
       <Card className="w-full max-w-md bg-white shadow-xl">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
