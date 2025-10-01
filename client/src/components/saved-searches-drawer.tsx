@@ -16,7 +16,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { PanelLeft, Plus } from "lucide-react";
 import type { List } from "@shared/schema";
-import { generateListDisplayName } from "@/lib/list-utils";
+import { generateListPromptOnly } from "@/lib/list-utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SavedSearchesDrawerProps {
   open: boolean;
@@ -106,7 +112,16 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
                   }}
                 >
                   <TableCell className="text-sm font-medium text-gray-500 py-3">
-                    {generateListDisplayName(list)}
+                    <TooltipProvider delayDuration={1500}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="cursor-pointer">{generateListPromptOnly(list)}</span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Search ID: {list.listId}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </TableCell>
                   <TableCell className="text-right text-sm font-medium text-gray-700 py-3 pr-6">{list.resultCount}</TableCell>
                 </TableRow>
