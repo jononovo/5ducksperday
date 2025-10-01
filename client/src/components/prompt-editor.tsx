@@ -77,6 +77,7 @@ export default function PromptEditor({
     query: "",
     totalCompanies: 0,
     totalContacts: 0,
+    totalEmails: 0,
     searchDuration: 0,
     startTime: 0,
     companies: [] as any[]
@@ -670,10 +671,18 @@ export default function PromptEditor({
               
               // Handle completion - show summary for all search types
               const searchDuration = Math.round((Date.now() - searchMetrics.startTime) / 1000);
+              
+              // Calculate total emails
+              const totalEmails = companies.reduce((sum: number, company: any) => {
+                const emailCount = company.contacts?.filter((contact: any) => contact.email && contact.email.length > 0).length || 0;
+                return sum + emailCount;
+              }, 0);
+              
               setSearchMetrics(prev => ({
                 ...prev,
                 totalCompanies: companies.length,
                 totalContacts: totalContacts,
+                totalEmails: totalEmails,
                 searchDuration: searchDuration,
                 companies: companies
               }));
@@ -916,6 +925,7 @@ export default function PromptEditor({
       query: value,
       totalCompanies: 0,
       totalContacts: 0,
+      totalEmails: 0,
       searchDuration: 0,
       startTime: Date.now(),
       companies: []
@@ -952,6 +962,7 @@ export default function PromptEditor({
           query={searchMetrics.query}
           totalCompanies={searchMetrics.totalCompanies}
           totalContacts={searchMetrics.totalContacts}
+          totalEmails={searchMetrics.totalEmails}
           searchDuration={searchMetrics.searchDuration}
           isVisible={summaryVisible}
           onClose={() => setSummaryVisible(false)}
