@@ -92,7 +92,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
             <TableHeader>
               <TableRow className="border-t-0">
                 <TableHead className="w-[70%]">Search Name</TableHead>
-                <TableHead>Results</TableHead>
+                <TableHead className="text-right">Results</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -108,7 +108,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
                   <TableCell className="font-mono text-sm">
                     {generateListDisplayName(list)}
                   </TableCell>
-                  <TableCell>{list.resultCount}</TableCell>
+                  <TableCell className="text-right">{list.resultCount}</TableCell>
                 </TableRow>
               ))}
               {lists.length === 0 && (
