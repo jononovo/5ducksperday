@@ -21,6 +21,7 @@ import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useNotifications } from "@/features/user-account-settings";
 import { useStrategyOverlay } from "@/features/strategy-chat";
 import { NotificationToast } from "@/components/ui/notification-toast";
+import { ExtendSearchButton } from "@/features/search-extension";
 import {
   Search,
   Code2,
@@ -433,9 +434,11 @@ export default function Home() {
       setIsFromLandingPage(true); // Set flag when coming from landing page
       setHasShownEmailTooltip(false); // Reset tooltip flag for new session
       localStorage.removeItem('pendingSearchQuery');
-      // Clear any existing search state when starting fresh search
+      // Clear any existing search state AND list ID when starting fresh search
       localStorage.removeItem('searchState');
       sessionStorage.removeItem('searchState');
+      setCurrentListId(null); // Clear any existing list ID
+      setIsSaved(false);
       // No longer automatically triggering search - user must click the search button
     } else {
       // Enhanced data restoration logic with intelligent merging
@@ -467,12 +470,20 @@ export default function Home() {
         // SIMPLIFIED NAVIGATION RESTORATION: Always refresh from database
         console.log('NAVIGATION: Restoring search state and refreshing from database');
         
+        // IMPORTANT: Only restore the list ID if the query matches
+        const queryToRestore = savedState.currentQuery || "";
+        const shouldRestoreListId = queryToRestore === savedState.lastExecutedQuery;
+        
         // Set basic state first
-        setCurrentQuery(savedState.currentQuery || "");
-        setCurrentListId(savedState.currentListId);
+        setCurrentQuery(queryToRestore);
+        setCurrentListId(shouldRestoreListId ? savedState.currentListId : null);
         setCurrentResults(savedState.currentResults);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
         setInputHasChanged(false); // Set to false when loading saved state
+        
+        if (!shouldRestoreListId) {
+          console.log('Query mismatch detected - clearing list ID to prevent contamination');
+        }
         
         // Always refresh from database to ensure fresh data (including emails)
         refreshAndUpdateResults(
@@ -635,8 +646,8 @@ export default function Home() {
   
   // Auto-creation mutation for silent list creation after search
   const autoCreateListMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentQuery || !currentResults) return;
+    mutationFn: async ({ query, companies }: { query: string; companies: CompanyWithContacts[] }) => {
+      if (!query || !companies) return;
       
       // Get current contact search config from localStorage
       const savedConfig = localStorage.getItem('contactSearchConfig');
@@ -650,8 +661,8 @@ export default function Home() {
       }
       
       const res = await apiRequest("POST", "/api/lists", {
-        companies: currentResults,
-        prompt: currentQuery,
+        companies: companies,
+        prompt: query,
         contactSearchConfig: contactSearchConfig
       });
       return res.json();
@@ -673,22 +684,22 @@ export default function Home() {
 
   // Mutation for updating existing list
   const updateListMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentQuery || !currentResults || !currentListId) {
+    mutationFn: async ({ query, companies, listId }: { query: string; companies: CompanyWithContacts[]; listId: number }) => {
+      if (!query || !companies || !listId) {
         console.error('Update list validation failed:', {
-          hasQuery: !!currentQuery,
-          hasResults: !!currentResults,
-          hasListId: !!currentListId,
-          currentListId
+          hasQuery: !!query,
+          hasResults: !!companies,
+          hasListId: !!listId,
+          listId
         });
         throw new Error('Missing required data for list update');
       }
       
       console.log('Starting list update:', {
-        listId: currentListId,
-        query: currentQuery,
-        companyCount: currentResults.length,
-        companyIds: currentResults.map(c => c.id)
+        listId: listId,
+        query: query,
+        companyCount: companies.length,
+        companyIds: companies.map(c => c.id)
       });
       
       // Get current contact search config from localStorage
@@ -702,9 +713,9 @@ export default function Home() {
         }
       }
       
-      const res = await apiRequest("PUT", `/api/lists/${currentListId}`, {
-        companies: currentResults,
-        prompt: currentQuery,
+      const res = await apiRequest("PUT", `/api/lists/${listId}`, {
+        companies: companies,
+        prompt: query,
         contactSearchConfig: contactSearchConfig
       });
       return res.json();
@@ -936,9 +947,12 @@ export default function Home() {
     console.log('Current component state - results count:', currentResults?.length || 0);
     console.log('Complete results received with contacts:', results.length);
     
+    // Detect if this is a new search (different from current query)
+    const isNewSearch = currentQuery !== query;
+    
     // Clear any stale localStorage data that might conflict with new search results
-    if (currentQuery !== query) {
-      console.log('New search detected - clearing stale localStorage data');
+    if (isNewSearch) {
+      console.log('New search detected - clearing stale localStorage data and list ID');
       localStorage.removeItem('searchState');
       sessionStorage.removeItem('searchState');
       setCurrentListId(null);
@@ -987,6 +1001,13 @@ export default function Home() {
     }
     
     if (sortedResults.length > 0) {
+      // Capture values at timeout creation to avoid race conditions
+      const queryAtTimeOfResults = query;
+      const resultsAtTimeOfResults = sortedResults;
+      // IMPORTANT: For new searches, always create a new list
+      // Don't use currentListId if this is a new search - force null to create new list
+      const listIdAtTimeOfResults = isNewSearch ? null : currentListId;
+      
       // Debounce list creation/update to prevent duplicate calls during progressive updates
       listUpdateTimeoutRef.current = setTimeout(() => {
         // Check if a mutation is already in progress
@@ -995,16 +1016,23 @@ export default function Home() {
           return;
         }
         
-        if (!currentListId) {
-          // Create new list (only if we don't have one)
-          console.log('Creating new list for search results');
+        if (!listIdAtTimeOfResults) {
+          // Create new list (for new searches or when no list exists)
+          console.log('Creating new list for search results (new search or no existing list)');
           listMutationInProgressRef.current = true;
-          autoCreateListMutation.mutate();
+          autoCreateListMutation.mutate({ 
+            query: queryAtTimeOfResults, 
+            companies: resultsAtTimeOfResults 
+          });
         } else {
-          // Update existing list
-          console.log('Updating existing list:', currentListId);
+          // Update existing list (only for progressive updates of same search)
+          console.log('Updating existing list:', listIdAtTimeOfResults);
           listMutationInProgressRef.current = true;
-          updateListMutation.mutate();
+          updateListMutation.mutate({ 
+            query: queryAtTimeOfResults, 
+            companies: resultsAtTimeOfResults,
+            listId: listIdAtTimeOfResults
+          });
         }
       }, 1500); // 1.5 second delay to allow progressive updates to settle
     }
@@ -2184,9 +2212,13 @@ export default function Home() {
       }
       
       // Smart list update logic - only update existing lists, never create during email search
-      if (currentListId) {
+      if (currentListId && currentQuery && currentResults) {
         console.log('Updating existing list after email search completion:', currentListId);
-        updateListMutation.mutate();
+        updateListMutation.mutate({
+          query: currentQuery,
+          companies: currentResults,
+          listId: currentListId
+        });
       } else {
         console.log('No existing list to update - email results will be available for manual save');
         // Don't auto-create during email search to prevent duplicates
@@ -2565,7 +2597,15 @@ export default function Home() {
                 )}
                 <Suspense fallback={<div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>}>
                   <PromptEditor
-                    onAnalyze={() => setIsAnalyzing(true)}
+                    onAnalyze={() => {
+                      setIsAnalyzing(true);
+                      // Clear list ID when starting a NEW search (different query)
+                      if (currentQuery && currentQuery !== lastExecutedQuery) {
+                        console.log('Starting new search - clearing list ID for query:', currentQuery);
+                        setCurrentListId(null);
+                        setIsSaved(false);
+                      }
+                    }}
                     onComplete={handleAnalysisComplete}
                     onSearchResults={handleSearchResults}
                     onCompaniesReceived={handleCompaniesReceived}
@@ -2632,31 +2672,14 @@ export default function Home() {
                       />
                     </div>
                     
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                            onClick={() => {
-                              if (!auth.user) {
-                                registrationModal.openModal();
-                                return;
-                              }
-                              // If user is logged in, the actual functionality would go here
-                              console.log("5 More button clicked by authenticated user");
-                            }}
-                          >
-                            <Plus className="h-4 w-4" />
-                            <span className="hidden md:inline">5 More</span>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          <p className="text-xs">Expand the search to include another five companies with the same prompt</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <ExtendSearchButton
+                      query={currentQuery || ''}
+                      currentResults={currentResults || []}
+                      onResultsExtended={handleSearchResults}
+                      onLoginRequired={() => registrationModal.openModal()}
+                      isAuthenticated={!!auth.user}
+                      className="opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                    />
                     
                     <TooltipProvider>
                       <Tooltip>

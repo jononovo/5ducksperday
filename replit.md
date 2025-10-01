@@ -1,46 +1,74 @@
-# 5Ducks B2B Prospecting Application
+# 5Ducks B2B Prospecting Platform
 
 ## Overview
-5Ducks is a comprehensive B2B lead generation and prospecting platform. Its purpose is to help small businesses acquire new leads daily by offering AI-powered company search, contact discovery, email enrichment, and campaign management. The platform aims to streamline the prospecting process, provide a competitive edge in B2B sales, and deliver a unified, efficient solution for lead generation.
+AI-powered B2B lead generation platform that transforms simple queries into comprehensive prospect lists with verified contacts and personalized outreach campaigns.
 
-## User Preferences
-Preferred communication style: Simple, everyday language.
-Mobile UI preference: Compact, space-efficient design with seamless header-to-content transitions.
+## Tech Stack
+- **Frontend**: React SPA (TypeScript, Vite, Tailwind + shadcn/ui, TanStack Query)
+- **Backend**: Express.js (TypeScript), PostgreSQL, Replit KV Store
+- **Auth**: Firebase + Passport.js session management
 
-## System Architecture
-The application features a **React SPA frontend** (TypeScript, Vite, Tailwind CSS with shadcn/ui, TanStack Query, React Router, Radix UI) and an **Express.js backend** (TypeScript).
+## Core Features & Technical Entry Points
 
-**UI/UX Decisions:**
-- Consistent design language with Tailwind CSS and shadcn/ui, prioritizing blues, grays, and greens.
-- Emphasis on clear navigation, responsive design, and intuitive user flows.
+### 🔍 Search System
+**Progressive pipeline**: Companies (2-3s) → Contacts (5-10s) → Emails (10-20s)
+- `SearchOrchestrator` - Main coordinator (`server/search/orchestrator/`)
+- `SearchJobService.createJob()` - Async job creation
+- `JobProcessor.processNextJob()` - Background processing (5s interval)
+- `ExtensionSearchService.extendSearch()` - "+5 More" feature
+- **Key endpoints**: `/api/companies/search`, `/api/search-jobs`, `/api/search/extend`
 
-**Technical Implementations & Feature Specifications:**
-- **Modular API Design:** Feature-based folder structure for maintainability (e.g., `server/features/gmail-integration`, `server/search`, `server/campaigns`).
-- **Search Module Architecture:** Dedicated `server/search` module with submodules for sessions, companies, contacts, providers (Hunter, Apollo, AeroLeads), orchestrator, and services.
-- **Progressive Search System:** Optimized chained search (Companies → Contacts → Emails) with immediate company display, 7-company concurrent processing, smart contact fallback (if < 3 contacts found), and optimized API calls.
-- **Resilient Search System:** Database-persistent job queue (`search_jobs` table) with asynchronous background processing, automatic retry logic, and priority-based execution.
-- **Unified Contact Search:** All contact searches (browser-initiated and programmatic) go through a job queue system via `ContactSearchService`.
-- **List Management Optimization:** Debounced updates (1.5s delay) and concurrency control prevent duplicate list creation and ensure consistent updates.
-- **Template-based Email Campaigns:** Supports personalization and multi-provider email integration.
-- **Authentication:** Firebase Authentication for user login, complemented by Passport.js for session management.
-- **Email Generation System:** Sophisticated system offering 42 unique email combinations from 7 tones and 6 offer strategies, preserving paragraph spacing from AI responses.
-- **Product Offers:** Generation system with 6 strategies, proper routing, and display in the Implementation tab with copy functionality.
-- **Search State Persistence:** Synchronized search input fields maintain query consistency across page refreshes.
-- **Modularization:** Key functionalities like Lists, Email Templates, User Account Settings, and Email Replies are extracted into self-contained modules.
-- **Rate Limiting:** Session-based rate limiting for demo users (10 searches/hour) on quick-search and full search endpoints.
-- **Streak Page & Campaign System:** Central hub for daily outreach campaigns with a 4-component campaign builder, adaptive banners, and automated daily batch generation of personalized prospects with AI-generated emails.
-- **AI Testing Configuration:** `ENABLE_AI_TEST_MODE` secret allows authentication bypass for AI agents, operating as demo user ID 1 for testing purposes.
+### 📊 Contact Discovery
+Multi-stage fallback with validation scoring
+- `findKeyDecisionMakers()` - Core discovery function (`server/search/contacts/finder.ts`)
+- `ContactSearchService` - Orchestrates all contact searches
+- `validateContact()` - Scoring and deduplication
 
-**System Design Choices:**
-- **Hybrid Storage Architecture:** PostgreSQL for structured data (users, lists, companies, contacts, email_templates, strategic_profiles) and Replit Key-Value Database for volatile data (credits, Gmail tokens, subscriptions, notifications).
-- **Modular Architecture Pattern:** New features follow a symmetric frontend-backend structure (`server/features/[feature-name]/` and `client/src/features/[feature-name]/`) with clear public APIs, internal organization, and shared types.
+### 📧 Email Enrichment
+Tiered provider approach: Apollo → Perplexity+Hunter → AeroLeads
+- `parallelTieredEmailSearch()` - Main enrichment pipeline
+- `EmailDiscoveryService` - Coordinates providers
+- **Providers**: `searchApollo()`, `searchHunter()`, `searchPerplexity()`
 
-## External Dependencies
-- **Perplexity API**: Company research and contact discovery.
-- **OpenAI API**: Email strategy generation and content creation.
-- **Hunter.io API**: Email finder and verification.
-- **Apollo.io API**: Professional contact database.
-- **Firebase**: Authentication and user management.
-- **Replit Key-Value Database**: Volatile data storage.
-- **PostgreSQL**: Structured data storage.
-- **Google APIs**: Gmail integration.
+### 🎯 Campaign System
+Daily automated outreach with AI personalization
+- `batchGenerator.generateDailyBatch()` - Creates daily prospects
+- `EmailStrategyService` - 42 unique email combinations (7 tones × 6 strategies)
+- `sendGridService.sendDailyNudgeEmail()` - Email delivery
+- **Endpoint**: `/streak` - Campaign management UI
+
+### 💾 Data Architecture
+- **PostgreSQL**: `users`, `companies`, `contacts`, `lists`, `search_jobs`, `email_templates`
+- **Replit KV**: Credits, tokens, subscriptions, notifications
+- **Job Queue**: Database-persistent with retry logic (max 3 attempts)
+
+### 🔐 Authentication
+- Firebase for auth, Passport for sessions
+- `requireAuth` middleware - Protected routes
+- `ENABLE_AI_TEST_MODE` - Testing bypass (demo user ID 1)
+
+## Recent Updates (October 2025)
+- **"+5 More" Extension**: `ExtensionSearchService` with duplicate prevention
+- **Search Tests**: Comprehensive test suite in `TestRunner.testSearchExtensionFeature()`
+- **Race Condition Fix**: List creation debouncing (1.5s) prevents duplicates
+
+## API Integrations
+- **Perplexity**: Company/contact discovery (`discoverCompanies()`, `enrichCompanyDetails()`)
+- **Hunter.io**: Email verification (`searchHunterDirect()`)
+- **Apollo.io**: Contact database (`searchApolloDirect()`)
+- **OpenAI**: Email generation (`generateEmailStrategy()`)
+- **SendGrid**: Email delivery (`sg.send()`)
+
+## Key Configuration
+```bash
+# Essential environment variables
+PERPLEXITY_API_KEY, HUNTER_API_KEY, APOLLO_API_KEY
+DATABASE_URL, FIREBASE_CONFIG
+SENDGRID_API_KEY, SENDGRID_FROM_EMAIL
+```
+
+## Development Guidelines
+- **Module Pattern**: Features in `server/features/[name]` + `client/src/features/[name]`
+- **Rate Limits**: 10 searches/hour for demo users
+- **Concurrency**: Max 7 companies processed simultaneously
+- **Testing**: Run via `/admin` UI or `npx tsx server/test-search-extension.ts`

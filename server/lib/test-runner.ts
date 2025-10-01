@@ -188,6 +188,10 @@ export class TestRunner {
       const fullSearchFlowTest = await this.testFullSearchFlow();
       subTests.push(fullSearchFlowTest);
 
+      // Test 6: "+5 More" Extension Feature
+      const extensionTest = await this.testSearchExtensionFeature();
+      subTests.push(extensionTest);
+
       // Calculate status based on failures and warnings
       const failedCount = subTests.filter(test => test.status === 'failed').length;
       const warningCount = subTests.filter(test => test.status === 'warning').length;
@@ -798,6 +802,157 @@ export class TestRunner {
         status: 'failed',
         message: 'Auth middleware error',
         data: { error: error instanceof Error ? error.message : String(error) }
+      };
+    }
+  }
+
+  // Test the "+5 More" Extension Feature
+  private async testSearchExtensionFeature(): Promise<SubTestResult> {
+    try {
+      console.log('[ExtensionTest] Starting "+5 More" feature test...');
+      
+      // Step 1: Create an initial search job
+      console.log('[ExtensionTest] Step 1: Creating initial search...');
+      const initialSearchResponse = await fetch('http://localhost:5000/api/search-jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          query: "test companies for extension",
+          searchType: "companies"
+        })
+      });
+
+      if (!initialSearchResponse.ok) {
+        return {
+          name: 'Search Extension (+5 More)',
+          status: 'failed',
+          message: `Initial search creation failed with status ${initialSearchResponse.status}`,
+          data: { statusCode: initialSearchResponse.status }
+        };
+      }
+
+      const initialJob = await initialSearchResponse.json();
+      console.log(`[ExtensionTest] Initial job created: ${initialJob.jobId}`);
+
+      // Step 2: Wait a bit for the job to complete (simplified for testing)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Step 3: Get the initial companies (simulate getting results)
+      console.log('[ExtensionTest] Step 2: Getting initial companies...');
+      const companiesResponse = await fetch('http://localhost:5000/api/companies?limit=7');
+      let initialCompanies = [];
+      
+      if (companiesResponse.ok) {
+        initialCompanies = await companiesResponse.json();
+        // Take first 7 companies as mock initial results
+        initialCompanies = initialCompanies.slice(0, 7);
+      }
+      
+      console.log(`[ExtensionTest] Found ${initialCompanies.length} initial companies`);
+
+      // Step 4: Test the extension endpoint
+      console.log('[ExtensionTest] Step 3: Testing extension endpoint...');
+      const extensionResponse = await fetch('http://localhost:5000/api/search/extend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: "test companies for extension",
+          excludeCompanyIds: initialCompanies.map(c => ({ name: c.name })),
+          contactSearchConfig: {
+            enableCoreLeadership: true,
+            enableDepartmentHeads: true,
+            enableMiddleManagement: true
+          }
+        })
+      });
+
+      if (!extensionResponse.ok) {
+        const errorText = await extensionResponse.text();
+        console.log(`[ExtensionTest] Extension failed: ${errorText}`);
+        return {
+          name: 'Search Extension (+5 More)',
+          status: 'failed',
+          message: `Extension endpoint failed with status ${extensionResponse.status}`,
+          data: { 
+            statusCode: extensionResponse.status,
+            error: errorText
+          }
+        };
+      }
+
+      const extensionData = await extensionResponse.json();
+      console.log(`[ExtensionTest] Extension response:`, extensionData);
+
+      // Step 5: Validate the extension results
+      const hasJobId = extensionData.jobId && typeof extensionData.jobId === 'string';
+      const hasCompanies = Array.isArray(extensionData.companies);
+      const correctCompanyCount = hasCompanies && extensionData.companies.length <= 5;
+      
+      // Check for duplicates
+      const initialNames = new Set(initialCompanies.map(c => c.name?.toLowerCase()));
+      const newNames = extensionData.companies ? extensionData.companies.map(c => c.name?.toLowerCase()) : [];
+      const hasDuplicates = newNames.some(name => initialNames.has(name));
+
+      console.log(`[ExtensionTest] Validation results:`, {
+        hasJobId,
+        hasCompanies,
+        companiesCount: extensionData.companies?.length || 0,
+        correctCompanyCount,
+        hasDuplicates
+      });
+
+      // Step 6: Wait for extension job to complete
+      if (hasJobId) {
+        console.log(`[ExtensionTest] Step 4: Waiting for extension job ${extensionData.jobId} to complete...`);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Check job status
+        const jobStatusResponse = await fetch(`http://localhost:5000/api/search-jobs/${extensionData.jobId}`);
+        if (jobStatusResponse.ok) {
+          const jobStatus = await jobStatusResponse.json();
+          console.log(`[ExtensionTest] Extension job status: ${jobStatus.status}`);
+        }
+      }
+
+      // Determine test status
+      let status: 'passed' | 'failed' | 'warning' = 'passed';
+      let message = '';
+      
+      if (!hasJobId || !hasCompanies) {
+        status = 'failed';
+        message = 'Extension endpoint did not return expected structure';
+      } else if (hasDuplicates) {
+        status = 'failed';
+        message = 'Extension returned duplicate companies';
+      } else if (!correctCompanyCount) {
+        status = 'warning';
+        message = `Extension returned ${extensionData.companies.length} companies (expected ≤5)`;
+      } else if (extensionData.companies.length === 0) {
+        status = 'warning';
+        message = 'Extension returned 0 companies (may be due to test data limitations)';
+      } else {
+        message = `Extension feature working correctly - added ${extensionData.companies.length} unique companies`;
+      }
+
+      return {
+        name: 'Search Extension (+5 More)',
+        status,
+        message,
+        data: {
+          jobId: extensionData.jobId,
+          companiesAdded: extensionData.companies?.length || 0,
+          hasDuplicates,
+          initialCompaniesCount: initialCompanies.length
+        }
+      };
+
+    } catch (error) {
+      console.error('[ExtensionTest] Test error:', error);
+      return {
+        name: 'Search Extension (+5 More)',
+        status: 'failed',
+        message: 'Extension test error',
+        error: error instanceof Error ? error.message : String(error)
       };
     }
   }

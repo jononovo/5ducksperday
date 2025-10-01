@@ -2,6 +2,7 @@ import { Express, Request, Response } from "express";
 import { SearchJobService } from "../services/search-job-service";
 import { jobProcessor } from "../services/job-processor";
 import { getUserId } from "../../utils/auth";
+import { setupExtensionRoutes } from "../extensions";
 
 /**
  * Register search job API endpoints
@@ -361,6 +362,10 @@ export function registerSearchJobRoutes(app: Express) {
       });
     }
   });
+
+  // Extension search routes are handled by the extension module
+  // This provides clean separation of concerns
+  setupExtensionRoutes(app, getUserId);
 
   /**
    * Health check endpoint for job processor status

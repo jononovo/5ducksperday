@@ -1,0 +1,62 @@
+handleSearchResults completed
+Companies with contacts: 0 of 7
+Progressive update: 7 companies, 0 contacts
+API Request: GET /api/search-jobs/4067f766-c174-43b0-898f-84cfc89f6268 
+Object {hasData: false, timestamp: "2025-10-01T02:42:39.528Z"}
+=== PARENT COMPONENT: handleSearchResults called ===
+Received query: fintech in paris
+Received results count: 7
+Current component state - query: fintech in paris
+Current component state - results count: 7
+Complete results received with contacts: 7
+Companies reordered by contact count: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+=== PARENT COMPONENT: State updated ===
+New state - query: fintech in paris
+New state - results count: 7
+handleSearchResults completed
+Companies with contacts: 7 of 7
+Progressive update: 7 companies, 34 contacts
+Auto-expanding first company to show contacts: Ledger
+API Request: GET /api/search-jobs/4067f766-c174-43b0-898f-84cfc89f6268 
+Object {hasData: false, timestamp: "2025-10-01T02:42:40.228Z"}
+=== PARENT COMPONENT: handleSearchResults called ===
+Received query: fintech in paris
+Received results count: 7
+Current component state - query: fintech in paris
+Current component state - results count: 7
+Complete results received with contacts: 7
+Companies reordered by contact count: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+=== PARENT COMPONENT: State updated ===
+New state - query: fintech in paris
+New state - results count: 7
+handleSearchResults completed
+Companies with contacts: 7 of 7
+Progressive update: 7 companies, 34 contacts
+API Request: GET /api/search-jobs/4067f766-c174-43b0-898f-84cfc89f6268 
+Object {hasData: false, timestamp: "2025-10-01T02:42:40.926Z"}
+=== PARENT COMPONENT: handleSearchResults called ===
+Received query: fintech in paris
+Received results count: 7
+Current component state - query: fintech in paris
+Current component state - results count: 7
+Complete results received with contacts: 7
+Companies reordered by contact count: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+=== PARENT COMPONENT: State updated ===
+New state - query: fintech in paris
+New state - results count: 7
+handleSearchResults completed
+Companies with contacts: 7 of 7
+Progressive update: 7 companies, 34 contacts
+Job 4067f766-c174-43b0-898f-84cfc89f6268 completed
+Final results: 7 companies with 34 contacts
+Saving search state: 
+Object {query: "fintech in paris", resultsCount: 7, listId: null, companies: Array(7)}
+Creating new list for search results
+API Request: POST /api/lists 
+Object {hasData: true, timestamp: "2025-10-01T02:42:42.581Z"}
+List created successfully with ID: 1196
+Saving search state: 
+Object {query: "fintech in paris", resultsCount: 7, listId: 1196, companies: Array(7)}

@@ -106,6 +106,13 @@ export class SearchJobService {
         return;
       }
       
+      // Handle extension search separately
+      if (job.searchType === 'extension') {
+        const { ExtensionSearchService } = await import('../extensions');
+        await ExtensionSearchService.executeExtensionJob(job, jobId);
+        return;
+      }
+      
       // Regular flow: Fast company discovery with parallel enrichment
       // Phase 1: Fast company discovery (just names & websites)
       const totalPhases = job.searchType === 'emails' ? 7 : 6;
