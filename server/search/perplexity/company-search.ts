@@ -19,7 +19,7 @@ export async function discoverCompanies(query: string): Promise<Array<{name: str
     },
     {
       role: "user",
-      content: `List 15 companies matching: ${query}
+      content: `List 7 companies matching: ${query}
 Return ONLY company names and websites. Be concise.
 Format: JSON array with "name" and "website" fields.`
     }
@@ -45,8 +45,7 @@ Format: JSON array with "name" and "website" fields.`
                           (parsed.companies && Array.isArray(parsed.companies) ? parsed.companies : null);
       
       if (companiesArray) {
-        // Take up to 15 companies to have extras for duplicate filtering
-        const companies = companiesArray.slice(0, 15).map((company: {name: string, website?: string}) => ({
+        const companies = companiesArray.slice(0, 7).map((company: {name: string, website?: string}) => ({
           name: company.name,
           website: company.website || null
         }));
