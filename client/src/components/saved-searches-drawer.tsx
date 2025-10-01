@@ -108,7 +108,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
                   <TableCell className="text-sm font-medium text-gray-500 py-3">
                     {generateListDisplayName(list)}
                   </TableCell>
-                  <TableCell className="text-right text-sm font-medium text-gray-700 py-3">{list.resultCount}</TableCell>
+                  <TableCell className="text-right text-sm font-medium text-gray-700 py-3 pr-6">{list.resultCount}</TableCell>
                 </TableRow>
               ))}
               {lists.length === 0 && (
