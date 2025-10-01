@@ -635,8 +635,8 @@ export default function Home() {
   
   // Auto-creation mutation for silent list creation after search
   const autoCreateListMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentQuery || !currentResults) return;
+    mutationFn: async ({ query, companies }: { query: string; companies: CompanyWithContacts[] }) => {
+      if (!query || !companies) return;
       
       // Get current contact search config from localStorage
       const savedConfig = localStorage.getItem('contactSearchConfig');
@@ -650,8 +650,8 @@ export default function Home() {
       }
       
       const res = await apiRequest("POST", "/api/lists", {
-        companies: currentResults,
-        prompt: currentQuery,
+        companies: companies,
+        prompt: query,
         contactSearchConfig: contactSearchConfig
       });
       return res.json();
@@ -673,22 +673,22 @@ export default function Home() {
 
   // Mutation for updating existing list
   const updateListMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentQuery || !currentResults || !currentListId) {
+    mutationFn: async ({ query, companies, listId }: { query: string; companies: CompanyWithContacts[]; listId: number }) => {
+      if (!query || !companies || !listId) {
         console.error('Update list validation failed:', {
-          hasQuery: !!currentQuery,
-          hasResults: !!currentResults,
-          hasListId: !!currentListId,
-          currentListId
+          hasQuery: !!query,
+          hasResults: !!companies,
+          hasListId: !!listId,
+          listId
         });
         throw new Error('Missing required data for list update');
       }
       
       console.log('Starting list update:', {
-        listId: currentListId,
-        query: currentQuery,
-        companyCount: currentResults.length,
-        companyIds: currentResults.map(c => c.id)
+        listId: listId,
+        query: query,
+        companyCount: companies.length,
+        companyIds: companies.map(c => c.id)
       });
       
       // Get current contact search config from localStorage
@@ -702,9 +702,9 @@ export default function Home() {
         }
       }
       
-      const res = await apiRequest("PUT", `/api/lists/${currentListId}`, {
-        companies: currentResults,
-        prompt: currentQuery,
+      const res = await apiRequest("PUT", `/api/lists/${listId}`, {
+        companies: companies,
+        prompt: query,
         contactSearchConfig: contactSearchConfig
       });
       return res.json();
@@ -987,6 +987,11 @@ export default function Home() {
     }
     
     if (sortedResults.length > 0) {
+      // Capture values at timeout creation to avoid race conditions
+      const queryAtTimeOfResults = query;
+      const resultsAtTimeOfResults = sortedResults;
+      const listIdAtTimeOfResults = currentListId;
+      
       // Debounce list creation/update to prevent duplicate calls during progressive updates
       listUpdateTimeoutRef.current = setTimeout(() => {
         // Check if a mutation is already in progress
@@ -995,16 +1000,23 @@ export default function Home() {
           return;
         }
         
-        if (!currentListId) {
+        if (!listIdAtTimeOfResults) {
           // Create new list (only if we don't have one)
           console.log('Creating new list for search results');
           listMutationInProgressRef.current = true;
-          autoCreateListMutation.mutate();
+          autoCreateListMutation.mutate({ 
+            query: queryAtTimeOfResults, 
+            companies: resultsAtTimeOfResults 
+          });
         } else {
           // Update existing list
-          console.log('Updating existing list:', currentListId);
+          console.log('Updating existing list:', listIdAtTimeOfResults);
           listMutationInProgressRef.current = true;
-          updateListMutation.mutate();
+          updateListMutation.mutate({ 
+            query: queryAtTimeOfResults, 
+            companies: resultsAtTimeOfResults,
+            listId: listIdAtTimeOfResults
+          });
         }
       }, 1500); // 1.5 second delay to allow progressive updates to settle
     }
@@ -2184,9 +2196,13 @@ export default function Home() {
       }
       
       // Smart list update logic - only update existing lists, never create during email search
-      if (currentListId) {
+      if (currentListId && currentQuery && currentResults) {
         console.log('Updating existing list after email search completion:', currentListId);
-        updateListMutation.mutate();
+        updateListMutation.mutate({
+          query: currentQuery,
+          companies: currentResults,
+          listId: currentListId
+        });
       } else {
         console.log('No existing list to update - email results will be available for manual save');
         // Don't auto-create during email search to prevent duplicates
