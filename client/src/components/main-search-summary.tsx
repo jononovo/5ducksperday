@@ -21,6 +21,15 @@ export function MainSearchSummary({
   onClose,
   companies
 }: MainSearchSummaryProps) {
+  console.log('MainSearchSummary component render:', {
+    isVisible,
+    query,
+    totalCompanies,
+    totalContacts,
+    searchDuration,
+    companiesCount: companies?.length || 0
+  });
+  
   if (!isVisible) return null;
 
   // Calculate metrics from real data
