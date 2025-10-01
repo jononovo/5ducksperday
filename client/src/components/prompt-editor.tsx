@@ -16,7 +16,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useNotifications } from "@/features/user-account-settings";
 import { SearchProgress } from "./search-progress";
-import { MainSearchSummary } from "./main-search-summary";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import ContactSearchChips, { ContactSearchConfig } from "./contact-search-chips";
 import SearchTypeSelector, { SearchType } from "./search-type-selector";
@@ -42,6 +41,7 @@ interface PromptEditorProps {
   hasSearchResults?: boolean; // Flag to indicate if search results exist
   onSessionIdChange?: (sessionId: string | null) => void; // Callback for session ID changes
   hideRoleButtons?: boolean; // Flag to hide role selection buttons when search is inactive
+  onSearchMetricsUpdate?: (metrics: any, showSummary: boolean) => void; // Callback to update search metrics in parent
 }
 
 export default function PromptEditor({ 
@@ -58,7 +58,8 @@ export default function PromptEditor({
   onSearchSuccess,
   hasSearchResults = false,
   onSessionIdChange,
-  hideRoleButtons = false
+  hideRoleButtons = false,
+  onSearchMetricsUpdate
 }: PromptEditorProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -77,6 +78,7 @@ export default function PromptEditor({
     query: "",
     totalCompanies: 0,
     totalContacts: 0,
+    totalEmails: 0,
     searchDuration: 0,
     startTime: 0,
     companies: [] as any[]
@@ -677,21 +679,37 @@ export default function PromptEditor({
                 setSearchProgress(prev => ({ ...prev, phase: "Search Complete", completed: 5, total: 5 }));
               } else {
                 const searchDuration = Math.round((Date.now() - searchMetrics.startTime) / 1000);
-                setSearchMetrics(prev => ({
-                  ...prev,
+                
+                // Count emails from contacts
+                const totalEmails = companies.reduce((sum: number, company: any) => {
+                  if (!company.contacts) return sum;
+                  return sum + company.contacts.filter((contact: any) => 
+                    contact.email && contact.email.length > 5
+                  ).length;
+                }, 0);
+                
+                const updatedMetrics = {
+                  ...searchMetrics,
                   totalCompanies: companies.length,
                   totalContacts: totalContacts,
+                  totalEmails: totalEmails,
                   searchDuration: searchDuration,
-                  companies: companies
-                }));
+                  companies: companies,
+                  searchType: searchType // Include search type to know if emails were searched
+                };
                 
-                // Show summary
-                setTimeout(() => {
-                  setSummaryVisible(true);
+                setSearchMetrics(updatedMetrics);
+                
+                // Pass metrics to parent and show summary
+                if (onSearchMetricsUpdate) {
                   setTimeout(() => {
-                    setSummaryVisible(false);
-                  }, 8000);
-                }, 1000);
+                    onSearchMetricsUpdate(updatedMetrics, true);
+                    // Auto-hide after 15 seconds
+                    setTimeout(() => {
+                      onSearchMetricsUpdate(updatedMetrics, false);
+                    }, 15000);
+                  }, 1000);
+                }
                 
                 // Trigger confetti for contact/email searches
                 triggerConfetti();
@@ -922,6 +940,7 @@ export default function PromptEditor({
       query: value,
       totalCompanies: 0,
       totalContacts: 0,
+      totalEmails: 0,
       searchDuration: 0,
       startTime: Date.now(),
       companies: []
@@ -953,17 +972,6 @@ export default function PromptEditor({
   return (
     <div className="pl-0 pr-1 pt-1 pb-1 shadow-none"> {/* Container with no padding */}
       <div className="flex flex-col gap-0 md:gap-2">
-        {/* Main Search Summary */}
-        <MainSearchSummary
-          query={searchMetrics.query}
-          totalCompanies={searchMetrics.totalCompanies}
-          totalContacts={searchMetrics.totalContacts}
-          searchDuration={searchMetrics.searchDuration}
-          isVisible={summaryVisible}
-          onClose={() => setSummaryVisible(false)}
-          companies={searchMetrics.companies}
-        />
-        
         <div className="relative">
           {/* Component tooltip version for comparison */}
           <LandingPageTooltip

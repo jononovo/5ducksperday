@@ -14,6 +14,7 @@ const PromptEditor = lazy(() => import("@/components/prompt-editor"));
 // Import components with named exports directly for now
 import { EmailSearchSummary } from "@/components/email-search-summary";
 import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
+import { MainSearchSummary } from "@/components/main-search-summary";
 import { EmailComposer } from "@/components/email-composer";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -989,10 +990,8 @@ export default function Home() {
     
     console.log("Companies with contacts:", companiesWithContacts, "of", results.length);
     
-    // Always show the report if we have companies (even if 0 have contacts)
-    if (results.length > 0) {
-      setContactReportVisible(true);
-    }
+    // Don't show the report during progressive updates - let it be shown when search completes
+    // The report will be shown via onSearchMetricsUpdate callback from PromptEditor
     
     // Auto-create/update list after search completes with contacts
     // Clear any pending timeout to prevent duplicate calls
@@ -1691,6 +1690,15 @@ export default function Home() {
   });
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [contactReportVisible, setContactReportVisible] = useState(false);
+  const [mainSummaryVisible, setMainSummaryVisible] = useState(false);
+  const [mainSearchMetrics, setMainSearchMetrics] = useState({
+    query: "",
+    totalCompanies: 0,
+    totalContacts: 0,
+    totalEmails: 0,
+    searchDuration: 0,
+    companies: [] as any[]
+  });
   const [lastEmailSearchCount, setLastEmailSearchCount] = useState(0);
   const [lastSourceBreakdown, setLastSourceBreakdown] = useState<SourceBreakdown | undefined>(undefined);
 
@@ -2521,8 +2529,21 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden relative">
-      {/* Backdrop for mobile */}
+    <>
+      {/* Main Search Summary Modal - Rendered at root level to avoid overflow clipping */}
+      <MainSearchSummary
+        query={mainSearchMetrics.query}
+        totalCompanies={mainSearchMetrics.totalCompanies}
+        totalContacts={mainSearchMetrics.totalContacts}
+        totalEmails={mainSearchMetrics.totalEmails}
+        searchDuration={mainSearchMetrics.searchDuration}
+        isVisible={mainSummaryVisible}
+        onClose={() => setMainSummaryVisible(false)}
+        companies={mainSearchMetrics.companies}
+      />
+      
+      <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden relative">
+        {/* Backdrop for mobile */}
       {emailDrawerOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
@@ -2632,6 +2653,21 @@ export default function Home() {
                     hasSearchResults={currentResults ? currentResults.length > 0 : false}
                     onSessionIdChange={setCurrentSessionId}
                     hideRoleButtons={!!(currentResults && currentResults.length > 0 && !inputHasChanged)}
+                    onSearchMetricsUpdate={(metrics, showSummary) => {
+                      setMainSearchMetrics(metrics);
+                      setMainSummaryVisible(showSummary);
+                      // Show contact report only when search completes and has actual contacts
+                      if (showSummary && metrics.totalCompanies > 0 && metrics.totalContacts > 0) {
+                        setContactReportVisible(true);
+                        // Show email summary if search type was 'emails' and emails were found
+                        if (metrics.searchType === 'emails' && metrics.totalEmails && metrics.totalEmails > 0) {
+                          setLastEmailSearchCount(metrics.totalEmails);
+                          // Set a basic source breakdown for initial search (will be updated by consolidated search if run)
+                          setLastSourceBreakdown({ Perplexity: metrics.totalEmails, Apollo: 0, Hunter: 0 });
+                          setSummaryVisible(true);
+                        }
+                      }
+                    }}
                   />
                 </Suspense>
                 
@@ -3180,5 +3216,6 @@ export default function Home() {
         onClose={closeNotification}
       />
     </div>
+    </>
   );
 }
