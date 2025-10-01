@@ -75,6 +75,30 @@ export default function AdminApiTesting() {
     },
   });
 
+  // Run search extension test mutation
+  const runExtensionTestMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/admin/test/extension');
+      return response.json();
+    },
+    onSuccess: (data: TestReport) => {
+      setTestReport(data);
+      toast({
+        title: 'Extension test completed',
+        description: data.message,
+        variant: data.overallStatus === 'passed' ? 'default' : 
+                 data.overallStatus === 'warning' ? 'default' : 'destructive',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to run extension test',
+        description: error.message || 'Extension test execution failed',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'passed':
@@ -292,6 +316,51 @@ export default function AdminApiTesting() {
             </CardContent>
           </Card>
         )}
+
+        {/* Search Extension Test Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="h-5 w-5" />
+              "+5 More" Extension Test
+            </CardTitle>
+            <CardDescription>
+              Test the search extension feature that adds 5 additional companies to existing searches
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-4 bg-muted rounded-lg">
+                <h4 className="font-medium mb-2">What this test does:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Creates an initial search job</li>
+                  <li>• Tests the extension endpoint with exclude lists</li>
+                  <li>• Verifies exactly 5 unique companies are added</li>
+                  <li>• Checks for duplicates and data integrity</li>
+                  <li>• Validates contact and email discovery for extensions</li>
+                </ul>
+              </div>
+              <Button
+                onClick={() => runExtensionTestMutation.mutate()}
+                disabled={runExtensionTestMutation.isPending || runAllTestsMutation.isPending}
+                className="w-full"
+                variant="default"
+              >
+                {runExtensionTestMutation.isPending ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Running Extension Test...
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 mr-2" />
+                    Run "+5 More" Extension Test
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Links */}
         <Card>

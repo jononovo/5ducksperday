@@ -302,6 +302,63 @@ router.post('/test/run-all', requireAdmin, async (req: Request, res: Response) =
   }
 });
 
+// Run "+5 More" extension test specifically
+router.post('/test/extension', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { TestRunner } = await import('../../lib/test-runner');
+    const testRunner = new TestRunner();
+    
+    // Run the backend search tests which includes the extension test
+    const backendResults = await testRunner.runBackendSearchTest();
+    
+    // Find the extension test specifically
+    const extensionTest = backendResults.subTests?.find(t => t.name === 'Search Extension (+5 More)');
+    
+    // Calculate overall status based on extension test
+    let overallStatus = 'failed';
+    let message = 'Extension test not found';
+    
+    if (extensionTest) {
+      overallStatus = extensionTest.status;
+      message = extensionTest.message;
+    }
+    
+    // Format response similar to full test run
+    const response = {
+      timestamp: new Date().toISOString(),
+      duration: backendResults.duration,
+      overallStatus: overallStatus,
+      message: message,
+      summary: {
+        total: 1,
+        passed: extensionTest?.status === 'passed' ? 1 : 0,
+        failed: extensionTest?.status === 'failed' ? 1 : 0,
+        warnings: extensionTest?.status === 'warning' ? 1 : 0
+      },
+      tests: [{
+        name: 'Search Extension (+5 More)',
+        status: extensionTest?.status || 'failed',
+        message: extensionTest?.message || 'Test not found',
+        duration: backendResults.duration,
+        subTests: extensionTest ? [{
+          name: 'Extension Details',
+          status: extensionTest.status,
+          message: extensionTest.message,
+          data: extensionTest.data
+        }] : []
+      }]
+    };
+    
+    res.json(response);
+  } catch (error) {
+    console.error('Extension test runner error:', error);
+    res.status(500).json({
+      error: 'Extension test failed',
+      details: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
 // Test email sending
 router.post('/test/email', requireAdmin, async (req: Request, res: Response) => {
   try {
