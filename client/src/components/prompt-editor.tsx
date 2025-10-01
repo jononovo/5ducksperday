@@ -78,6 +78,7 @@ export default function PromptEditor({
     query: "",
     totalCompanies: 0,
     totalContacts: 0,
+    totalEmails: 0,
     searchDuration: 0,
     startTime: 0,
     companies: [] as any[]
@@ -678,10 +679,20 @@ export default function PromptEditor({
                 setSearchProgress(prev => ({ ...prev, phase: "Search Complete", completed: 5, total: 5 }));
               } else {
                 const searchDuration = Math.round((Date.now() - searchMetrics.startTime) / 1000);
+                
+                // Count emails from contacts
+                const totalEmails = companies.reduce((sum: number, company: any) => {
+                  if (!company.contacts) return sum;
+                  return sum + company.contacts.filter((contact: any) => 
+                    contact.email && contact.email.length > 5
+                  ).length;
+                }, 0);
+                
                 const updatedMetrics = {
                   ...searchMetrics,
                   totalCompanies: companies.length,
                   totalContacts: totalContacts,
+                  totalEmails: totalEmails,
                   searchDuration: searchDuration,
                   companies: companies
                 };
@@ -692,10 +703,10 @@ export default function PromptEditor({
                 if (onSearchMetricsUpdate) {
                   setTimeout(() => {
                     onSearchMetricsUpdate(updatedMetrics, true);
-                    // Auto-hide after 8 seconds
+                    // Auto-hide after 15 seconds
                     setTimeout(() => {
                       onSearchMetricsUpdate(updatedMetrics, false);
-                    }, 8000);
+                    }, 15000);
                   }, 1000);
                 }
                 
@@ -928,6 +939,7 @@ export default function PromptEditor({
       query: value,
       totalCompanies: 0,
       totalContacts: 0,
+      totalEmails: 0,
       searchDuration: 0,
       startTime: Date.now(),
       companies: []

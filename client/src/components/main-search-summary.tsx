@@ -6,6 +6,7 @@ interface MainSearchSummaryProps {
   query: string;
   totalCompanies: number;
   totalContacts: number;
+  totalEmails?: number;
   searchDuration: number;
   isVisible: boolean;
   onClose: () => void;
@@ -16,13 +17,12 @@ export function MainSearchSummary({
   query,
   totalCompanies,
   totalContacts,
+  totalEmails,
   searchDuration,
   isVisible,
   onClose,
   companies
 }: MainSearchSummaryProps) {
-  console.log("MainSearchSummary rendering:", { isVisible, totalCompanies, totalContacts, searchDuration });
-  
   if (!isVisible) return null;
 
   // Calculate metrics from real data
@@ -86,6 +86,14 @@ export function MainSearchSummary({
               <span className="text-sm font-medium">Contacts Discovered:</span>
               <span className="text-sm font-bold text-green-600">{totalContacts}</span>
             </div>
+            
+            {totalEmails && totalEmails > 0 && (
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-indigo-600" />
+                <span className="text-sm font-medium">Emails Found:</span>
+                <span className="text-sm font-bold text-indigo-600">{totalEmails}</span>
+              </div>
+            )}
             
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-purple-600" />

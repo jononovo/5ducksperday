@@ -1697,6 +1697,7 @@ export default function Home() {
     query: "",
     totalCompanies: 0,
     totalContacts: 0,
+    totalEmails: 0,
     searchDuration: 0,
     companies: [] as any[]
   });
@@ -2536,6 +2537,7 @@ export default function Home() {
         query={mainSearchMetrics.query}
         totalCompanies={mainSearchMetrics.totalCompanies}
         totalContacts={mainSearchMetrics.totalContacts}
+        totalEmails={mainSearchMetrics.totalEmails}
         searchDuration={mainSearchMetrics.searchDuration}
         isVisible={mainSummaryVisible}
         onClose={() => setMainSummaryVisible(false)}
@@ -2656,6 +2658,10 @@ export default function Home() {
                     onSearchMetricsUpdate={(metrics, showSummary) => {
                       setMainSearchMetrics(metrics);
                       setMainSummaryVisible(showSummary);
+                      // Also show contact report when search completes
+                      if (showSummary && metrics.totalCompanies > 0) {
+                        setContactReportVisible(true);
+                      }
                     }}
                   />
                 </Suspense>
