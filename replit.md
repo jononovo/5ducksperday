@@ -3,6 +3,10 @@
 ## Overview
 5Ducks is a comprehensive B2B lead generation and prospecting platform. Its purpose is to help small businesses acquire new leads daily by offering AI-powered company search, contact discovery, email enrichment, and campaign management. The platform aims to streamline the prospecting process, provide a competitive edge in B2B sales, and deliver a unified, efficient solution for lead generation.
 
+## Recent Changes (October 1, 2025)
+- **Fixed race condition in list creation**: Resolved issue where multiple different search queries were incorrectly saved to the same list ID. Solution captures values at timeout creation instead of relying on closure state.
+- **Implemented "+5 More" feature**: Added ability to extend existing searches with 5 additional companies via backend endpoint `/api/search/extend` that excludes already-found companies.
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 Mobile UI preference: Compact, space-efficient design with seamless header-to-content transitions.
