@@ -529,6 +529,12 @@ class ChatOverlay {
     }, 100);
   }
 
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   renderMessages() {
     let html = '';
     
@@ -538,7 +544,7 @@ class ChatOverlay {
       html += `
         <div class="message ${message.sender}">
           <div class="message-content">
-            ${message.isHTML ? content : content.replace(/\n/g, '<br>')}
+            ${message.isHTML ? content : this.escapeHtml(content).replace(/\n/g, '<br>')}
             <span class="message-time">${time}</span>
           </div>
         </div>
