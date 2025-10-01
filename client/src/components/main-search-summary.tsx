@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X, Users, Building2, Clock, TrendingUp, Mail } from "lucide-react";
@@ -66,9 +67,9 @@ export function MainSearchSummary({
     return `${minutes}m ${remainingSeconds}s`;
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
-      <Card className="w-full max-w-md bg-white shadow-xl">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4" style={{ zIndex: 999999 }}>
+      <Card className="w-full max-w-md bg-white shadow-2xl border-4 border-red-500" style={{ zIndex: 999999 }}>
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold text-gray-900">Search Summary</CardTitle>
@@ -130,6 +131,7 @@ export function MainSearchSummary({
           </div>
         </CardContent>
       </Card>
-    </div>
+    </div>,
+    document.body
   );
 }
