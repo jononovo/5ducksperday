@@ -21,6 +21,7 @@ import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useNotifications } from "@/features/user-account-settings";
 import { useStrategyOverlay } from "@/features/strategy-chat";
 import { NotificationToast } from "@/components/ui/notification-toast";
+import { ExtendSearchButton } from "@/features/search-extension";
 import {
   Search,
   Code2,
@@ -2671,113 +2672,14 @@ export default function Home() {
                       />
                     </div>
                     
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                            onClick={async () => {
-                              if (!auth.user) {
-                                registrationModal.openModal();
-                                return;
-                              }
-                              
-                              try {
-                                // Get the original contact search configuration
-                                const savedConfig = localStorage.getItem('contactSearchConfig');
-                                let contactSearchConfig = null;
-                                if (savedConfig) {
-                                  try {
-                                    contactSearchConfig = JSON.parse(savedConfig);
-                                  } catch (error) {
-                                    console.error('Error parsing contact search config:', error);
-                                  }
-                                }
-                                
-                                // Call the extend search API with contact search config
-                                const res = await apiRequest("POST", "/api/search/extend", {
-                                  query: currentQuery,
-                                  excludeCompanyIds: currentResults?.map(c => ({ name: c.name })) || [],
-                                  contactSearchConfig: contactSearchConfig || {
-                                    enableCoreLeadership: true,
-                                    enableDepartmentHeads: true,
-                                    enableMiddleManagement: true
-                                  }
-                                });
-                                
-                                const data = await res.json();
-                                
-                                if (data.jobId && data.companies && data.companies.length > 0) {
-                                  console.log(`[+5 More] Extending search with ${data.companies.length} new companies`);
-                                  toast({
-                                    title: "Finding more companies",
-                                    description: `Adding ${data.companies.length} additional companies with contacts and emails.`,
-                                  });
-                                  
-                                  // Poll for job completion
-                                  const pollInterval = setInterval(async () => {
-                                    try {
-                                      const jobRes = await apiRequest("GET", `/api/search-jobs/${data.jobId}`);
-                                      const jobData = await jobRes.json();
-                                      
-                                      if (jobData.status === 'completed' && jobData.results) {
-                                        clearInterval(pollInterval);
-                                        
-                                        // Merge the new results with existing ones
-                                        const newCompanies = jobData.results.companies || [];
-                                        const mergedResults = [...(currentResults || []), ...newCompanies];
-                                        
-                                        // Update the state with extended results
-                                        handleSearchResults(currentQuery || '', mergedResults);
-                                        
-                                        toast({
-                                          title: "Search extended",
-                                          description: `Added ${newCompanies.length} new companies to your results.`,
-                                        });
-                                      } else if (jobData.status === 'failed') {
-                                        clearInterval(pollInterval);
-                                        toast({
-                                          title: "Extension failed",
-                                          description: "Could not fetch additional companies. Please try again.",
-                                          variant: "destructive"
-                                        });
-                                      }
-                                    } catch (error) {
-                                      console.error("[+5 More] Error polling job:", error);
-                                    }
-                                  }, 2000); // Poll every 2 seconds
-                                  
-                                  // Stop polling after 30 seconds
-                                  setTimeout(() => clearInterval(pollInterval), 30000);
-                                } else if (data.companies && data.companies.length === 0) {
-                                  toast({
-                                    title: "No additional companies found",
-                                    description: "We couldn't find more companies matching your search criteria.",
-                                  });
-                                } else {
-                                  throw new Error(data.error || "Failed to extend search");
-                                }
-                              } catch (error) {
-                                console.error("[+5 More] Error extending search:", error);
-                                toast({
-                                  title: "Error",
-                                  description: error instanceof Error ? error.message : "Failed to extend search",
-                                  variant: "destructive"
-                                });
-                              }
-                            }}
-                          >
-                            <Plus className="h-4 w-4" />
-                            <span className="hidden md:inline">5 More</span>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          <p className="text-xs">Expand the search to include another five companies with the same prompt</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <ExtendSearchButton
+                      query={currentQuery || ''}
+                      currentResults={currentResults || []}
+                      onResultsExtended={handleSearchResults}
+                      onLoginRequired={() => registrationModal.openModal()}
+                      isAuthenticated={!!auth.user}
+                      className="opacity-45 hover:opacity-100 hover:bg-white transition-all"
+                    />
                     
                     <TooltipProvider>
                       <Tooltip>

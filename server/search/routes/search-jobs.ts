@@ -2,6 +2,7 @@ import { Express, Request, Response } from "express";
 import { SearchJobService } from "../services/search-job-service";
 import { jobProcessor } from "../services/job-processor";
 import { getUserId } from "../../utils/auth";
+import { setupExtensionRoutes } from "../extensions";
 
 /**
  * Register search job API endpoints
@@ -362,102 +363,9 @@ export function registerSearchJobRoutes(app: Express) {
     }
   });
 
-  /**
-   * Extend search with additional companies ("+5 More" feature)
-   */
-  app.post("/api/search/extend", async (req: Request, res: Response) => {
-    try {
-      const userId = getUserId(req);
-      const { query, excludeCompanyIds = [], contactSearchConfig } = req.body;
-
-      if (!query || typeof query !== 'string') {
-        res.status(400).json({
-          error: "Invalid request: query must be a non-empty string"
-        });
-        return;
-      }
-
-      console.log(`[SearchExtend] Extending search for user ${userId} with query: "${query}"`);
-      console.log(`[SearchExtend] Excluding ${excludeCompanyIds.length} existing companies`);
-
-      // Extract company names from the exclusion list
-      const excludeCompanyNames: string[] = excludeCompanyIds.map((item: any) => {
-        if (typeof item === 'object' && item.name) {
-          return item.name;
-        } else if (typeof item === 'string') {
-          return item;
-        }
-        return '';
-      }).filter((name: string) => name !== '');
-
-      console.log(`[SearchExtend] Company names to exclude:`, excludeCompanyNames);
-
-      // Import the discovery function
-      const { discoverCompanies } = await import("../perplexity/company-search");
-      
-      // Fetch more companies, passing the exclusion list to Perplexity
-      const newCompanies = await discoverCompanies(query, excludeCompanyNames);
-      
-      // Additional filtering as a safety measure - filter out companies that are already in the results
-      const filteredCompanies = newCompanies.filter(company => {
-        // Check if this company name already exists in the exclusion list
-        const isExcluded = excludeCompanyNames.some((excludedName: string) => 
-          excludedName.toLowerCase() === company.name.toLowerCase()
-        );
-        return !isExcluded;
-      });
-
-      // Take only 5 new companies
-      const additionalCompanies = filteredCompanies.slice(0, 5);
-      
-      console.log(`[SearchExtend] Found ${additionalCompanies.length} new companies to add`);
-
-      // Create a search job for these additional companies
-      // Always use 'emails' search type to get companies + contacts + emails
-      if (additionalCompanies.length > 0) {
-        const jobId = await SearchJobService.createJob({
-          userId,
-          query,
-          searchType: 'emails',  // Full search flow: companies + contacts + emails
-          contactSearchConfig: contactSearchConfig || {
-            // Default config if none provided
-            enableCoreLeadership: true,
-            enableDepartmentHeads: true,
-            enableMiddleManagement: true
-          },
-          source: 'frontend',
-          metadata: {
-            isExtension: true,
-            excludeCompanyIds,
-            excludeCompanyNames, // Pass the extracted names for additional safety
-            additionalCompanies: additionalCompanies.map(c => c.name)
-          },
-          priority: 1
-        });
-
-        // Execute immediately for better UX
-        SearchJobService.executeJob(jobId).catch(error => {
-          console.error(`[SearchExtend] Background execution failed for job ${jobId}:`, error);
-        });
-
-        res.json({
-          jobId,
-          companies: additionalCompanies,
-          message: `Found ${additionalCompanies.length} additional companies`
-        });
-      } else {
-        res.json({
-          companies: [],
-          message: "No additional companies found"
-        });
-      }
-    } catch (error) {
-      console.error("[SearchExtend] Error extending search:", error);
-      res.status(500).json({
-        error: error instanceof Error ? error.message : "Failed to extend search"
-      });
-    }
-  });
+  // Extension search routes are handled by the extension module
+  // This provides clean separation of concerns
+  setupExtensionRoutes(app, getUserId);
 
   /**
    * Health check endpoint for job processor status

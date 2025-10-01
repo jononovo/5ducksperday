@@ -6,6 +6,11 @@
 ## Recent Changes (October 1, 2025)
 - **Fixed race condition in list creation**: Resolved issue where multiple different search queries were incorrectly saved to the same list ID. Solution captures values at timeout creation instead of relying on closure state.
 - **Implemented "+5 More" feature**: Added ability to extend existing searches with 5 additional companies via backend endpoint `/api/search/extend` that excludes already-found companies.
+- **Modularized Extension Search Architecture**: Separated "+5 More" extension logic from core search flow to prevent pollution and duplication issues:
+  - Created dedicated `server/search/extensions/` module with ExtensionSearchService
+  - Implemented client-side ExtendSearchButton component in `client/src/features/search-extension/`
+  - Extension searches use dedicated 'extension' searchType for clean separation
+  - Fixed console duplication and race conditions from improper state management
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

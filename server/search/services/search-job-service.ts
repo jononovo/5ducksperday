@@ -106,6 +106,13 @@ export class SearchJobService {
         return;
       }
       
+      // Handle extension search separately
+      if (job.searchType === 'extension') {
+        const { ExtensionSearchService } = await import('../extensions');
+        await ExtensionSearchService.executeExtensionJob(job, jobId);
+        return;
+      }
+      
       // Regular flow: Fast company discovery with parallel enrichment
       // Phase 1: Fast company discovery (just names & websites)
       const totalPhases = job.searchType === 'emails' ? 7 : 6;
@@ -116,23 +123,8 @@ export class SearchJobService {
         message: 'Discovering matching companies'
       });
 
-      // Check if this is an extension search and handle accordingly
-      let discoveredCompanies: Array<{name: string, website: string | null}> = [];
-      const metadata = job.metadata as any;
-      
-      if (metadata?.isExtension && metadata?.additionalCompanies) {
-        // Extension search: Use the pre-discovered additional companies
-        console.log(`[SearchJobService] Extension job ${jobId}: Using ${metadata.additionalCompanies.length} pre-discovered companies`);
-        discoveredCompanies = metadata.additionalCompanies.map((name: string) => ({
-          name,
-          website: null
-        }));
-      } else {
-        // Normal search: Discover companies (optionally with exclusions if provided)
-        const excludeCompanies = metadata?.excludeCompanyNames || [];
-        discoveredCompanies = await discoverCompanies(job.query, excludeCompanies);
-        console.log(`[SearchJobService] Discovered ${discoveredCompanies.length} companies for job ${jobId}${excludeCompanies.length > 0 ? ` (excluded ${excludeCompanies.length} companies)` : ''}`);
-      }
+      const discoveredCompanies = await discoverCompanies(job.query);
+      console.log(`[SearchJobService] Discovered ${discoveredCompanies.length} companies for job ${jobId}`);
 
       // Phase 2: Save companies immediately for fast display
       await this.updateJobProgress(job.id, {
