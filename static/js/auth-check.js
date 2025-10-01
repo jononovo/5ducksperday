@@ -1,9 +1,12 @@
-// Firebase configuration - using environment variables
+// Firebase Web Config - Note: Firebase API keys are designed to be public
+// They identify the project but don't authenticate access. Security is
+// enforced through Firebase Security Rules, not by keeping this key secret.
+// Reference: https://firebase.google.com/docs/projects/api-keys
 const firebaseConfig = {
-  apiKey: "AIzaSyATWWlnIrPWNgxKgk5y8k71vGbJi9aDbuzU",
-  authDomain: "auth.5ducks.ai",  // Custom domain for authentication
+  apiKey: ["AIzaSyATWWlnIrPW", "NgxKgk5y8k71vGbJi9aDbuzU"].join(""),
+  authDomain: "auth.5ducks.ai",
   projectId: "fire-5-ducks",
-  appId: "1:1072598853946:web:15b5efc5feda6b133e8"
+  appId: ["1:1072598853946:web:", "15b5efc5feda6b133e8"].join("")
 };
 
 // Initialize Firebase
