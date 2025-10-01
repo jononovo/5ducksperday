@@ -99,16 +99,16 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
               {lists.map((list: List) => (
                 <TableRow 
                   key={list.id}
-                  className={`cursor-pointer hover:bg-muted ${clickedId === list.id ? 'bg-blue-100 dark:bg-blue-900/30' : ''}`}
+                  className={`cursor-pointer hover:bg-muted border-0 ${clickedId === list.id ? 'bg-blue-100 dark:bg-blue-900/30' : ''}`}
                   onClick={() => {
                     setClickedId(list.id);
                     onLoadSearch(list);
                   }}
                 >
-                  <TableCell className="font-mono text-sm">
+                  <TableCell className="text-sm font-medium text-gray-700">
                     {generateListDisplayName(list)}
                   </TableCell>
-                  <TableCell className="text-right">{list.resultCount}</TableCell>
+                  <TableCell className="text-right text-sm font-medium text-gray-700">{list.resultCount}</TableCell>
                 </TableRow>
               ))}
               {lists.length === 0 && (
