@@ -564,7 +564,7 @@ export class SearchJobService {
         message: `Enriching ${allContacts.length} contacts with emails`
       });
       
-      await this.enrichContactsWithEmails(job, allContacts, validCompanies, 5);
+      const sourceBreakdown = await this.enrichContactsWithEmails(job, allContacts, validCompanies, 5);
       
       // Phase 4: Deduct credits
       await this.updateJobProgress(job.id, {
@@ -602,7 +602,8 @@ export class SearchJobService {
           companiesSearched: validCompanies.length,
           contactsEnriched: allContacts.length,  // Number we actually searched
           totalContacts: allContactsForDisplay.length,  // Total contacts in companies
-          emailsFound: allContactsForDisplay.filter(c => c.email).length
+          emailsFound: allContactsForDisplay.filter(c => c.email).length,
+          sourceBreakdown: sourceBreakdown  // Add source breakdown for display
         }
       };
       
@@ -783,19 +784,27 @@ export class SearchJobService {
   /**
    * Enrich contacts with emails using parallel tiered approach
    * Processes contacts by company for optimized parallel searching
+   * Returns source breakdown of emails found
    */
   private static async enrichContactsWithEmails(
     job: SearchJob, 
     contacts: any[], 
     companies: any[],
     totalPhases: number
-  ): Promise<void> {
+  ): Promise<{Apollo: number, Perplexity: number, Hunter: number}> {
     const { parallelTieredEmailSearch } = await import('./parallel-email-search');
     const { processBatch } = await import('../utils/batch-processor');
     
     let totalEmailsFound = 0;
     let companiesProcessed = 0;
     const totalCompanies = companies.length;
+    
+    // Track source breakdown
+    const sourceBreakdown = {
+      Apollo: 0,
+      Perplexity: 0,
+      Hunter: 0
+    };
     
     console.log(`[SearchJobService] Starting parallel email enrichment for ${contacts.length} contacts across ${totalCompanies} companies`);
     
@@ -823,12 +832,18 @@ export class SearchJobService {
         // Execute parallel tiered search for this company's contacts
         const results = await parallelTieredEmailSearch(companyContacts, company, job.userId);
         
-        // Update contact objects in place with found emails
+        // Update contact objects in place with found emails and track sources
         for (const result of results) {
           if (result.email) {
             const contact = companyContacts.find(c => c.id === result.contactId);
             if (contact) {
               contact.email = result.email;
+            }
+            // Track source breakdown (ignore 'existing' emails)
+            if (result.source !== 'existing') {
+              if (result.source === 'apollo') sourceBreakdown.Apollo++;
+              else if (result.source === 'perplexity') sourceBreakdown.Perplexity++;
+              else if (result.source === 'hunter') sourceBreakdown.Hunter++;
             }
           }
         }
@@ -884,6 +899,9 @@ export class SearchJobService {
     );
     
     console.log(`[SearchJobService] Email enrichment complete: ${totalEmailsFound} emails found across ${totalCompanies} companies`);
+    console.log(`[SearchJobService] Source breakdown - Apollo: ${sourceBreakdown.Apollo}, Perplexity: ${sourceBreakdown.Perplexity}, Hunter: ${sourceBreakdown.Hunter}`);
+    
+    return sourceBreakdown;
   }
 
 
