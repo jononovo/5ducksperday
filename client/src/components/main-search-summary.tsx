@@ -1,12 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { X, Users, Building2, Clock, TrendingUp, Mail } from "lucide-react";
+import { X, Users, Building2, Clock, TrendingUp } from "lucide-react";
 
 interface MainSearchSummaryProps {
   query: string;
   totalCompanies: number;
   totalContacts: number;
-  totalEmails: number;
   searchDuration: number;
   isVisible: boolean;
   onClose: () => void;
@@ -17,7 +16,6 @@ export function MainSearchSummary({
   query,
   totalCompanies,
   totalContacts,
-  totalEmails,
   searchDuration,
   isVisible,
   onClose,
@@ -86,14 +84,6 @@ export function MainSearchSummary({
               <span className="text-sm font-medium">Contacts Discovered:</span>
               <span className="text-sm font-bold text-green-600">{totalContacts}</span>
             </div>
-            
-            {totalEmails > 0 && (
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-indigo-600" />
-                <span className="text-sm font-medium">Emails Found:</span>
-                <span className="text-sm font-bold text-indigo-600">{totalEmails}</span>
-              </div>
-            )}
             
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-purple-600" />
