@@ -4,7 +4,6 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
-  SheetClose,
 } from "@/components/ui/sheet";
 import {
   Table,
@@ -15,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { PanelLeft, X, Plus } from "lucide-react";
+import { PanelLeft, Plus } from "lucide-react";
 import type { List } from "@shared/schema";
 import { generateListDisplayName } from "@/lib/list-utils";
 
@@ -74,12 +73,6 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
           onOpenChange(false);
         }}
       >
-        {/* Custom mobile-only close button */}
-        <SheetClose className="md:hidden absolute top-4 right-4 z-10 h-11 w-11 rounded-md border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 flex items-center justify-center">
-          <X className="h-6 w-6" />
-          <span className="sr-only">Close</span>
-        </SheetClose>
-        
         <div className="h-full overflow-auto">
           {/* New Search Button */}
           <div className="px-3 py-3">
