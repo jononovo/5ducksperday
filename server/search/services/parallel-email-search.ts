@@ -197,8 +197,8 @@ export async function parallelTieredEmailSearch(
   
   console.log(`[Parallel Search] Tier 1 complete in ${Date.now() - tier1StartTime}ms - Found ${emailsFoundInTier1} new emails`);
   
-  // TIER 2: Only if less than 1 email found in Tier 1
-  if (emailsFoundInTier1 < 1 && topContacts.length > 0) {
+  // TIER 2: Only if less than 2 emails found in Tier 1
+  if (emailsFoundInTier1 < 2 && topContacts.length > 0) {
     console.log(`[Parallel Search] === TIER 2: Perplexity + Hunter (conditional) ===`);
     const tier2StartTime = Date.now();
     
