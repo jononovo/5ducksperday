@@ -697,8 +697,8 @@ export function EmailComposer({
           to={toEmail}
           subject={emailSubject}
           body={emailContent}
-          contact={selectedContact}
-          company={selectedCompany}
+          contact={selectedContact ?? undefined}
+          company={selectedCompany ?? undefined}
           isGmailAuthenticated={(gmailStatus as any)?.authorized}
           onSendViaGmail={handleSendEmail}
           onManualSend={handleManualSend}

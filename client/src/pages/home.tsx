@@ -185,7 +185,7 @@ export default function Home() {
     setSearchSectionCollapsed(true);
   };
   
-  const handleEmailContactChange = (newContact: Contact) => {
+  const handleEmailContactChange = (newContact: Contact | null) => {
     setSelectedEmailContact(newContact);
   };
 
