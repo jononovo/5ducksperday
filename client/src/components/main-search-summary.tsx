@@ -1,7 +1,6 @@
-import { createPortal } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { X, Users, Building2, Clock, TrendingUp, Mail } from "lucide-react";
+import { X, Users, Building2, Clock, TrendingUp } from "lucide-react";
 
 interface MainSearchSummaryProps {
   query: string;
@@ -28,12 +27,6 @@ export function MainSearchSummary({
   const averageContactsPerCompany = totalCompanies > 0 ? (totalContacts / totalCompanies).toFixed(1) : "0";
   const companiesWithContacts = companies.filter(company => company.contacts && company.contacts.length > 0).length;
   const successRate = totalCompanies > 0 ? Math.round((companiesWithContacts / totalCompanies) * 100) : 0;
-  
-  // Count total emails from contacts
-  const totalEmails = companies.reduce((sum, company) => {
-    if (!company.contacts) return sum;
-    return sum + company.contacts.filter((contact: any) => contact.email).length;
-  }, 0);
   
   // Find top company by contact count
   const topCompany = companies.reduce((max, company) => {
@@ -67,9 +60,9 @@ export function MainSearchSummary({
     return `${minutes}m ${remainingSeconds}s`;
   };
 
-  return createPortal(
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4" style={{ zIndex: 999999 }}>
-      <Card className="w-full max-w-md bg-white shadow-2xl border-4 border-red-500" style={{ zIndex: 999999 }}>
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-md bg-white shadow-xl">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold text-gray-900">Search Summary</CardTitle>
@@ -91,14 +84,6 @@ export function MainSearchSummary({
               <span className="text-sm font-medium">Contacts Discovered:</span>
               <span className="text-sm font-bold text-green-600">{totalContacts}</span>
             </div>
-            
-            {totalEmails > 0 && (
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-indigo-600" />
-                <span className="text-sm font-medium">Emails Found:</span>
-                <span className="text-sm font-bold text-indigo-600">{totalEmails}</span>
-              </div>
-            )}
             
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-purple-600" />
@@ -131,7 +116,6 @@ export function MainSearchSummary({
           </div>
         </CardContent>
       </Card>
-    </div>,
-    document.body
+    </div>
   );
 }

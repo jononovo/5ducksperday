@@ -1,0 +1,69 @@
+Received results count: 7
+Current component state - query: biotech in boston
+Current component state - results count: 7
+Complete results received with contacts: 7
+Companies reordered by contact count: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+=== PARENT COMPONENT: State updated ===
+New state - query: biotech in boston
+New state - results count: 7
+handleSearchResults completed
+Companies with contacts: 7 of 7
+Progressive update: 7 companies, 46 contacts
+Job ba47b88c-6122-4f91-9b27-73204ce3341b completed
+Final results: 7 companies with 46 contacts
+Saving search state: 
+Object {query: "biotech in boston", resultsCount: 7, listId: null, companies: Array(7)}
+Creating new list for search results (new search or no existing list)
+API Request: POST /api/lists 
+Object {hasData: true, timestamp: "2025-10-01T04:53:40.381Z"}
+List created successfully with ID: 1205
+Saving search state: 
+Object {query: "biotech in boston", resultsCount: 7, listId: 1205, companies: Array(7)}
+API Request: POST /api/search/extend 
+Object {hasData: true, timestamp: "2025-10-01T04:54:03.738Z"}
+[ExtendSearch] Extending search with 5 new companies
+API Request: GET /api/search-jobs/05bb1024-9404-41f7-a169-6cd3523b363a 
+Object {hasData: false, timestamp: "2025-10-01T04:54:07.954Z"}
+API Request: GET /api/search-jobs/05bb1024-9404-41f7-a169-6cd3523b363a 
+Object {hasData: false, timestamp: "2025-10-01T04:54:09.954Z"}
+API Request: GET /api/search-jobs/05bb1024-9404-41f7-a169-6cd3523b363a 
+Object {hasData: false, timestamp: "2025-10-01T04:54:11.954Z"}
+API Request: GET /api/search-jobs/05bb1024-9404-41f7-a169-6cd3523b363a 
+Object {hasData: false, timestamp: "2025-10-01T04:54:13.954Z"}
+API Request: GET /api/search-jobs/05bb1024-9404-41f7-a169-6cd3523b363a 
+Object {hasData: false, timestamp: "2025-10-01T04:54:15.953Z"}
+=== PARENT COMPONENT: handleSearchResults called ===
+Received query: biotech in boston
+Received results count: 12
+Current component state - query: biotech in boston
+Current component state - results count: 7
+Complete results received with contacts: 12
+Companies reordered by contact count: 
+(12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+=== PARENT COMPONENT: State updated ===
+New state - query: biotech in boston
+New state - results count: 12
+handleSearchResults completed
+Companies with contacts: 12 of 12
+Saving search state: 
+Object {query: "biotech in boston", resultsCount: 12, listId: 1205, companies: Array(12)}
+Updating existing list: 1205
+Starting list update: 
+Object {listId: 1205, query: "biotech in boston", companyCount: 12, companyIds: Array(12)}
+API Request: PUT /api/lists/1205 
+Object {hasData: true, timestamp: "2025-10-01T04:54:17.707Z"}
+List update successful: 
+Object {id: 206, userId: 1, listId: 1205, prompt: "biotech in boston", resultCount: 12, …}
+`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
