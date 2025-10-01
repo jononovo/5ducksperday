@@ -1,0 +1,56 @@
+=== PARENT COMPONENT: handleSearchResults called ===
+Received query: biotech in london
+Received results count: 7
+Current component state - query: biotech in london
+Current component state - results count: 7
+Complete results received with contacts: 7
+Companies reordered by contact count: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+=== PARENT COMPONENT: State updated ===
+New state - query: biotech in london
+New state - results count: 7
+handleSearchResults completed
+Companies with contacts: 7 of 7
+Progressive update: 7 companies, 50 contacts
+API Request: GET /api/search-jobs/bc69d25c-c27d-4533-a1ca-9099541c61c8 
+Object {hasData: false, timestamp: "2025-10-01T14:12:06.863Z"}
+=== PARENT COMPONENT: handleSearchResults called ===
+Received query: biotech in london
+Received results count: 7
+Current component state - query: biotech in london
+Current component state - results count: 7
+Complete results received with contacts: 7
+Companies reordered by contact count: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+=== PARENT COMPONENT: State updated ===
+New state - query: biotech in london
+New state - results count: 7
+handleSearchResults completed
+Companies with contacts: 7 of 7
+Progressive update: 7 companies, 50 contacts
+API Request: GET /api/search-jobs/bc69d25c-c27d-4533-a1ca-9099541c61c8 
+Object {hasData: false, timestamp: "2025-10-01T14:12:07.510Z"}
+=== PARENT COMPONENT: handleSearchResults called ===
+Received query: biotech in london
+Received results count: 7
+Current component state - query: biotech in london
+Current component state - results count: 7
+Complete results received with contacts: 7
+Companies reordered by contact count: 
+(7) [{…}, {…}, {…}, {…}, {…}, {…}, {…}]
+=== PARENT COMPONENT: State updated ===
+New state - query: biotech in london
+New state - results count: 7
+handleSearchResults completed
+Companies with contacts: 7 of 7
+Progressive update: 7 companies, 50 contacts
+Job bc69d25c-c27d-4533-a1ca-9099541c61c8 completed
+Final results: 7 companies with 50 contacts
+Saving search state: 
+Object {query: "biotech in london", resultsCount: 7, listId: null, companies: Array(7)}
+Creating new list for search results (new search or no existing list)
+API Request: POST /api/lists 
+Object {hasData: true, timestamp: "2025-10-01T14:12:09.161Z"}
+List created successfully with ID: 1236
+Saving search state: 
+Object {query: "biotech in london", resultsCount: 7, listId: 1236, companies: Array(7)}
