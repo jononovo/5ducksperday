@@ -21,6 +21,8 @@ export function MainSearchSummary({
   onClose,
   companies
 }: MainSearchSummaryProps) {
+  console.log("MainSearchSummary rendering:", { isVisible, totalCompanies, totalContacts, searchDuration });
+  
   if (!isVisible) return null;
 
   // Calculate metrics from real data
