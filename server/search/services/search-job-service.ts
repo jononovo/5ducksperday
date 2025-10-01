@@ -261,7 +261,7 @@ export class SearchJobService {
             message: `Discovering email addresses for ${contacts.length} contacts`
           });
           console.log(`[SearchJobService] Starting email enrichment for ${contacts.length} contacts`);
-          await this.enrichContactsWithEmails(job, contacts, savedCompanies, totalPhases);
+          const sourceBreakdown = await this.enrichContactsWithEmails(job, contacts, savedCompanies, totalPhases);
         }
       }
 
