@@ -668,34 +668,28 @@ export default function PromptEditor({
                 }
               }
               
-              // Handle completion
-              if (searchType === 'companies') {
-                toast({
-                  title: "Search Complete",
-                  description: `Found ${companies.length} companies.`,
-                });
-                setSearchProgress(prev => ({ ...prev, phase: "Search Complete", completed: 5, total: 5 }));
-              } else {
-                const searchDuration = Math.round((Date.now() - searchMetrics.startTime) / 1000);
-                setSearchMetrics(prev => ({
-                  ...prev,
-                  totalCompanies: companies.length,
-                  totalContacts: totalContacts,
-                  searchDuration: searchDuration,
-                  companies: companies
-                }));
-                
-                // Show summary
+              // Handle completion - show summary for all search types
+              const searchDuration = Math.round((Date.now() - searchMetrics.startTime) / 1000);
+              setSearchMetrics(prev => ({
+                ...prev,
+                totalCompanies: companies.length,
+                totalContacts: totalContacts,
+                searchDuration: searchDuration,
+                companies: companies
+              }));
+              
+              setSearchProgress(prev => ({ ...prev, phase: "Search Complete", completed: 5, total: 5 }));
+              
+              // Show summary
+              setTimeout(() => {
+                setSummaryVisible(true);
                 setTimeout(() => {
-                  setSummaryVisible(true);
-                  setTimeout(() => {
-                    setSummaryVisible(false);
-                  }, 8000);
-                }, 1000);
-                
-                // Trigger confetti for contact/email searches
-                triggerConfetti();
-              }
+                  setSummaryVisible(false);
+                }, 8000);
+              }, 1000);
+              
+              // Trigger confetti
+              triggerConfetti();
               
               // Refresh credits display
               if (user) {
