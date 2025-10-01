@@ -1,0 +1,56 @@
+=== PARENT COMPONENT: handleSearchResults called ===
+Received query: fintech in brooklyn
+Received results count: 5
+Current component state - query: fintech in brooklyn
+Current component state - results count: 7
+Complete results received with contacts: 5
+Companies reordered by contact count: 
+(5) [{…}, {…}, {…}, {…}, {…}]
+=== PARENT COMPONENT: State updated ===
+New state - query: fintech in brooklyn
+New state - results count: 5
+handleSearchResults completed
+Companies with contacts: 5 of 5
+Progressive update: 5 companies, 26 contacts
+API Request: GET /api/search-jobs/214ffa1b-7d41-4fe1-a527-fce6501dd33b 
+Object {hasData: false, timestamp: "2025-10-01T13:15:55.338Z"}
+=== PARENT COMPONENT: handleSearchResults called ===
+Received query: fintech in brooklyn
+Received results count: 5
+Current component state - query: fintech in brooklyn
+Current component state - results count: 7
+Complete results received with contacts: 5
+Companies reordered by contact count: 
+(5) [{…}, {…}, {…}, {…}, {…}]
+=== PARENT COMPONENT: State updated ===
+New state - query: fintech in brooklyn
+New state - results count: 5
+handleSearchResults completed
+Companies with contacts: 5 of 5
+Progressive update: 5 companies, 26 contacts
+API Request: GET /api/search-jobs/214ffa1b-7d41-4fe1-a527-fce6501dd33b 
+Object {hasData: false, timestamp: "2025-10-01T13:15:55.967Z"}
+=== PARENT COMPONENT: handleSearchResults called ===
+Received query: fintech in brooklyn
+Received results count: 5
+Current component state - query: fintech in brooklyn
+Current component state - results count: 7
+Complete results received with contacts: 5
+Companies reordered by contact count: 
+(5) [{…}, {…}, {…}, {…}, {…}]
+=== PARENT COMPONENT: State updated ===
+New state - query: fintech in brooklyn
+New state - results count: 5
+handleSearchResults completed
+Companies with contacts: 5 of 5
+Progressive update: 5 companies, 26 contacts
+Job 214ffa1b-7d41-4fe1-a527-fce6501dd33b completed
+Final results: 5 companies with 26 contacts
+Saving search state: 
+Object {query: "fintech in brooklyn", resultsCount: 5, listId: null, companies: Array(5)}
+Creating new list for search results (new search or no existing list)
+API Request: POST /api/lists 
+Object {hasData: true, timestamp: "2025-10-01T13:15:57.626Z"}
+List created successfully with ID: 1226
+Saving search state: 
+Object {query: "fintech in brooklyn", resultsCount: 5, listId: 1226, companies: Array(5)}
