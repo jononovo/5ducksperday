@@ -2662,10 +2662,26 @@ export default function Home() {
                               }
                               
                               try {
-                                // Call the extend search API
+                                // Get the original contact search configuration
+                                const savedConfig = localStorage.getItem('contactSearchConfig');
+                                let contactSearchConfig = null;
+                                if (savedConfig) {
+                                  try {
+                                    contactSearchConfig = JSON.parse(savedConfig);
+                                  } catch (error) {
+                                    console.error('Error parsing contact search config:', error);
+                                  }
+                                }
+                                
+                                // Call the extend search API with contact search config
                                 const res = await apiRequest("POST", "/api/search/extend", {
                                   query: currentQuery,
-                                  excludeCompanyIds: currentResults?.map(c => ({ name: c.name })) || []
+                                  excludeCompanyIds: currentResults?.map(c => ({ name: c.name })) || [],
+                                  contactSearchConfig: contactSearchConfig || {
+                                    enableCoreLeadership: true,
+                                    enableDepartmentHeads: true,
+                                    enableMiddleManagement: true
+                                  }
                                 });
                                 
                                 const data = await res.json();
@@ -2674,7 +2690,7 @@ export default function Home() {
                                   console.log(`[+5 More] Extending search with ${data.companies.length} new companies`);
                                   toast({
                                     title: "Finding more companies",
-                                    description: `Adding ${data.companies.length} additional companies to your search results.`,
+                                    description: `Adding ${data.companies.length} additional companies with contacts and emails.`,
                                   });
                                   
                                   // Poll for job completion

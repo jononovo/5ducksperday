@@ -368,7 +368,7 @@ export function registerSearchJobRoutes(app: Express) {
   app.post("/api/search/extend", async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req);
-      const { query, excludeCompanyIds = [] } = req.body;
+      const { query, excludeCompanyIds = [], contactSearchConfig } = req.body;
 
       if (!query || typeof query !== 'string') {
         res.status(400).json({
@@ -405,11 +405,18 @@ export function registerSearchJobRoutes(app: Express) {
       console.log(`[SearchExtend] Found ${additionalCompanies.length} new companies to add`);
 
       // Create a search job for these additional companies
+      // Always use 'emails' search type to get companies + contacts + emails
       if (additionalCompanies.length > 0) {
         const jobId = await SearchJobService.createJob({
           userId,
           query,
-          searchType: 'companies',
+          searchType: 'emails',  // Full search flow: companies + contacts + emails
+          contactSearchConfig: contactSearchConfig || {
+            // Default config if none provided
+            enableCoreLeadership: true,
+            enableDepartmentHeads: true,
+            enableMiddleManagement: true
+          },
           source: 'frontend',
           metadata: {
             isExtension: true,
