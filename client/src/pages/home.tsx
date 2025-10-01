@@ -936,9 +936,12 @@ export default function Home() {
     console.log('Current component state - results count:', currentResults?.length || 0);
     console.log('Complete results received with contacts:', results.length);
     
+    // Detect if this is a new search (different from current query)
+    const isNewSearch = currentQuery !== query;
+    
     // Clear any stale localStorage data that might conflict with new search results
-    if (currentQuery !== query) {
-      console.log('New search detected - clearing stale localStorage data');
+    if (isNewSearch) {
+      console.log('New search detected - clearing stale localStorage data and list ID');
       localStorage.removeItem('searchState');
       sessionStorage.removeItem('searchState');
       setCurrentListId(null);
@@ -990,7 +993,9 @@ export default function Home() {
       // Capture values at timeout creation to avoid race conditions
       const queryAtTimeOfResults = query;
       const resultsAtTimeOfResults = sortedResults;
-      const listIdAtTimeOfResults = currentListId;
+      // IMPORTANT: For new searches, always create a new list
+      // Don't use currentListId if this is a new search - force null to create new list
+      const listIdAtTimeOfResults = isNewSearch ? null : currentListId;
       
       // Debounce list creation/update to prevent duplicate calls during progressive updates
       listUpdateTimeoutRef.current = setTimeout(() => {
@@ -1001,15 +1006,15 @@ export default function Home() {
         }
         
         if (!listIdAtTimeOfResults) {
-          // Create new list (only if we don't have one)
-          console.log('Creating new list for search results');
+          // Create new list (for new searches or when no list exists)
+          console.log('Creating new list for search results (new search or no existing list)');
           listMutationInProgressRef.current = true;
           autoCreateListMutation.mutate({ 
             query: queryAtTimeOfResults, 
             companies: resultsAtTimeOfResults 
           });
         } else {
-          // Update existing list
+          // Update existing list (only for progressive updates of same search)
           console.log('Updating existing list:', listIdAtTimeOfResults);
           listMutationInProgressRef.current = true;
           updateListMutation.mutate({ 
