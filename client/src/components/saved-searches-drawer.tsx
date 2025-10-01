@@ -88,16 +88,16 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
                 onNewSearch();
                 onOpenChange(false);
               }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group"
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:shadow-lg hover:-translate-y-0.5 hover:bg-blue-50/50 transition-all duration-200 group"
             >
-              <Plus className="h-5 w-5 text-blue-500" strokeWidth={3} />
+              <Plus className="h-6 w-6 text-blue-500" strokeWidth={3} />
               <span className="text-sm font-medium text-gray-700">New Search</span>
             </button>
           </div>
           
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="border-t-0">
                 <TableHead className="w-[70%]">Search Name</TableHead>
                 <TableHead>Results</TableHead>
               </TableRow>
