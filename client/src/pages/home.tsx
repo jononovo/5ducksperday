@@ -990,10 +990,8 @@ export default function Home() {
     
     console.log("Companies with contacts:", companiesWithContacts, "of", results.length);
     
-    // Always show the report if we have companies (even if 0 have contacts)
-    if (results.length > 0) {
-      setContactReportVisible(true);
-    }
+    // Don't show the report during progressive updates - let it be shown when search completes
+    // The report will be shown via onSearchMetricsUpdate callback from PromptEditor
     
     // Auto-create/update list after search completes with contacts
     // Clear any pending timeout to prevent duplicate calls
@@ -2658,8 +2656,8 @@ export default function Home() {
                     onSearchMetricsUpdate={(metrics, showSummary) => {
                       setMainSearchMetrics(metrics);
                       setMainSummaryVisible(showSummary);
-                      // Also show contact report when search completes
-                      if (showSummary && metrics.totalCompanies > 0) {
+                      // Show contact report only when search completes and has actual contacts
+                      if (showSummary && metrics.totalCompanies > 0 && metrics.totalContacts > 0) {
                         setContactReportVisible(true);
                         // Show email summary if search type was 'emails' and emails were found
                         if (metrics.searchType === 'emails' && metrics.totalEmails && metrics.totalEmails > 0) {
