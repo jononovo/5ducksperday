@@ -105,7 +105,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
                     onLoadSearch(list);
                   }}
                 >
-                  <TableCell className="text-sm font-medium text-gray-700">
+                  <TableCell className="text-sm font-medium text-gray-500">
                     {generateListDisplayName(list)}
                   </TableCell>
                   <TableCell className="text-right text-sm font-medium text-gray-700">{list.resultCount}</TableCell>
