@@ -941,6 +941,8 @@ export default function Home() {
       console.log('New search detected - clearing stale localStorage data');
       localStorage.removeItem('searchState');
       sessionStorage.removeItem('searchState');
+      setCurrentListId(null);
+      setIsSaved(false);
     }
     
     // Mark that we've received session-restored data
