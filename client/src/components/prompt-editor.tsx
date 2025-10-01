@@ -695,7 +695,8 @@ export default function PromptEditor({
                   totalEmails: totalEmails,
                   searchDuration: searchDuration,
                   companies: companies,
-                  searchType: searchType // Include search type to know if emails were searched
+                  searchType: searchType, // Include search type to know if emails were searched
+                  sourceBreakdown: jobData.results?.sourceBreakdown // Include source breakdown from backend
                 };
                 
                 setSearchMetrics(updatedMetrics);

@@ -82,6 +82,7 @@ export class SearchJobService {
 
       let savedCompanies = [];
       let contacts: any[] = [];
+      let sourceBreakdown: { Perplexity: number; Apollo: number; Hunter: number } | undefined = undefined;
       
       // Handle different search types
       // Check metadata for contact-only flag (since we store it as 'contacts' in DB)
@@ -261,7 +262,8 @@ export class SearchJobService {
             message: `Discovering email addresses for ${contacts.length} contacts`
           });
           console.log(`[SearchJobService] Starting email enrichment for ${contacts.length} contacts`);
-          await this.enrichContactsWithEmails(job, contacts, savedCompanies, totalPhases);
+          const enrichmentResult = await this.enrichContactsWithEmails(job, contacts, savedCompanies, totalPhases);
+          sourceBreakdown = enrichmentResult.sourceBreakdown;
         }
       }
 
@@ -306,12 +308,17 @@ export class SearchJobService {
         };
       });
 
-      const results = {
+      const results: any = {
         companies: companiesWithContacts,
         contacts: contacts,  // Keep separate array for backward compatibility
         totalCompanies: savedCompanies.length,
         totalContacts: contacts.length
       };
+      
+      // Include sourceBreakdown if email search was performed
+      if (sourceBreakdown) {
+        results.sourceBreakdown = sourceBreakdown;
+      }
 
       await storage.updateSearchJob(job.id, {
         status: 'completed',
@@ -564,7 +571,7 @@ export class SearchJobService {
         message: `Enriching ${allContacts.length} contacts with emails`
       });
       
-      await this.enrichContactsWithEmails(job, allContacts, validCompanies, 5);
+      const { sourceBreakdown, emailsFound } = await this.enrichContactsWithEmails(job, allContacts, validCompanies, 5);
       
       // Phase 4: Deduct credits
       await this.updateJobProgress(job.id, {
@@ -598,6 +605,7 @@ export class SearchJobService {
         })),
         contacts: allContactsForDisplay,
         searchType: 'bulk-email',
+        sourceBreakdown,
         metadata: {
           companiesSearched: validCompanies.length,
           contactsEnriched: allContacts.length,  // Number we actually searched
@@ -789,13 +797,16 @@ export class SearchJobService {
     contacts: any[], 
     companies: any[],
     totalPhases: number
-  ): Promise<void> {
+  ): Promise<{ sourceBreakdown: { Perplexity: number; Apollo: number; Hunter: number }; emailsFound: number }> {
     const { parallelTieredEmailSearch } = await import('./parallel-email-search');
     const { processBatch } = await import('../utils/batch-processor');
     
     let totalEmailsFound = 0;
     let companiesProcessed = 0;
     const totalCompanies = companies.length;
+    
+    // Initialize source breakdown tracking
+    const sourceBreakdown = { Perplexity: 0, Apollo: 0, Hunter: 0 };
     
     console.log(`[SearchJobService] Starting parallel email enrichment for ${contacts.length} contacts across ${totalCompanies} companies`);
     
@@ -817,24 +828,32 @@ export class SearchJobService {
         const companyContacts = contactsByCompany.get(company.id) || [];
         if (companyContacts.length === 0) {
           console.log(`[SearchJobService] No contacts for company ${company.name}, skipping`);
-          return { company: company.name, emailsFound: 0 };
+          return { company: company.name, emailsFound: 0, sources: { Perplexity: 0, Apollo: 0, Hunter: 0 } };
         }
         
         // Execute parallel tiered search for this company's contacts
         const results = await parallelTieredEmailSearch(companyContacts, company, job.userId);
         
-        // Update contact objects in place with found emails
+        // Track sources for emails found
+        const companySources = { Perplexity: 0, Apollo: 0, Hunter: 0 };
+        
+        // Update contact objects in place with found emails and track sources
         for (const result of results) {
-          if (result.email) {
+          if (result.email && result.source !== 'existing') {
             const contact = companyContacts.find(c => c.id === result.contactId);
             if (contact) {
               contact.email = result.email;
             }
+            
+            // Track source (capitalize first letter for frontend display)
+            if (result.source === 'apollo') companySources.Apollo++;
+            else if (result.source === 'perplexity') companySources.Perplexity++;
+            else if (result.source === 'hunter') companySources.Hunter++;
           }
         }
         
         const emailsFound = results.filter(r => r.email && r.source !== 'existing').length;
-        return { company: company.name, emailsFound };
+        return { company: company.name, emailsFound, sources: companySources };
       },
       COMPANY_BATCH_SIZE,
       async (batchResults, batchIndex) => {
@@ -845,7 +864,13 @@ export class SearchJobService {
           companiesProcessed++;
           if (result.status === 'fulfilled') {
             totalEmailsFound += result.value.emailsFound;
-            console.log(`[SearchJobService] Company "${result.value.company}": ${result.value.emailsFound} emails found`);
+            
+            // Aggregate source breakdown
+            sourceBreakdown.Apollo += result.value.sources.Apollo;
+            sourceBreakdown.Perplexity += result.value.sources.Perplexity;
+            sourceBreakdown.Hunter += result.value.sources.Hunter;
+            
+            console.log(`[SearchJobService] Company "${result.value.company}": ${result.value.emailsFound} emails found (Apollo: ${result.value.sources.Apollo}, Perplexity: ${result.value.sources.Perplexity}, Hunter: ${result.value.sources.Hunter})`);
           } else {
             console.error(`[SearchJobService] Company batch error:`, result.reason);
           }
@@ -884,6 +909,9 @@ export class SearchJobService {
     );
     
     console.log(`[SearchJobService] Email enrichment complete: ${totalEmailsFound} emails found across ${totalCompanies} companies`);
+    console.log(`[SearchJobService] Source breakdown: Apollo: ${sourceBreakdown.Apollo}, Perplexity: ${sourceBreakdown.Perplexity}, Hunter: ${sourceBreakdown.Hunter}`);
+    
+    return { sourceBreakdown, emailsFound: totalEmailsFound };
   }
 
 
