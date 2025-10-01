@@ -31,8 +31,16 @@ export function EmailSearchSummary({
   useEffect(() => {
     if (isVisible) {
       setShow(true);
+      // Auto-hide after 10 seconds
+      const timer = setTimeout(() => {
+        setShow(false);
+        onClose();
+      }, 10000);
+      
+      // Clean up timer if component unmounts or visibility changes
+      return () => clearTimeout(timer);
     }
-  }, [isVisible]);
+  }, [isVisible, onClose]);
   
   if (!show) return null;
   
