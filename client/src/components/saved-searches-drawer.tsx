@@ -82,7 +82,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
         
         <div className="h-full overflow-auto">
           {/* New Search Button */}
-          <div className="px-3 py-3 border-b">
+          <div className="px-3 py-3">
             <button
               onClick={() => {
                 onNewSearch();
