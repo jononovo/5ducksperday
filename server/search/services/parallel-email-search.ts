@@ -25,7 +25,7 @@ interface EmailSearchResult {
 /**
  * Try Apollo search for a contact with error handling and DB save
  */
-async function tryApollo(contact: any, company: any, userId: number): Promise<EmailSearchResult | null> {
+async function tryApollo(contact: any, company: any, userId: number, wasPreExisting: boolean): Promise<EmailSearchResult | null> {
   const apolloApiKey = process.env.APOLLO_API_KEY;
   if (!apolloApiKey) {
     console.log(`[Apollo] No API key configured, skipping for contact ${contact.name}`);
@@ -35,7 +35,14 @@ async function tryApollo(contact: any, company: any, userId: number): Promise<Em
   // Skip if already has email
   if (contact.email && contact.email.includes('@')) {
     console.log(`[Apollo] Contact ${contact.name} already has email: ${contact.email}`);
-    return { contactId: contact.id, email: contact.email, source: 'existing', confidence: 100 };
+    // Only mark as 'existing' if it was pre-existing before this search job
+    // Otherwise, Apollo found it in this session and should get credit
+    return { 
+      contactId: contact.id, 
+      email: contact.email, 
+      source: wasPreExisting ? 'existing' : 'apollo', 
+      confidence: 100 
+    };
   }
 
   try {
@@ -72,11 +79,17 @@ async function tryApollo(contact: any, company: any, userId: number): Promise<Em
 /**
  * Try Perplexity search for a contact with error handling and DB save
  */
-async function tryPerplexity(contact: any, company: any, userId: number): Promise<EmailSearchResult | null> {
+async function tryPerplexity(contact: any, company: any, userId: number, wasPreExisting: boolean): Promise<EmailSearchResult | null> {
   // Skip if already has email
   if (contact.email && contact.email.includes('@')) {
     console.log(`[Perplexity] Contact ${contact.name} already has email: ${contact.email}`);
-    return { contactId: contact.id, email: contact.email, source: 'existing', confidence: 100 };
+    // Only mark as 'existing' if it was pre-existing before this search job
+    return { 
+      contactId: contact.id, 
+      email: contact.email, 
+      source: wasPreExisting ? 'existing' : 'perplexity', 
+      confidence: 100 
+    };
   }
 
   try {
@@ -112,7 +125,7 @@ async function tryPerplexity(contact: any, company: any, userId: number): Promis
 /**
  * Try Hunter search for a contact with error handling and DB save
  */
-async function tryHunter(contact: any, company: any, userId: number): Promise<EmailSearchResult | null> {
+async function tryHunter(contact: any, company: any, userId: number, wasPreExisting: boolean): Promise<EmailSearchResult | null> {
   const hunterApiKey = process.env.HUNTER_API_KEY;
   if (!hunterApiKey) {
     console.log(`[Hunter] No API key configured, skipping for contact ${contact.name}`);
@@ -122,7 +135,13 @@ async function tryHunter(contact: any, company: any, userId: number): Promise<Em
   // Skip if already has email
   if (contact.email && contact.email.includes('@')) {
     console.log(`[Hunter] Contact ${contact.name} already has email: ${contact.email}`);
-    return { contactId: contact.id, email: contact.email, source: 'existing', confidence: 100 };
+    // Only mark as 'existing' if it was pre-existing before this search job
+    return { 
+      contactId: contact.id, 
+      email: contact.email, 
+      source: wasPreExisting ? 'existing' : 'hunter', 
+      confidence: 100 
+    };
   }
 
   try {
@@ -175,13 +194,24 @@ export async function parallelTieredEmailSearch(
     .sort((a, b) => (b.probability || 0) - (a.probability || 0))
     .slice(0, 3);
   
+  // Track which contacts had emails before we started this search
+  // This is crucial for proper source attribution
+  const preExistingEmails = new Set<number>();
+  topContacts.forEach(contact => {
+    if (contact.email && contact.email.includes('@')) {
+      preExistingEmails.add(contact.id);
+    }
+  });
+  
   console.log(`[Parallel Search] Starting tiered search for ${topContacts.length} contacts from ${company.name}`);
   
   // TIER 1: Apollo for all contacts in parallel
   console.log(`[Parallel Search] === TIER 1: Apollo for all ${topContacts.length} contacts ===`);
   const tier1StartTime = Date.now();
   
-  const apolloPromises = topContacts.map(contact => tryApollo(contact, company, userId));
+  const apolloPromises = topContacts.map(contact => 
+    tryApollo(contact, company, userId, preExistingEmails.has(contact.id))
+  );
   const apolloResults = await Promise.allSettled(apolloPromises);
   
   // Process Apollo results
@@ -206,18 +236,18 @@ export async function parallelTieredEmailSearch(
     
     // Perplexity for contacts 1 and 3 (index 0 and 2)
     if (topContacts[0] && !results.find(r => r.contactId === topContacts[0].id && r.email)) {
-      tier2Promises.push(tryPerplexity(topContacts[0], company, userId));
+      tier2Promises.push(tryPerplexity(topContacts[0], company, userId, preExistingEmails.has(topContacts[0].id)));
     }
     if (topContacts[2] && !results.find(r => r.contactId === topContacts[2].id && r.email)) {
-      tier2Promises.push(tryPerplexity(topContacts[2], company, userId));
+      tier2Promises.push(tryPerplexity(topContacts[2], company, userId, preExistingEmails.has(topContacts[2].id)));
     }
     
     // Hunter for contacts 1 and 2 (index 0 and 1)
     if (topContacts[0] && !results.find(r => r.contactId === topContacts[0].id && r.email)) {
-      tier2Promises.push(tryHunter(topContacts[0], company, userId));
+      tier2Promises.push(tryHunter(topContacts[0], company, userId, preExistingEmails.has(topContacts[0].id)));
     }
     if (topContacts[1] && !results.find(r => r.contactId === topContacts[1].id && r.email)) {
-      tier2Promises.push(tryHunter(topContacts[1], company, userId));
+      tier2Promises.push(tryHunter(topContacts[1], company, userId, preExistingEmails.has(topContacts[1].id)));
     }
     
     // Execute all Tier 2 searches in parallel
