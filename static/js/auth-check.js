@@ -1,12 +1,14 @@
-// Firebase Web Config - Note: Firebase API keys are designed to be public
-// They identify the project but don't authenticate access. Security is
-// enforced through Firebase Security Rules, not by keeping this key secret.
-// Reference: https://firebase.google.com/docs/projects/api-keys
+// Firebase configuration
+// Note: Firebase Web API keys are public by design and safe to commit to version control.
+// They identify your Firebase project but do NOT provide authentication or authorization.
+// Security is enforced through Firebase Security Rules and authentication, not API key secrecy.
+// See: https://firebase.google.com/docs/projects/api-keys
+// nosemgrep: generic.secrets.security.detected-generic-api-key
 const firebaseConfig = {
-  apiKey: ["AIzaSyATWWlnIrPW", "NgxKgk5y8k71vGbJi9aDbuzU"].join(""),
-  authDomain: "auth.5ducks.ai",
+  apiKey: "AIzaSyATWWlnIrPWNgxKgk5y8k71vGbJi9aDbuzU",
+  authDomain: "auth.5ducks.ai",  // Custom domain for authentication
   projectId: "fire-5-ducks",
-  appId: ["1:1072598853946:web:", "15b5efc5feda6b133e8"].join("")
+  appId: "1:1072598853946:web:15b5efc5feda6b133e8"
 };
 
 // Initialize Firebase
