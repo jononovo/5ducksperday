@@ -1059,8 +1059,8 @@ export default function Outreach() {
     } catch (error) {
       if (!silent) {
         toast({
-          title: "Enrichment Failed",
-          description: error instanceof Error ? error.message : "Failed to enrich contact",
+          title: "Email Search Failed",
+          description: error instanceof Error ? error.message : "Failed to search for email",
           variant: "destructive",
         });
       }

@@ -1288,8 +1288,8 @@ export default function Home() {
       const data = await response.json();
 
       toast({
-        title: "Enrichment Started",
-        description: `Started enriching ${contactIds.length} top prospects`,
+        title: "Email Search Started",
+        description: `Searching for emails for ${contactIds.length} top prospects`,
       });
 
       // Start polling for completion
@@ -1320,14 +1320,14 @@ export default function Home() {
             });
 
             toast({
-              title: "Enrichment Complete",
-              description: `Successfully enriched ${statusData.completedItems} contacts`,
+              title: "Email Search Complete",
+              description: `Successfully found emails for ${statusData.completedItems} contacts`,
             });
           } else if (statusData.status === 'failed') {
             clearInterval(pollInterval);
             toast({
-              title: "Enrichment Failed",
-              description: "Failed to complete contact enrichment",
+              title: "Email Search Failed",
+              description: "Failed to complete email search",
               variant: "destructive",
             });
           }
@@ -1342,8 +1342,8 @@ export default function Home() {
 
     } catch (error) {
       toast({
-        title: "Enrichment Failed",
-        description: error instanceof Error ? error.message : "Failed to start enrichment",
+        title: "Email Search Failed",
+        description: error instanceof Error ? error.message : "Failed to start email search",
         variant: "destructive",
       });
     }
