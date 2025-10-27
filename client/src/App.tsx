@@ -35,6 +35,7 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 const StrategyDashboard = lazy(() => import("@/features/strategy-chat").then(module => ({ default: module.StrategyDashboard })));
 const DailyOutreach = lazy(() => import("@/pages/DailyOutreach"));
 const Streak = lazy(() => import("@/pages/Streak"));
+const Contacts = lazy(() => import("@/pages/Contacts"));
 
 // Lazy imports for admin pages
 const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
@@ -186,6 +187,11 @@ function Router() {
                 <ProtectedRoute path="/streak" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Streak />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/contacts" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <Contacts />
                   </Suspense>
                 } />
                 <ProtectedRoute path="/replies" component={() => 

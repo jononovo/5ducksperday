@@ -73,6 +73,12 @@ export function MainNav() {
                     <span>Streak</span>
                   </DropdownMenuItem>
                 </Link>
+                <Link href="/contacts">
+                  <DropdownMenuItem>
+                    <User className="h-4 w-4 mr-2" />
+                    <span>Contacts</span>
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuSeparator />
                 <Link href="/account">
                   <DropdownMenuItem>
