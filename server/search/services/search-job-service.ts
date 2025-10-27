@@ -116,7 +116,7 @@ export class SearchJobService {
       
       // Regular flow: Fast company discovery with parallel enrichment
       // Phase 1: Fast company discovery (just names & websites)
-      const totalPhases = job.searchType === 'emails' ? 7 : 6;
+      const totalPhases = (job.searchType === 'emails' || job.searchType === 'contacts') ? 7 : 6;
       await this.updateJobProgress(job.id, {
         phase: 'Finding companies',
         completed: 1,
@@ -254,7 +254,7 @@ export class SearchJobService {
         console.log(`[SearchJobService] Updated job with enriched data and ${contacts.length} contacts`);
         
         // Phase 4: Find emails for contacts if searchType is 'emails'
-        if (job.searchType === 'emails' && contacts.length > 0) {
+        if ((job.searchType === 'emails' || job.searchType === 'contacts') && contacts.length > 0) {
           await this.updateJobProgress(job.id, {
             phase: 'Finding emails',
             completed: 4,
@@ -268,7 +268,7 @@ export class SearchJobService {
       }
 
       // Phase 5: Deduct credits if applicable
-      const creditPhase = job.searchType === 'emails' ? 6 : 5;
+      const creditPhase = (job.searchType === 'emails' || job.searchType === 'contacts') ? 6 : 5;
       if (job.source !== 'cron' && savedCompanies.length > 0) {
         await this.updateJobProgress(job.id, {
           phase: 'Processing credits',
@@ -277,8 +277,7 @@ export class SearchJobService {
           message: 'Updating account credits'
         });
 
-        const creditType = job.searchType === 'emails' ? 'email_search' : 
-                          job.searchType === 'contacts' ? 'contact_discovery' : 
+        const creditType = (job.searchType === 'emails' || job.searchType === 'contacts') ? 'email_search' : 
                           'company_search';
         
         await CreditService.deductCredits(
@@ -289,7 +288,7 @@ export class SearchJobService {
       }
 
       // Phase 6: Mark job as completed
-      const completedPhase = job.searchType === 'emails' ? 7 : 6;
+      const completedPhase = (job.searchType === 'emails' || job.searchType === 'contacts') ? 7 : 6;
       await this.updateJobProgress(job.id, {
         phase: 'Completed',
         completed: completedPhase,
