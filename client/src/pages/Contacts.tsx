@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -28,8 +28,23 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Users,
   UserX,
@@ -37,6 +52,14 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  MoreHorizontal,
+  Edit,
+  Copy,
+  Archive,
+  Trash2,
+  Mail,
+  Target,
+  Calendar,
 } from "lucide-react";
 import type { ContactList, Contact, InsertContactList } from "@shared/schema";
 import { format } from "date-fns";
@@ -191,6 +214,8 @@ function NewListModal({
 export default function Contacts() {
   const [currentPage, setCurrentPage] = useState(1);
   const [newListModalOpen, setNewListModalOpen] = useState(false);
+  const [selectedLists, setSelectedLists] = useState<Set<number>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -230,7 +255,7 @@ export default function Contacts() {
   };
 
   const handleListClick = (listId: number) => {
-    navigate(`/contacts/lists/${listId}`);
+    navigate(`/contact-lists/${listId}`);
   };
 
   const handlePreviousPage = () => {
@@ -239,6 +264,65 @@ export default function Contacts() {
 
   const handleNextPage = () => {
     setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  };
+
+  // Handle select all checkbox
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked);
+    if (checked) {
+      setSelectedLists(new Set(paginatedLists.map(list => list.id)));
+    } else {
+      setSelectedLists(new Set());
+    }
+  };
+
+  // Toggle list selection
+  const toggleListSelection = (e: React.MouseEvent, listId: number) => {
+    e.stopPropagation();
+    setSelectedLists(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(listId)) {
+        newSet.delete(listId);
+      } else {
+        newSet.add(listId);
+      }
+      return newSet;
+    });
+  };
+
+  // Update select all status when selections change
+  useEffect(() => {
+    const allSelected = paginatedLists.length > 0 && paginatedLists.every(list => selectedLists.has(list.id));
+    setSelectAll(allSelected);
+  }, [selectedLists, paginatedLists]);
+
+  // Delete list mutation
+  const deleteListMutation = useMutation({
+    mutationFn: async (listId: number) => {
+      const response = await apiRequest("DELETE", `/api/contact-lists/${listId}`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Contact list deleted successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/contact-lists"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete contact list",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteList = (e: React.MouseEvent, listId: number, listName: string) => {
+    e.stopPropagation();
+    if (confirm(`Delete "${listName}"? This action cannot be undone.`)) {
+      deleteListMutation.mutate(listId);
+    }
   };
 
   const isLoading = listsLoading || contactsLoading;
@@ -262,7 +346,7 @@ export default function Contacts() {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* All contacts card - clickable */}
-          <Link href="/contacts/all-contacts">
+          <Link href="/all-contacts">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -330,12 +414,15 @@ export default function Contacts() {
           </Card>
         </div>
 
-        {/* Your lists section */}
-        <div className="bg-white rounded-lg border">
-          <div className="p-6 border-b">
+        {/* Your lists section with gradient background */}
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b">
             <h2 className="text-xl font-semibold">Your lists</h2>
-          </div>
-
+            <CardDescription>
+              Organize your contacts into lists for targeted campaigns
+            </CardDescription>
+          </CardHeader>
+          
           {isLoading ? (
             <div className="p-8 text-center">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -343,50 +430,171 @@ export default function Contacts() {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="w-[50%] font-medium">Name</TableHead>
-                    <TableHead className="w-[25%] font-medium">Contacts</TableHead>
-                    <TableHead className="w-[25%] font-medium">Created</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedLists.length > 0 ? (
-                    paginatedLists.map((list) => (
-                      <TableRow
-                        key={list.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleListClick(list.id)}
-                        data-testid={`row-list-${list.id}`}
-                      >
-                        <TableCell className="font-medium">
-                          {list.name}
-                        </TableCell>
-                        <TableCell>
-                          {list.contactCount.toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {list.createdAt
-                            ? format(new Date(list.createdAt), "MMM d, yyyy 'at' h:mm:ss a")
-                            : "—"}
-                        </TableCell>
+              <div className="w-full overflow-hidden relative">
+                {/* Fluffy gradient background matching company table */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(219,234,254,0.6),rgba(239,246,255,0.4),rgba(224,242,254,0.3))] dark:bg-[radial-gradient(ellipse_at_bottom_right,rgba(30,58,138,0.2),rgba(37,99,235,0.15),rgba(29,78,216,0.1))] pointer-events-none"></div>
+                <div className="relative z-10">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="w-8">
+                          <Checkbox 
+                            checked={selectAll}
+                            onCheckedChange={(checked) => handleSelectAll(checked === true)}
+                            aria-label="Select all lists"
+                          />
+                        </TableHead>
+                        <TableHead className="font-medium">List Name</TableHead>
+                        <TableHead className="hidden md:table-cell font-medium">Contacts</TableHead>
+                        <TableHead className="hidden md:table-cell font-medium">Campaigns</TableHead>
+                        <TableHead className="font-medium">Created</TableHead>
+                        <TableHead className="text-right font-medium">Actions</TableHead>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={3} className="h-24 text-center">
-                        <div className="text-muted-foreground">
-                          <p>No lists yet</p>
-                          <p className="text-sm mt-1">
-                            Click "New list" to create your first contact list
-                          </p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedLists.length > 0 ? (
+                        paginatedLists.map((list) => (
+                          <TableRow
+                            key={list.id}
+                            className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800/40 hover:opacity-100 bg-transparent transition-all duration-200"
+                            onClick={() => handleListClick(list.id)}
+                            data-testid={`row-list-${list.id}`}
+                          >
+                            <TableCell 
+                              className="px-2 py-3"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Checkbox 
+                                checked={selectedLists.has(list.id)}
+                                onCheckedChange={() => toggleListSelection({stopPropagation: () => {}} as React.MouseEvent, list.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                aria-label={`Select ${list.name}`}
+                              />
+                            </TableCell>
+                            <TableCell className="font-medium py-3">
+                              <div className="flex flex-col">
+                                <div className="font-semibold">{list.name}</div>
+                                {list.description && (
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {list.description}
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell py-3">
+                              <Badge variant="secondary" className="font-normal">
+                                <Users className="h-3 w-3 mr-1" />
+                                {list.contactCount || 0}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell py-3">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Badge variant="outline" className="font-normal">
+                                      <Target className="h-3 w-3 mr-1" />
+                                      0 active
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>No active campaigns for this list</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </TableCell>
+                            <TableCell className="py-3">
+                              <div className="text-sm text-muted-foreground">
+                                {list.createdAt
+                                  ? format(new Date(list.createdAt), "MMM d, yyyy 'at' h:mm a")
+                                  : "—"}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right py-3">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/contact-lists/${list.id}`);
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    View & Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toast({
+                                        title: "Coming Soon",
+                                        description: "Campaign creation will be available soon",
+                                      });
+                                    }}
+                                  >
+                                    <Mail className="h-4 w-4 mr-2" />
+                                    Create Campaign
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toast({
+                                        title: "Coming Soon",
+                                        description: "List duplication will be available soon",
+                                      });
+                                    }}
+                                  >
+                                    <Copy className="h-4 w-4 mr-2" />
+                                    Duplicate
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toast({
+                                        title: "Coming Soon",
+                                        description: "List archiving will be available soon",
+                                      });
+                                    }}
+                                  >
+                                    <Archive className="h-4 w-4 mr-2" />
+                                    Archive
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    className="text-red-600"
+                                    onClick={(e) => handleDeleteList(e, list.id, list.name)}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center">
+                            <div className="text-muted-foreground">
+                              <p>No lists yet</p>
+                              <p className="text-sm mt-1">
+                                Click "New list" to create your first contact list
+                              </p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
 
               {/* Pagination */}
               {totalPages > 1 && (
@@ -422,7 +630,7 @@ export default function Contacts() {
               )}
             </>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* New List Modal */}
