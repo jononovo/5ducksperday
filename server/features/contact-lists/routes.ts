@@ -251,7 +251,7 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
       }
       
       // Get all companies from the search list
-      let companies = await storage.listCompaniesByList(searchListId, userId);
+      let companies = await storage.listCompaniesBySearchList(searchListId, userId);
       console.log(`Found ${companies.length} companies in search list ${searchListId} (with listId field)`);
       
       // If no companies found, try a fallback approach
@@ -259,7 +259,7 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
         console.log('No companies with listId found, trying fallback approach...');
         
         // Get the list details to see when it was created
-        const searchList = await storage.getList(searchListId, userId);
+        const searchList = await storage.getSearchList(searchListId, userId);
         if (searchList) {
           // Get all companies for the user
           const allUserCompanies = await storage.listCompanies(userId);
@@ -285,17 +285,6 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
         // Get contacts that are directly linked to this company
         const contacts = await storage.listContactsByCompany(company.id, userId);
         contacts.forEach(c => allContactIds.add(c.id));
-        
-        // Also check if the company has contacts stored in its JSON data
-        if (company.contacts && Array.isArray(company.contacts)) {
-          // The company.contacts might have contact data embedded
-          // Let's check if there are contact IDs we can use
-          for (const contactData of company.contacts) {
-            if (contactData && typeof contactData === 'object' && 'id' in contactData) {
-              allContactIds.add(contactData.id);
-            }
-          }
-        }
       }
       
       // If we still don't have contacts, try to get all contacts for this user 
