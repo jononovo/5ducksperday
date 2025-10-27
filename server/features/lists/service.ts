@@ -72,12 +72,82 @@ export class SearchListsService {
       userId
     });
 
-    await Promise.all(
-      companies.map(company =>
-        storage.updateCompanySearchList(company.id, listId)
-      )
-    );
+    // Save companies and their contacts to database first, then link to list
+    const savedCompanyIds: number[] = [];
+    for (const company of companies) {
+      try {
+        // Create or update the company
+        let savedCompany;
+        if (company.id && typeof company.id === 'number') {
+          // Company might already exist, try to get it
+          const existing = await storage.getCompany(company.id, userId);
+          if (existing) {
+            savedCompany = existing;
+          } else {
+            // Create new company
+            savedCompany = await storage.createCompany({
+              name: company.name,
+              website: company.website || null,
+              industry: company.industry || null,
+              description: company.description || null,
+              size: company.size || null,
+              location: company.location || null,
+              revenue: company.revenue || null,
+              userId
+            });
+          }
+        } else {
+          // No ID, create new company
+          savedCompany = await storage.createCompany({
+            name: company.name,
+            website: company.website || null,
+            industry: company.industry || null,
+            description: company.description || null,
+            size: company.size || null,
+            location: company.location || null,
+            revenue: company.revenue || null,
+            userId
+          });
+        }
+        
+        // Save contacts for this company
+        if (company.contacts && company.contacts.length > 0) {
+          for (const contact of company.contacts) {
+            try {
+              // Check if contact already exists
+              const existingContacts = await storage.listContactsByCompany(savedCompany.id, userId);
+              const existingContact = existingContacts.find(c => 
+                (c.email && contact.email && c.email.toLowerCase() === contact.email.toLowerCase()) ||
+                (c.name && contact.name && c.name.toLowerCase() === contact.name.toLowerCase())
+              );
+              
+              if (!existingContact) {
+                await storage.createContact({
+                  name: contact.name,
+                  email: contact.email || null,
+                  role: contact.role || null,
+                  companyId: savedCompany.id,
+                  userId,
+                  linkedinUrl: contact.linkedinUrl || null,
+                  phoneNumber: contact.phoneNumber || null,
+                  lastValidated: new Date()
+                });
+              }
+            } catch (contactError) {
+              console.error(`Error saving contact ${contact.name}:`, contactError);
+            }
+          }
+        }
+        
+        // Link company to search list
+        await storage.updateCompanySearchList(savedCompany.id, listId);
+        savedCompanyIds.push(savedCompany.id);
+      } catch (companyError) {
+        console.error(`Error saving company ${company.name}:`, companyError);
+      }
+    }
 
+    console.log(`Saved ${savedCompanyIds.length} companies and linked them to list ${listId}`);
     return list;
   }
 
@@ -99,21 +169,79 @@ export class SearchListsService {
     
     console.log(`Found existing list ${listId} for user ${userId}: ${existingList.prompt}`);
     
-    // Verify all companies belong to the user and exist
-    const companyValidation = await Promise.all(
-      companies.map(async (company) => {
-        if (!company.id || typeof company.id !== 'number') {
-          return { id: company.id, exists: false, error: 'Invalid company ID' };
+    // Save companies and their contacts to database first, then link to list
+    const savedCompanyIds: number[] = [];
+    for (const company of companies) {
+      try {
+        // Create or update the company
+        let savedCompany;
+        if (company.id && typeof company.id === 'number') {
+          // Company might already exist, try to get it
+          const existing = await storage.getCompany(company.id, userId);
+          if (existing) {
+            savedCompany = existing;
+          } else {
+            // Create new company
+            savedCompany = await storage.createCompany({
+              name: company.name,
+              website: company.website || null,
+              industry: company.industry || null,
+              description: company.description || null,
+              size: company.size || null,
+              location: company.location || null,
+              revenue: company.revenue || null,
+              userId
+            });
+          }
+        } else {
+          // No ID, create new company
+          savedCompany = await storage.createCompany({
+            name: company.name,
+            website: company.website || null,
+            industry: company.industry || null,
+            description: company.description || null,
+            size: company.size || null,
+            location: company.location || null,
+            revenue: company.revenue || null,
+            userId
+          });
         }
-        const exists = await storage.getCompany(company.id, userId);
-        return { id: company.id, exists: !!exists };
-      })
-    );
-    
-    const invalidCompanies = companyValidation.filter(c => !c.exists);
-    if (invalidCompanies.length > 0) {
-      console.log(`List update failed: Invalid companies for user ${userId}:`, invalidCompanies.map(c => c.id));
-      throw new Error(`Invalid or unauthorized companies: ${invalidCompanies.map(c => c.id).join(', ')}`);
+        
+        // Save contacts for this company
+        if (company.contacts && company.contacts.length > 0) {
+          for (const contact of company.contacts) {
+            try {
+              // Check if contact already exists
+              const existingContacts = await storage.listContactsByCompany(savedCompany.id, userId);
+              const existingContact = existingContacts.find(c => 
+                (c.email && contact.email && c.email.toLowerCase() === contact.email.toLowerCase()) ||
+                (c.name && contact.name && c.name.toLowerCase() === contact.name.toLowerCase())
+              );
+              
+              if (!existingContact) {
+                await storage.createContact({
+                  name: contact.name,
+                  email: contact.email || null,
+                  role: contact.role || null,
+                  companyId: savedCompany.id,
+                  userId,
+                  linkedinUrl: contact.linkedinUrl || null,
+                  phoneNumber: contact.phoneNumber || null,
+                  lastValidated: new Date()
+                });
+              }
+            } catch (contactError) {
+              console.error(`Error saving contact ${contact.name}:`, contactError);
+            }
+          }
+        }
+        
+        // Link company to search list
+        await storage.updateCompanySearchList(savedCompany.id, listId);
+        savedCompanyIds.push(savedCompany.id);
+      } catch (companyError) {
+        console.error(`Error saving company ${company.name}:`, companyError);
+      }
     }
     
     const customSearchTargets = this.extractCustomSearchTargets(contactSearchConfig);
@@ -130,14 +258,7 @@ export class SearchListsService {
       return null;
     }
     
-    // Update company associations (only after successful list update)
-    await Promise.all(
-      companies.map(company =>
-        storage.updateCompanySearchList(company.id, listId)
-      )
-    );
-    
-    console.log(`List ${listId} successfully updated with ${companies.length} companies`);
+    console.log(`List ${listId} successfully updated with ${savedCompanyIds.length} companies`);
     return updated;
   }
 }
