@@ -212,6 +212,11 @@ function Router() {
                     <ContactListDetail />
                   </Suspense>
                 } />
+                <ProtectedRoute path="/contact-lists/:id" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <ContactListDetail />
+                  </Suspense>
+                } />
                 <ProtectedRoute path="/replies" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Replies />
