@@ -1,4 +1,4 @@
-export interface ListRequest {
+export interface SearchListRequest {
   companies: Array<{ id: number }>;
   prompt: string;
   contactSearchConfig?: {
@@ -9,13 +9,12 @@ export interface ListRequest {
   };
 }
 
-export interface UpdateListRequest extends ListRequest {
+export interface UpdateSearchListRequest extends SearchListRequest {
   // All same fields as create
 }
 
-export interface ListResponse {
+export interface SearchListResponse {
   listId: number;
-  name: string;
   prompt: string;
   resultCount: number;
   customSearchTargets?: string[] | null;
@@ -23,7 +22,7 @@ export interface ListResponse {
   createdAt?: Date;
 }
 
-export interface ListWithCompanies extends ListResponse {
+export interface SearchListWithCompanies extends SearchListResponse {
   companies: Array<{
     id: number;
     name: string;

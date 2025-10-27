@@ -1,11 +1,11 @@
 import { 
-  userPreferences, lists, companies, contacts, emailTemplates, users,
+  userPreferences, searchLists, companies, contacts, emailTemplates, users,
   strategicProfiles, userEmailPreferences,
   senderProfiles, customerProfiles, searchJobs,
   contactLists, contactListMembers,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
-  type List, type InsertList,
+  type SearchList, type InsertSearchList,
   type Company, type InsertCompany,
   type Contact, type InsertContact,
   type EmailTemplate, type InsertEmailTemplate,
@@ -32,13 +32,14 @@ export interface IStorage {
   updateUserPreferences(userId: number, data: Partial<InsertUserPreferences>): Promise<UserPreferences>;
   initializeUserPreferences(userId: number): Promise<UserPreferences>;
 
-  // Lists
-  listLists(userId: number): Promise<List[]>;
-  getList(listId: number, userId: number): Promise<List | undefined>;
-  listCompaniesByList(listId: number, userId: number): Promise<Company[]>;
-  getNextListId(): Promise<number>;
-  createList(data: InsertList): Promise<List>;
-  updateCompanyList(companyId: number, listId: number): Promise<void>;
+  // Search Lists
+  listSearchLists(userId: number): Promise<SearchList[]>;
+  getSearchList(listId: number, userId: number): Promise<SearchList | undefined>;
+  listCompaniesBySearchList(listId: number, userId: number): Promise<Company[]>;
+  getNextSearchListId(): Promise<number>;
+  createSearchList(data: InsertSearchList): Promise<SearchList>;
+  updateCompanySearchList(companyId: number, listId: number): Promise<void>;
+  updateSearchList(listId: number, data: Partial<InsertSearchList>, userId: number): Promise<SearchList | undefined>;
 
   // Companies
   listCompanies(userId: number): Promise<Company[]>;
@@ -199,27 +200,27 @@ class DatabaseStorage implements IStorage {
     return prefs;
   }
 
-  // Lists
-  async listLists(userId: number): Promise<List[]> {
-    return db.select().from(lists).where(eq(lists.userId, userId)).orderBy(desc(lists.createdAt));
+  // Search Lists
+  async listSearchLists(userId: number): Promise<SearchList[]> {
+    return db.select().from(searchLists).where(eq(searchLists.userId, userId)).orderBy(desc(searchLists.createdAt));
   }
 
-  async getList(listId: number, userId: number): Promise<List | undefined> {
+  async getSearchList(listId: number, userId: number): Promise<SearchList | undefined> {
     const [list] = await db
       .select()
-      .from(lists)
-      .where(and(eq(lists.listId, listId), eq(lists.userId, userId)));
+      .from(searchLists)
+      .where(and(eq(searchLists.listId, listId), eq(searchLists.userId, userId)));
     return list;
   }
 
-  async listCompaniesByList(listId: number, userId: number): Promise<Company[]> {
+  async listCompaniesBySearchList(listId: number, userId: number): Promise<Company[]> {
     return db.select()
       .from(companies)
       .where(and(eq(companies.listId, listId), eq(companies.userId, userId)));
   }
 
-  async getNextListId(): Promise<number> {
-    const allLists = await db.select().from(lists);
+  async getNextSearchListId(): Promise<number> {
+    const allLists = await db.select().from(searchLists);
     let maxId = 1000;
     
     for (const list of allLists) {
@@ -231,21 +232,21 @@ class DatabaseStorage implements IStorage {
     return maxId + 1;
   }
 
-  async createList(data: InsertList): Promise<List> {
-    const [list] = await db.insert(lists).values(data).returning();
+  async createSearchList(data: InsertSearchList): Promise<SearchList> {
+    const [list] = await db.insert(searchLists).values(data).returning();
     return list;
   }
 
-  async updateCompanyList(companyId: number, listId: number): Promise<void> {
+  async updateCompanySearchList(companyId: number, listId: number): Promise<void> {
     await db.update(companies)
       .set({ listId })
       .where(eq(companies.id, companyId));
   }
 
-  async updateList(listId: number, data: Partial<InsertList>, userId: number): Promise<List | undefined> {
-    const [updated] = await db.update(lists)
+  async updateSearchList(listId: number, data: Partial<InsertSearchList>, userId: number): Promise<SearchList | undefined> {
+    const [updated] = await db.update(searchLists)
       .set(data)
-      .where(and(eq(lists.listId, listId), eq(lists.userId, userId)))
+      .where(and(eq(searchLists.listId, listId), eq(searchLists.userId, userId)))
       .returning();
     return updated;
   }

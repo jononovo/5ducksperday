@@ -1,3 +1,3 @@
-export { registerListsRoutes } from './routes';
-export { ListsService } from './service';
+export { registerSearchListsRoutes } from './routes';
+export { SearchListsService } from './service';
 export * from './types';

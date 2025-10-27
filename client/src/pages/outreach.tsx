@@ -38,7 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; // Import Input component
 import { cn } from "@/lib/utils";
-import type { List, Company, Contact, StrategicProfile } from "@shared/schema";
+import type { SearchList, Company, Contact, StrategicProfile } from "@shared/schema";
 import { generateShortListDisplayName, generateListPromptOnly } from "@/lib/list-utils";
 import { useState, useEffect, useMemo, useRef } from "react";
 import QuickTemplates from "@/components/quick-templates";
@@ -265,7 +265,7 @@ export default function Outreach() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const { data: lists = [] } = useQuery<List[]>({
+  const { data: lists = [] } = useQuery<SearchList[]>({
     queryKey: ["/api/lists"],
     staleTime: 3 * 60 * 1000, // 3 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes

@@ -1,6 +1,6 @@
 import { Router, Request, Response, Application } from 'express';
-import { ListsService } from './service';
-import { ListRequest, UpdateListRequest } from './types';
+import { SearchListsService } from './service';
+import { SearchListRequest, UpdateSearchListRequest } from './types';
 
 // Helper function to safely get user ID from request
 function getUserId(req: Request): number {
@@ -41,7 +41,7 @@ function getUserId(req: Request): number {
   }
 }
 
-export function registerListsRoutes(app: Application, requireAuth: any) {
+export function registerSearchListsRoutes(app: Application, requireAuth: any) {
   const router = Router();
 
   // Get all lists
@@ -49,7 +49,7 @@ export function registerListsRoutes(app: Application, requireAuth: any) {
     const userId = getUserId(req);
     const isAuthenticated = (req as any).isAuthenticated && (req as any).isAuthenticated() && (req as any).user;
     
-    const lists = await ListsService.getLists(userId, isAuthenticated);
+    const lists = await SearchListsService.getSearchLists(userId, isAuthenticated);
     res.json(lists);
   });
 
@@ -59,7 +59,7 @@ export function registerListsRoutes(app: Application, requireAuth: any) {
     const listId = parseInt(req.params.listId);
     const userId = (req as any).user?.id || 1;
     
-    const list = await ListsService.getList(listId, userId, isAuthenticated);
+    const list = await SearchListsService.getSearchList(listId, userId, isAuthenticated);
     
     if (!list) {
       res.status(404).json({ message: "List not found" });
@@ -75,13 +75,13 @@ export function registerListsRoutes(app: Application, requireAuth: any) {
     const listId = parseInt(req.params.listId);
     const userId = (req as any).user?.id || 1;
     
-    const companies = await ListsService.getListCompanies(listId, userId, isAuthenticated);
+    const companies = await SearchListsService.getSearchListCompanies(listId, userId, isAuthenticated);
     res.json(companies);
   });
 
   // Create new list
   router.post('/', async (req: Request, res: Response) => {
-    const body = req.body as ListRequest;
+    const body = req.body as SearchListRequest;
     const { companies, prompt, contactSearchConfig } = body;
 
     console.log(`POST /api/lists called with ${companies?.length || 0} companies`);
@@ -94,7 +94,7 @@ export function registerListsRoutes(app: Application, requireAuth: any) {
 
     try {
       const userId = getUserId(req);
-      const list = await ListsService.createList(body, userId);
+      const list = await SearchListsService.createSearchList(body, userId);
       res.json(list);
     } catch (error) {
       console.error('List creation error:', error);
@@ -109,7 +109,7 @@ export function registerListsRoutes(app: Application, requireAuth: any) {
     try {
       const userId = getUserId(req);
       const listId = parseInt(req.params.listId);
-      const body = req.body as UpdateListRequest;
+      const body = req.body as UpdateSearchListRequest;
       const { companies, prompt } = body;
       
       console.log(`PUT /api/lists/${listId} called by user ${userId} with ${companies?.length || 0} companies`);
@@ -129,7 +129,7 @@ export function registerListsRoutes(app: Application, requireAuth: any) {
         });
       }
       
-      const updated = await ListsService.updateList(listId, body, userId);
+      const updated = await SearchListsService.updateSearchList(listId, body, userId);
       
       if (!updated) {
         return res.status(404).json({

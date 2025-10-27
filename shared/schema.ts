@@ -11,7 +11,7 @@ export const users = pgTable("users", {
   isAdmin: boolean("is_admin").default(false)
 });
 
-export const lists = pgTable("lists", {
+export const searchLists = pgTable("search_lists", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("user_id").notNull().references(() => users.id),  
   listId: integer("list_id").notNull(),
@@ -20,8 +20,8 @@ export const lists = pgTable("lists", {
   customSearchTargets: jsonb("custom_search_targets").default('[]'),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
 }, (table) => [
-  index('idx_lists_user_id').on(table.userId),
-  index('idx_lists_list_id').on(table.listId),
+  index('idx_search_lists_user_id').on(table.userId),
+  index('idx_search_lists_list_id').on(table.listId),
 ]);
 
 export const companies = pgTable("companies", {
@@ -173,7 +173,7 @@ export const searchJobs = pgTable("search_jobs", {
 
 // N8N Workflow tables have been removed
 
-const listSchema = z.object({
+const searchListSchema = z.object({
   listId: z.number().min(1001),
   prompt: z.string().min(1, "Search prompt is required"),
   resultCount: z.number().min(0),
@@ -267,7 +267,7 @@ const searchJobSchema = z.object({
 
 // N8N Workflow schemas have been removed
 
-export const insertListSchema = listSchema.extend({
+export const insertSearchListSchema = searchListSchema.extend({
   userId: z.number()
 });
 export const insertCompanySchema = companySchema;
@@ -280,8 +280,8 @@ export const insertUserEmailPreferencesSchema = userEmailPreferencesSchema.exten
   userId: z.number()
 });
 
-export type List = typeof lists.$inferSelect;
-export type InsertList = z.infer<typeof insertListSchema>;
+export type SearchList = typeof searchLists.$inferSelect;
+export type InsertSearchList = z.infer<typeof insertSearchListSchema>;
 export type Company = typeof companies.$inferSelect;
 export type InsertCompany = z.infer<typeof insertCompanySchema>;
 export type Contact = typeof contacts.$inferSelect;

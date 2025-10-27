@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { PanelLeft, Plus, Users } from "lucide-react";
-import type { List } from "@shared/schema";
+import type { SearchList } from "@shared/schema";
 import { generateListPromptOnly } from "@/lib/list-utils";
 import {
   Tooltip,
@@ -28,12 +28,12 @@ import {
 interface SavedSearchesDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onLoadSearch: (list: List) => void;
+  onLoadSearch: (list: SearchList) => void;
   onNewSearch: () => void;
 }
 
 export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSearch }: SavedSearchesDrawerProps) {
-  const { data: lists = [] } = useQuery<List[]>({
+  const { data: lists = [] } = useQuery<SearchList[]>({
     queryKey: ["/api/lists"],
   });
   
@@ -116,7 +116,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
               </TableRow>
             </TableHeader>
             <TableBody>
-              {lists.map((list: List) => (
+              {lists.map((list: SearchList) => (
                 <TableRow 
                   key={list.id}
                   className={`cursor-pointer hover:bg-muted border-0 ${clickedId === list.id ? 'bg-blue-100 dark:bg-blue-900/30' : ''}`}

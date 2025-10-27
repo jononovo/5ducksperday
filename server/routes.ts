@@ -16,7 +16,7 @@ import { queryOpenAI, generateEmailStrategy, generateBoundary, generateBoundaryO
 import { 
   insertCompanySchema, 
   insertContactSchema, 
-  insertListSchema, 
+  insertSearchListSchema, 
   insertEmailTemplateSchema
 } from "@shared/schema";
  
@@ -31,7 +31,7 @@ import { getEmailProvider } from "./gmail-api-service";
 import { registerEmailGenerationRoutes } from "./email-content-generation/routes";
 import { registerGmailRoutes } from "./gmail-api-service";
 import { registerHealthMonitoringRoutes } from "./features/health-monitoring";
-import { registerListsRoutes } from "./features/lists";
+import { registerSearchListsRoutes } from "./features/lists";
 import { registerEmailTemplatesRoutes } from "./email/email-templates";
 import { registerSearchRoutes, SessionManager } from "./search";
 import { registerSitemapRoutes } from "./features/sitemap";
@@ -171,7 +171,7 @@ export function registerRoutes(app: Express) {
   registerAdminRoutes(app);
   
   // Register modular lists management routes
-  registerListsRoutes(app, requireAuth);
+  registerSearchListsRoutes(app, requireAuth);
   
   // Register modular email templates routes
   registerEmailTemplatesRoutes(app, requireAuth);

@@ -1,9 +1,9 @@
-import type { List } from "@shared/schema";
+import type { SearchList } from "@shared/schema";
 
 /**
  * Generate a descriptive list name in the format: ID1174-[Search prompt]+[custom-search-label]
  */
-export function generateListDisplayName(list: List): string {
+export function generateListDisplayName(list: SearchList): string {
   const { listId, prompt, customSearchTargets } = list;
   
   // Truncate prompt if it's too long (max 50 characters)
@@ -26,7 +26,7 @@ export function generateListDisplayName(list: List): string {
 /**
  * Generate a shorter display name for dropdowns (max 80 characters total)
  */
-export function generateShortListDisplayName(list: List): string {
+export function generateShortListDisplayName(list: SearchList): string {
   const { listId, prompt, customSearchTargets } = list;
   
   // Calculate available space for prompt after ID and custom targets
@@ -51,7 +51,7 @@ export function generateShortListDisplayName(list: List): string {
 /**
  * Generate just the prompt for the selected display (no ID)
  */
-export function generateListPromptOnly(list: List | undefined): string {
+export function generateListPromptOnly(list: SearchList | undefined): string {
   // Defensive check for undefined list
   if (!list) {
     return '';

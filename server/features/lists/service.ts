@@ -1,8 +1,8 @@
 import { storage } from '../../storage';
-import { ListRequest, ListResponse, UpdateListRequest } from './types';
+import { SearchListRequest, SearchListResponse, UpdateSearchListRequest } from './types';
 
-export class ListsService {
-  static extractCustomSearchTargets(contactSearchConfig: ListRequest['contactSearchConfig']): string[] {
+export class SearchListsService {
+  static extractCustomSearchTargets(contactSearchConfig: SearchListRequest['contactSearchConfig']): string[] {
     const customSearchTargets: string[] = [];
     if (contactSearchConfig) {
       if (contactSearchConfig.enableCustomSearch && contactSearchConfig.customSearchTarget) {
@@ -15,56 +15,56 @@ export class ListsService {
     return customSearchTargets;
   }
 
-  static async getLists(userId: number, isAuthenticated: boolean) {
+  static async getSearchLists(userId: number, isAuthenticated: boolean) {
     if (isAuthenticated) {
-      return storage.listLists(userId);
+      return storage.listSearchLists(userId);
     } else {
       // For unauthenticated users, return only demo lists (userId = 1)
-      return storage.listLists(1);
+      return storage.listSearchLists(1);
     }
   }
 
-  static async getList(listId: number, userId: number, isAuthenticated: boolean) {
+  static async getSearchList(listId: number, userId: number, isAuthenticated: boolean) {
     let list = null;
     
     // First try to find the list for the authenticated user
     if (isAuthenticated) {
-      list = await storage.getList(listId, userId);
+      list = await storage.getSearchList(listId, userId);
     }
     
     // If not found or not authenticated, check if it's a demo list
     if (!list) {
-      list = await storage.getList(listId, 1); // Check demo user (ID 1)
+      list = await storage.getSearchList(listId, 1); // Check demo user (ID 1)
     }
     
     return list;
   }
 
-  static async getListCompanies(listId: number, userId: number, isAuthenticated: boolean) {
+  static async getSearchListCompanies(listId: number, userId: number, isAuthenticated: boolean) {
     let companies = [];
     
     // First try to find companies for the authenticated user's list
     if (isAuthenticated) {
-      companies = await storage.listCompaniesByList(listId, userId);
+      companies = await storage.listCompaniesBySearchList(listId, userId);
     }
     
     // If none found or not authenticated, check for demo list companies
     if (companies.length === 0) {
-      companies = await storage.listCompaniesByList(listId, 1); // Check demo user (ID 1)
+      companies = await storage.listCompaniesBySearchList(listId, 1); // Check demo user (ID 1)
     }
     
     return companies;
   }
 
-  static async createList(request: ListRequest, userId: number): Promise<ListResponse> {
+  static async createSearchList(request: SearchListRequest, userId: number): Promise<SearchListResponse> {
     const { companies, prompt, contactSearchConfig } = request;
     
     console.log(`Creating list with ${companies?.length || 0} companies for user ${userId}`);
     
-    const listId = await storage.getNextListId();
+    const listId = await storage.getNextSearchListId();
     const customSearchTargets = this.extractCustomSearchTargets(contactSearchConfig);
     
-    const list = await storage.createList({
+    const list = await storage.createSearchList({
       listId,
       prompt,
       resultCount: companies.length,
@@ -74,30 +74,30 @@ export class ListsService {
 
     await Promise.all(
       companies.map(company =>
-        storage.updateCompanyList(company.id, listId)
+        storage.updateCompanySearchList(company.id, listId)
       )
     );
 
     return list;
   }
 
-  static async updateList(
+  static async updateSearchList(
     listId: number,
-    request: UpdateListRequest,
+    request: UpdateSearchListRequest,
     userId: number
-  ): Promise<ListResponse | null> {
+  ): Promise<SearchListResponse | null> {
     const { companies, prompt, contactSearchConfig } = request;
     
     console.log(`Updating list ${listId} with ${companies?.length || 0} companies for user ${userId}`);
     
     // Check if list exists and user has permission
-    const existingList = await storage.getList(listId, userId);
+    const existingList = await storage.getSearchList(listId, userId);
     if (!existingList) {
       console.log(`List update failed: List ${listId} not found for user ${userId}`);
       return null;
     }
     
-    console.log(`Found existing list ${listId} for user ${userId}: ${existingList.name}`);
+    console.log(`Found existing list ${listId} for user ${userId}: ${existingList.prompt}`);
     
     // Verify all companies belong to the user and exist
     const companyValidation = await Promise.all(
@@ -119,21 +119,21 @@ export class ListsService {
     const customSearchTargets = this.extractCustomSearchTargets(contactSearchConfig);
     
     // Update the list metadata
-    const updated = await storage.updateList(listId, {
+    const updated = await storage.updateSearchList(listId, {
       prompt,
       resultCount: companies.length,
       customSearchTargets: customSearchTargets.length > 0 ? customSearchTargets : null
     }, userId);
     
     if (!updated) {
-      console.log(`List update failed: updateList returned null for list ${listId}`);
+      console.log(`List update failed: updateSearchList returned null for list ${listId}`);
       return null;
     }
     
     // Update company associations (only after successful list update)
     await Promise.all(
       companies.map(company =>
-        storage.updateCompanyList(company.id, listId)
+        storage.updateCompanySearchList(company.id, listId)
       )
     );
     

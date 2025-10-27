@@ -62,7 +62,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import type { Company, Contact, List } from "@shared/schema";
+import type { Company, Contact, SearchList } from "@shared/schema";
 import {
   DropdownMenu,
   DropdownMenuContent,

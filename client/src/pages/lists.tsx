@@ -10,11 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { List } from "@shared/schema";
+import type { SearchList } from "@shared/schema";
 import { generateListDisplayName } from "@/lib/list-utils";
 
 export default function Lists() {
-  const { data: lists = [] } = useQuery<List[]>({
+  const { data: lists = [] } = useQuery<SearchList[]>({
     queryKey: ["/api/lists"],
   });
   const [, navigate] = useLocation();
@@ -37,7 +37,7 @@ export default function Lists() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {lists.map((list: List) => (
+              {lists.map((list: SearchList) => (
                 <TableRow 
                   key={list.id}
                   className="cursor-pointer hover:bg-muted"
