@@ -61,7 +61,6 @@ export default function CampaignsPage() {
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<number>>(new Set());
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  // Form for creating campaign
   const form = useForm<z.infer<typeof createCampaignSchema>>({
     resolver: zodResolver(createCampaignSchema),
     defaultValues: {
@@ -71,12 +70,10 @@ export default function CampaignsPage() {
     },
   });
 
-  // Fetch campaigns
   const { data: campaigns = [], isLoading } = useQuery<Campaign[]>({
     queryKey: ['/api/campaigns'],
   });
 
-  // Create campaign mutation
   const createCampaignMutation = useMutation({
     mutationFn: async (data: z.infer<typeof createCampaignSchema>) => {
       return await apiRequest('POST', '/api/campaigns', data);
@@ -99,7 +96,6 @@ export default function CampaignsPage() {
     },
   });
 
-  // Delete campaign mutation
   const deleteCampaignMutation = useMutation({
     mutationFn: async (campaignId: number) => {
       await apiRequest('DELETE', `/api/campaigns/${campaignId}`);
@@ -120,7 +116,6 @@ export default function CampaignsPage() {
     },
   });
 
-  // Update campaign status mutation
   const updateCampaignMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
       return await apiRequest('PUT', `/api/campaigns/${id}`, { status });
@@ -195,7 +190,6 @@ export default function CampaignsPage() {
 
   return (
     <div className="container mx-auto py-8">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Campaigns</h1>
@@ -212,7 +206,6 @@ export default function CampaignsPage() {
         </Button>
       </div>
 
-      {/* Campaigns List */}
       {campaigns.length === 0 ? (
         <Card className="p-12 text-center">
           <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -242,7 +235,6 @@ export default function CampaignsPage() {
                 )}
                 data-testid={`campaign-card-${campaign.id}`}
               >
-                {/* Campaign Header */}
                 <div onClick={() => toggleExpand(campaign.id)} className="p-3">
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
@@ -284,7 +276,6 @@ export default function CampaignsPage() {
                           </div>
                         </div>
 
-                        {/* Expansion indicator and actions */}
                         <div className="flex items-center gap-2">
                           <Badge
                             variant="outline"
@@ -297,7 +288,6 @@ export default function CampaignsPage() {
                             )}
                           </Badge>
 
-                          {/* Campaign action menu */}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
@@ -356,7 +346,6 @@ export default function CampaignsPage() {
                   </div>
                 </div>
 
-                {/* Expanded Details */}
                 {isExpanded && (
                   <div className="px-3 pb-3 border-t pt-3">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -432,7 +421,6 @@ export default function CampaignsPage() {
         </div>
       )}
 
-      {/* Create Campaign Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
