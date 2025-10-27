@@ -1,5 +1,22 @@
 export interface SearchListRequest {
-  companies: Array<{ id: number }>;
+  companies: Array<{
+    id?: number;
+    name: string;
+    website?: string | null;
+    industry?: string | null;
+    description?: string | null;
+    size?: string | null;
+    location?: string | null;
+    revenue?: string | null;
+    contacts?: Array<{
+      id?: number;
+      name: string;
+      email?: string | null;
+      role?: string | null;
+      linkedinUrl?: string | null;
+      phoneNumber?: string | null;
+    }>;
+  }>;
   prompt: string;
   contactSearchConfig?: {
     enableCustomSearch?: boolean;

@@ -90,7 +90,7 @@ export class SearchListsService {
               website: company.website || null,
               industry: company.industry || null,
               description: company.description || null,
-              size: company.size || null,
+              size: company.size ? parseInt(company.size as string) : null,
               location: company.location || null,
               revenue: company.revenue || null,
               userId
@@ -103,7 +103,7 @@ export class SearchListsService {
             website: company.website || null,
             industry: company.industry || null,
             description: company.description || null,
-            size: company.size || null,
+            size: company.size ? parseInt(company.size as string) : null,
             location: company.location || null,
             revenue: company.revenue || null,
             userId
@@ -127,11 +127,10 @@ export class SearchListsService {
                   email: contact.email || null,
                   role: contact.role || null,
                   companyId: savedCompany.id,
-                  userId,
                   linkedinUrl: contact.linkedinUrl || null,
                   phoneNumber: contact.phoneNumber || null,
                   lastValidated: new Date()
-                });
+                }, userId);
               }
             } catch (contactError) {
               console.error(`Error saving contact ${contact.name}:`, contactError);
@@ -187,7 +186,7 @@ export class SearchListsService {
               website: company.website || null,
               industry: company.industry || null,
               description: company.description || null,
-              size: company.size || null,
+              size: company.size ? parseInt(company.size as string) : null,
               location: company.location || null,
               revenue: company.revenue || null,
               userId
@@ -200,7 +199,7 @@ export class SearchListsService {
             website: company.website || null,
             industry: company.industry || null,
             description: company.description || null,
-            size: company.size || null,
+            size: company.size ? parseInt(company.size as string) : null,
             location: company.location || null,
             revenue: company.revenue || null,
             userId
@@ -224,11 +223,10 @@ export class SearchListsService {
                   email: contact.email || null,
                   role: contact.role || null,
                   companyId: savedCompany.id,
-                  userId,
                   linkedinUrl: contact.linkedinUrl || null,
                   phoneNumber: contact.phoneNumber || null,
                   lastValidated: new Date()
-                });
+                }, userId);
               }
             } catch (contactError) {
               console.error(`Error saving contact ${contact.name}:`, contactError);
