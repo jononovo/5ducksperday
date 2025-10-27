@@ -16,7 +16,7 @@ export class GmailOAuthService {
     const oauth2Client = this.getOAuth2Client(redirectUri);
     
     const scopes = [
-      'https://www.googleapis.com/auth/gmail.modify',
+      'https://www.googleapis.com/auth/gmail.send',
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile'
     ];

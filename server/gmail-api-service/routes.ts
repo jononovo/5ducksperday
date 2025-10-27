@@ -107,7 +107,7 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
       
       const response: GmailStatusResponse = {
         connected: hasValidAuth,
-        authUrl: hasValidAuth ? null : '/api/gmail/auth'
+        authUrl: hasValidAuth ? null : `/api/gmail/auth?userId=${userId}`
       };
       
       res.json(response);

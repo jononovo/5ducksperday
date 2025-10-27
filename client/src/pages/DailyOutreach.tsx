@@ -145,8 +145,21 @@ export default function DailyOutreach() {
   
   // Gmail connect mutation
   const handleGmailConnect = () => {
+    // Get userId from batch data
+    const batchData = data as { batch?: OutreachBatch; items?: OutreachItem[] } | undefined;
+    const userId = batchData?.batch?.userId;
+    
+    if (!userId) {
+      toast({
+        title: "Session not found",
+        description: "Unable to identify user session. Please refresh and try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Open Gmail OAuth flow in a new window
-    const authUrl = `/api/gmail/auth`;
+    const authUrl = `/api/gmail/auth?userId=${userId}`;
     const authWindow = window.open(authUrl, 'gmailAuth', 'width=600,height=600');
     
     // Listen for message from pop-up window

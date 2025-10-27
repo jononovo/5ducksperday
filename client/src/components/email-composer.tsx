@@ -315,7 +315,15 @@ export function EmailComposer({
   };
 
   const handleGmailConnect = () => {
-    window.open('/api/gmail/auth', '_blank');
+    if (!user?.id) {
+      toast({
+        title: "Not authenticated",
+        description: "Please log in to connect Gmail.",
+        variant: "destructive"
+      });
+      return;
+    }
+    window.open(`/api/gmail/auth?userId=${user.id}`, '_blank');
   };
 
   const handleSaveEmail = async (templateName: string) => {
