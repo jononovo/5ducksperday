@@ -4,19 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import CompanyTable from "@/components/company-table";
-import type { List } from "@shared/schema";
+import type { SearchList, Company, Contact } from "@shared/schema";
+import type { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
 
 export default function ListDetails() {
   const [, params] = useRoute("/lists/:listId");
   const [, navigate] = useLocation();
   const listId = params?.listId ? parseInt(params.listId) : null;
 
-  const { data: list } = useQuery<List>({
+  const { data: list } = useQuery<SearchList>({
     queryKey: [`/api/lists/${listId}`],
     enabled: !!listId,
   });
 
-  const { data: companies = [] } = useQuery({
+  const { data: companies = [] } = useQuery<Array<Company & { contacts?: ContactWithCompanyInfo[] }>>({
     queryKey: [`/api/lists/${listId}/companies`],
     enabled: !!listId,
   });
