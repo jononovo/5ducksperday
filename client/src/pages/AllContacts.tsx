@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Mail, Building, Briefcase, Search, Users, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { ArrowLeft, Mail, Building, Briefcase, Search, Users, ChevronLeft, ChevronRight, Filter, MapPin } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
@@ -29,6 +29,7 @@ export default function AllContacts() {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasEmailFilter, setHasEmailFilter] = useState(false);
   const [selectedListId, setSelectedListId] = useState<string>('all');
+  const [locationFilter, setLocationFilter] = useState('');
   const contactsPerPage = 50; // Show 50 contacts per page
   const { user } = useAuth();
   
@@ -66,11 +67,15 @@ export default function AllContacts() {
     // Apply email filter
     const matchesEmailFilter = !hasEmailFilter || !!contact.email;
 
+    // Apply location filter
+    const matchesLocationFilter = !locationFilter || 
+      contact.location?.toLowerCase().includes(locationFilter.toLowerCase());
+
     // Apply contact list filter
     const matchesListFilter = selectedListId === 'all' || 
       listMembers.some(member => member.id === contact.id);
 
-    return matchesSearch && matchesEmailFilter && matchesListFilter;
+    return matchesSearch && matchesEmailFilter && matchesLocationFilter && matchesListFilter;
   });
 
   // Pagination calculations
@@ -119,7 +124,7 @@ export default function AllContacts() {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-gray-500" />
               <span className="text-sm font-medium text-gray-700">Filters:</span>
@@ -141,6 +146,22 @@ export default function AllContacts() {
               >
                 Has email address
               </label>
+            </div>
+
+            {/* Location Filter */}
+            <div className="flex items-center gap-2 flex-1 sm:max-w-xs">
+              <MapPin className="h-4 w-4 text-gray-500" />
+              <Input
+                type="text"
+                placeholder="Filter by city..."
+                value={locationFilter}
+                onChange={(e) => {
+                  setLocationFilter(e.target.value);
+                  setCurrentPage(1); // Reset to first page when filter changes
+                }}
+                className="flex-1 h-9"
+                data-testid="filter-location"
+              />
             </div>
 
             {/* Contact List Filter */}
@@ -170,13 +191,14 @@ export default function AllContacts() {
             </div>
 
             {/* Clear Filters Button */}
-            {(hasEmailFilter || selectedListId !== 'all') && (
+            {(hasEmailFilter || selectedListId !== 'all' || locationFilter) && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
                   setHasEmailFilter(false);
                   setSelectedListId('all');
+                  setLocationFilter('');
                   setCurrentPage(1);
                 }}
               >
