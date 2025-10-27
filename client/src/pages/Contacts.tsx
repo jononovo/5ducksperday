@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -261,27 +261,29 @@ export default function Contacts() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* All contacts card */}
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <Users className="w-6 h-6 text-blue-600" />
+          {/* All contacts card - clickable */}
+          <Link href="/contacts/all">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <Users className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        All contacts
+                      </p>
+                      <p className="text-2xl font-bold mt-1" data-testid="text-all-contacts-count">
+                        {contactStats.totalContacts.toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      All contacts
-                    </p>
-                    <p className="text-2xl font-bold mt-1" data-testid="text-all-contacts-count">
-                      {contactStats.totalContacts.toLocaleString()}
-                    </p>
-                  </div>
+                  <Users className="w-5 h-5 text-muted-foreground" />
                 </div>
-                <Users className="w-5 h-5 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
           {/* Unsubscribers card */}
           <Card className="hover:shadow-lg transition-shadow">
