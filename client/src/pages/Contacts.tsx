@@ -204,14 +204,14 @@ export default function Contacts() {
   });
 
   // Fetch all contacts to calculate stats
-  const { data: allContacts = [], isLoading: contactsLoading } = useQuery<Contact[]>({
+  const { data: contactsData, isLoading: contactsLoading } = useQuery<{ total: number; contacts: Contact[] }>({
     queryKey: ["/api/contacts"],
     enabled: !!user,
   });
 
   // Calculate contact statistics
   const contactStats: ContactStats = {
-    totalContacts: allContacts.length,
+    totalContacts: contactsData?.total || 0,
     // For now, we'll set unsubscribers and blocklist to 0 or mock values
     // These would typically come from a specific field in the contact data
     unsubscribers: 13, // Mock value matching the design

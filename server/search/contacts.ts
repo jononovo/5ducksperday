@@ -17,6 +17,24 @@ import type { Contact } from "@shared/schema";
 
 export function registerContactRoutes(app: Express, requireAuth: any) {
   
+  // Get contacts count and stats for the dashboard
+  app.get("/api/contacts", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const allContacts = await storage.listContacts(userId);
+      
+      res.json({
+        total: allContacts.length,
+        contacts: allContacts
+      });
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to fetch contacts"
+      });
+    }
+  });
+  
   // Hunter.io email finder endpoint
   app.post("/api/contacts/:contactId/hunter", requireAuth, hunterSearch);
   
