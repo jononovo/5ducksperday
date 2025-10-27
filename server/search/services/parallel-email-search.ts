@@ -268,7 +268,22 @@ export async function parallelTieredEmailSearch(
   
   const totalTime = Date.now() - startTime;
   const emailsFound = results.filter(r => r.email && r.source !== 'existing').length;
-  console.log(`[Parallel Search] ✅ Company ${company.name} complete in ${totalTime}ms - Found ${emailsFound} new emails out of ${topContacts.length} contacts`);
+  
+  // Detailed breakdown by source
+  const apolloEmails = results.filter(r => r.source === 'apollo').length;
+  const perplexityEmails = results.filter(r => r.source === 'perplexity').length;
+  const hunterEmails = results.filter(r => r.source === 'hunter').length;
+  const existingEmails = results.filter(r => r.source === 'existing').length;
+  
+  console.log(`[Parallel Search] ============ RESULTS FOR ${company.name} ============`);
+  console.log(`[Parallel Search] Contacts processed: ${topContacts.length}`);
+  console.log(`[Parallel Search] Total emails found: ${emailsFound + existingEmails}`);
+  console.log(`[Parallel Search]   - New from Apollo: ${apolloEmails}`);
+  console.log(`[Parallel Search]   - New from Perplexity: ${perplexityEmails}`);
+  console.log(`[Parallel Search]   - New from Hunter: ${hunterEmails}`);
+  console.log(`[Parallel Search]   - Already existed: ${existingEmails}`);
+  console.log(`[Parallel Search] Total time: ${totalTime}ms`);
+  console.log(`[Parallel Search] ===================================================`);
   
   return results;
 }

@@ -10,19 +10,37 @@ import { getUserId } from "../utils";
 
 export async function searchApolloDirect(contact: any, company: any, apiKey: string): Promise<any> {
   try {
+    console.log(`[Apollo] Starting search for ${contact.name} at ${company.name}`);
+    
     const axios = (await import('axios')).default;
-    const response = await axios.post('https://api.apollo.io/v1/people/match', {
+    const requestData = {
       name: contact.name,
       organization_name: company.name,
       domain: company.website
-    }, {
+    };
+    
+    console.log(`[Apollo] Request data:`, JSON.stringify(requestData));
+    
+    const response = await axios.post('https://api.apollo.io/v1/people/match', requestData, {
       headers: {
         'X-Api-Key': apiKey
       },
       timeout: 20000
     });
 
+    // Log response status and headers for rate limit info
+    console.log(`[Apollo] Response status: ${response.status}`);
+    console.log(`[Apollo] Rate limit headers:`, {
+      'x-rate-limit-limit': response.headers['x-rate-limit-limit'],
+      'x-rate-limit-remaining': response.headers['x-rate-limit-remaining'],
+      'x-rate-limit-reset': response.headers['x-rate-limit-reset']
+    });
+    
+    // Log the full response data for debugging
+    console.log(`[Apollo] Response data:`, JSON.stringify(response.data));
+
     if (response.data?.person?.email) {
+      console.log(`[Apollo] ✅ Email found for ${contact.name}: ${response.data.person.email}`);
       return {
         success: true,
         contact: {
@@ -39,6 +57,7 @@ export async function searchApolloDirect(contact: any, company: any, apiKey: str
       };
     }
 
+    console.log(`[Apollo] ❌ No email found for ${contact.name} - Response:`, response.data);
     return {
       success: false,
       contact,
@@ -47,8 +66,21 @@ export async function searchApolloDirect(contact: any, company: any, apiKey: str
         searchDate: new Date().toISOString()
       }
     };
-  } catch (error) {
-    console.error('Apollo API error:', error);
+  } catch (error: any) {
+    // Enhanced error logging to capture rate limit and other API errors
+    console.error(`[Apollo] API error for ${contact.name}:`, {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      headers: error.response?.headers
+    });
+    
+    // Check for specific rate limit error
+    if (error.response?.status === 429) {
+      console.error(`[Apollo] ⚠️ RATE LIMIT HIT! Reset time:`, error.response.headers['x-rate-limit-reset']);
+    }
+    
     return {
       success: false,
       contact,
