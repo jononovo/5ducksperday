@@ -251,8 +251,32 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
       }
       
       // Get all companies from the search list
-      const companies = await storage.listCompaniesByList(searchListId, userId);
-      console.log(`Found ${companies.length} companies in search list ${searchListId}`);
+      let companies = await storage.listCompaniesByList(searchListId, userId);
+      console.log(`Found ${companies.length} companies in search list ${searchListId} (with listId field)`);
+      
+      // If no companies found, try a fallback approach
+      if (companies.length === 0) {
+        console.log('No companies with listId found, trying fallback approach...');
+        
+        // Get the list details to see when it was created
+        const searchList = await storage.getList(searchListId, userId);
+        if (searchList) {
+          // Get all companies for the user
+          const allUserCompanies = await storage.listCompanies(userId);
+          
+          // Filter companies that were created around the same time as the list
+          // (within 5 minutes before or after list creation)
+          const listCreatedAt = new Date(searchList.createdAt || 0).getTime();
+          const timeWindow = 5 * 60 * 1000; // 5 minutes
+          
+          companies = allUserCompanies.filter(company => {
+            const companyCreatedAt = new Date(company.createdAt || 0).getTime();
+            return Math.abs(companyCreatedAt - listCreatedAt) <= timeWindow;
+          });
+          
+          console.log(`Found ${companies.length} companies created around the same time as list ${searchListId}`);
+        }
+      }
       
       // Collect all contact IDs from those companies
       const allContactIds = new Set<number>();
