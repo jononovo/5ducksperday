@@ -38,6 +38,7 @@ const Streak = lazy(() => import("@/pages/Streak"));
 const Contacts = lazy(() => import("@/pages/Contacts"));
 const ContactListDetail = lazy(() => import("@/pages/ContactListDetail"));
 const AllContacts = lazy(() => import("@/pages/AllContacts"));
+const Campaigns = lazy(() => import("@/pages/campaigns"));
 
 // Lazy imports for admin pages
 const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
@@ -189,6 +190,11 @@ function Router() {
                 <ProtectedRoute path="/streak" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Streak />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/campaigns" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <Campaigns />
                   </Suspense>
                 } />
                 <ProtectedRoute path="/contacts" component={() => 

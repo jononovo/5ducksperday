@@ -1,0 +1,366 @@
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  ChevronDown,
+  ChevronUp,
+  Menu,
+  Target,
+  Plus,
+  User,
+  Package,
+  Users as UsersIcon,
+  Calendar,
+  TrendingUp,
+  Play,
+  Pause,
+  Edit,
+  Trash2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { Campaign } from "@shared/schema";
+
+export default function CampaignsPage() {
+  const { toast } = useToast();
+  const [expandedCampaigns, setExpandedCampaigns] = useState<Set<number>>(new Set());
+
+  // Fetch campaigns
+  const { data: campaigns = [], isLoading } = useQuery<Campaign[]>({
+    queryKey: ['/api/campaigns'],
+  });
+
+  // Delete campaign mutation
+  const deleteCampaignMutation = useMutation({
+    mutationFn: async (campaignId: number) => {
+      await apiRequest('DELETE', `/api/campaigns/${campaignId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      toast({
+        title: "Campaign deleted",
+        description: "Campaign has been successfully deleted",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete campaign",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update campaign status mutation
+  const updateCampaignMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      return await apiRequest('PUT', `/api/campaigns/${id}`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      toast({
+        title: "Campaign updated",
+        description: "Campaign status has been updated",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update campaign",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleExpand = (campaignId: number) => {
+    setExpandedCampaigns((prev) => {
+      const next = new Set(prev);
+      if (next.has(campaignId)) {
+        next.delete(campaignId);
+      } else {
+        next.add(campaignId);
+      }
+      return next;
+    });
+  };
+
+  const handleDeleteCampaign = (campaignId: number) => {
+    if (confirm("Are you sure you want to delete this campaign?")) {
+      deleteCampaignMutation.mutate(campaignId);
+    }
+  };
+
+  const handleToggleStatus = (campaign: Campaign) => {
+    const newStatus = campaign.status === 'active' ? 'paused' : 'active';
+    updateCampaignMutation.mutate({ id: campaign.id, status: newStatus });
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      draft: { variant: "outline" as const, className: "text-gray-600" },
+      active: { variant: "default" as const, className: "bg-green-600" },
+      paused: { variant: "secondary" as const, className: "text-yellow-600" },
+      completed: { variant: "outline" as const, className: "text-blue-600" },
+    };
+    return variants[status as keyof typeof variants] || variants.draft;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="p-6 animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Campaigns</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage your outreach campaigns
+          </p>
+        </div>
+        <Button data-testid="button-create-campaign">
+          <Plus className="h-4 w-4 mr-2" />
+          New Campaign
+        </Button>
+      </div>
+
+      {/* Campaigns List */}
+      {campaigns.length === 0 ? (
+        <Card className="p-12 text-center">
+          <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No campaigns yet</h3>
+          <p className="text-muted-foreground mb-4">
+            Create your first campaign to start generating leads
+          </p>
+          <Button data-testid="button-create-first-campaign">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Campaign
+          </Button>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {campaigns.map((campaign) => {
+            const isExpanded = expandedCampaigns.has(campaign.id);
+            const statusBadge = getStatusBadge(campaign.status);
+
+            return (
+              <Card
+                key={campaign.id}
+                className={cn(
+                  "rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm"
+                )}
+                data-testid={`campaign-card-${campaign.id}`}
+              >
+                {/* Campaign Header */}
+                <div onClick={() => toggleExpand(campaign.id)} className="p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-base leading-tight flex items-center gap-2">
+                              <Target className="h-4 w-4 text-muted-foreground" />
+                              {campaign.name}
+                            </h3>
+                            <Badge
+                              {...statusBadge}
+                              className={statusBadge.className}
+                              data-testid={`badge-status-${campaign.id}`}
+                            >
+                              {campaign.status}
+                            </Badge>
+                          </div>
+
+                          <div className="flex items-center gap-3 mt-1 flex-wrap">
+                            {campaign.totalLeadsGenerated > 0 && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <UsersIcon className="h-3 w-3" />
+                                <span>{campaign.totalLeadsGenerated} leads</span>
+                              </div>
+                            )}
+                            {campaign.responseRate !== null && campaign.responseRate > 0 && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <TrendingUp className="h-3 w-3" />
+                                <span>{(campaign.responseRate * 100).toFixed(1)}% response</span>
+                              </div>
+                            )}
+                            {campaign.durationDays && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Calendar className="h-3 w-3" />
+                                <span>{campaign.durationDays} days</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Expansion indicator and actions */}
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className="text-xs cursor-pointer hover:bg-accent"
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="h-3 w-3" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3" />
+                            )}
+                          </Badge>
+
+                          {/* Campaign action menu */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={(e) => e.stopPropagation()}
+                                data-testid={`button-menu-${campaign.id}`}
+                              >
+                                <Menu className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleStatus(campaign);
+                                }}
+                                data-testid={`menu-toggle-status-${campaign.id}`}
+                              >
+                                {campaign.status === 'active' ? (
+                                  <>
+                                    <Pause className="mr-2 h-4 w-4" />
+                                    Pause Campaign
+                                  </>
+                                ) : (
+                                  <>
+                                    <Play className="mr-2 h-4 w-4" />
+                                    Activate Campaign
+                                  </>
+                                )}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => e.stopPropagation()}
+                                data-testid={`menu-edit-${campaign.id}`}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Campaign
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteCampaign(campaign.id);
+                                }}
+                                className="text-red-600"
+                                data-testid={`menu-delete-${campaign.id}`}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Campaign
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expanded Details */}
+                {isExpanded && (
+                  <div className="px-3 pb-3 border-t pt-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">Sender Profile:</span>
+                          <span className="text-muted-foreground">
+                            {campaign.senderProfileId || 'Not set'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Package className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">Product:</span>
+                          <span className="text-muted-foreground">
+                            {campaign.strategicProfileId || 'Not set'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <UsersIcon className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">Target Customer:</span>
+                          <span className="text-muted-foreground">
+                            {campaign.targetCustomerProfileId || 'Not set'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="text-sm">
+                          <span className="font-medium">Daily Target:</span>
+                          <span className="text-muted-foreground ml-2">
+                            {campaign.dailyLeadTarget} leads
+                          </span>
+                        </div>
+                        {campaign.startDate && (
+                          <div className="text-sm">
+                            <span className="font-medium">Start Date:</span>
+                            <span className="text-muted-foreground ml-2">
+                              {new Date(campaign.startDate).toLocaleDateString()}
+                            </span>
+                          </div>
+                        )}
+                        {campaign.endDate && (
+                          <div className="text-sm">
+                            <span className="font-medium">End Date:</span>
+                            <span className="text-muted-foreground ml-2">
+                              {new Date(campaign.endDate).toLocaleDateString()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="text-sm">
+                          <span className="font-medium">Created:</span>
+                          <span className="text-muted-foreground ml-2">
+                            {new Date(campaign.createdAt!).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="font-medium">Last Updated:</span>
+                          <span className="text-muted-foreground ml-2">
+                            {new Date(campaign.updatedAt!).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -8,6 +8,7 @@ import { Application } from 'express';
 import { registerSenderProfilesRoutes } from './sender-profiles';
 import { registerCustomerProfilesRoutes } from './customer-profiles';
 import { registerStrategicProfilesRoutes } from './products';
+import { registerCampaignsRoutes as registerCampaignsCRUDRoutes } from './campaigns/routes';
 
 /**
  * Register all campaign-related routes
@@ -23,9 +24,13 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
   
   // Register products/strategic profiles routes
   registerStrategicProfilesRoutes(app, requireAuth);
+  
+  // Register campaigns CRUD routes
+  registerCampaignsCRUDRoutes(app, requireAuth);
 }
 
 // Also export individual route registration functions for flexibility
 export { registerSenderProfilesRoutes } from './sender-profiles';
 export { registerCustomerProfilesRoutes } from './customer-profiles';
 export { registerStrategicProfilesRoutes } from './products';
+export { registerCampaignsRoutes as registerCampaignsCRUDRoutes } from './campaigns/routes';

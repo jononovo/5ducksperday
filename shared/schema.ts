@@ -833,6 +833,8 @@ export const insertCampaignSchema = campaignSchema.extend({
   userId: z.number()
 });
 
+export const updateCampaignSchema = campaignSchema.partial();
+
 export const insertStrategicProfileSchema = strategicProfileSchema.extend({
   userId: z.number()
 });
@@ -868,6 +870,8 @@ export type StrategicProfile = typeof strategicProfiles.$inferSelect;
 export type InsertStrategicProfile = z.infer<typeof insertStrategicProfileSchema>;
 export type OnboardingChat = typeof onboardingChats.$inferSelect;
 export type InsertOnboardingChat = z.infer<typeof insertOnboardingChatSchema>;
+export type Campaign = typeof campaigns.$inferSelect;
+export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 
 // Contact Lists tables
 export const contactLists = pgTable("contact_lists", {
