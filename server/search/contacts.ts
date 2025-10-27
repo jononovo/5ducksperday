@@ -123,7 +123,7 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
     try {
       const contactId = parseInt(req.params.contactId);
       const userId = getUserId(req);
-      console.log('Starting Perplexity enrichment for contact:', contactId);
+      console.log('Starting Perplexity email search for contact:', contactId);
       console.log('User ID:', userId);
 
       // PRE-SEARCH CREDIT CHECK (same as other APIs)
@@ -200,9 +200,9 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
 
       res.json(updatedContact);
     } catch (error) {
-      console.error('Perplexity contact enrichment error:', error);
+      console.error('Perplexity email search error:', error);
       res.status(500).json({
-        message: error instanceof Error ? error.message : "An unexpected error occurred during contact enrichment"
+        message: error instanceof Error ? error.message : "An unexpected error occurred during email search"
       });
     }
   });
@@ -296,16 +296,16 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
         
         // Return partial results or error
         res.status(500).json({
-          message: "Contact enrichment job created but processing failed. Check job status.",
+          message: "Contact search job created but processing failed. Check job status.",
           jobId,
           error: error instanceof Error ? error.message : "Processing error"
         });
       }
       
     } catch (error) {
-      console.error('[ContactEnrich] Error creating contact enrichment job:', error);
+      console.error('[ContactEnrich] Error creating contact search job:', error);
       res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to enrich contacts"
+        message: error instanceof Error ? error.message : "Failed to search for contacts"
       });
     }
   });
