@@ -15,21 +15,17 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
   const router = Router();
 
   // OAuth flow routes
-  // Note: This endpoint doesn't use requireAuth because it opens in a new tab/window
-  // in production, which doesn't have access to the session cookie
   router.get('/auth', async (req: Request, res: Response) => {
     try {
       const userId = req.query.userId as string;
       
-      // Validate userId parameter
       if (!userId || !userId.match(/^\d+$/)) {
         return res.status(400).json({ error: 'Invalid user ID parameter' });
       }
       
-      // Verify user exists in database
       const user = await storage.getUserById(parseInt(userId));
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(400).json({ error: 'User not found' });
       }
       
       const protocol = process.env.OAUTH_PROTOCOL || 
