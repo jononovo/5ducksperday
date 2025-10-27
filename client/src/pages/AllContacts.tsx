@@ -63,12 +63,7 @@ export default function AllContacts() {
         
         <div className="flex items-center gap-3 mb-6">
           <Users className="h-8 w-8 text-blue-500" />
-          <div>
-            <h1 className="text-3xl font-bold">All Contacts</h1>
-            <p className="text-gray-600 mt-1">
-              View and search all {contacts.length} contacts across your system
-            </p>
-          </div>
+          <h1 className="text-3xl font-bold">All Contacts</h1>
         </div>
       </div>
 
