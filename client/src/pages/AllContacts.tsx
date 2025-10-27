@@ -145,28 +145,15 @@ export default function AllContacts() {
                     </TableCell>
                     <TableCell>
                       {(contact as any).companyName ? (
-                        <div className="flex items-center gap-2">
-                          <Building className="h-4 w-4 text-gray-400" />
-                          <span>{(contact as any).companyName}</span>
-                        </div>
+                        <span>{(contact as any).companyName}</span>
                       ) : contact.companyId ? (
-                        <div className="flex items-center gap-2">
-                          <Building className="h-4 w-4 text-gray-400" />
-                          <span>Company {contact.companyId}</span>
-                        </div>
+                        <span>Company {contact.companyId}</span>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      {contact.role ? (
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="h-4 w-4 text-gray-400" />
-                          <span>{contact.role}</span>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
+                      {contact.role || <span className="text-gray-400">-</span>}
                     </TableCell>
                     <TableCell>
                       {contact.location || <span className="text-gray-400">-</span>}
