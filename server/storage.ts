@@ -2,6 +2,7 @@ import {
   userPreferences, lists, companies, contacts, emailTemplates, users,
   strategicProfiles, userEmailPreferences,
   senderProfiles, customerProfiles, searchJobs,
+  contactLists, contactListMembers,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type List, type InsertList,
@@ -12,7 +13,9 @@ import {
   type StrategicProfile, type InsertStrategicProfile,
   type SenderProfile, type InsertSenderProfile,
   type TargetCustomerProfile, type InsertTargetCustomerProfile,
-  type SearchJob, type InsertSearchJob
+  type SearchJob, type InsertSearchJob,
+  type ContactList, type InsertContactList,
+  type ContactListMember, type InsertContactListMember
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, sql, desc, lt } from "drizzle-orm";
@@ -101,6 +104,20 @@ export interface IStorage {
   listSearchJobs(userId: number, limit?: number): Promise<SearchJob[]>;
   getPendingSearchJobs(limit?: number): Promise<SearchJob[]>;
   deleteOldSearchJobs(cutoffDate: Date): Promise<number>;
+
+  // Contact Lists
+  listContactLists(userId: number): Promise<ContactList[]>;
+  getContactList(id: number, userId: number): Promise<ContactList | undefined>;
+  createContactList(data: InsertContactList): Promise<ContactList>;
+  updateContactList(id: number, data: Partial<ContactList>): Promise<ContactList>;
+  deleteContactList(id: number, userId: number): Promise<void>;
+  
+  // Contact List Members
+  listContactsByListId(listId: number): Promise<Contact[]>;
+  addContactsToList(listId: number, contactIds: number[], source: string, addedBy: number, metadata?: any): Promise<void>;
+  removeContactsFromList(listId: number, contactIds: number[]): Promise<void>;
+  isContactInList(listId: number, contactId: number): Promise<boolean>;
+  getListMemberCount(listId: number): Promise<number>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -622,6 +639,118 @@ class DatabaseStorage implements IStorage {
     
     // Return the number of deleted rows
     return (result as any).rowCount || 0;
+  }
+
+  // Contact Lists
+  async listContactLists(userId: number): Promise<ContactList[]> {
+    return db.select()
+      .from(contactLists)
+      .where(eq(contactLists.userId, userId))
+      .orderBy(desc(contactLists.createdAt));
+  }
+
+  async getContactList(id: number, userId: number): Promise<ContactList | undefined> {
+    const [list] = await db.select()
+      .from(contactLists)
+      .where(and(
+        eq(contactLists.id, id),
+        eq(contactLists.userId, userId)
+      ));
+    return list;
+  }
+
+  async createContactList(data: InsertContactList): Promise<ContactList> {
+    const [list] = await db.insert(contactLists)
+      .values(data)
+      .returning();
+    return list;
+  }
+
+  async updateContactList(id: number, data: Partial<ContactList>): Promise<ContactList> {
+    const [updated] = await db.update(contactLists)
+      .set({
+        ...data,
+        updatedAt: new Date()
+      })
+      .where(eq(contactLists.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteContactList(id: number, userId: number): Promise<void> {
+    await db.delete(contactLists)
+      .where(and(
+        eq(contactLists.id, id),
+        eq(contactLists.userId, userId)
+      ));
+  }
+
+  // Contact List Members
+  async listContactsByListId(listId: number): Promise<Contact[]> {
+    const members = await db.select({
+      contact: contacts
+    })
+      .from(contactListMembers)
+      .innerJoin(contacts, eq(contactListMembers.contactId, contacts.id))
+      .where(eq(contactListMembers.listId, listId));
+    
+    return members.map(m => m.contact);
+  }
+
+  async addContactsToList(listId: number, contactIds: number[], source: string, addedBy: number, metadata?: any): Promise<void> {
+    if (contactIds.length === 0) return;
+    
+    const values = contactIds.map(contactId => ({
+      listId,
+      contactId,
+      source,
+      addedBy,
+      sourceMetadata: metadata
+    }));
+    
+    // Insert with ON CONFLICT DO NOTHING to handle duplicates
+    await db.insert(contactListMembers)
+      .values(values)
+      .onConflictDoNothing();
+    
+    // Update contact count
+    const count = await this.getListMemberCount(listId);
+    await db.update(contactLists)
+      .set({ contactCount: count })
+      .where(eq(contactLists.id, listId));
+  }
+
+  async removeContactsFromList(listId: number, contactIds: number[]): Promise<void> {
+    if (contactIds.length === 0) return;
+    
+    await db.delete(contactListMembers)
+      .where(and(
+        eq(contactListMembers.listId, listId),
+        sql`${contactListMembers.contactId} = ANY(${contactIds})`
+      ));
+    
+    // Update contact count
+    const count = await this.getListMemberCount(listId);
+    await db.update(contactLists)
+      .set({ contactCount: count })
+      .where(eq(contactLists.id, listId));
+  }
+
+  async isContactInList(listId: number, contactId: number): Promise<boolean> {
+    const [member] = await db.select()
+      .from(contactListMembers)
+      .where(and(
+        eq(contactListMembers.listId, listId),
+        eq(contactListMembers.contactId, contactId)
+      ));
+    return !!member;
+  }
+
+  async getListMemberCount(listId: number): Promise<number> {
+    const [result] = await db.select({ count: sql<number>`count(*)` })
+      .from(contactListMembers)
+      .where(eq(contactListMembers.listId, listId));
+    return result?.count || 0;
   }
 }
 
