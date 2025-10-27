@@ -1,10 +1,30 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,13 +50,53 @@ import {
 import { cn } from "@/lib/utils";
 import type { Campaign } from "@shared/schema";
 
+const createCampaignSchema = z.object({
+  name: z.string().min(1, "Campaign name is required"),
+  durationDays: z.number().min(1).default(14),
+  dailyLeadTarget: z.number().min(1).default(5),
+});
+
 export default function CampaignsPage() {
   const { toast } = useToast();
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<number>>(new Set());
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  // Form for creating campaign
+  const form = useForm<z.infer<typeof createCampaignSchema>>({
+    resolver: zodResolver(createCampaignSchema),
+    defaultValues: {
+      name: "",
+      durationDays: 14,
+      dailyLeadTarget: 5,
+    },
+  });
 
   // Fetch campaigns
   const { data: campaigns = [], isLoading } = useQuery<Campaign[]>({
     queryKey: ['/api/campaigns'],
+  });
+
+  // Create campaign mutation
+  const createCampaignMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof createCampaignSchema>) => {
+      return await apiRequest('POST', '/api/campaigns', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      toast({
+        title: "Campaign created",
+        description: "Your campaign has been successfully created",
+      });
+      setIsCreateDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create campaign",
+        variant: "destructive",
+      });
+    },
   });
 
   // Delete campaign mutation
@@ -114,6 +174,10 @@ export default function CampaignsPage() {
     return variants[status as keyof typeof variants] || variants.draft;
   };
 
+  const onSubmit = (data: z.infer<typeof createCampaignSchema>) => {
+    createCampaignMutation.mutate(data);
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-8">
@@ -139,7 +203,10 @@ export default function CampaignsPage() {
             Manage your outreach campaigns
           </p>
         </div>
-        <Button data-testid="button-create-campaign">
+        <Button 
+          onClick={() => setIsCreateDialogOpen(true)}
+          data-testid="button-create-campaign"
+        >
           <Plus className="h-4 w-4 mr-2" />
           New Campaign
         </Button>
@@ -153,7 +220,10 @@ export default function CampaignsPage() {
           <p className="text-muted-foreground mb-4">
             Create your first campaign to start generating leads
           </p>
-          <Button data-testid="button-create-first-campaign">
+          <Button 
+            onClick={() => setIsCreateDialogOpen(true)}
+            data-testid="button-create-first-campaign"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Create Campaign
           </Button>
@@ -361,6 +431,98 @@ export default function CampaignsPage() {
           })}
         </div>
       )}
+
+      {/* Create Campaign Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create New Campaign</DialogTitle>
+            <DialogDescription>
+              Set up a new outreach campaign to generate leads
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Campaign Name</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Q1 2024 Outreach" 
+                        {...field} 
+                        data-testid="input-campaign-name"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="durationDays"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Duration (days)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min="1"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                        data-testid="input-duration-days"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="dailyLeadTarget"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Daily Lead Target</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min="1"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                        data-testid="input-daily-lead-target"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCreateDialogOpen(false)}
+                  data-testid="button-cancel-create"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createCampaignMutation.isPending}
+                  data-testid="button-submit-create"
+                >
+                  {createCampaignMutation.isPending ? "Creating..." : "Create Campaign"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
