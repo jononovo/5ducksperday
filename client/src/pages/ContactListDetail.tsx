@@ -492,8 +492,8 @@ export default function ContactListDetail() {
                           searchLists.map((list) => (
                             <SelectItem 
                               key={list.id} 
-                              value={list.id.toString()}
-                              data-testid={`option-list-${list.id}`}
+                              value={list.listId.toString()}
+                              data-testid={`option-list-${list.listId}`}
                             >
                               {list.prompt} ({list.resultCount} results)
                             </SelectItem>
