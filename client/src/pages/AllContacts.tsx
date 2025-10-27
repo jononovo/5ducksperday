@@ -144,7 +144,12 @@ export default function AllContacts() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {contact.companyId ? (
+                      {(contact as any).companyName ? (
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4 text-gray-400" />
+                          <span>{(contact as any).companyName}</span>
+                        </div>
+                      ) : contact.companyId ? (
                         <div className="flex items-center gap-2">
                           <Building className="h-4 w-4 text-gray-400" />
                           <span>Company {contact.companyId}</span>

@@ -49,6 +49,7 @@ export interface IStorage {
   // Contacts
   listContactsByCompany(companyId: number, userId: number): Promise<Contact[]>;
   listContacts(userId: number): Promise<Contact[]>;
+  listContactsWithCompanies(userId: number): Promise<(Contact & { companyName?: string })[]>;
   getContact(id: number, userId: number): Promise<Contact | undefined>;
   createContact(data: InsertContact): Promise<Contact>;
   updateContact(id: number, data: Partial<Contact>): Promise<Contact>;
@@ -311,6 +312,49 @@ class DatabaseStorage implements IStorage {
         .where(eq(contacts.userId, userId));
     } catch (error) {
       console.error('Error fetching contacts:', error);
+      return [];
+    }
+  }
+
+  async listContactsWithCompanies(userId: number): Promise<(Contact & { companyName?: string })[]> {
+    try {
+      const result = await db
+        .select({
+          id: contacts.id,
+          userId: contacts.userId,
+          companyId: contacts.companyId,
+          name: contacts.name,
+          role: contacts.role,
+          email: contacts.email,
+          alternativeEmails: contacts.alternativeEmails,
+          probability: contacts.probability,
+          linkedinUrl: contacts.linkedinUrl,
+          twitterHandle: contacts.twitterHandle,
+          phoneNumber: contacts.phoneNumber,
+          department: contacts.department,
+          location: contacts.location,
+          verificationSource: contacts.verificationSource,
+          lastEnriched: contacts.lastEnriched,
+          nameConfidenceScore: contacts.nameConfidenceScore,
+          userFeedbackScore: contacts.userFeedbackScore,
+          feedbackCount: contacts.feedbackCount,
+          lastValidated: contacts.lastValidated,
+          createdAt: contacts.createdAt,
+          completedSearches: contacts.completedSearches,
+          contactStatus: contacts.contactStatus,
+          lastContactedAt: contacts.lastContactedAt,
+          lastContactChannel: contacts.lastContactChannel,
+          totalCommunications: contacts.totalCommunications,
+          totalReplies: contacts.totalReplies,
+          lastThreadId: contacts.lastThreadId,
+          companyName: companies.name
+        })
+        .from(contacts)
+        .leftJoin(companies, eq(contacts.companyId, companies.id))
+        .where(eq(contacts.userId, userId));
+      return result as (Contact & { companyName?: string })[];
+    } catch (error) {
+      console.error('Error fetching contacts with companies:', error);
       return [];
     }
   }

@@ -21,7 +21,7 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
   app.get("/api/contacts", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req);
-      const allContacts = await storage.listContacts(userId);
+      const allContacts = await storage.listContactsWithCompanies(userId);
       
       res.json({
         total: allContacts.length,
