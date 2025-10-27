@@ -38,7 +38,7 @@ const Streak = lazy(() => import("@/pages/Streak"));
 const Contacts = lazy(() => import("@/pages/Contacts"));
 const ContactListDetail = lazy(() => import("@/pages/ContactListDetail"));
 const AllContacts = lazy(() => import("@/pages/AllContacts"));
-const Campaigns = lazy(() => import("@/pages/campaigns"));
+const Campaigns = lazy(() => import("@/features/campaigns").then(module => ({ default: module.CampaignsPage })));
 
 // Lazy imports for admin pages
 const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
