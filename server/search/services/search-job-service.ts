@@ -510,7 +510,7 @@ export class SearchJobService {
   
   /**
    * Execute bulk email search for existing companies and contacts
-   * Used by "Find Key Emails" button to enrich existing contacts with emails
+   * Used by "Find Key Emails" button to search for emails for existing contacts
    */
   private static async executeBulkEmailSearch(job: SearchJob, jobId: string): Promise<void> {
     try {
@@ -788,7 +788,7 @@ export class SearchJobService {
   }
 
   /**
-   * Enrich contacts with emails using parallel tiered approach
+   * Search for contact emails using parallel tiered approach (Apollo/Perplexity/Hunter)
    * Processes contacts by company for optimized parallel searching
    */
   private static async enrichContactsWithEmails(
