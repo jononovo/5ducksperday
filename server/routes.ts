@@ -48,6 +48,7 @@ import { registerUserAccountSettingsRoutes } from "./user-account-settings";
 import { dailyOutreachRoutes } from "./features/daily-outreach";
 import { registerCampaignsRoutes } from "./features/campaigns";
 import { registerAdminRoutes } from "./features/admin/routes";
+import { registerContactListRoutes } from "./features/contact-lists/routes";
 
 
 // Import centralized auth utilities
@@ -174,6 +175,9 @@ export function registerRoutes(app: Express) {
   
   // Register modular email templates routes
   registerEmailTemplatesRoutes(app, requireAuth);
+  
+  // Register contact list routes
+  registerContactListRoutes(app, requireAuth);
   
   // Register modular sitemap routes
   registerSitemapRoutes(app);
