@@ -268,7 +268,7 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
       const updatedList = await storage.getContactList(listId, userId);
       res.json({
         ...updatedList,
-        addedCount: contactIds.length
+        added: contactIds.length
       });
     } catch (error) {
       console.error('Error adding contacts from search list:', error);

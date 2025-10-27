@@ -230,7 +230,7 @@ export default function Contacts() {
   };
 
   const handleListClick = (listId: number) => {
-    navigate(`/contact-lists/${listId}`);
+    navigate(`/contacts/lists/${listId}`);
   };
 
   const handlePreviousPage = () => {

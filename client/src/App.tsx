@@ -36,6 +36,7 @@ const StrategyDashboard = lazy(() => import("@/features/strategy-chat").then(mod
 const DailyOutreach = lazy(() => import("@/pages/DailyOutreach"));
 const Streak = lazy(() => import("@/pages/Streak"));
 const Contacts = lazy(() => import("@/pages/Contacts"));
+const ContactListDetail = lazy(() => import("@/pages/ContactListDetail"));
 
 // Lazy imports for admin pages
 const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
@@ -192,6 +193,11 @@ function Router() {
                 <ProtectedRoute path="/contacts" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Contacts />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/contacts/lists/:id" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <ContactListDetail />
                   </Suspense>
                 } />
                 <ProtectedRoute path="/replies" component={() => 
