@@ -3,6 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -40,7 +41,7 @@ import {
   Mail,
   Briefcase,
 } from "lucide-react";
-import type { ContactList, Contact, List } from "@shared/schema";
+import type { ContactList, Contact, List, Company } from "@shared/schema";
 
 interface ContactWithCompany extends Contact {
   company?: {
@@ -58,6 +59,9 @@ export default function ContactListDetail() {
   const [addContactsModalOpen, setAddContactsModalOpen] = useState(false);
   const [addMethod, setAddMethod] = useState<'search-list' | 'companies' | 'manual' | null>(null);
   const [selectedSearchList, setSelectedSearchList] = useState<string>("");
+  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
+  const [maxContactsPerCompany, setMaxContactsPerCompany] = useState(3);
+  const [companySearchTerm, setCompanySearchTerm] = useState("");
   const [isAddingContacts, setIsAddingContacts] = useState(false);
 
   // Fetch the contact list details
@@ -80,6 +84,12 @@ export default function ContactListDetail() {
   const { data: searchLists = [] } = useQuery<List[]>({
     queryKey: ["/api/lists"],
     enabled: !!user && addMethod === 'search-list',
+  });
+
+  // Fetch all companies for the "Add from Companies" option
+  const { data: allCompanies = [] } = useQuery<Company[]>({
+    queryKey: ["/api/companies"],
+    enabled: !!user && addMethod === 'companies',
   });
 
   // Mutation to add contacts from a search list
@@ -106,6 +116,39 @@ export default function ContactListDetail() {
       toast({
         title: "Error",
         description: error.message || "Failed to add contacts",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation to add contacts from companies
+  const addFromCompaniesMutation = useMutation({
+    mutationFn: async ({ companyIds, maxContacts }: { companyIds: number[]; maxContacts: number }) => {
+      const response = await apiRequest(
+        "POST",
+        `/api/contact-lists/${id}/add-from-companies`,
+        { 
+          companyIds,
+          maxContactsPerCompany: maxContacts
+        }
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: `Added ${data.addedCount || 0} contacts to the list`,
+      });
+      refetchContacts();
+      setAddContactsModalOpen(false);
+      setAddMethod(null);
+      setSelectedCompanies([]);
+      setMaxContactsPerCompany(3);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add contacts from companies",
         variant: "destructive",
       });
     },
@@ -141,11 +184,11 @@ export default function ContactListDetail() {
     if (addMethod === 'search-list' && selectedSearchList) {
       setIsAddingContacts(true);
       addFromSearchListMutation.mutate(parseInt(selectedSearchList));
-    } else if (addMethod === 'companies') {
-      // TODO: Implement add from companies
-      toast({
-        title: "Coming Soon",
-        description: "Add from companies feature is coming soon",
+    } else if (addMethod === 'companies' && selectedCompanies.length > 0) {
+      setIsAddingContacts(true);
+      addFromCompaniesMutation.mutate({
+        companyIds: selectedCompanies.map(id => parseInt(id)),
+        maxContacts: maxContactsPerCompany
       });
     } else if (addMethod === 'manual') {
       // TODO: Implement manual contact selection
@@ -163,10 +206,12 @@ export default function ContactListDetail() {
   };
 
   useEffect(() => {
-    if (addFromSearchListMutation.isSuccess || addFromSearchListMutation.isError) {
+    if (addFromSearchListMutation.isSuccess || addFromSearchListMutation.isError ||
+        addFromCompaniesMutation.isSuccess || addFromCompaniesMutation.isError) {
       setIsAddingContacts(false);
     }
-  }, [addFromSearchListMutation.isSuccess, addFromSearchListMutation.isError]);
+  }, [addFromSearchListMutation.isSuccess, addFromSearchListMutation.isError,
+      addFromCompaniesMutation.isSuccess, addFromCompaniesMutation.isError]);
 
   if (listLoading || contactsLoading) {
     return (
@@ -423,12 +468,86 @@ export default function ContactListDetail() {
               )}
 
               {addMethod === 'companies' && (
-                <div className="text-center py-4">
-                  <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-sm text-muted-foreground">
-                    This feature is coming soon. You'll be able to select companies
-                    and automatically add their top 3 contacts.
-                  </p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Search Companies</label>
+                    <Input
+                      type="text"
+                      placeholder="Search by company name..."
+                      value={companySearchTerm}
+                      onChange={(e) => setCompanySearchTerm(e.target.value)}
+                      className="mt-2"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Select Companies</label>
+                    <div className="mt-2 max-h-64 overflow-y-auto border rounded-md p-2">
+                      {allCompanies
+                        .filter(company => 
+                          company.name?.toLowerCase().includes(companySearchTerm.toLowerCase())
+                        )
+                        .map((company) => (
+                          <div key={company.id} className="flex items-center p-2 hover:bg-gray-50">
+                            <input
+                              type="checkbox"
+                              id={`company-${company.id}`}
+                              checked={selectedCompanies.includes(company.id.toString())}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedCompanies([...selectedCompanies, company.id.toString()]);
+                                } else {
+                                  setSelectedCompanies(selectedCompanies.filter(id => id !== company.id.toString()));
+                                }
+                              }}
+                              className="mr-2"
+                            />
+                            <label 
+                              htmlFor={`company-${company.id}`} 
+                              className="flex-1 cursor-pointer"
+                            >
+                              <span className="font-medium">{company.name}</span>
+                              {company.description && (
+                                <span className="text-sm text-gray-500 ml-2">
+                                  - {company.description.substring(0, 50)}...
+                                </span>
+                              )}
+                            </label>
+                          </div>
+                        ))}
+                      {allCompanies.filter(c => c.name?.toLowerCase().includes(companySearchTerm.toLowerCase())).length === 0 && (
+                        <p className="text-sm text-muted-foreground p-2">No companies found</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Max Contacts Per Company</label>
+                    <Select
+                      value={maxContactsPerCompany.toString()}
+                      onValueChange={(value) => setMaxContactsPerCompany(parseInt(value))}
+                    >
+                      <SelectTrigger className="mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 contact</SelectItem>
+                        <SelectItem value="2">2 contacts</SelectItem>
+                        <SelectItem value="3">3 contacts</SelectItem>
+                        <SelectItem value="5">5 contacts</SelectItem>
+                        <SelectItem value="10">10 contacts</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Will add the top {maxContactsPerCompany} contact{maxContactsPerCompany > 1 ? 's' : ''} from each selected company
+                    </p>
+                  </div>
+                  
+                  {selectedCompanies.length > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      Selected: {selectedCompanies.length} {selectedCompanies.length === 1 ? 'company' : 'companies'}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -448,6 +567,9 @@ export default function ContactListDetail() {
                   onClick={() => {
                     setAddMethod(null);
                     setSelectedSearchList("");
+                    setSelectedCompanies([]);
+                    setCompanySearchTerm("");
+                    setMaxContactsPerCompany(3);
                   }}
                   disabled={isAddingContacts}
                   data-testid="button-back-to-methods"
@@ -463,6 +585,17 @@ export default function ContactListDetail() {
                     data-testid="button-confirm-add"
                   >
                     {isAddingContacts ? "Adding..." : "Add Contacts"}
+                  </Button>
+                )}
+
+                {addMethod === 'companies' && (
+                  <Button
+                    onClick={handleAddContacts}
+                    disabled={selectedCompanies.length === 0 || isAddingContacts}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    data-testid="button-confirm-add-companies"
+                  >
+                    {isAddingContacts ? "Adding..." : `Add Contacts from ${selectedCompanies.length} ${selectedCompanies.length === 1 ? 'Company' : 'Companies'}`}
                   </Button>
                 )}
               </div>
