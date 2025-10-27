@@ -819,14 +819,9 @@ export default function Outreach() {
   }
 
   const handleGmailConnect = () => {
-    // Debug user object
-    console.log('Gmail Connect - User object:', {
-      hasUser: !!user,
-      userId: user?.id,
-      userIdType: typeof user?.id,
-      userEmail: user?.email,
-      fullUser: user
-    });
+    // The backend now uses session authentication via requireAuth middleware
+    // No need to pass userId - it comes from the authenticated session
+    console.log('Opening Gmail OAuth flow');
     
     // Ensure user is authenticated before starting OAuth flow
     if (!user?.id) {
@@ -838,9 +833,8 @@ export default function Outreach() {
       return;
     }
     
-    // Open Gmail OAuth flow in a new window with user ID parameter
-    const authUrl = `/api/gmail/auth?userId=${user.id}`;
-    console.log('Opening Gmail OAuth with URL:', authUrl);
+    // Open Gmail OAuth flow - userId comes from session on backend
+    const authUrl = '/api/gmail/auth';
     const authWindow = window.open(authUrl, 'gmailAuth', 'width=600,height=600');
     
     // Listen for message from pop-up window
