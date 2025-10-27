@@ -160,13 +160,13 @@ export class SearchJobService {
       
       console.log(`[SearchJobService] Saved ${savedCompanies.length} companies for immediate display`);
       
-      // Phase 3: Parallel enrichment and contact discovery
+      // Phase 3: Parallel company details and contact discovery
       if (job.searchType === 'contacts' || job.searchType === 'emails') {
         await this.updateJobProgress(job.id, {
-          phase: 'Enriching data',
+          phase: 'Finding contacts',
           completed: 3,
           total: totalPhases,
-          message: 'Enriching companies and finding contacts in parallel'
+          message: 'Adding company details and finding key contacts'
         });
 
         // Prepare parallel tasks
@@ -253,15 +253,15 @@ export class SearchJobService {
         
         console.log(`[SearchJobService] Updated job with enriched data and ${contacts.length} contacts`);
         
-        // Phase 4: Find emails for contacts if searchType is 'emails'
+        // Phase 4: Find emails for contacts if searchType is 'emails' or 'contacts'
         if ((job.searchType === 'emails' || job.searchType === 'contacts') && contacts.length > 0) {
           await this.updateJobProgress(job.id, {
             phase: 'Finding emails',
             completed: 4,
             total: totalPhases,
-            message: `Discovering email addresses for ${contacts.length} contacts`
+            message: `Searching for email addresses for ${contacts.length} contacts`
           });
-          console.log(`[SearchJobService] Starting email enrichment for ${contacts.length} contacts`);
+          console.log(`[SearchJobService] Starting email search (Apollo/Perplexity/Hunter) for ${contacts.length} contacts`);
           const enrichmentResult = await this.enrichContactsWithEmails(job, contacts, savedCompanies, totalPhases);
           sourceBreakdown = enrichmentResult.sourceBreakdown;
         }
@@ -562,12 +562,12 @@ export class SearchJobService {
       
       console.log(`[SearchJobService] Selected ${allContacts.length} top contacts to enrich (from ${validCompanies.length} companies)`);
       
-      // Phase 3: Enrich contacts with emails
+      // Phase 3: Search for contact emails  
       await this.updateJobProgress(job.id, {
         phase: 'Finding emails',
         completed: 3,
         total: 5,
-        message: `Enriching ${allContacts.length} contacts with emails`
+        message: `Searching for emails for ${allContacts.length} contacts`
       });
       
       const { sourceBreakdown, emailsFound } = await this.enrichContactsWithEmails(job, allContacts, validCompanies, 5);
@@ -807,7 +807,7 @@ export class SearchJobService {
     // Initialize source breakdown tracking
     const sourceBreakdown = { Perplexity: 0, Apollo: 0, Hunter: 0 };
     
-    console.log(`[SearchJobService] Starting parallel email enrichment for ${contacts.length} contacts across ${totalCompanies} companies`);
+    console.log(`[SearchJobService] Starting parallel email search (Apollo/Perplexity/Hunter) for ${contacts.length} contacts across ${totalCompanies} companies`);
     
     // Group contacts by company
     const contactsByCompany = new Map<number, any[]>();
@@ -907,7 +907,7 @@ export class SearchJobService {
       }
     );
     
-    console.log(`[SearchJobService] Email enrichment complete: ${totalEmailsFound} emails found across ${totalCompanies} companies`);
+    console.log(`[SearchJobService] Email search complete: ${totalEmailsFound} emails found across ${totalCompanies} companies`);
     console.log(`[SearchJobService] Source breakdown: Apollo: ${sourceBreakdown.Apollo}, Perplexity: ${sourceBreakdown.Perplexity}, Hunter: ${sourceBreakdown.Hunter}`);
     
     return { sourceBreakdown, emailsFound: totalEmailsFound };
