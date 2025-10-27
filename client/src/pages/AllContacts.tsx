@@ -12,30 +12,65 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Mail, Building, Briefcase, Search, Users, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Contact } from '@shared/schema';
+import { ArrowLeft, Mail, Building, Briefcase, Search, Users, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import type { Contact, ContactList } from '@shared/schema';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function AllContacts() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [hasEmailFilter, setHasEmailFilter] = useState(false);
+  const [selectedListId, setSelectedListId] = useState<string>('all');
   const contactsPerPage = 50; // Show 50 contacts per page
+  const { user } = useAuth();
   
   // Fetch all contacts
   const { data: contactsData, isLoading } = useQuery<{ total: number; contacts: Contact[] }>({
     queryKey: ['/api/contacts'],
+    enabled: !!user,
+  });
+
+  // Fetch contact lists for filter dropdown
+  const { data: contactLists = [] } = useQuery<ContactList[]>({
+    queryKey: ['/api/contact-lists'],
+    enabled: !!user,
+  });
+
+  // Fetch contacts from selected list if a list is selected
+  const { data: listMembers = [] } = useQuery<Contact[]>({
+    queryKey: [`/api/contact-lists/${selectedListId}/contacts`],
+    enabled: !!user && selectedListId !== 'all',
   });
 
   const contacts = contactsData?.contacts || [];
 
-  // Filter contacts based on search term
+  // Apply all filters
   const filteredContacts = contacts.filter(contact => {
+    // Apply search filter
     const search = searchTerm.toLowerCase();
-    return (
+    const matchesSearch = !searchTerm || (
       contact.name?.toLowerCase().includes(search) ||
       contact.email?.toLowerCase().includes(search) ||
       contact.role?.toLowerCase().includes(search) ||
       contact.location?.toLowerCase().includes(search)
     );
+
+    // Apply email filter
+    const matchesEmailFilter = !hasEmailFilter || !!contact.email;
+
+    // Apply contact list filter
+    const matchesListFilter = selectedListId === 'all' || 
+      listMembers.some(member => member.id === contact.id);
+
+    return matchesSearch && matchesEmailFilter && matchesListFilter;
   });
 
   // Pagination calculations
@@ -67,9 +102,10 @@ export default function AllContacts() {
         </div>
       </div>
 
-      {/* Search bar */}
+      {/* Search and Filters */}
       <Card className="mb-6">
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 space-y-4">
+          {/* Search bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -80,6 +116,73 @@ export default function AllContacts() {
               className="pl-10"
               data-testid="search-contacts"
             />
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">Filters:</span>
+            </div>
+            
+            {/* Has Email Filter */}
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="has-email"
+                checked={hasEmailFilter}
+                onCheckedChange={(checked) => {
+                  setHasEmailFilter(checked as boolean);
+                  setCurrentPage(1); // Reset to first page when filter changes
+                }}
+              />
+              <label
+                htmlFor="has-email"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Has email address
+              </label>
+            </div>
+
+            {/* Contact List Filter */}
+            <div className="flex items-center gap-2 flex-1 sm:max-w-xs">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                Contact list:
+              </label>
+              <Select 
+                value={selectedListId} 
+                onValueChange={(value) => {
+                  setSelectedListId(value);
+                  setCurrentPage(1); // Reset to first page when filter changes
+                }}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="All contacts" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All contacts</SelectItem>
+                  {contactLists.map((list) => (
+                    <SelectItem key={list.id} value={list.id.toString()}>
+                      {list.name} ({list.contactCount || 0})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Clear Filters Button */}
+            {(hasEmailFilter || selectedListId !== 'all') && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setHasEmailFilter(false);
+                  setSelectedListId('all');
+                  setCurrentPage(1);
+                }}
+              >
+                Clear filters
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
