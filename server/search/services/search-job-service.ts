@@ -818,8 +818,8 @@ export class SearchJobService {
       contactsByCompany.set(contact.companyId, companyContacts);
     }
     
-    // Process companies in larger batches for true parallel execution
-    const COMPANY_BATCH_SIZE = 15; // Increased from 5 for better parallelism
+    // Process companies in controlled batches to respect Apollo rate limits
+    const COMPANY_BATCH_SIZE = 5; // Reduced to prevent overwhelming Apollo API (5 companies × 3 contacts = 15 requests)
     
     // Use the batch processor utility with progress callback
     const batchResults = await processBatch(

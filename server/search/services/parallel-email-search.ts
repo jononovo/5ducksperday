@@ -9,6 +9,7 @@
  */
 
 import { storage } from "../../storage";
+import { rateLimitedCall } from "../utils/rate-limiter";
 
 interface ContactWithCompany {
   contact: any;
@@ -41,7 +42,12 @@ async function tryApollo(contact: any, company: any, userId: number): Promise<Em
   try {
     console.log(`[Apollo] Searching for ${contact.name} at ${company.name}`);
     const { searchApolloDirect } = await import('../providers/apollo');
-    const result = await searchApolloDirect(contact, company, apolloApiKey);
+    
+    // Wrap with rate limiter - 3 requests/second for Basic plan (200/min)
+    const result = await rateLimitedCall('apollo', 
+      () => searchApolloDirect(contact, company, apolloApiKey),
+      3  // 3 requests/second with automatic buffer
+    );
     
     if (result.success && result.contact.email) {
       // Save to database immediately
@@ -177,23 +183,21 @@ export async function parallelTieredEmailSearch(
   
   console.log(`[Parallel Search] Starting tiered search for ${topContacts.length} contacts from ${company.name}`);
   
-  // TIER 1: Apollo for all contacts in parallel
-  console.log(`[Parallel Search] === TIER 1: Apollo for all ${topContacts.length} contacts ===`);
+  // TIER 1: Apollo for all contacts sequentially (with rate limiting)
+  console.log(`[Parallel Search] === TIER 1: Apollo for all ${topContacts.length} contacts (sequential) ===`);
   const tier1StartTime = Date.now();
   
-  const apolloPromises = topContacts.map(contact => tryApollo(contact, company, userId));
-  const apolloResults = await Promise.allSettled(apolloPromises);
-  
-  // Process Apollo results
+  // Process contacts sequentially to respect rate limits
   let emailsFoundInTier1 = 0;
-  apolloResults.forEach((result, index) => {
-    if (result.status === 'fulfilled' && result.value) {
-      results.push(result.value);
-      if (result.value.source !== 'existing') {
+  for (const contact of topContacts) {
+    const apolloResult = await tryApollo(contact, company, userId);
+    if (apolloResult) {
+      results.push(apolloResult);
+      if (apolloResult.source !== 'existing') {
         emailsFoundInTier1++;
       }
     }
-  });
+  }
   
   console.log(`[Parallel Search] Tier 1 complete in ${Date.now() - tier1StartTime}ms - Found ${emailsFoundInTier1} new emails`);
   
