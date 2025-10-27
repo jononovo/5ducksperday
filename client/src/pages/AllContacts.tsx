@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Mail, Building, Briefcase, Search, Users, ChevronLeft, ChevronRight, Filter, MapPin } from 'lucide-react';
+import { ArrowLeft, Mail, Building, Briefcase, Search, Users, ChevronLeft, ChevronRight, Filter, MapPin, List } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
@@ -174,9 +174,7 @@ export default function AllContacts() {
 
               {/* Contact List Filter */}
               <div className="flex items-center gap-2 flex-1 sm:max-w-xs">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                  Contact list:
-                </label>
+                <List className="h-4 w-4 text-gray-500" />
                 <Select 
                   value={selectedListId} 
                   onValueChange={(value) => {
