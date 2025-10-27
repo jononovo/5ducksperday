@@ -19,9 +19,11 @@ export default function AllContacts() {
   const [searchTerm, setSearchTerm] = useState('');
   
   // Fetch all contacts
-  const { data: contacts = [], isLoading } = useQuery<Contact[]>({
+  const { data: contactsData, isLoading } = useQuery<{ total: number; contacts: Contact[] }>({
     queryKey: ['/api/contacts'],
   });
+
+  const contacts = contactsData?.contacts || [];
 
   // Filter contacts based on search term
   const filteredContacts = contacts.filter(contact => {

@@ -196,7 +196,7 @@ function Router() {
                     <Contacts />
                   </Suspense>
                 } />
-                <ProtectedRoute path="/contacts/all" component={() => 
+                <ProtectedRoute path="/contacts/all-contacts" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <AllContacts />
                   </Suspense>
