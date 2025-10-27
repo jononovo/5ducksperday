@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, jsonb, timestamp, boolean, uuid, index, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, boolean, uuid, index, uniqueIndex, real } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 export const users = pgTable("users", {
@@ -868,6 +868,59 @@ export type StrategicProfile = typeof strategicProfiles.$inferSelect;
 export type InsertStrategicProfile = z.infer<typeof insertStrategicProfileSchema>;
 export type OnboardingChat = typeof onboardingChats.$inferSelect;
 export type InsertOnboardingChat = z.infer<typeof insertOnboardingChatSchema>;
+
+// Contact Lists tables
+export const contactLists = pgTable("contact_lists", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  contactCount: integer("contact_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const contactListMembers = pgTable("contact_list_members", {
+  id: serial("id").primaryKey(),
+  listId: integer("list_id").notNull().references(() => contactLists.id, { onDelete: 'cascade' }),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: 'cascade' }),
+  addedAt: timestamp("added_at").defaultNow(),
+  addedBy: integer("added_by").references(() => users.id),
+  source: text("source").notNull().default('manual'), // 'manual', 'search_list', 'company', 'bulk'
+  sourceMetadata: jsonb("source_metadata")
+}, (table) => [
+  index('idx_contact_list_members_list_id').on(table.listId),
+  index('idx_contact_list_members_contact_id').on(table.contactId),
+  uniqueIndex('idx_contact_list_unique').on(table.listId, table.contactId)
+]);
+
+// Contact list schemas
+const contactListSchema = z.object({
+  name: z.string().min(1, "List name is required"),
+  description: z.string().optional()
+});
+
+const contactListMemberSchema = z.object({
+  listId: z.number(),
+  contactId: z.number(),
+  source: z.enum(['manual', 'search_list', 'company', 'bulk']).default('manual'),
+  sourceMetadata: z.record(z.unknown()).optional()
+});
+
+export const insertContactListSchema = contactListSchema.extend({
+  userId: z.number(),
+  contactCount: z.number().default(0)
+});
+
+export const insertContactListMemberSchema = contactListMemberSchema.extend({
+  addedBy: z.number().optional()
+});
+
+// Contact list types
+export type ContactList = typeof contactLists.$inferSelect;
+export type InsertContactList = z.infer<typeof insertContactListSchema>;
+export type ContactListMember = typeof contactListMembers.$inferSelect;
+export type InsertContactListMember = z.infer<typeof insertContactListMemberSchema>;
 
 // Search jobs types
 export type SearchJob = typeof searchJobs.$inferSelect;
