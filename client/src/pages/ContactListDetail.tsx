@@ -63,6 +63,8 @@ export default function ContactListDetail() {
   const [maxContactsPerCompany, setMaxContactsPerCompany] = useState(3);
   const [companySearchTerm, setCompanySearchTerm] = useState("");
   const [isAddingContacts, setIsAddingContacts] = useState(false);
+  const [selectedManualContacts, setSelectedManualContacts] = useState<number[]>([]);
+  const [manualContactSearchTerm, setManualContactSearchTerm] = useState("");
 
   // Fetch the contact list details
   const { data: contactList, isLoading: listLoading } = useQuery<ContactList>({
@@ -91,6 +93,13 @@ export default function ContactListDetail() {
     queryKey: ["/api/companies"],
     enabled: !!user && addMethod === 'companies',
   });
+
+  // Query all contacts for "Add Manually" method
+  const { data: allContactsData } = useQuery<{ total: number; contacts: (Contact & { companyName?: string })[] }>({
+    queryKey: ["/api/contacts"],
+    enabled: !!user && addMethod === 'manual',
+  });
+  const allContacts = allContactsData?.contacts || [];
 
   // Mutation to add contacts from a search list
   const addFromSearchListMutation = useMutation({
@@ -154,6 +163,39 @@ export default function ContactListDetail() {
     },
   });
 
+  // Mutation to add manual contacts
+  const addManualContactsMutation = useMutation({
+    mutationFn: async (contactIds: number[]) => {
+      const response = await apiRequest(
+        "POST",
+        `/api/contact-lists/${id}/contacts`,
+        { 
+          contactIds,
+          source: 'manual'
+        }
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: `Added ${selectedManualContacts.length} contacts to the list`,
+      });
+      refetchContacts();
+      setAddContactsModalOpen(false);
+      setAddMethod(null);
+      setSelectedManualContacts([]);
+      setManualContactSearchTerm("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add selected contacts",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Mutation to remove contacts
   const removeContactMutation = useMutation({
     mutationFn: async (contactId: number) => {
@@ -190,12 +232,9 @@ export default function ContactListDetail() {
         companyIds: selectedCompanies.map(id => parseInt(id)),
         maxContacts: maxContactsPerCompany
       });
-    } else if (addMethod === 'manual') {
-      // TODO: Implement manual contact selection
-      toast({
-        title: "Coming Soon",
-        description: "Manual contact selection is coming soon",
-      });
+    } else if (addMethod === 'manual' && selectedManualContacts.length > 0) {
+      setIsAddingContacts(true);
+      addManualContactsMutation.mutate(selectedManualContacts);
     }
   };
 
@@ -207,11 +246,13 @@ export default function ContactListDetail() {
 
   useEffect(() => {
     if (addFromSearchListMutation.isSuccess || addFromSearchListMutation.isError ||
-        addFromCompaniesMutation.isSuccess || addFromCompaniesMutation.isError) {
+        addFromCompaniesMutation.isSuccess || addFromCompaniesMutation.isError ||
+        addManualContactsMutation.isSuccess || addManualContactsMutation.isError) {
       setIsAddingContacts(false);
     }
   }, [addFromSearchListMutation.isSuccess, addFromSearchListMutation.isError,
-      addFromCompaniesMutation.isSuccess, addFromCompaniesMutation.isError]);
+      addFromCompaniesMutation.isSuccess, addFromCompaniesMutation.isError,
+      addManualContactsMutation.isSuccess, addManualContactsMutation.isError]);
 
   if (listLoading || contactsLoading) {
     return (
@@ -552,12 +593,83 @@ export default function ContactListDetail() {
               )}
 
               {addMethod === 'manual' && (
-                <div className="text-center py-4">
-                  <UserPlus className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-sm text-muted-foreground">
-                    This feature is coming soon. You'll be able to manually
-                    search and select individual contacts.
-                  </p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Search Contacts</label>
+                    <Input
+                      type="text"
+                      placeholder="Search by name, email, or company..."
+                      value={manualContactSearchTerm}
+                      onChange={(e) => setManualContactSearchTerm(e.target.value)}
+                      className="mt-2"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Select Contacts</label>
+                    <div className="mt-2 max-h-64 overflow-y-auto border rounded-md p-2">
+                      {allContacts
+                        .filter(contact => {
+                          const searchLower = manualContactSearchTerm.toLowerCase();
+                          return (
+                            contact.name?.toLowerCase().includes(searchLower) ||
+                            contact.email?.toLowerCase().includes(searchLower) ||
+                            contact.companyName?.toLowerCase().includes(searchLower)
+                          );
+                        })
+                        .map((contact) => (
+                          <div key={contact.id} className="flex items-center p-2 hover:bg-gray-50">
+                            <input
+                              type="checkbox"
+                              id={`contact-${contact.id}`}
+                              checked={selectedManualContacts.includes(contact.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedManualContacts([...selectedManualContacts, contact.id]);
+                                } else {
+                                  setSelectedManualContacts(selectedManualContacts.filter(id => id !== contact.id));
+                                }
+                              }}
+                              className="mr-2"
+                            />
+                            <label 
+                              htmlFor={`contact-${contact.id}`} 
+                              className="flex-1 cursor-pointer"
+                            >
+                              <div>
+                                <span className="font-medium">{contact.name}</span>
+                                {contact.email && (
+                                  <span className="text-sm text-gray-500 ml-2">
+                                    - {contact.email}
+                                  </span>
+                                )}
+                              </div>
+                              {contact.companyName && (
+                                <div className="text-xs text-gray-500">{contact.companyName}</div>
+                              )}
+                            </label>
+                          </div>
+                        ))}
+                      {allContacts.filter(c => {
+                        const searchLower = manualContactSearchTerm.toLowerCase();
+                        return (
+                          c.name?.toLowerCase().includes(searchLower) ||
+                          c.email?.toLowerCase().includes(searchLower) ||
+                          c.companyName?.toLowerCase().includes(searchLower)
+                        );
+                      }).length === 0 && (
+                        <p className="text-sm text-muted-foreground p-2">
+                          {allContacts.length === 0 ? "Loading contacts..." : "No contacts found"}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {selectedManualContacts.length > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      Selected: {selectedManualContacts.length} {selectedManualContacts.length === 1 ? 'contact' : 'contacts'}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -570,6 +682,8 @@ export default function ContactListDetail() {
                     setSelectedCompanies([]);
                     setCompanySearchTerm("");
                     setMaxContactsPerCompany(3);
+                    setSelectedManualContacts([]);
+                    setManualContactSearchTerm("");
                   }}
                   disabled={isAddingContacts}
                   data-testid="button-back-to-methods"
@@ -596,6 +710,17 @@ export default function ContactListDetail() {
                     data-testid="button-confirm-add-companies"
                   >
                     {isAddingContacts ? "Adding..." : `Add Contacts from ${selectedCompanies.length} ${selectedCompanies.length === 1 ? 'Company' : 'Companies'}`}
+                  </Button>
+                )}
+
+                {addMethod === 'manual' && (
+                  <Button
+                    onClick={handleAddContacts}
+                    disabled={selectedManualContacts.length === 0 || isAddingContacts}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    data-testid="button-confirm-add-manual"
+                  >
+                    {isAddingContacts ? "Adding..." : `Add ${selectedManualContacts.length} Selected ${selectedManualContacts.length === 1 ? 'Contact' : 'Contacts'}`}
                   </Button>
                 )}
               </div>
