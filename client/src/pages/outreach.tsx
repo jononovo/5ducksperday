@@ -819,8 +819,12 @@ export default function Outreach() {
   }
 
   const handleGmailConnect = () => {
-    // Ensure user is authenticated before starting OAuth flow
-    if (!user?.id) {
+    // In development, always use userId 1 if user not loaded yet
+    // This handles the race condition where useAuth hasn't finished loading
+    const userId = user?.id || (import.meta.env.DEV ? 1 : null);
+    
+    // Ensure we have a valid userId
+    if (!userId) {
       toast({
         title: "Authentication Required",
         description: "Please log in to connect Gmail.",
@@ -831,8 +835,8 @@ export default function Outreach() {
     
     // Open Gmail OAuth flow in new window
     // Note: We pass userId as parameter because new windows don't have session access in production
-    const authUrl = `/api/gmail/auth?userId=${user.id}`;
-    console.log('Opening Gmail OAuth flow with userId:', user.id);
+    const authUrl = `/api/gmail/auth?userId=${userId}`;
+    console.log('Opening Gmail OAuth flow with userId:', userId);
     const authWindow = window.open(authUrl, 'gmailAuth', 'width=600,height=600');
     
     // Listen for message from pop-up window
