@@ -252,16 +252,77 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
       
       // Get all companies from the search list
       const companies = await storage.listCompaniesByList(searchListId, userId);
+      console.log(`Found ${companies.length} companies in search list ${searchListId}`);
       
-      // Get all contacts from those companies
-      const contactIds: number[] = [];
+      // Collect all contact IDs from those companies
+      const allContactIds = new Set<number>();
+      
       for (const company of companies) {
+        // Get contacts that are directly linked to this company
         const contacts = await storage.listContactsByCompany(company.id, userId);
-        contactIds.push(...contacts.map(c => c.id));
+        contacts.forEach(c => allContactIds.add(c.id));
+        
+        // Also check if the company has contacts stored in its JSON data
+        if (company.contacts && Array.isArray(company.contacts)) {
+          // The company.contacts might have contact data embedded
+          // Let's check if there are contact IDs we can use
+          for (const contactData of company.contacts) {
+            if (contactData && typeof contactData === 'object' && 'id' in contactData) {
+              allContactIds.add(contactData.id);
+            }
+          }
+        }
       }
+      
+      // If we still don't have contacts, try to get all contacts for this user 
+      // that match the companies by name
+      if (allContactIds.size === 0 && companies.length > 0) {
+        console.log('No directly linked contacts found, searching by company names...');
+        
+        // Get all contacts for the user
+        const userContacts = await storage.listContacts(userId);
+        
+        // Create a map of company names for quick lookup
+        const companyNames = new Set(companies.map(c => c.name?.toLowerCase()).filter(Boolean));
+        const companyDomains = new Set(companies.map(c => {
+          if (c.website) {
+            try {
+              const url = new URL(c.website.startsWith('http') ? c.website : `https://${c.website}`);
+              return url.hostname.replace('www.', '').toLowerCase();
+            } catch {
+              return null;
+            }
+          }
+          return null;
+        }).filter(Boolean));
+        
+        // Match contacts to companies by company name or domain in email
+        for (const contact of userContacts) {
+          // Check if contact's company ID matches any of our companies
+          if (contact.companyId && companies.some(c => c.id === contact.companyId)) {
+            allContactIds.add(contact.id);
+            continue;
+          }
+          
+          // Check by email domain
+          if (contact.email) {
+            const emailDomain = contact.email.split('@')[1]?.toLowerCase();
+            if (emailDomain && companyDomains.has(emailDomain)) {
+              allContactIds.add(contact.id);
+            }
+          }
+        }
+        
+        console.log(`Found ${allContactIds.size} contacts by matching company names/domains`);
+      }
+      
+      const contactIds = Array.from(allContactIds);
       
       if (contactIds.length > 0) {
         await storage.addContactsToList(listId, contactIds, 'search_list', userId, { searchListId });
+        console.log(`Successfully added ${contactIds.length} contacts to list ${listId}`);
+      } else {
+        console.log('No contacts found to add from search list');
       }
       
       // Return updated list
