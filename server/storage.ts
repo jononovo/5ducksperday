@@ -1,7 +1,7 @@
 import { 
   userPreferences, searchLists, companies, contacts, emailTemplates, users,
   strategicProfiles, userEmailPreferences,
-  senderProfiles, customerProfiles, searchJobs,
+  senderProfiles, customerProfiles, campaigns, searchJobs,
   contactLists, contactListMembers,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
@@ -13,6 +13,7 @@ import {
   type StrategicProfile, type InsertStrategicProfile,
   type SenderProfile, type InsertSenderProfile,
   type TargetCustomerProfile, type InsertTargetCustomerProfile,
+  type Campaign, type InsertCampaign,
   type SearchJob, type InsertSearchJob,
   type ContactList, type InsertContactList,
   type ContactListMember, type InsertContactListMember
@@ -98,6 +99,13 @@ export interface IStorage {
   createCustomerProfile(data: InsertTargetCustomerProfile): Promise<TargetCustomerProfile>;
   updateCustomerProfile(id: number, data: Partial<TargetCustomerProfile>): Promise<TargetCustomerProfile>;
   deleteCustomerProfile(id: number, userId: number): Promise<void>;
+
+  // Campaigns
+  listCampaigns(userId: number): Promise<Campaign[]>;
+  getCampaign(id: number, userId: number): Promise<Campaign | undefined>;
+  createCampaign(data: InsertCampaign): Promise<Campaign>;
+  updateCampaign(id: number, data: Partial<Campaign>): Promise<Campaign>;
+  deleteCampaign(id: number, userId: number): Promise<void>;
 
   // Search Jobs
   createSearchJob(data: InsertSearchJob): Promise<SearchJob>;
@@ -617,6 +625,39 @@ class DatabaseStorage implements IStorage {
   async deleteCustomerProfile(id: number, userId: number): Promise<void> {
     await db.delete(customerProfiles)
       .where(and(eq(customerProfiles.id, id), eq(customerProfiles.userId, userId)));
+  }
+
+  // Campaigns
+  async listCampaigns(userId: number): Promise<Campaign[]> {
+    return db.select()
+      .from(campaigns)
+      .where(eq(campaigns.userId, userId))
+      .orderBy(desc(campaigns.createdAt));
+  }
+
+  async getCampaign(id: number, userId: number): Promise<Campaign | undefined> {
+    const [campaign] = await db.select()
+      .from(campaigns)
+      .where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)));
+    return campaign;
+  }
+
+  async createCampaign(data: InsertCampaign): Promise<Campaign> {
+    const [campaign] = await db.insert(campaigns).values(data).returning();
+    return campaign;
+  }
+
+  async updateCampaign(id: number, data: Partial<Campaign>): Promise<Campaign> {
+    const [campaign] = await db.update(campaigns)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(campaigns.id, id))
+      .returning();
+    return campaign;
+  }
+
+  async deleteCampaign(id: number, userId: number): Promise<void> {
+    await db.delete(campaigns)
+      .where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)));
   }
 
   // Search Jobs
