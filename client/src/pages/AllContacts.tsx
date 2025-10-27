@@ -30,6 +30,7 @@ export default function AllContacts() {
   const [hasEmailFilter, setHasEmailFilter] = useState(false);
   const [selectedListId, setSelectedListId] = useState<string>('all');
   const [locationFilter, setLocationFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const contactsPerPage = 50; // Show 50 contacts per page
   const { user } = useAuth();
   
@@ -110,102 +111,110 @@ export default function AllContacts() {
       {/* Search and Filters */}
       <Card className="mb-6">
         <CardContent className="pt-6 space-y-4">
-          {/* Search bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Search by name, email, role, or location..."
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-10"
-              data-testid="search-contacts"
-            />
-          </div>
-
-          {/* Filters */}
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">Filters:</span>
-            </div>
-            
-            {/* Has Email Filter */}
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="has-email"
-                checked={hasEmailFilter}
-                onCheckedChange={(checked) => {
-                  setHasEmailFilter(checked as boolean);
-                  setCurrentPage(1); // Reset to first page when filter changes
-                }}
-              />
-              <label
-                htmlFor="has-email"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Has email address
-              </label>
-            </div>
-
-            {/* Location Filter */}
-            <div className="flex items-center gap-2 flex-1 sm:max-w-xs">
-              <MapPin className="h-4 w-4 text-gray-500" />
+          {/* Search bar with filter toggle */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? 'bg-blue-50 border-blue-300' : ''}
+              data-testid="toggle-filters"
+            >
+              <Filter className={`h-4 w-4 ${showFilters ? 'text-blue-600' : 'text-gray-500'}`} />
+            </Button>
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 type="text"
-                placeholder="Filter by city..."
-                value={locationFilter}
-                onChange={(e) => {
-                  setLocationFilter(e.target.value);
-                  setCurrentPage(1); // Reset to first page when filter changes
-                }}
-                className="flex-1 h-9"
-                data-testid="filter-location"
+                placeholder="Search by name, email, role, or location..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pl-10"
+                data-testid="search-contacts"
               />
             </div>
-
-            {/* Contact List Filter */}
-            <div className="flex items-center gap-2 flex-1 sm:max-w-xs">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                Contact list:
-              </label>
-              <Select 
-                value={selectedListId} 
-                onValueChange={(value) => {
-                  setSelectedListId(value);
-                  setCurrentPage(1); // Reset to first page when filter changes
-                }}
-              >
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="All contacts" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All contacts</SelectItem>
-                  {contactLists.map((list) => (
-                    <SelectItem key={list.id} value={list.id.toString()}>
-                      {list.name} ({list.contactCount || 0})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Clear Filters Button */}
-            {(hasEmailFilter || selectedListId !== 'all' || locationFilter) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setHasEmailFilter(false);
-                  setSelectedListId('all');
-                  setLocationFilter('');
-                  setCurrentPage(1);
-                }}
-              >
-                Clear filters
-              </Button>
-            )}
           </div>
+
+          {/* Collapsible Filters */}
+          {showFilters && (
+            <div className="flex flex-col lg:flex-row gap-4 pt-2 border-t">
+              {/* Has Email Filter */}
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="has-email"
+                  checked={hasEmailFilter}
+                  onCheckedChange={(checked) => {
+                    setHasEmailFilter(checked as boolean);
+                    setCurrentPage(1); // Reset to first page when filter changes
+                  }}
+                />
+                <label
+                  htmlFor="has-email"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Has email address
+                </label>
+              </div>
+
+              {/* Location Filter */}
+              <div className="flex items-center gap-2 flex-1 sm:max-w-xs">
+                <MapPin className="h-4 w-4 text-gray-500" />
+                <Input
+                  type="text"
+                  placeholder="Filter by city..."
+                  value={locationFilter}
+                  onChange={(e) => {
+                    setLocationFilter(e.target.value);
+                    setCurrentPage(1); // Reset to first page when filter changes
+                  }}
+                  className="flex-1 h-9"
+                  data-testid="filter-location"
+                />
+              </div>
+
+              {/* Contact List Filter */}
+              <div className="flex items-center gap-2 flex-1 sm:max-w-xs">
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Contact list:
+                </label>
+                <Select 
+                  value={selectedListId} 
+                  onValueChange={(value) => {
+                    setSelectedListId(value);
+                    setCurrentPage(1); // Reset to first page when filter changes
+                  }}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="All contacts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All contacts</SelectItem>
+                    {contactLists.map((list) => (
+                      <SelectItem key={list.id} value={list.id.toString()}>
+                        {list.name} ({list.contactCount || 0})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Clear Filters Button */}
+              {(hasEmailFilter || selectedListId !== 'all' || locationFilter) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setHasEmailFilter(false);
+                    setSelectedListId('all');
+                    setLocationFilter('');
+                    setCurrentPage(1);
+                  }}
+                >
+                  Clear filters
+                </Button>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
