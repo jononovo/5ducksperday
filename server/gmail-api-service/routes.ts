@@ -15,24 +15,18 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
   const router = Router();
 
   // OAuth flow routes
-  router.get('/auth', async (req: Request, res: Response) => {
+  router.get('/auth', requireAuth, async (req: Request, res: Response) => {
     try {
-      const userId = req.query.userId as string;
+      const userId = (req as any).user.id;
       
-      if (!userId || !userId.match(/^\d+$/)) {
-        return res.status(400).json({ error: 'Invalid user ID parameter' });
-      }
-      
-      const user = await storage.getUserById(parseInt(userId));
-      if (!user) {
-        return res.status(400).json({ error: 'User not found' });
-      }
+      // No need to validate userId since requireAuth ensures user is authenticated
+      // The userId comes from the authenticated session
       
       const protocol = process.env.OAUTH_PROTOCOL || 
         (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
       
       const authUrl = GmailOAuthService.generateAuthUrl(
-        userId, 
+        userId.toString(), 
         req.get('host')!, 
         protocol
       );
