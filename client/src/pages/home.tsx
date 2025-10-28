@@ -1352,7 +1352,7 @@ export default function Home() {
   };
 
   // Handle loading a saved search from the drawer
-  const handleLoadSavedSearch = async (list: List) => {
+  const handleLoadSavedSearch = async (list: SearchList) => {
     try {
       // First fetch the companies
       const companies = await queryClient.fetchQuery({
@@ -3141,6 +3141,9 @@ export default function Home() {
                 selectedContact={selectedEmailContact}
                 selectedCompany={selectedEmailCompany}
                 onContactChange={handleEmailContactChange}
+                drawerMode={drawerMode}
+                currentListId={currentListId}
+                currentQuery={currentQuery}
               />
             </div>
           )}
@@ -3250,6 +3253,9 @@ export default function Home() {
                   selectedContact={selectedEmailContact}
                   selectedCompany={selectedEmailCompany}
                   onContactChange={handleEmailContactChange}
+                  drawerMode={drawerMode}
+                  currentListId={currentListId}
+                  currentQuery={currentQuery}
                 />
               </div>
             </div>

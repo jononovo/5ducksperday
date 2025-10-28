@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, Type, Wand2, Loader2, Box, Palette, Gift, Check, Info, Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { Mail, Type, Wand2, Loader2, Box, Palette, Gift, Check, Info, Lock, ChevronDown, ChevronUp, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QuickTemplates from "./quick-templates";
 import { EmailSendButton } from "./email-fallback/EmailSendButton";
@@ -38,6 +38,7 @@ import { resolveAllMergeFields } from "@/lib/merge-field-resolver";
 import { useAuth } from "@/hooks/use-auth";
 import { TONE_OPTIONS, DEFAULT_TONE } from "@/lib/tone-options";
 import { OFFER_OPTIONS, DEFAULT_OFFER } from "@/lib/offer-options";
+import { RecipientSelectionModal, type RecipientSelection } from "@/components/recipient-selection-modal";
 
 // Component prop types
 interface EmailComposerProps {
@@ -45,6 +46,9 @@ interface EmailComposerProps {
   selectedCompany: Company | null;
   onContactChange?: (contact: Contact | null) => void;
   onCompanyChange?: (company: Company | null) => void;
+  drawerMode?: 'compose' | 'campaign';
+  currentListId?: number | null;
+  currentQuery?: string | null;
 }
 
 
@@ -52,7 +56,10 @@ export function EmailComposer({
   selectedContact,
   selectedCompany,
   onContactChange,
-  onCompanyChange
+  onCompanyChange,
+  drawerMode = 'compose',
+  currentListId = null,
+  currentQuery = null
 }: EmailComposerProps) {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -84,6 +91,8 @@ export function EmailComposer({
   const [isMergeViewMode, setIsMergeViewMode] = useState(false);
   const [isGmailButtonHovered, setIsGmailButtonHovered] = useState(false);
   const [isTemplatesExpanded, setIsTemplatesExpanded] = useState(false);
+  const [recipientModalOpen, setRecipientModalOpen] = useState(false);
+  const [campaignRecipients, setCampaignRecipients] = useState<RecipientSelection | null>(null);
 
   // Refs
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -169,10 +178,17 @@ export function EmailComposer({
 
   // Effects
   useEffect(() => {
-    if (selectedContact?.email) {
+    if (drawerMode === 'compose' && selectedContact?.email) {
       setToEmail(selectedContact.email);
+    } else if (drawerMode === 'campaign' && currentListId && currentQuery && !campaignRecipients) {
+      // Auto-set current list as default recipients in campaign mode
+      setCampaignRecipients({ 
+        type: 'current', 
+        listId: currentListId, 
+        query: currentQuery 
+      });
     }
-  }, [selectedContact]);
+  }, [selectedContact, drawerMode, currentListId, currentQuery]);
 
   useEffect(() => {
     handleTextareaResize();
@@ -389,6 +405,27 @@ export function EmailComposer({
 
   const toggleMergeView = () => {
     setIsMergeViewMode(!isMergeViewMode);
+  };
+
+  const handleRecipientSelect = (selection: RecipientSelection) => {
+    setCampaignRecipients(selection);
+    setRecipientModalOpen(false);
+  };
+
+  const getRecipientDisplayText = () => {
+    if (!campaignRecipients) {
+      return currentQuery ? `"${currentQuery}"` : "Select recipients";
+    }
+    
+    if (campaignRecipients.type === 'current') {
+      return `"${campaignRecipients.query}"`;
+    } else if (campaignRecipients.type === 'multiple') {
+      return `${campaignRecipients.searchListIds.length} search lists selected`;
+    } else if (campaignRecipients.type === 'existing') {
+      return campaignRecipients.contactListName;
+    }
+    
+    return "Select recipients";
   };
 
   return (
@@ -616,17 +653,45 @@ export function EmailComposer({
       </div>
     </div>
 
-    {/* To Email Field */}
+    {/* To Email Field / Campaign Recipients */}
     <div className="relative border-b md:border-b-0 md:mb-6">
-      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-      <Input
-        ref={toEmailRef}
-        placeholder="Recipient Email"
-        value={getDisplayValue(toEmail)}
-        onChange={(e) => setToEmail(e.target.value)}
-        type="email"
-        className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
-      />
+      {drawerMode === 'compose' ? (
+        <>
+          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
+            ref={toEmailRef}
+            placeholder="Recipient Email"
+            value={getDisplayValue(toEmail)}
+            onChange={(e) => setToEmail(e.target.value)}
+            type="email"
+            className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+        </>
+      ) : (
+        <>
+          <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <div
+            onClick={() => setRecipientModalOpen(true)}
+            className="mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-md cursor-pointer hover:bg-muted/50 transition-colors flex items-center justify-between"
+          >
+            <span className={cn(
+              "text-sm",
+              !campaignRecipients && "text-muted-foreground"
+            )}>
+              {getRecipientDisplayText()}
+            </span>
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          </div>
+          
+          <RecipientSelectionModal
+            open={recipientModalOpen}
+            onOpenChange={setRecipientModalOpen}
+            currentListId={currentListId}
+            currentQuery={currentQuery}
+            onSelect={handleRecipientSelect}
+          />
+        </>
+      )}
     </div>
 
     {/* Email Subject Field */}
@@ -700,20 +765,36 @@ export function EmailComposer({
           </TooltipProvider>
         )}
         
-        {/* Send Email Button with Fallback */}
-        <EmailSendButton
-          to={toEmail}
-          subject={emailSubject}
-          body={emailContent}
-          contact={selectedContact ?? undefined}
-          company={selectedCompany ?? undefined}
-          isGmailAuthenticated={(gmailStatus as any)?.authorized}
-          onSendViaGmail={handleSendEmail}
-          onManualSend={handleManualSend}
-          isPending={sendEmailMutation.isPending}
-          isSuccess={isSent}
-          className="h-8 px-3 text-xs"
-        />
+        {/* Send Email Button / Create Campaign Button */}
+        {drawerMode === 'compose' ? (
+          <EmailSendButton
+            to={toEmail}
+            subject={emailSubject}
+            body={emailContent}
+            contact={selectedContact ?? undefined}
+            company={selectedCompany ?? undefined}
+            isGmailAuthenticated={(gmailStatus as any)?.authorized}
+            onSendViaGmail={handleSendEmail}
+            onManualSend={handleManualSend}
+            isPending={sendEmailMutation.isPending}
+            isSuccess={isSent}
+            className="h-8 px-3 text-xs"
+          />
+        ) : (
+          <Button
+            onClick={() => {
+              // TODO: Implement campaign creation logic
+              toast({
+                title: "Campaign Creation",
+                description: "Campaign creation will be implemented soon",
+              });
+            }}
+            disabled={!campaignRecipients || !emailContent}
+            className="h-8 px-3 text-xs"
+          >
+            Create Campaign
+          </Button>
+        )}
       </div>
     </div>
 
