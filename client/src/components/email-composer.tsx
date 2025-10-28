@@ -176,6 +176,75 @@ export function EmailComposer({
     }
   });
 
+  // Campaign creation mutation
+  const createCampaignMutation = useMutation({
+    mutationFn: async () => {
+      if (!campaignRecipients) {
+        throw new Error('No recipients selected');
+      }
+
+      let contactListId: number;
+      
+      // Create or use existing contact list based on recipient selection
+      if (campaignRecipients.type === 'existing') {
+        // Use the existing contact list
+        contactListId = campaignRecipients.contactListId;
+      } else {
+        // Create new contact list from search results
+        const listData: any = {};
+        
+        if (campaignRecipients.type === 'current') {
+          listData.currentListId = campaignRecipients.listId;
+          listData.currentQuery = campaignRecipients.query;
+        } else if (campaignRecipients.type === 'multiple') {
+          listData.searchListIds = campaignRecipients.searchListIds;
+        }
+        
+        const contactListRes = await apiRequest("POST", '/api/contact-lists/from-search', listData);
+        const contactList = await contactListRes.json();
+        contactListId = contactList.id;
+      }
+      
+      // Create the campaign
+      const campaignRes = await apiRequest("POST", '/api/campaigns', {
+        name: emailSubject || 'Untitled Campaign',
+        subject: emailSubject,
+        body: emailContent,
+        prompt: emailPrompt,
+        contactListId: contactListId,
+        isActive: true,
+        sendTimePreference: 'immediate',
+        tone: selectedTone,
+        offerType: selectedOffer,
+        productId: selectedProduct?.id
+      });
+      
+      return await campaignRes.json();
+    },
+    onSuccess: (campaign) => {
+      toast({
+        title: "Campaign Created!",
+        description: `Your campaign "${campaign.name}" has been created successfully.`
+      });
+      
+      // Clear the form
+      setEmailPrompt('');
+      setEmailSubject('');
+      setEmailContent('');
+      setCampaignRecipients(null);
+      
+      // Invalidate campaign list query
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Campaign Creation Failed",
+        description: error instanceof Error ? error.message : 'Failed to create campaign',
+        variant: "destructive"
+      });
+    }
+  });
+
   // Effects
   useEffect(() => {
     if (drawerMode === 'compose' && selectedContact?.email) {
@@ -426,6 +495,28 @@ export function EmailComposer({
     }
     
     return "Select recipients";
+  };
+
+  const handleCreateCampaign = () => {
+    if (!campaignRecipients) {
+      toast({
+        title: "No Recipients Selected",
+        description: "Please select recipients for your campaign",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!emailContent) {
+      toast({
+        title: "No Email Content",
+        description: "Please add email content for your campaign",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    createCampaignMutation.mutate();
   };
 
   return (
@@ -782,17 +873,18 @@ export function EmailComposer({
           />
         ) : (
           <Button
-            onClick={() => {
-              // TODO: Implement campaign creation logic
-              toast({
-                title: "Campaign Creation",
-                description: "Campaign creation will be implemented soon",
-              });
-            }}
-            disabled={!campaignRecipients || !emailContent}
+            onClick={handleCreateCampaign}
+            disabled={!campaignRecipients || !emailContent || createCampaignMutation.isPending}
             className="h-8 px-3 text-xs"
           >
-            Create Campaign
+            {createCampaignMutation.isPending ? (
+              <>
+                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              'Create Campaign'
+            )}
           </Button>
         )}
       </div>

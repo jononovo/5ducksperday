@@ -369,6 +369,86 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
     }
   });
 
+  // Create contact list from search results
+  app.post('/api/contact-lists/from-search', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const { searchListIds, currentListId, currentQuery } = req.body;
+      
+      // Create the contact list with appropriate name
+      let listName = 'Campaign List';
+      let description = '';
+      
+      if (currentListId && currentQuery) {
+        listName = `Campaign: ${currentQuery}`;
+        description = `Contacts from search: "${currentQuery}"`;
+      } else if (searchListIds && searchListIds.length > 0) {
+        listName = `Campaign: ${searchListIds.length} search lists`;
+        description = `Combined contacts from ${searchListIds.length} search lists`;
+      }
+      
+      // Create the contact list first
+      const contactList = await storage.createContactList({
+        userId,
+        name: listName,
+        description,
+        contactCount: 0
+      });
+      
+      // Collect all contact IDs
+      const allContactIds = new Set<number>();
+      
+      if (currentListId) {
+        // Get contacts from current search list
+        const companies = await storage.listCompaniesBySearchList(currentListId, userId);
+        
+        for (const company of companies) {
+          const contacts = await storage.listContactsByCompany(company.id, userId);
+          contacts.forEach(c => allContactIds.add(c.id));
+        }
+      }
+      
+      if (searchListIds && searchListIds.length > 0) {
+        // Get contacts from multiple search lists
+        for (const searchListId of searchListIds) {
+          const companies = await storage.listCompaniesBySearchList(searchListId, userId);
+          
+          for (const company of companies) {
+            const contacts = await storage.listContactsByCompany(company.id, userId);
+            contacts.forEach(c => allContactIds.add(c.id));
+          }
+        }
+      }
+      
+      // Add contacts to the list
+      const contactIds = Array.from(allContactIds);
+      
+      if (contactIds.length > 0) {
+        await storage.addContactsToList(
+          contactList.id, 
+          contactIds, 
+          'search_list', 
+          userId, 
+          { searchListIds, currentListId }
+        );
+      }
+      
+      // Return the created list with updated count
+      const updatedList = await storage.getContactList(contactList.id, userId);
+      
+      res.status(201).json({
+        ...updatedList,
+        contactCount: contactIds.length
+      });
+      
+    } catch (error) {
+      console.error('Error creating contact list from search:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to create contact list from search' 
+      });
+    }
+  });
+
   // Add top contacts from companies
   app.post('/api/contact-lists/:id/add-from-companies', requireAuth, async (req: Request, res: Response) => {
     try {
