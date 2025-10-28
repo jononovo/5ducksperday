@@ -3069,11 +3069,11 @@ export default function Home() {
                     onClick={() => setDrawerMode('campaign')}
                     className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
                       drawerMode === 'campaign'
-                        ? 'bg-pink-500/10 text-pink-600 dark:text-pink-500'
-                        : 'text-pink-600 dark:text-pink-500 hover:bg-pink-500/10'
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }`}
                   >
-                    <Megaphone className="h-3.5 w-3.5" />
+                    <Megaphone className="h-3.5 w-3.5 text-pink-500" />
                     Create Campaign
                   </button>
                 </div>
@@ -3180,11 +3180,11 @@ export default function Home() {
                         onClick={() => setDrawerMode('campaign')}
                         className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
                           drawerMode === 'campaign'
-                            ? 'bg-pink-500/10 text-pink-600 dark:text-pink-500'
-                            : 'text-pink-600 dark:text-pink-500 hover:bg-pink-500/10'
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                         }`}
                       >
-                        <Megaphone className="h-3.5 w-3.5" />
+                        <Megaphone className="h-3.5 w-3.5 text-pink-500" />
                         Create Campaign
                       </button>
                     </div>
