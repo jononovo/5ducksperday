@@ -8,6 +8,23 @@ function getUserId(req: Request): number {
 }
 
 export function registerContactListRoutes(app: Application, requireAuth: any) {
+  // Get all contacts for a user
+  app.get('/api/contacts', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const contacts = await storage.listContacts(userId);
+      res.json({
+        total: contacts.length,
+        contacts: contacts
+      });
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to fetch contacts' 
+      });
+    }
+  });
+
   // List all contact lists for a user
   app.get('/api/contact-lists', requireAuth, async (req: Request, res: Response) => {
     try {
