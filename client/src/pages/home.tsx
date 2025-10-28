@@ -42,6 +42,7 @@ import {
   MoreHorizontal,
   Menu,
   Mail,
+  Megaphone,
   Target,
   Plus,
 } from "lucide-react";
@@ -136,6 +137,7 @@ export default function Home() {
   const [drawerWidth, setDrawerWidth] = useState(400);
   const [isResizing, setIsResizing] = useState(false);
   const [searchSectionCollapsed, setSearchSectionCollapsed] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<'compose' | 'campaign'>('compose');
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -3047,12 +3049,34 @@ export default function Home() {
           <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen pb-4" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
             {/* Header */}
             <div className="sticky top-0 bg-background px-4 py-1.5 z-10">
-              {/* Top row - Compose and close */}
+              {/* Top row - Tabs and close */}
               <div className="flex items-center justify-between">
-                <h3 className="text-xs text-muted-foreground font-normal flex items-center gap-1">
-                  <Mail className="h-3.5 w-3.5" />
-                  Compose
-                </h3>
+                <div className="flex items-center gap-2">
+                  {/* Compose Tab */}
+                  <button
+                    onClick={() => setDrawerMode('compose')}
+                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                      drawerMode === 'compose'
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    Compose
+                  </button>
+                  {/* Campaign Tab */}
+                  <button
+                    onClick={() => setDrawerMode('campaign')}
+                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                      drawerMode === 'campaign'
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <Megaphone className="h-3.5 w-3.5" />
+                    Create Campaign
+                  </button>
+                </div>
                 <button
                   onClick={() => {
                     setEmailDrawerOpen(false);
@@ -3061,6 +3085,7 @@ export default function Home() {
                     setSelectedCompanyContacts([]);
                     // Expand search section when closing drawer
                     setSearchSectionCollapsed(false);
+                    setDrawerMode('compose'); // Reset to compose mode when closing
                   }}
                   className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
                   aria-label="Close email panel"
@@ -3135,12 +3160,34 @@ export default function Home() {
               <div className="flex flex-col min-h-full pb-24">
                 {/* Same header content */}
                 <div className="sticky top-0 bg-background px-4 py-1.5 z-10">
-                  {/* Top row - Compose and close */}
+                  {/* Top row - Tabs and close */}
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs text-muted-foreground font-normal flex items-center gap-1">
-                      <Mail className="h-3.5 w-3.5" />
-                      Compose
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      {/* Compose Tab */}
+                      <button
+                        onClick={() => setDrawerMode('compose')}
+                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                          drawerMode === 'compose'
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        <Mail className="h-3.5 w-3.5" />
+                        Compose
+                      </button>
+                      {/* Campaign Tab */}
+                      <button
+                        onClick={() => setDrawerMode('campaign')}
+                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                          drawerMode === 'campaign'
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        <Megaphone className="h-3.5 w-3.5" />
+                        Create Campaign
+                      </button>
+                    </div>
                     <button
                       onClick={() => {
                         setEmailDrawerOpen(false);
@@ -3148,6 +3195,7 @@ export default function Home() {
                         setSelectedEmailCompany(null);
                         setSelectedCompanyContacts([]);
                         setSearchSectionCollapsed(false);
+                        setDrawerMode('compose'); // Reset to compose mode when closing
                       }}
                       className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
                       aria-label="Close email panel"
