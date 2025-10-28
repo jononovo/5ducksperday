@@ -16,6 +16,7 @@ import { EmailSearchSummary } from "@/components/email-search-summary";
 import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
 import { MainSearchSummary } from "@/components/main-search-summary";
 import { EmailComposer } from "@/components/email-composer";
+import { OnboardingFlowOrchestrator } from "@/components/onboarding/OnboardingFlowOrchestrator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
@@ -138,6 +139,11 @@ export default function Home() {
   const [isResizing, setIsResizing] = useState(false);
   const [searchSectionCollapsed, setSearchSectionCollapsed] = useState(false);
   const [drawerMode, setDrawerMode] = useState<'compose' | 'campaign'>('compose');
+  
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingSearchQuery, setOnboardingSearchQuery] = useState<string>("");
+  const [onboardingSearchResults, setOnboardingSearchResults] = useState<any[]>([]);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -952,6 +958,17 @@ export default function Home() {
     
     // Detect if this is a new search (different from current query)
     const isNewSearch = currentQuery !== query;
+    
+    // Check if this is the user's first successful search and trigger onboarding
+    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding');
+    const isFirstSearch = !hasCompletedOnboarding && auth?.user && results.length > 0;
+    
+    if (isFirstSearch && !showOnboarding) {
+      console.log('First search detected - triggering onboarding flow');
+      setOnboardingSearchQuery(query);
+      setOnboardingSearchResults(results);
+      setShowOnboarding(true);
+    }
     
     // Clear any stale localStorage data that might conflict with new search results
     if (isNewSearch) {
@@ -3269,6 +3286,25 @@ export default function Home() {
         notificationState={notificationState}
         onClose={closeNotification}
       />
+      
+      {/* Onboarding Flow */}
+      {showOnboarding && (
+        <OnboardingFlowOrchestrator
+          searchQuery={onboardingSearchQuery}
+          searchResults={onboardingSearchResults}
+          onComplete={() => {
+            setShowOnboarding(false);
+            localStorage.setItem('hasCompletedOnboarding', 'true');
+            toast({
+              title: "Setup complete!",
+              description: "Your campaign is now active and ready to start generating leads.",
+            });
+          }}
+          onClose={() => {
+            setShowOnboarding(false);
+          }}
+        />
+      )}
     </div>
     </>
   );

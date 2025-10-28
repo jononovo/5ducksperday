@@ -49,6 +49,7 @@ import { dailyOutreachRoutes } from "./features/daily-outreach";
 import { registerCampaignsRoutes } from "./features/campaigns";
 import { registerAdminRoutes } from "./features/admin/routes";
 import { registerContactListRoutes } from "./features/contact-lists/routes";
+import { registerOnboardingRoutes } from "./features/onboarding/routes";
 
 
 // Import centralized auth utilities
@@ -129,6 +130,9 @@ export function registerRoutes(app: Express) {
   
   // Register campaigns module (includes sender profiles, customer profiles, and products)
   registerCampaignsRoutes(app, requireAuth);
+  
+  // Register onboarding flow routes
+  registerOnboardingRoutes(app, requireAuth);
 
   // Serve static files from the static directory
   app.use('/static', express.static(path.join(__dirname, '../static')));
