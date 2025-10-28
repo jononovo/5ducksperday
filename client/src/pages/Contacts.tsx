@@ -346,7 +346,7 @@ export default function Contacts() {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* All contacts card - clickable */}
-          <Link href="/all-contacts">
+          <Link href="/contacts/all-contacts">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
