@@ -66,11 +66,9 @@ function buildEmailPrompt(context: EmailGenerationContext): string {
   
   if (generateTemplate) {
     // Template generation for campaigns - use merge fields extensively
-    return `Write an EMAIL TEMPLATE for a campaign based on this context:
+    return `Create an email template based on: ${userPrompt}
 
-Prompt: ${userPrompt}
-
-IMPORTANT: You are creating a TEMPLATE for bulk campaigns. You MUST use merge fields instead of actual values.
+CRITICAL: Generate the actual email template directly. DO NOT include explanations or descriptions.
 
 Required merge fields to use:
 - {{first_name}} - Use this in greetings (e.g., "Hi {{first_name}},")
@@ -90,17 +88,22 @@ TEMPLATE CONTEXT:
 Industry/Company Type: ${company.description || 'B2B companies'}
 ${contact && contact.role ? `Target Role: ${contact.role} (use {{contact_role}} in template)` : 'Various decision makers'}
 
-CRITICAL INSTRUCTIONS:
-1. DO NOT use actual names - always use merge fields
-2. Create a reusable template that works for multiple recipients
-3. Use at least 4-5 different merge fields throughout the email
-4. Make the template feel personal despite being automated
+FORMAT REQUIREMENTS (MUST FOLLOW EXACTLY):
+1. Start with "Subject: " followed by an engaging subject line using merge fields
+   Good examples:
+   - Subject: Freshen Up {{company_name}} with Premium Commercial Orange Juicers
+   - Subject: {{first_name}}, quick question about {{company_name}}'s operations
+   - Subject: Transform {{company_name}}'s efficiency with our solution
+   
+2. Then on a new line, write the email body starting with the greeting
+3. Use merge fields naturally throughout the email
+4. DO NOT include any explanatory text or descriptions
 
-Format requirements:
-- Subject line: Use merge fields (e.g., "{{first_name}}, quick question about {{company_name}}")
-- Greeting: Use {{first_name}} (e.g., "Hi {{first_name}}," or "Hey {{first_name}},")
-- Body: Reference {{company_name}} and {{contact_role}} naturally
-- Signature: Use {{full_sender_name}} or {{sender_first_name}}`;
+CRITICAL INSTRUCTIONS:
+- Create a reusable template that works for multiple recipients
+- Use at least 4-5 different merge fields throughout the email
+- Make the template feel personal despite being automated
+- Start immediately with "Subject: " - no preamble or explanation`;
   }
   
   // Regular email generation - use actual values
