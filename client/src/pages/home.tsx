@@ -93,7 +93,17 @@ export default function Home() {
   const [currentQuery, setCurrentQuery] = useState<string>("");
   const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [currentListId, setCurrentListId] = useState<number | null>(null);
+  const [currentListId, setCurrentListIdBase] = useState<number | null>(null);
+  
+  // Wrapper to log currentListId changes
+  const setCurrentListId = (newListId: number | null) => {
+    console.log('Setting currentListId:', {
+      from: currentListId,
+      to: newListId,
+      stackTrace: new Error().stack?.split('\n').slice(2, 5).join('\n')
+    });
+    setCurrentListIdBase(newListId);
+  };
   const [companiesViewMode, setCompaniesViewMode] = useState<'scroll' | 'slides'>('scroll');
   const [pendingContactIds, setPendingContactIds] = useState<Set<number>>(new Set());
   // State for selected contacts (for multi-select checkboxes)
@@ -384,45 +394,64 @@ export default function Home() {
           listId: savedState.currentListId
         });
         
-        // Always restore the data first
-        setCurrentQuery(savedState.currentQuery || "");
+        // Restore state variables
+        const queryToRestore = savedState.currentQuery || "";
+        const listIdToRestore = savedState.currentListId;
+        
+        console.log('[LOCALSTORAGE RESTORE] Loading saved state:', {
+          queryToRestore,
+          listIdToRestore,
+          resultsCount: savedState.currentResults?.length,
+          hasListId: !!listIdToRestore,
+          savedStateKeys: Object.keys(savedState)
+        });
+        
+        // Set state only once
+        setCurrentQuery(queryToRestore);
+        setCurrentListId(listIdToRestore);
         setCurrentResults(savedState.currentResults);
-        setCurrentListId(savedState.currentListId);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
         setInputHasChanged(false); // Set to false when loading saved state
+        
+        // Mark list as saved if we have a listId
+        if (listIdToRestore) {
+          setIsSaved(true);
+          console.log('[LOCALSTORAGE RESTORE] Restored saved search list with ID:', listIdToRestore);
+        } else {
+          console.log('[LOCALSTORAGE RESTORE] No listId found in saved state - will trigger auto-create');
+          // If we have results but no listId, we need to create one immediately
+          // This happens when user navigated away before the 1.5s auto-create timer fired
+          if (savedState.currentResults && savedState.currentResults.length > 0 && queryToRestore) {
+            console.log('[LOCALSTORAGE RESTORE] Creating list immediately for orphaned results');
+            // Set a flag to trigger list creation after component mounts
+            setTimeout(() => {
+              if (!currentListId && savedState.currentResults && savedState.currentResults.length > 0) {
+                console.log('[LOCALSTORAGE RESTORE] Triggering immediate list creation for restored results');
+                autoCreateListMutation.mutate({ 
+                  query: queryToRestore, 
+                  companies: savedState.currentResults 
+                });
+              }
+            }, 100); // Small delay to ensure component is fully mounted
+          }
+        }
         
         // Always refresh contact data when restoring from localStorage to ensure emails are preserved
         console.log('Refreshing contact data from database to preserve emails after navigation');
         console.log('Companies before refresh:', savedState.currentResults.map((c: CompanyWithContacts) => ({
           name: c.name,
           contactCount: c.contacts?.length || 0,
-          contactsWithEmails: c.contacts?.filter(contact => contact.email).length || 0
+          contactsWithEmails: c.contacts?.filter(contact => contact.email).length || 0,
+          listId: listIdToRestore
         })));
         
-        // SIMPLIFIED NAVIGATION RESTORATION: Always refresh from database
-        console.log('NAVIGATION: Restoring search state and refreshing from database');
-        
-        // IMPORTANT: Only restore the list ID if the query matches
-        const queryToRestore = savedState.currentQuery || "";
-        const shouldRestoreListId = queryToRestore === savedState.lastExecutedQuery;
-        
-        // Set basic state first
-        setCurrentQuery(queryToRestore);
-        setCurrentListId(shouldRestoreListId ? savedState.currentListId : null);
-        setCurrentResults(savedState.currentResults);
-        setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
-        setInputHasChanged(false); // Set to false when loading saved state
-        
-        if (!shouldRestoreListId) {
-          console.log('Query mismatch detected - clearing list ID to prevent contamination');
-        }
-        
         // Always refresh from database to ensure fresh data (including emails)
+        console.log('NAVIGATION: Passing listId to refreshAndUpdateResults:', listIdToRestore);
         refreshAndUpdateResults(
           savedState.currentResults,
           {
-            currentQuery: savedState.currentQuery || "",
-            currentListId: savedState.currentListId,
+            currentQuery: queryToRestore,
+            currentListId: listIdToRestore,
             lastExecutedQuery: savedState.lastExecutedQuery || savedState.currentQuery
           },
           {
@@ -610,14 +639,34 @@ export default function Home() {
         prompt: query,
         contactSearchConfig: contactSearchConfig
       });
-      return res.json();
+      const jsonData = await res.json();
+      console.log('[AUTO-CREATE LIST] Backend response from POST /api/lists:', jsonData);
+      console.log('[AUTO-CREATE LIST] Response fields:', Object.keys(jsonData));
+      return jsonData;
     },
     onSuccess: (data) => {
+      console.log('Backend returned data from list creation:', data); // Debug log to see exact structure
       queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
-      setCurrentListId(data.listId); // Track the auto-created list
+      
+      // FIX: Backend returns both 'id' (table PK) and 'listId' (the actual list ID we need)
+      const listId = data.listId; // Use the correct field: listId not id
+      setCurrentListId(listId); // Track the auto-created list
       setIsSaved(true); // Mark as saved
       listMutationInProgressRef.current = false; // Reset flag
-      console.log('List created successfully with ID:', data.listId);
+      console.log('List created successfully with listId:', listId);
+      
+      // IMPORTANT: Persist the listId to localStorage immediately after creation
+      persistSearchState(
+        {
+          currentResults: currentResults || []
+        },
+        {
+          currentQuery: currentQuery,
+          currentListId: listId, // Use the correct ID field
+          lastExecutedQuery: lastExecutedQuery
+        }
+      );
+      console.log('Persisted new listId to localStorage:', listId);
       // No toast notification (silent auto-save)
     },
     onError: (error) => {
@@ -863,15 +912,22 @@ export default function Home() {
       
       // Debounce list creation/update to prevent duplicate calls during progressive updates
       listUpdateTimeoutRef.current = setTimeout(() => {
+        console.log('[LIST CREATION TIMER] Timer fired after 1.5s:', {
+          listIdAtTimeOfResults,
+          queryAtTimeOfResults,
+          resultsCount: resultsAtTimeOfResults.length,
+          mutationInProgress: listMutationInProgressRef.current
+        });
+        
         // Check if a mutation is already in progress
         if (listMutationInProgressRef.current) {
-          console.log('List mutation already in progress, skipping duplicate call');
+          console.log('[LIST CREATION TIMER] List mutation already in progress, skipping duplicate call');
           return;
         }
         
         if (!listIdAtTimeOfResults) {
           // Create new list (for new searches or when no list exists)
-          console.log('Creating new list for search results (new search or no existing list)');
+          console.log('[LIST CREATION TIMER] Creating new list for search results (new search or no existing list)');
           listMutationInProgressRef.current = true;
           autoCreateListMutation.mutate({ 
             query: queryAtTimeOfResults, 
@@ -879,7 +935,7 @@ export default function Home() {
           });
         } else {
           // Update existing list (only for progressive updates of same search)
-          console.log('Updating existing list:', listIdAtTimeOfResults);
+          console.log('[LIST CREATION TIMER] Updating existing list:', listIdAtTimeOfResults);
           listMutationInProgressRef.current = true;
           updateListMutation.mutate({ 
             query: queryAtTimeOfResults, 
@@ -1205,6 +1261,12 @@ export default function Home() {
 
   // Handle loading a saved search from the drawer
   const handleLoadSavedSearch = async (list: SearchList) => {
+    console.log('Loading saved search:', {
+      searchName: list.prompt,
+      listId: list.listId,
+      resultCount: list.resultCount
+    });
+    
     try {
       // First fetch the companies
       const companies = await queryClient.fetchQuery({
@@ -1239,6 +1301,13 @@ export default function Home() {
       setCurrentListId(list.listId);
       setIsSaved(true);
       setSavedSearchesDrawerOpen(false);
+      
+      console.log('Saved search loaded successfully:', {
+        query: list.prompt,
+        listId: list.listId,
+        companiesLoaded: companiesWithContacts.length,
+        totalContacts: companiesWithContacts.reduce((sum, c) => sum + (c.contacts?.length || 0), 0)
+      });
       
       // Force input change flag to false after a small delay to ensure proper state update
       setTimeout(() => {
@@ -2075,6 +2144,7 @@ export default function Home() {
                       }
                     }}
                   />
+                  </div>
                 </Suspense>
                 
                 {/* Action buttons menu - Moved here from search results, Hidden in focus mode and active search state */}

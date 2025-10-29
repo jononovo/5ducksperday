@@ -69,6 +69,18 @@ Daily automated outreach with scheduling controls
 - **Replit KV**: Credits, tokens, subscriptions, notifications, rate limiting
 - **Job Queue**: Database-persistent with retry logic (max 3 attempts)
 
+#### ⚠️ IMPORTANT: List ID Naming Convention
+The `lists` table has TWO different ID fields that can cause confusion:
+- **`lists.id`** (INTEGER): The actual database primary key - THIS IS WHAT ALL FOREIGN KEYS REFERENCE
+- **`lists.list_id`** (INTEGER): A user-facing display number (e.g., 1192)
+
+**Critical relationships:**
+- `companies.list_id` → references `lists.id` (NOT `lists.list_id`)
+- `campaigns.list_id` → references `lists.id` (NOT `lists.list_id`)
+- Frontend `listId` variables → usually mean `lists.id`
+
+**Future refactor planned:** Rename `lists.list_id` to `lists.display_id` for clarity
+
 ### 🔐 Authentication
 - Firebase for auth, Passport for sessions
 - `requireAuth` middleware - Protected routes

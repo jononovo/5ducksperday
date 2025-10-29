@@ -274,7 +274,13 @@ export function EmailComposer({
       }
       
       if (!recipientsToUse) {
-        throw new Error('No recipients selected');
+        console.error('No recipients available:', {
+          campaignRecipients,
+          currentListId,
+          currentQuery,
+          drawerMode
+        });
+        throw new Error('No recipients available. Please run a search first or select recipients for your campaign');
       }
 
       let contactListId: number;
@@ -303,7 +309,7 @@ export function EmailComposer({
       const status = type === 'scheduled' ? 'scheduled' : (type === 'immediate' ? 'active' : 'draft');
       
       // Create the campaign with all settings
-      const campaignRes = await apiRequest("POST", '/api/campaigns', {
+      const campaignData: any = {
         // Basic campaign details
         name: emailSubject || 'Untitled Campaign',
         subject: emailSubject,
@@ -315,8 +321,6 @@ export function EmailComposer({
         // Email generation settings
         tone: selectedTone,
         offerType: selectedOfferStrategy,
-        productId: selectedProduct,
-        strategicProfileId: selectedProduct, // Use the same product ID for strategic profile
         
         // Scheduling settings
         sendTimePreference: type,
@@ -333,7 +337,15 @@ export function EmailComposer({
         // Tracking settings
         trackEmails: campaignSettings.trackEmails,
         unsubscribeLink: campaignSettings.unsubscribeLink
-      });
+      };
+      
+      // Only include productId and strategicProfileId if they have valid values
+      if (selectedProduct) {
+        campaignData.productId = selectedProduct;
+        campaignData.strategicProfileId = selectedProduct; // Use the same product ID for strategic profile
+      }
+      
+      const campaignRes = await apiRequest("POST", '/api/campaigns', campaignData);
       
       return await campaignRes.json();
     },
@@ -376,14 +388,32 @@ export function EmailComposer({
 
   // Effects
   useEffect(() => {
+    console.log('EmailComposer useEffect - campaign recipients check:', {
+      drawerMode,
+      currentListId,
+      currentQuery,
+      hasCampaignRecipients: !!campaignRecipients,
+      selectedContactEmail: selectedContact?.email
+    });
+    
     if (drawerMode === 'compose' && selectedContact?.email) {
       setToEmail(selectedContact.email);
     } else if (drawerMode === 'campaign' && currentListId && currentQuery && !campaignRecipients) {
       // Auto-set current list as default recipients in campaign mode
+      console.log('Auto-setting campaign recipients with current search:', {
+        type: 'current',
+        listId: currentListId,
+        query: currentQuery
+      });
       setCampaignRecipients({ 
         type: 'current', 
         listId: currentListId, 
         query: currentQuery 
+      });
+    } else if (drawerMode === 'campaign' && (!currentListId || !currentQuery)) {
+      console.warn('Cannot auto-set recipients - missing search data:', {
+        currentListId,
+        currentQuery
       });
     }
   }, [selectedContact, drawerMode, currentListId, currentQuery]);
@@ -524,8 +554,10 @@ export function EmailComposer({
   };
 
   const handleManualSend = () => {
-    const mailtoLink = `mailto:${toEmail}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailContent)}`;
-    window.location.href = mailtoLink;
+    // The EmailSendButton already handles opening the email client with the proper formatting.
+    // This callback is now only used for tracking/confirmation purposes.
+    // The duplicate mailto link creation has been removed to fix the double email window issue.
+    console.log('Email opened in default client');
   };
 
   const handleGmailConnect = () => {

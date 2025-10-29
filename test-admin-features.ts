@@ -19,11 +19,17 @@ async function testAdminFeatures() {
     }
   }
 
-  // Test 2: Check API health endpoint (public)
-  console.log('\nTest 2: Check API health (public endpoint)');
+  // Test 2: Check API health endpoint  
+  console.log('\nTest 2: Check API health');
   try {
-    const response = await axios.get(`${API_URL}/api/test/health`);
-    console.log('✅ Health check passed:', response.data);
+    const response = await axios.post(`${API_URL}/api/test/health`);
+    console.log('✅ Health check passed:', response.data.message);
+    if (response.data.tests) {
+      response.data.tests.forEach((test: any) => {
+        const icon = test.status === 'passed' ? '  ✓' : '  ✗';
+        console.log(`${icon} ${test.name}: ${test.message}`);
+      });
+    }
   } catch (error: any) {
     console.log('❌ Health check failed:', error.message);
   }
@@ -31,16 +37,22 @@ async function testAdminFeatures() {
   // Test 3: Database connectivity
   console.log('\nTest 3: Check database status');
   try {
-    const response = await axios.get(`${API_URL}/api/test/db-status`);
-    console.log('✅ Database status:', response.data);
+    const response = await axios.post(`${API_URL}/api/test/database`);
+    console.log('✅ Database status:', response.data.message);
+    if (response.data.tests) {
+      response.data.tests.forEach((test: any) => {
+        const icon = test.status === 'passed' ? '  ✓' : '  ✗';
+        console.log(`${icon} ${test.name}: ${test.message}`);
+      });
+    }
   } catch (error: any) {
     console.log('❌ Database check failed:', error.message);
   }
 
-  // Test 4: Check test/api endpoint (runs comprehensive tests)
+  // Test 4: Check test/run-all endpoint (runs comprehensive tests)
   console.log('\nTest 4: Run comprehensive API tests');
   try {
-    const response = await axios.post(`${API_URL}/api/test/api`);
+    const response = await axios.post(`${API_URL}/api/test/run-all`);
     console.log('✅ API tests completed:');
     console.log(`  - Status: ${response.data.overallStatus}`);
     console.log(`  - Passed: ${response.data.summary.passed}/${response.data.summary.total}`);
