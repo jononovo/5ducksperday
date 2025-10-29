@@ -23,17 +23,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScheduleSendModal } from "@/components/schedule-send-modal";
+import { AutopilotModal, type AutopilotSettings } from "@/components/autopilot-modal";
 import { format } from "date-fns";
+import { Send } from "lucide-react";
 
 export interface CampaignSettingsData {
   scheduleSend: boolean;
   scheduleDate?: Date;
   scheduleTime?: string;
   autopilot: boolean;
-  autopilotSettings?: {
-    dailyLimit: number;
-    sendTimePreference: string;
-  };
+  autopilotSettings?: AutopilotSettings;
   trackEmails: boolean;
   unsubscribeLink: boolean;
 }
@@ -43,7 +42,9 @@ interface CampaignSettingsProps {
   onOpenChange: (open: boolean) => void;
   settings: CampaignSettingsData;
   onSettingsChange: (settings: CampaignSettingsData) => void;
+  onLaunchCampaign?: () => void;
   className?: string;
+  totalRecipients?: number;
 }
 
 export function CampaignSettings({ 
@@ -51,7 +52,9 @@ export function CampaignSettings({
   onOpenChange,
   settings,
   onSettingsChange,
-  className 
+  onLaunchCampaign,
+  className,
+  totalRecipients = 100
 }: CampaignSettingsProps) {
   const [localSettings, setLocalSettings] = useState<CampaignSettingsData>(settings);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
@@ -74,6 +77,16 @@ export function CampaignSettings({
       scheduleSend: true,
       scheduleDate: scheduledDate,
       scheduleTime: time 
+    };
+    setLocalSettings(updated);
+    onSettingsChange(updated);
+  };
+
+  const handleAutopilotApply = (autopilotSettings: AutopilotSettings) => {
+    const updated = {
+      ...localSettings,
+      autopilot: true,
+      autopilotSettings: autopilotSettings
     };
     setLocalSettings(updated);
     onSettingsChange(updated);
@@ -117,11 +130,7 @@ export function CampaignSettings({
             <Button
               variant="ghost"
               className="w-full justify-between h-auto p-2 hover:bg-muted/50"
-              onClick={() => {
-                // Will open autopilot modal in future
-                console.log('Open autopilot modal');
-                setAutopilotModalOpen(true);
-              }}
+              onClick={() => setAutopilotModalOpen(true)}
             >
               <div className="flex items-center gap-3">
                 <Wand2 className="h-5 w-5 text-muted-foreground" />
@@ -145,8 +154,8 @@ export function CampaignSettings({
                 </div>
               </div>
               <div className="text-sm text-muted-foreground">
-                {localSettings.autopilot && localSettings.autopilotSettings 
-                  ? `${localSettings.autopilotSettings.dailyLimit} per day`
+                {localSettings.autopilot && localSettings.autopilotSettings?.maxEmailsPerDay 
+                  ? `${localSettings.autopilotSettings.maxEmailsPerDay} per day`
                   : ''}
               </div>
             </Button>
@@ -221,6 +230,18 @@ export function CampaignSettings({
               />
             </Button>
           </div>
+
+          {/* Launch Campaign Button */}
+          <div className="mt-6 pt-4 border-t">
+            <Button
+              onClick={onLaunchCampaign}
+              className="w-full h-10 bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600 transition-all duration-300"
+              variant="outline"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              Launch Campaign
+            </Button>
+          </div>
         </AccordionContent>
       </AccordionItem>
     </Accordion>
@@ -232,6 +253,29 @@ export function CampaignSettings({
       selectedDate={localSettings.scheduleDate}
       selectedTime={localSettings.scheduleTime || "09:00"}
       onApply={handleScheduleApply}
+    />
+
+    {/* Autopilot Modal */}
+    <AutopilotModal
+      open={autopilotModalOpen}
+      onOpenChange={setAutopilotModalOpen}
+      settings={localSettings.autopilotSettings || {
+        enabled: false,
+        days: {
+          monday: { enabled: true, startTime: "09:00", endTime: "17:00" },
+          tuesday: { enabled: true, startTime: "09:00", endTime: "17:00" },
+          wednesday: { enabled: true, startTime: "09:00", endTime: "17:00" },
+          thursday: { enabled: true, startTime: "09:00", endTime: "17:00" },
+          friday: { enabled: true, startTime: "09:00", endTime: "17:00" },
+          saturday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+          sunday: { enabled: false, startTime: "09:00", endTime: "17:00" }
+        },
+        maxEmailsPerDay: 300,
+        delayBetweenEmails: 3,
+        delayUnit: 'minutes'
+      }}
+      onApply={handleAutopilotApply}
+      totalEmails={totalRecipients}
     />
     </>
   );

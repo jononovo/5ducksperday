@@ -1067,6 +1067,20 @@ export function EmailComposer({
         onOpenChange={setSettingsOpen}
         settings={campaignSettings}
         onSettingsChange={setCampaignSettings}
+        onLaunchCampaign={() => {
+          // Launch the campaign with current settings
+          if (!campaignRecipients && currentListId && currentQuery) {
+            const autoRecipients: RecipientSelection = {
+              type: 'current',
+              listId: currentListId,
+              query: currentQuery
+            };
+            setCampaignRecipients(autoRecipients);
+          }
+          // Launch campaign with autopilot settings
+          createCampaignMutation.mutate(campaignSettings.autopilot ? 'scheduled' : 'immediate');
+        }}
+        totalRecipients={campaignRecipients ? 100 : 50} // This should be calculated from actual recipients
         className="mt-4"
       />
     )}
