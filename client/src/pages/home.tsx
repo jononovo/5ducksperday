@@ -2144,7 +2144,6 @@ export default function Home() {
                       }
                     }}
                   />
-                  </div>
                 </Suspense>
                 
                 {/* Action buttons menu - Moved here from search results, Hidden in focus mode and active search state */}
