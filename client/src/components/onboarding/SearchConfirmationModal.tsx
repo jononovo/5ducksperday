@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, AlertCircle, Building2, Users, Target, X } from 'lucide-react';
+import { CheckCircle, AlertCircle, Building2, Target, X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface SearchResult {
@@ -42,9 +40,18 @@ export function SearchConfirmationModal({
     }
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="fixed inset-0 max-w-none h-screen w-screen rounded-none m-0 p-0 overflow-hidden">
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/80 z-[100] animate-in fade-in duration-200"
+        onClick={onClose}
+      />
+      
+      {/* Fullscreen modal content */}
+      <div className="fixed inset-0 z-[101] bg-background animate-in fade-in slide-in-from-bottom-4 duration-300">
         {/* Close button */}
         <Button
           variant="ghost"
@@ -56,9 +63,9 @@ export function SearchConfirmationModal({
           <span className="sr-only">Close</span>
         </Button>
         
-        {/* Fullscreen content container */}
-        <div className="h-full w-full overflow-auto bg-background">
-          <div className="container max-w-4xl mx-auto p-6 md:p-8 pt-20">
+        {/* Scrollable content */}
+        <div className="h-full w-full overflow-auto">
+          <div className="container max-w-4xl mx-auto p-6 md:p-8 pt-20 pb-10">
             {/* Header */}
             <div className="mb-8 text-center">
               <div className="flex items-center justify-center gap-3 mb-4">
@@ -159,7 +166,7 @@ export function SearchConfirmationModal({
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </>
   );
 }
