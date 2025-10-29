@@ -699,6 +699,19 @@ export default function Home() {
       setIsSaved(true); // Mark as saved
       listMutationInProgressRef.current = false; // Reset flag
       console.log('List created successfully with ID:', data.listId);
+      
+      // IMPORTANT: Persist the listId to localStorage immediately after creation
+      persistSearchState(
+        {
+          currentResults: currentResults || []
+        },
+        {
+          currentQuery: currentQuery,
+          currentListId: data.listId, // Use the newly created listId
+          lastExecutedQuery: lastExecutedQuery
+        }
+      );
+      console.log('Persisted new listId to localStorage:', data.listId);
       // No toast notification (silent auto-save)
     },
     onError: (error) => {
