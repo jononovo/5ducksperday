@@ -79,6 +79,7 @@ import { SearchSessionManager } from "@/lib/search-session-manager";
 import { SavedSearchesDrawer } from "@/components/saved-searches-drawer";
 import { useComprehensiveEmailSearch } from "@/hooks/use-comprehensive-email-search";
 import { useSearchState, type SavedSearchState, type CompanyWithContacts } from "@/features/search-state";
+import { useEmailSearchOrchestration } from "@/features/email-search-orchestration";
 
 // Define SourceBreakdown interface to match EmailSearchSummary
 interface SourceBreakdown {
@@ -677,7 +678,22 @@ export default function Home() {
     },
   });
 
+  // Ref for tracking automated search state (needed by email orchestration hook)
+  const isAutomatedSearchRef = useRef(false);
 
+  // Initialize email search orchestration hook
+  const emailOrchestration = useEmailSearchOrchestration({
+    currentResults,
+    currentQuery,
+    currentListId,
+    lastExecutedQuery,
+    currentSessionId,
+    setCurrentResults,
+    refreshContactDataIfNeeded,
+    refreshAndUpdateResults,
+    updateListMutation,
+    isAutomatedSearchRef
+  });
 
   // Mutation for saving and navigating to outreach
   const saveAndNavigateMutation = useMutation({
@@ -988,14 +1004,14 @@ export default function Home() {
       
       // Only show notifications if not silent
       if (!silent) {
-        if (!isConsolidatedSearching && !isAutomatedSearchRef.current) {
+        if (!emailOrchestration.isSearching && !isAutomatedSearchRef.current) {
           toast({
             title: "Email Search Complete",
             description: `${data.name}: ${data.email 
               ? "Successfully found email address."
               : "No email found for this contact."}`,
           });
-        } else if (isConsolidatedSearching && data.email) {
+        } else if (emailOrchestration.isSearching && data.email) {
           // During consolidated search, only show when we find an email
           toast({
             title: "Email Search Complete",
@@ -1518,15 +1534,7 @@ export default function Home() {
     return pendingApolloIds.has(contactId);
   };
   
-  // Consolidated Email Search functionality
-  const [isConsolidatedSearching, setIsConsolidatedSearching] = useState(false);
-  const isAutomatedSearchRef = useRef(false);
-  const [searchProgress, setSearchProgress] = useState({
-    phase: "",
-    completed: 0,
-    total: 0
-  });
-  const [summaryVisible, setSummaryVisible] = useState(false);
+  // State for other UI components not handled by extracted hooks
   const [contactReportVisible, setContactReportVisible] = useState(false);
   const [mainSummaryVisible, setMainSummaryVisible] = useState(false);
   const [mainSearchMetrics, setMainSearchMetrics] = useState({
@@ -1537,84 +1545,6 @@ export default function Home() {
     searchDuration: 0,
     companies: [] as any[]
   });
-  const [lastEmailSearchCount, setLastEmailSearchCount] = useState(0);
-  const [lastSourceBreakdown, setLastSourceBreakdown] = useState<SourceBreakdown | undefined>(undefined);
-
-  // Time-based progress queue system with realistic timing
-  const progressQueue = [
-    { name: "Starting Key Emails Search", duration: 1000 }, // 1 second
-    { name: "Processing Companies", duration: 2000 },       // 2 seconds  
-    { name: "Searching for Emails", duration: 3000 },      // 3 seconds
-    { name: "Finalizing Results", duration: 1500 }         // 1.5 seconds
-  ];
-
-  const [progressState, setProgressState] = useState({
-    currentPhase: 0,
-    startTime: 0,
-    backendCompleted: false
-  });
-
-  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const startProgressTimer = () => {
-    if (progressTimerRef.current) {
-      clearTimeout(progressTimerRef.current);
-    }
-
-    let currentPhase = 0;
-    const totalDuration = progressQueue.reduce((sum, phase) => sum + phase.duration, 0);
-    
-    const updateProgress = () => {
-      if (currentPhase < progressQueue.length) {
-        const currentPhaseData = progressQueue[currentPhase];
-        
-        // Update progress display
-        setSearchProgress({
-          phase: currentPhaseData.name,
-          completed: currentPhase + 1,
-          total: progressQueue.length
-        });
-        
-        // Schedule next phase
-        if (currentPhase < progressQueue.length - 1) {
-          progressTimerRef.current = setTimeout(() => {
-            currentPhase++;
-            updateProgress();
-          }, currentPhaseData.duration);
-        } else {
-          // Final phase - wait for backend completion or timeout
-          const finalPhaseTimeout = setTimeout(() => {
-            // Force completion if backend takes too long
-            if (!progressState.backendCompleted) {
-              setProgressState(prev => ({ ...prev, backendCompleted: true }));
-            }
-          }, currentPhaseData.duration);
-          
-          // Clear timeout if backend completes early
-          const checkBackendCompletion = () => {
-            if (progressState.backendCompleted) {
-              clearTimeout(finalPhaseTimeout);
-            } else {
-              setTimeout(checkBackendCompletion, 200);
-            }
-          };
-          checkBackendCompletion();
-        }
-      }
-    };
-    
-    // Start progress sequence
-    updateProgress();
-  };
-
-  // Clean up timer on unmount
-  useEffect(() => {
-    return () => {
-      if (progressTimerRef.current) {
-        clearTimeout(progressTimerRef.current);
-      }
-    };
-  }, []);
   
 
   // Email tooltip timing effect
@@ -1653,13 +1583,6 @@ export default function Home() {
     }
   }, [currentResults, isAnalyzing, hasShownEmailTooltip, auth?.user]);
 
-  // Helper to get current companies without emails (only check top 3 contacts)
-  const getCurrentCompaniesWithoutEmails = () => {
-    return currentResults?.filter(company => 
-      !getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)
-    ) || [];
-  };
-
   // Helper to get a contact by ID from current results
   const getCurrentContact = (contactId: number) => {
     if (!currentResults) return null;
@@ -1671,22 +1594,9 @@ export default function Home() {
     return null;
   };
 
-  // Helper to get top N contacts from a company based on probability score (same as UI display)
-  const getTopContacts = (company: any, count: number) => {
-    if (!company.contacts || company.contacts.length === 0) return [];
-    
-    // Sort by probability score (same as UI display)
-    const sorted = [...company.contacts].sort((a, b) => {
-      return (b.probability || 0) - (a.probability || 0);
-    });
-    
-    return sorted.slice(0, count);
-  };
-
-
   // Helper to get the best contact from a company for email search
   const getBestContact = (company: any) => {
-    return getTopContacts(company, 1)[0];
+    return emailOrchestration.getTopContacts(company, 1)[0];
   };
 
   // Helper function to finish search with cache invalidation
@@ -1724,16 +1634,8 @@ export default function Home() {
       console.error("Cache refresh failed:", error);
     }
     
-    // Clean up progress timer
-    if (progressTimerRef.current) {
-      clearTimeout(progressTimerRef.current);
-      progressTimerRef.current = null;
-    }
-    
-    // Original finish logic
-    setIsConsolidatedSearching(false);
+    // Reset automated search flag
     isAutomatedSearchRef.current = false;
-    setSummaryVisible(true);
   };
 
   // Helper function to finish search without triggering list creation
@@ -1763,306 +1665,12 @@ export default function Home() {
       console.error("Cache refresh failed:", error);
     }
     
-    // Clean up progress timer and complete search UI
-    if (progressTimerRef.current) {
-      clearTimeout(progressTimerRef.current);
-      progressTimerRef.current = null;
-    }
-    
-    setIsConsolidatedSearching(false);
+    // Reset automated search flag
     isAutomatedSearchRef.current = false;
-    setSummaryVisible(true);
   };
 
   // Add delay helper for throttling API requests
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-  
-  // Helper function for processing contacts in parallel batches
-  const processContactsBatch = async (
-    contacts: Contact[], 
-    processFn: (contactId: number) => Promise<any>, 
-    batchSize = 3
-  ) => {
-    // Track total progress for UI updates
-    const totalBatches = Math.ceil(contacts.length / batchSize);
-    let completedBatches = 0;
-    
-    // Process contacts in batches of the specified size
-    for (let i = 0; i < contacts.length; i += batchSize) {
-      const batch = contacts.slice(i, i + batchSize);
-      
-      // Process this batch in parallel
-      await Promise.all(batch.map(contact => processFn(contact.id)));
-      
-      // Update progress
-      completedBatches++;
-      setSearchProgress(prev => ({
-        ...prev,
-        completed: Math.floor((completedBatches / totalBatches) * prev.total)
-      }));
-      
-      // Small delay between batches to avoid overwhelming APIs
-      await delay(200);
-      
-      // Continue processing all contacts in Perplexity phase to find multiple emails per company
-      // (Early termination removed to allow finding 2+ contacts per company)
-    }
-  };
-  
-  // Backend-orchestrated email search function with session persistence
-  const runConsolidatedEmailSearch = async () => {
-    if (!currentResults || currentResults.length === 0) return;
-    
-    setIsConsolidatedSearching(true);
-    isAutomatedSearchRef.current = true;
-    setSummaryVisible(false);
-    
-
-    
-    // Initialize progress state
-    setProgressState({
-      currentPhase: 0,
-      startTime: Date.now(),
-      backendCompleted: false
-    });
-    
-    // Set initial progress
-    setSearchProgress({
-      phase: progressQueue[0].name,
-      completed: 1,
-      total: progressQueue.length
-    });
-    
-    // Start realistic progress timer
-    startProgressTimer();
-    
-    try {
-      // First, check if we need to refresh contact data from recent email searches
-      const updatedResults = await refreshContactDataIfNeeded(currentResults);
-      
-      // Get companies without emails (only check top 3 contacts) using refreshed data
-      const companiesNeedingEmails = updatedResults.filter(company => 
-        !getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)
-      );
-      
-      if (companiesNeedingEmails.length === 0) {
-        console.log('No companies need email searches - all companies have sufficient emails');
-        setIsConsolidatedSearching(false);
-        setSummaryVisible(true);
-        return;
-      }
-      
-      // Extract company IDs for backend orchestration
-      const companyIds = companiesNeedingEmails.map(company => company.id);
-      
-      console.log(`Starting backend email orchestration for ${companyIds.length} companies`);
-      
-      // Mark email search as started in session (if we have a session)
-      if (currentSessionId) {
-        SearchSessionManager.markEmailSearchStarted(currentSessionId);
-      }
-      
-
-      
-      // Create a job for email search instead of calling find-all-emails
-      const response = await apiRequest("POST", "/api/search-jobs", {
-        query: `email-search-bulk`,
-        searchType: 'emails',
-        metadata: {
-          companyIds,
-          sessionId: currentSessionId,
-          isBulkEmailSearch: true
-        },
-        priority: 0
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Job creation failed: ${response.status}`);
-      }
-      
-      const { jobId } = await response.json();
-      
-      // Poll the job status until completion
-      let jobCompleted = false;
-      let pollAttempts = 0;
-      const maxPollAttempts = 60; // 2 minutes maximum
-      let data: any = { summary: { emailsFound: 0, contactsProcessed: 0, companiesProcessed: companyIds.length } };
-      
-      while (!jobCompleted && pollAttempts < maxPollAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-        
-        const statusResponse = await apiRequest("GET", `/api/search-jobs/${jobId}`);
-        const jobData = await statusResponse.json();
-        
-        if (jobData.status === 'completed') {
-          jobCompleted = true;
-          data = jobData.results || data;
-          console.log(`Backend orchestration completed:`, data);
-        } else if (jobData.status === 'failed') {
-          throw new Error(`Email search job failed: ${jobData.error}`);
-        }
-        
-        pollAttempts++;
-      }
-      
-      if (!jobCompleted) {
-        throw new Error('Email search job timed out');
-      }
-      
-      // Use metadata from backend response (not summary)
-      const emailData = data.metadata || data.summary || { 
-        emailsFound: 0, 
-        contactsEnriched: 0, 
-        companiesSearched: 0 
-      };
-      
-      console.log(`Backend orchestration completed with metadata:`, emailData);
-      
-      // Mark email search as completed in session
-      if (currentSessionId) {
-        SearchSessionManager.markEmailSearchCompleted(currentSessionId);
-      }
-      
-      // Mark backend as completed
-      setProgressState(prev => ({ ...prev, backendCompleted: true }));
-      
-      // Store the backend email count for summary display
-      setLastEmailSearchCount(emailData.emailsFound || 0);
-      // Note: sourceBreakdown not available in new format, set empty
-      setLastSourceBreakdown(emailData.sourceBreakdown || {});
-      
-      // Complete search immediately - show results
-      const contactCount = emailData.contactsEnriched || emailData.contactsProcessed || 0;
-      const companyCount = emailData.companiesSearched || emailData.companiesProcessed || 0;
-      
-      toast({
-        title: "Email Search Complete",
-        description: `Found ${emailData.emailsFound || 0} emails for ${contactCount} contacts across ${companyCount} companies`,
-      });
-      
-      // Refresh credits display (credits are always deducted on email search)
-      await queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
-      
-      // UPDATE APPROACH: Directly merge email data into current results
-      console.log('EMAIL SEARCH COMPLETE: Updating results with email data');
-      
-      // Step 1: Merge the email data directly into current results
-      if (data.companies && Array.isArray(data.companies)) {
-        console.log(`Merging emails from ${data.companies.length} companies into current results`);
-        
-        // Create a map of company ID to updated contacts with emails
-        const companyContactMap = new Map<number, any[]>();
-        data.companies.forEach((company: any) => {
-          if (company.contacts && Array.isArray(company.contacts)) {
-            companyContactMap.set(company.id, company.contacts);
-          }
-        });
-        
-        // Update the current results with the new email data
-        const updatedResults = currentResults.map(company => {
-          const updatedContacts = companyContactMap.get(company.id);
-          if (updatedContacts) {
-            // Merge the contacts - update existing ones with emails
-            const mergedContacts = company.contacts?.map(contact => {
-              const updatedContact = updatedContacts.find(c => c.id === contact.id);
-              return updatedContact ? { ...contact, ...updatedContact } : contact;
-            }) || updatedContacts;
-            
-            return { ...company, contacts: mergedContacts };
-          }
-          return company;
-        });
-        
-        // Step 2: Update state with the merged results
-        setCurrentResults(updatedResults);
-        
-        // Step 3: Save to localStorage
-        const searchState = {
-          query: currentQuery,
-          resultsCount: updatedResults.length,
-          listId: currentListId,
-          companies: updatedResults.map(c => ({ id: c.id, name: c.name })),
-          timestamp: Date.now(),
-          emailSearchCompleted: true
-        };
-        localStorage.setItem('searchState', JSON.stringify(searchState));
-        
-        // Step 4: Count emails to verify success
-        const emailCount = updatedResults.reduce((total, company) => 
-          total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
-        );
-        
-        console.log(`Email merge completed with ${emailCount} emails found`);
-        console.log('Email search completion: Direct merge approach successful');
-      } else {
-        // Fallback to database refresh if data format is unexpected
-        console.log('EMAIL SEARCH COMPLETE: Falling back to database reload');
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const freshResults = await refreshAndUpdateResults(
-          currentResults,
-          {
-            currentQuery: currentQuery,
-            currentListId: currentListId,
-            lastExecutedQuery: lastExecutedQuery
-          },
-          {
-            forceFresh: true,
-            additionalStateFields: {
-              emailSearchCompleted: true,
-              emailSearchTimestamp: Date.now()
-            }
-          }
-        );
-        
-        const emailCount = freshResults.reduce((total, company) => 
-          total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
-        );
-        
-        console.log(`Database reload completed with ${emailCount} emails found`);
-      }
-      
-      // Smart list update logic - only update existing lists, never create during email search
-      if (currentListId && currentQuery && currentResults) {
-        console.log('Updating existing list after email search completion:', currentListId);
-        updateListMutation.mutate({
-          query: currentQuery,
-          companies: currentResults,
-          listId: currentListId
-        });
-      } else {
-        console.log('No existing list to update - email results will be available for manual save');
-        // Don't auto-create during email search to prevent duplicates
-        // The first auto-creation from search completion will handle list creation
-      }
-
-      // Finish the search UI without doing another refresh (we already updated the state)
-      setIsConsolidatedSearching(false);
-      isAutomatedSearchRef.current = false;
-      setSummaryVisible(true);
-      
-      // Clear progress timer
-      if (progressTimerRef.current) {
-        clearTimeout(progressTimerRef.current);
-        progressTimerRef.current = null;
-      }
-      
-    } catch (error) {
-      console.error("Backend email orchestration error:", error);
-      toast({
-        title: "Search Failed",
-        description: error instanceof Error ? error.message : "Failed to complete email search",
-        variant: "destructive"
-      });
-      setIsConsolidatedSearching(false);
-      isAutomatedSearchRef.current = false;
-      
-      // Clear progress timer on error
-      if (progressTimerRef.current) {
-        clearTimeout(progressTimerRef.current);
-      }
-    }
-  };
 
   const getApolloButtonClass = (contact: Contact) => {
     if (isApolloSearchComplete(contact)) {
@@ -2441,7 +2049,7 @@ export default function Home() {
                       const selectedSearchType = localStorage.getItem('searchType') || 'contacts';
                       if (selectedSearchType === 'emails') {
                         // Auto-trigger email search for full flow
-                        setTimeout(() => runConsolidatedEmailSearch(), 500);
+                        setTimeout(() => emailOrchestration.runEmailSearch(), 500);
                       } else {
                         // Standard behavior - highlight email button
                         setHighlightEmailButton(true);
@@ -2490,17 +2098,17 @@ export default function Home() {
                           } catch (e) {
                             // Silent fail - prevents error from showing to users
                           }
-                          runConsolidatedEmailSearch();
+                          emailOrchestration.runEmailSearch();
                         }}
-                        disabled={isConsolidatedSearching}
+                        disabled={emailOrchestration.isSearching}
                       >
-                        <Mail className={`h-4 w-4 ${isConsolidatedSearching ? "animate-spin" : ""}`} />
-                        <span>{isConsolidatedSearching ? "Searching..." : "Find Key Emails"}</span>
+                        <Mail className={`h-4 w-4 ${emailOrchestration.isSearching ? "animate-spin" : ""}`} />
+                        <span>{emailOrchestration.isSearching ? "Searching..." : "Find Key Emails"}</span>
                       </Button>
                       
                       <LandingPageTooltip
                         message="Click here to find Egg-cellent emails of wonderful people."
-                        visible={showEmailTooltip && !(isAnalyzing || isConsolidatedSearching)}
+                        visible={showEmailTooltip && !(isAnalyzing || emailOrchestration.isSearching)}
                         position="custom"
                         offsetX={-10}
                       />
@@ -2559,29 +2167,29 @@ export default function Home() {
               )}
 
               {/* Email Search Summary - with reduced padding */}
-              {summaryVisible && (
+              {emailOrchestration.summaryVisible && (
                 <div className="px-0 md:px-4 pt-1 pb-0">
                   <EmailSearchSummary 
                     companiesWithEmails={currentResults?.filter(company => 
-                      getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)).length || 0}
+                      emailOrchestration.getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)).length || 0}
                     totalCompanies={currentResults?.length || 0}
-                    totalEmailsFound={lastEmailSearchCount || currentResults?.reduce((total, company) => 
-                      total + (getTopContacts(company, 3).filter(contact => contact.email && contact.email.length > 5).length), 0) || 0}
-                    sourceBreakdown={lastSourceBreakdown || undefined}
+                    totalEmailsFound={emailOrchestration.lastEmailSearchCount || currentResults?.reduce((total, company) => 
+                      total + (emailOrchestration.getTopContacts(company, 3).filter(contact => contact.email && contact.email.length > 5).length), 0) || 0}
+                    sourceBreakdown={emailOrchestration.lastSourceBreakdown || undefined}
                     onClose={() => setSummaryVisible(false)}
-                    isVisible={summaryVisible}
+                    isVisible={emailOrchestration.summaryVisible}
                   />
                 </div>
               )}
               
               {/* Email Search Progress - with reduced padding */}
-              {isConsolidatedSearching && (
+              {emailOrchestration.isSearching && (
                 <div className="px-0 md:px-4 pt-0 pb-3">
                   <SearchProgress 
-                    phase={searchProgress.phase}
-                    completed={searchProgress.completed}
-                    total={searchProgress.total}
-                    isVisible={isConsolidatedSearching}
+                    phase={emailOrchestration.searchProgress.phase}
+                    completed={emailOrchestration.searchProgress.completed}
+                    total={emailOrchestration.searchProgress.total}
+                    isVisible={emailOrchestration.isSearching}
                   />
                 </div>
               )}

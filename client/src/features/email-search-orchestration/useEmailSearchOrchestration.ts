@@ -269,7 +269,7 @@ export function useEmailSearchOrchestration({
           }
         });
 
-        const updatedResults = currentResults.map(company => {
+        const mergedResults = currentResults.map(company => {
           const updatedContacts = companyContactMap.get(company.id);
           if (updatedContacts) {
             const mergedContacts = company.contacts?.map(contact => {
@@ -282,20 +282,24 @@ export function useEmailSearchOrchestration({
           return company;
         });
 
-        setCurrentResults(updatedResults);
+        setCurrentResults(mergedResults);
 
-        // Save to localStorage
+        // Save to localStorage with full search state structure
         const searchState = {
           query: currentQuery,
-          resultsCount: updatedResults.length,
+          resultsCount: mergedResults.length,
           listId: currentListId,
-          companies: updatedResults.map(c => ({ id: c.id, name: c.name })),
+          currentQuery: currentQuery,
+          currentResults: mergedResults,
+          currentListId: currentListId,
+          lastExecutedQuery: lastExecutedQuery,
+          companies: mergedResults.map(c => ({ id: c.id, name: c.name })),
           timestamp: Date.now(),
           emailSearchCompleted: true
         };
         localStorage.setItem('searchState', JSON.stringify(searchState));
 
-        const emailCount = updatedResults.reduce((total, company) =>
+        const emailCount = mergedResults.reduce((total, company) =>
           total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
         );
 
