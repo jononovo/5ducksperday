@@ -1,10 +1,4 @@
 import { useState } from "react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,7 +14,9 @@ import {
   Info,
   MailCheck,
   Link,
-  Settings
+  Settings,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScheduleSendModal } from "@/components/schedule-send-modal";
@@ -93,22 +89,28 @@ export function CampaignSettings({
 
   return (
     <>
-    <Accordion 
-      type="single" 
-      collapsible 
-      value={open ? "settings" : ""}
-      onValueChange={(value) => onOpenChange(value === "settings")}
-      className={className}
-    >
-      <AccordionItem value="settings" className="border-none">
-        <AccordionTrigger className="hover:no-underline px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md">
-          <div className="flex items-center gap-1.5">
-            <Settings className="h-3.5 w-3.5" />
-            <span>Campaign Settings</span>
-          </div>
-        </AccordionTrigger>
-        <AccordionContent className="pb-4">
-          <div className="space-y-1 pt-1">
+    <div className={className}>
+      {/* Campaign Settings Toggle Button - Right aligned like Templates */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => onOpenChange(!open)}
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
+        >
+          <span>Campaign Settings</span>
+          {open ? (
+            <ChevronUp className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronDown className="w-3.5 h-3.5" />
+          )}
+        </button>
+      </div>
+      
+      {/* Collapsible Settings Container */}
+      <div className={cn(
+        "overflow-hidden transition-all duration-300 ease-in-out",
+        open ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
+      )}>
+        <div className="space-y-1 pt-1 pb-4">
             {/* Schedule Send Button */}
             <Button
               variant="ghost"
@@ -232,9 +234,9 @@ export function CampaignSettings({
               />
             </Button>
           </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+        </div>
+      </div>
+    </div>
 
     {/* Schedule Send Modal */}
     <ScheduleSendModal
