@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { PanelLeft, Plus, Users } from "lucide-react";
+import { PanelLeft, Plus, Users, Send } from "lucide-react";
 import type { SearchList } from "@shared/schema";
 import { generateListPromptOnly } from "@/lib/list-utils";
 import {
@@ -93,6 +93,19 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
               <Plus className="h-6 w-6 text-blue-500" strokeWidth={3} />
               <span className="text-sm font-medium text-gray-700">New Search</span>
             </button>
+          </div>
+          
+          {/* Campaigns Link */}
+          <div className="px-3 pb-3">
+            <Link href="/streak">
+              <button
+                onClick={() => onOpenChange(false)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:bg-gray-50 transition-all duration-200 group"
+              >
+                <Send className="h-5 w-5 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700">Campaigns</span>
+              </button>
+            </Link>
           </div>
           
           {/* Contacts Link */}
