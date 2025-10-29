@@ -554,8 +554,10 @@ export function EmailComposer({
   };
 
   const handleManualSend = () => {
-    const mailtoLink = `mailto:${toEmail}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailContent)}`;
-    window.location.href = mailtoLink;
+    // The EmailSendButton already handles opening the email client with the proper formatting.
+    // This callback is now only used for tracking/confirmation purposes.
+    // The duplicate mailto link creation has been removed to fix the double email window issue.
+    console.log('Email opened in default client');
   };
 
   const handleGmailConnect = () => {
