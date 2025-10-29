@@ -135,7 +135,7 @@ export default function Home() {
   const [selectedEmailContact, setSelectedEmailContact] = useState<Contact | null>(null);
   const [selectedEmailCompany, setSelectedEmailCompany] = useState<Company | null>(null);
   const [selectedCompanyContacts, setSelectedCompanyContacts] = useState<Contact[]>([]);
-  const [drawerWidth, setDrawerWidth] = useState(400);
+  const [drawerWidth, setDrawerWidth] = useState(480);
   const [isResizing, setIsResizing] = useState(false);
   const [searchSectionCollapsed, setSearchSectionCollapsed] = useState(false);
   const [drawerMode, setDrawerMode] = useState<'compose' | 'campaign'>('compose');
@@ -1888,8 +1888,8 @@ export default function Home() {
       if (!isResizing) return;
       
       const newWidth = window.innerWidth - e.clientX;
-      // Constrain width between 320px and 600px
-      const constrainedWidth = Math.max(320, Math.min(600, newWidth));
+      // Constrain width between 320px and 720px
+      const constrainedWidth = Math.max(320, Math.min(720, newWidth));
       setDrawerWidth(constrainedWidth);
     };
 
