@@ -46,6 +46,8 @@ export interface EmailSearchOrchestrationHook {
   
   // Actions
   runEmailSearch: () => Promise<void>;
+  updateEmailSearchMetrics: (emailsFound: number, sourceBreakdown?: Record<string, number>) => void;
+  closeSummary: () => void;
   
   // Progress management
   startProgressTimer: () => void;

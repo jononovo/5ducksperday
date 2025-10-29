@@ -392,6 +392,19 @@ export function useEmailSearchOrchestration({
     };
   }, []);
 
+  // Methods to update state from external sources
+  const updateEmailSearchMetrics = useCallback((emailsFound: number, sourceBreakdown?: Record<string, number>) => {
+    setLastEmailSearchCount(emailsFound);
+    if (sourceBreakdown) {
+      setLastSourceBreakdown(sourceBreakdown);
+    }
+    setSummaryVisible(true);
+  }, []);
+
+  const closeSummary = useCallback(() => {
+    setSummaryVisible(false);
+  }, []);
+
   return {
     isSearching,
     searchProgress,
@@ -401,6 +414,8 @@ export function useEmailSearchOrchestration({
     runEmailSearch,
     startProgressTimer,
     getCurrentCompaniesWithoutEmails,
-    getTopContacts
+    getTopContacts,
+    updateEmailSearchMetrics,
+    closeSummary
   };
 }

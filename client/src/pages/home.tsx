@@ -2067,10 +2067,10 @@ export default function Home() {
                         setContactReportVisible(true);
                         // Show email summary if search type was 'emails' and emails were found
                         if (metrics.searchType === 'emails' && metrics.totalEmails && metrics.totalEmails > 0) {
-                          setLastEmailSearchCount(metrics.totalEmails);
-                          // Use source breakdown from backend if available, otherwise fall back to default
-                          setLastSourceBreakdown(metrics.sourceBreakdown || { Perplexity: metrics.totalEmails, Apollo: 0, Hunter: 0 });
-                          setSummaryVisible(true);
+                          emailOrchestration.updateEmailSearchMetrics(
+                            metrics.totalEmails,
+                            metrics.sourceBreakdown || { Perplexity: metrics.totalEmails, Apollo: 0, Hunter: 0 }
+                          );
                         }
                       }
                     }}
@@ -2176,7 +2176,7 @@ export default function Home() {
                     totalEmailsFound={emailOrchestration.lastEmailSearchCount || currentResults?.reduce((total, company) => 
                       total + (emailOrchestration.getTopContacts(company, 3).filter(contact => contact.email && contact.email.length > 5).length), 0) || 0}
                     sourceBreakdown={emailOrchestration.lastSourceBreakdown || undefined}
-                    onClose={() => setSummaryVisible(false)}
+                    onClose={() => emailOrchestration.closeSummary()}
                     isVisible={emailOrchestration.summaryVisible}
                   />
                 </div>
