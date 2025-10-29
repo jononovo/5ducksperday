@@ -1,12 +1,10 @@
+import type { Company } from "@shared/schema";
 import type { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
 
-// Type for companies with their associated contacts
-type CompanyWithContacts = {
-  id: number;
-  name: string;
+// Type for companies with their associated contacts - extends the canonical Company from shared schema
+export interface CompanyWithContacts extends Company {
   contacts?: ContactWithCompanyInfo[];
-  [key: string]: any;
-};
+}
 
 export interface SavedSearchState {
   currentQuery: string | null;

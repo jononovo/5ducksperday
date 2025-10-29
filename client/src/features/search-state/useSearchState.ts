@@ -1,13 +1,13 @@
 import { useRef, useCallback } from "react";
 import { apiRequest } from "@/lib/queryClient";
-import type { SavedSearchState, SearchStateHookReturn } from "./types";
+import type { SavedSearchState, SearchStateHookReturn, CompanyWithContacts } from "./types";
 
 /**
  * Custom hook for managing search state persistence and restoration
  * Handles localStorage/sessionStorage, database refresh, and state synchronization
  */
 export function useSearchState(
-  setCurrentResults: React.Dispatch<React.SetStateAction<any[] | null>>
+  setCurrentResults: React.Dispatch<React.SetStateAction<CompanyWithContacts[] | null>>
 ): SearchStateHookReturn {
   // Refs for tracking component lifecycle
   const isMountedRef = useRef(true);
@@ -16,9 +16,9 @@ export function useSearchState(
   const refreshVersionRef = useRef(0);
   
   // Helper to check if companies have complete contact information
-  const hasCompleteContacts = (companies: any[] | null): boolean => {
+  const hasCompleteContacts = (companies: CompanyWithContacts[] | null): boolean => {
     if (!companies || companies.length === 0) return false;
-    return companies.some((c: any) => c.contacts && c.contacts.length > 0);
+    return companies.some(c => c.contacts && c.contacts.length > 0);
   };
   
   // Load search state from localStorage/sessionStorage with fallback
@@ -52,7 +52,7 @@ export function useSearchState(
   // Persist search state to both localStorage and sessionStorage
   const persistSearchState = useCallback((
     state: {
-      currentResults: any[];
+      currentResults: CompanyWithContacts[];
       emailSearchCompleted?: boolean;
       emailSearchTimestamp?: number | null;
       navigationRefreshTimestamp?: number;
@@ -89,9 +89,9 @@ export function useSearchState(
   
   // Refresh contact data from database to ensure freshness
   const refreshContactDataFromDatabase = useCallback(async (
-    companies: any[],
+    companies: CompanyWithContacts[],
     options?: { forceFresh?: boolean }
-  ): Promise<any[]> => {
+  ): Promise<CompanyWithContacts[]> => {
     try {
       console.log('Refreshing contact data from database for navigation persistence...');
       
@@ -103,7 +103,7 @@ export function useSearchState(
             const freshContacts = await response.json();
             
             console.log(`Refreshed ${freshContacts.length} contacts for ${company.name}:`, 
-              freshContacts.map((c: any) => ({
+              freshContacts.map(c => ({
                 name: c.name,
                 email: c.email,
                 hasEmail: !!c.email
@@ -130,7 +130,7 @@ export function useSearchState(
   }, []);
   
   // Sort companies by contact count (helper for consistent ordering)
-  const sortCompaniesByContactCount = (companies: any[]): any[] => {
+  const sortCompaniesByContactCount = (companies: CompanyWithContacts[]): CompanyWithContacts[] => {
     return [...companies].sort((a, b) => {
       const contactsA = a.contacts?.length || 0;
       const contactsB = b.contacts?.length || 0;
@@ -140,7 +140,7 @@ export function useSearchState(
   
   // Unified function to refresh and update results with sorting
   const refreshAndUpdateResults = useCallback(async (
-    companies: any[],
+    companies: CompanyWithContacts[],
     stateValues: {
       currentQuery: string;
       currentListId: number | null;
@@ -156,7 +156,7 @@ export function useSearchState(
         navigationRefreshTimestamp?: number;
       };
     } = {}
-  ): Promise<any[]> => {
+  ): Promise<CompanyWithContacts[]> => {
     try {
       // Increment version to track this refresh operation
       const thisVersion = ++refreshVersionRef.current;

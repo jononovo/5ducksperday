@@ -78,12 +78,7 @@ import { ContactActionColumn } from "@/components/contact-action-column";
 import { SearchSessionManager } from "@/lib/search-session-manager";
 import { SavedSearchesDrawer } from "@/components/saved-searches-drawer";
 import { useComprehensiveEmailSearch } from "@/hooks/use-comprehensive-email-search";
-import { useSearchState, type SavedSearchState } from "@/features/search-state";
-
-// Extend Company type to include contacts
-interface CompanyWithContacts extends Company {
-  contacts?: ContactWithCompanyInfo[];
-}
+import { useSearchState, type SavedSearchState, type CompanyWithContacts } from "@/features/search-state";
 
 // Define SourceBreakdown interface to match EmailSearchSummary
 interface SourceBreakdown {
