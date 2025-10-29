@@ -168,15 +168,15 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
 
       <div className="space-y-2">
         <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
-          <SelectTrigger>
-            <SelectValue placeholder={isLoading ? "Loading templates..." : "Select a template"} />
+          <SelectTrigger className="h-7 text-xs text-muted-foreground">
+            <SelectValue placeholder={isLoading ? "Loading templates..." : "Select a Template"} />
           </SelectTrigger>
           <SelectContent>
             {typedTemplates.map((template) => (
               <SelectItem 
                 key={template.id} 
                 value={template.id.toString()}
-                className="pl-3"
+                className="pl-3 text-xs"
               >
                 {template.name}
               </SelectItem>
