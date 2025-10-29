@@ -264,17 +264,9 @@ export function SearchConfirmationModal({
                   We found {searchResults.length} companies matching your search. Before we set up your outreach campaign, let's make sure these are the right prospects.
                 </p>
 
-                {/* Search query display */}
-                <div className="mb-4">
-                  <div className="p-3 bg-muted rounded-lg">
-                    <span className="font-medium">Your search:</span>
-                    <span className="text-muted-foreground ml-2">"{searchQuery}"</span>
-                  </div>
-                </div>
-
                 {/* Companies list with rating buttons */}
                 <div className="mb-6">
-                  <ScrollArea className="h-[calc(100vh-380px)] md:h-[calc(100vh-320px)] border rounded-lg">
+                  <ScrollArea className="h-[calc(100vh-340px)] md:h-[calc(100vh-280px)] border rounded-lg">
                     <div className="p-4 space-y-3">
                       {searchResults.map((company, index) => (
                         <Card 
@@ -374,6 +366,14 @@ export function SearchConfirmationModal({
                     </Button>
                   </div>
                 )}
+                
+                {/* Search query display - moved to bottom */}
+                <div className="mt-6">
+                  <div className="p-3 bg-muted rounded-lg">
+                    <span className="font-medium text-sm">Your search:</span>
+                    <span className="text-muted-foreground text-sm ml-2">"{searchQuery}"</span>
+                  </div>
+                </div>
               </>
             )}
           </div>
