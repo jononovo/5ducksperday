@@ -19,7 +19,8 @@ import {
   Wand2,
   Info,
   MailCheck,
-  Link
+  Link,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScheduleSendModal } from "@/components/schedule-send-modal";
@@ -103,7 +104,10 @@ export function CampaignSettings({
     >
       <AccordionItem value="settings" className="border-none">
         <AccordionTrigger className="hover:no-underline py-3">
-          <span className="text-lg font-semibold">Settings</span>
+          <div className="flex items-center gap-2">
+            <Settings className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground">Campaign Settings</span>
+          </div>
         </AccordionTrigger>
         <AccordionContent className="pb-6">
           <div className="space-y-4 pt-2">
