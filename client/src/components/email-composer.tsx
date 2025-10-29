@@ -909,7 +909,7 @@ export function EmailComposer({
             className="mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-md cursor-pointer transition-colors hover:bg-muted/50 flex items-center justify-between"
           >
             {(campaignRecipients || currentQuery) ? (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+              <span className="inline-flex items-center px-2.5 py-1 rounded bg-primary/10 text-primary text-sm font-medium truncate max-w-full">
                 {getRecipientDisplayText()}
               </span>
             ) : (
