@@ -98,7 +98,7 @@ export function CampaignSettings({
       collapsible 
       value={open ? "settings" : ""}
       onValueChange={(value) => onOpenChange(value === "settings")}
-      className={cn("border-t", className)}
+      className={className}
     >
       <AccordionItem value="settings" className="border-none">
         <AccordionTrigger className="hover:no-underline py-3">
