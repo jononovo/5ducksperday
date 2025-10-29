@@ -15,8 +15,9 @@ const PromptEditor = lazy(() => import("@/components/prompt-editor"));
 import { EmailSearchSummary } from "@/components/email-search-summary";
 import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
 import { MainSearchSummary } from "@/components/main-search-summary";
-import { EmailComposer } from "@/components/email-composer";
 import { OnboardingFlowOrchestrator } from "@/components/onboarding/OnboardingFlowOrchestrator";
+import { EmailDrawer, useEmailDrawer } from "@/features/email-drawer";
+import { TopProspectsCard } from "@/features/top-prospects";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
@@ -140,15 +141,13 @@ export default function Home() {
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
   const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
   
-  // State for email drawer
-  const [emailDrawerOpen, setEmailDrawerOpen] = useState(false);
-  const [selectedEmailContact, setSelectedEmailContact] = useState<Contact | null>(null);
-  const [selectedEmailCompany, setSelectedEmailCompany] = useState<Company | null>(null);
-  const [selectedCompanyContacts, setSelectedCompanyContacts] = useState<Contact[]>([]);
-  const [drawerWidth, setDrawerWidth] = useState(480);
-  const [isResizing, setIsResizing] = useState(false);
+  // Email drawer state management
+  const emailDrawer = useEmailDrawer({
+    onClose: () => {
+      setSearchSectionCollapsed(false);
+    }
+  });
   const [searchSectionCollapsed, setSearchSectionCollapsed] = useState(false);
-  const [drawerMode, setDrawerMode] = useState<'compose' | 'campaign'>('compose');
   
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -166,14 +165,13 @@ export default function Home() {
   // Use shared comprehensive email search hook
   // Handler for contact click to open email drawer
   const handleContactClick = (contact: ContactWithCompanyInfo, company: Company) => {
-    setSelectedEmailContact(contact);
-    setSelectedEmailCompany(company);
-    
     // Get all contacts from the same company
     const companyContacts = currentResults
       ?.find(c => c.id === company.id)
       ?.contacts || [];
-    setSelectedCompanyContacts(companyContacts);
+    
+    // Open the drawer with the selected contact
+    emailDrawer.openDrawer(contact, company, companyContacts);
     
     // Check if contact has an email and show appropriate notification
     if (contact.email) {
@@ -200,18 +198,17 @@ export default function Home() {
       }
     }
     
-    setEmailDrawerOpen(true);
     // Auto-collapse search section when email drawer opens
     setSearchSectionCollapsed(true);
   };
   
   const handleEmailContactChange = (newContact: Contact | null) => {
-    setSelectedEmailContact(newContact);
+    emailDrawer.setSelectedContact(newContact);
   };
 
   // Auto-collapse search section when email drawer opens or when search results exist
   useEffect(() => {
-    if (emailDrawerOpen) {
+    if (emailDrawer.isOpen) {
       setSearchSectionCollapsed(true);
     } else if (currentResults && currentResults.length > 0) {
       // Also collapse when search results are shown
@@ -220,7 +217,7 @@ export default function Home() {
       // Expand when drawer closes and no results
       setSearchSectionCollapsed(false);
     }
-  }, [emailDrawerOpen, currentResults]);
+  }, [emailDrawer.isOpen, currentResults]);
   
   const { 
     handleComprehensiveEmailSearch: comprehensiveSearchHook, 
@@ -1948,41 +1945,6 @@ export default function Home() {
     return sorted.slice(0, count);
   };
 
-  // Resize handle for email drawer
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizing(true);
-  };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
-      
-      const newWidth = window.innerWidth - e.clientX;
-      // Constrain width between 320px and 720px
-      const constrainedWidth = Math.max(320, Math.min(720, newWidth));
-      setDrawerWidth(constrainedWidth);
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-    };
-
-    if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      // Prevent text selection during resize
-      document.body.style.userSelect = 'none';
-      document.body.style.cursor = 'col-resize';
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.userSelect = '';
-      document.body.style.cursor = '';
-    };
-  }, [isResizing]);
 
   // Helper to get the best contact from a company for email search
   const getBestContact = (company: any) => {
@@ -2647,22 +2609,17 @@ export default function Home() {
       
       <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden relative">
         {/* Backdrop for mobile */}
-      {emailDrawerOpen && (
+      {emailDrawer.isOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => {
-            setEmailDrawerOpen(false);
-            setSelectedEmailContact(null);
-            setSelectedEmailCompany(null);
-            setSelectedCompanyContacts([]);
-            // Expand search section when closing drawer
-            setSearchSectionCollapsed(false);
+            emailDrawer.closeDrawer();
           }}
         />
       )}
       
       {/* Main Content Container - will be compressed when drawer opens on desktop */}
-      <div className={`flex-1 overflow-y-auto main-content-compressed ${emailDrawerOpen ? 'compressed-view' : ''}`}>
+      <div className={`flex-1 overflow-y-auto main-content-compressed ${emailDrawer.isOpen ? 'compressed-view' : ''}`}>
         <div className="container mx-auto py-6 px-0 md:px-6">
           {/* Intro tour modal has been removed */}
 
@@ -2700,7 +2657,7 @@ export default function Home() {
             >
               <div className="px-3 md:px-6 py-1"> {/* Reduced mobile padding, matched desktop padding with CardHeader (p-6) */}
                 {/* Collapse button when expanded */}
-                {!searchSectionCollapsed && (emailDrawerOpen || (currentResults && currentResults.length > 0)) && (
+                {!searchSectionCollapsed && (emailDrawer.isOpen || (currentResults && currentResults.length > 0)) && (
                   <button
                     onClick={() => setSearchSectionCollapsed(true)}
                     className="absolute right-3 md:right-6 top-2 z-10 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
@@ -2787,7 +2744,7 @@ export default function Home() {
                 </Suspense>
                 
                 {/* Action buttons menu - Moved here from search results, Hidden in focus mode and active search state */}
-                {currentResults && currentResults.length > 0 && !inputHasChanged && !emailDrawerOpen && (
+                {currentResults && currentResults.length > 0 && !inputHasChanged && !emailDrawer.isOpen && (
                   <div className="px-0 py-3 flex items-center justify-between bg-white dark:bg-transparent transition-all duration-300">
                     <div className="flex items-center gap-2">
                     <div className="relative">
@@ -2858,7 +2815,7 @@ export default function Home() {
 
           {/* Companies Analysis Section - Moved to top */}
           {currentResults && currentResults.length > 0 ? (
-            <Card className={`w-full rounded-none md:rounded-lg border-0 transition-all duration-300 ${emailDrawerOpen ? 'shadow-none' : ''}`}>
+            <Card className={`w-full rounded-none md:rounded-lg border-0 transition-all duration-300 ${emailDrawer.isOpen ? 'shadow-none' : ''}`}>
               
               {/* Contact Discovery Report - with reduced padding */}
               {contactReportVisible && (
@@ -2919,7 +2876,7 @@ export default function Home() {
                       pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
                       onContactClick={handleContactClick}
                       onViewModeChange={setCompaniesViewMode}
-                      selectedEmailContact={selectedEmailContact}
+                      selectedEmailContact={emailDrawer.selectedContact}
                   />
                   </Suspense>
                 </div>
@@ -2927,198 +2884,23 @@ export default function Home() {
             </Card>
           ) : null}
 
-          {/* Top Prospects Section - Moved below Companies Analysis - Hidden in slides view */}
-          {currentResults && currentResults.length > 0 && companiesViewMode !== 'slides' && (
-            <Card className="w-full rounded-none md:rounded-lg">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <UserCircle className="w-5 h-5" />
-                    Top Prospects
-                  </CardTitle>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const selectedProspects = getSelectedProspects();
-                        if (selectedProspects.length > 0) {
-                          handleEnrichProspects(selectedProspects);
-                        } else {
-                          handleEnrichProspects(getTopProspects());
-                        }
-                      }}
-                    >
-                      <Banknote className="mr-2 h-4 w-4" />
-                      {selectedContacts.size > 0 
-                        ? `Enrich Selected (${selectedContacts.size})` 
-                        : "Enrich All Prospects"}
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Highest probability contacts across all companies
-                </p>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-10 hidden">
-                          <Checkbox 
-                            checked={getTopProspects().length > 0 && 
-                              getTopProspects().every(contact => selectedContacts.has(contact.id))}
-                            onCheckedChange={handleSelectAllContacts}
-                            aria-label="Select all contacts"
-                          />
-                        </TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead className="hidden md:table-cell"><span className="text-xs">Company</span></TableHead>
-                        <TableHead className="hidden md:table-cell"><span className="text-xs">Email</span></TableHead>
-                        <TableHead>Score</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getTopProspects().map((contact) => (
-                        <TableRow key={contact.id} className="group">
-                          <TableCell className="w-10 hidden">
-                            <Checkbox 
-                              checked={isContactSelected(contact.id)}
-                              onCheckedChange={() => handleCheckboxChange(contact.id)}
-                              aria-label={`Select ${contact.name}`}
-                            />
-                          </TableCell>
-                          <TableCell className="py-1 pl-1">
-                            <div className="font-medium leading-tight">{contact.name}</div>
-                            <div className="text-xs text-slate-500 leading-tight -mt-0.5 truncate max-w-[300px]" title={contact.role || "N/A"}>
-                              {contact.role || "N/A"}
-                            </div>
-                            <div className="md:hidden text-xs text-muted-foreground leading-tight mt-0.5">
-                              <div>{contact.companyName}</div>
-                              <div className="flex flex-col mt-1">
-                                <div>{contact.email || (
-                                  <Mail className="h-4 w-4 text-gray-400 inline" />
-                                )}</div>
-                                {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
-                                  <div className="flex flex-col gap-0.5 mt-1">
-                                    {contact.alternativeEmails.map((email, i) => (
-                                      <span key={i} className="italic opacity-70">
-                                        {email}
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </TableCell>
-                          
-                          {/* Company name - hidden on mobile, shown as small text */}
-                          <TableCell className="hidden md:table-cell">
-                            <span className="text-xs text-muted-foreground">{contact.companyName}</span>
-                          </TableCell>
-                          
-                          {/* Email - hidden on mobile, shown as small text */}
-                          <TableCell className="py-1 hidden md:table-cell">
-                            <div className="text-xs text-muted-foreground">
-                              {contact.email || (
-                                <TooltipProvider delayDuration={300}>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span className="text-muted-foreground">
-                                        <Mail className="h-4 w-4 text-gray-400" />
-                                      </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" className="text-xs">
-                                      <p>Use "Action" icons on this row to find this email. 👉🏼</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              )}
-                            </div>
-                            {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
-                              <div className="text-xs text-muted-foreground opacity-75 mt-1">
-                                {contact.alternativeEmails.map((altEmail, index) => (
-                                  <div key={index} className="text-xs italic">
-                                    {altEmail}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </TableCell>
-                          
-                          <TableCell>
-                            <Badge variant="secondary">
-                              {contact.probability || 0}
-                            </Badge>
-                          </TableCell>
-                          
-                          <TableCell>
-                            <div className="flex items-center">
-                              {/* Contact actions (first 5 icons) */}
-                              <ContactActionColumn
-                                contact={contact}
-                                handleContactView={handleContactView}
-                                handleEnrichContact={handleEnrichContact}
-                                handleHunterSearch={handleHunterSearch}
-          
-                                handleApolloSearch={handleApolloSearch}
-                                pendingContactIds={pendingContactIds}
-                                pendingHunterIds={pendingHunterIds}
-          
-                                pendingApolloIds={pendingApolloIds}
-                                standalone={true}
-                              />
-                              
-                              {/* Feedback button - both desktop and mobile */}
-                              <TooltipProvider delayDuration={500}>
-                                <Tooltip>
-                                  <DropdownMenu>
-                                    <TooltipTrigger asChild>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1">
-                                          <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                    </TooltipTrigger>
-                                    <DropdownMenuContent>
-                                      <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "excellent")}>
-                                        <Star className="h-4 w-4 mr-2 text-yellow-500" />
-                                        Excellent Match
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "ok")}>
-                                        <ThumbsUp className="h-4 w-4 mr-2 text-blue-500" />
-                                        OK Match
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleContactFeedback(contact.id, "terrible")}>
-                                        <ThumbsDown className="h-4 w-4 mr-2 text-red-500" />
-                                        Not a Match
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                  <TooltipContent>
-                                    <p>Rate this contact</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {getTopProspects().length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={7} className="text-center text-muted-foreground">
-                            No high-probability contacts found in the search results
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Top Prospects Section - Modular component */}
+          <TopProspectsCard
+            prospects={getTopProspects()}
+            selectedContacts={selectedContacts}
+            pendingContactIds={pendingContactIds}
+            pendingHunterIds={pendingHunterIds}
+            pendingApolloIds={pendingApolloIds}
+            isVisible={!!(currentResults && currentResults.length > 0 && companiesViewMode !== 'slides')}
+            onEnrichProspects={handleEnrichProspects}
+            onSelectAll={handleSelectAllContacts}
+            onCheckboxChange={handleCheckboxChange}
+            onContactView={handleContactView}
+            onEnrichContact={handleEnrichContact}
+            onHunterSearch={handleHunterSearch}
+            onApolloSearch={handleApolloSearch}
+            onContactFeedback={handleContactFeedback}
+          />
             </div>
 
             {/* API Templates Button moved to settings drawer */}
@@ -3134,248 +2916,22 @@ export default function Home() {
         </div>
       </div>
       
-      {/* Email Drawer Container - keeps column aligned */}
-      <div className={`duplicate-full-height-drawer-to-keep-column-aligned ${
-        emailDrawerOpen 
-          ? 'hidden md:block md:relative md:h-full' 
-          : 'hidden md:block md:relative w-0'
-      }`} style={{ ...(emailDrawerOpen && window.innerWidth >= 768 ? { width: `${drawerWidth}px` } : {}) }}>
-        {/* Actual Email Drawer with dynamic height - Overlay on mobile, absolute on desktop */}
-        <div className={`${!isResizing ? 'email-drawer-transition' : ''} ${
-          emailDrawerOpen 
-            ? 'fixed md:absolute top-[2.5rem] md:top-0 right-0 bottom-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen w-[90%] sm:w-[400px] z-50' 
-            : 'fixed md:absolute w-0 right-0 top-0'
-        } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`} 
-        style={{ 
-          ...(emailDrawerOpen && window.innerWidth >= 768 ? { width: `${drawerWidth}px` } : {}),
-          ...(isResizing ? { transition: 'none' } : {})
-        }}>
-          {/* Resize Handle - Only show on desktop */}
-          {emailDrawerOpen && (
-            <div
-              onMouseDown={handleMouseDown}
-              className="hidden md:block absolute -left-1.5 top-0 bottom-0 w-3 cursor-col-resize z-10 group"
-            >
-              <div className="absolute left-1 top-1/2 -translate-y-1/2 w-2 h-12 bg-muted-foreground/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-          )}
-          <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen pb-4" style={{ minWidth: emailDrawerOpen ? '320px' : '0' }}>
-            {/* Header */}
-            <div className="sticky top-0 bg-background px-4 py-1.5 z-10">
-              {/* Top row - Tabs and close */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {/* Campaign Tab */}
-                  <button
-                    onClick={() => setDrawerMode('campaign')}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                      drawerMode === 'campaign'
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <Megaphone className="h-3.5 w-3.5 text-pink-500" />
-                    Create Campaign
-                  </button>
-                  {/* Compose Tab */}
-                  <button
-                    onClick={() => setDrawerMode('compose')}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                      drawerMode === 'compose'
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <Mail className="h-3.5 w-3.5" />
-                    Compose
-                  </button>
-                </div>
-                <button
-                  onClick={() => {
-                    setEmailDrawerOpen(false);
-                    setSelectedEmailContact(null);
-                    setSelectedEmailCompany(null);
-                    setSelectedCompanyContacts([]);
-                    // Expand search section when closing drawer
-                    setSearchSectionCollapsed(false);
-                    setDrawerMode('compose'); // Reset to compose mode when closing
-                  }}
-                  className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
-                  aria-label="Close email panel"
-                >
-                  <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                </button>
-              </div>
-              
-              {/* Contact row with navigation - Only show in compose mode */}
-              {drawerMode === 'compose' && selectedEmailContact && (
-                <div className="flex items-center justify-between mt-0.5">
-                  <p className="text-sm truncate flex-1 min-w-0">
-                    <span className="font-medium">{selectedEmailContact.name}</span>
-                    <span className="text-xs text-muted-foreground"> • {selectedEmailCompany?.name}</span>
-                  </p>
-                  
-                  {/* Contact navigation */}
-                  {selectedCompanyContacts.length > 1 && (
-                    <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                      <button
-                        onClick={() => {
-                          const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
-                          const prevIndex = currentIndex > 0 ? currentIndex - 1 : selectedCompanyContacts.length - 1;
-                          handleEmailContactChange(selectedCompanyContacts[prevIndex]);
-                        }}
-                        className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                      <span className="text-xs text-muted-foreground">
-                        {selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id) + 1} / {selectedCompanyContacts.length}
-                      </span>
-                      <button
-                        onClick={() => {
-                          const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
-                          const nextIndex = currentIndex < selectedCompanyContacts.length - 1 ? currentIndex + 1 : 0;
-                          handleEmailContactChange(selectedCompanyContacts[nextIndex]);
-                        }}
-                        className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-          {/* Email Composer */}
-          {emailDrawerOpen && (
-            <div className="p-4">
-              <EmailComposer
-                selectedContact={selectedEmailContact}
-                selectedCompany={selectedEmailCompany}
-                onContactChange={handleEmailContactChange}
-                drawerMode={drawerMode}
-                currentListId={currentListId}
-                currentQuery={currentQuery}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-      </div>
-
-      {/* For mobile: Render drawer without wrapper since it's fixed positioned */}
-      <div className={`md:hidden email-drawer-transition ${
-        emailDrawerOpen 
-          ? 'fixed top-[2.5rem] right-0 bottom-auto max-h-[calc(100vh-2.5rem)] w-[90%] sm:w-[400px] z-50' 
-          : 'fixed w-0 right-0 top-[2.5rem]'
-      } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`}>
-        {emailDrawerOpen && (
-          <>
-            <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)]" style={{ minWidth: '320px' }}>
-              <div className="flex flex-col min-h-full pb-24">
-                {/* Same header content */}
-                <div className="sticky top-0 bg-background px-4 py-1.5 z-10">
-                  {/* Top row - Tabs and close */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {/* Campaign Tab */}
-                      <button
-                        onClick={() => setDrawerMode('campaign')}
-                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                          drawerMode === 'campaign'
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        <Megaphone className="h-3.5 w-3.5 text-pink-500" />
-                        Create Campaign
-                      </button>
-                      {/* Compose Tab */}
-                      <button
-                        onClick={() => setDrawerMode('compose')}
-                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                          drawerMode === 'compose'
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        <Mail className="h-3.5 w-3.5" />
-                        Compose
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setEmailDrawerOpen(false);
-                        setSelectedEmailContact(null);
-                        setSelectedEmailCompany(null);
-                        setSelectedCompanyContacts([]);
-                        setSearchSectionCollapsed(false);
-                        setDrawerMode('compose'); // Reset to compose mode when closing
-                      }}
-                      className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
-                      aria-label="Close email panel"
-                    >
-                      <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                    </button>
-                  </div>
-                  
-                  {/* Contact row with navigation - Only show in compose mode */}
-                  {drawerMode === 'compose' && selectedEmailContact && (
-                    <div className="flex items-center justify-between mt-0.5">
-                      <p className="text-sm truncate flex-1 min-w-0">
-                        <span className="font-medium">{selectedEmailContact.name}</span>
-                        <span className="text-xs text-muted-foreground"> • {selectedEmailCompany?.name}</span>
-                      </p>
-                      
-                      {/* Contact navigation */}
-                      {selectedCompanyContacts.length > 1 && (
-                        <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                          <button
-                            onClick={() => {
-                              const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
-                              const prevIndex = currentIndex > 0 ? currentIndex - 1 : selectedCompanyContacts.length - 1;
-                              handleEmailContactChange(selectedCompanyContacts[prevIndex]);
-                            }}
-                            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                          </button>
-                          <span className="text-xs text-muted-foreground">
-                            {selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id) + 1} / {selectedCompanyContacts.length}
-                          </span>
-                          <button
-                            onClick={() => {
-                              const currentIndex = selectedCompanyContacts.findIndex(c => c.id === selectedEmailContact?.id);
-                              const nextIndex = currentIndex < selectedCompanyContacts.length - 1 ? currentIndex + 1 : 0;
-                              handleEmailContactChange(selectedCompanyContacts[nextIndex]);
-                            }}
-                            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-              {/* Email Composer for mobile */}
-              <div className="p-4">
-                <EmailComposer
-                  selectedContact={selectedEmailContact}
-                  selectedCompany={selectedEmailCompany}
-                  onContactChange={handleEmailContactChange}
-                  drawerMode={drawerMode}
-                  currentListId={currentListId}
-                  currentQuery={currentQuery}
-                />
-              </div>
-            </div>
-            </div>
-          </>
-        )}
-      </div>
+      {/* Email Drawer - New modular component */}
+      <EmailDrawer
+        open={emailDrawer.isOpen}
+        mode={emailDrawer.mode}
+        selectedContact={emailDrawer.selectedContact}
+        selectedCompany={emailDrawer.selectedCompany}
+        selectedCompanyContacts={emailDrawer.selectedCompanyContacts}
+        width={emailDrawer.drawerWidth}
+        isResizing={emailDrawer.isResizing}
+        currentListId={currentListId}
+        currentQuery={currentQuery}
+        onClose={emailDrawer.closeDrawer}
+        onModeChange={emailDrawer.setMode}
+        onContactChange={handleEmailContactChange}
+        onResizeStart={emailDrawer.handleMouseDown}
+      />
 
       {/* Notification System - Outside flex container */}
       <NotificationToast

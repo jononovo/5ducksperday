@@ -88,6 +88,18 @@ The `lists` table has TWO different ID fields that can cause confusion:
 
 ## Recent Updates (October 2025)
 
+### Code Architecture & Refactoring (October 29, 2025)
+- **Email Drawer Feature Extraction**: Modularized email drawer from home.tsx
+  - Created `client/src/features/email-drawer/` with 4 files (types, hook, component, exports)
+  - Reduced home.tsx from 3,324 to 3,053 lines (~271 line reduction)
+  - Improved maintainability and reusability across the application
+  - Zero functionality regression - all drawer features preserved
+- **Top Prospects Card Extraction**: Modularized prospects table from home.tsx
+  - Created `client/src/features/top-prospects/` with 3 files (types, component, exports)
+  - Further reduced home.tsx from 3,053 to 2,879 lines (~176 line reduction)
+  - Maintains all functionality: table rendering, selection, enrichment, feedback
+  - Total reduction: **home.tsx down from 3,324 to 2,879 lines (445 lines removed)**
+
 ### Campaign & Email Features
 - **Email Campaign System**: Full campaign management with templates and merge fields
 - **Autopilot Scheduling**: Automated sending with intelligent spacing
