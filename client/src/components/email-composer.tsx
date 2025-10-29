@@ -608,11 +608,11 @@ export function EmailComposer({
 
   const getRecipientDisplayText = () => {
     if (!campaignRecipients) {
-      return currentQuery ? `"${currentQuery}"` : "Select recipients";
+      return currentQuery ? currentQuery : "Select recipients";
     }
     
     if (campaignRecipients.type === 'current') {
-      return `"${campaignRecipients.query}"`;
+      return campaignRecipients.query;
     } else if (campaignRecipients.type === 'multiple') {
       return `${campaignRecipients.searchListIds.length} search lists selected`;
     } else if (campaignRecipients.type === 'existing') {
@@ -914,7 +914,7 @@ export function EmailComposer({
             className="mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-md cursor-pointer transition-colors hover:bg-muted/50 flex items-center justify-between"
           >
             {(campaignRecipients || currentQuery) ? (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 text-sm font-medium">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
                 {getRecipientDisplayText()}
               </span>
             ) : (
