@@ -537,7 +537,7 @@ export function EmailComposer({
   };
 
   const handleCreateCampaign = (type: 'scheduled' | 'immediate' | 'draft' = 'scheduled') => {
-    // For Schedule Campaign and Start Now, open the settings accordion
+    // For Schedule Campaign and Start Now
     if (type === 'scheduled' || type === 'immediate') {
       // Validate requirements first
       if (!currentListId && !campaignRecipients) {
@@ -568,13 +568,24 @@ export function EmailComposer({
         setCampaignRecipients(autoRecipients);
       }
 
-      // Update settings based on the type
+      // If settings are already open, launch the campaign
+      if (settingsOpen) {
+        // Update settings and launch
+        setCampaignSettings(prev => ({
+          ...prev,
+          scheduleSend: type === 'scheduled'
+        }));
+        
+        // Launch the campaign
+        createCampaignMutation.mutate(type);
+        return;
+      }
+
+      // Otherwise, open the settings accordion
       setCampaignSettings(prev => ({
         ...prev,
         scheduleSend: type === 'scheduled'
       }));
-
-      // Open the settings accordion
       setSettingsOpen(true);
       return;
     }
@@ -1011,7 +1022,7 @@ export function EmailComposer({
               ) : (
                 <>
                   <Send className="w-3 h-3 mr-1" />
-                  Schedule Campaign
+                  {settingsOpen ? 'Launch Campaign' : 'Schedule Campaign'}
                 </>
               )}
             </Button>
