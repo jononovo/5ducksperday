@@ -146,9 +146,6 @@ export function CampaignSendButton({
                   >
                     <Rocket className="mr-2 h-4 w-4 text-green-600" />
                     Start Now
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      Send immediately
-                    </span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={onSaveDraft}
@@ -157,9 +154,6 @@ export function CampaignSendButton({
                   >
                     <FileText className="mr-2 h-4 w-4 text-blue-600" />
                     Save as Draft
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      Review later
-                    </span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
