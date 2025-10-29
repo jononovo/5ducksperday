@@ -45,6 +45,7 @@ const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
 const AdminUsers = lazy(() => import("@/pages/admin/Users"));
 const AdminEmailTesting = lazy(() => import("@/pages/admin/EmailTesting"));
 const AdminApiTesting = lazy(() => import("@/pages/admin/ApiTesting"));
+const AdminTemplates = lazy(() => import("@/pages/admin/Templates"));
 
 // Lazy imports for marketing pages
 const Terms = lazy(() => import("@/pages/terms"));
@@ -257,6 +258,11 @@ function Router() {
                 <ProtectedRoute path="/admin/testing" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <AdminApiTesting />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/admin/templates" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <AdminTemplates />
                   </Suspense>
                 } />
                 

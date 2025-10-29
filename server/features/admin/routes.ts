@@ -1,7 +1,7 @@
 import { Router, Request, Response, Application } from 'express';
 import { db } from '../../db';
 import { requireAdmin } from '../../utils/admin-auth';
-import { users, companies, contacts, dailyOutreachBatches, dailyOutreachJobs, userOutreachPreferences, communicationHistory } from '@shared/schema';
+import { users, companies, contacts, dailyOutreachBatches, dailyOutreachJobs, userOutreachPreferences, communicationHistory, emailTemplates } from '@shared/schema';
 import { eq, desc, and, gte, lte, sql, count } from 'drizzle-orm';
 import { startOfDay, endOfDay, subDays, startOfWeek, endOfWeek } from 'date-fns';
 import { HealthMonitoringTestRunner } from '../health-monitoring/test-runner';
@@ -440,6 +440,170 @@ router.get('/outreach/batches', requireAdmin, async (req: Request, res: Response
     console.error('Error fetching batches:', error);
     res.status(500).json({
       error: 'Failed to fetch batches',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// ============= EMAIL TEMPLATE MANAGEMENT =============
+
+// Get all email templates (admin view - shows all templates with user info)
+router.get('/templates', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    console.log('Admin fetching all email templates');
+    
+    // Get all templates with user information
+    const templates = await db
+      .select({
+        id: emailTemplates.id,
+        userId: emailTemplates.userId,
+        name: emailTemplates.name,
+        subject: emailTemplates.subject,
+        content: emailTemplates.content,
+        description: emailTemplates.description,
+        category: emailTemplates.category,
+        isDefault: emailTemplates.isDefault,
+        createdAt: emailTemplates.createdAt,
+        updatedAt: emailTemplates.updatedAt,
+        username: users.username,
+        email: users.email
+      })
+      .from(emailTemplates)
+      .leftJoin(users, eq(emailTemplates.userId, users.id))
+      .orderBy(desc(emailTemplates.isDefault), desc(emailTemplates.createdAt));
+
+    // Format response with user info
+    const formattedTemplates = templates.map(t => ({
+      id: t.id,
+      userId: t.userId,
+      name: t.name,
+      subject: t.subject,
+      content: t.content,
+      description: t.description,
+      category: t.category,
+      isDefault: t.isDefault,
+      createdAt: t.createdAt,
+      updatedAt: t.updatedAt,
+      user: t.username ? { username: t.username, email: t.email } : null
+    }));
+
+    console.log(`Found ${formattedTemplates.length} templates`);
+    res.json(formattedTemplates);
+  } catch (error) {
+    console.error('Error fetching templates:', error);
+    res.status(500).json({
+      error: 'Failed to fetch templates',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Create new email template (admin can create default templates)
+router.post('/templates', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { name, subject, content, description, category, isDefault } = req.body;
+    const adminUserId = (req.user as any)?.id;
+
+    console.log('Admin creating template:', { name, category, isDefault });
+
+    if (!name || !subject || !content) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'Name, subject, and content are required'
+      });
+    }
+
+    const [template] = await db
+      .insert(emailTemplates)
+      .values({
+        userId: adminUserId, // Admin's user ID
+        name,
+        subject,
+        content,
+        description: description || null,
+        category: category || 'general',
+        isDefault: isDefault || false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+
+    console.log('Created template:', { id: template.id, name: template.name, isDefault: template.isDefault });
+    res.json(template);
+  } catch (error) {
+    console.error('Error creating template:', error);
+    res.status(500).json({
+      error: 'Failed to create template',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Update email template (admin can update any template)
+router.patch('/templates/:id', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const templateId = parseInt(req.params.id);
+    const updates = req.body;
+
+    console.log('Admin updating template:', { id: templateId, updates });
+
+    // Remove fields that shouldn't be updated directly
+    delete updates.id;
+    delete updates.userId; // Don't change ownership
+    delete updates.createdAt;
+    
+    // Set updatedAt
+    updates.updatedAt = new Date();
+
+    const [updatedTemplate] = await db
+      .update(emailTemplates)
+      .set(updates)
+      .where(eq(emailTemplates.id, templateId))
+      .returning();
+
+    if (!updatedTemplate) {
+      return res.status(404).json({
+        error: 'Template not found',
+        message: `No template found with ID ${templateId}`
+      });
+    }
+
+    console.log('Updated template:', { id: updatedTemplate.id, name: updatedTemplate.name });
+    res.json(updatedTemplate);
+  } catch (error) {
+    console.error('Error updating template:', error);
+    res.status(500).json({
+      error: 'Failed to update template',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Delete email template (admin can delete any template)
+router.delete('/templates/:id', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const templateId = parseInt(req.params.id);
+
+    console.log('Admin deleting template:', { id: templateId });
+
+    const [deletedTemplate] = await db
+      .delete(emailTemplates)
+      .where(eq(emailTemplates.id, templateId))
+      .returning();
+
+    if (!deletedTemplate) {
+      return res.status(404).json({
+        error: 'Template not found',
+        message: `No template found with ID ${templateId}`
+      });
+    }
+
+    console.log('Deleted template:', { id: deletedTemplate.id, name: deletedTemplate.name });
+    res.json({ message: 'Template deleted successfully', template: deletedTemplate });
+  } catch (error) {
+    console.error('Error deleting template:', error);
+    res.status(500).json({
+      error: 'Failed to delete template',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }

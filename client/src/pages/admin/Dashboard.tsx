@@ -15,7 +15,8 @@ import {
   AlertTriangle,
   RefreshCw,
   Play,
-  Shield
+  Shield,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useLocation } from 'wouter';
@@ -291,6 +292,14 @@ export default function AdminDashboard() {
                   >
                     <Mail className="h-4 w-4 mr-2" />
                     Email Testing
+                  </Button>
+                  <Button 
+                    onClick={() => setLocation('/admin/templates')}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Email Templates
                   </Button>
                   <Button 
                     onClick={() => setLocation('/admin/testing')}
