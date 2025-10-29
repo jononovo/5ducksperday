@@ -816,15 +816,29 @@ export function EmailComposer({
           <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <div
             onClick={() => setRecipientModalOpen(true)}
-            className="mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-md cursor-pointer hover:bg-muted/50 transition-colors flex items-center justify-between"
+            className={cn(
+              "mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-md cursor-pointer transition-colors flex items-center justify-between",
+              // Blue background and text when showing a search list (for campaigns)
+              (campaignRecipients || currentQuery) ? 
+                "bg-blue-50 hover:bg-blue-100 border-blue-200" : 
+                "hover:bg-muted/50"
+            )}
           >
             <span className={cn(
               "text-sm",
-              !campaignRecipients && "text-muted-foreground"
+              // Blue text when showing a search list, gray when empty
+              (campaignRecipients || currentQuery) ? 
+                "text-blue-700 font-medium" : 
+                "text-muted-foreground"
             )}>
               {getRecipientDisplayText()}
             </span>
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            <ChevronDown className={cn(
+              "h-4 w-4",
+              (campaignRecipients || currentQuery) ? 
+                "text-blue-600" : 
+                "text-muted-foreground"
+            )} />
           </div>
           
           <RecipientSelectionModal
