@@ -2333,7 +2333,7 @@ export default function Home() {
         onClose={emailDrawer.closeDrawer}
         onModeChange={emailDrawer.setMode}
         onContactChange={handleEmailContactChange}
-        onResizeStart={emailDrawer.handleMouseDown}
+        onResizeStart={() => emailDrawer.handleMouseDown({} as React.MouseEvent)}
       />
 
       {/* Notification System - Outside flex container */}
