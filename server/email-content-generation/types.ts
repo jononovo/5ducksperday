@@ -23,4 +23,5 @@ export interface EmailGenerationContext {
   company: Company;
   userPrompt: string;
   senderNames?: SenderNames;
+  generateTemplate?: boolean;
 }

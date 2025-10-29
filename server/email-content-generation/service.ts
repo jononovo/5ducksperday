@@ -11,7 +11,7 @@ import { getOfferConfig } from "./offer-configs";
  */
 
 export async function generateEmailContent(request: EmailGenerationRequest): Promise<EmailGenerationResponse> {
-  const { emailPrompt, contact, company, userId, tone = 'default', offerStrategy = 'none' } = request;
+  const { emailPrompt, contact, company, userId, tone = 'default', offerStrategy = 'none', generateTemplate = false } = request;
 
   // Resolve sender names for the current user
   const senderNames = await resolveSenderNames(userId);
@@ -45,7 +45,13 @@ ${toneConfig.additionalInstructions}`;
     },
     {
       role: "user", 
-      content: buildEmailPrompt({ contact, company, userPrompt: emailPrompt, senderNames })
+      content: buildEmailPrompt({ 
+        contact, 
+        company, 
+        userPrompt: emailPrompt, 
+        senderNames,
+        generateTemplate 
+      })
     }
   ];
 
@@ -56,8 +62,48 @@ ${toneConfig.additionalInstructions}`;
 }
 
 function buildEmailPrompt(context: EmailGenerationContext): string {
-  const { contact, company, userPrompt, senderNames } = context;
+  const { contact, company, userPrompt, senderNames, generateTemplate = false } = context;
   
+  if (generateTemplate) {
+    // Template generation for campaigns - use merge fields extensively
+    return `Write an EMAIL TEMPLATE for a campaign based on this context:
+
+Prompt: ${userPrompt}
+
+IMPORTANT: You are creating a TEMPLATE for bulk campaigns. You MUST use merge fields instead of actual values.
+
+Required merge fields to use:
+- {{first_name}} - Use this in greetings (e.g., "Hi {{first_name}},")
+- {{company_name}} - Use when referencing the target company
+- {{contact_role}} - Use when mentioning their position
+- {{full_sender_name}} - Use in signature
+- {{sender_first_name}} - Use in casual references to yourself
+
+Optional merge fields you can also use:
+- {{last_name}} - Target's last name
+- {{contact_email}} - Their email
+- {{personal_intro}} - For personalized introductions
+- {{custom_proposal}} - For custom value propositions
+- {{customer_pain-point}} - For addressing specific challenges
+
+TEMPLATE CONTEXT:
+Industry/Company Type: ${company.description || 'B2B companies'}
+${contact && contact.role ? `Target Role: ${contact.role} (use {{contact_role}} in template)` : 'Various decision makers'}
+
+CRITICAL INSTRUCTIONS:
+1. DO NOT use actual names - always use merge fields
+2. Create a reusable template that works for multiple recipients
+3. Use at least 4-5 different merge fields throughout the email
+4. Make the template feel personal despite being automated
+
+Format requirements:
+- Subject line: Use merge fields (e.g., "{{first_name}}, quick question about {{company_name}}")
+- Greeting: Use {{first_name}} (e.g., "Hi {{first_name}}," or "Hey {{first_name}},")
+- Body: Reference {{company_name}} and {{contact_role}} naturally
+- Signature: Use {{full_sender_name}} or {{sender_first_name}}`;
+  }
+  
+  // Regular email generation - use actual values
   return `Write a business email based on this context:
 
 Prompt: ${userPrompt}

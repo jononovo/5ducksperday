@@ -216,8 +216,8 @@ export function EmailComposer({
         isActive: true,
         sendTimePreference: 'immediate',
         tone: selectedTone,
-        offerType: selectedOffer,
-        productId: selectedProduct?.id
+        offerType: selectedOfferStrategy,
+        productId: selectedProduct
       });
       
       return await campaignRes.json();
