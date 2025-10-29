@@ -489,19 +489,19 @@ export default function Home() {
         // SIMPLIFIED NAVIGATION RESTORATION: Always refresh from database
         console.log('NAVIGATION: Restoring search state and refreshing from database');
         
-        // IMPORTANT: Only restore the list ID if the query matches
+        // Always restore the list ID if it exists - the list was already saved
         const queryToRestore = savedState.currentQuery || "";
-        const shouldRestoreListId = queryToRestore === savedState.lastExecutedQuery;
+        const listIdToRestore = savedState.currentListId;
         
         // Set basic state first
         setCurrentQuery(queryToRestore);
-        setCurrentListId(shouldRestoreListId ? savedState.currentListId : null);
+        setCurrentListId(listIdToRestore);
         setCurrentResults(savedState.currentResults);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
         setInputHasChanged(false); // Set to false when loading saved state
         
-        if (!shouldRestoreListId) {
-          console.log('Query mismatch detected - clearing list ID to prevent contamination');
+        if (listIdToRestore) {
+          console.log('Restored search list with ID:', listIdToRestore);
         }
         
         // Always refresh from database to ensure fresh data (including emails)
@@ -2672,50 +2672,58 @@ export default function Home() {
                   </div>
                 )}
                 <Suspense fallback={<div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>}>
-                  <PromptEditor
-                    onAnalyze={() => {
-                      setIsAnalyzing(true);
-                      // Clear list ID when starting a NEW search (different query)
-                      if (currentQuery && currentQuery !== lastExecutedQuery) {
-                        console.log('Starting new search - clearing list ID for query:', currentQuery);
-                        setCurrentListId(null);
-                        setIsSaved(false);
-                      }
-                    }}
-                    onComplete={handleAnalysisComplete}
-                    onSearchResults={handleSearchResults}
-                    onCompaniesReceived={handleCompaniesReceived}
-                    isAnalyzing={isAnalyzing}
-                    value={currentQuery || ""}
-                    onChange={(newValue) => {
-                      setCurrentQuery(newValue);
-                      setInputHasChanged(newValue !== lastExecutedQuery);
-                    }}
-                    isFromLandingPage={isFromLandingPage}
-                    onDismissLandingHint={() => setIsFromLandingPage(false)}
-                    lastExecutedQuery={lastExecutedQuery}
-                    onSearchSuccess={() => {
-                      const selectedSearchType = localStorage.getItem('searchType') || 'contacts';
-                      if (selectedSearchType === 'emails') {
-                        // Auto-trigger email search for full flow
-                        setTimeout(() => runConsolidatedEmailSearch(), 500);
-                      } else {
-                        // Standard behavior - highlight email button
-                        setHighlightEmailButton(true);
-                        setTimeout(() => setHighlightEmailButton(false), 25000);
-                      }
-                    }}
-                    hasSearchResults={currentResults ? currentResults.length > 0 : false}
-                    onSessionIdChange={setCurrentSessionId}
-                    hideRoleButtons={!!(currentResults && currentResults.length > 0 && !inputHasChanged)}
-                    onSearchMetricsUpdate={(metrics, showSummary) => {
-                      setMainSearchMetrics(metrics);
-                      setMainSummaryVisible(showSummary);
-                      // Show contact report only when search completes and has actual contacts
-                      if (showSummary && metrics.totalCompanies > 0 && metrics.totalContacts > 0) {
-                        setContactReportVisible(true);
-                        // Show email summary if search type was 'emails' and emails were found
-                        if (metrics.searchType === 'emails' && metrics.totalEmails && metrics.totalEmails > 0) {
+                  <div>
+                    {/* Debug indicator for current list ID */}
+                    {currentListId && (
+                      <div className="mb-2 text-xs text-muted-foreground flex items-center gap-2">
+                        <span className="opacity-60">List ID: {currentListId}</span>
+                        {isSaved && <span className="text-green-600">✓ Saved</span>}
+                      </div>
+                    )}
+                    <PromptEditor
+                      onAnalyze={() => {
+                        setIsAnalyzing(true);
+                        // Clear list ID when starting a NEW search (different query)
+                        if (currentQuery && currentQuery !== lastExecutedQuery) {
+                          console.log('Starting new search - clearing list ID for query:', currentQuery);
+                          setCurrentListId(null);
+                          setIsSaved(false);
+                        }
+                      }}
+                      onComplete={handleAnalysisComplete}
+                      onSearchResults={handleSearchResults}
+                      onCompaniesReceived={handleCompaniesReceived}
+                      isAnalyzing={isAnalyzing}
+                      value={currentQuery || ""}
+                      onChange={(newValue) => {
+                        setCurrentQuery(newValue);
+                        setInputHasChanged(newValue !== lastExecutedQuery);
+                      }}
+                      isFromLandingPage={isFromLandingPage}
+                      onDismissLandingHint={() => setIsFromLandingPage(false)}
+                      lastExecutedQuery={lastExecutedQuery}
+                      onSearchSuccess={() => {
+                        const selectedSearchType = localStorage.getItem('searchType') || 'contacts';
+                        if (selectedSearchType === 'emails') {
+                          // Auto-trigger email search for full flow
+                          setTimeout(() => runConsolidatedEmailSearch(), 500);
+                        } else {
+                          // Standard behavior - highlight email button
+                          setHighlightEmailButton(true);
+                          setTimeout(() => setHighlightEmailButton(false), 25000);
+                        }
+                      }}
+                      hasSearchResults={currentResults ? currentResults.length > 0 : false}
+                      onSessionIdChange={setCurrentSessionId}
+                      hideRoleButtons={!!(currentResults && currentResults.length > 0 && !inputHasChanged)}
+                      onSearchMetricsUpdate={(metrics, showSummary) => {
+                        setMainSearchMetrics(metrics);
+                        setMainSummaryVisible(showSummary);
+                        // Show contact report only when search completes and has actual contacts
+                        if (showSummary && metrics.totalCompanies > 0 && metrics.totalContacts > 0) {
+                          setContactReportVisible(true);
+                          // Show email summary if search type was 'emails' and emails were found
+                          if (metrics.searchType === 'emails' && metrics.totalEmails && metrics.totalEmails > 0) {
                           setLastEmailSearchCount(metrics.totalEmails);
                           // Use source breakdown from backend if available, otherwise fall back to default
                           setLastSourceBreakdown(metrics.sourceBreakdown || { Perplexity: metrics.totalEmails, Apollo: 0, Hunter: 0 });
@@ -2724,6 +2732,7 @@ export default function Home() {
                       }
                     }}
                   />
+                  </div>
                 </Suspense>
                 
                 {/* Action buttons menu - Moved here from search results, Hidden in focus mode and active search state */}
