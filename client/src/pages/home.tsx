@@ -471,45 +471,39 @@ export default function Home() {
           listId: savedState.currentListId
         });
         
-        // Always restore the data first
-        setCurrentQuery(savedState.currentQuery || "");
-        setCurrentResults(savedState.currentResults);
-        setCurrentListId(savedState.currentListId);
-        setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
-        setInputHasChanged(false); // Set to false when loading saved state
-        
-        // Always refresh contact data when restoring from localStorage to ensure emails are preserved
-        console.log('Refreshing contact data from database to preserve emails after navigation');
-        console.log('Companies before refresh:', savedState.currentResults.map((c: CompanyWithContacts) => ({
-          name: c.name,
-          contactCount: c.contacts?.length || 0,
-          contactsWithEmails: c.contacts?.filter(contact => contact.email).length || 0
-        })));
-        
-        // SIMPLIFIED NAVIGATION RESTORATION: Always refresh from database
-        console.log('NAVIGATION: Restoring search state and refreshing from database');
-        
-        // Always restore the list ID if it exists - the list was already saved
+        // Restore state variables
         const queryToRestore = savedState.currentQuery || "";
         const listIdToRestore = savedState.currentListId;
         
-        // Set basic state first
+        // Set state only once
         setCurrentQuery(queryToRestore);
         setCurrentListId(listIdToRestore);
         setCurrentResults(savedState.currentResults);
         setLastExecutedQuery(savedState.lastExecutedQuery || savedState.currentQuery);
         setInputHasChanged(false); // Set to false when loading saved state
         
+        // Mark list as saved if we have a listId
         if (listIdToRestore) {
-          console.log('Restored search list with ID:', listIdToRestore);
+          setIsSaved(true);
+          console.log('Restored saved search list with ID:', listIdToRestore);
         }
         
+        // Always refresh contact data when restoring from localStorage to ensure emails are preserved
+        console.log('Refreshing contact data from database to preserve emails after navigation');
+        console.log('Companies before refresh:', savedState.currentResults.map((c: CompanyWithContacts) => ({
+          name: c.name,
+          contactCount: c.contacts?.length || 0,
+          contactsWithEmails: c.contacts?.filter(contact => contact.email).length || 0,
+          listId: listIdToRestore
+        })));
+        
         // Always refresh from database to ensure fresh data (including emails)
+        console.log('NAVIGATION: Passing listId to refreshAndUpdateResults:', listIdToRestore);
         refreshAndUpdateResults(
           savedState.currentResults,
           {
-            currentQuery: savedState.currentQuery || "",
-            currentListId: savedState.currentListId,
+            currentQuery: queryToRestore,
+            currentListId: listIdToRestore,
             lastExecutedQuery: savedState.lastExecutedQuery || savedState.currentQuery
           },
           {
@@ -871,7 +865,9 @@ export default function Home() {
       emailCount: state.currentResults.reduce((total, company) => 
         total + (company.contacts?.filter(c => c.email && c.email.length > 0).length || 0), 0
       ),
-      hasListId: !!currentValues.currentListId
+      hasListId: !!currentValues.currentListId,
+      listId: currentValues.currentListId,
+      query: queryToSave
     });
   };
 
@@ -2673,11 +2669,14 @@ export default function Home() {
                 )}
                 <Suspense fallback={<div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>}>
                   <div>
-                    {/* Debug indicator for current list ID */}
-                    {currentListId && (
+                    {/* Debug indicator for current list ID and search state */}
+                    {(currentResults && currentResults.length > 0) && (
                       <div className="mb-2 text-xs text-muted-foreground flex items-center gap-2">
-                        <span className="opacity-60">List ID: {currentListId}</span>
+                        <span className="opacity-60">
+                          {currentListId ? `List ID: ${currentListId}` : 'No List ID (creating...)'}
+                        </span>
                         {isSaved && <span className="text-green-600">✓ Saved</span>}
+                        <span className="opacity-60">| {currentResults.length} companies</span>
                       </div>
                     )}
                     <PromptEditor
