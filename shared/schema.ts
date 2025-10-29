@@ -112,6 +112,7 @@ export const emailTemplates = pgTable("email_templates", {
   content: text("content").notNull(),
   description: text("description"),
   category: text("category").default('general'),
+  isDefault: boolean("is_default").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
