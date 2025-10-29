@@ -1029,12 +1029,13 @@ export function EmailComposer({
             <Button
               onClick={() => handleCreateCampaign('scheduled')}
               disabled={(!campaignRecipients && !currentListId) || !emailContent || createCampaignMutation.isPending}
+              variant="outline"
               className={cn(
                 "h-8 px-3 text-xs border transition-all duration-300 ease-out",
-                // Solid green theme matching Send Email button appearance
+                // Outlined green theme matching Send Email button appearance
                 emailContent?.trim() ? 
-                  "bg-green-500 text-white border-green-500 hover:bg-green-600 hover:border-green-600 hover:scale-105" :
-                  "bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200 hover:text-gray-500",
+                  "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600 hover:scale-105" :
+                  "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
                 "rounded-r-none border-r-0",
                 ((!campaignRecipients && !currentListId) || !emailContent) && "opacity-50 cursor-not-allowed"
               )}
@@ -1054,13 +1055,14 @@ export function EmailComposer({
               <DropdownMenuTrigger asChild>
                 <Button
                   disabled={(!campaignRecipients && !currentListId) || !emailContent || createCampaignMutation.isPending}
+                  variant="outline"
                   className={cn(
                     "h-8 px-2 text-xs border transition-all duration-300 ease-out",
-                    // Match the main button's solid green styling
+                    // Match the main button's outlined green styling
                     emailContent?.trim() ? 
-                      "bg-green-500 text-white border-green-500 hover:bg-green-600 hover:border-green-600" :
-                      "bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200 hover:text-gray-500",
-                    "rounded-l-none border-l border-l-green-400",
+                      "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
+                      "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
+                    "rounded-l-none border-l",
                     ((!campaignRecipients && !currentListId) || !emailContent) && "opacity-50 cursor-not-allowed"
                   )}
                   aria-label="More campaign options"
