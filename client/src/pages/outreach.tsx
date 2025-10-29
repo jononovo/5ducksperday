@@ -1740,6 +1740,26 @@ export default function Outreach() {
               <EmailComposer
                 selectedContact={selectedContact}
                 selectedCompany={selectedCompany}
+                emailPrompt={emailPrompt}
+                setEmailPrompt={setEmailPrompt}
+                emailSubject={emailSubject}
+                setEmailSubject={setEmailSubject}
+                emailContent={emailContent}
+                setEmailContent={setEmailContent}
+                toEmail={toEmail}
+                setToEmail={setToEmail}
+                selectedTone={selectedTone}
+                setSelectedTone={setSelectedTone}
+                selectedOfferStrategy={selectedOfferStrategy}
+                setSelectedOfferStrategy={setSelectedOfferStrategy}
+                selectedProduct={selectedProduct}
+                setSelectedProduct={setSelectedProduct}
+                originalEmailPrompt={originalEmailPrompt}
+                setOriginalEmailPrompt={setOriginalEmailPrompt}
+                originalEmailSubject={originalEmailSubject}
+                setOriginalEmailSubject={setOriginalEmailSubject}
+                originalEmailContent={originalEmailContent}
+                setOriginalEmailContent={setOriginalEmailContent}
               />
             </div>
           </div>

@@ -56,6 +56,27 @@ interface EmailComposerProps {
   drawerMode?: 'compose' | 'campaign';
   currentListId?: number | null;
   currentQuery?: string | null;
+  // Email state props from parent
+  emailPrompt?: string;
+  setEmailPrompt?: (value: string) => void;
+  emailSubject?: string;
+  setEmailSubject?: (value: string) => void;
+  emailContent?: string;
+  setEmailContent?: (value: string) => void;
+  toEmail?: string;
+  setToEmail?: (value: string) => void;
+  selectedTone?: string;
+  setSelectedTone?: (value: string) => void;
+  selectedOfferStrategy?: string;
+  setSelectedOfferStrategy?: (value: string) => void;
+  selectedProduct?: number | null;
+  setSelectedProduct?: (value: number | null) => void;
+  originalEmailPrompt?: string;
+  setOriginalEmailPrompt?: (value: string) => void;
+  originalEmailSubject?: string;
+  setOriginalEmailSubject?: (value: string) => void;
+  originalEmailContent?: string;
+  setOriginalEmailContent?: (value: string) => void;
 }
 
 
@@ -66,23 +87,66 @@ export function EmailComposer({
   onCompanyChange,
   drawerMode = 'compose',
   currentListId = null,
-  currentQuery = null
+  currentQuery = null,
+  // Email state props with fallback to internal state for backwards compatibility
+  emailPrompt: emailPromptProp,
+  setEmailPrompt: setEmailPromptProp,
+  emailSubject: emailSubjectProp,
+  setEmailSubject: setEmailSubjectProp,
+  emailContent: emailContentProp,
+  setEmailContent: setEmailContentProp,
+  toEmail: toEmailProp,
+  setToEmail: setToEmailProp,
+  selectedTone: selectedToneProp,
+  setSelectedTone: setSelectedToneProp,
+  selectedOfferStrategy: selectedOfferStrategyProp,
+  setSelectedOfferStrategy: setSelectedOfferStrategyProp,
+  selectedProduct: selectedProductProp,
+  setSelectedProduct: setSelectedProductProp,
+  originalEmailPrompt: originalEmailPromptProp,
+  setOriginalEmailPrompt: setOriginalEmailPromptProp,
+  originalEmailSubject: originalEmailSubjectProp,
+  setOriginalEmailSubject: setOriginalEmailSubjectProp,
+  originalEmailContent: originalEmailContentProp,
+  setOriginalEmailContent: setOriginalEmailContentProp
 }: EmailComposerProps) {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // State
-  const [emailPrompt, setEmailPrompt] = useState("");
-  const [originalEmailPrompt, setOriginalEmailPrompt] = useState("");
-  const [toEmail, setToEmail] = useState("");
-  const [emailSubject, setEmailSubject] = useState("");
-  const [originalEmailSubject, setOriginalEmailSubject] = useState("");
-  const [emailContent, setEmailContent] = useState("");
-  const [originalEmailContent, setOriginalEmailContent] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
+  // Use props if provided, otherwise use local state for backwards compatibility
+  const [localEmailPrompt, setLocalEmailPrompt] = useState("");
+  const [localOriginalEmailPrompt, setLocalOriginalEmailPrompt] = useState("");
+  const [localToEmail, setLocalToEmail] = useState("");
+  const [localEmailSubject, setLocalEmailSubject] = useState("");
+  const [localOriginalEmailSubject, setLocalOriginalEmailSubject] = useState("");
+  const [localEmailContent, setLocalEmailContent] = useState("");
+  const [localOriginalEmailContent, setLocalOriginalEmailContent] = useState("");
+  const [localSelectedProduct, setLocalSelectedProduct] = useState<number | null>(null);
   const [selectedProductData, setSelectedProductData] = useState<StrategicProfile | null>(null);
-  const [selectedTone, setSelectedTone] = useState<string>(DEFAULT_TONE);
-  const [selectedOfferStrategy, setSelectedOfferStrategy] = useState<string>(DEFAULT_OFFER);
+  const [localSelectedTone, setLocalSelectedTone] = useState<string>(DEFAULT_TONE);
+  const [localSelectedOfferStrategy, setLocalSelectedOfferStrategy] = useState<string>(DEFAULT_OFFER);
+
+  // Use props if provided, otherwise use local state
+  const emailPrompt = emailPromptProp ?? localEmailPrompt;
+  const setEmailPrompt = setEmailPromptProp ?? setLocalEmailPrompt;
+  const originalEmailPrompt = originalEmailPromptProp ?? localOriginalEmailPrompt;
+  const setOriginalEmailPrompt = setOriginalEmailPromptProp ?? setLocalOriginalEmailPrompt;
+  const toEmail = toEmailProp ?? localToEmail;
+  const setToEmail = setToEmailProp ?? setLocalToEmail;
+  const emailSubject = emailSubjectProp ?? localEmailSubject;
+  const setEmailSubject = setEmailSubjectProp ?? setLocalEmailSubject;
+  const originalEmailSubject = originalEmailSubjectProp ?? localOriginalEmailSubject;
+  const setOriginalEmailSubject = setOriginalEmailSubjectProp ?? setLocalOriginalEmailSubject;
+  const emailContent = emailContentProp ?? localEmailContent;
+  const setEmailContent = setEmailContentProp ?? setLocalEmailContent;
+  const originalEmailContent = originalEmailContentProp ?? localOriginalEmailContent;
+  const setOriginalEmailContent = setOriginalEmailContentProp ?? setLocalOriginalEmailContent;
+  const selectedProduct = selectedProductProp ?? localSelectedProduct;
+  const setSelectedProduct = setSelectedProductProp ?? setLocalSelectedProduct;
+  const selectedTone = selectedToneProp ?? localSelectedTone;
+  const setSelectedTone = setSelectedToneProp ?? setLocalSelectedTone;
+  const selectedOfferStrategy = selectedOfferStrategyProp ?? localSelectedOfferStrategy;
+  const setSelectedOfferStrategy = setSelectedOfferStrategyProp ?? setLocalSelectedOfferStrategy;
   // Removed isGenerating state - will come from the hook
   const [isSent, setIsSent] = useState(false);
   const [productPopoverOpen, setProductPopoverOpen] = useState(false);
