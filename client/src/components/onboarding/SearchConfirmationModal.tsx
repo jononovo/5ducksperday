@@ -54,22 +54,19 @@ export function SearchConfirmationModal({
   // Mutation to get improved prompts from AI
   const generatePromptsMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('/api/onboarding/improve-search-prompt', {
-        method: 'POST',
-        body: JSON.stringify({
-          originalPrompt: searchQuery,
-          searchResults: searchResults.map(r => ({
-            name: r.name,
-            description: r.description
-          })),
-          ratings: Object.entries(companyRatings).map(([id, rating]) => ({
-            companyId: parseInt(id),
-            companyName: searchResults.find(r => r.id === parseInt(id))?.name,
-            rating
-          }))
-        })
+      const response = await apiRequest('POST', '/api/onboarding/improve-search-prompt', {
+        originalPrompt: searchQuery,
+        searchResults: searchResults.map(r => ({
+          name: r.name,
+          description: r.description
+        })),
+        ratings: Object.entries(companyRatings).map(([id, rating]) => ({
+          companyId: parseInt(id),
+          companyName: searchResults.find(r => r.id === parseInt(id))?.name,
+          rating
+        }))
       });
-      return response as PromptSuggestions;
+      return await response.json() as PromptSuggestions;
     },
     onSuccess: (data) => {
       setPromptSuggestions(data.suggestions || []);

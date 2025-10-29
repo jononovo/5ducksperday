@@ -144,5 +144,102 @@ Return ONLY a JSON object with this structure:
   }
   });
 
+  // Generate improved search prompts based on user feedback
+  router.post('/improve-search-prompt', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      
+      const { originalPrompt, searchResults, ratings } = req.body;
+      
+      // Analyze the ratings to understand what was wrong
+      const perfectFitCompanies = ratings.filter((r: any) => r.rating === 'perfect');
+      const notFitCompanies = ratings.filter((r: any) => r.rating === 'not-fit');
+      const unsureCompanies = ratings.filter((r: any) => r.rating === 'unsure');
+      
+      // Build analysis of what's wrong
+      const analysisPrompt = `You are a B2B search optimization expert. A user searched for companies but the results were poor.
+
+Original search query: "${originalPrompt}"
+
+Rating breakdown:
+- ${perfectFitCompanies.length} companies marked as "Perfect fit"
+- ${unsureCompanies.length} companies marked as "Not sure"
+- ${notFitCompanies.length} companies marked as "Not a fit"
+
+${perfectFitCompanies.length > 0 ? `Good matches (Perfect fit):
+${perfectFitCompanies.map((c: any) => `- ${c.companyName}`).join('\n')}` : 'No perfect matches found'}
+
+${notFitCompanies.length > 0 ? `Poor matches (Not a fit):
+${notFitCompanies.map((c: any) => `- ${c.companyName}`).join('\n')}` : ''}
+
+Sample of all companies found:
+${searchResults.slice(0, 10).map((c: any) => `- ${c.name}: ${c.description || 'No description'}`).join('\n')}
+
+Based on this feedback, the user needs better search prompts. Generate 3 improved search queries that will find more companies like the "Perfect fit" ones and avoid companies like the "Not a fit" ones.
+
+Each suggestion should:
+1. Be more specific and targeted
+2. Use industry-specific terms when appropriate
+3. Include relevant keywords that would filter results better
+4. Be different enough from each other to give variety
+
+Return ONLY a JSON object with this structure:
+{
+  "suggestions": [
+    "First improved search query",
+    "Second improved search query", 
+    "Third improved search query"
+  ],
+  "reasoning": "Brief explanation of what was wrong with the original search"
+}`;
+
+      const response = await queryOpenAI(
+        [
+          {
+            role: 'system',
+            content: 'You are an expert at optimizing B2B company search queries. Always return valid JSON.'
+          },
+          {
+            role: 'user',
+            content: analysisPrompt
+          }
+        ],
+        'gpt-4-turbo-preview'
+      );
+      
+      // Parse the response
+      let suggestionsData;
+      try {
+        const responseText = typeof response === 'string' ? response : JSON.stringify(response);
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          suggestionsData = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No JSON found in response');
+        }
+      } catch (parseError) {
+        console.error('Error parsing suggestions response:', parseError);
+        // Fallback suggestions
+        suggestionsData = {
+          suggestions: [
+            originalPrompt + ' software companies',
+            originalPrompt + ' B2B services',
+            originalPrompt + ' enterprise solutions'
+          ],
+          reasoning: 'The original search may have been too broad. Try being more specific about the industry or company type.'
+        };
+      }
+      
+      res.json(suggestionsData);
+      
+    } catch (error) {
+      console.error('Error generating improved prompts:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate improved search suggestions',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   app.use('/api/onboarding', router);
 }
