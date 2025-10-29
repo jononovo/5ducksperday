@@ -14,7 +14,8 @@ const PLACEHOLDER_EMAIL_PATTERNS = [
   /donotreply/i,
   /placeholder/i,
   /tempmail/i,
-  /temp[._]?email/i
+  /temp[._]?email/i,
+  /\*/  // Masked emails with asterisks (e.g., j***@example.com)
 ];
 
 // Moved from contact-name-validation.ts

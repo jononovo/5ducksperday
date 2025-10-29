@@ -5,6 +5,7 @@
  */
 
 import { queryPerplexity } from "../perplexity/perplexity-client";
+import { isPlaceholderEmail } from "../analysis/email-analysis";
 
 // Define the Perplexity message type locally since the main type file is missing
 interface PerplexityMessage {
@@ -76,9 +77,22 @@ export async function searchContactDetails(name: string, company: string): Promi
       }
     }
 
+    // Extract and validate the email
+    const foundEmail = parsedData.professional_email || parsedData.email || null;
+    
+    // Check if the email is valid (not masked or placeholder)
+    let validatedEmail: string | null = null;
+    if (foundEmail) {
+      if (isPlaceholderEmail(foundEmail)) {
+        console.log(`[Perplexity] ⚠️ Found masked/placeholder email for ${name}: ${foundEmail} - treating as not found`);
+      } else {
+        validatedEmail = foundEmail;
+      }
+    }
+    
     // Extract and format the data
     const contactDetails: ContactDetails = {
-      email: parsedData.professional_email || parsedData.email || null,
+      email: validatedEmail,
       linkedinUrl: parsedData.linkedin_url || parsedData.linkedinUrl || null,
       twitterHandle: parsedData.twitter_handle || parsedData.twitterHandle || null,
       phoneNumber: parsedData.phone_number || parsedData.phoneNumber || null,
@@ -88,9 +102,9 @@ export async function searchContactDetails(name: string, company: string): Promi
 
     // Log what we found
     if (contactDetails.email) {
-      console.log(`[Perplexity] ✅ Found email for ${name}: ${contactDetails.email}`);
+      console.log(`[Perplexity] ✅ Found valid email for ${name}: ${contactDetails.email}`);
     } else {
-      console.log(`[Perplexity] ❌ No email found for ${name}`);
+      console.log(`[Perplexity] ❌ No valid email found for ${name}`);
     }
 
     return contactDetails;
