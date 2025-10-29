@@ -574,10 +574,32 @@ export const campaigns = pgTable("campaigns", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   name: text("name").notNull(),
-  status: text("status").notNull().default("draft"), // draft, active, paused, completed
+  status: text("status").notNull().default("draft"), // draft, active, paused, completed, scheduled
+  subject: text("subject"),
+  body: text("body"),
+  prompt: text("prompt"),
+  contactListId: integer("contact_list_id").references(() => contactLists.id),
   senderProfileId: integer("sender_profile_id").references(() => senderProfiles.id),
   strategicProfileId: integer("strategic_profile_id").references(() => strategicProfiles.id), // Reference to product/service info
   targetCustomerProfileId: integer("target_customer_profile_id").references(() => customerProfiles.id),
+  // Email generation settings
+  tone: text("tone"),
+  offerType: text("offer_type"),
+  productId: integer("product_id"),
+  // Scheduling settings
+  sendTimePreference: text("send_time_preference"), // immediate, scheduled, draft
+  scheduleDate: timestamp("schedule_date"),
+  scheduleTime: text("schedule_time"), // e.g., "09:00"
+  timezone: text("timezone").default("America/New_York"),
+  // Autopilot settings
+  autopilotEnabled: boolean("autopilot_enabled").default(false),
+  autopilotSettings: jsonb("autopilot_settings"), // JSON object with detailed autopilot config
+  maxEmailsPerDay: integer("max_emails_per_day").default(20),
+  delayBetweenEmails: integer("delay_between_emails").default(30), // minutes
+  // Tracking settings
+  trackEmails: boolean("track_emails").default(true),
+  unsubscribeLink: boolean("unsubscribe_link").default(true),
+  // Original fields
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
   durationDays: integer("duration_days").notNull().default(14), // Default 2 weeks
@@ -821,10 +843,32 @@ export const insertTargetCustomerProfileSchema = targetCustomerProfileSchema.ext
 
 export const campaignSchema = z.object({
   name: z.string().min(1, "Campaign name is required"),
-  status: z.enum(["draft", "active", "paused", "completed"]).default("draft"),
+  status: z.enum(["draft", "active", "paused", "completed", "scheduled"]).default("draft"),
+  subject: z.string().optional(),
+  body: z.string().optional(),
+  prompt: z.string().optional(),
+  contactListId: z.number().optional(),
   senderProfileId: z.number().optional(),
   productId: z.number().optional(),
+  strategicProfileId: z.number().optional(),
   targetCustomerProfileId: z.number().optional(),
+  // Email generation settings
+  tone: z.string().optional(),
+  offerType: z.string().optional(),
+  // Scheduling settings
+  sendTimePreference: z.string().optional(),
+  scheduleDate: z.date().optional(),
+  scheduleTime: z.string().optional(),
+  timezone: z.string().default("America/New_York"),
+  // Autopilot settings
+  autopilotEnabled: z.boolean().default(false),
+  autopilotSettings: z.record(z.unknown()).optional(),
+  maxEmailsPerDay: z.number().default(20),
+  delayBetweenEmails: z.number().default(30),
+  // Tracking settings
+  trackEmails: z.boolean().default(true),
+  unsubscribeLink: z.boolean().default(true),
+  // Original fields
   durationDays: z.number().default(14),
   dailyLeadTarget: z.number().default(5)
 });

@@ -295,18 +295,40 @@ export function EmailComposer({
         contactListId = contactList.id;
       }
       
-      // Create the campaign with appropriate settings based on type
+      // Determine the campaign status based on type
+      const status = type === 'scheduled' ? 'scheduled' : (type === 'immediate' ? 'active' : 'draft');
+      
+      // Create the campaign with all settings
       const campaignRes = await apiRequest("POST", '/api/campaigns', {
+        // Basic campaign details
         name: emailSubject || 'Untitled Campaign',
         subject: emailSubject,
         body: emailContent,
         prompt: emailPrompt,
         contactListId: contactListId,
-        isActive: type === 'immediate',  // Start immediately if 'immediate'
-        sendTimePreference: type === 'scheduled' ? 'scheduled' : (type === 'immediate' ? 'immediate' : 'draft'),
+        status: status,
+        
+        // Email generation settings
         tone: selectedTone,
         offerType: selectedOfferStrategy,
-        productId: selectedProduct
+        productId: selectedProduct,
+        strategicProfileId: selectedProduct, // Use the same product ID for strategic profile
+        
+        // Scheduling settings
+        sendTimePreference: type,
+        scheduleDate: campaignSettings.scheduleSend && campaignSettings.scheduleDate ? campaignSettings.scheduleDate : undefined,
+        scheduleTime: campaignSettings.scheduleSend && campaignSettings.scheduleTime ? campaignSettings.scheduleTime : undefined,
+        timezone: 'America/New_York', // Default timezone, could be made configurable
+        
+        // Autopilot settings
+        autopilotEnabled: campaignSettings.autopilot,
+        autopilotSettings: campaignSettings.autopilotSettings,
+        maxEmailsPerDay: campaignSettings.autopilotSettings?.maxEmailsPerDay || 20,
+        delayBetweenEmails: campaignSettings.autopilotSettings?.delayBetweenEmails || 30,
+        
+        // Tracking settings
+        trackEmails: campaignSettings.trackEmails,
+        unsubscribeLink: campaignSettings.unsubscribeLink
       });
       
       return await campaignRes.json();
@@ -630,51 +652,14 @@ export function EmailComposer({
       setCampaignRecipients(autoRecipients);
     }
 
-    // Update settings based on type and launch immediately
+    // Update settings based on type
     setCampaignSettings(prev => ({
       ...prev,
       scheduleSend: type === 'scheduled'
     }));
 
-    // Launch the campaign immediately
+    // Launch the campaign
     createCampaignMutation.mutate(type);
-
-    // For Save as Draft, proceed immediately without opening settings
-    if (type === 'draft') {
-      // Auto-set recipients if not already set
-      if (!campaignRecipients && currentListId && currentQuery) {
-        const autoRecipients: RecipientSelection = {
-          type: 'current',
-          listId: currentListId,
-          query: currentQuery
-        };
-        setCampaignRecipients(autoRecipients);
-        
-        // For draft, immediately save
-        createCampaignMutation.mutate(type);
-        return;
-      }
-
-      if (!campaignRecipients) {
-        toast({
-          title: "No Recipients Available",
-          description: "Please run a search first or select recipients for your campaign",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (!emailContent) {
-        toast({
-          title: "No Email Content",
-          description: "Please add email content for your campaign",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      createCampaignMutation.mutate(type);
-    }
   };
 
   return (
