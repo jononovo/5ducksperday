@@ -260,13 +260,52 @@ export function SearchConfirmationModal({
                   </h2>
                 </div>
                 
-                <p className="text-muted-foreground mb-4">
+                <p className="text-muted-foreground mb-6">
                   We found {searchResults.length} companies matching your search. Before we set up your outreach campaign, let's make sure these are the right prospects.
                 </p>
 
+                {/* Action section - moved to top */}
+                {modalState === 'initial' ? (
+                  <div className="mb-6">
+                    <p className="font-medium text-lg mb-4">Are these the type of companies you want to reach?</p>
+                    <div className="flex flex-col md:flex-row gap-3">
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={handleNewSearch}
+                        className="flex-1"
+                      >
+                        I want to do a NEW search
+                      </Button>
+                      <Button
+                        size="lg"
+                        onClick={handleStartRanking}
+                        className="flex-1"
+                      >
+                        Tell us which results are the best
+                      </Button>
+                    </div>
+                  </div>
+                ) : modalState === 'ranking' && (
+                  <div className="mb-6 flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Rate each company to help us find more like your favorites</p>
+                      <p className="text-sm text-muted-foreground">
+                        {Object.keys(companyRatings).length} of {searchResults.length} companies rated
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline"
+                      onClick={() => setModalState('initial')}
+                    >
+                      Cancel ranking
+                    </Button>
+                  </div>
+                )}
+
                 {/* Companies list with rating buttons */}
                 <div className="mb-6">
-                  <ScrollArea className="h-[calc(100vh-340px)] md:h-[calc(100vh-280px)] border rounded-lg">
+                  <ScrollArea className="h-[calc(100vh-450px)] md:h-[calc(100vh-400px)] border rounded-lg">
                     <div className="p-4 space-y-3">
                       {searchResults.map((company, index) => (
                         <Card 
@@ -327,47 +366,8 @@ export function SearchConfirmationModal({
                     </div>
                   </ScrollArea>
                 </div>
-
-                {/* Action section */}
-                {modalState === 'initial' ? (
-                  <div>
-                    <p className="font-medium text-lg mb-4">Are these the type of companies you want to reach?</p>
-                    <div className="flex flex-col md:flex-row gap-3">
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        onClick={handleNewSearch}
-                        className="flex-1"
-                      >
-                        I want to do a NEW search
-                      </Button>
-                      <Button
-                        size="lg"
-                        onClick={handleStartRanking}
-                        className="flex-1"
-                      >
-                        Tell us which results are the best
-                      </Button>
-                    </div>
-                  </div>
-                ) : modalState === 'ranking' && (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Rate each company to help us find more like your favorites</p>
-                      <p className="text-sm text-muted-foreground">
-                        {Object.keys(companyRatings).length} of {searchResults.length} companies rated
-                      </p>
-                    </div>
-                    <Button 
-                      variant="outline"
-                      onClick={() => setModalState('initial')}
-                    >
-                      Cancel ranking
-                    </Button>
-                  </div>
-                )}
                 
-                {/* Search query display - moved to bottom */}
+                {/* Search query display */}
                 <div className="mt-6">
                   <div className="p-3 bg-muted rounded-lg">
                     <span className="font-medium text-sm">Your search:</span>
