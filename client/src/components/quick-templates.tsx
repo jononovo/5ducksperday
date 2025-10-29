@@ -56,10 +56,10 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
 
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ["/api/email-templates"],
-    staleTime: 0, // Don't use cached data
-    gcTime: 0, // Don't cache the response (renamed from cacheTime in v5)
-    retry: false, // Don't retry failed requests
-    refetchOnMount: true, // Always refetch when component mounts
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    retry: 1, // Retry once on failure
+    refetchOnMount: false, // Use cached data when available
   });
 
   const typedTemplates = templates as EmailTemplate[];

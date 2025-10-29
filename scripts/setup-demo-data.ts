@@ -4,13 +4,13 @@
  * Demo Data Setup Script
  * 
  * This script sets up essential demo data for a fresh 5Ducks clone:
- * - Demo user (ID: 1) for non-registered user functionality
- * - 4 professional email templates for outreach system
+ * - Demo user (ID: 1) for backwards compatibility
+ * - 4 professional default email templates for all users
  * 
  * Usage: npm run setup-demo
  */
 
-import { db } from '../server/1--db.js';
+import { db } from '../server/db.js';
 import { users, emailTemplates } from '../shared/schema.js';
 import { eq } from 'drizzle-orm';
 
@@ -36,15 +36,15 @@ async function setupDemoData() {
       console.log('✅ Demo user already exists');
     }
 
-    // Check if demo templates already exist
-    const existingTemplates = await db.select().from(emailTemplates).where(eq(emailTemplates.userId, 1));
+    // Check if default templates already exist
+    const existingTemplates = await db.select().from(emailTemplates).where(eq(emailTemplates.isDefault, true));
     
     if (existingTemplates.length === 0) {
-      // Create 4 professional demo email templates
-      const demoTemplates = [
+      // Create 4 professional default email templates
+      const defaultTemplates = [
         {
-          userId: 1,
-          name: 'Cold Outreach',
+          userId: 1,  // Still use demo user ID for backwards compatibility
+          name: 'Cold Outreach - Introduction',
           subject: 'Quick question about {{company_name}}',
           content: `Hi {{contact_name}},
 
@@ -53,7 +53,10 @@ I hope this email finds you well. I came across {{company_name}} and was impress
 [Your message here]
 
 Best regards,
-{{full_sender_name}}`
+{{full_sender_name}}`,
+          description: 'Initial cold outreach template',
+          category: 'outreach',
+          isDefault: true
         },
         {
           userId: 1,
@@ -68,7 +71,10 @@ I wanted to follow up on my previous email regarding {{company_name}}.
 Looking forward to hearing from you.
 
 Best,
-{{full_sender_name}}`
+{{full_sender_name}}`,
+          description: 'Follow-up after initial outreach',
+          category: 'follow-up',
+          isDefault: true
         },
         {
           userId: 1,
@@ -83,7 +89,10 @@ I'm reaching out to explore potential partnership opportunities between our comp
 Would you be open to a brief conversation?
 
 Best regards,
-{{full_sender_name}}`
+{{full_sender_name}}`,
+          description: 'Partnership proposal template',
+          category: 'partnership',
+          isDefault: true
         },
         {
           userId: 1,
@@ -98,21 +107,25 @@ I noticed that {{company_name}} might benefit from our services.
 Would you be interested in learning more?
 
 Best,
-{{full_sender_name}}`
+{{full_sender_name}}`,
+          description: 'Service introduction template',
+          category: 'introduction',
+          isDefault: true
         }
       ];
 
-      await db.insert(emailTemplates).values(demoTemplates);
-      console.log('✅ Created 4 professional email templates');
+      await db.insert(emailTemplates).values(defaultTemplates);
+      console.log('✅ Created 4 professional default email templates (available to all users)');
     } else {
-      console.log('✅ Demo email templates already exist');
+      console.log('✅ Default email templates already exist');
     }
 
     console.log('\n🎉 Demo data setup complete!');
     console.log('\nFeatures now available:');
-    console.log('  • Non-registered users can save searches (user ID: 1)');
-    console.log('  • Professional email templates in Quick Templates section');
-    console.log('  • Full search and outreach functionality');
+    console.log('  • Demo user created for backwards compatibility (user ID: 1)');
+    console.log('  • 4 professional default email templates available to all users');
+    console.log('  • Templates are now cached for better performance');
+    console.log('  • Default templates are protected from editing/deletion');
 
   } catch (error) {
     console.error('❌ Error setting up demo data:', error);
