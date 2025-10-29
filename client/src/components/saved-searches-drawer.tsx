@@ -108,8 +108,8 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
           <Table>
             <TableHeader>
               <TableRow className="border-t-0">
-                <TableHead className="w-[70%]">Search Name</TableHead>
-                <TableHead className="text-right">Results</TableHead>
+                <TableHead className="pr-2">Search Name</TableHead>
+                <TableHead className="text-right w-14">Results</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -122,7 +122,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
                     onLoadSearch(list);
                   }}
                 >
-                  <TableCell className="text-sm font-medium text-gray-500 py-3">
+                  <TableCell className="text-sm font-medium text-gray-500 py-3 pr-2">
                     <TooltipProvider delayDuration={1500}>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -134,7 +134,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
                       </Tooltip>
                     </TooltipProvider>
                   </TableCell>
-                  <TableCell className="text-right text-sm font-medium text-gray-700 py-3 pr-6">{list.resultCount}</TableCell>
+                  <TableCell className="text-right text-sm font-medium text-gray-700 py-3 pr-3">{list.resultCount}</TableCell>
                 </TableRow>
               ))}
               {lists.length === 0 && (
