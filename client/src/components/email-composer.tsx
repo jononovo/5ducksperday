@@ -1021,6 +1021,7 @@ export function EmailComposer({
           <CampaignSendButton
             recipients={campaignRecipients}
             listId={currentListId}
+            currentQuery={currentQuery}
             subject={emailSubject}
             body={emailContent}
             onSchedule={() => handleCreateCampaign('scheduled')}
