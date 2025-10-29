@@ -51,8 +51,9 @@ export function CampaignSendButton({
   const hasRecipients = !!(recipients || listId || currentQuery);
   const hasContent = !!(body?.trim() && subject?.trim());
   
-  // Determine if button should be disabled
-  const isDisabled = disabled || !hasRecipients || !hasContent || isPending;
+  // Only disable when explicitly disabled or pending (not just when missing content)
+  // This matches EmailSendButton behavior
+  const isDisabled = disabled || isPending;
 
   // Handle main button click (Schedule Campaign)
   const handleMainClick = () => {
@@ -96,8 +97,8 @@ export function CampaignSendButton({
                   isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500",
                   "rounded-r-none border-r-0",
                   validationError && "shake-animation",
-                  // Don't add opacity-50 here - the Button component already applies it when disabled=true
-                  (disabled || !hasContent) && "cursor-not-allowed"
+                  // Match EmailSendButton: add opacity-50 only when explicitly disabled
+                  disabled && "opacity-50 cursor-not-allowed"
                 )}
               >
                 {isPending ? (
@@ -129,8 +130,8 @@ export function CampaignSendButton({
                         "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
                       isSuccess && "bg-pink-500 hover:bg-pink-600 text-white border-pink-500",
                       "rounded-l-none border-l",
-                      // Don't add opacity-50 here - the Button component already applies it when disabled=true
-                      (disabled || !hasContent) && "cursor-not-allowed"
+                      // Match EmailSendButton: add opacity-50 only when explicitly disabled
+                      disabled && "opacity-50 cursor-not-allowed"
                     )}
                     aria-label="More campaign options"
                   >
