@@ -1,6 +1,5 @@
 import { Link, useLocation } from "wouter";
 import { LogOut, User, Menu, LayoutDashboard, Mail, MessageCircle, Target, Headphones, Flame, PanelLeft } from "lucide-react";
-import { useState, useCallback } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useStrategyOverlay } from "@/features/strategy-chat";
@@ -8,10 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { CreditUpgradeDropdown } from "@/components/credit-upgrade-dropdown";
 import { StreakButton } from "@/components/streak-button";
-import { SavedSearchesDrawer } from "@/components/saved-searches-drawer";
-import { useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import type { SearchList, Company, Contact } from "@shared/schema";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,22 +19,8 @@ const navigation = [
   // Navigation items removed - now in hamburger menu
 ];
 
-// Interface for ContactWithCompanyInfo
-interface ContactWithCompanyInfo extends Contact {
-  companyName: string;
-  companyId: number;
-}
-
-// Interface for CompanyWithContacts
-interface CompanyWithContacts extends Company {
-  contacts?: ContactWithCompanyInfo[];
-}
-
 export function MainNav() {
   const [location, setLocation] = useLocation();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
   
   // Safe auth hook usage with error handling
   let user = null;
@@ -63,82 +44,29 @@ export function MainNav() {
     // This is acceptable for public routes - just don't show user menu
   }
 
-  const handleLoadSearch = useCallback(async (list: SearchList) => {
-    try {
-      // First fetch the companies
-      const companies = await queryClient.fetchQuery({
-        queryKey: [`/api/lists/${list.listId}/companies`]
-      }) as Company[];
-      
-      // Then fetch contacts for each company
-      const companiesWithContacts = await Promise.all(
-        companies.map(async (company) => {
-          try {
-            const contacts = await queryClient.fetchQuery({
-              queryKey: [`/api/companies/${company.id}/contacts`]
-            }) as Contact[];
-            // Add companyName and companyId to each contact
-            const contactsWithCompanyInfo: ContactWithCompanyInfo[] = contacts.map(contact => ({
-              ...contact,
-              companyName: company.name,
-              companyId: company.id
-            }));
-            return { ...company, contacts: contactsWithCompanyInfo };
-          } catch (error) {
-            console.error(`Failed to load contacts for company ${company.id}:`, error);
-            return { ...company, contacts: [] };
-          }
-        })
-      );
-      
-      // Save the search state to localStorage
-      const searchState = {
-        currentQuery: list.prompt,
-        currentResults: companiesWithContacts,
-        currentListId: list.listId,
-        lastExecutedQuery: list.prompt,
-        emailSearchCompleted: false
-      };
-      
-      localStorage.setItem('searchState', JSON.stringify(searchState));
-      sessionStorage.setItem('searchState', JSON.stringify(searchState));
-      
-      // Navigate to the app page
+  const handleDrawerClick = () => {
+    if (location === '/app') {
+      // If already on app page, trigger the drawer open event
+      window.dispatchEvent(new CustomEvent('openSavedSearchesDrawer'));
+    } else {
+      // If on another page, navigate to app page
       setLocation('/app');
-      
-      const totalContacts = companiesWithContacts.reduce((sum, company) => 
-        sum + (company.contacts?.length || 0), 0);
-      
-      toast({
-        title: "Search Loaded",
-        description: `Loaded "${list.prompt}" with ${list.resultCount} companies and ${totalContacts} contacts`,
-      });
-    } catch (error) {
-      toast({
-        title: "Failed to load search",
-        description: "Could not load the selected search.",
-        variant: "destructive"
-      });
+      // Trigger drawer after navigation
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('openSavedSearchesDrawer'));
+      }, 100);
     }
-  }, [queryClient, setLocation, toast]);
-
-  const handleNewSearch = useCallback(() => {
-    // Clear any existing search state for a fresh search
-    localStorage.removeItem('searchState');
-    sessionStorage.removeItem('searchState');
-    setLocation('/app');
-  }, [setLocation]);
+  };
 
   return (
-    <>
-      <nav className="flex items-center justify-between mb-2 px-4 py-1.5">
+    <nav className="flex items-center justify-between mb-2 px-4 py-1.5">
         <div className="flex items-center space-x-2">
           <Logo size="sm" className="mr-2" />
           {user && (
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setDrawerOpen(true)}
+              onClick={handleDrawerClick}
               className="h-8 w-8 hover:bg-accent"
               title="Historic Searches"
             >
@@ -219,15 +147,5 @@ export function MainNav() {
         )}
       </div>
     </nav>
-    
-    {user && (
-      <SavedSearchesDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        onLoadSearch={handleLoadSearch}
-        onNewSearch={handleNewSearch}
-      />
-    )}
-    </>
   );
 }

@@ -598,6 +598,19 @@ export default function Home() {
     };
   }, []); // Remove dependencies to prevent re-running
 
+  // Listen for the drawer open event from the header
+  useEffect(() => {
+    const handleOpenDrawer = () => {
+      setSavedSearchesDrawerOpen(true);
+    };
+
+    window.addEventListener('openSavedSearchesDrawer', handleOpenDrawer);
+    
+    return () => {
+      window.removeEventListener('openSavedSearchesDrawer', handleOpenDrawer);
+    };
+  }, []);
+
   // Save state to localStorage whenever it changes (but prevent corruption during unmount)
   useEffect(() => {
     // Clear existing timer
