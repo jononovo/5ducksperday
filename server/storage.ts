@@ -2,7 +2,7 @@ import {
   userPreferences, searchLists, companies, contacts, emailTemplates, users,
   strategicProfiles, userEmailPreferences,
   senderProfiles, customerProfiles, campaigns, searchJobs,
-  contactLists, contactListMembers,
+  contactLists, contactListMembers, oauthTokens,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type SearchList, type InsertSearchList,
@@ -20,6 +20,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, sql, desc, lt } from "drizzle-orm";
+import { encrypt, decrypt } from "./utils/encryption";
 
 export interface IStorage {
   // User Auth
@@ -128,6 +129,19 @@ export interface IStorage {
   removeContactsFromList(listId: number, contactIds: number[]): Promise<void>;
   isContactInList(listId: number, contactId: number): Promise<boolean>;
   getListMemberCount(listId: number): Promise<number>;
+
+  // OAuth Tokens
+  getOAuthToken(userId: number, service: string): Promise<{ accessToken: string; refreshToken?: string; expiresAt?: Date; email?: string } | null>;
+  saveOAuthToken(userId: number, service: string, tokenData: {
+    accessToken: string;
+    refreshToken?: string;
+    expiresAt?: Date;
+    email?: string;
+    scopes?: string[];
+    metadata?: any;
+  }): Promise<void>;
+  deleteOAuthToken(userId: number, service: string): Promise<void>;
+  updateOAuthTokenExpiry(userId: number, service: string, expiresAt: Date): Promise<void>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -837,6 +851,105 @@ class DatabaseStorage implements IStorage {
       .from(contactListMembers)
       .where(eq(contactListMembers.listId, listId));
     return result?.count || 0;
+  }
+
+  // OAuth Token Methods with Encryption
+  async getOAuthToken(userId: number, service: string): Promise<{ 
+    accessToken: string; 
+    refreshToken?: string; 
+    expiresAt?: Date; 
+    email?: string 
+  } | null> {
+    const [token] = await db.select()
+      .from(oauthTokens)
+      .where(and(
+        eq(oauthTokens.userId, userId),
+        eq(oauthTokens.service, service)
+      ));
+    
+    if (!token) {
+      return null;
+    }
+
+    try {
+      // Decrypt the tokens
+      const accessToken = decrypt(token.accessToken);
+      const refreshToken = token.refreshToken ? decrypt(token.refreshToken) : undefined;
+      
+      return {
+        accessToken,
+        refreshToken,
+        expiresAt: token.expiresAt || undefined,
+        email: token.email || undefined
+      };
+    } catch (error) {
+      console.error('Failed to decrypt OAuth token:', error);
+      return null;
+    }
+  }
+
+  async saveOAuthToken(userId: number, service: string, tokenData: {
+    accessToken: string;
+    refreshToken?: string;
+    expiresAt?: Date;
+    email?: string;
+    scopes?: string[];
+    metadata?: any;
+  }): Promise<void> {
+    // Encrypt sensitive tokens
+    const encryptedAccessToken = encrypt(tokenData.accessToken);
+    const encryptedRefreshToken = tokenData.refreshToken ? encrypt(tokenData.refreshToken) : null;
+
+    const tokenRecord = {
+      userId,
+      service,
+      accessToken: encryptedAccessToken,
+      refreshToken: encryptedRefreshToken,
+      expiresAt: tokenData.expiresAt,
+      email: tokenData.email,
+      scopes: tokenData.scopes || [],
+      metadata: tokenData.metadata || {},
+      updatedAt: new Date()
+    };
+
+    // Upsert - update if exists, insert if not
+    const [existing] = await db.select()
+      .from(oauthTokens)
+      .where(and(
+        eq(oauthTokens.userId, userId),
+        eq(oauthTokens.service, service)
+      ));
+
+    if (existing) {
+      await db.update(oauthTokens)
+        .set(tokenRecord)
+        .where(and(
+          eq(oauthTokens.userId, userId),
+          eq(oauthTokens.service, service)
+        ));
+    } else {
+      await db.insert(oauthTokens).values(tokenRecord);
+    }
+  }
+
+  async deleteOAuthToken(userId: number, service: string): Promise<void> {
+    await db.delete(oauthTokens)
+      .where(and(
+        eq(oauthTokens.userId, userId),
+        eq(oauthTokens.service, service)
+      ));
+  }
+
+  async updateOAuthTokenExpiry(userId: number, service: string, expiresAt: Date): Promise<void> {
+    await db.update(oauthTokens)
+      .set({ 
+        expiresAt,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(oauthTokens.userId, userId),
+        eq(oauthTokens.service, service)
+      ));
   }
 }
 

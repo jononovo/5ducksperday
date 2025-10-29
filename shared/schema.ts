@@ -11,6 +11,25 @@ export const users = pgTable("users", {
   isAdmin: boolean("is_admin").default(false)
 });
 
+// OAuth tokens with encryption for sensitive data
+export const oauthTokens = pgTable("oauth_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  service: text("service").notNull(), // 'gmail', 'outlook', etc.
+  email: text("email"), // The email address associated with the token
+  accessToken: text("access_token").notNull(), // Encrypted
+  refreshToken: text("refresh_token"), // Encrypted
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  scopes: jsonb("scopes").$type<string[]>().default([]),
+  metadata: jsonb("metadata").default({}), // Additional service-specific data
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  uniqueIndex('idx_oauth_tokens_user_service').on(table.userId, table.service),
+  index('idx_oauth_tokens_user_id').on(table.userId),
+  index('idx_oauth_tokens_service').on(table.service),
+]);
+
 export const searchLists = pgTable("search_lists", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("user_id").notNull().references(() => users.id),  
@@ -974,6 +993,21 @@ export type InsertContactListMember = z.infer<typeof insertContactListMemberSche
 // Search jobs types
 export type SearchJob = typeof searchJobs.$inferSelect;
 export type InsertSearchJob = z.infer<typeof searchJobSchema> & { userId: number };
+
+// OAuth token schemas and types
+export const insertOAuthTokenSchema = z.object({
+  userId: z.number(),
+  service: z.string(),
+  email: z.string().email().optional(),
+  accessToken: z.string(),
+  refreshToken: z.string().optional(),
+  expiresAt: z.date().optional(),
+  scopes: z.array(z.string()).default([]),
+  metadata: z.record(z.unknown()).optional()
+});
+
+export type OAuthToken = typeof oauthTokens.$inferSelect;
+export type InsertOAuthToken = z.infer<typeof insertOAuthTokenSchema>;
 
 // Backward compatibility exports
 export const targetCustomerProfiles = customerProfiles;
