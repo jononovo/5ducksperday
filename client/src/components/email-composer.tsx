@@ -215,12 +215,12 @@ export function EmailComposer({
   });
 
   const { data: gmailStatus } = useQuery<{authorized: boolean}>({
-    queryKey: ['/api/gmail/status'],
+    queryKey: ['/api/gmail/auth-status'],
     refetchInterval: 5000
   });
 
   const { data: gmailUserInfo } = useQuery<{email: string}>({
-    queryKey: ['/api/gmail/user-info'],
+    queryKey: ['/api/gmail/user'],
     enabled: !!(gmailStatus as any)?.authorized
   });
 
@@ -1002,21 +1002,26 @@ export function EmailComposer({
         style={{ minHeight: '160px', maxHeight: '400px' }}
       />
       <div className="absolute bottom-2 right-2 flex items-center gap-2">
-        {/* Gmail Status Badge */}
-        {gmailStatus?.authorized ? (
-          <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-300">
-            <Mail className="w-3 h-3 mr-1" />
-            {gmailUserInfo?.email 
-              ? (gmailUserInfo as any).email.length > 20 
-                ? `${(gmailUserInfo as any).email.substring(0, 20)}...`
-                : (gmailUserInfo as any).email
-              : 'Gmail Connected'
-            }
-          </Badge>
-        ) : (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
+        {/* Gmail Connection Button/Status */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {gmailStatus?.authorized ? (
+                <Button
+                  onClick={handleGmailConnect}
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400 px-3 transition-all duration-300"
+                >
+                  <Mail className="w-3 h-3 mr-1.5 shrink-0" />
+                  {gmailUserInfo?.email 
+                    ? (gmailUserInfo as any).email.length > 20 
+                      ? `${(gmailUserInfo as any).email.substring(0, 20)}...`
+                      : (gmailUserInfo as any).email
+                    : 'Gmail Connected'
+                  }
+                </Button>
+              ) : (
                 <Button
                   onClick={handleGmailConnect}
                   onMouseEnter={() => setIsGmailButtonHovered(true)}
@@ -1035,13 +1040,16 @@ export function EmailComposer({
                     <span className="ml-1 whitespace-nowrap">Gmail API BETA</span>
                   )}
                 </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Connect via Gmail API so that your emails send automatically when you click send here.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+              )}
+            </TooltipTrigger>
+            <TooltipContent>
+              {gmailStatus?.authorized 
+                ? <p>Gmail connected. Click to reconnect or change account.</p>
+                : <p>Connect via Gmail API so that your emails send automatically when you click send here.</p>
+              }
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         
         {/* Send Email Button / Schedule Campaign Button */}
         {drawerMode === 'compose' ? (

@@ -258,14 +258,14 @@ export function EmailSendButton({
     );
   }
 
-  // If Gmail not authenticated, show split button with dropdown
+  // If Gmail not authenticated, show single button that opens default email client
   return (
     <>
       <TooltipProvider>
         <Tooltip open={showErrorTooltip}>
           <TooltipTrigger asChild>
             <div className={cn("inline-flex rounded-md shadow-sm", className)}>
-              {/* Main Button - Direct action to default email app */}
+              {/* Main Button - Default email client as primary action */}
               <Button
                 onClick={() => handleFallbackSend('mailto')}
                 disabled={disabled || isProcessing}
