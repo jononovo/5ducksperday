@@ -82,13 +82,13 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
       >
         <div className="h-full overflow-auto">
           {/* New Search Button */}
-          <div className="px-3 pt-2 pb-3">
+          <div className="px-3 pt-2 pb-2">
             <button
               onClick={() => {
                 onNewSearch();
                 onOpenChange(false);
               }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:shadow-lg hover:-translate-y-0.5 hover:bg-blue-50/50 transition-all duration-200 group"
+              className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:shadow-md hover:-translate-y-0.5 hover:bg-blue-50 transition-all duration-200 group"
             >
               <Plus className="h-6 w-6 text-blue-500" strokeWidth={3} />
               <span className="text-sm font-medium text-gray-700">New Search</span>
@@ -96,27 +96,27 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
           </div>
           
           {/* Streak Link */}
-          <div className="px-3 pb-3">
+          <div className="px-3 pb-2">
             <Link href="/streak">
               <button
                 onClick={() => onOpenChange(false)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:bg-gray-50 transition-all duration-200 group"
+                className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:shadow-md hover:bg-gray-100 hover:-translate-y-0.5 transition-all duration-200 group"
               >
-                <Zap className="h-5 w-5 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">Streak</span>
+                <Zap className="h-5 w-5 text-gray-500 group-hover:text-yellow-600" />
+                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Streak</span>
               </button>
             </Link>
           </div>
           
           {/* Campaigns Link */}
-          <div className="px-3 pb-3">
+          <div className="px-3 pb-2">
             <Link href="/campaigns">
               <button
                 onClick={() => onOpenChange(false)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:bg-gray-50 transition-all duration-200 group"
+                className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:shadow-md hover:bg-gray-100 hover:-translate-y-0.5 transition-all duration-200 group"
               >
-                <Send className="h-5 w-5 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">Campaigns</span>
+                <Send className="h-5 w-5 text-gray-500 group-hover:text-green-600" />
+                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Campaigns</span>
               </button>
             </Link>
           </div>
@@ -126,10 +126,10 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
             <Link href="/contacts">
               <button
                 onClick={() => onOpenChange(false)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg hover:bg-gray-50 transition-all duration-200 group"
+                className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:shadow-md hover:bg-gray-100 hover:-translate-y-0.5 transition-all duration-200 group"
               >
-                <Users className="h-5 w-5 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">Contacts</span>
+                <Users className="h-5 w-5 text-gray-500 group-hover:text-blue-600" />
+                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Contacts</span>
               </button>
             </Link>
           </div>
