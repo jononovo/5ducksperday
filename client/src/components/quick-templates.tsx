@@ -136,12 +136,12 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
         >
           {isMergeViewMode ? (
             <>
-              <EyeOff className="w-3 h-3 mr-1" />
+              <EyeOff className="w-3 h-3 mr-0.5" />
               Normal View
             </>
           ) : (
             <>
-              <Eye className="w-3 h-3 mr-1" />
+              <Eye className="w-3 h-3 mr-0.5" />
               Merge View
             </>
           )}
@@ -151,7 +151,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
           className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-300 ease-out"
           onClick={() => setMergeFieldDialogOpen(true)}
         >
-          <Plus className="w-3 h-3 mr-1" />
+          <Plus className="w-3 h-3 mr-0.5" />
           Merge Field
         </Button>
         {onSaveTemplate && (
@@ -160,7 +160,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
             onClick={handleSaveTemplate}
             className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground mr-2 hover:scale-105 transition-all duration-300 ease-out"
           >
-            <Save className="w-3 h-3 mr-1" />
+            <Save className="w-3 h-3 mr-0.5" />
             Save as Template
           </Button>
         )}
@@ -191,7 +191,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
             disabled={!selectedTemplateId}
             className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground mr-1 hover:scale-105 transition-all duration-300 ease-out"
           >
-            <FileText className="w-3 h-3 mr-1" />
+            <FileText className="w-3 h-3 mr-0.5" />
             Insert Template
           </Button>
           <Button 
@@ -203,18 +203,18 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
             {isEditMode ? (
               isSavingTemplate ? (
                 <>
-                  <Save className="w-3 h-3 mr-1 animate-pulse" />
+                  <Save className="w-3 h-3 mr-0.5 animate-pulse" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Save className="w-3 h-3 mr-1" />
+                  <Save className="w-3 h-3 mr-0.5" />
                   Save Template
                 </>
               )
             ) : (
               <>
-                <Edit className="w-3 h-3 mr-1" />
+                <Edit className="w-3 h-3 mr-0.5" />
                 Edit Template
               </>
             )}
