@@ -278,7 +278,7 @@ export function SearchConfirmationModal({
                           )}
                         >
                           <div className="flex items-start gap-3">
-                            <Building2 className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
+                            <Building2 className="h-7 w-7 text-muted-foreground mt-0.5 shrink-0" />
                             <div className="flex-1 min-w-0">
                               <h4 className="font-medium mb-1">{company.name}</h4>
                               {company.description && (
