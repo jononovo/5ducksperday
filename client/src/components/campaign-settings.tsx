@@ -107,21 +107,21 @@ export function CampaignSettings({
             <span className="text-sm font-medium text-muted-foreground">Campaign Settings</span>
           </div>
         </AccordionTrigger>
-        <AccordionContent className="pb-6">
-          <div className="space-y-4 pt-2">
+        <AccordionContent className="pb-4">
+          <div className="space-y-1 pt-1">
             {/* Schedule Send Button */}
             <Button
               variant="ghost"
-              className="w-full justify-between h-auto p-2 hover:bg-muted/50"
+              className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
               onClick={() => setScheduleModalOpen(true)}
             >
-              <div className="flex items-center gap-3">
-                <Calendar className="h-5 w-5 text-muted-foreground" />
-                <span className="text-base font-normal">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-normal text-muted-foreground">
                   Schedule send
                 </span>
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 {localSettings.scheduleSend && localSettings.scheduleDate 
                   ? format(localSettings.scheduleDate, "MMM d, h:mm a")
                   : ''}
@@ -131,20 +131,20 @@ export function CampaignSettings({
             {/* Autopilot Button */}
             <Button
               variant="ghost"
-              className="w-full justify-between h-auto p-2 hover:bg-muted/50"
+              className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
               onClick={() => setAutopilotModalOpen(true)}
             >
-              <div className="flex items-center gap-3">
-                <Wand2 className="h-5 w-5 text-muted-foreground" />
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-normal">
+              <div className="flex items-center gap-2">
+                <Wand2 className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-normal text-muted-foreground">
                     Autopilot
                   </span>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Info 
-                          className="h-4 w-4 text-muted-foreground cursor-help" 
+                          className="h-3 w-3 text-muted-foreground cursor-help" 
                           onClick={(e) => e.stopPropagation()}
                         />
                       </TooltipTrigger>
@@ -155,7 +155,7 @@ export function CampaignSettings({
                   </TooltipProvider>
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 {localSettings.autopilot && localSettings.autopilotSettings?.maxEmailsPerDay 
                   ? `${localSettings.autopilotSettings.maxEmailsPerDay} per day`
                   : ''}
@@ -165,20 +165,20 @@ export function CampaignSettings({
             {/* Track Emails Button */}
             <Button
               variant="ghost"
-              className="w-full justify-between h-auto p-2 hover:bg-muted/50"
+              className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
               onClick={() => handleToggle('trackEmails', !localSettings.trackEmails)}
             >
-              <div className="flex items-center gap-3">
-                <MailCheck className="h-5 w-5 text-muted-foreground" />
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-normal">
+              <div className="flex items-center gap-2">
+                <MailCheck className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-normal text-muted-foreground">
                     Track emails
                   </span>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Info 
-                          className="h-4 w-4 text-muted-foreground cursor-help"
+                          className="h-3 w-3 text-muted-foreground cursor-help"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </TooltipTrigger>
@@ -192,7 +192,7 @@ export function CampaignSettings({
               <Switch
                 checked={localSettings.trackEmails}
                 onCheckedChange={(checked) => handleToggle('trackEmails', checked)}
-                className="data-[state=checked]:bg-blue-600"
+                className="data-[state=checked]:bg-blue-600 scale-90"
                 onClick={(e) => e.stopPropagation()}
               />
             </Button>
@@ -200,20 +200,20 @@ export function CampaignSettings({
             {/* Unsubscribe Link Button */}
             <Button
               variant="ghost"
-              className="w-full justify-between h-auto p-2 hover:bg-muted/50"
+              className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
               onClick={() => handleToggle('unsubscribeLink', !localSettings.unsubscribeLink)}
             >
-              <div className="flex items-center gap-3">
-                <Link className="h-5 w-5 text-muted-foreground" />
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-normal">
+              <div className="flex items-center gap-2">
+                <Link className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-normal text-muted-foreground">
                     Unsubscribe link
                   </span>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Info 
-                          className="h-4 w-4 text-muted-foreground cursor-help"
+                          className="h-3 w-3 text-muted-foreground cursor-help"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </TooltipTrigger>
@@ -227,7 +227,7 @@ export function CampaignSettings({
               <Switch
                 checked={localSettings.unsubscribeLink}
                 onCheckedChange={(checked) => handleToggle('unsubscribeLink', checked)}
-                className="data-[state=checked]:bg-blue-600"
+                className="data-[state=checked]:bg-blue-600 scale-90"
                 onClick={(e) => e.stopPropagation()}
               />
             </Button>
