@@ -128,10 +128,10 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
         </div>
       )}
       
-      <div className="flex items-center justify-end gap-2 mb-6">
+      <div className="flex items-center justify-end gap-1.5 mb-4">
         <Button 
           variant="outline" 
-          className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+          className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-300 ease-out"
           onClick={onToggleMergeView}
         >
           {isMergeViewMode ? (
@@ -148,7 +148,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
         </Button>
         <Button 
           variant="outline" 
-          className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+          className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-300 ease-out"
           onClick={() => setMergeFieldDialogOpen(true)}
         >
           <Plus className="w-3 h-3 mr-1" />
@@ -158,7 +158,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
           <Button
             variant="secondary"
             onClick={handleSaveTemplate}
-            className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
+            className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground mr-2 hover:scale-105 transition-all duration-300 ease-out"
           >
             <Save className="w-3 h-3 mr-1" />
             Save as Template
@@ -184,12 +184,12 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
           </SelectContent>
         </Select>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-1.5">
           <Button 
             variant="secondary"
             onClick={handleInsertTemplate} 
             disabled={!selectedTemplateId}
-            className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
+            className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground mr-1 hover:scale-105 transition-all duration-300 ease-out"
           >
             <FileText className="w-3 h-3 mr-1" />
             Insert Template
@@ -198,7 +198,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
             variant="secondary"
             onClick={isEditMode ? () => onUpdateTemplate?.() : handleEditTemplate} 
             disabled={!selectedTemplateId || isSavingTemplate}
-            className="h-8 px-3 text-xs mr-2 hover:scale-105 transition-all duration-300 ease-out"
+            className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground mr-1 hover:scale-105 transition-all duration-300 ease-out"
           >
             {isEditMode ? (
               isSavingTemplate ? (

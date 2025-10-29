@@ -111,129 +111,128 @@ export function CampaignSettings({
         open ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
       )}>
         <div className="space-y-1 pt-1 pb-4">
-            {/* Schedule Send Button */}
-            <Button
-              variant="ghost"
-              className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
-              onClick={() => setScheduleModalOpen(true)}
-            >
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+          {/* Schedule Send Button */}
+          <Button
+            variant="ghost"
+            className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
+            onClick={() => setScheduleModalOpen(true)}
+          >
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-normal text-muted-foreground">
+                Schedule send
+              </span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {localSettings.scheduleSend && localSettings.scheduleDate 
+                ? format(localSettings.scheduleDate, "MMM d, h:mm a")
+                : ''}
+            </div>
+          </Button>
+
+          {/* Autopilot Button */}
+          <Button
+            variant="ghost"
+            className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
+            onClick={() => setAutopilotModalOpen(true)}
+          >
+            <div className="flex items-center gap-2">
+              <Wand2 className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-1.5">
                 <span className="text-sm font-normal text-muted-foreground">
-                  Schedule send
+                  Autopilot
                 </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info 
+                        className="h-3 w-3 text-muted-foreground cursor-help" 
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p>Automatically send emails at optimal times throughout the day</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
-              <div className="text-xs text-muted-foreground">
-                {localSettings.scheduleSend && localSettings.scheduleDate 
-                  ? format(localSettings.scheduleDate, "MMM d, h:mm a")
-                  : ''}
-              </div>
-            </Button>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {localSettings.autopilot && localSettings.autopilotSettings?.maxEmailsPerDay 
+                ? `${localSettings.autopilotSettings.maxEmailsPerDay} per day`
+                : ''}
+            </div>
+          </Button>
 
-            {/* Autopilot Button */}
-            <Button
-              variant="ghost"
-              className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
-              onClick={() => setAutopilotModalOpen(true)}
-            >
-              <div className="flex items-center gap-2">
-                <Wand2 className="h-4 w-4 text-muted-foreground" />
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-normal text-muted-foreground">
-                    Autopilot
-                  </span>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info 
-                          className="h-3 w-3 text-muted-foreground cursor-help" 
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-xs">
-                        <p>Automatically send emails at optimal times throughout the day</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
+          {/* Track Emails Button */}
+          <Button
+            variant="ghost"
+            className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
+            onClick={() => handleToggle('trackEmails', !localSettings.trackEmails)}
+          >
+            <div className="flex items-center gap-2">
+              <MailCheck className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-normal text-muted-foreground">
+                  Track emails
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info 
+                        className="h-3 w-3 text-muted-foreground cursor-help"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p>Track when recipients open and click links in your emails</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
-              <div className="text-xs text-muted-foreground">
-                {localSettings.autopilot && localSettings.autopilotSettings?.maxEmailsPerDay 
-                  ? `${localSettings.autopilotSettings.maxEmailsPerDay} per day`
-                  : ''}
-              </div>
-            </Button>
+            </div>
+            <Switch
+              checked={localSettings.trackEmails}
+              onCheckedChange={(checked) => handleToggle('trackEmails', checked)}
+              className="data-[state=checked]:bg-blue-600 scale-90"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </Button>
 
-            {/* Track Emails Button */}
-            <Button
-              variant="ghost"
-              className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
-              onClick={() => handleToggle('trackEmails', !localSettings.trackEmails)}
-            >
-              <div className="flex items-center gap-2">
-                <MailCheck className="h-4 w-4 text-muted-foreground" />
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-normal text-muted-foreground">
-                    Track emails
-                  </span>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info 
-                          className="h-3 w-3 text-muted-foreground cursor-help"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-xs">
-                        <p>Track when recipients open and click links in your emails</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
+          {/* Unsubscribe Link Button */}
+          <Button
+            variant="ghost"
+            className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
+            onClick={() => handleToggle('unsubscribeLink', !localSettings.unsubscribeLink)}
+          >
+            <div className="flex items-center gap-2">
+              <Link className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-normal text-muted-foreground">
+                  Unsubscribe link
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info 
+                        className="h-3 w-3 text-muted-foreground cursor-help"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p>Add an unsubscribe link to comply with email regulations</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
-              <Switch
-                checked={localSettings.trackEmails}
-                onCheckedChange={(checked) => handleToggle('trackEmails', checked)}
-                className="data-[state=checked]:bg-blue-600 scale-90"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </Button>
-
-            {/* Unsubscribe Link Button */}
-            <Button
-              variant="ghost"
-              className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
-              onClick={() => handleToggle('unsubscribeLink', !localSettings.unsubscribeLink)}
-            >
-              <div className="flex items-center gap-2">
-                <Link className="h-4 w-4 text-muted-foreground" />
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-normal text-muted-foreground">
-                    Unsubscribe link
-                  </span>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info 
-                          className="h-3 w-3 text-muted-foreground cursor-help"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-xs">
-                        <p>Add an unsubscribe link to comply with email regulations</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-              <Switch
-                checked={localSettings.unsubscribeLink}
-                onCheckedChange={(checked) => handleToggle('unsubscribeLink', checked)}
-                className="data-[state=checked]:bg-blue-600 scale-90"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </Button>
-          </div>
+            </div>
+            <Switch
+              checked={localSettings.unsubscribeLink}
+              onCheckedChange={(checked) => handleToggle('unsubscribeLink', checked)}
+              className="data-[state=checked]:bg-blue-600 scale-90"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </Button>
         </div>
       </div>
     </div>
