@@ -25,6 +25,7 @@ interface UseEmailGenerationProps {
   toEmail: string;
   tone?: string;
   offerStrategy?: string;
+  generateTemplate?: boolean; // For campaign template generation
   
   // State setters
   setEmailSubject: (subject: string) => void;
@@ -46,6 +47,7 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
     toEmail,
     tone = 'default',
     offerStrategy = 'none',
+    generateTemplate = false,
     setEmailSubject,
     setOriginalEmailSubject,
     setToEmail,
@@ -62,38 +64,52 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
         tone,
         offerStrategy,
         toEmail,
-        emailSubject
+        emailSubject,
+        generateTemplate
       };
       return generateEmailApi(payload);
     },
     onSuccess: (data: EmailGenerationResponse) => {
-      // Apply smart replacements to convert exact name matches to merge fields
-      const processed = applySmartReplacements(
-        data.content,
-        data.subject,
-        selectedContact,
-        selectedCompany
-      );
+      let finalSubject = data.subject;
+      let finalContent = data.content;
       
-      // Set the processed subject with merge fields
-      setEmailSubject(processed.subject);
-      setOriginalEmailSubject(processed.subject);
-      
-      // Always set email field to match selected contact (prevents accidental sends)
-      if (selectedContact?.email) {
-        setToEmail(selectedContact.email);
+      // Only apply smart replacements if NOT generating a template
+      if (!generateTemplate) {
+        // Apply smart replacements to convert exact name matches to merge fields
+        const processed = applySmartReplacements(
+          data.content,
+          data.subject,
+          selectedContact,
+          selectedCompany
+        );
+        finalSubject = processed.subject;
+        finalContent = processed.content;
+        
+        // Always set email field to match selected contact (prevents accidental sends)
+        if (selectedContact?.email) {
+          setToEmail(selectedContact.email);
+        } else {
+          setToEmail(''); // Clear field if contact has no email
+        }
       } else {
-        setToEmail(''); // Clear field if contact has no email
+        // For templates, clear the email field since it's for campaigns
+        setToEmail('');
       }
       
-      // Format and set the processed content with merge fields
-      const newContent = formatGeneratedContent(processed.content, emailContent);
+      // Set the subject
+      setEmailSubject(finalSubject);
+      setOriginalEmailSubject(finalSubject);
+      
+      // Format and set the content
+      const newContent = formatGeneratedContent(finalContent, emailContent);
       setEmailContent(newContent);
       setOriginalEmailContent(newContent);
       
       toast({
-        title: "Email Generated",
-        description: "AI generated content has replaced all email fields.",
+        title: generateTemplate ? "Template Generated" : "Email Generated",
+        description: generateTemplate 
+          ? "Template with merge fields has been created for your campaign." 
+          : "AI generated content has replaced all email fields.",
       });
     },
     onError: (error: Error) => {

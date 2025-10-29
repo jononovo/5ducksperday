@@ -8,6 +8,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Tooltip,
   TooltipContent,
@@ -24,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, Type, Wand2, Loader2, Box, Palette, Gift, Check, Info, Lock, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Mail, Type, Wand2, Loader2, Box, Palette, Gift, Check, Info, Lock, ChevronDown, ChevronUp, Users, Send, Rocket, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QuickTemplates from "./quick-templates";
 import { EmailSendButton } from "./email-fallback/EmailSendButton";
@@ -39,6 +45,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { TONE_OPTIONS, DEFAULT_TONE } from "@/lib/tone-options";
 import { OFFER_OPTIONS, DEFAULT_OFFER } from "@/lib/offer-options";
 import { RecipientSelectionModal, type RecipientSelection } from "@/components/recipient-selection-modal";
+import { CampaignSettings, type CampaignSettingsData } from "@/components/campaign-settings";
 
 // Component prop types
 interface EmailComposerProps {
@@ -93,6 +100,13 @@ export function EmailComposer({
   const [isTemplatesExpanded, setIsTemplatesExpanded] = useState(false);
   const [recipientModalOpen, setRecipientModalOpen] = useState(false);
   const [campaignRecipients, setCampaignRecipients] = useState<RecipientSelection | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [campaignSettings, setCampaignSettings] = useState<CampaignSettingsData>({
+    scheduleSend: false,
+    autopilot: false,
+    trackEmails: true, // Default to on like in the screenshot
+    unsubscribeLink: false,
+  });
 
   // Refs
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -119,6 +133,7 @@ export function EmailComposer({
     toEmail,
     tone: selectedTone,
     offerStrategy: selectedOfferStrategy,
+    generateTemplate: drawerMode === 'campaign', // Generate template when in campaign mode
     setEmailSubject,
     setOriginalEmailSubject,
     setToEmail,
@@ -178,26 +193,37 @@ export function EmailComposer({
 
   // Campaign creation mutation
   const createCampaignMutation = useMutation({
-    mutationFn: async () => {
-      if (!campaignRecipients) {
+    mutationFn: async (type: 'scheduled' | 'immediate' | 'draft') => {
+      // Use campaignRecipients if set, otherwise auto-create from current search
+      let recipientsToUse = campaignRecipients;
+      
+      if (!recipientsToUse && currentListId && currentQuery) {
+        recipientsToUse = {
+          type: 'current' as const,
+          listId: currentListId,
+          query: currentQuery
+        };
+      }
+      
+      if (!recipientsToUse) {
         throw new Error('No recipients selected');
       }
 
       let contactListId: number;
       
       // Create or use existing contact list based on recipient selection
-      if (campaignRecipients.type === 'existing') {
+      if (recipientsToUse.type === 'existing') {
         // Use the existing contact list
-        contactListId = campaignRecipients.contactListId;
+        contactListId = recipientsToUse.contactListId;
       } else {
         // Create new contact list from search results
         const listData: any = {};
         
-        if (campaignRecipients.type === 'current') {
-          listData.currentListId = campaignRecipients.listId;
-          listData.currentQuery = campaignRecipients.query;
-        } else if (campaignRecipients.type === 'multiple') {
-          listData.searchListIds = campaignRecipients.searchListIds;
+        if (recipientsToUse.type === 'current') {
+          listData.currentListId = recipientsToUse.listId;
+          listData.currentQuery = recipientsToUse.query;
+        } else if (recipientsToUse.type === 'multiple') {
+          listData.searchListIds = recipientsToUse.searchListIds;
         }
         
         const contactListRes = await apiRequest("POST", '/api/contact-lists/from-search', listData);
@@ -205,27 +231,40 @@ export function EmailComposer({
         contactListId = contactList.id;
       }
       
-      // Create the campaign
+      // Create the campaign with appropriate settings based on type
       const campaignRes = await apiRequest("POST", '/api/campaigns', {
         name: emailSubject || 'Untitled Campaign',
         subject: emailSubject,
         body: emailContent,
         prompt: emailPrompt,
         contactListId: contactListId,
-        isActive: true,
-        sendTimePreference: 'immediate',
+        isActive: type === 'immediate',  // Start immediately if 'immediate'
+        sendTimePreference: type === 'scheduled' ? 'scheduled' : (type === 'immediate' ? 'immediate' : 'draft'),
         tone: selectedTone,
-        offerType: selectedOffer,
-        productId: selectedProduct?.id
+        offerType: selectedOfferStrategy,
+        productId: selectedProduct
       });
       
       return await campaignRes.json();
     },
-    onSuccess: (campaign) => {
-      toast({
-        title: "Campaign Created!",
-        description: `Your campaign "${campaign.name}" has been created successfully.`
-      });
+    onSuccess: (campaign, variables) => {
+      const campaignType = variables;
+      
+      let title = "Campaign Created!";
+      let description = `Your campaign "${campaign.name}" has been created successfully.`;
+      
+      if (campaignType === 'immediate') {
+        title = "Campaign Started!";
+        description = `Your campaign "${campaign.name}" has started and emails are being sent.`;
+      } else if (campaignType === 'draft') {
+        title = "Campaign Saved as Draft!";
+        description = `Your campaign "${campaign.name}" has been saved as a draft for later.`;
+      } else if (campaignType === 'scheduled') {
+        title = "Campaign Scheduled!";
+        description = `Your campaign "${campaign.name}" has been scheduled and will start at the configured time.`;
+      }
+      
+      toast({ title, description });
       
       // Clear the form
       setEmailPrompt('');
@@ -497,11 +536,12 @@ export function EmailComposer({
     return "Select recipients";
   };
 
-  const handleCreateCampaign = () => {
-    if (!campaignRecipients) {
+  const handleCreateCampaign = (type: 'scheduled' | 'immediate' | 'draft' = 'scheduled') => {
+    // Validate requirements first
+    if (!currentListId && !campaignRecipients) {
       toast({
-        title: "No Recipients Selected",
-        description: "Please select recipients for your campaign",
+        title: "No Recipients Available",
+        description: "Please run a search first or select recipients for your campaign",
         variant: "destructive"
       });
       return;
@@ -516,7 +556,61 @@ export function EmailComposer({
       return;
     }
 
-    createCampaignMutation.mutate();
+    // Auto-set recipients if not already set
+    if (!campaignRecipients && currentListId && currentQuery) {
+      const autoRecipients: RecipientSelection = {
+        type: 'current',
+        listId: currentListId,
+        query: currentQuery
+      };
+      setCampaignRecipients(autoRecipients);
+    }
+
+    // Update settings based on type and launch immediately
+    setCampaignSettings(prev => ({
+      ...prev,
+      scheduleSend: type === 'scheduled'
+    }));
+
+    // Launch the campaign immediately
+    createCampaignMutation.mutate(type);
+
+    // For Save as Draft, proceed immediately without opening settings
+    if (type === 'draft') {
+      // Auto-set recipients if not already set
+      if (!campaignRecipients && currentListId && currentQuery) {
+        const autoRecipients: RecipientSelection = {
+          type: 'current',
+          listId: currentListId,
+          query: currentQuery
+        };
+        setCampaignRecipients(autoRecipients);
+        
+        // For draft, immediately save
+        createCampaignMutation.mutate(type);
+        return;
+      }
+
+      if (!campaignRecipients) {
+        toast({
+          title: "No Recipients Available",
+          description: "Please run a search first or select recipients for your campaign",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!emailContent) {
+        toast({
+          title: "No Email Content",
+          description: "Please add email content for your campaign",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      createCampaignMutation.mutate(type);
+    }
   };
 
   return (
@@ -730,7 +824,7 @@ export function EmailComposer({
         </TooltipProvider>
         <Button 
           onClick={handleGenerateEmail} 
-          variant="yellow"
+          variant={drawerMode === 'campaign' ? "pink" : "yellow"}
           disabled={isGenerating}
           className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
         >
@@ -739,7 +833,12 @@ export function EmailComposer({
           ) : (
             <Wand2 className="w-3 h-3 mr-1" />
           )}
-          {isGenerating ? "Generating..." : "Generate Email"}
+          {isGenerating 
+            ? "Generating..." 
+            : drawerMode === 'campaign' 
+              ? "Generate Template" 
+              : "Generate Email"
+          }
         </Button>
       </div>
     </div>
@@ -763,15 +862,29 @@ export function EmailComposer({
           <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <div
             onClick={() => setRecipientModalOpen(true)}
-            className="mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-md cursor-pointer hover:bg-muted/50 transition-colors flex items-center justify-between"
+            className={cn(
+              "mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-md cursor-pointer transition-colors flex items-center justify-between",
+              // Blue background and text when showing a search list (for campaigns)
+              (campaignRecipients || currentQuery) ? 
+                "bg-blue-50 hover:bg-blue-100 border-blue-200" : 
+                "hover:bg-muted/50"
+            )}
           >
             <span className={cn(
               "text-sm",
-              !campaignRecipients && "text-muted-foreground"
+              // Blue text when showing a search list, gray when empty
+              (campaignRecipients || currentQuery) ? 
+                "text-blue-700 font-medium" : 
+                "text-muted-foreground"
             )}>
               {getRecipientDisplayText()}
             </span>
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            <ChevronDown className={cn(
+              "h-4 w-4",
+              (campaignRecipients || currentQuery) ? 
+                "text-blue-600" : 
+                "text-muted-foreground"
+            )} />
           </div>
           
           <RecipientSelectionModal
@@ -856,7 +969,7 @@ export function EmailComposer({
           </TooltipProvider>
         )}
         
-        {/* Send Email Button / Create Campaign Button */}
+        {/* Send Email Button / Schedule Campaign Button */}
         {drawerMode === 'compose' ? (
           <EmailSendButton
             to={toEmail}
@@ -872,24 +985,70 @@ export function EmailComposer({
             className="h-8 px-3 text-xs"
           />
         ) : (
-          <Button
-            onClick={handleCreateCampaign}
-            disabled={!campaignRecipients || !emailContent || createCampaignMutation.isPending}
-            className="h-8 px-3 text-xs"
-          >
-            {createCampaignMutation.isPending ? (
-              <>
-                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              'Create Campaign'
-            )}
-          </Button>
+          /* Campaign Schedule Button with Dropdown */
+          <div className="inline-flex rounded-md shadow-sm">
+            {/* Main Button - Schedule Campaign */}
+            <Button
+              onClick={() => handleCreateCampaign('scheduled')}
+              disabled={(!campaignRecipients && !currentListId) || !emailContent || createCampaignMutation.isPending}
+              className="h-8 px-3 text-xs rounded-r-none bg-green-500 hover:bg-green-600 text-white font-normal"
+            >
+              {createCampaignMutation.isPending ? (
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              ) : (
+                <>
+                  <Send className="w-3 h-3 mr-1" />
+                  Schedule Campaign
+                </>
+              )}
+            </Button>
+
+            {/* Dropdown Button - Shows menu with options */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  disabled={(!campaignRecipients && !currentListId) || !emailContent || createCampaignMutation.isPending}
+                  className="h-8 px-2 text-xs rounded-l-none bg-green-500 hover:bg-green-600 text-white font-normal border-l border-green-400"
+                  aria-label="More campaign options"
+                >
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem 
+                  onClick={() => handleCreateCampaign('immediate')}
+                  className="cursor-pointer"
+                  disabled={createCampaignMutation.isPending}
+                >
+                  <Rocket className="mr-2 h-4 w-4 text-green-600" />
+                  Start Now
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleCreateCampaign('draft')}
+                  className="cursor-pointer"
+                  disabled={createCampaignMutation.isPending}
+                >
+                  <FileText className="mr-2 h-4 w-4 text-blue-600" />
+                  Save as Draft
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         )}
       </div>
     </div>
 
+    {/* Campaign Settings - Only shown in campaign mode */}
+    {drawerMode === 'campaign' && (
+      <CampaignSettings
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        settings={campaignSettings}
+        onSettingsChange={setCampaignSettings}
+        totalRecipients={campaignRecipients ? 100 : 50} // This should be calculated from actual recipients
+        className="mt-4"
+      />
+    )}
 
     {/* Quick Templates Section - Collapsible */}
     <div className="mt-3">

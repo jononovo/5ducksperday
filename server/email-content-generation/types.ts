@@ -10,6 +10,7 @@ export interface EmailGenerationRequest {
   emailSubject?: string;
   tone?: string;
   offerStrategy?: string;
+  generateTemplate?: boolean; // Flag to generate template with merge fields
 }
 
 export interface EmailGenerationResponse {
@@ -22,4 +23,5 @@ export interface EmailGenerationContext {
   company: Company;
   userPrompt: string;
   senderNames?: SenderNames;
+  generateTemplate?: boolean;
 }

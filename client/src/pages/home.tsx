@@ -16,6 +16,7 @@ import { EmailSearchSummary } from "@/components/email-search-summary";
 import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
 import { MainSearchSummary } from "@/components/main-search-summary";
 import { EmailComposer } from "@/components/email-composer";
+import { OnboardingFlowOrchestrator } from "@/components/onboarding/OnboardingFlowOrchestrator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
@@ -138,6 +139,11 @@ export default function Home() {
   const [isResizing, setIsResizing] = useState(false);
   const [searchSectionCollapsed, setSearchSectionCollapsed] = useState(false);
   const [drawerMode, setDrawerMode] = useState<'compose' | 'campaign'>('compose');
+  
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingSearchQuery, setOnboardingSearchQuery] = useState<string>("");
+  const [onboardingSearchResults, setOnboardingSearchResults] = useState<any[]>([]);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -952,6 +958,17 @@ export default function Home() {
     
     // Detect if this is a new search (different from current query)
     const isNewSearch = currentQuery !== query;
+    
+    // Check if this is the user's first successful search and trigger onboarding
+    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding');
+    const isFirstSearch = !hasCompletedOnboarding && auth?.user && results.length > 0;
+    
+    if (isFirstSearch && !showOnboarding) {
+      console.log('First search detected - triggering onboarding flow');
+      setOnboardingSearchQuery(query);
+      setOnboardingSearchResults(results);
+      setShowOnboarding(true);
+    }
     
     // Clear any stale localStorage data that might conflict with new search results
     if (isNewSearch) {
@@ -3052,18 +3069,6 @@ export default function Home() {
               {/* Top row - Tabs and close */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  {/* Compose Tab */}
-                  <button
-                    onClick={() => setDrawerMode('compose')}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                      drawerMode === 'compose'
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <Mail className="h-3.5 w-3.5" />
-                    Compose
-                  </button>
                   {/* Campaign Tab */}
                   <button
                     onClick={() => setDrawerMode('campaign')}
@@ -3075,6 +3080,18 @@ export default function Home() {
                   >
                     <Megaphone className="h-3.5 w-3.5 text-pink-500" />
                     Create Campaign
+                  </button>
+                  {/* Compose Tab */}
+                  <button
+                    onClick={() => setDrawerMode('compose')}
+                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                      drawerMode === 'compose'
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    Compose
                   </button>
                 </div>
                 <button
@@ -3094,8 +3111,8 @@ export default function Home() {
                 </button>
               </div>
               
-              {/* Contact row with navigation */}
-              {selectedEmailContact && (
+              {/* Contact row with navigation - Only show in compose mode */}
+              {drawerMode === 'compose' && selectedEmailContact && (
                 <div className="flex items-center justify-between mt-0.5">
                   <p className="text-sm truncate flex-1 min-w-0">
                     <span className="font-medium">{selectedEmailContact.name}</span>
@@ -3166,18 +3183,6 @@ export default function Home() {
                   {/* Top row - Tabs and close */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {/* Compose Tab */}
-                      <button
-                        onClick={() => setDrawerMode('compose')}
-                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                          drawerMode === 'compose'
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        <Mail className="h-3.5 w-3.5" />
-                        Compose
-                      </button>
                       {/* Campaign Tab */}
                       <button
                         onClick={() => setDrawerMode('campaign')}
@@ -3189,6 +3194,18 @@ export default function Home() {
                       >
                         <Megaphone className="h-3.5 w-3.5 text-pink-500" />
                         Create Campaign
+                      </button>
+                      {/* Compose Tab */}
+                      <button
+                        onClick={() => setDrawerMode('compose')}
+                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                          drawerMode === 'compose'
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        <Mail className="h-3.5 w-3.5" />
+                        Compose
                       </button>
                     </div>
                     <button
@@ -3207,8 +3224,8 @@ export default function Home() {
                     </button>
                   </div>
                   
-                  {/* Contact row with navigation */}
-                  {selectedEmailContact && (
+                  {/* Contact row with navigation - Only show in compose mode */}
+                  {drawerMode === 'compose' && selectedEmailContact && (
                     <div className="flex items-center justify-between mt-0.5">
                       <p className="text-sm truncate flex-1 min-w-0">
                         <span className="font-medium">{selectedEmailContact.name}</span>
@@ -3269,6 +3286,25 @@ export default function Home() {
         notificationState={notificationState}
         onClose={closeNotification}
       />
+      
+      {/* Onboarding Flow */}
+      {showOnboarding && (
+        <OnboardingFlowOrchestrator
+          searchQuery={onboardingSearchQuery}
+          searchResults={onboardingSearchResults}
+          onComplete={() => {
+            setShowOnboarding(false);
+            localStorage.setItem('hasCompletedOnboarding', 'true');
+            toast({
+              title: "Setup complete!",
+              description: "Your campaign is now active and ready to start generating leads.",
+            });
+          }}
+          onClose={() => {
+            setShowOnboarding(false);
+          }}
+        />
+      )}
     </div>
     </>
   );
