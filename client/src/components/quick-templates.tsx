@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Select,
   SelectContent,
@@ -32,6 +32,8 @@ import type { EmailTemplate } from "@shared/schema";
 import MergeFieldDialog from "./merge-field-dialog";
 
 interface QuickTemplatesProps {
+  templates: EmailTemplate[];
+  templatesLoading: boolean;
   onSelectTemplate: (template: EmailTemplate) => void;
   onSaveTemplate?: (templateName: string) => void;
   onUpdateTemplate?: () => void;
@@ -45,7 +47,7 @@ interface QuickTemplatesProps {
   isSavingTemplate?: boolean;
 }
 
-export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpdateTemplate, onMergeFieldInsert, onEditTemplate, isEditMode, editingTemplateId, onExitEditMode, isMergeViewMode, onToggleMergeView, isSavingTemplate = false }: QuickTemplatesProps) {
+export default function QuickTemplates({ templates, templatesLoading, onSelectTemplate, onSaveTemplate, onUpdateTemplate, onMergeFieldInsert, onEditTemplate, isEditMode, editingTemplateId, onExitEditMode, isMergeViewMode, onToggleMergeView, isSavingTemplate = false }: QuickTemplatesProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
   const [mergeFieldDialogOpen, setMergeFieldDialogOpen] = useState(false);
   const [editConfirmDialogOpen, setEditConfirmDialogOpen] = useState(false);
@@ -54,16 +56,8 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
   const [templateName, setTemplateName] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: templates = [], isLoading } = useQuery({
-    queryKey: ["/api/email-templates"],
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-    retry: 1, // Retry once on failure
-    refetchOnMount: false, // Use cached data when available
-  });
-
-  const typedTemplates = templates as EmailTemplate[];
-  console.log('QuickTemplates - Loaded templates:', typedTemplates.map(t => ({ id: t.id, name: t.name })));
+  // Now templates and loading state come from props
+  const typedTemplates = templates;
 
   const handleInsertTemplate = () => {
     if (!selectedTemplateId) {
@@ -169,7 +163,7 @@ export default function QuickTemplates({ onSelectTemplate, onSaveTemplate, onUpd
       <div className="space-y-2">
         <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
           <SelectTrigger className="h-7 text-xs text-muted-foreground">
-            <SelectValue placeholder={isLoading ? "Loading templates..." : "Select a Template"} />
+            <SelectValue placeholder={templatesLoading ? "Loading templates..." : "Select a Template"} />
           </SelectTrigger>
           <SelectContent>
             {typedTemplates.map((template) => (

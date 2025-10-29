@@ -204,6 +204,15 @@ export function EmailComposer({
   const { data: products = [] } = useQuery<StrategicProfile[]>({
     queryKey: ['/api/strategic-profiles']
   });
+  
+  // Fetch templates at the EmailComposer level to avoid multiple fetches
+  const { data: templates = [], isLoading: templatesLoading } = useQuery<EmailTemplate[]>({
+    queryKey: ['/api/email-templates'],
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    retry: 1, // Retry once on failure
+    refetchOnMount: false, // Use cached data when available
+  });
 
   const { data: gmailStatus } = useQuery<{authorized: boolean}>({
     queryKey: ['/api/gmail/status'],
@@ -1090,6 +1099,8 @@ export function EmailComposer({
         isTemplatesExpanded ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
       )}>
         <QuickTemplates
+          templates={templates}
+          templatesLoading={templatesLoading}
           onSelectTemplate={(template: EmailTemplate) => {
             setEmailPrompt(template.description || "");
             setEmailContent(template.content);
