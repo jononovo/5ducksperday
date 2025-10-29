@@ -134,82 +134,76 @@ export function RecipientSelectionModal({
           </button>
 
           {/* Option 2: Multiple Search Lists */}
-          <div
+          <button
+            onClick={() => setSelectionType('multiple')}
             className={cn(
-              "p-4 rounded-lg border-2 transition-all",
+              "w-full text-left p-4 rounded-lg border-2 transition-all",
               selectionType === 'multiple'
                 ? "border-primary bg-primary/5"
-                : "border-border"
+                : "border-border hover:border-muted-foreground/50"
             )}
           >
-            <button
-              onClick={() => setSelectionType('multiple')}
-              className="w-full text-left"
-            >
-              <div className="flex items-start gap-3">
-                <FolderOpen className="h-5 w-5 mt-0.5 text-muted-foreground" />
-                <div className="flex-1">
-                  <div className="font-medium">Include Multiple Search Lists</div>
-                  <div className="text-xs text-muted-foreground mt-2">
-                    Combine contacts from multiple saved searches
-                  </div>
+            <div className="flex items-start gap-3">
+              <FolderOpen className="h-5 w-5 mt-0.5 text-muted-foreground" />
+              <div className="flex-1">
+                <div className="font-medium">Include Multiple Search Lists</div>
+                <div className="text-xs text-muted-foreground mt-2">
+                  Combine contacts from multiple saved searches
                 </div>
               </div>
-            </button>
+            </div>
             
             {selectionType === 'multiple' && searchLists.length > 0 && (
-              <ScrollArea className="h-48 mt-3 border rounded-md p-2">
-                {searchLists.map((list) => (
-                  <div
-                    key={list.id}
-                    className="flex items-center space-x-2 p-2 hover:bg-muted rounded"
-                  >
-                    <Checkbox
-                      id={`list-${list.id}`}
-                      checked={selectedSearchLists.has(list.listId)}
-                      onCheckedChange={() => handleSelectSearchList(list.listId)}
-                    />
-                    <label
-                      htmlFor={`list-${list.id}`}
-                      className="flex-1 text-sm cursor-pointer"
+              <div onClick={(e) => e.stopPropagation()}>
+                <ScrollArea className="h-48 mt-3 border rounded-md p-2">
+                  {searchLists.map((list) => (
+                    <div
+                      key={list.id}
+                      className="flex items-center space-x-2 p-2 hover:bg-muted rounded"
                     >
-                      <div className="font-medium">{list.prompt}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {list.resultCount} companies • ID: {list.listId}
-                      </div>
-                    </label>
-                  </div>
-                ))}
-              </ScrollArea>
+                      <Checkbox
+                        id={`list-${list.id}`}
+                        checked={selectedSearchLists.has(list.listId)}
+                        onCheckedChange={() => handleSelectSearchList(list.listId)}
+                      />
+                      <label
+                        htmlFor={`list-${list.id}`}
+                        className="flex-1 text-sm cursor-pointer"
+                      >
+                        <div className="font-medium">{list.prompt}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {list.resultCount} companies • ID: {list.listId}
+                        </div>
+                      </label>
+                    </div>
+                  ))}
+                </ScrollArea>
+              </div>
             )}
-          </div>
+          </button>
 
           {/* Option 3: Existing Contact List */}
-          <div
+          <button
+            onClick={() => setSelectionType('existing')}
             className={cn(
-              "p-4 rounded-lg border-2 transition-all",
+              "w-full text-left p-4 rounded-lg border-2 transition-all",
               selectionType === 'existing'
                 ? "border-primary bg-primary/5"
-                : "border-border"
+                : "border-border hover:border-muted-foreground/50"
             )}
           >
-            <button
-              onClick={() => setSelectionType('existing')}
-              className="w-full text-left"
-            >
-              <div className="flex items-start gap-3">
-                <Users className="h-5 w-5 mt-0.5 text-muted-foreground" />
-                <div className="flex-1">
-                  <div className="font-medium">Use Existing Contact List</div>
-                  <div className="text-xs text-muted-foreground mt-2">
-                    Select from your saved contact lists
-                  </div>
+            <div className="flex items-start gap-3">
+              <Users className="h-5 w-5 mt-0.5 text-muted-foreground" />
+              <div className="flex-1">
+                <div className="font-medium">Use Existing Contact List</div>
+                <div className="text-xs text-muted-foreground mt-2">
+                  Select from your saved contact lists
                 </div>
               </div>
-            </button>
+            </div>
             
             {selectionType === 'existing' && (
-              <div className="mt-3">
+              <div className="mt-3" onClick={(e) => e.stopPropagation()}>
                 <Select
                   value={selectedContactList}
                   onValueChange={setSelectedContactList}
@@ -232,7 +226,7 @@ export function RecipientSelectionModal({
                 </Select>
               </div>
             )}
-          </div>
+          </button>
         </div>
 
         <DialogFooter>
