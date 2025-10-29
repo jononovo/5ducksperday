@@ -6,6 +6,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Tooltip,
@@ -21,10 +22,13 @@ import {
   Link
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ScheduleSendModal } from "@/components/schedule-send-modal";
+import { format } from "date-fns";
 
 export interface CampaignSettingsData {
   scheduleSend: boolean;
   scheduleDate?: Date;
+  scheduleTime?: string;
   autopilot: boolean;
   autopilotSettings?: {
     dailyLimit: number;
@@ -50,6 +54,8 @@ export function CampaignSettings({
   className 
 }: CampaignSettingsProps) {
   const [localSettings, setLocalSettings] = useState<CampaignSettingsData>(settings);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [autopilotModalOpen, setAutopilotModalOpen] = useState(false);
 
   const handleToggle = (key: keyof CampaignSettingsData, value: boolean) => {
     const updated = { ...localSettings, [key]: value };
@@ -57,7 +63,24 @@ export function CampaignSettings({
     onSettingsChange(updated);
   };
 
+  const handleScheduleApply = (date: Date, time: string) => {
+    // Combine date and time
+    const [hours, minutes] = time.split(':').map(Number);
+    const scheduledDate = new Date(date);
+    scheduledDate.setHours(hours, minutes, 0, 0);
+    
+    const updated = { 
+      ...localSettings, 
+      scheduleSend: true,
+      scheduleDate: scheduledDate,
+      scheduleTime: time 
+    };
+    setLocalSettings(updated);
+    onSettingsChange(updated);
+  };
+
   return (
+    <>
     <Accordion 
       type="single" 
       collapsible 
@@ -70,42 +93,42 @@ export function CampaignSettings({
           <span className="text-lg font-semibold">Settings</span>
         </AccordionTrigger>
         <AccordionContent className="pb-6">
-          <div className="space-y-6 pt-2">
-            {/* Schedule Send */}
-            <div 
-              className="flex items-center justify-between cursor-pointer hover:bg-muted/50 -mx-2 px-2 py-2 rounded-md transition-colors"
-              onClick={() => {
-                // Will open schedule modal in future
-                console.log('Open schedule modal');
-              }}
+          <div className="space-y-4 pt-2">
+            {/* Schedule Send Button */}
+            <Button
+              variant="ghost"
+              className="w-full justify-between h-auto p-2 hover:bg-muted/50"
+              onClick={() => setScheduleModalOpen(true)}
             >
               <div className="flex items-center gap-3">
                 <Calendar className="h-5 w-5 text-muted-foreground" />
-                <Label className="text-base font-normal cursor-pointer">
+                <span className="text-base font-normal">
                   Schedule send
-                </Label>
+                </span>
               </div>
-              <div className="text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 {localSettings.scheduleSend && localSettings.scheduleDate 
-                  ? new Date(localSettings.scheduleDate).toLocaleDateString()
+                  ? format(localSettings.scheduleDate, "MMM d, h:mm a")
                   : ''}
               </div>
-            </div>
+            </Button>
 
-            {/* Autopilot */}
-            <div 
-              className="flex items-center justify-between cursor-pointer hover:bg-muted/50 -mx-2 px-2 py-2 rounded-md transition-colors"
+            {/* Autopilot Button */}
+            <Button
+              variant="ghost"
+              className="w-full justify-between h-auto p-2 hover:bg-muted/50"
               onClick={() => {
                 // Will open autopilot modal in future
                 console.log('Open autopilot modal');
+                setAutopilotModalOpen(true);
               }}
             >
               <div className="flex items-center gap-3">
                 <Wand2 className="h-5 w-5 text-muted-foreground" />
                 <div className="flex items-center gap-2">
-                  <Label className="text-base font-normal cursor-pointer">
+                  <span className="text-base font-normal">
                     Autopilot
-                  </Label>
+                  </span>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -121,25 +144,32 @@ export function CampaignSettings({
                   </TooltipProvider>
                 </div>
               </div>
-              <div className="text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 {localSettings.autopilot && localSettings.autopilotSettings 
                   ? `${localSettings.autopilotSettings.dailyLimit} per day`
                   : ''}
               </div>
-            </div>
+            </Button>
 
-            {/* Track Emails */}
-            <div className="flex items-center justify-between -mx-2 px-2 py-2">
+            {/* Track Emails Button */}
+            <Button
+              variant="ghost"
+              className="w-full justify-between h-auto p-2 hover:bg-muted/50"
+              onClick={() => handleToggle('trackEmails', !localSettings.trackEmails)}
+            >
               <div className="flex items-center gap-3">
                 <MailCheck className="h-5 w-5 text-muted-foreground" />
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="track-emails" className="text-base font-normal cursor-pointer">
+                  <span className="text-base font-normal">
                     Track emails
-                  </Label>
+                  </span>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                        <Info 
+                          className="h-4 w-4 text-muted-foreground cursor-help"
+                          onClick={(e) => e.stopPropagation()}
+                        />
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-xs">
                         <p>Track when recipients open and click links in your emails</p>
@@ -149,25 +179,32 @@ export function CampaignSettings({
                 </div>
               </div>
               <Switch
-                id="track-emails"
                 checked={localSettings.trackEmails}
                 onCheckedChange={(checked) => handleToggle('trackEmails', checked)}
                 className="data-[state=checked]:bg-blue-600"
+                onClick={(e) => e.stopPropagation()}
               />
-            </div>
+            </Button>
 
-            {/* Unsubscribe Link */}
-            <div className="flex items-center justify-between -mx-2 px-2 py-2">
+            {/* Unsubscribe Link Button */}
+            <Button
+              variant="ghost"
+              className="w-full justify-between h-auto p-2 hover:bg-muted/50"
+              onClick={() => handleToggle('unsubscribeLink', !localSettings.unsubscribeLink)}
+            >
               <div className="flex items-center gap-3">
                 <Link className="h-5 w-5 text-muted-foreground" />
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="unsubscribe-link" className="text-base font-normal cursor-pointer">
+                  <span className="text-base font-normal">
                     Unsubscribe link
-                  </Label>
+                  </span>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                        <Info 
+                          className="h-4 w-4 text-muted-foreground cursor-help"
+                          onClick={(e) => e.stopPropagation()}
+                        />
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-xs">
                         <p>Add an unsubscribe link to comply with email regulations</p>
@@ -177,15 +214,25 @@ export function CampaignSettings({
                 </div>
               </div>
               <Switch
-                id="unsubscribe-link"
                 checked={localSettings.unsubscribeLink}
                 onCheckedChange={(checked) => handleToggle('unsubscribeLink', checked)}
                 className="data-[state=checked]:bg-blue-600"
+                onClick={(e) => e.stopPropagation()}
               />
-            </div>
+            </Button>
           </div>
         </AccordionContent>
       </AccordionItem>
     </Accordion>
+
+    {/* Schedule Send Modal */}
+    <ScheduleSendModal
+      open={scheduleModalOpen}
+      onOpenChange={setScheduleModalOpen}
+      selectedDate={localSettings.scheduleDate}
+      selectedTime={localSettings.scheduleTime || "09:00"}
+      onApply={handleScheduleApply}
+    />
+    </>
   );
 }
