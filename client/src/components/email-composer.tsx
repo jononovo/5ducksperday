@@ -8,12 +8,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { 
   Tooltip,
   TooltipContent,
@@ -30,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, Type, Wand2, Loader2, Box, Palette, Gift, Check, Info, Lock, ChevronDown, ChevronUp, Users, Send, Rocket, FileText } from "lucide-react";
+import { Mail, Type, Wand2, Loader2, Box, Palette, Gift, Check, Info, Lock, ChevronDown, ChevronUp, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QuickTemplates from "./quick-templates";
 import { EmailSendButton } from "./email-fallback/EmailSendButton";
@@ -46,6 +40,7 @@ import { TONE_OPTIONS, DEFAULT_TONE } from "@/lib/tone-options";
 import { OFFER_OPTIONS, DEFAULT_OFFER } from "@/lib/offer-options";
 import { RecipientSelectionModal, type RecipientSelection } from "@/components/recipient-selection-modal";
 import { CampaignSettings, type CampaignSettingsData } from "@/components/campaign-settings";
+import { CampaignSendButton } from "@/components/campaign-send-button/CampaignSendButton";
 
 // Component prop types
 interface EmailComposerProps {
@@ -1023,73 +1018,18 @@ export function EmailComposer({
             className="h-8 px-3 text-xs"
           />
         ) : (
-          /* Campaign Schedule Button with Dropdown - Same styling as Send Email */
-          <div className="inline-flex rounded-md shadow-sm">
-            {/* Main Button - Schedule Campaign */}
-            <Button
-              onClick={() => handleCreateCampaign('scheduled')}
-              disabled={(!campaignRecipients && !currentListId) || !emailContent || createCampaignMutation.isPending}
-              variant="outline"
-              className={cn(
-                "h-8 px-3 text-xs border transition-all duration-300 ease-out",
-                // Outlined green theme matching Send Email button appearance
-                emailContent?.trim() ? 
-                  "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600 hover:scale-105" :
-                  "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
-                "rounded-r-none border-r-0",
-                ((!campaignRecipients && !currentListId) || !emailContent) && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              {createCampaignMutation.isPending ? (
-                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-              ) : (
-                <>
-                  <Send className="w-3 h-3 mr-1" />
-                  Schedule Campaign
-                </>
-              )}
-            </Button>
-
-            {/* Dropdown Button - Shows menu with options */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  disabled={(!campaignRecipients && !currentListId) || !emailContent || createCampaignMutation.isPending}
-                  variant="outline"
-                  className={cn(
-                    "h-8 px-2 text-xs border transition-all duration-300 ease-out",
-                    // Match the main button's outlined green styling
-                    emailContent?.trim() ? 
-                      "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
-                      "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
-                    "rounded-l-none border-l",
-                    ((!campaignRecipients && !currentListId) || !emailContent) && "opacity-50 cursor-not-allowed"
-                  )}
-                  aria-label="More campaign options"
-                >
-                  <ChevronDown className="w-3 h-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem 
-                  onClick={() => handleCreateCampaign('immediate')}
-                  className="cursor-pointer"
-                  disabled={createCampaignMutation.isPending}
-                >
-                  <Rocket className="mr-2 h-4 w-4 text-green-600" />
-                  Start Now
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => handleCreateCampaign('draft')}
-                  className="cursor-pointer"
-                  disabled={createCampaignMutation.isPending}
-                >
-                  <FileText className="mr-2 h-4 w-4 text-blue-600" />
-                  Save as Draft
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <CampaignSendButton
+            recipients={campaignRecipients}
+            listId={currentListId}
+            subject={emailSubject}
+            body={emailContent}
+            onSchedule={() => handleCreateCampaign('scheduled')}
+            onStartNow={() => handleCreateCampaign('immediate')}
+            onSaveDraft={() => handleCreateCampaign('draft')}
+            isPending={createCampaignMutation.isPending}
+            isSuccess={false}
+            className="h-8 px-3 text-xs"
+          />
         )}
       </div>
     </div>
