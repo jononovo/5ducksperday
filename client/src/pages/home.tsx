@@ -106,7 +106,17 @@ export default function Home() {
   const [currentQuery, setCurrentQuery] = useState<string>("");
   const [currentResults, setCurrentResults] = useState<CompanyWithContacts[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [currentListId, setCurrentListId] = useState<number | null>(null);
+  const [currentListId, setCurrentListIdBase] = useState<number | null>(null);
+  
+  // Wrapper to log currentListId changes
+  const setCurrentListId = (newListId: number | null) => {
+    console.log('Setting currentListId:', {
+      from: currentListId,
+      to: newListId,
+      stackTrace: new Error().stack?.split('\n').slice(2, 5).join('\n')
+    });
+    setCurrentListIdBase(newListId);
+  };
   const [companiesViewMode, setCompaniesViewMode] = useState<'scroll' | 'slides'>('scroll');
   const [pendingContactIds, setPendingContactIds] = useState<Set<number>>(new Set());
   // State for selected contacts (for multi-select checkboxes)
@@ -1383,6 +1393,12 @@ export default function Home() {
 
   // Handle loading a saved search from the drawer
   const handleLoadSavedSearch = async (list: SearchList) => {
+    console.log('Loading saved search:', {
+      searchName: list.prompt,
+      listId: list.listId,
+      resultCount: list.resultCount
+    });
+    
     try {
       // First fetch the companies
       const companies = await queryClient.fetchQuery({
@@ -1417,6 +1433,13 @@ export default function Home() {
       setCurrentListId(list.listId);
       setIsSaved(true);
       setSavedSearchesDrawerOpen(false);
+      
+      console.log('Saved search loaded successfully:', {
+        query: list.prompt,
+        listId: list.listId,
+        companiesLoaded: companiesWithContacts.length,
+        totalContacts: companiesWithContacts.reduce((sum, c) => sum + (c.contacts?.length || 0), 0)
+      });
       
       // Force input change flag to false after a small delay to ensure proper state update
       setTimeout(() => {
