@@ -8,6 +8,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Tooltip,
   TooltipContent,
@@ -24,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, Type, Wand2, Loader2, Box, Palette, Gift, Check, Info, Lock, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Mail, Type, Wand2, Loader2, Box, Palette, Gift, Check, Info, Lock, ChevronDown, ChevronUp, Users, Send, Rocket, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QuickTemplates from "./quick-templates";
 import { EmailSendButton } from "./email-fallback/EmailSendButton";
@@ -179,7 +185,7 @@ export function EmailComposer({
 
   // Campaign creation mutation
   const createCampaignMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (type: 'scheduled' | 'immediate' | 'draft') => {
       if (!campaignRecipients) {
         throw new Error('No recipients selected');
       }
@@ -206,15 +212,15 @@ export function EmailComposer({
         contactListId = contactList.id;
       }
       
-      // Create the campaign
+      // Create the campaign with appropriate settings based on type
       const campaignRes = await apiRequest("POST", '/api/campaigns', {
         name: emailSubject || 'Untitled Campaign',
         subject: emailSubject,
         body: emailContent,
         prompt: emailPrompt,
         contactListId: contactListId,
-        isActive: true,
-        sendTimePreference: 'immediate',
+        isActive: type === 'immediate',  // Start immediately if 'immediate'
+        sendTimePreference: type === 'scheduled' ? 'scheduled' : (type === 'immediate' ? 'immediate' : 'draft'),
         tone: selectedTone,
         offerType: selectedOfferStrategy,
         productId: selectedProduct
@@ -222,11 +228,24 @@ export function EmailComposer({
       
       return await campaignRes.json();
     },
-    onSuccess: (campaign) => {
-      toast({
-        title: "Campaign Created!",
-        description: `Your campaign "${campaign.name}" has been created successfully.`
-      });
+    onSuccess: (campaign, variables) => {
+      const campaignType = variables;
+      
+      let title = "Campaign Created!";
+      let description = `Your campaign "${campaign.name}" has been created successfully.`;
+      
+      if (campaignType === 'immediate') {
+        title = "Campaign Started!";
+        description = `Your campaign "${campaign.name}" has started and emails are being sent.`;
+      } else if (campaignType === 'draft') {
+        title = "Campaign Saved as Draft!";
+        description = `Your campaign "${campaign.name}" has been saved as a draft for later.`;
+      } else if (campaignType === 'scheduled') {
+        title = "Campaign Scheduled!";
+        description = `Your campaign "${campaign.name}" has been scheduled and will start at the configured time.`;
+      }
+      
+      toast({ title, description });
       
       // Clear the form
       setEmailPrompt('');
@@ -498,7 +517,7 @@ export function EmailComposer({
     return "Select recipients";
   };
 
-  const handleCreateCampaign = () => {
+  const handleCreateCampaign = (type: 'scheduled' | 'immediate' | 'draft' = 'scheduled') => {
     if (!campaignRecipients) {
       toast({
         title: "No Recipients Selected",
@@ -517,7 +536,8 @@ export function EmailComposer({
       return;
     }
 
-    createCampaignMutation.mutate();
+    // Pass the campaign type to the mutation
+    createCampaignMutation.mutate(type);
   };
 
   return (
@@ -862,7 +882,7 @@ export function EmailComposer({
           </TooltipProvider>
         )}
         
-        {/* Send Email Button / Create Campaign Button */}
+        {/* Send Email Button / Schedule Campaign Button */}
         {drawerMode === 'compose' ? (
           <EmailSendButton
             to={toEmail}
@@ -878,20 +898,73 @@ export function EmailComposer({
             className="h-8 px-3 text-xs"
           />
         ) : (
-          <Button
-            onClick={handleCreateCampaign}
-            disabled={!campaignRecipients || !emailContent || createCampaignMutation.isPending}
-            className="h-8 px-3 text-xs"
-          >
-            {createCampaignMutation.isPending ? (
-              <>
-                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              'Create Campaign'
-            )}
-          </Button>
+          /* Campaign Schedule Button with Dropdown */
+          <div className="inline-flex rounded-md shadow-sm">
+            {/* Main Button - Schedule Campaign */}
+            <Button
+              onClick={() => handleCreateCampaign('scheduled')}
+              disabled={!campaignRecipients || !emailContent || createCampaignMutation.isPending}
+              variant="outline"
+              className={cn(
+                "h-8 px-3 text-xs border transition-all duration-300 ease-out",
+                // Better visibility: green theme when there's content, subtle when empty
+                emailContent?.trim() ? 
+                  "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
+                  "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
+                "rounded-r-none border-r-0",
+                (!campaignRecipients || !emailContent) && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              {createCampaignMutation.isPending ? (
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              ) : (
+                <>
+                  <Send className="w-3 h-3 mr-1" />
+                  Schedule Campaign
+                </>
+              )}
+            </Button>
+
+            {/* Dropdown Button - Shows menu with options */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  disabled={!campaignRecipients || !emailContent || createCampaignMutation.isPending}
+                  variant="outline"
+                  className={cn(
+                    "h-8 px-2 text-xs border transition-all duration-300 ease-out",
+                    // Match the main button's green theme
+                    emailContent?.trim() ? 
+                      "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
+                      "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
+                    "rounded-l-none border-l",
+                    (!campaignRecipients || !emailContent) && "opacity-50 cursor-not-allowed"
+                  )}
+                  aria-label="More campaign options"
+                >
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem 
+                  onClick={() => handleCreateCampaign('immediate')}
+                  className="cursor-pointer"
+                  disabled={createCampaignMutation.isPending}
+                >
+                  <Rocket className="mr-2 h-4 w-4 text-green-600" />
+                  Start Now
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleCreateCampaign('draft')}
+                  className="cursor-pointer"
+                  disabled={createCampaignMutation.isPending}
+                >
+                  <FileText className="mr-2 h-4 w-4 text-blue-600" />
+                  Save as Draft
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         )}
       </div>
     </div>
