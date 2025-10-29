@@ -496,6 +496,21 @@ export default function Home() {
           console.log('[LOCALSTORAGE RESTORE] Restored saved search list with ID:', listIdToRestore);
         } else {
           console.log('[LOCALSTORAGE RESTORE] No listId found in saved state - will trigger auto-create');
+          // If we have results but no listId, we need to create one immediately
+          // This happens when user navigated away before the 1.5s auto-create timer fired
+          if (savedState.currentResults && savedState.currentResults.length > 0 && queryToRestore) {
+            console.log('[LOCALSTORAGE RESTORE] Creating list immediately for orphaned results');
+            // Set a flag to trigger list creation after component mounts
+            setTimeout(() => {
+              if (!currentListId && savedState.currentResults && savedState.currentResults.length > 0) {
+                console.log('[LOCALSTORAGE RESTORE] Triggering immediate list creation for restored results');
+                autoCreateListMutation.mutate({ 
+                  query: queryToRestore, 
+                  companies: savedState.currentResults 
+                });
+              }
+            }, 100); // Small delay to ensure component is fully mounted
+          }
         }
         
         // Always refresh contact data when restoring from localStorage to ensure emails are preserved
