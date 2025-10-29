@@ -11,52 +11,46 @@ export const strategicProfilesService = {
    * Get all strategic profiles for the user
    */
   async getProfiles(): Promise<StrategicProfile[]> {
-    return apiRequest("/api/products");
+    const res = await apiRequest("GET", "/api/products");
+    return await res.json();
   },
 
   /**
    * Get a single strategic profile by ID
    */
   async getProfile(id: number): Promise<StrategicProfile> {
-    return apiRequest(`/api/products/${id}`);
+    const res = await apiRequest("GET", `/api/products/${id}`);
+    return await res.json();
   },
 
   /**
    * Create a new strategic profile
    */
   async createProfile(data: Partial<StrategicProfile>): Promise<StrategicProfile> {
-    return apiRequest("/api/products", {
-      method: "POST",
-      body: JSON.stringify(data)
-    });
+    const res = await apiRequest("POST", "/api/products", data);
+    return await res.json();
   },
 
   /**
    * Update an existing strategic profile
    */
   async updateProfile(id: number, data: Partial<StrategicProfile>): Promise<StrategicProfile> {
-    return apiRequest(`/api/products/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(data)
-    });
+    const res = await apiRequest("PATCH", `/api/products/${id}`, data);
+    return await res.json();
   },
 
   /**
    * Delete a strategic profile
    */
   async deleteProfile(id: number): Promise<void> {
-    return apiRequest(`/api/products/${id}`, {
-      method: "DELETE"
-    });
+    await apiRequest("DELETE", `/api/products/${id}`);
   },
 
   /**
    * Save generated product offers
    */
   async saveProductOffers(productId: number, offers: any) {
-    return apiRequest("/api/products/offers", {
-      method: "POST",
-      body: JSON.stringify({ productId, offers })
-    });
+    const res = await apiRequest("POST", "/api/products/offers", { productId, offers });
+    return await res.json();
   }
 };

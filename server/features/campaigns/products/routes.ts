@@ -65,6 +65,148 @@ export function registerStrategicProfilesRoutes(app: Application, requireAuth: a
     }
   });
 
+  // Get single product endpoint
+  app.get('/api/products/:id', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const productId = parseInt(req.params.id);
+
+      if (isNaN(productId)) {
+        res.status(400).json({ message: 'Invalid product ID' });
+        return;
+      }
+
+      // Fetch the specific profile
+      const profiles = await storage.getStrategicProfiles(userId);
+      const profile = profiles.find(p => p.id === productId);
+      
+      if (!profile) {
+        res.status(404).json({ message: 'Product not found or access denied' });
+        return;
+      }
+
+      // Map to frontend interface (add 'name' field)
+      const mappedProfile = {
+        ...profile,
+        name: profile.businessDescription || profile.productService || "Strategy Plan"
+      };
+      
+      res.json(mappedProfile);
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to fetch product' 
+      });
+    }
+  });
+
+  // Create new product endpoint
+  app.post('/api/products', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const { businessType, productService, customerFeedback, website, title, targetCustomers, uniqueAttributes, status } = req.body;
+      
+      // Create profile data
+      const profileData = {
+        userId,
+        title: title || productService || 'New Product',
+        businessType: businessType || 'product' as 'product' | 'service',
+        businessDescription: productService || '',
+        productService: productService || '',
+        customerFeedback: customerFeedback || '',
+        website: website || '',
+        targetCustomers: targetCustomers || 'Target customers',
+        status: status || 'completed' as const,
+        uniqueAttributes: uniqueAttributes || []
+      };
+      
+      const savedProfile = await storage.createStrategicProfile(profileData);
+      
+      // Map to frontend interface (add 'name' field)
+      const mappedProfile = {
+        ...savedProfile,
+        name: savedProfile.businessDescription || savedProfile.productService || "Strategy Plan"
+      };
+      
+      res.json(mappedProfile);
+    } catch (error) {
+      console.error('Error creating product:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to create product' 
+      });
+    }
+  });
+
+  // Update product endpoint
+  app.patch('/api/products/:id', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const productId = parseInt(req.params.id);
+
+      if (isNaN(productId)) {
+        res.status(400).json({ message: 'Invalid product ID' });
+        return;
+      }
+
+      // Verify profile belongs to user before updating
+      const profiles = await storage.getStrategicProfiles(userId);
+      const profileToUpdate = profiles.find(p => p.id === productId);
+      
+      if (!profileToUpdate) {
+        res.status(404).json({ message: 'Product not found or access denied' });
+        return;
+      }
+
+      // Update the profile
+      const updatedProfile = await storage.updateStrategicProfile(productId, req.body);
+      
+      // Map to frontend interface (add 'name' field)
+      const mappedProfile = {
+        ...updatedProfile,
+        name: updatedProfile.businessDescription || updatedProfile.productService || "Strategy Plan"
+      };
+      
+      res.json(mappedProfile);
+    } catch (error) {
+      console.error('Error updating product:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to update product' 
+      });
+    }
+  });
+
+  // Delete product endpoint (RESTful path)
+  app.delete('/api/products/:id', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const productId = parseInt(req.params.id);
+
+      if (isNaN(productId)) {
+        res.status(400).json({ message: 'Invalid product ID' });
+        return;
+      }
+
+      // Verify profile belongs to user before deleting
+      const profiles = await storage.getStrategicProfiles(userId);
+      const profileToDelete = profiles.find(p => p.id === productId);
+      
+      if (!profileToDelete) {
+        res.status(404).json({ message: 'Product not found or access denied' });
+        return;
+      }
+
+      // Delete the profile
+      await storage.deleteStrategicProfile(productId);
+      
+      res.json({ success: true, message: 'Product deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to delete product' 
+      });
+    }
+  });
+
   // Save strategy chat as product
   app.post('/api/strategic-profiles/save-from-chat', requireAuth, async (req, res) => {
     try {
