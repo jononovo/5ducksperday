@@ -303,7 +303,7 @@ export function EmailComposer({
       const status = type === 'scheduled' ? 'scheduled' : (type === 'immediate' ? 'active' : 'draft');
       
       // Create the campaign with all settings
-      const campaignRes = await apiRequest("POST", '/api/campaigns', {
+      const campaignData: any = {
         // Basic campaign details
         name: emailSubject || 'Untitled Campaign',
         subject: emailSubject,
@@ -315,8 +315,6 @@ export function EmailComposer({
         // Email generation settings
         tone: selectedTone,
         offerType: selectedOfferStrategy,
-        productId: selectedProduct,
-        strategicProfileId: selectedProduct, // Use the same product ID for strategic profile
         
         // Scheduling settings
         sendTimePreference: type,
@@ -333,7 +331,15 @@ export function EmailComposer({
         // Tracking settings
         trackEmails: campaignSettings.trackEmails,
         unsubscribeLink: campaignSettings.unsubscribeLink
-      });
+      };
+      
+      // Only include productId and strategicProfileId if they have valid values
+      if (selectedProduct) {
+        campaignData.productId = selectedProduct;
+        campaignData.strategicProfileId = selectedProduct; // Use the same product ID for strategic profile
+      }
+      
+      const campaignRes = await apiRequest("POST", '/api/campaigns', campaignData);
       
       return await campaignRes.json();
     },
