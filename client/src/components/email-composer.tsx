@@ -537,58 +537,43 @@ export function EmailComposer({
   };
 
   const handleCreateCampaign = (type: 'scheduled' | 'immediate' | 'draft' = 'scheduled') => {
-    // For Schedule Campaign and Start Now
-    if (type === 'scheduled' || type === 'immediate') {
-      // Validate requirements first
-      if (!currentListId && !campaignRecipients) {
-        toast({
-          title: "No Recipients Available",
-          description: "Please run a search first or select recipients for your campaign",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (!emailContent) {
-        toast({
-          title: "No Email Content",
-          description: "Please add email content for your campaign",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Auto-set recipients if not already set
-      if (!campaignRecipients && currentListId && currentQuery) {
-        const autoRecipients: RecipientSelection = {
-          type: 'current',
-          listId: currentListId,
-          query: currentQuery
-        };
-        setCampaignRecipients(autoRecipients);
-      }
-
-      // If settings are already open, launch the campaign
-      if (settingsOpen) {
-        // Update settings and launch
-        setCampaignSettings(prev => ({
-          ...prev,
-          scheduleSend: type === 'scheduled'
-        }));
-        
-        // Launch the campaign
-        createCampaignMutation.mutate(type);
-        return;
-      }
-
-      // Otherwise, open the settings accordion
-      setCampaignSettings(prev => ({
-        ...prev,
-        scheduleSend: type === 'scheduled'
-      }));
-      setSettingsOpen(true);
+    // Validate requirements first
+    if (!currentListId && !campaignRecipients) {
+      toast({
+        title: "No Recipients Available",
+        description: "Please run a search first or select recipients for your campaign",
+        variant: "destructive"
+      });
       return;
     }
+
+    if (!emailContent) {
+      toast({
+        title: "No Email Content",
+        description: "Please add email content for your campaign",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Auto-set recipients if not already set
+    if (!campaignRecipients && currentListId && currentQuery) {
+      const autoRecipients: RecipientSelection = {
+        type: 'current',
+        listId: currentListId,
+        query: currentQuery
+      };
+      setCampaignRecipients(autoRecipients);
+    }
+
+    // Update settings based on type and launch immediately
+    setCampaignSettings(prev => ({
+      ...prev,
+      scheduleSend: type === 'scheduled'
+    }));
+
+    // Launch the campaign immediately
+    createCampaignMutation.mutate(type);
 
     // For Save as Draft, proceed immediately without opening settings
     if (type === 'draft') {
@@ -1006,23 +991,14 @@ export function EmailComposer({
             <Button
               onClick={() => handleCreateCampaign('scheduled')}
               disabled={(!campaignRecipients && !currentListId) || !emailContent || createCampaignMutation.isPending}
-              variant="outline"
-              className={cn(
-                "h-8 px-3 text-xs border transition-all duration-300 ease-out",
-                // Better visibility: green theme when there's content, subtle when empty
-                emailContent?.trim() ? 
-                  "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
-                  "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
-                "rounded-r-none border-r-0",
-                ((!campaignRecipients && !currentListId) || !emailContent) && "opacity-50 cursor-not-allowed"
-              )}
+              className="h-8 px-3 text-xs rounded-r-none bg-green-500 hover:bg-green-600 text-white font-normal"
             >
               {createCampaignMutation.isPending ? (
                 <Loader2 className="w-3 h-3 mr-1 animate-spin" />
               ) : (
                 <>
                   <Send className="w-3 h-3 mr-1" />
-                  {settingsOpen ? 'Launch Campaign' : 'Schedule Campaign'}
+                  Schedule Campaign
                 </>
               )}
             </Button>
@@ -1032,16 +1008,7 @@ export function EmailComposer({
               <DropdownMenuTrigger asChild>
                 <Button
                   disabled={(!campaignRecipients && !currentListId) || !emailContent || createCampaignMutation.isPending}
-                  variant="outline"
-                  className={cn(
-                    "h-8 px-2 text-xs border transition-all duration-300 ease-out",
-                    // Match the main button's green theme
-                    emailContent?.trim() ? 
-                      "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
-                      "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
-                    "rounded-l-none border-l",
-                    (!campaignRecipients || !emailContent) && "opacity-50 cursor-not-allowed"
-                  )}
+                  className="h-8 px-2 text-xs rounded-l-none bg-green-500 hover:bg-green-600 text-white font-normal border-l border-green-400"
                   aria-label="More campaign options"
                 >
                   <ChevronDown className="w-3 h-3" />
@@ -1078,19 +1045,6 @@ export function EmailComposer({
         onOpenChange={setSettingsOpen}
         settings={campaignSettings}
         onSettingsChange={setCampaignSettings}
-        onLaunchCampaign={() => {
-          // Launch the campaign with current settings
-          if (!campaignRecipients && currentListId && currentQuery) {
-            const autoRecipients: RecipientSelection = {
-              type: 'current',
-              listId: currentListId,
-              query: currentQuery
-            };
-            setCampaignRecipients(autoRecipients);
-          }
-          // Launch campaign with autopilot settings
-          createCampaignMutation.mutate(campaignSettings.autopilot ? 'scheduled' : 'immediate');
-        }}
         totalRecipients={campaignRecipients ? 100 : 50} // This should be calculated from actual recipients
         className="mt-4"
       />

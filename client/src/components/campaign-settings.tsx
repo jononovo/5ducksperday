@@ -43,7 +43,6 @@ interface CampaignSettingsProps {
   onOpenChange: (open: boolean) => void;
   settings: CampaignSettingsData;
   onSettingsChange: (settings: CampaignSettingsData) => void;
-  onLaunchCampaign?: () => void;
   className?: string;
   totalRecipients?: number;
 }
@@ -53,7 +52,6 @@ export function CampaignSettings({
   onOpenChange,
   settings,
   onSettingsChange,
-  onLaunchCampaign,
   className,
   totalRecipients = 100
 }: CampaignSettingsProps) {
@@ -232,18 +230,6 @@ export function CampaignSettings({
                 className="data-[state=checked]:bg-blue-600"
                 onClick={(e) => e.stopPropagation()}
               />
-            </Button>
-          </div>
-
-          {/* Launch Campaign Button */}
-          <div className="mt-6 pt-4 border-t">
-            <Button
-              onClick={onLaunchCampaign}
-              className="w-full h-10 bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600 transition-all duration-300"
-              variant="outline"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              Launch Campaign
             </Button>
           </div>
         </AccordionContent>
