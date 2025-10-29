@@ -43,10 +43,12 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
         side="left" 
-        className="w-96 pl-0 pr-0"
+        className="w-[80%] max-w-[384px] pl-0 pr-0 sm:max-w-[384px]"
         onMouseLeave={() => {
-          // Auto-close drawer when mouse leaves
-          onOpenChange(false);
+          // Auto-close drawer when mouse leaves (desktop only)
+          if (window.innerWidth >= 640) {
+            onOpenChange(false);
+          }
         }}
       >
         <div className="h-full overflow-auto">
