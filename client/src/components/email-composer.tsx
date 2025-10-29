@@ -186,25 +186,36 @@ export function EmailComposer({
   // Campaign creation mutation
   const createCampaignMutation = useMutation({
     mutationFn: async (type: 'scheduled' | 'immediate' | 'draft') => {
-      if (!campaignRecipients) {
+      // Use campaignRecipients if set, otherwise auto-create from current search
+      let recipientsToUse = campaignRecipients;
+      
+      if (!recipientsToUse && currentListId && currentQuery) {
+        recipientsToUse = {
+          type: 'current' as const,
+          listId: currentListId,
+          query: currentQuery
+        };
+      }
+      
+      if (!recipientsToUse) {
         throw new Error('No recipients selected');
       }
 
       let contactListId: number;
       
       // Create or use existing contact list based on recipient selection
-      if (campaignRecipients.type === 'existing') {
+      if (recipientsToUse.type === 'existing') {
         // Use the existing contact list
-        contactListId = campaignRecipients.contactListId;
+        contactListId = recipientsToUse.contactListId;
       } else {
         // Create new contact list from search results
         const listData: any = {};
         
-        if (campaignRecipients.type === 'current') {
-          listData.currentListId = campaignRecipients.listId;
-          listData.currentQuery = campaignRecipients.query;
-        } else if (campaignRecipients.type === 'multiple') {
-          listData.searchListIds = campaignRecipients.searchListIds;
+        if (recipientsToUse.type === 'current') {
+          listData.currentListId = recipientsToUse.listId;
+          listData.currentQuery = recipientsToUse.query;
+        } else if (recipientsToUse.type === 'multiple') {
+          listData.searchListIds = recipientsToUse.searchListIds;
         }
         
         const contactListRes = await apiRequest("POST", '/api/contact-lists/from-search', listData);
@@ -518,10 +529,26 @@ export function EmailComposer({
   };
 
   const handleCreateCampaign = (type: 'scheduled' | 'immediate' | 'draft' = 'scheduled') => {
-    if (!campaignRecipients) {
+    // If no recipients explicitly selected but we have a current search, use it automatically
+    if (!campaignRecipients && currentListId && currentQuery) {
+      // Auto-create recipients from current search
+      const autoRecipients: RecipientSelection = {
+        type: 'current',
+        listId: currentListId,
+        query: currentQuery
+      };
+      setCampaignRecipients(autoRecipients);
+      
+      // Call mutation with auto-created recipients
+      createCampaignMutation.mutate(type);
+      return;
+    }
+
+    // If no current search and no selected recipients
+    if (!campaignRecipients && !currentListId) {
       toast({
-        title: "No Recipients Selected",
-        description: "Please select recipients for your campaign",
+        title: "No Recipients Available",
+        description: "Please run a search first or select recipients for your campaign",
         variant: "destructive"
       });
       return;
@@ -903,7 +930,7 @@ export function EmailComposer({
             {/* Main Button - Schedule Campaign */}
             <Button
               onClick={() => handleCreateCampaign('scheduled')}
-              disabled={!campaignRecipients || !emailContent || createCampaignMutation.isPending}
+              disabled={(!campaignRecipients && !currentListId) || !emailContent || createCampaignMutation.isPending}
               variant="outline"
               className={cn(
                 "h-8 px-3 text-xs border transition-all duration-300 ease-out",
@@ -912,7 +939,7 @@ export function EmailComposer({
                   "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
                   "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
                 "rounded-r-none border-r-0",
-                (!campaignRecipients || !emailContent) && "opacity-50 cursor-not-allowed"
+                ((!campaignRecipients && !currentListId) || !emailContent) && "opacity-50 cursor-not-allowed"
               )}
             >
               {createCampaignMutation.isPending ? (
@@ -929,7 +956,7 @@ export function EmailComposer({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  disabled={!campaignRecipients || !emailContent || createCampaignMutation.isPending}
+                  disabled={(!campaignRecipients && !currentListId) || !emailContent || createCampaignMutation.isPending}
                   variant="outline"
                   className={cn(
                     "h-8 px-2 text-xs border transition-all duration-300 ease-out",
