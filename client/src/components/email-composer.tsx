@@ -119,6 +119,7 @@ export function EmailComposer({
     toEmail,
     tone: selectedTone,
     offerStrategy: selectedOfferStrategy,
+    generateTemplate: drawerMode === 'campaign', // Generate template when in campaign mode
     setEmailSubject,
     setOriginalEmailSubject,
     setToEmail,

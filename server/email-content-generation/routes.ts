@@ -4,7 +4,7 @@ import type { EmailGenerationRequest } from "./types";
 
 export function registerEmailGenerationRoutes(app: Express, requireAuth: any) {
   app.post("/api/generate-email", requireAuth, async (req, res) => {
-    const { emailPrompt, contact, company, tone, offerStrategy } = req.body;
+    const { emailPrompt, contact, company, tone, offerStrategy, generateTemplate } = req.body;
 
     if (!emailPrompt || !company) {
       res.status(400).json({ message: "Missing required parameters" });
@@ -22,7 +22,8 @@ export function registerEmailGenerationRoutes(app: Express, requireAuth: any) {
         toEmail: req.body.toEmail,
         emailSubject: req.body.emailSubject,
         tone: tone || 'default',
-        offerStrategy: offerStrategy || 'none'
+        offerStrategy: offerStrategy || 'none',
+        generateTemplate: generateTemplate || false
       };
 
       const result = await generateEmailContent(request);

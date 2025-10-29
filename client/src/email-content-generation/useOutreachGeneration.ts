@@ -25,6 +25,7 @@ interface UseEmailGenerationProps {
   toEmail: string;
   tone?: string;
   offerStrategy?: string;
+  generateTemplate?: boolean; // For campaign template generation
   
   // State setters
   setEmailSubject: (subject: string) => void;
@@ -46,6 +47,7 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
     toEmail,
     tone = 'default',
     offerStrategy = 'none',
+    generateTemplate = false,
     setEmailSubject,
     setOriginalEmailSubject,
     setToEmail,
@@ -62,7 +64,8 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
         tone,
         offerStrategy,
         toEmail,
-        emailSubject
+        emailSubject,
+        generateTemplate
       };
       return generateEmailApi(payload);
     },
