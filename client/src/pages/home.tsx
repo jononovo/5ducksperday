@@ -3069,18 +3069,6 @@ export default function Home() {
               {/* Top row - Tabs and close */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  {/* Compose Tab */}
-                  <button
-                    onClick={() => setDrawerMode('compose')}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                      drawerMode === 'compose'
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <Mail className="h-3.5 w-3.5" />
-                    Compose
-                  </button>
                   {/* Campaign Tab */}
                   <button
                     onClick={() => setDrawerMode('campaign')}
@@ -3092,6 +3080,18 @@ export default function Home() {
                   >
                     <Megaphone className="h-3.5 w-3.5 text-pink-500" />
                     Create Campaign
+                  </button>
+                  {/* Compose Tab */}
+                  <button
+                    onClick={() => setDrawerMode('compose')}
+                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                      drawerMode === 'compose'
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    Compose
                   </button>
                 </div>
                 <button
@@ -3183,18 +3183,6 @@ export default function Home() {
                   {/* Top row - Tabs and close */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {/* Compose Tab */}
-                      <button
-                        onClick={() => setDrawerMode('compose')}
-                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                          drawerMode === 'compose'
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        <Mail className="h-3.5 w-3.5" />
-                        Compose
-                      </button>
                       {/* Campaign Tab */}
                       <button
                         onClick={() => setDrawerMode('campaign')}
@@ -3206,6 +3194,18 @@ export default function Home() {
                       >
                         <Megaphone className="h-3.5 w-3.5 text-pink-500" />
                         Create Campaign
+                      </button>
+                      {/* Compose Tab */}
+                      <button
+                        onClick={() => setDrawerMode('compose')}
+                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                          drawerMode === 'compose'
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        <Mail className="h-3.5 w-3.5" />
+                        Compose
                       </button>
                     </div>
                     <button
