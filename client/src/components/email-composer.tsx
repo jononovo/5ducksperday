@@ -1103,22 +1103,25 @@ export function EmailComposer({
       </div>
     </div>
 
-    {/* Campaign Settings - Only shown in campaign mode */}
-    {drawerMode === 'campaign' && (
-      <CampaignSettings
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        settings={campaignSettings}
-        onSettingsChange={setCampaignSettings}
-        totalRecipients={campaignRecipients ? 100 : 50} // This should be calculated from actual recipients
-        className="mt-4"
-      />
-    )}
-
-    {/* Quick Templates Section - Collapsible */}
-    <div className="mt-3">
-      {/* View Templates Toggle Button - Right aligned */}
-      <div className="flex justify-end">
+    {/* Settings and Templates Buttons Row */}
+    <div className="mt-4">
+      <div className="flex justify-end gap-2">
+        {/* Campaign Settings Button - Only shown in campaign mode */}
+        {drawerMode === 'campaign' && (
+          <button
+            onClick={() => setSettingsOpen(!settingsOpen)}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
+          >
+            <span>Campaign Settings</span>
+            {settingsOpen ? (
+              <ChevronUp className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5" />
+            )}
+          </button>
+        )}
+        
+        {/* Templates Button - Always visible */}
         <button
           onClick={() => setIsTemplatesExpanded(!isTemplatesExpanded)}
           className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
@@ -1132,7 +1135,24 @@ export function EmailComposer({
         </button>
       </div>
       
-      {/* Collapsible Templates Container */}
+      {/* Campaign Settings Collapsible Container - Only shown when open and in campaign mode */}
+      {drawerMode === 'campaign' && (
+        <div className={cn(
+          "overflow-hidden transition-all duration-300 ease-in-out",
+          settingsOpen ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
+        )}>
+          <CampaignSettings
+            open={true} // Always true since we control visibility with the container
+            onOpenChange={() => {}} // No-op since we handle it above
+            settings={campaignSettings}
+            onSettingsChange={setCampaignSettings}
+            totalRecipients={campaignRecipients ? 100 : 50}
+            className=""
+          />
+        </div>
+      )}
+      
+      {/* Templates Collapsible Container */}
       <div className={cn(
         "overflow-hidden transition-all duration-300 ease-in-out",
         isTemplatesExpanded ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
