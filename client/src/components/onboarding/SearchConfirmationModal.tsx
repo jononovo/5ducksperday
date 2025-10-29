@@ -83,7 +83,6 @@ export function SearchConfirmationModal({
 
             {/* Companies list */}
             <div className="mb-8">
-              <p className="font-medium text-lg mb-4">Sample companies found:</p>
               <ScrollArea className="h-[350px] md:h-[250px] border rounded-lg">
                 <div className="p-4 space-y-3">
                   {searchResults.slice(0, 5).map((company) => (
