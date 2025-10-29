@@ -730,7 +730,7 @@ export function EmailComposer({
         </TooltipProvider>
         <Button 
           onClick={handleGenerateEmail} 
-          variant="yellow"
+          variant={drawerMode === 'campaign' ? "pink" : "yellow"}
           disabled={isGenerating}
           className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
         >
@@ -739,7 +739,12 @@ export function EmailComposer({
           ) : (
             <Wand2 className="w-3 h-3 mr-1" />
           )}
-          {isGenerating ? "Generating..." : "Generate Email"}
+          {isGenerating 
+            ? "Generating..." 
+            : drawerMode === 'campaign' 
+              ? "Generate Template" 
+              : "Generate Email"
+          }
         </Button>
       </div>
     </div>
