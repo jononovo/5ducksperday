@@ -1434,7 +1434,7 @@ export default function Outreach() {
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {lists.map((list: List) => (
+                      {lists.map((list) => (
                         <SelectItem 
                           key={list.listId} 
                           value={list.listId.toString()}

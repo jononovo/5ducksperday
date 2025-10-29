@@ -1049,13 +1049,22 @@ export function EmailComposer({
             className="h-8 px-3 text-xs"
           />
         ) : (
-          /* Campaign Schedule Button with Dropdown */
+          /* Campaign Schedule Button with Dropdown - Same styling as Send Email */
           <div className="inline-flex rounded-md shadow-sm">
             {/* Main Button - Schedule Campaign */}
             <Button
               onClick={() => handleCreateCampaign('scheduled')}
               disabled={(!campaignRecipients && !currentListId) || !emailContent || createCampaignMutation.isPending}
-              className="h-8 px-3 text-xs rounded-r-none bg-green-500 hover:bg-green-600 text-white font-normal"
+              variant="outline"
+              className={cn(
+                "h-8 px-3 text-xs border transition-all duration-300 ease-out",
+                // Better visibility: green theme when there's content, subtle when empty
+                emailContent?.trim() ? 
+                  "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600 hover:scale-105" :
+                  "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
+                "rounded-r-none border-r-0",
+                ((!campaignRecipients && !currentListId) || !emailContent) && "opacity-50 cursor-not-allowed"
+              )}
             >
               {createCampaignMutation.isPending ? (
                 <Loader2 className="w-3 h-3 mr-1 animate-spin" />
@@ -1072,7 +1081,16 @@ export function EmailComposer({
               <DropdownMenuTrigger asChild>
                 <Button
                   disabled={(!campaignRecipients && !currentListId) || !emailContent || createCampaignMutation.isPending}
-                  className="h-8 px-2 text-xs rounded-l-none bg-green-500 hover:bg-green-600 text-white font-normal border-l border-green-400"
+                  variant="outline"
+                  className={cn(
+                    "h-8 px-2 text-xs border transition-all duration-300 ease-out",
+                    // Match the main button's styling
+                    emailContent?.trim() ? 
+                      "bg-green-50 text-green-700 border-green-300 hover:bg-green-600 hover:text-white hover:border-green-600" :
+                      "bg-white text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600 hover:border-gray-300",
+                    "rounded-l-none",
+                    ((!campaignRecipients && !currentListId) || !emailContent) && "opacity-50 cursor-not-allowed"
+                  )}
                   aria-label="More campaign options"
                 >
                   <ChevronDown className="w-3 h-3" />
