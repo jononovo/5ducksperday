@@ -3111,8 +3111,8 @@ export default function Home() {
                 </button>
               </div>
               
-              {/* Contact row with navigation */}
-              {selectedEmailContact && (
+              {/* Contact row with navigation - Only show in compose mode */}
+              {drawerMode === 'compose' && selectedEmailContact && (
                 <div className="flex items-center justify-between mt-0.5">
                   <p className="text-sm truncate flex-1 min-w-0">
                     <span className="font-medium">{selectedEmailContact.name}</span>
@@ -3224,8 +3224,8 @@ export default function Home() {
                     </button>
                   </div>
                   
-                  {/* Contact row with navigation */}
-                  {selectedEmailContact && (
+                  {/* Contact row with navigation - Only show in compose mode */}
+                  {drawerMode === 'compose' && selectedEmailContact && (
                     <div className="flex items-center justify-between mt-0.5">
                       <p className="text-sm truncate flex-1 min-w-0">
                         <span className="font-medium">{selectedEmailContact.name}</span>
