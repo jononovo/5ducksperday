@@ -274,7 +274,13 @@ export function EmailComposer({
       }
       
       if (!recipientsToUse) {
-        throw new Error('No recipients selected');
+        console.error('No recipients available:', {
+          campaignRecipients,
+          currentListId,
+          currentQuery,
+          drawerMode
+        });
+        throw new Error('No recipients available. Please run a search first or select recipients for your campaign');
       }
 
       let contactListId: number;
@@ -382,14 +388,32 @@ export function EmailComposer({
 
   // Effects
   useEffect(() => {
+    console.log('EmailComposer useEffect - campaign recipients check:', {
+      drawerMode,
+      currentListId,
+      currentQuery,
+      hasCampaignRecipients: !!campaignRecipients,
+      selectedContactEmail: selectedContact?.email
+    });
+    
     if (drawerMode === 'compose' && selectedContact?.email) {
       setToEmail(selectedContact.email);
     } else if (drawerMode === 'campaign' && currentListId && currentQuery && !campaignRecipients) {
       // Auto-set current list as default recipients in campaign mode
+      console.log('Auto-setting campaign recipients with current search:', {
+        type: 'current',
+        listId: currentListId,
+        query: currentQuery
+      });
       setCampaignRecipients({ 
         type: 'current', 
         listId: currentListId, 
         query: currentQuery 
+      });
+    } else if (drawerMode === 'campaign' && (!currentListId || !currentQuery)) {
+      console.warn('Cannot auto-set recipients - missing search data:', {
+        currentListId,
+        currentQuery
       });
     }
   }, [selectedContact, drawerMode, currentListId, currentQuery]);
