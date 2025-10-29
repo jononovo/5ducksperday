@@ -101,10 +101,10 @@ export function CampaignSettings({
       className={className}
     >
       <AccordionItem value="settings" className="border-none">
-        <AccordionTrigger className="hover:no-underline py-3">
-          <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">Campaign Settings</span>
+        <AccordionTrigger className="hover:no-underline py-2">
+          <div className="flex items-center gap-1.5">
+            <Settings className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">Campaign Settings</span>
           </div>
         </AccordionTrigger>
         <AccordionContent className="pb-4">
