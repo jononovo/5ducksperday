@@ -45,6 +45,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { TONE_OPTIONS, DEFAULT_TONE } from "@/lib/tone-options";
 import { OFFER_OPTIONS, DEFAULT_OFFER } from "@/lib/offer-options";
 import { RecipientSelectionModal, type RecipientSelection } from "@/components/recipient-selection-modal";
+import { CampaignSettings, type CampaignSettingsData } from "@/components/campaign-settings";
 
 // Component prop types
 interface EmailComposerProps {
@@ -99,6 +100,13 @@ export function EmailComposer({
   const [isTemplatesExpanded, setIsTemplatesExpanded] = useState(false);
   const [recipientModalOpen, setRecipientModalOpen] = useState(false);
   const [campaignRecipients, setCampaignRecipients] = useState<RecipientSelection | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [campaignSettings, setCampaignSettings] = useState<CampaignSettingsData>({
+    scheduleSend: false,
+    autopilot: false,
+    trackEmails: true, // Default to on like in the screenshot
+    unsubscribeLink: false,
+  });
 
   // Refs
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -529,42 +537,84 @@ export function EmailComposer({
   };
 
   const handleCreateCampaign = (type: 'scheduled' | 'immediate' | 'draft' = 'scheduled') => {
-    // If no recipients explicitly selected but we have a current search, use it automatically
-    if (!campaignRecipients && currentListId && currentQuery) {
-      // Auto-create recipients from current search
-      const autoRecipients: RecipientSelection = {
-        type: 'current',
-        listId: currentListId,
-        query: currentQuery
-      };
-      setCampaignRecipients(autoRecipients);
-      
-      // Call mutation with auto-created recipients
+    // For Schedule Campaign and Start Now, open the settings accordion
+    if (type === 'scheduled' || type === 'immediate') {
+      // Validate requirements first
+      if (!currentListId && !campaignRecipients) {
+        toast({
+          title: "No Recipients Available",
+          description: "Please run a search first or select recipients for your campaign",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!emailContent) {
+        toast({
+          title: "No Email Content",
+          description: "Please add email content for your campaign",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Auto-set recipients if not already set
+      if (!campaignRecipients && currentListId && currentQuery) {
+        const autoRecipients: RecipientSelection = {
+          type: 'current',
+          listId: currentListId,
+          query: currentQuery
+        };
+        setCampaignRecipients(autoRecipients);
+      }
+
+      // Update settings based on the type
+      setCampaignSettings(prev => ({
+        ...prev,
+        scheduleSend: type === 'scheduled'
+      }));
+
+      // Open the settings accordion
+      setSettingsOpen(true);
+      return;
+    }
+
+    // For Save as Draft, proceed immediately without opening settings
+    if (type === 'draft') {
+      // Auto-set recipients if not already set
+      if (!campaignRecipients && currentListId && currentQuery) {
+        const autoRecipients: RecipientSelection = {
+          type: 'current',
+          listId: currentListId,
+          query: currentQuery
+        };
+        setCampaignRecipients(autoRecipients);
+        
+        // For draft, immediately save
+        createCampaignMutation.mutate(type);
+        return;
+      }
+
+      if (!campaignRecipients) {
+        toast({
+          title: "No Recipients Available",
+          description: "Please run a search first or select recipients for your campaign",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!emailContent) {
+        toast({
+          title: "No Email Content",
+          description: "Please add email content for your campaign",
+          variant: "destructive"
+        });
+        return;
+      }
+
       createCampaignMutation.mutate(type);
-      return;
     }
-
-    // If no current search and no selected recipients
-    if (!campaignRecipients && !currentListId) {
-      toast({
-        title: "No Recipients Available",
-        description: "Please run a search first or select recipients for your campaign",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!emailContent) {
-      toast({
-        title: "No Email Content",
-        description: "Please add email content for your campaign",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Pass the campaign type to the mutation
-    createCampaignMutation.mutate(type);
   };
 
   return (
@@ -1010,6 +1060,16 @@ export function EmailComposer({
       </div>
     </div>
 
+    {/* Campaign Settings - Only shown in campaign mode */}
+    {drawerMode === 'campaign' && (
+      <CampaignSettings
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        settings={campaignSettings}
+        onSettingsChange={setCampaignSettings}
+        className="mt-4"
+      />
+    )}
 
     {/* Quick Templates Section - Collapsible */}
     <div className="mt-3">
