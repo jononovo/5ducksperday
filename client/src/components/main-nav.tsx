@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
-import { LogOut, User, Menu, LayoutDashboard, Mail, MessageCircle, Target, Headphones, Flame } from "lucide-react";
+import { LogOut, User, Menu, LayoutDashboard, Mail, MessageCircle, Target, Headphones, Flame, PanelLeft } from "lucide-react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useStrategyOverlay } from "@/features/strategy-chat";
@@ -7,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { CreditUpgradeDropdown } from "@/components/credit-upgrade-dropdown";
 import { StreakButton } from "@/components/streak-button";
+import { SavedSearchesDrawer } from "@/components/saved-searches-drawer";
+import type { SearchList } from "@shared/schema";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +23,8 @@ const navigation = [
 ];
 
 export function MainNav() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const [drawerOpen, setDrawerOpen] = useState(false);
   
   // Safe auth hook usage with error handling
   let user = null;
@@ -44,11 +48,33 @@ export function MainNav() {
     // This is acceptable for public routes - just don't show user menu
   }
 
+  const handleLoadSearch = useCallback((list: SearchList) => {
+    setLocation('/app');
+    // The app page will handle loading the search state from localStorage
+  }, [setLocation]);
+
+  const handleNewSearch = useCallback(() => {
+    setLocation('/app');
+    // Clear any existing search state for a fresh search
+  }, [setLocation]);
+
   return (
-    <nav className="flex items-center justify-between mb-2 px-4 py-1.5">
-      <div className="flex items-center space-x-4">
-        <Logo size="sm" className="mr-8" />
-      </div>
+    <>
+      <nav className="flex items-center justify-between mb-2 px-4 py-1.5">
+        <div className="flex items-center space-x-2">
+          <Logo size="sm" className="mr-2" />
+          {user && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDrawerOpen(true)}
+              className="h-8 w-8 hover:bg-accent"
+              title="Historic Searches"
+            >
+              <PanelLeft className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       <div className="flex items-center ml-auto gap-3">
         {user ? (
           <>
@@ -122,5 +148,15 @@ export function MainNav() {
         )}
       </div>
     </nav>
+    
+    {user && (
+      <SavedSearchesDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        onLoadSearch={handleLoadSearch}
+        onNewSearch={handleNewSearch}
+      />
+    )}
+    </>
   );
 }
