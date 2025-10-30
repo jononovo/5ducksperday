@@ -685,6 +685,9 @@ export const campaigns = pgTable("campaigns", {
   autopilotSettings: jsonb("autopilot_settings"), // JSON object with detailed autopilot config
   maxEmailsPerDay: integer("max_emails_per_day").default(20),
   delayBetweenEmails: integer("delay_between_emails").default(30), // minutes
+  // Human Review settings
+  requiresHumanReview: boolean("requires_human_review").default(true), // true = notification/review flow, false = auto-send
+  emailTemplateId: integer("email_template_id").references(() => emailTemplates.id), // template for auto-send campaigns
   // Tracking settings
   trackEmails: boolean("track_emails").default(true),
   unsubscribeLink: boolean("unsubscribe_link").default(true),
@@ -954,6 +957,9 @@ export const campaignSchema = z.object({
   autopilotSettings: z.record(z.unknown()).optional(),
   maxEmailsPerDay: z.number().default(20),
   delayBetweenEmails: z.number().default(30),
+  // Human Review settings
+  requiresHumanReview: z.boolean().default(true),
+  emailTemplateId: z.number().optional(),
   // Tracking settings
   trackEmails: z.boolean().default(true),
   unsubscribeLink: z.boolean().default(true),
