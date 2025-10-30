@@ -6,10 +6,79 @@ export const users = pgTable("users", {
   username: text("username").notNull(),
   password: text("password").notNull(),
   email: text("email").notNull(),
+  firebaseUid: text("firebase_uid"), // Firebase UID for mapping
   createdAt: timestamp("created_at").defaultNow(),
   isGuest: boolean("is_guest").default(false),
   isAdmin: boolean("is_admin").default(false)
 });
+
+// User credits table (migrated from KV)
+export const userCredits = pgTable("user_credits", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  balance: integer("balance").notNull().default(0),
+  totalPurchased: integer("total_purchased").notNull().default(0),
+  totalUsed: integer("total_used").notNull().default(0),
+  lastUpdated: timestamp("last_updated", { withTimezone: true }).defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  uniqueIndex('idx_user_credits_user_id').on(table.userId)
+]);
+
+// Credit transactions for audit trail
+export const creditTransactions = pgTable("credit_transactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  amount: integer("amount").notNull(), // Positive for additions, negative for usage
+  type: text("type").notNull(), // 'purchase', 'usage', 'refund', 'bonus'
+  description: text("description"),
+  metadata: jsonb("metadata").default({}), // Additional transaction details
+  balanceAfter: integer("balance_after").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_credit_transactions_user_id').on(table.userId),
+  index('idx_credit_transactions_type').on(table.type),
+  index('idx_credit_transactions_created_at').on(table.createdAt)
+]);
+
+// Subscriptions table (migrated from KV)
+export const subscriptions = pgTable("subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  status: text("status").notNull().default('inactive'), // 'active', 'inactive', 'cancelled', 'past_due'
+  planType: text("plan_type"), // 'basic', 'pro', 'enterprise'
+  currentPeriodStart: timestamp("current_period_start", { withTimezone: true }),
+  currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  uniqueIndex('idx_subscriptions_user_id').on(table.userId),
+  index('idx_subscriptions_stripe_customer_id').on(table.stripeCustomerId),
+  index('idx_subscriptions_status').on(table.status)
+]);
+
+// User notifications (migrated from KV)  
+export const userNotifications = pgTable("user_notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: text("type").notNull(), // 'welcome', 'feature', 'credits_low', etc.
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  status: text("status").notNull().default('unread'), // 'unread', 'read', 'dismissed'
+  priority: text("priority").default('normal'), // 'low', 'normal', 'high'
+  metadata: jsonb("metadata").default({}),
+  readAt: timestamp("read_at", { withTimezone: true }),
+  dismissedAt: timestamp("dismissed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_user_notifications_user_id').on(table.userId),
+  index('idx_user_notifications_status').on(table.status),
+  index('idx_user_notifications_created_at').on(table.createdAt)
+]);
 
 // OAuth tokens with encryption for sensitive data
 export const oauthTokens = pgTable("oauth_tokens", {

@@ -9,7 +9,8 @@ import { User, User as SelectUser } from "@shared/schema";
 import admin from "firebase-admin";
 import { TokenService } from "./features/billing/tokens/service";
 import { UserTokens } from "./features/billing/tokens/types";
-import MemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
+import { Pool } from "pg";
 
 // Extend the session type to include gmailToken
 declare module 'express-session' {
@@ -128,17 +129,27 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
 }
 
 export function setupAuth(app: Express) {
-  // Create persistent session store
-  const MemoryStoreSession = MemoryStore(session);
+  // Create PostgreSQL session store
+  const PgSession = connectPgSimple(session);
   
+  // Create a new connection pool for sessions
+  const pgPool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 20, // Maximum number of clients in the pool
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  });
+
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'temporary-secret-key',
     resave: false,
     saveUninitialized: false,
-    store: new MemoryStoreSession({
-      checkPeriod: 86400000, // prune expired entries every 24h
-      ttl: 7 * 24 * 60 * 60 * 1000, // 7 days TTL
-      max: 500 // Maximum number of sessions
+    store: new PgSession({
+      pool: pgPool,
+      tableName: 'user_sessions',
+      createTableIfMissing: true, // Automatically create the session table
+      ttl: 7 * 24 * 60 * 60, // 7 days TTL (in seconds for pg-simple)
+      pruneSessionInterval: 86400, // Prune expired sessions every 24h (in seconds)
     }),
     cookie: {
       secure: process.env.NODE_ENV === 'production',
@@ -147,9 +158,11 @@ export function setupAuth(app: Express) {
     }
   };
 
-  console.log('Setting up persistent session store:', {
+  console.log('Setting up PostgreSQL session store:', {
     environment: process.env.NODE_ENV,
     sessionTTL: '7 days',
+    storeType: 'PostgreSQL',
+    tableName: 'user_sessions',
     cookieSecure: sessionSettings.cookie?.secure,
     timestamp: new Date().toISOString()
   });
