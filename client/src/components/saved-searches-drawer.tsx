@@ -41,17 +41,22 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
   const [clickedId, setClickedId] = useState<number | null>(null);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent 
-        side="left" 
-        className="w-[80%] max-w-[384px] pl-0 pr-0 sm:max-w-[384px] !top-[52px] !h-[calc(100vh-52px)]"
-        onMouseLeave={() => {
-          // Auto-close drawer when mouse leaves (desktop only)
-          if (window.innerWidth >= 640) {
-            onOpenChange(false);
-          }
-        }}
-      >
+    <SheetPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <SheetPrimitive.Portal>
+        {/* Custom lighter overlay */}
+        <SheetPrimitive.Overlay 
+          className="fixed inset-0 z-50 bg-black/20 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+        />
+        {/* Custom sheet content */}
+        <SheetPrimitive.Content
+          className="fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500 inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm w-[80%] max-w-[384px] pl-0 pr-0 sm:max-w-[384px] !top-[52px] !h-[calc(100vh-52px)]"
+          onMouseLeave={() => {
+            // Auto-close drawer when mouse leaves (desktop only)
+            if (window.innerWidth >= 640) {
+              onOpenChange(false);
+            }
+          }}
+        >
         <div className="h-full overflow-auto">
           {/* New Search Button */}
           <div className="px-3 pt-2 pb-2">
@@ -148,7 +153,8 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
             </TableBody>
           </Table>
         </div>
-      </SheetContent>
-    </Sheet>
+        </SheetPrimitive.Content>
+      </SheetPrimitive.Portal>
+    </SheetPrimitive.Root>
   );
 }
