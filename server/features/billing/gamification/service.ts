@@ -133,7 +133,7 @@ export class GamificationService {
       type: 'notification',
       title: notification.title,
       message: notification.description,
-      priority: notification.priority || 'normal',
+      priority: 'normal',
       metadata: { notificationId, notification }
     });
     
