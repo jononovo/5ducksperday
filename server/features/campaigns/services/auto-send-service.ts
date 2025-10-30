@@ -12,7 +12,7 @@ import { eq, and, inArray, sql } from 'drizzle-orm';
 import sgMail from '@sendgrid/mail';
 import { resolveAllMergeFields } from '../../../lib/merge-field-resolver.js';
 
-export class AutoSendCampaignService {
+class AutoSendCampaignService {
   constructor() {
     if (process.env.SENDGRID_API_KEY) {
       sgMail.setApiKey(process.env.SENDGRID_API_KEY);
