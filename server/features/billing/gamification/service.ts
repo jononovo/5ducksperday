@@ -11,9 +11,7 @@ import {
   NotificationResult,
   BadgeResult
 } from "./types";
-import Database from '@replit/database';
-
-const db = new Database();
+import { storage } from '../../../storage';
 
 export class GamificationService {
   /**
@@ -29,76 +27,65 @@ export class GamificationService {
       return { success: false, message: "Invalid easter egg" };
     }
 
-    const credits = await CreditService.getUserCredits(userId);
-    const easterEggArray = credits.easterEggs || [];
+    // Check if already claimed by looking at credit history
+    const history = await storage.getUserCreditHistory(userId, 100);
+    const alreadyClaimed = history.some((tx: any) => 
+      tx.description?.includes(easterEgg.emoji) && 
+      tx.description?.includes(easterEgg.description)
+    );
     
-    // Check if already used
-    if (easterEggArray[easterEgg.id] === 1) {
+    if (alreadyClaimed) {
       return { success: false, message: "Easter egg already claimed!" };
     }
 
-    // Award credits and mark as used
-    const transaction: CreditTransaction = {
-      type: 'credit',
-      amount: easterEgg.reward,
-      description: `${easterEgg.emoji} ${easterEgg.description}`,
-      timestamp: Date.now()
-    };
-
-    // Update easter egg tracking array
-    const updatedEasterEggs = [...easterEggArray];
-    updatedEasterEggs[easterEgg.id] = 1;
-
-    const updatedCredits = {
-      ...credits,
-      currentBalance: credits.currentBalance + easterEgg.reward,
-      isBlocked: credits.currentBalance + easterEgg.reward >= 0 ? false : credits.isBlocked,
-      transactions: [transaction, ...credits.transactions],
-      easterEggs: updatedEasterEggs,
-      updatedAt: Date.now()
-    };
-
-    // Save using CreditService's internal key format
-    const creditKey = `user_credits:${userId}`;
-    await db.set(creditKey, JSON.stringify(updatedCredits));
+    // Award credits using PostgreSQL storage
+    const description = `${easterEgg.emoji} ${easterEgg.description}`;
     
-    return { 
-      success: true, 
-      message: `🎉 Easter egg found! +${easterEgg.reward} credits added!`, 
-      newBalance: updatedCredits.currentBalance,
-      easterEgg 
-    };
+    try {
+      const result = await storage.updateUserCredits(userId, easterEgg.reward, 'bonus', description);
+      
+      return { 
+        success: true, 
+        message: `🎉 Easter egg found! +${easterEgg.reward} credits added!`, 
+        newBalance: result.balance,
+        easterEgg 
+      };
+    } catch (error) {
+      console.error(`Failed to claim easter egg for user ${userId}:`, error);
+      return { success: false, message: "Failed to claim easter egg" };
+    }
   }
 
   /**
    * Check if badge has been earned by user
    */
   static async hasEarnedBadge(userId: number, badgeId: number): Promise<boolean> {
-    const credits = await CreditService.getUserCredits(userId);
-    const badges = credits.badges || [];
-    return badges[badgeId] === 1;
+    // Check notifications for badge awards
+    const notifications = await storage.getUserNotifications(userId);
+    return notifications.some((n: any) => 
+      n.type === 'badge' && n.metadata?.badgeId === badgeId
+    );
   }
 
   /**
    * Award badge to user
    */
   static async awardBadge(userId: number, badgeId: number): Promise<void> {
-    const credits = await CreditService.getUserCredits(userId);
-    const badges = credits.badges || [];
+    const badge = BADGES.find(b => b.id === badgeId);
+    if (!badge) return;
     
-    // Update tracking array
-    const updated = [...badges];
-    updated[badgeId] = 1;
+    // Check if already awarded
+    const hasEarned = await this.hasEarnedBadge(userId, badgeId);
+    if (hasEarned) return;
     
-    const updatedCredits = {
-      ...credits,
-      badges: updated,
-      updatedAt: Date.now()
-    };
-    
-    // Save using CreditService's internal key format
-    const creditKey = `user_credits:${userId}`;
-    await db.set(creditKey, JSON.stringify(updatedCredits));
+    // Create notification for badge award
+    await storage.createUserNotification(userId, {
+      type: 'badge',
+      title: `Badge Unlocked: ${badge.title}`,
+      message: badge.description,
+      priority: 'high',
+      metadata: { badgeId, badge }
+    });
   }
 
   /**
@@ -122,31 +109,38 @@ export class GamificationService {
    * Check if notification has been shown to user
    */
   static async hasShownNotification(userId: number, notificationId: number): Promise<boolean> {
-    const credits = await CreditService.getUserCredits(userId);
-    const notifications = credits.notifications || [];
-    return notifications[notificationId] === 1;
+    const notifications = await storage.getUserNotifications(userId);
+    return notifications.some((n: any) => 
+      n.type === 'notification' && 
+      n.metadata?.notificationId === notificationId &&
+      (n.status === 'read' || n.status === 'dismissed')
+    );
   }
 
   /**
    * Mark notification as shown
    */
   static async markNotificationShown(userId: number, notificationId: number): Promise<void> {
-    const credits = await CreditService.getUserCredits(userId);
-    const notifications = credits.notifications || [];
+    const notification = NOTIFICATIONS.find(n => n.id === notificationId);
+    if (!notification) return;
     
-    // Update tracking array
-    const updated = [...notifications];
-    updated[notificationId] = 1;
+    // Check if already exists
+    const hasShown = await this.hasShownNotification(userId, notificationId);
+    if (hasShown) return;
     
-    const updatedCredits = {
-      ...credits,
-      notifications: updated,
-      updatedAt: Date.now()
-    };
+    // Create notification record
+    const created = await storage.createUserNotification(userId, {
+      type: 'notification',
+      title: notification.title,
+      message: notification.description,
+      priority: notification.priority || 'normal',
+      metadata: { notificationId, notification }
+    });
     
-    // Save using CreditService's internal key format
-    const creditKey = `user_credits:${userId}`;
-    await db.set(creditKey, JSON.stringify(updatedCredits));
+    // Immediately mark as read
+    if (created?.id) {
+      await storage.markNotificationAsRead(created.id);
+    }
   }
 
   /**
@@ -178,39 +172,54 @@ export class GamificationService {
   }
 
   /**
-   * Get all Easter eggs
+   * Award badge for specific milestones
    */
-  static getEasterEggs(): EasterEgg[] {
-    return EASTER_EGGS;
+  static async checkAndAwardMilestoneBadges(userId: number, searchCount: number): Promise<void> {
+    // First search badge
+    if (searchCount === 1) {
+      await this.awardBadge(userId, 0); // First Steps badge
+    }
+    
+    // Power user badge (50 searches)
+    if (searchCount === 50) {
+      await this.awardBadge(userId, 2); // Power User badge
+    }
+    
+    // Veteran badge (100 searches)
+    if (searchCount === 100) {
+      await this.awardBadge(userId, 3); // Veteran badge
+    }
   }
-
+  
   /**
-   * Get all badges
+   * Get user's earned badges
    */
-  static getBadges(): BadgeConfig[] {
-    return BADGES;
+  static async getUserBadges(userId: number): Promise<BadgeConfig[]> {
+    const notifications = await storage.getUserNotifications(userId);
+    const badgeIds = notifications
+      .filter((n: any) => n.type === 'badge' && n.metadata?.badgeId !== undefined)
+      .map((n: any) => n.metadata.badgeId);
+    
+    return BADGES.filter(b => badgeIds.includes(b.id));
   }
-
+  
   /**
-   * Get all notifications
+   * Get user's claimed easter eggs
    */
-  static getNotifications(): NotificationConfig[] {
-    return NOTIFICATIONS;
-  }
-
-  /**
-   * Get user's gamification status
-   */
-  static async getUserGamificationStatus(userId: number): Promise<{
-    easterEggs: number[];
-    badges: number[];
-    notifications: number[];
-  }> {
-    const credits = await CreditService.getUserCredits(userId);
-    return {
-      easterEggs: credits.easterEggs || [],
-      badges: credits.badges || [],
-      notifications: credits.notifications || []
-    };
+  static async getClaimedEasterEggs(userId: number): Promise<EasterEgg[]> {
+    const history = await storage.getUserCreditHistory(userId, 100);
+    const claimedEggs: EasterEgg[] = [];
+    
+    for (const egg of EASTER_EGGS) {
+      const claimed = history.some((tx: any) => 
+        tx.description?.includes(egg.emoji) && 
+        tx.description?.includes(egg.description)
+      );
+      if (claimed) {
+        claimedEggs.push(egg);
+      }
+    }
+    
+    return claimedEggs;
   }
 }
