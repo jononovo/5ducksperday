@@ -190,35 +190,6 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
     }
   });
 
-  // Migration endpoint to transfer tokens from Replit DB to PostgreSQL
-  router.post('/migrate-tokens', requireAuth, async (req: Request, res: Response) => {
-    try {
-      const userId = (req as any).user.id;
-      console.log(`[Migration] Starting token migration for user ${userId}`);
-      
-      // Attempt to migrate this user's tokens
-      const success = await TokenService.migrateFromReplitDB(userId);
-      
-      if (success) {
-        res.json({ 
-          success: true, 
-          message: "Tokens successfully migrated to PostgreSQL" 
-        });
-      } else {
-        res.json({ 
-          success: false, 
-          message: "No tokens found to migrate or tokens already migrated" 
-        });
-      }
-    } catch (error) {
-      console.error('Error during token migration:', error);
-      res.status(500).json({ 
-        error: "Failed to migrate tokens", 
-        details: error instanceof Error ? error.message : 'Unknown error' 
-      });
-    }
-  });
-
   app.use('/api/gmail', router);
   
   // Send email endpoint (outside of /api/gmail prefix for backward compatibility)
