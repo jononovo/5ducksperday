@@ -259,4 +259,19 @@ export class TokenService {
       return null;
     }
   }
+
+  /**
+   * Store Firebase UID mapping for a user
+   */
+  static async storeFirebaseUidMapping(firebaseUid: string, userId: number): Promise<void> {
+    try {
+      console.log(`[TokenService] Storing Firebase UID mapping: ${firebaseUid} -> user ${userId}`);
+      // Update the users table with the Firebase UID
+      await storage.updateUser(userId, { firebaseUid });
+      console.log(`[TokenService] Successfully stored Firebase UID mapping for user ${userId}`);
+    } catch (error) {
+      console.error(`Error storing Firebase UID mapping for user ${userId}:`, error);
+      throw error;
+    }
+  }
 }
