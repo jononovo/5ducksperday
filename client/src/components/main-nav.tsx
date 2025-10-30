@@ -73,6 +73,7 @@ export function MainNav() {
               <PanelLeft 
                 className="text-gray-500" 
                 style={{ width: '22px', height: '22px' }}
+                strokeWidth={1.5}
               />
             </Button>
           )}
