@@ -33,19 +33,27 @@ Tiered provider approach: Apollo → Perplexity+Hunter → AeroLeads
 - **Providers**: `searchApollo()`, `searchHunter()`, `searchPerplexity()`
 
 ### ✉️ Email Campaign System
-Comprehensive outreach management with AI-powered personalization
+Comprehensive outreach management with AI-powered personalization and dual-mode operation
 - **Email Composer**: (`client/src/components/email-composer.tsx`)
   - Custom email creation with merge fields ({firstName}, {companyName}, etc.)
   - Quick templates for common scenarios (Cold Outreach, Partnership, etc.)
   - AI-powered email generation with tone and strategy selection
 - **Campaign Settings**: (`client/src/components/campaign-settings.tsx`)
+  - **Human Review Toggle** (NEW): Switch between human-reviewed and automated sending
   - Batch size configuration (5-50 contacts)
   - Daily sending limits with spam prevention
   - Time zone aware scheduling
+- **Campaign Modes** (NEW):
+  - **Human Review Mode** (default): Emails require review before sending → notification email → manual approval
+  - **Auto-Send Mode**: Template-based emails sent automatically via scheduler without review
 - **Autopilot Modal**: (`client/src/components/autopilot-modal.tsx`)
   - Automated campaign scheduling with day/time selection
   - Intelligent email spacing (minimum 30s between sends)
   - Rate limiting to prevent spam detection
+- **Auto-Send Service** (NEW): (`server/features/campaigns/services/auto-send-service.ts`)
+  - Processes non-human-review campaigns automatically
+  - Resolves merge fields from templates
+  - Integrates with scheduling queue for timed delivery
 - **Email Generation Service**: (`server/email-content-generation/service.ts`)
   - 42 unique combinations (7 tones × 6 strategies)
   - Context-aware personalization using company/contact data
