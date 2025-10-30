@@ -67,12 +67,12 @@ export function MainNav() {
               variant="ghost"
               size="icon"
               onClick={handleDrawerClick}
-              className="h-10 w-10 hover:bg-accent"
+              className="h-8 w-8 hover:bg-accent"
               title="Historic Searches"
             >
               <PanelLeft 
                 className="text-gray-500" 
-                style={{ width: '30px', height: '30px' }}
+                style={{ width: '22px', height: '22px' }}
               />
             </Button>
           )}
