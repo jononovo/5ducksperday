@@ -16,7 +16,8 @@ import {
   Link,
   Settings,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  UserCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScheduleSendModal } from "@/components/schedule-send-modal";
@@ -30,6 +31,8 @@ export interface CampaignSettingsData {
   scheduleTime?: string;
   autopilot: boolean;
   autopilotSettings?: AutopilotSettings;
+  requiresHumanReview: boolean;
+  emailTemplateId?: number;
   trackEmails: boolean;
   unsubscribeLink: boolean;
 }
@@ -141,6 +144,41 @@ export function CampaignSettings({
                 ? `${localSettings.autopilotSettings.maxEmailsPerDay} per day`
                 : ''}
             </div>
+          </Button>
+
+          {/* Human Review Button */}
+          <Button
+            variant="ghost"
+            className="w-full justify-between h-auto py-1.5 px-2 hover:bg-muted/50"
+            onClick={() => handleToggle('requiresHumanReview', !localSettings.requiresHumanReview)}
+          >
+            <div className="flex items-center gap-2">
+              <UserCheck className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-normal text-muted-foreground">
+                  Human review
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info 
+                        className="h-3 w-3 text-muted-foreground cursor-help"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p>When enabled, emails require your review before sending. When disabled, template-based emails are sent automatically.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+            <Switch
+              checked={localSettings.requiresHumanReview}
+              onCheckedChange={(checked) => handleToggle('requiresHumanReview', checked)}
+              className="data-[state=checked]:bg-blue-600 scale-90"
+              onClick={(e) => e.stopPropagation()}
+            />
           </Button>
 
           {/* Track Emails Button */}

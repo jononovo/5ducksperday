@@ -163,6 +163,7 @@ export function EmailComposer({
   const [campaignSettings, setCampaignSettings] = useState<CampaignSettingsData>({
     scheduleSend: false,
     autopilot: false,
+    requiresHumanReview: true, // Default to human review enabled for backward compatibility
     trackEmails: true, // Default to on like in the screenshot
     unsubscribeLink: false,
   });
