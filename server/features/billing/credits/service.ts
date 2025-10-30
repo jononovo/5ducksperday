@@ -1,45 +1,24 @@
 import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE, EasterEgg, EASTER_EGGS, NotificationConfig, NOTIFICATIONS, BadgeConfig, BADGES, STRIPE_CONFIG } from "./types";
 import { GamificationService } from '../gamification/service';
-import Database from '@replit/database';
-
-// Replit DB instance for persistent credit storage
-const db = new Database();
+import { storage } from '../../../storage';
 
 export class CreditService {
-  private static readonly CREDIT_KEY_PREFIX = "user_credits:";
-
-  private static getCreditKey(userId: number): string {
-    return `${this.CREDIT_KEY_PREFIX}${userId}`;
-  }
-
   /**
    * Get user credits, creating initial record if needed
    */
   static async getUserCredits(userId: number): Promise<UserCredits> {
-    const key = this.getCreditKey(userId);
-    
     try {
       console.log(`[CreditService] Getting credits for user ${userId}`);
-      const creditsData = await db.get(key);
       
-      let credits: UserCredits | undefined;
+      // Get credits from PostgreSQL
+      const creditData = await storage.getUserCredits(userId);
       
-      if (creditsData && creditsData.ok !== false) {
-        try {
-          // Extract value from Replit DB response wrapper format
-          const rawData = creditsData.value || creditsData;
-          credits = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-          console.log(`[CreditService] Loaded credits for user ${userId}: balance=${credits?.currentBalance}, transactions=${credits?.transactions?.length || 0}`);
-        } catch (parseError) {
-          console.error(`Error parsing credits data for user ${userId}:`, parseError);
-          credits = undefined;
-        }
-      }
-      
-      if (!credits) {
+      if (!creditData) {
         console.log(`[CreditService] No credits found for user ${userId}, creating initial record with 250 credits`);
         
         // Create initial credit record with 250 credit starting bonus
+        await storage.updateUserCredits(userId, 250, 'bonus', 'Welcome bonus - 250 free credits');
+        
         const initialCredits: UserCredits = {
           currentBalance: 250,
           lastTopUp: Date.now(),
@@ -56,14 +35,39 @@ export class CreditService {
           updatedAt: Date.now()
         };
         
-        console.log(`[CreditService] Creating initial credits for user ${userId}: 250 credits`);
-        await db.set(key, JSON.stringify(initialCredits));
         console.log(`[CreditService] Successfully created initial credits for user ${userId}`);
         return initialCredits;
       }
       
-      console.log(`[CreditService] Returning credits for user ${userId}: balance=${credits.currentBalance}`);
-      return credits;
+      // Get transaction history
+      const transactions = await storage.getUserCreditHistory(userId);
+      
+      // Convert to UserCredits format
+      const userCredits: UserCredits = {
+        currentBalance: creditData.balance,
+        lastTopUp: creditData.lastUpdated?.getTime() || Date.now(),
+        totalUsed: creditData.totalUsed,
+        isBlocked: creditData.balance < 0,
+        transactions: transactions.map((tx: any) => ({
+          type: tx.type === 'usage' ? 'debit' : 'credit',
+          amount: Math.abs(tx.amount),
+          description: tx.description || '',
+          timestamp: tx.createdAt?.getTime() || Date.now(),
+          searchType: tx.metadata?.searchType,
+          success: tx.metadata?.success
+        })),
+        monthlyAllowance: MONTHLY_CREDIT_ALLOWANCE,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        // Preserve subscription and easter egg data
+        subscriptionStatus: undefined,
+        currentPlan: undefined,
+        easterEggs: [],
+        badges: []
+      };
+      
+      console.log(`[CreditService] Loaded credits for user ${userId}: balance=${userCredits.currentBalance}`);
+      return userCredits;
     } catch (error) {
       console.error(`Error getting credits for user ${userId}:`, error);
       // Return default credits on error
@@ -98,39 +102,29 @@ export class CreditService {
                       now.getFullYear() !== lastTopUp.getFullYear();
     
     if (isNewMonth) {
-      // Determine credit amount based on subscription status
-      const isSubscribed = credits.subscriptionStatus === 'active' && credits.currentPlan;
-      const creditAmount = isSubscribed && credits.currentPlan 
-        ? STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES[credits.currentPlan]
+      // Get subscription status from PostgreSQL
+      const subscription = await storage.getUserSubscription(userId);
+      const isSubscribed = subscription?.status === 'active' && subscription?.planId;
+      
+      const creditAmount = isSubscribed && subscription.planId
+        ? STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES[subscription.planId as keyof typeof STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES] || MONTHLY_CREDIT_ALLOWANCE
         : MONTHLY_CREDIT_ALLOWANCE;
 
       const getPlanDescription = () => {
-        if (!isSubscribed || !credits.currentPlan) return 'free tier';
-        switch (credits.currentPlan) {
+        if (!isSubscribed || !subscription?.planId) return 'free tier';
+        switch (subscription.planId) {
           case 'ugly-duckling': return 'The Duckling subscription (2,000 base + 3,000 bonus)';
           case 'duckin-awesome': return 'Mama Duck subscription (5,000 base + 10,000 bonus)';
-          default: return `${credits.currentPlan} subscription`;
+          default: return `${subscription.planId} subscription`;
         }
       };
       const planDescription = getPlanDescription();
-
-      const transaction: CreditTransaction = {
-        type: 'credit',
-        amount: creditAmount,
-        description: `Monthly top-up for ${now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} (${planDescription})`,
-        timestamp: Date.now()
-      };
-
-      const updatedCredits: UserCredits = {
-        ...credits,
-        currentBalance: credits.currentBalance + creditAmount,
-        lastTopUp: Date.now(),
-        isBlocked: false, // Unblock user on monthly refresh
-        transactions: [...credits.transactions, transaction],
-        updatedAt: Date.now()
-      };
-
-      await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
+      
+      const description = `Monthly top-up for ${now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} (${planDescription})`;
+      
+      // Apply monthly top-up using PostgreSQL
+      await storage.updateUserCredits(userId, creditAmount, 'bonus', description);
+      
       console.log(`Applied monthly top-up for user ${userId}: +${creditAmount} credits (${planDescription})`);
       return true;
     }
@@ -162,38 +156,50 @@ export class CreditService {
       };
     }
 
-    const transaction: CreditTransaction = {
-      type: 'debit',
-      amount,
-      description: `${searchType.replace('_', ' ')} search`,
-      timestamp: Date.now(),
-      searchType,
-      success
-    };
+    try {
+      const description = `${searchType.replace('_', ' ')} search`;
+      
+      // Deduct credits using PostgreSQL (negative amount for deduction)
+      const result = await storage.updateUserCredits(userId, -amount, 'usage', description);
+      
+      const newBalance = result.balance;
+      const isBlocked = newBalance < 0;
 
-    const newBalance = credits.currentBalance - amount;
-    const isBlocked = newBalance < 0;
+      console.log(`Credits deducted for user ${userId}: -${amount} credits for ${searchType} (success: ${success})`);
+      console.log(`New balance: ${newBalance}, Blocked: ${isBlocked}`);
 
-    const updatedCredits: UserCredits = {
-      ...credits,
-      currentBalance: newBalance,
-      totalUsed: credits.totalUsed + amount,
-      isBlocked,
-      transactions: [...credits.transactions, transaction],
-      updatedAt: Date.now()
-    };
-
-    await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
-
-    console.log(`Credits deducted for user ${userId}: -${amount} credits for ${searchType} (success: ${success})`);
-    console.log(`New balance: ${newBalance}, Blocked: ${isBlocked}`);
-
-    return {
-      success: true,
-      newBalance,
-      isBlocked,
-      transaction
-    };
+      return {
+        success: true,
+        newBalance,
+        isBlocked,
+        transaction: {
+          type: 'debit',
+          amount,
+          description,
+          timestamp: Date.now(),
+          searchType,
+          success
+        }
+      };
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Insufficient credits') {
+        const isBlocked = true;
+        return {
+          success: false,
+          newBalance: credits.currentBalance,
+          isBlocked,
+          transaction: {
+            type: 'debit',
+            amount,
+            description: `Failed: ${searchType.replace('_', ' ')} search - insufficient credits`,
+            timestamp: Date.now(),
+            searchType,
+            success: false
+          }
+        };
+      }
+      throw error;
+    }
   }
 
   /**
@@ -208,18 +214,24 @@ export class CreditService {
    * Get credit balance
    */
   static async getCreditBalance(userId: number): Promise<number> {
-    const credits = await this.getUserCredits(userId);
-    return credits.currentBalance;
+    const creditData = await storage.getUserCredits(userId);
+    return creditData?.balance || 0;
   }
 
   /**
    * Get credit transaction history
    */
   static async getCreditHistory(userId: number, limit: number = 50): Promise<CreditTransaction[]> {
-    const credits = await this.getUserCredits(userId);
-    return credits.transactions
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, limit);
+    const transactions = await storage.getUserCreditHistory(userId, limit);
+    
+    return transactions.map((tx: any) => ({
+      type: tx.type === 'usage' ? 'debit' : 'credit',
+      amount: Math.abs(tx.amount),
+      description: tx.description || '',
+      timestamp: tx.createdAt?.getTime() || Date.now(),
+      searchType: tx.metadata?.searchType,
+      success: tx.metadata?.success
+    }));
   }
 
   /**
@@ -255,24 +267,33 @@ export class CreditService {
   }
 
   /**
-   * Trigger badge if not already earned
-   * @deprecated Use GamificationService.triggerBadge instead
-   * Proxy method maintained for backward compatibility
+   * Update user subscription status
    */
-  static async triggerBadge(userId: number, trigger: string): Promise<{
-    shouldShow: boolean;
-    badge?: BadgeConfig;
-  }> {
-    return GamificationService.triggerBadge(userId, trigger);
+  static async updateUserSubscription(
+    userId: number,
+    status: 'active' | 'cancelled' | 'expired' | 'pending',
+    planId?: string,
+    metadata?: any
+  ): Promise<void> {
+    await storage.updateUserSubscription(userId, {
+      status,
+      planId,
+      startedAt: new Date(),
+      metadata: metadata || {}
+    });
+    
+    console.log(`[CreditService] Updated subscription for user ${userId}: status=${status}, plan=${planId}`);
   }
 
   /**
-   * Check if notification has been shown to user
-   * @deprecated Use GamificationService.hasShownNotification instead
+   * Check if notification has been shown
+   * @deprecated Use GamificationService methods instead
    * Proxy method maintained for backward compatibility
    */
-  static async hasShownNotification(userId: number, notificationId: number): Promise<boolean> {
-    return GamificationService.hasShownNotification(userId, notificationId);
+  static async hasNotificationBeenShown(userId: number, notificationId: string): Promise<boolean> {
+    // Check if notification exists in PostgreSQL
+    const notifications = await storage.getUserNotifications(userId, 'read');
+    return notifications.some((n: any) => n.id === notificationId || n.type === notificationId);
   }
 
   /**
@@ -280,150 +301,97 @@ export class CreditService {
    * @deprecated Use GamificationService.markNotificationShown instead
    * Proxy method maintained for backward compatibility
    */
-  static async markNotificationShown(userId: number, notificationId: number): Promise<void> {
-    return GamificationService.markNotificationShown(userId, notificationId);
+  static async markNotificationShown(userId: number, notificationId: string): Promise<void> {
+    // Convert string ID to number if it's a numeric string
+    const id = parseInt(notificationId, 10);
+    if (!isNaN(id)) {
+      await storage.markNotificationAsRead(id);
+    }
   }
 
   /**
-   * Trigger notification if not already shown
+   * Trigger notification for user
    * @deprecated Use GamificationService.triggerNotification instead
    * Proxy method maintained for backward compatibility
    */
-  static async triggerNotification(userId: number, trigger: string): Promise<{
-    shouldShow: boolean;
-    notification?: NotificationConfig;
-    badge?: BadgeConfig;
+  static async triggerNotification(userId: number, notificationId: string): Promise<{ shouldShow: boolean; notification?: any }> {
+    return GamificationService.triggerNotification(userId, notificationId);
+  }
+
+  /**
+   * Add credits to user account (for purchases, refunds, bonuses)
+   */
+  static async addCredits(userId: number, amount: number, description: string): Promise<{ 
+    success: boolean; 
+    newBalance: number 
   }> {
-    return GamificationService.triggerNotification(userId, trigger);
+    try {
+      const result = await storage.updateUserCredits(userId, amount, 'purchase', description);
+      
+      console.log(`[CreditService] Added ${amount} credits to user ${userId}: ${description}`);
+      
+      return {
+        success: true,
+        newBalance: result.balance
+      };
+    } catch (error) {
+      console.error(`[CreditService] Failed to add credits for user ${userId}:`, error);
+      throw error;
+    }
   }
 
   /**
-   * Manual credit adjustment (for admin use)
+   * Refund credits for failed operations
    */
-  static async adjustCredits(
-    userId: number, 
-    amount: number, 
-    description: string
-  ): Promise<CreditDeductionResult> {
-    const credits = await this.getUserCredits(userId);
-    
-    const transaction: CreditTransaction = {
-      type: amount > 0 ? 'credit' : 'debit',
-      amount: Math.abs(amount),
-      description,
-      timestamp: Date.now()
-    };
-
-    const newBalance = credits.currentBalance + amount;
-    const isBlocked = newBalance < 0;
-
-    const updatedCredits: UserCredits = {
-      ...credits,
-      currentBalance: newBalance,
-      totalUsed: amount < 0 ? credits.totalUsed + Math.abs(amount) : credits.totalUsed,
-      isBlocked,
-      transactions: [...credits.transactions, transaction],
-      updatedAt: Date.now()
-    };
-
-    await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
-
-    return {
-      success: true,
-      newBalance,
-      isBlocked,
-      transaction
-    };
-  }
-
-  /**
-   * Get usage statistics for a user
-   */
-  static async getUsageStats(userId: number): Promise<{
-    totalUsed: number;
-    thisMonth: number;
-    searchCounts: Record<string, number>;
+  static async refundCredits(userId: number, amount: number, reason: string): Promise<{ 
+    success: boolean; 
+    newBalance: number 
   }> {
-    const credits = await this.getUserCredits(userId);
-    const now = new Date();
-    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    
-    const thisMonthTransactions = credits.transactions.filter(
-      t => t.type === 'debit' && t.timestamp >= thisMonthStart
-    );
-    
-    const thisMonthUsage = thisMonthTransactions.reduce((sum, t) => sum + t.amount, 0);
-    
-    const searchCounts: Record<string, number> = {};
-    thisMonthTransactions.forEach(t => {
-      if (t.searchType) {
-        searchCounts[t.searchType] = (searchCounts[t.searchType] || 0) + 1;
-      }
-    });
-
-    return {
-      totalUsed: credits.totalUsed,
-      thisMonth: thisMonthUsage,
-      searchCounts
-    };
+    try {
+      const result = await storage.updateUserCredits(userId, amount, 'refund', reason);
+      
+      console.log(`[CreditService] Refunded ${amount} credits to user ${userId}: ${reason}`);
+      
+      return {
+        success: true,
+        newBalance: result.balance
+      };
+    } catch (error) {
+      console.error(`[CreditService] Failed to refund credits for user ${userId}:`, error);
+      throw error;
+    }
   }
 
   /**
-   * Update Stripe customer ID
+   * Process subscription payment and add credits
    */
-  static async updateStripeCustomerId(userId: number, customerId: string): Promise<void> {
-    const credits = await this.getUserCredits(userId);
-    credits.stripeCustomerId = customerId;
-    credits.updatedAt = Date.now();
+  static async processSubscriptionPayment(
+    userId: number,
+    planId: string,
+    paymentAmount: number,
+    stripePaymentId: string
+  ): Promise<void> {
+    const creditAmount = STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES[planId as keyof typeof STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES] || 0;
     
-    await db.set(this.getCreditKey(userId), JSON.stringify(credits));
-    console.log(`Updated Stripe customer ID for user ${userId}: ${customerId}`);
+    if (creditAmount > 0) {
+      const planName = planId === 'ugly-duckling' 
+        ? 'The Duckling' 
+        : planId === 'duckin-awesome' 
+          ? 'Mama Duck' 
+          : planId;
+      
+      const description = `Subscription payment - ${planName} plan (${stripePaymentId})`;
+      
+      await storage.updateUserCredits(userId, creditAmount, 'purchase', description);
+      
+      console.log(`[CreditService] Processed subscription payment for user ${userId}: ${planName} (+${creditAmount} credits)`);
+    }
   }
 
   /**
-   * Update subscription details
+   * Get user's subscription status
    */
-  static async updateSubscription(userId: number, subscriptionData: {
-    stripeSubscriptionId?: string;
-    subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing';
-    currentPlan?: 'ugly-duckling';
-    subscriptionStartDate?: number;
-    subscriptionEndDate?: number;
-  }): Promise<void> {
-    const credits = await this.getUserCredits(userId);
-    
-    Object.assign(credits, subscriptionData);
-    credits.updatedAt = Date.now();
-    
-    await db.set(this.getCreditKey(userId), JSON.stringify(credits));
-    console.log(`Updated subscription for user ${userId}:`, subscriptionData);
-  }
-
-  /**
-   * Award subscription credits immediately upon successful subscription
-   */
-  static async awardSubscriptionCredits(userId: number, planId: 'ugly-duckling'): Promise<void> {
-    const credits = await this.getUserCredits(userId);
-    const creditAmount = STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES[planId];
-
-    const transaction: CreditTransaction = {
-      type: 'credit',
-      amount: creditAmount,
-      description: `${planId} subscription activation bonus`,
-      timestamp: Date.now()
-    };
-
-    const updatedCredits: UserCredits = {
-      ...credits,
-      currentBalance: credits.currentBalance + creditAmount,
-      isBlocked: false, // Unblock user on subscription
-      transactions: [...credits.transactions, transaction],
-      updatedAt: Date.now()
-    };
-
-    await db.set(this.getCreditKey(userId), JSON.stringify(updatedCredits));
-    console.log(`Awarded subscription credits for user ${userId}: +${creditAmount} credits for ${planId}`);
+  static async getUserSubscription(userId: number): Promise<any> {
+    return await storage.getUserSubscription(userId);
   }
 }
-
-export default CreditService;

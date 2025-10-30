@@ -145,7 +145,7 @@ export interface IStorage {
   updateOAuthTokenExpiry(userId: number, service: string, expiresAt: Date): Promise<void>;
 
   // User Credits
-  getUserCredits(userId: number): Promise<{ balance: number; totalPurchased: number; totalUsed: number } | null>;
+  getUserCredits(userId: number): Promise<{ balance: number; totalPurchased: number; totalUsed: number; lastUpdated?: Date } | null>;
   updateUserCredits(userId: number, amount: number, type: 'purchase' | 'usage' | 'refund' | 'bonus', description?: string): Promise<{ balance: number }>;
   getUserCreditHistory(userId: number, limit?: number): Promise<any[]>;
 
@@ -970,7 +970,7 @@ class DatabaseStorage implements IStorage {
   }
 
   // User Credits Implementation
-  async getUserCredits(userId: number): Promise<{ balance: number; totalPurchased: number; totalUsed: number } | null> {
+  async getUserCredits(userId: number): Promise<{ balance: number; totalPurchased: number; totalUsed: number; lastUpdated?: Date } | null> {
     const [credit] = await db.select()
       .from(userCredits)
       .where(eq(userCredits.userId, userId));
@@ -985,13 +985,19 @@ class DatabaseStorage implements IStorage {
           totalUsed: 0
         })
         .returning();
-      return newCredit;
+      return {
+        balance: newCredit.balance,
+        totalPurchased: newCredit.totalPurchased,
+        totalUsed: newCredit.totalUsed,
+        lastUpdated: newCredit.lastUpdated || undefined
+      };
     }
     
     return {
       balance: credit.balance,
       totalPurchased: credit.totalPurchased,
-      totalUsed: credit.totalUsed
+      totalUsed: credit.totalUsed,
+      lastUpdated: credit.lastUpdated || undefined
     };
   }
 
@@ -1096,18 +1102,20 @@ class DatabaseStorage implements IStorage {
 
   // User Notifications Implementation
   async getUserNotifications(userId: number, status?: string): Promise<any[]> {
-    let query = db.select()
-      .from(userNotifications)
-      .where(eq(userNotifications.userId, userId));
-    
     if (status) {
-      query = query.where(and(
-        eq(userNotifications.userId, userId),
-        eq(userNotifications.status, status)
-      ));
+      return await db.select()
+        .from(userNotifications)
+        .where(and(
+          eq(userNotifications.userId, userId),
+          eq(userNotifications.status, status)
+        ))
+        .orderBy(desc(userNotifications.createdAt));
     }
     
-    return await query.orderBy(desc(userNotifications.createdAt));
+    return await db.select()
+      .from(userNotifications)
+      .where(eq(userNotifications.userId, userId))
+      .orderBy(desc(userNotifications.createdAt));
   }
 
   async createUserNotification(
