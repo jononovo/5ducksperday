@@ -67,10 +67,10 @@ export function MainNav() {
               variant="ghost"
               size="icon"
               onClick={handleDrawerClick}
-              className="h-8 w-8 hover:bg-accent"
+              className="h-10 w-10 hover:bg-accent"
               title="Historic Searches"
             >
-              <PanelLeft className="h-5 w-5 text-gray-500" />
+              <PanelLeft className="h-[26px] w-[26px] text-gray-500" />
             </Button>
           )}
         </div>
