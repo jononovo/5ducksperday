@@ -8,13 +8,15 @@ import {
   dailyOutreachItems,
   contacts,
   companies,
-  strategicProfiles
+  strategicProfiles,
+  campaigns
 } from '@shared/schema';
 import { eq, and, lte, isNull, sql, inArray, not } from 'drizzle-orm';
 import { batchGenerator } from './batch-generator';
 import { sendGridService } from './sendgrid-service';
 import { differenceInMinutes, addDays, startOfDay, format } from 'date-fns';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { autoSendCampaignService } from '../../campaigns/services/auto-send-service';
 
 export class PersistentDailyOutreachScheduler {
   private pollingInterval: NodeJS.Timeout | null = null;
@@ -436,6 +438,30 @@ export class PersistentDailyOutreachScheduler {
         throw new Error(`User ${userId} not found`);
       }
       statusUpdates.push(`Step 1 ✓: Found user ${user.email}`);
+      
+      // Check for active campaigns that don't require human review
+      const autoSendCampaigns = await db
+        .select()
+        .from(campaigns)
+        .where(
+          and(
+            eq(campaigns.userId, userId),
+            eq(campaigns.status, 'active'),
+            eq(campaigns.requiresHumanReview, false),
+            sql`${campaigns.emailTemplateId} IS NOT NULL`
+          )
+        );
+      
+      if (autoSendCampaigns.length > 0) {
+        statusUpdates.push(`Step 2: Found ${autoSendCampaigns.length} auto-send campaigns`);
+        // Process auto-send campaigns
+        for (const campaign of autoSendCampaigns) {
+          await autoSendCampaignService.processCampaign(campaign);
+        }
+        statusUpdates.push(`Step 2 ✓: Processed auto-send campaigns`);
+        // For auto-send campaigns, we don't generate batch or send nudge emails
+        return { batchId: null, contactsProcessed: autoSendCampaigns.length * 5 }; // Approximate
+      }
       
       // Check vacation mode
       statusUpdates.push('Step 2: Checking user preferences and vacation mode');
