@@ -3,6 +3,7 @@ import {
   strategicProfiles, userEmailPreferences,
   senderProfiles, customerProfiles, campaigns, searchJobs,
   contactLists, contactListMembers, oauthTokens,
+  userCredits, creditTransactions, subscriptions, userNotifications,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type SearchList, type InsertSearchList,
@@ -142,6 +143,22 @@ export interface IStorage {
   }): Promise<void>;
   deleteOAuthToken(userId: number, service: string): Promise<void>;
   updateOAuthTokenExpiry(userId: number, service: string, expiresAt: Date): Promise<void>;
+
+  // User Credits
+  getUserCredits(userId: number): Promise<{ balance: number; totalPurchased: number; totalUsed: number } | null>;
+  updateUserCredits(userId: number, amount: number, type: 'purchase' | 'usage' | 'refund' | 'bonus', description?: string): Promise<{ balance: number }>;
+  getUserCreditHistory(userId: number, limit?: number): Promise<any[]>;
+
+  // Subscriptions
+  getUserSubscription(userId: number): Promise<any | null>;
+  updateUserSubscription(userId: number, data: any): Promise<any>;
+  cancelUserSubscription(userId: number): Promise<void>;
+
+  // User Notifications  
+  getUserNotifications(userId: number, status?: string): Promise<any[]>;
+  createUserNotification(userId: number, notification: { type: string; title: string; message: string; priority?: string; metadata?: any }): Promise<any>;
+  markNotificationAsRead(notificationId: number): Promise<void>;
+  dismissNotification(notificationId: number): Promise<void>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -950,6 +967,185 @@ class DatabaseStorage implements IStorage {
         eq(oauthTokens.userId, userId),
         eq(oauthTokens.service, service)
       ));
+  }
+
+  // User Credits Implementation
+  async getUserCredits(userId: number): Promise<{ balance: number; totalPurchased: number; totalUsed: number } | null> {
+    const [credit] = await db.select()
+      .from(userCredits)
+      .where(eq(userCredits.userId, userId));
+    
+    if (!credit) {
+      // Initialize credits for new user
+      const [newCredit] = await db.insert(userCredits)
+        .values({ 
+          userId,
+          balance: 0,
+          totalPurchased: 0,
+          totalUsed: 0
+        })
+        .returning();
+      return newCredit;
+    }
+    
+    return {
+      balance: credit.balance,
+      totalPurchased: credit.totalPurchased,
+      totalUsed: credit.totalUsed
+    };
+  }
+
+  async updateUserCredits(
+    userId: number, 
+    amount: number, 
+    type: 'purchase' | 'usage' | 'refund' | 'bonus',
+    description?: string
+  ): Promise<{ balance: number }> {
+    // Start transaction to ensure consistency
+    return await db.transaction(async (tx) => {
+      // Get current credits
+      const [current] = await tx.select()
+        .from(userCredits)
+        .where(eq(userCredits.userId, userId));
+      
+      const currentBalance = current?.balance || 0;
+      const newBalance = currentBalance + amount;
+      
+      if (newBalance < 0) {
+        throw new Error('Insufficient credits');
+      }
+
+      // Update or create credits record
+      if (current) {
+        await tx.update(userCredits)
+          .set({
+            balance: newBalance,
+            totalPurchased: type === 'purchase' ? current.totalPurchased + amount : current.totalPurchased,
+            totalUsed: type === 'usage' ? current.totalUsed + Math.abs(amount) : current.totalUsed,
+            lastUpdated: new Date()
+          })
+          .where(eq(userCredits.userId, userId));
+      } else {
+        await tx.insert(userCredits)
+          .values({
+            userId,
+            balance: newBalance,
+            totalPurchased: type === 'purchase' ? amount : 0,
+            totalUsed: type === 'usage' ? Math.abs(amount) : 0
+          });
+      }
+
+      // Record transaction
+      await tx.insert(creditTransactions)
+        .values({
+          userId,
+          amount,
+          type,
+          description,
+          balanceAfter: newBalance
+        });
+
+      return { balance: newBalance };
+    });
+  }
+
+  async getUserCreditHistory(userId: number, limit: number = 50): Promise<any[]> {
+    return await db.select()
+      .from(creditTransactions)
+      .where(eq(creditTransactions.userId, userId))
+      .orderBy(desc(creditTransactions.createdAt))
+      .limit(limit);
+  }
+
+  // Subscriptions Implementation
+  async getUserSubscription(userId: number): Promise<any | null> {
+    const [subscription] = await db.select()
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, userId));
+    return subscription || null;
+  }
+
+  async updateUserSubscription(userId: number, data: any): Promise<any> {
+    const [existing] = await db.select()
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, userId));
+
+    if (existing) {
+      const [updated] = await db.update(subscriptions)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(subscriptions.userId, userId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(subscriptions)
+        .values({ ...data, userId })
+        .returning();
+      return created;
+    }
+  }
+
+  async cancelUserSubscription(userId: number): Promise<void> {
+    await db.update(subscriptions)
+      .set({ 
+        status: 'cancelled',
+        cancelledAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(subscriptions.userId, userId));
+  }
+
+  // User Notifications Implementation
+  async getUserNotifications(userId: number, status?: string): Promise<any[]> {
+    let query = db.select()
+      .from(userNotifications)
+      .where(eq(userNotifications.userId, userId));
+    
+    if (status) {
+      query = query.where(and(
+        eq(userNotifications.userId, userId),
+        eq(userNotifications.status, status)
+      ));
+    }
+    
+    return await query.orderBy(desc(userNotifications.createdAt));
+  }
+
+  async createUserNotification(
+    userId: number, 
+    notification: { 
+      type: string; 
+      title: string; 
+      message: string; 
+      priority?: string; 
+      metadata?: any 
+    }
+  ): Promise<any> {
+    const [created] = await db.insert(userNotifications)
+      .values({
+        userId,
+        ...notification,
+        priority: notification.priority || 'normal'
+      })
+      .returning();
+    return created;
+  }
+
+  async markNotificationAsRead(notificationId: number): Promise<void> {
+    await db.update(userNotifications)
+      .set({ 
+        status: 'read',
+        readAt: new Date()
+      })
+      .where(eq(userNotifications.id, notificationId));
+  }
+
+  async dismissNotification(notificationId: number): Promise<void> {
+    await db.update(userNotifications)
+      .set({ 
+        status: 'dismissed',
+        dismissedAt: new Date()
+      })
+      .where(eq(userNotifications.id, notificationId));
   }
 }
 
