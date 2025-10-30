@@ -70,7 +70,10 @@ export function MainNav() {
               className="h-10 w-10 hover:bg-accent"
               title="Historic Searches"
             >
-              <PanelLeft className="h-[26px] w-[26px] text-gray-500" />
+              <PanelLeft 
+                className="text-gray-500" 
+                style={{ width: '30px', height: '30px' }}
+              />
             </Button>
           )}
         </div>
