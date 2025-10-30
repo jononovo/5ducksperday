@@ -6,6 +6,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import * as SheetPrimitive from "@radix-ui/react-dialog";
 import {
   Table,
   TableBody,
@@ -43,7 +44,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
         side="left" 
-        className="w-[80%] max-w-[384px] pl-0 pr-0 sm:max-w-[384px]"
+        className="w-[80%] max-w-[384px] pl-0 pr-0 sm:max-w-[384px] !top-[52px] !h-[calc(100vh-52px)]"
         onMouseLeave={() => {
           // Auto-close drawer when mouse leaves (desktop only)
           if (window.innerWidth >= 640) {
