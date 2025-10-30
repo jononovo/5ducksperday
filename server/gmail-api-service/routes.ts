@@ -178,8 +178,8 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
       
       console.log('Retrieved Gmail user info:', {
         userId,
-        hasEmail: !!userInfo.email,
-        hasName: !!userInfo.displayName,
+        hasEmail: !!userInfo?.email,
+        hasName: !!userInfo?.name,
         timestamp: new Date().toISOString()
       });
       

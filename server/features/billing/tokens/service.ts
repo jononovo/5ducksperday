@@ -1,36 +1,27 @@
 import { UserTokens, TokenValidationResult } from "./types";
-import Database from '@replit/database';
-
-// Replit DB instance for persistent token storage
-const db = new Database();
+import { storage } from "../../../storage";
 
 export class TokenService {
-  private static readonly TOKEN_KEY_PREFIX = "user_tokens:";
-  private static readonly FIREBASE_UID_PREFIX = "firebase_uid:";
-
-  private static getTokenKey(userId: number): string {
-    return `${this.TOKEN_KEY_PREFIX}${userId}`;
-  }
-
-  private static getFirebaseUidKey(firebaseUid: string): string {
-    return `${this.FIREBASE_UID_PREFIX}${firebaseUid}`;
-  }
-
   /**
-   * Save user tokens to Replit DB
+   * Save user tokens to PostgreSQL (replaces Replit DB)
    */
   static async saveUserTokens(userId: number, tokens: UserTokens): Promise<void> {
-    const key = this.getTokenKey(userId);
-    
     try {
-      console.log(`[TokenService] Saving tokens for user ${userId} with key: ${key}`);
+      console.log(`[TokenService] Saving tokens for user ${userId} to PostgreSQL`);
       
-      const tokenData = {
-        ...tokens,
-        updatedAt: Date.now()
-      };
-
-      await db.set(key, JSON.stringify(tokenData));
+      await storage.saveOAuthToken(userId, 'gmail', {
+        accessToken: tokens.gmailAccessToken,
+        refreshToken: tokens.gmailRefreshToken,
+        expiresAt: tokens.tokenExpiry ? new Date(tokens.tokenExpiry) : undefined,
+        email: tokens.gmailEmail,
+        scopes: tokens.scopes || [],
+        metadata: {
+          displayName: tokens.gmailDisplayName,
+          createdAt: tokens.createdAt,
+          updatedAt: tokens.updatedAt
+        }
+      });
+      
       console.log(`[TokenService] Successfully saved tokens for user ${userId}`);
     } catch (error) {
       console.error(`Error saving tokens for user ${userId}:`, error);
@@ -39,32 +30,33 @@ export class TokenService {
   }
 
   /**
-   * Get user tokens from Replit DB
+   * Get user tokens from PostgreSQL
    */
   static async getUserTokens(userId: number): Promise<UserTokens | null> {
-    const key = this.getTokenKey(userId);
-    
     try {
-      console.log(`[TokenService] Getting tokens for user ${userId} with key: ${key}`);
-      const tokensData = await db.get(key);
-      console.log(`[TokenService] Raw DB data for user ${userId}:`, tokensData ? 'found' : 'not found');
+      console.log(`[TokenService] Getting tokens for user ${userId} from PostgreSQL`);
       
-      if (!tokensData || tokensData.ok === false) {
+      const tokenData = await storage.getOAuthToken(userId, 'gmail');
+      
+      if (!tokenData) {
         console.log(`[TokenService] No tokens found for user ${userId}`);
         return null;
       }
 
-      try {
-        // Extract value from Replit DB response wrapper format (following credit system pattern)
-        const rawData = tokensData.value || tokensData;
-        const tokens: UserTokens = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-        
-        console.log(`[TokenService] Successfully retrieved tokens for user ${userId}`);
-        return tokens;
-      } catch (parseError) {
-        console.error(`Error parsing tokens data for user ${userId}:`, parseError);
-        return null;
-      }
+      // Convert from PostgreSQL format to UserTokens format
+      const tokens: UserTokens = {
+        gmailAccessToken: tokenData.accessToken,
+        gmailRefreshToken: tokenData.refreshToken,
+        tokenExpiry: tokenData.expiresAt ? tokenData.expiresAt.getTime() : Date.now() + (3600 * 1000),
+        scopes: ['https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        gmailEmail: tokenData.email,
+        gmailDisplayName: undefined
+      };
+      
+      console.log(`[TokenService] Successfully retrieved tokens for user ${userId}`);
+      return tokens;
     } catch (error) {
       console.error(`Error getting tokens for user ${userId}:`, error);
       return null;
@@ -99,14 +91,12 @@ export class TokenService {
   }
 
   /**
-   * Delete user tokens from Replit DB
+   * Delete user tokens from PostgreSQL
    */
   static async deleteUserTokens(userId: number): Promise<void> {
-    const key = this.getTokenKey(userId);
-    
     try {
       console.log(`[TokenService] Deleting tokens for user ${userId}`);
-      await db.delete(key);
+      await storage.deleteOAuthToken(userId, 'gmail');
       console.log(`[TokenService] Successfully deleted tokens for user ${userId}`);
     } catch (error) {
       console.error(`Error deleting tokens for user ${userId}:`, error);
@@ -250,96 +240,23 @@ export class TokenService {
     }
   }
 
-
-
   /**
-   * Get Gmail access token for API calls (with automatic validation)
+   * Get Gmail user info
    */
-  static async getGmailAccessToken(userId: number): Promise<string | null> {
-    const tokens = await this.getUserTokens(userId);
-    const validation = this.isTokenValid(tokens);
-    
-    if (!validation.isValid) {
-      console.warn(`[TokenService] Invalid or expired Gmail token for user ${userId}`);
-      return null;
-    }
-
-    if (validation.needsRefresh) {
-      console.log(`[TokenService] Token needs refresh for user ${userId}, attempting refresh`);
-      const refreshed = await this.refreshGmailToken(userId);
-      if (refreshed) {
-        // Get updated token after refresh
-        const refreshedTokens = await this.getUserTokens(userId);
-        return refreshedTokens?.gmailAccessToken || null;
-      }
-      // If refresh failed, return null to trigger re-authorization
-      return null;
-    }
-
-    return tokens!.gmailAccessToken;
-  }
-
-  /**
-   * Get Gmail user info (email and display name)
-   */
-  static async getGmailUserInfo(userId: number): Promise<{ email: string | null; displayName: string | null }> {
+  static async getGmailUserInfo(userId: number): Promise<{ email: string; name?: string } | null> {
     try {
       const tokens = await this.getUserTokens(userId);
       if (!tokens) {
-        console.log(`[TokenService] No tokens found for user ${userId}`);
-        return { email: null, displayName: null };
+        return null;
       }
 
-      console.log(`[TokenService] Retrieved Gmail user info for user ${userId}:`, {
-        email: tokens.gmailEmail,
-        displayName: tokens.gmailDisplayName
-      });
-      
-      return { 
-        email: tokens.gmailEmail || null,
-        displayName: tokens.gmailDisplayName || null
+      return {
+        email: tokens.gmailEmail || '',
+        name: tokens.gmailDisplayName
       };
     } catch (error) {
       console.error(`Error getting Gmail user info for user ${userId}:`, error);
-      return { email: null, displayName: null };
-    }
-  }
-
-  /**
-   * Store Firebase UID to User ID mapping (optional index for fast lookup)
-   */
-  static async storeFirebaseUidMapping(firebaseUid: string, userId: number): Promise<void> {
-    const key = this.getFirebaseUidKey(firebaseUid);
-    try {
-      await db.set(key, JSON.stringify(userId));
-      console.log(`[TokenService] Stored Firebase UID mapping: ${firebaseUid} -> ${userId}`);
-    } catch (error) {
-      console.error(`Error storing Firebase UID mapping:`, error);
-      // Don't throw - this is optional functionality
-    }
-  }
-
-  /**
-   * Get User ID from Firebase UID (optional lookup)
-   */
-  static async getUserIdFromFirebaseUid(firebaseUid: string): Promise<number | null> {
-    const key = this.getFirebaseUidKey(firebaseUid);
-    try {
-      const userIdData = await db.get(key);
-      if (!userIdData || userIdData.ok === false) {
-        return null;
-      }
-      
-      // Extract value from Replit DB response wrapper format
-      const rawData = userIdData.value || userIdData;
-      const userId = typeof rawData === 'string' ? parseInt(rawData) : rawData;
-      return typeof userId === 'number' ? userId : null;
-    } catch (error) {
-      console.error(`Error getting user ID from Firebase UID:`, error);
       return null;
     }
   }
 }
-
-// Export types
-export type { UserTokens, TokenValidationResult } from "./types";

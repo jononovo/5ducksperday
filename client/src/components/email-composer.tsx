@@ -1011,15 +1011,37 @@ export function EmailComposer({
                   onClick={handleGmailConnect}
                   variant="outline"
                   size="sm"
-                  className="h-8 text-xs bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400 px-3 transition-all duration-300"
+                  className="h-8 text-xs bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400 transition-all duration-300 group overflow-hidden"
+                  style={{ 
+                    width: 'auto',
+                    minWidth: '32px',
+                    maxWidth: '32px',
+                    padding: '0 8px',
+                    transition: 'max-width 0.3s ease-out, padding 0.3s ease-out'
+                  }}
+                  onMouseEnter={(e) => {
+                    const button = e.currentTarget;
+                    button.style.maxWidth = '200px';
+                    button.style.padding = '0 12px';
+                  }}
+                  onMouseLeave={(e) => {
+                    const button = e.currentTarget;
+                    button.style.maxWidth = '32px';
+                    button.style.padding = '0 8px';
+                  }}
                 >
-                  <Mail className="w-3 h-3 mr-1.5 shrink-0" />
-                  {gmailUserInfo?.email 
-                    ? (gmailUserInfo as any).email.length > 20 
-                      ? `${(gmailUserInfo as any).email.substring(0, 20)}...`
-                      : (gmailUserInfo as any).email
-                    : 'Gmail Connected'
-                  }
+                  <Mail className="w-3 h-3 shrink-0" />
+                  <span 
+                    className="ml-1.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{ transitionDelay: '0.1s' }}
+                  >
+                    {gmailUserInfo?.email 
+                      ? (gmailUserInfo as any).email.length > 20 
+                        ? `${(gmailUserInfo as any).email.substring(0, 20)}...`
+                        : (gmailUserInfo as any).email
+                      : 'Gmail Connected'
+                    }
+                  </span>
                 </Button>
               ) : (
                 <Button

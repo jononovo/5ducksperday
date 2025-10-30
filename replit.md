@@ -88,6 +88,20 @@ The `lists` table has TWO different ID fields that can cause confusion:
 
 ## Recent Updates (October 2025)
 
+### OAuth Token Storage - PostgreSQL Only (October 29, 2025)
+- **Gmail OAuth tokens stored exclusively in PostgreSQL**
+  - Created `oauth_tokens` table with encryption support for sensitive data
+  - Implemented AES-256-CBC encryption for access/refresh tokens  
+  - `TokenService` uses PostgreSQL storage with encryption utilities
+  - No fallback to Replit Database - clean PostgreSQL-only implementation
+  - Benefits: Unified data management, better multi-user support, transactional consistency
+- **Gmail Integration Improvements**
+  - Fixed API endpoint typos: `/api/gmail/status` → `/api/gmail/auth-status`, `/api/gmail/user-info` → `/api/gmail/user`
+  - Enhanced visual feedback: Connected state shows green button with email address
+  - Improved UX: Button is clickable when connected to allow reconnection/account changes
+
+## Recent Updates (October 2025)
+
 ### Code Architecture & Refactoring (October 29, 2025)
 - **Email Drawer Feature Extraction**: Modularized email drawer from home.tsx
   - Created `client/src/features/email-drawer/` with 4 files (types, hook, component, exports)
