@@ -998,7 +998,7 @@ export function EmailComposer({
     </div>
 
     {/* Email Subject Field */}
-    <div className="relative border-b md:border-b-0 md:mb-6">
+    <div className="relative border-b md:border-b-0 md:mb-6" style={{ marginTop: '-1px' }}>
       <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
       <Input
         ref={emailSubjectRef}
