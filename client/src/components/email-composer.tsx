@@ -730,7 +730,7 @@ export function EmailComposer({
             handlePromptTextareaResize();
           }}
           className={cn(
-            "mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0",
+            "mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50",
             drawerMode === 'campaign' ? "md:rounded-b-md md:rounded-t-none" : "md:rounded-md"
           )}
           style={{ minHeight: '32px', maxHeight: '120px' }}
@@ -964,7 +964,7 @@ export function EmailComposer({
             value={getDisplayValue(toEmail)}
             onChange={(e) => setToEmail(e.target.value)}
             type="email"
-            className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-t-md focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-t-md focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
           />
         </>
       ) : (
@@ -1008,7 +1008,7 @@ export function EmailComposer({
           setEmailSubject(e.target.value);
           setOriginalEmailSubject(e.target.value);
         }}
-        className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
       />
     </div>
 
@@ -1023,7 +1023,7 @@ export function EmailComposer({
           setOriginalEmailContent(e.target.value);
           handleTextareaResize();
         }}
-        className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
         style={{ minHeight: '160px', maxHeight: '400px' }}
       />
       <div className="absolute bottom-2 right-2 flex items-center gap-2">
