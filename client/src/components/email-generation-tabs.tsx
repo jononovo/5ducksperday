@@ -64,7 +64,7 @@ export function EmailGenerationTabs({
   };
 
   return (
-    <div className={cn("inline-flex rounded-tl-lg rounded-tr-lg bg-muted/30 p-0.5 gap-0.5", className)}>
+    <div className={cn("inline-flex rounded-tl-lg rounded-tr-lg p-0.5 gap-0.5", className)}>
       {GENERATION_MODES.map((mode) => {
         const Icon = mode.icon;
         const isSelected = selectedMode === mode.id;
