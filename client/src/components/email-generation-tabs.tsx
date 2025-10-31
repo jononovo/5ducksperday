@@ -27,8 +27,8 @@ const GENERATION_MODES: GenerationMode[] = [
     buttonText: 'Generate Sample',
     description: 'Generate unique email for each recipient',
     icon: Sparkles,
-    activeColor: 'text-purple-600 dark:text-purple-400',
-    buttonColor: 'bg-purple-100/80 hover:bg-purple-200/80 text-purple-700 dark:bg-purple-900/40 dark:hover:bg-purple-900/60 dark:text-purple-300'
+    activeColor: '[&]:text-[#673147]',
+    buttonColor: '[&]:bg-[#673147]/10 [&]:hover:bg-[#673147]/20 [&]:text-[#673147] dark:[&]:bg-[#673147]/10 dark:[&]:hover:bg-[#673147]/20 dark:[&]:text-[#673147]'
   }
 ];
 
