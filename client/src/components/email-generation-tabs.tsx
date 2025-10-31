@@ -77,7 +77,7 @@ export function EmailGenerationTabs({
             className={cn(
               "flex items-center gap-1.5 px-3 py-1 text-xs rounded-t-md transition-all min-w-fit",
               isSelected
-                ? "bg-background shadow-sm"
+                ? cn("shadow-sm", mode.id === 'merge_field' ? "bg-[#ff69b4]/5" : "bg-[#AA336A]/5")
                 : "hover:text-foreground bg-transparent opacity-55 hover:opacity-70"
             )}
             title={mode.description}
