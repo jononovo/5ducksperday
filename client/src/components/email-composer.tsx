@@ -709,7 +709,7 @@ export function EmailComposer({
       <div className={drawerMode === 'campaign' ? "relative" : ""}>
         {/* Generation Mode Tabs - Only shown in campaign mode */}
         {drawerMode === 'campaign' && (
-          <div className="relative z-10 pb-1">
+          <div className="relative z-10">
             <EmailGenerationTabs
               selectedMode={generationMode}
               onModeChange={setGenerationMode}
