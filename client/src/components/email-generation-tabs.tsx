@@ -75,14 +75,29 @@ export function EmailGenerationTabs({
             type="button"
             onClick={() => onModeChange(mode.id)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1 text-xs rounded-t-md transition-all min-w-fit",
+              "flex items-center gap-1.5 px-3 py-1 text-xs rounded-t-md transition-all min-w-fit group",
               isSelected
-                ? cn("shadow-sm", mode.id === 'merge_field' ? "bg-[#ff69b4]/5" : "bg-[#AA336A]/5")
+                ? cn(
+                    "shadow-sm bg-muted/30", 
+                    mode.id === 'merge_field' 
+                      ? "hover:bg-[#ff69b4]/10" 
+                      : "hover:bg-[#AA336A]/10"
+                  )
                 : "hover:text-foreground bg-transparent opacity-55 hover:opacity-70"
             )}
             title={mode.description}
           >
-            <Icon className={cn("h-3.5 w-3.5", isSelected ? mode.activeColor : "text-muted-foreground/60")} />
+            <Icon className={cn(
+              "h-3.5 w-3.5 transition-colors",
+              isSelected 
+                ? cn(
+                    "text-muted-foreground",
+                    mode.id === 'merge_field'
+                      ? "group-hover:text-[#ff69b4]"
+                      : "group-hover:text-[#AA336A]"
+                  )
+                : "text-muted-foreground/60"
+            )} />
             {renderLabel(mode.label, mode.id === 'ai_unique', isSelected, mode.activeColor)}
           </button>
         );
