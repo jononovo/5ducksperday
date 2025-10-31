@@ -710,7 +710,7 @@ export function EmailComposer({
         <EmailGenerationTabs
           selectedMode={generationMode}
           onModeChange={setGenerationMode}
-          className="-mb-[2px]"
+          className="-mb-4"
         />
       )}
       
@@ -730,7 +730,7 @@ export function EmailComposer({
           }}
           className={cn(
             "mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0",
-            drawerMode === 'campaign' ? "md:rounded-b-md md:rounded-t-none md:border-t-0" : "md:rounded-md"
+            drawerMode === 'campaign' ? "md:rounded-b-md md:rounded-t-none" : "md:rounded-md"
           )}
           style={{ minHeight: '32px', maxHeight: '120px' }}
         />
