@@ -170,12 +170,101 @@ export function EmailComposer({
   });
   // Generation mode state for campaign mode
   const [generationMode, setGenerationMode] = useState<'ai_unique' | 'merge_field'>('merge_field');
+  
+  // Separate state for Template mode (merge_field)
+  const [templateSubject, setTemplateSubject] = useState("");
+  const [templateOriginalSubject, setTemplateOriginalSubject] = useState("");
+  const [templateContent, setTemplateContent] = useState("");
+  const [templateOriginalContent, setTemplateOriginalContent] = useState("");
+  
+  // Separate state for AI mode (ai_unique)
+  const [aiSubject, setAiSubject] = useState("");
+  const [aiOriginalSubject, setAiOriginalSubject] = useState("");
+  const [aiContent, setAiContent] = useState("");
+  const [aiOriginalContent, setAiOriginalContent] = useState("");
 
   // Refs
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
   const emailContentRef = useRef<HTMLTextAreaElement>(null);
   const toEmailRef = useRef<HTMLInputElement>(null);
   const emailSubjectRef = useRef<HTMLInputElement>(null);
+
+  // Helper functions to get/set the correct state based on generation mode
+  const getCurrentSubject = () => {
+    if (drawerMode === 'campaign') {
+      return generationMode === 'merge_field' ? templateSubject : aiSubject;
+    }
+    return emailSubject; // Use shared state for compose mode
+  };
+  
+  const getCurrentOriginalSubject = () => {
+    if (drawerMode === 'campaign') {
+      return generationMode === 'merge_field' ? templateOriginalSubject : aiOriginalSubject;
+    }
+    return originalEmailSubject;
+  };
+  
+  const getCurrentContent = () => {
+    if (drawerMode === 'campaign') {
+      return generationMode === 'merge_field' ? templateContent : aiContent;
+    }
+    return emailContent;
+  };
+  
+  const getCurrentOriginalContent = () => {
+    if (drawerMode === 'campaign') {
+      return generationMode === 'merge_field' ? templateOriginalContent : aiOriginalContent;
+    }
+    return originalEmailContent;
+  };
+  
+  const setCurrentSubject = (value: string) => {
+    if (drawerMode === 'campaign') {
+      if (generationMode === 'merge_field') {
+        setTemplateSubject(value);
+      } else {
+        setAiSubject(value);
+      }
+    } else {
+      setEmailSubject(value);
+    }
+  };
+  
+  const setCurrentOriginalSubject = (value: string) => {
+    if (drawerMode === 'campaign') {
+      if (generationMode === 'merge_field') {
+        setTemplateOriginalSubject(value);
+      } else {
+        setAiOriginalSubject(value);
+      }
+    } else {
+      setOriginalEmailSubject(value);
+    }
+  };
+  
+  const setCurrentContent = (value: string) => {
+    if (drawerMode === 'campaign') {
+      if (generationMode === 'merge_field') {
+        setTemplateContent(value);
+      } else {
+        setAiContent(value);
+      }
+    } else {
+      setEmailContent(value);
+    }
+  };
+  
+  const setCurrentOriginalContent = (value: string) => {
+    if (drawerMode === 'campaign') {
+      if (generationMode === 'merge_field') {
+        setTemplateOriginalContent(value);
+      } else {
+        setAiOriginalContent(value);
+      }
+    } else {
+      setOriginalEmailContent(value);
+    }
+  };
 
   // Create merge field context for resolving merge fields
   const senderNames = resolveFrontendSenderNames(user);
@@ -191,17 +280,17 @@ export function EmailComposer({
     selectedContact,
     selectedCompany,
     emailPrompt,
-    emailSubject,
-    emailContent,
+    emailSubject: getCurrentSubject(),
+    emailContent: getCurrentContent(),
     toEmail,
     tone: selectedTone,
     offerStrategy: selectedOfferStrategy,
     generateTemplate: drawerMode === 'campaign' && generationMode === 'merge_field', // Only generate template in campaign mode with merge_field
-    setEmailSubject,
-    setOriginalEmailSubject,
+    setEmailSubject: setCurrentSubject,
+    setOriginalEmailSubject: setCurrentOriginalSubject,
     setToEmail,
-    setEmailContent,
-    setOriginalEmailContent
+    setEmailContent: setCurrentContent,
+    setOriginalEmailContent: setCurrentOriginalContent
   });
 
   // Queries
@@ -1000,10 +1089,10 @@ export function EmailComposer({
       <Input
         ref={emailSubjectRef}
         placeholder="Email Subject"
-        value={getDisplayValue(emailSubject, originalEmailSubject)}
+        value={getDisplayValue(getCurrentSubject(), getCurrentOriginalSubject())}
         onChange={(e) => {
-          setEmailSubject(e.target.value);
-          setOriginalEmailSubject(e.target.value);
+          setCurrentSubject(e.target.value);
+          setCurrentOriginalSubject(e.target.value);
         }}
         className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
       />
@@ -1014,10 +1103,10 @@ export function EmailComposer({
       <Textarea
         ref={emailContentRef}
         placeholder="Enter or edit the generated email content..."
-        value={getDisplayValue(emailContent, originalEmailContent)}
+        value={getDisplayValue(getCurrentContent(), getCurrentOriginalContent())}
         onChange={(e) => {
-          setEmailContent(e.target.value);
-          setOriginalEmailContent(e.target.value);
+          setCurrentContent(e.target.value);
+          setCurrentOriginalContent(e.target.value);
           handleTextareaResize();
         }}
         className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
@@ -1187,11 +1276,11 @@ export function EmailComposer({
           templatesLoading={templatesLoading}
           onSelectTemplate={(template: EmailTemplate) => {
             setEmailPrompt(template.description || "");
-            setEmailContent(template.content);
-            setEmailSubject(template.subject || "");
+            setCurrentContent(template.content);
+            setCurrentSubject(template.subject || "");
             setOriginalEmailPrompt(template.description || "");
-            setOriginalEmailContent(template.content);
-            setOriginalEmailSubject(template.subject || "");
+            setCurrentOriginalContent(template.content);
+            setCurrentOriginalSubject(template.subject || "");
           }}
           onSaveTemplate={handleSaveEmail}
           onUpdateTemplate={saveCurrentTemplate}
