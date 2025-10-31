@@ -13,6 +13,15 @@ export interface GenerationMode {
 
 const GENERATION_MODES: GenerationMode[] = [
   { 
+    id: 'merge_field', 
+    label: 'Template with merge-fields', 
+    buttonText: 'Generate Template',
+    description: 'Use merge fields for personalization',
+    icon: FileText,
+    activeColor: '[&]:text-[#ff69b4]',
+    buttonColor: '[&]:bg-[#ff69b4]/20 [&]:hover:bg-[#ff69b4]/30 [&]:text-[#ff69b4] dark:[&]:bg-[#ff69b4]/20 dark:[&]:hover:bg-[#ff69b4]/30 dark:[&]:text-[#ff69b4]'
+  },
+  { 
     id: 'ai_unique', 
     label: 'AI - Each email unique', 
     buttonText: 'Generate Sample',
@@ -20,15 +29,6 @@ const GENERATION_MODES: GenerationMode[] = [
     icon: Sparkles,
     activeColor: 'text-purple-600 dark:text-purple-400',
     buttonColor: 'bg-purple-100/80 hover:bg-purple-200/80 text-purple-700 dark:bg-purple-900/40 dark:hover:bg-purple-900/60 dark:text-purple-300'
-  },
-  { 
-    id: 'merge_field', 
-    label: 'Template with merge-fields', 
-    buttonText: 'Generate Template',
-    description: 'Use merge fields for personalization',
-    icon: FileText,
-    activeColor: '[&]:text-[pink]',
-    buttonColor: '[&]:bg-[pink]/20 [&]:hover:bg-[pink]/30 [&]:text-[pink] dark:[&]:bg-[pink]/20 dark:[&]:hover:bg-[pink]/30 dark:[&]:text-[pink]'
   }
 ];
 
@@ -92,5 +92,5 @@ export function EmailGenerationTabs({
 }
 
 export function getGenerationModeConfig(mode: 'ai_unique' | 'merge_field'): GenerationMode {
-  return GENERATION_MODES.find(m => m.id === mode) || GENERATION_MODES[1]; // Default to merge_field
+  return GENERATION_MODES.find(m => m.id === mode) || GENERATION_MODES[0]; // Default to merge_field
 }
