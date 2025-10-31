@@ -19,7 +19,7 @@ const GENERATION_MODES: GenerationMode[] = [
     description: 'Use merge fields for personalization',
     icon: FileText,
     activeColor: '[&]:text-[#ff69b4]',
-    buttonColor: '[&]:bg-[#ff69b4]/20 [&]:hover:bg-[#ff69b4]/30 [&]:text-[#ff69b4] dark:[&]:bg-[#ff69b4]/20 dark:[&]:hover:bg-[#ff69b4]/30 dark:[&]:text-[#ff69b4]'
+    buttonColor: '[&]:bg-[#ff69b4]/10 [&]:hover:bg-[#ff69b4]/20 [&]:text-[#ff69b4] dark:[&]:bg-[#ff69b4]/10 dark:[&]:hover:bg-[#ff69b4]/20 dark:[&]:text-[#ff69b4]'
   },
   { 
     id: 'ai_unique', 
