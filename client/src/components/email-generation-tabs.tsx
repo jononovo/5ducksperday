@@ -19,7 +19,7 @@ const GENERATION_MODES: GenerationMode[] = [
     description: 'Generate unique email for each recipient',
     icon: Sparkles,
     activeColor: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    buttonColor: 'bg-purple-600 hover:bg-purple-700 text-white'
+    buttonColor: 'bg-purple-100/80 hover:bg-purple-200/80 text-purple-700 dark:bg-purple-900/40 dark:hover:bg-purple-900/60 dark:text-purple-300'
   },
   { 
     id: 'merge_field', 
@@ -27,8 +27,8 @@ const GENERATION_MODES: GenerationMode[] = [
     buttonText: 'Generate Template',
     description: 'Use merge fields for personalization',
     icon: FileText,
-    activeColor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    buttonColor: 'bg-blue-600 hover:bg-blue-700 text-white'
+    activeColor: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
+    buttonColor: 'bg-pink-100/80 hover:bg-pink-200/80 text-pink-700 dark:bg-pink-900/40 dark:hover:bg-pink-900/60 dark:text-pink-300'
   }
 ];
 
