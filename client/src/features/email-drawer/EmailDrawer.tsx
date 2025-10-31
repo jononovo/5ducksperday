@@ -43,27 +43,35 @@ export function EmailDrawer({
           {/* Campaign Tab */}
           <button
             onClick={() => onModeChange('campaign')}
-            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors group ${
               mode === 'campaign'
-                ? 'bg-primary/10 text-primary'
+                ? 'bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary'
                 : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted'
             }`}
             data-testid="button-campaign-tab"
           >
-            <Megaphone className="h-3.5 w-3.5 text-primary" />
+            <Megaphone className={`h-3.5 w-3.5 transition-colors ${
+              mode === 'campaign' 
+                ? 'text-muted-foreground group-hover:text-primary' 
+                : ''
+            }`} />
             Create Campaign
           </button>
           {/* Compose Tab */}
           <button
             onClick={() => onModeChange('compose')}
-            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors group ${
               mode === 'compose'
-                ? 'bg-primary/10 text-primary'
+                ? 'bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary'
                 : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted'
             }`}
             data-testid="button-compose-tab"
           >
-            <Mail className="h-3.5 w-3.5" />
+            <Mail className={`h-3.5 w-3.5 transition-colors ${
+              mode === 'compose' 
+                ? 'text-muted-foreground group-hover:text-primary' 
+                : ''
+            }`} />
             Compose
           </button>
         </div>
