@@ -11,6 +11,7 @@ import {
 import { eq, and, inArray, sql } from 'drizzle-orm';
 import sgMail from '@sendgrid/mail';
 import { resolveAllMergeFields } from '../../../lib/merge-field-resolver.js';
+import { generateEmailContent } from '../../../email-content-generation/service.js';
 
 class AutoSendCampaignService {
   constructor() {
@@ -21,21 +22,21 @@ class AutoSendCampaignService {
 
   /**
    * Process campaigns that don't require human review
-   * This will be called by the scheduler to automatically send template-based emails
+   * This will be called by the scheduler to automatically send emails (AI-generated or template-based)
    */
   async processAutoSendCampaigns() {
     try {
       console.log('[AutoSendCampaign] Starting auto-send campaign processing');
       
-      // Find all active campaigns that don't require human review and have a template
+      // Find all active campaigns that don't require human review
+      // They can either have a template (merge_field mode) or use AI generation
       const autoSendCampaigns = await db
         .select()
         .from(campaigns)
         .where(
           and(
             eq(campaigns.status, 'active'),
-            eq(campaigns.requiresHumanReview, false),
-            sql`${campaigns.emailTemplateId} IS NOT NULL`
+            eq(campaigns.requiresHumanReview, false)
           )
         );
       
@@ -56,22 +57,33 @@ class AutoSendCampaignService {
    */
   async processCampaign(campaign: any) {
     try {
-      console.log(`[AutoSendCampaign] Processing campaign ${campaign.id}: ${campaign.name}`);
+      console.log(`[AutoSendCampaign] Processing campaign ${campaign.id}: ${campaign.name} (${campaign.generationType || 'merge_field'} mode)`);
       
-      // Get the email template
-      if (!campaign.emailTemplateId) {
-        console.error(`[AutoSendCampaign] Campaign ${campaign.id} has no template`);
-        return;
-      }
-      
-      const [template] = await db
-        .select()
-        .from(emailTemplates)
-        .where(eq(emailTemplates.id, campaign.emailTemplateId));
-      
-      if (!template) {
-        console.error(`[AutoSendCampaign] Template ${campaign.emailTemplateId} not found`);
-        return;
+      // Get the email template for merge_field mode
+      let template = null;
+      if (campaign.generationType === 'merge_field' || !campaign.generationType) {
+        // Default to merge_field for backward compatibility
+        if (!campaign.emailTemplateId) {
+          console.error(`[AutoSendCampaign] Campaign ${campaign.id} in merge_field mode has no template`);
+          return;
+        }
+        
+        const [templateResult] = await db
+          .select()
+          .from(emailTemplates)
+          .where(eq(emailTemplates.id, campaign.emailTemplateId));
+        
+        if (!templateResult) {
+          console.error(`[AutoSendCampaign] Template ${campaign.emailTemplateId} not found`);
+          return;
+        }
+        template = templateResult;
+      } else if (campaign.generationType === 'ai_unique') {
+        // For AI unique mode, we'll generate emails individually
+        if (!campaign.prompt) {
+          console.error(`[AutoSendCampaign] Campaign ${campaign.id} in AI mode has no prompt`);
+          return;
+        }
       }
       
       // Get user details
@@ -132,13 +144,23 @@ class AutoSendCampaignService {
           await new Promise(resolve => setTimeout(resolve, delayBetweenEmails));
         }
         
-        await this.sendTemplateEmail(
-          template,
-          recipient.contact,
-          recipient.company,
-          user,
-          campaign
-        );
+        // Send email based on generation type
+        if (campaign.generationType === 'ai_unique') {
+          await this.sendAIGeneratedEmail(
+            recipient.contact,
+            recipient.company,
+            user,
+            campaign
+          );
+        } else {
+          await this.sendTemplateEmail(
+            template,
+            recipient.contact,
+            recipient.company,
+            user,
+            campaign
+          );
+        }
       }
       
       console.log(`[AutoSendCampaign] Sent ${uncontactedRecipients.length} emails for campaign ${campaign.id}`);
@@ -183,6 +205,116 @@ class AutoSendCampaignService {
       .limit(limit);
     
     return recipients;
+  }
+
+  /**
+   * Send an AI-generated unique email for each recipient
+   */
+  async sendAIGeneratedEmail(
+    contact: any,
+    company: any,
+    user: any,
+    campaign: any
+  ) {
+    try {
+      // Generate unique email content for this contact
+      const emailContent = await generateEmailContent({
+        emailPrompt: campaign.prompt || '',
+        contact,
+        company,
+        userId: user.id,
+        tone: campaign.tone || 'casual',
+        offerStrategy: campaign.offerType || 'none',
+        generateTemplate: false // We want personalized content, not a template
+      });
+      
+      // Send via SendGrid
+      const msg = {
+        to: contact.email,
+        from: {
+          email: process.env.SENDGRID_FROM_EMAIL || 'outreach@5ducks.com',
+          name: user.username || '5Ducks'
+        },
+        subject: emailContent.subject,
+        html: emailContent.content,
+        text: emailContent.content.replace(/<[^>]*>/g, ''), // Strip HTML for text version
+        trackingSettings: {
+          clickTracking: { enable: campaign.trackEmails || true },
+          openTracking: { enable: campaign.trackEmails || true }
+        },
+        customArgs: {
+          campaignId: campaign.id.toString(),
+          contactId: contact.id.toString(),
+          userId: user.id.toString()
+        }
+      };
+      
+      if (campaign.unsubscribeLink) {
+        // Add unsubscribe link if enabled
+        msg.html += `<br><br><p style="font-size: 12px; color: #666;">
+          <a href="${process.env.APP_URL || 'https://app.5ducks.com'}/unsubscribe?token=${Buffer.from(`${contact.id}:${campaign.id}`).toString('base64')}">
+            Unsubscribe from these emails
+          </a>
+        </p>`;
+      }
+      
+      await sgMail.send(msg);
+      
+      // Record in communication history
+      await db.insert(communicationHistory).values({
+        userId: user.id,
+        contactId: contact.id,
+        companyId: company.id,
+        channel: 'email',
+        direction: 'outbound',
+        subject: emailContent.subject,
+        content: emailContent.content,
+        status: 'sent',
+        sentAt: new Date(),
+        campaignId: campaign.id,
+        metadata: {
+          from: msg.from.email,
+          to: contact.email,
+          campaignName: campaign.name,
+          generationType: 'ai_unique'
+        }
+      });
+      
+      // Update contact status
+      await db
+        .update(contacts)
+        .set({
+          contactStatus: 'contacted',
+          totalCommunications: sql`COALESCE(${contacts.totalCommunications}, 0) + 1`,
+          lastContactedAt: new Date()
+        })
+        .where(eq(contacts.id, contact.id));
+      
+      console.log(`[AutoSendCampaign] AI-generated email sent to ${contact.email} for campaign ${campaign.name}`);
+      
+    } catch (error) {
+      console.error(`[AutoSendCampaign] Error sending AI email to ${contact.email}:`, error);
+      
+      // Record the error in communication history
+      await db.insert(communicationHistory).values({
+        userId: user.id,
+        contactId: contact.id,
+        companyId: company.id,
+        channel: 'email',
+        direction: 'outbound',
+        subject: campaign.subject || 'Email',
+        content: campaign.prompt || '',
+        status: 'failed',
+        campaignId: campaign.id,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        metadata: {
+          from: process.env.SENDGRID_FROM_EMAIL || 'outreach@5ducks.com',
+          to: contact.email,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          generationType: 'ai_unique'
+        }
+      });
+    }
   }
 
   /**
