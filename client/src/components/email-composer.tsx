@@ -1204,8 +1204,8 @@ export function EmailComposer({
             recipients={campaignRecipients}
             listId={currentListId}
             currentQuery={currentQuery}
-            subject={emailSubject}
-            body={emailContent}
+            subject={getCurrentSubject()}
+            body={getCurrentContent()}
             onSchedule={() => handleCreateCampaign('scheduled')}
             onStartNow={() => handleCreateCampaign('immediate')}
             onSaveDraft={() => handleCreateCampaign('draft')}
