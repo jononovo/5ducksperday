@@ -18,7 +18,7 @@ const GENERATION_MODES: GenerationMode[] = [
     buttonText: 'Generate Sample',
     description: 'Generate unique email for each recipient',
     icon: Sparkles,
-    activeColor: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    activeColor: 'text-purple-600 dark:text-purple-400',
     buttonColor: 'bg-purple-100/80 hover:bg-purple-200/80 text-purple-700 dark:bg-purple-900/40 dark:hover:bg-purple-900/60 dark:text-purple-300'
   },
   { 
@@ -27,7 +27,7 @@ const GENERATION_MODES: GenerationMode[] = [
     buttonText: 'Generate Template',
     description: 'Use merge fields for personalization',
     icon: FileText,
-    activeColor: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
+    activeColor: 'text-pink-600 dark:text-pink-400',
     buttonColor: 'bg-pink-100/80 hover:bg-pink-200/80 text-pink-700 dark:bg-pink-900/40 dark:hover:bg-pink-900/60 dark:text-pink-300'
   }
 ];
@@ -43,21 +43,21 @@ export function EmailGenerationTabs({
   onModeChange, 
   className 
 }: EmailGenerationTabsProps) {
-  const renderLabel = (label: string, isAI: boolean) => {
+  const renderLabel = (label: string, isAI: boolean, isSelected: boolean, activeColor: string) => {
     if (isAI) {
       // "AI - Each email unique"
       return (
         <>
-          <span className="font-semibold">AI</span>
-          <span className="font-normal"> - Each email unique</span>
+          <span className={cn("font-semibold", isSelected && activeColor)}>AI</span>
+          <span className="font-normal text-muted-foreground"> - Each email unique</span>
         </>
       );
     } else {
       // "Template with merge-fields"
       return (
         <>
-          <span className="font-semibold">Template</span>
-          <span className="font-normal"> with merge-fields</span>
+          <span className={cn("font-semibold", isSelected && activeColor)}>Template</span>
+          <span className="font-normal text-muted-foreground"> with merge-fields</span>
         </>
       );
     }
@@ -77,13 +77,13 @@ export function EmailGenerationTabs({
             className={cn(
               "flex items-center gap-1.5 px-3 py-1 text-xs rounded-md transition-all min-w-fit",
               isSelected
-                ? mode.activeColor + " shadow-sm font-medium"
-                : "text-muted-foreground hover:text-foreground bg-transparent"
+                ? "bg-background shadow-sm"
+                : "hover:text-foreground bg-transparent"
             )}
             title={mode.description}
           >
-            <Icon className="h-3.5 w-3.5" />
-            {renderLabel(mode.label, mode.id === 'ai_unique')}
+            <Icon className={cn("h-3.5 w-3.5", isSelected ? mode.activeColor : "text-muted-foreground")} />
+            {renderLabel(mode.label, mode.id === 'ai_unique', isSelected, mode.activeColor)}
           </button>
         );
       })}
