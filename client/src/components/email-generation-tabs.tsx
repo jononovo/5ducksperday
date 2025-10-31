@@ -78,7 +78,7 @@ export function EmailGenerationTabs({
               "flex items-center gap-1.5 px-3 py-1 text-xs rounded-t-md transition-all min-w-fit",
               isSelected
                 ? "bg-background shadow-sm"
-                : "hover:text-foreground bg-transparent"
+                : "hover:text-foreground bg-transparent opacity-40 hover:opacity-70"
             )}
             title={mode.description}
           >
