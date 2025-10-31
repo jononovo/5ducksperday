@@ -719,7 +719,7 @@ export function EmailComposer({
         )}
         
         {/* Email Prompt Field */}
-        <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
+        <div className="relative border-t border-b rounded-tr-lg md:border-t-0 md:border-b-0 md:mb-6 mb-4 overflow-hidden">
         <Textarea
           ref={promptTextareaRef}
           placeholder="Add product, e.g.: Stationary products & printers"
