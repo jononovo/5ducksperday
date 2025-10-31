@@ -19,7 +19,7 @@ const GENERATION_MODES: GenerationMode[] = [
     description: 'Use merge fields for personalization',
     icon: FileText,
     activeColor: '[&]:text-[#ff69b4]',
-    buttonColor: '[&]:bg-[#ff69b4]/10 [&]:hover:bg-[#ff69b4]/20 [&]:text-[#ff69b4] dark:[&]:bg-[#ff69b4]/10 dark:[&]:hover:bg-[#ff69b4]/20 dark:[&]:text-[#ff69b4]'
+    buttonColor: '[&]:bg-[#ff69b4]/5 [&]:hover:bg-[#ff69b4]/10 [&]:text-[#ff69b4] dark:[&]:bg-[#ff69b4]/5 dark:[&]:hover:bg-[#ff69b4]/10 dark:[&]:text-[#ff69b4]'
   },
   { 
     id: 'ai_unique', 
@@ -28,7 +28,7 @@ const GENERATION_MODES: GenerationMode[] = [
     description: 'Generate unique email for each recipient',
     icon: Sparkles,
     activeColor: '[&]:text-[#AA336A]',
-    buttonColor: '[&]:bg-[#AA336A]/10 [&]:hover:bg-[#AA336A]/20 [&]:text-[#AA336A] dark:[&]:bg-[#AA336A]/10 dark:[&]:hover:bg-[#AA336A]/20 dark:[&]:text-[#AA336A]'
+    buttonColor: '[&]:bg-[#AA336A]/5 [&]:hover:bg-[#AA336A]/10 [&]:text-[#AA336A] dark:[&]:bg-[#AA336A]/5 dark:[&]:hover:bg-[#AA336A]/10 dark:[&]:text-[#AA336A]'
   }
 ];
 
