@@ -704,10 +704,10 @@ export function EmailComposer({
   };
 
   return (
-    <div className="space-y-0 md:space-y-6">
+    <div className="space-y-0 md:space-y-4">
       {/* Generation Mode Tabs - Only shown in campaign mode */}
       {drawerMode === 'campaign' && (
-        <div className="mb-4">
+        <div className="mb-0.5 -mt-2">
           <EmailGenerationTabs
             selectedMode={generationMode}
             onModeChange={setGenerationMode}
@@ -925,9 +925,12 @@ export function EmailComposer({
         </TooltipProvider>
         <Button 
           onClick={handleGenerateEmail} 
-          variant={drawerMode === 'campaign' ? "pink" : "yellow"}
+          variant={drawerMode === 'campaign' ? "default" : "yellow"}
           disabled={isGenerating}
-          className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+          className={cn(
+            "h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out",
+            drawerMode === 'campaign' && getGenerationModeConfig(generationMode).buttonColor
+          )}
         >
           {isGenerating ? (
             <Loader2 className="w-3 h-3 mr-1 animate-spin" />
