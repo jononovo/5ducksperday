@@ -50,7 +50,7 @@ export function EmailDrawer({
             }`}
             data-testid="button-campaign-tab"
           >
-            <Megaphone className="h-3.5 w-3.5 text-pink-500" />
+            <Megaphone className="h-3.5 w-3.5 text-primary" />
             Create Campaign
           </button>
           {/* Compose Tab */}

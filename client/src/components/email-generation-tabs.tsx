@@ -48,7 +48,7 @@ export function EmailGenerationTabs({
       // "AI - Each email unique"
       return (
         <>
-          <span className={cn("font-semibold", isSelected ? "" : "text-muted-foreground/60")}>AI</span>
+          <span className="font-semibold text-muted-foreground">AI</span>
           <span className="font-normal text-muted-foreground"> - Each email unique</span>
         </>
       );
@@ -56,7 +56,7 @@ export function EmailGenerationTabs({
       // "Template with merge-fields"
       return (
         <>
-          <span className={cn("font-semibold", isSelected ? "" : "text-muted-foreground/60")}>Template</span>
+          <span className="font-semibold text-muted-foreground">Template</span>
           <span className="font-normal text-muted-foreground"> with merge-fields</span>
         </>
       );
