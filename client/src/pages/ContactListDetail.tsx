@@ -268,8 +268,27 @@ export default function ContactListDetail() {
     try {
       setCsvParseError(null);
       
+      // Check if the text appears to be missing headers (no header-like text in first row)
+      const lines = text.trim().split('\n');
+      const firstLine = lines[0] || '';
+      const hasHeaders = firstLine.toLowerCase().includes('name') || 
+                        firstLine.toLowerCase().includes('email') ||
+                        firstLine.toLowerCase().includes('company');
+      
+      // If no headers detected, prepend them
+      let csvTextToParse = text;
+      if (!hasHeaders && lines.length > 0) {
+        // Check if the first line has 6 comma-separated values (all fields)
+        const firstLineValues = firstLine.split(',').map(v => v.trim());
+        if (firstLineValues.length >= 3) {
+          // Auto-add headers
+          const headers = 'first name, last name, email, company, role, city';
+          csvTextToParse = headers + '\n' + text;
+        }
+      }
+      
       // Parse CSV using papaparse
-      const result = Papa.parse<Record<string, string>>(text, {
+      const result = Papa.parse<Record<string, string>>(csvTextToParse, {
         header: true, // First row contains headers
         skipEmptyLines: true,
         transformHeader: (header) => header.toLowerCase().trim(),
@@ -826,16 +845,17 @@ export default function ContactListDetail() {
                   <div>
                     <label className="text-sm font-medium">CSV Format Requirements</label>
                     <div className="mt-2 p-3 bg-gray-50 rounded-md text-xs text-gray-600">
-                      <p className="font-semibold mb-1">Required headers (first row):</p>
+                      <p className="font-semibold mb-1">Expected format (headers optional - will be auto-added if missing):</p>
                       <code>first name, last name, email, company, role, city</code>
-                      <p className="mt-2">Note: company, role, and city are optional but headers must be present</p>
+                      <p className="mt-2">You can paste data directly without headers, e.g.:</p>
+                      <code>John, Doe, john@example.com, Acme Inc, CEO, New York</code>
                     </div>
                   </div>
 
                   <div>
                     <label className="text-sm font-medium">Paste CSV Data</label>
                     <textarea
-                      placeholder="Paste your CSV data here...&#10;first name, last name, email, company, role, city&#10;John, Doe, john@example.com, Acme Inc, CEO, New York"
+                      placeholder="Paste your CSV data here...&#10;Example with headers:&#10;first name, last name, email, company, role, city&#10;John, Doe, john@example.com, Acme Inc, CEO, New York&#10;&#10;Or just data (headers auto-added):&#10;Jane, Smith, jane@example.com, Tech Corp, CTO, Boston"
                       value={csvText}
                       onChange={(e) => {
                         setCsvText(e.target.value);
