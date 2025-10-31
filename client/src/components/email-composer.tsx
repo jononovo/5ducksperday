@@ -704,21 +704,22 @@ export function EmailComposer({
   };
 
   return (
-    <div className="space-y-0 md:space-y-4">
-      {/* Generation Mode Tabs - Only shown in campaign mode */}
-      {drawerMode === 'campaign' && (
-        <EmailGenerationTabs
-          selectedMode={generationMode}
-          onModeChange={setGenerationMode}
-          className="-mb-4"
-        />
-      )}
-      
-      {/* Email Prompt Field */}
-      <div className={cn(
-        "relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4",
-        drawerMode === 'campaign' && "md:mt-0"
-      )}>
+    <div className={drawerMode === 'campaign' ? "space-y-0" : "space-y-0 md:space-y-4"}>
+      {/* Tabs and Prompt grouped together in campaign mode */}
+      <div className={drawerMode === 'campaign' ? "relative" : ""}>
+        {/* Generation Mode Tabs - Only shown in campaign mode */}
+        {drawerMode === 'campaign' && (
+          <div className="relative z-10 pb-1">
+            <EmailGenerationTabs
+              selectedMode={generationMode}
+              onModeChange={setGenerationMode}
+              className=""
+            />
+          </div>
+        )}
+        
+        {/* Email Prompt Field */}
+        <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
         <Textarea
           ref={promptTextareaRef}
           placeholder="Add product, e.g.: Stationary products & printers"
@@ -949,6 +950,7 @@ export function EmailComposer({
           }
         </Button>
       </div>
+    </div>
     </div>
 
     {/* To Email Field / Campaign Recipients */}
