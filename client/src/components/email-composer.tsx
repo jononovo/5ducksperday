@@ -325,6 +325,7 @@ export function EmailComposer({
         // Email generation settings
         tone: selectedTone,
         offerType: selectedOfferStrategy,
+        generationType: generationMode, // Track which generation mode was used
         
         // Scheduling settings
         sendTimePreference: type,
