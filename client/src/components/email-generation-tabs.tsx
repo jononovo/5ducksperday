@@ -64,7 +64,7 @@ export function EmailGenerationTabs({
   };
 
   return (
-    <div className={cn("inline-flex rounded-t-lg bg-muted/30 p-0.5 gap-0.5", className)}>
+    <div className={cn("inline-flex rounded-tl-lg rounded-tr-lg bg-muted/30 p-0.5 gap-0.5", className)}>
       {GENERATION_MODES.map((mode) => {
         const Icon = mode.icon;
         const isSelected = selectedMode === mode.id;
@@ -75,7 +75,7 @@ export function EmailGenerationTabs({
             type="button"
             onClick={() => onModeChange(mode.id)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1 text-xs rounded-md transition-all min-w-fit",
+              "flex items-center gap-1.5 px-3 py-1 text-xs rounded-t-md transition-all min-w-fit",
               isSelected
                 ? "bg-background shadow-sm"
                 : "hover:text-foreground bg-transparent"
