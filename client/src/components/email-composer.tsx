@@ -954,7 +954,7 @@ export function EmailComposer({
     </div>
 
     {/* To Email Field / Campaign Recipients */}
-    <div className="relative border-b md:border-b-0 md:mb-6" style={{ marginBottom: '-1px' }}>
+    <div className="relative border-b md:border-b-0 md:mb-6" style={drawerMode === 'campaign' ? { marginBottom: '-1px' } : {}}>
       {drawerMode === 'compose' ? (
         <>
           <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -964,7 +964,7 @@ export function EmailComposer({
             value={getDisplayValue(toEmail)}
             onChange={(e) => setToEmail(e.target.value)}
             type="email"
-            className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-t-md focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </>
       ) : (
@@ -1008,12 +1008,15 @@ export function EmailComposer({
           setEmailSubject(e.target.value);
           setOriginalEmailSubject(e.target.value);
         }}
-        className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        className={cn(
+          "mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border focus-visible:ring-0 focus-visible:ring-offset-0",
+          drawerMode === 'campaign' ? "md:rounded-none" : "md:rounded-md"
+        )}
       />
     </div>
 
     {/* Email Content Field */}
-    <div className="relative md:mb-6" style={{ marginTop: '-1px' }}>
+    <div className="relative md:mb-6" style={drawerMode === 'campaign' ? { marginTop: '-1px' } : {}}>
       <Textarea
         ref={emailContentRef}
         placeholder="Enter or edit the generated email content..."
@@ -1023,7 +1026,10 @@ export function EmailComposer({
           setOriginalEmailContent(e.target.value);
           handleTextareaResize();
         }}
-        className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+        className={cn(
+          "mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0",
+          drawerMode === 'campaign' ? "md:rounded-b-md" : "md:rounded-md"
+        )}
         style={{ minHeight: '160px', maxHeight: '400px' }}
       />
       <div className="absolute bottom-2 right-2 flex items-center gap-2">
