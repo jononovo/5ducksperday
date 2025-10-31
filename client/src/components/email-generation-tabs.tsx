@@ -23,7 +23,7 @@ const GENERATION_MODES: GenerationMode[] = [
   },
   { 
     id: 'ai_unique', 
-    label: 'AI - Each email unique', 
+    label: 'AI Each email unique', 
     buttonText: 'Generate Sample',
     description: 'Generate unique email for each recipient',
     icon: Sparkles,
@@ -45,11 +45,11 @@ export function EmailGenerationTabs({
 }: EmailGenerationTabsProps) {
   const renderLabel = (label: string, isAI: boolean, isSelected: boolean, activeColor: string) => {
     if (isAI) {
-      // "AI - Each email unique"
+      // "AI Each email unique"
       return (
         <>
           <span className="font-semibold text-muted-foreground">AI</span>
-          <span className="font-normal text-muted-foreground"> - Each email unique</span>
+          <span className="font-normal text-muted-foreground"> Each email unique</span>
         </>
       );
     } else {
