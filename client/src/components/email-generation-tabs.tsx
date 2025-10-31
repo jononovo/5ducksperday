@@ -48,7 +48,7 @@ export function EmailGenerationTabs({
       // "AI - Each email unique"
       return (
         <>
-          <span className={cn("font-semibold", isSelected && activeColor)}>AI</span>
+          <span className={cn("font-semibold", isSelected ? activeColor : "text-muted-foreground/60")}>AI</span>
           <span className="font-normal text-muted-foreground"> - Each email unique</span>
         </>
       );
@@ -56,7 +56,7 @@ export function EmailGenerationTabs({
       // "Template with merge-fields"
       return (
         <>
-          <span className={cn("font-semibold", isSelected && activeColor)}>Template</span>
+          <span className={cn("font-semibold", isSelected ? activeColor : "text-muted-foreground/60")}>Template</span>
           <span className="font-normal text-muted-foreground"> with merge-fields</span>
         </>
       );
@@ -82,7 +82,7 @@ export function EmailGenerationTabs({
             )}
             title={mode.description}
           >
-            <Icon className={cn("h-3.5 w-3.5", isSelected ? mode.activeColor : "text-muted-foreground")} />
+            <Icon className={cn("h-3.5 w-3.5", isSelected ? mode.activeColor : "text-muted-foreground/60")} />
             {renderLabel(mode.label, mode.id === 'ai_unique', isSelected, mode.activeColor)}
           </button>
         );

@@ -707,17 +707,18 @@ export function EmailComposer({
     <div className="space-y-0 md:space-y-4">
       {/* Generation Mode Tabs - Only shown in campaign mode */}
       {drawerMode === 'campaign' && (
-        <div className="-mb-px -mt-2">
-          <EmailGenerationTabs
-            selectedMode={generationMode}
-            onModeChange={setGenerationMode}
-            className=""
-          />
-        </div>
+        <EmailGenerationTabs
+          selectedMode={generationMode}
+          onModeChange={setGenerationMode}
+          className="-mb-[2px]"
+        />
       )}
       
       {/* Email Prompt Field */}
-      <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
+      <div className={cn(
+        "relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4",
+        drawerMode === 'campaign' && "md:mt-0"
+      )}>
         <Textarea
           ref={promptTextareaRef}
           placeholder="Add product, e.g.: Stationary products & printers"
@@ -727,7 +728,10 @@ export function EmailComposer({
             setOriginalEmailPrompt(e.target.value);
             handlePromptTextareaResize();
           }}
-          className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+          className={cn(
+            "mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0",
+            drawerMode === 'campaign' ? "md:rounded-b-md md:rounded-t-none md:border-t-0" : "md:rounded-md"
+          )}
           style={{ minHeight: '32px', maxHeight: '120px' }}
         />
         <div className="absolute bottom-1 left-2 flex items-center gap-2">
