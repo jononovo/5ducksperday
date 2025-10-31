@@ -1132,7 +1132,7 @@ export function EmailComposer({
     </div>
 
     {/* Settings and Templates Buttons Row */}
-    <div className="mt-4">
+    <div className="mt-6">
       <div className="flex justify-end gap-2">
         {/* Campaign Settings Button - Only shown in campaign mode */}
         {drawerMode === 'campaign' && (
