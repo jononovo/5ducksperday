@@ -954,7 +954,7 @@ export function EmailComposer({
     </div>
 
     {/* To Email Field / Campaign Recipients */}
-    <div className="relative border-b md:border-b-0 md:mb-6">
+    <div className="relative border-b md:border-b-0 md:mb-6" style={{ marginBottom: '-1px' }}>
       {drawerMode === 'compose' ? (
         <>
           <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -964,7 +964,7 @@ export function EmailComposer({
             value={getDisplayValue(toEmail)}
             onChange={(e) => setToEmail(e.target.value)}
             type="email"
-            className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-t-md focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </>
       ) : (
@@ -972,7 +972,7 @@ export function EmailComposer({
           <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <div
             onClick={() => setRecipientModalOpen(true)}
-            className="mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-md cursor-pointer transition-colors hover:bg-muted/50 flex items-center justify-between"
+            className="mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-t-md cursor-pointer transition-colors hover:bg-muted/50 flex items-center justify-between"
           >
             {(campaignRecipients || currentQuery) ? (
               <span className="inline-flex items-center px-2.5 py-1 rounded bg-muted/50 hover:bg-primary/10 text-muted-foreground hover:text-primary text-sm font-normal truncate max-w-full transition-colors">
@@ -1008,12 +1008,12 @@ export function EmailComposer({
           setEmailSubject(e.target.value);
           setOriginalEmailSubject(e.target.value);
         }}
-        className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
       />
     </div>
 
     {/* Email Content Field */}
-    <div className="relative md:mb-6">
+    <div className="relative md:mb-6" style={{ marginTop: '-1px' }}>
       <Textarea
         ref={emailContentRef}
         placeholder="Enter or edit the generated email content..."
@@ -1023,7 +1023,7 @@ export function EmailComposer({
           setOriginalEmailContent(e.target.value);
           handleTextareaResize();
         }}
-        className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
         style={{ minHeight: '160px', maxHeight: '400px' }}
       />
       <div className="absolute bottom-2 right-2 flex items-center gap-2">
