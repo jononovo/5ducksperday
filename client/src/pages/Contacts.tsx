@@ -60,6 +60,7 @@ import {
   Mail,
   Target,
   Calendar,
+  Download,
 } from "lucide-react";
 import type { ContactList, Contact, InsertContactList } from "@shared/schema";
 import { format } from "date-fns";
@@ -325,6 +326,91 @@ export default function Contacts() {
     }
   };
 
+  // Download CSV function
+  const handleDownloadCSV = async (e: React.MouseEvent, listId: number, listName: string) => {
+    e.stopPropagation();
+    
+    try {
+      // Fetch contacts for the list
+      const response = await fetch(`/api/contact-lists/${listId}/contacts`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch contacts');
+      }
+      
+      const contacts = await response.json();
+      
+      if (!contacts || contacts.length === 0) {
+        toast({
+          title: "No contacts",
+          description: "This list has no contacts to download",
+        });
+        return;
+      }
+      
+      // Create CSV content with new format (email first)
+      const headers = ['email', 'first_name', 'last_name', 'company', 'role', 'city'];
+      const csvContent = [
+        headers.join(','),
+        ...contacts.map((contact: any) => {
+          // Parse the full name into first and last name
+          const nameParts = (contact.name || '').trim().split(/\s+/);
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || '';
+          
+          // Safely handle company name which might be an object or string
+          const companyName = typeof contact.company === 'object' 
+            ? contact.company?.name || '' 
+            : contact.company || '';
+          
+          const row = [
+            contact.email || '',
+            firstName,
+            lastName,
+            companyName,
+            contact.role || '',
+            contact.location || contact.city || ''
+          ];
+          
+          // Escape values that contain commas or quotes
+          return row.map(value => {
+            const str = String(value);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+              return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+          }).join(',');
+        })
+      ].join('\n');
+      
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${listName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_contacts.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Success",
+        description: `Downloaded ${contacts.length} contacts as CSV`,
+      });
+      
+    } catch (error) {
+      console.error('Error downloading CSV:', error);
+      toast({
+        title: "Error",
+        description: "Failed to download contacts as CSV",
+        variant: "destructive",
+      });
+    }
+  };
+
   const isLoading = listsLoading || contactsLoading;
 
   return (
@@ -553,6 +639,12 @@ export default function Contacts() {
                                   >
                                     <Copy className="h-4 w-4 mr-2" />
                                     Duplicate
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={(e) => handleDownloadCSV(e, list.id, list.name)}
+                                  >
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Download CSV
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={(e) => {
