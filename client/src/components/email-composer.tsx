@@ -404,9 +404,9 @@ export function EmailComposer({
       // Create the campaign with all settings
       const campaignData: any = {
         // Basic campaign details
-        name: emailSubject || 'Untitled Campaign',
-        subject: emailSubject,
-        body: emailContent,
+        name: getCurrentSubject() || 'Untitled Campaign',
+        subject: getCurrentSubject(),
+        body: getCurrentContent(),
         prompt: emailPrompt,
         contactListId: contactListId,
         status: status,
@@ -670,8 +670,8 @@ export function EmailComposer({
     try {
       await apiRequest("POST", '/api/email-templates', {
         name: templateName,
-        subject: originalEmailSubject || emailSubject,
-        content: originalEmailContent || emailContent,
+        subject: getCurrentOriginalSubject() || getCurrentSubject(),
+        content: getCurrentOriginalContent() || getCurrentContent(),
         description: originalEmailPrompt || emailPrompt
       });
       
@@ -763,7 +763,7 @@ export function EmailComposer({
       return;
     }
 
-    if (!emailContent) {
+    if (!getCurrentContent()) {
       toast({
         title: "No Email Content",
         description: "Please add email content for your campaign",
