@@ -1,6 +1,6 @@
 import { Request, Response, Application } from 'express';
 import { storage } from '../../storage';
-import { insertContactListSchema } from '@shared/schema';
+import { insertContactListSchema, type Company } from '@shared/schema';
 import { z } from 'zod';
 
 function getUserId(req: Request): number {
@@ -445,6 +445,161 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
       console.error('Error creating contact list from search:', error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : 'Failed to create contact list from search' 
+      });
+    }
+  });
+
+  // Import contacts from CSV
+  app.post('/api/contact-lists/:id/import-csv', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const listId = parseInt(req.params.id);
+      const { contacts } = req.body;
+      
+      if (isNaN(listId)) {
+        return res.status(400).json({ message: 'Invalid list ID' });
+      }
+      
+      if (!Array.isArray(contacts) || contacts.length === 0) {
+        return res.status(400).json({ message: 'contacts must be a non-empty array' });
+      }
+      
+      // Verify contact list belongs to user
+      const contactList = await storage.getContactList(listId, userId);
+      if (!contactList) {
+        return res.status(404).json({ message: 'Contact list not found' });
+      }
+      
+      // Process CSV contacts
+      const importedContacts = [];
+      const errors = [];
+      
+      // Cache database lookups to avoid O(n²) performance
+      const allUserContacts = await storage.listContacts(userId);
+      const allUserCompanies = await storage.listCompanies(userId);
+      const companyCache = new Map<string, Company>(); // Cache created companies
+      
+      for (const csvContact of contacts) {
+        try {
+          // Validate required fields (email and name are required)
+          if (!csvContact.email || !csvContact.name) {
+            errors.push(`Skipping contact: missing ${!csvContact.email ? 'email' : 'name'} for ${csvContact.email || csvContact.name || 'Unknown'}`);
+            continue;
+          }
+          
+          // Check if contact already exists (using cached contacts)
+          let contact = allUserContacts.find(c => c.email === csvContact.email);
+          
+          if (!contact) {
+            // Check if company exists or create it
+            let companyId: number;
+            if (csvContact.company) {
+              // Search for existing company by name (check cache first, then database)
+              const companyNameLower = csvContact.company.toLowerCase();
+              let company = companyCache.get(companyNameLower) || 
+                          allUserCompanies.find(c => c.name?.toLowerCase() === companyNameLower);
+              
+              if (!company) {
+                // Create new company - pass as any to include userId
+                company = await storage.createCompany({
+                  name: csvContact.company,
+                  listId: null,
+                  description: null,
+                  age: null,
+                  size: null,
+                  website: null,
+                  alternativeProfileUrl: null,
+                  defaultContactEmail: null,
+                  ranking: null,
+                  linkedinProminence: null,
+                  customerCount: null,
+                  rating: null,
+                  services: null,
+                  validationPoints: null,
+                  differentiation: null,
+                  totalScore: null,
+                  snapshot: null,
+                  userId // Added via type cast in storage
+                } as any);
+                // Add to cache to avoid recreating the same company
+                companyCache.set(companyNameLower, company);
+              }
+              companyId = company.id;
+            } else {
+              // Create a default company for contacts without company info
+              const defaultCompany = await storage.createCompany({
+                name: 'Unknown Company',
+                listId: null,
+                description: null,
+                age: null,
+                size: null,
+                website: null,
+                alternativeProfileUrl: null,
+                defaultContactEmail: null,
+                ranking: null,
+                linkedinProminence: null,
+                customerCount: null,
+                rating: null,
+                services: null,
+                validationPoints: null,
+                differentiation: null,
+                totalScore: null,
+                snapshot: null,
+                userId // Added via type cast in storage
+              } as any);
+              companyId = defaultCompany.id;
+            }
+            
+            // Create new contact with userId passed separately
+            contact = await storage.createContact({
+              companyId,
+              name: csvContact.name || '',
+              email: csvContact.email,
+              role: csvContact.role || null,
+              probability: null,
+              linkedinUrl: null,
+              twitterHandle: null,
+              phoneNumber: null,
+              department: null,
+              location: csvContact.city || null,
+              verificationSource: 'csv_import',
+              nameConfidenceScore: null,
+              userFeedbackScore: null,
+              feedbackCount: 0,
+              alternativeEmails: [],
+              completedSearches: [],
+              userId // Added via type cast in storage
+            } as any);
+          }
+          
+          importedContacts.push(contact.id);
+        } catch (error) {
+          console.error(`Error importing contact ${csvContact.email}:`, error);
+          errors.push(`Failed to import ${csvContact.email}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+      
+      // Add imported contacts to the list
+      if (importedContacts.length > 0) {
+        await storage.addContactsToList(listId, importedContacts, 'csv_import', userId, {
+          totalAttempted: contacts.length,
+          imported: importedContacts.length,
+          errors: errors.length
+        });
+      }
+      
+      // Return result
+      const updatedList = await storage.getContactList(listId, userId);
+      res.json({
+        ...updatedList,
+        imported: importedContacts.length,
+        totalAttempted: contacts.length,
+        errors: errors.length > 0 ? errors.slice(0, 10) : [] // Return first 10 errors
+      });
+    } catch (error) {
+      console.error('Error importing contacts from CSV:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to import contacts from CSV' 
       });
     }
   });

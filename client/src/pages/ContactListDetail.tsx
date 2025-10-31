@@ -40,8 +40,11 @@ import {
   UserPlus,
   Mail,
   Briefcase,
+  Upload,
+  FileSpreadsheet,
 } from "lucide-react";
-import type { ContactList, Contact, List, Company } from "@shared/schema";
+import type { ContactList, Contact, SearchList, Company } from "@shared/schema";
+import Papa from "papaparse";
 
 interface ContactWithCompany extends Contact {
   company?: {
@@ -57,7 +60,7 @@ export default function ContactListDetail() {
   const { toast } = useToast();
 
   const [addContactsModalOpen, setAddContactsModalOpen] = useState(false);
-  const [addMethod, setAddMethod] = useState<'search-list' | 'companies' | 'manual' | null>(null);
+  const [addMethod, setAddMethod] = useState<'search-list' | 'companies' | 'manual' | 'import-csv' | null>(null);
   const [selectedSearchList, setSelectedSearchList] = useState<string>("");
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [maxContactsPerCompany, setMaxContactsPerCompany] = useState(3);
@@ -65,6 +68,12 @@ export default function ContactListDetail() {
   const [isAddingContacts, setIsAddingContacts] = useState(false);
   const [selectedManualContacts, setSelectedManualContacts] = useState<number[]>([]);
   const [manualContactSearchTerm, setManualContactSearchTerm] = useState("");
+  
+  // CSV import state
+  const [csvText, setCsvText] = useState("");
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [parsedContacts, setParsedContacts] = useState<any[]>([]);
+  const [csvParseError, setCsvParseError] = useState<string | null>(null);
 
   // Fetch the contact list details
   const { data: contactList, isLoading: listLoading } = useQuery<ContactList>({
@@ -83,7 +92,7 @@ export default function ContactListDetail() {
   });
 
   // Fetch available search lists for the "Add from Search List" option
-  const { data: searchLists = [] } = useQuery<List[]>({
+  const { data: searchLists = [] } = useQuery<SearchList[]>({
     queryKey: ["/api/lists"],
     enabled: !!user && addMethod === 'search-list',
   });
@@ -222,6 +231,146 @@ export default function ContactListDetail() {
     },
   });
 
+  // Mutation to import contacts from CSV
+  const importCsvMutation = useMutation({
+    mutationFn: async (contacts: any[]) => {
+      const response = await apiRequest(
+        "POST",
+        `/api/contact-lists/${id}/import-csv`,
+        { contacts }
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success",
+        description: `Successfully imported ${data.imported || 0} contacts`,
+      });
+      refetchContacts();
+      setAddContactsModalOpen(false);
+      setAddMethod(null);
+      setCsvText("");
+      setCsvFile(null);
+      setParsedContacts([]);
+      setCsvParseError(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to import contacts",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Parse CSV text into contact objects
+  const parseCSV = (text: string) => {
+    try {
+      setCsvParseError(null);
+      
+      // Check if the text appears to be missing headers (no header-like text in first row)
+      const lines = text.trim().split('\n');
+      const firstLine = lines[0] || '';
+      const hasHeaders = firstLine.toLowerCase().includes('name') || 
+                        firstLine.toLowerCase().includes('email') ||
+                        firstLine.toLowerCase().includes('company');
+      
+      // If no headers detected, prepend them
+      let csvTextToParse = text;
+      if (!hasHeaders && lines.length > 0) {
+        // Check if the first line looks like data (has @ for email in first position)
+        const firstLineValues = firstLine.split(',').map(v => v.trim());
+        if (firstLineValues.length >= 2 && firstLineValues[0].includes('@')) {
+          // Auto-add headers for new format: email, first_name, last_name, company, role, city
+          const headers = 'email, first_name, last_name, company, role, city';
+          csvTextToParse = headers + '\n' + text;
+        }
+      }
+      
+      // Parse CSV using papaparse
+      const result = Papa.parse<Record<string, string>>(csvTextToParse, {
+        header: true, // First row contains headers
+        skipEmptyLines: true,
+        transformHeader: (header) => header.toLowerCase().trim().replace(' ', '_'), // Convert "first name" to "first_name"
+      });
+
+      if (result.errors.length > 0) {
+        // Report the first parsing error
+        const firstError = result.errors[0];
+        setCsvParseError(`CSV parsing error at row ${firstError.row}: ${firstError.message}`);
+        return;
+      }
+
+      if (result.data.length === 0) {
+        setCsvParseError("CSV must contain at least one data row");
+        return;
+      }
+
+      // Check required headers (only email and first_name are required now)
+      const requiredHeaders = ['email', 'first_name'];
+      const headers = Object.keys(result.data[0] || {});
+      
+      // Check if required headers are present
+      for (const required of requiredHeaders) {
+        if (!headers.includes(required)) {
+          setCsvParseError(`Missing required header: ${required}`);
+          return;
+        }
+      }
+
+      // Parse data rows
+      const contacts = [];
+      for (const row of result.data) {
+        // Get values with defaults for optional fields
+        const email = (row['email'] || '').toString().trim();
+        const firstName = (row['first_name'] || '').toString().trim();
+        const lastName = (row['last_name'] || '').toString().trim();
+        const company = (row['company'] || '').toString().trim();
+        const role = (row['role'] || '').toString().trim();
+        const city = (row['city'] || '').toString().trim();
+        
+        // Skip rows without required fields
+        if (!email || !firstName) {
+          continue;
+        }
+
+        const contact = {
+          name: lastName ? `${firstName} ${lastName}`.trim() : firstName,
+          email: email,
+          company: company || '',
+          role: role || '',
+          city: city || '',
+        };
+
+        contacts.push(contact);
+      }
+
+      if (contacts.length === 0) {
+        setCsvParseError("No valid contacts found in CSV (all rows missing required fields: email and/or first_name)");
+        return;
+      }
+
+      setParsedContacts(contacts);
+    } catch (error) {
+      setCsvParseError(`Failed to parse CSV: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  // Handle file upload
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCsvFile(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        setCsvText(text);
+        parseCSV(text);
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const handleAddContacts = () => {
     if (addMethod === 'search-list' && selectedSearchList) {
       setIsAddingContacts(true);
@@ -235,6 +384,9 @@ export default function ContactListDetail() {
     } else if (addMethod === 'manual' && selectedManualContacts.length > 0) {
       setIsAddingContacts(true);
       addManualContactsMutation.mutate(selectedManualContacts);
+    } else if (addMethod === 'import-csv' && parsedContacts.length > 0) {
+      setIsAddingContacts(true);
+      importCsvMutation.mutate(parsedContacts);
     }
   };
 
@@ -247,12 +399,14 @@ export default function ContactListDetail() {
   useEffect(() => {
     if (addFromSearchListMutation.isSuccess || addFromSearchListMutation.isError ||
         addFromCompaniesMutation.isSuccess || addFromCompaniesMutation.isError ||
-        addManualContactsMutation.isSuccess || addManualContactsMutation.isError) {
+        addManualContactsMutation.isSuccess || addManualContactsMutation.isError ||
+        importCsvMutation.isSuccess || importCsvMutation.isError) {
       setIsAddingContacts(false);
     }
   }, [addFromSearchListMutation.isSuccess, addFromSearchListMutation.isError,
       addFromCompaniesMutation.isSuccess, addFromCompaniesMutation.isError,
-      addManualContactsMutation.isSuccess, addManualContactsMutation.isError]);
+      addManualContactsMutation.isSuccess, addManualContactsMutation.isError,
+      importCsvMutation.isSuccess, importCsvMutation.isError]);
 
   if (listLoading || contactsLoading) {
     return (
@@ -467,6 +621,19 @@ export default function ContactListDetail() {
                   Select individual contacts
                 </span>
               </Button>
+
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setAddMethod('import-csv')}
+                data-testid="button-import-csv"
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Paste or Import
+                <span className="text-xs text-muted-foreground ml-auto">
+                  Bulk import from CSV
+                </span>
+              </Button>
             </div>
           ) : (
             <div className="space-y-4 py-4">
@@ -673,6 +840,109 @@ export default function ContactListDetail() {
                 </div>
               )}
 
+              {addMethod === 'import-csv' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">CSV Format Requirements</label>
+                    <div className="mt-2 p-3 bg-gray-50 rounded-md text-xs text-gray-600">
+                      <p className="font-semibold mb-1">Format: email first, then first name (only these two are required)</p>
+                      <code>email, first_name, last_name, company, role, city</code>
+                      <p className="mt-2">Simple examples (headers auto-added):</p>
+                      <code className="block">john@example.com, John</code>
+                      <code className="block">jane@company.com, Jane, Smith, Acme Inc, CEO, NYC</code>
+                      <p className="mt-2 text-green-600">✓ Only email and first name are required!</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Paste CSV Data</label>
+                    <textarea
+                      placeholder="Paste your CSV data here...&#10;Examples:&#10;john@example.com, John&#10;jane@company.com, Jane, Smith&#10;bob@acme.com, Bob, Johnson, Acme Inc, CEO, NYC&#10;&#10;Or with headers:&#10;email, first_name, last_name, company, role, city&#10;alice@test.com, Alice, Lee, Tech Corp, CTO, Boston"
+                      value={csvText}
+                      onChange={(e) => {
+                        setCsvText(e.target.value);
+                        if (e.target.value) {
+                          parseCSV(e.target.value);
+                        } else {
+                          setParsedContacts([]);
+                          setCsvParseError(null);
+                        }
+                      }}
+                      className="mt-2 w-full h-32 p-2 border rounded-md font-mono text-sm"
+                    />
+                  </div>
+
+                  <div className="flex items-center">
+                    <div className="flex-1 border-t"></div>
+                    <span className="px-2 text-sm text-gray-500">OR</span>
+                    <div className="flex-1 border-t"></div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Upload CSV File</label>
+                    <div className="mt-2">
+                      <label
+                        htmlFor="csv-upload"
+                        className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-md cursor-pointer hover:border-gray-400 transition-colors"
+                      >
+                        <Upload className="h-5 w-5 mr-2 text-gray-400" />
+                        <span className="text-sm text-gray-600">
+                          {csvFile ? csvFile.name : "Choose CSV file or drag and drop"}
+                        </span>
+                      </label>
+                      <input
+                        id="csv-upload"
+                        type="file"
+                        accept=".csv,text/csv"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
+
+                  {csvParseError && (
+                    <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm">
+                      {csvParseError}
+                    </div>
+                  )}
+
+                  {parsedContacts.length > 0 && !csvParseError && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-green-600">
+                        ✓ Successfully parsed {parsedContacts.length} contact{parsedContacts.length !== 1 ? 's' : ''}
+                      </p>
+                      <div className="max-h-40 overflow-y-auto border rounded-md p-2">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left p-1">Name</th>
+                              <th className="text-left p-1">Email</th>
+                              <th className="text-left p-1">Company</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {parsedContacts.slice(0, 5).map((contact, index) => (
+                              <tr key={index} className="border-b">
+                                <td className="p-1">{contact.name}</td>
+                                <td className="p-1">{contact.email}</td>
+                                <td className="p-1">{contact.company || '-'}</td>
+                              </tr>
+                            ))}
+                            {parsedContacts.length > 5 && (
+                              <tr>
+                                <td colSpan={3} className="p-1 text-center text-gray-500">
+                                  ...and {parsedContacts.length - 5} more
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-between pt-4">
                 <Button
                   variant="outline"
@@ -684,6 +954,10 @@ export default function ContactListDetail() {
                     setMaxContactsPerCompany(3);
                     setSelectedManualContacts([]);
                     setManualContactSearchTerm("");
+                    setCsvText("");
+                    setCsvFile(null);
+                    setParsedContacts([]);
+                    setCsvParseError(null);
                   }}
                   disabled={isAddingContacts}
                   data-testid="button-back-to-methods"
@@ -721,6 +995,17 @@ export default function ContactListDetail() {
                     data-testid="button-confirm-add-manual"
                   >
                     {isAddingContacts ? "Adding..." : `Add ${selectedManualContacts.length} Selected ${selectedManualContacts.length === 1 ? 'Contact' : 'Contacts'}`}
+                  </Button>
+                )}
+
+                {addMethod === 'import-csv' && (
+                  <Button
+                    onClick={handleAddContacts}
+                    disabled={parsedContacts.length === 0 || isAddingContacts}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    data-testid="button-confirm-import-csv"
+                  >
+                    {isAddingContacts ? "Importing..." : `Import ${parsedContacts.length} Contact${parsedContacts.length !== 1 ? 's' : ''}`}
                   </Button>
                 )}
               </div>
