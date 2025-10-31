@@ -125,7 +125,7 @@ export interface IStorage {
   deleteContactList(id: number, userId: number): Promise<void>;
   
   // Contact List Members
-  listContactsByListId(listId: number): Promise<Contact[]>;
+  listContactsByListId(listId: number): Promise<any[]>;
   addContactsToList(listId: number, contactIds: number[], source: string, addedBy: number, metadata?: any): Promise<void>;
   removeContactsFromList(listId: number, contactIds: number[]): Promise<void>;
   isContactInList(listId: number, contactId: number): Promise<boolean>;
@@ -803,15 +803,54 @@ class DatabaseStorage implements IStorage {
   }
 
   // Contact List Members
-  async listContactsByListId(listId: number): Promise<Contact[]> {
+  async listContactsByListId(listId: number): Promise<any[]> {
     const members = await db.select({
-      contact: contacts
+      id: contacts.id,
+      userId: contacts.userId,
+      companyId: contacts.companyId,
+      name: contacts.name,
+      role: contacts.role,
+      email: contacts.email,
+      alternativeEmails: contacts.alternativeEmails,
+      probability: contacts.probability,
+      linkedinUrl: contacts.linkedinUrl,
+      twitterHandle: contacts.twitterHandle,
+      phoneNumber: contacts.phoneNumber,
+      department: contacts.department,
+      location: contacts.location,
+      verificationSource: contacts.verificationSource,
+      lastEnriched: contacts.lastEnriched,
+      nameConfidenceScore: contacts.nameConfidenceScore,
+      userFeedbackScore: contacts.userFeedbackScore,
+      feedbackCount: contacts.feedbackCount,
+      lastValidated: contacts.lastValidated,
+      createdAt: contacts.createdAt,
+      completedSearches: contacts.completedSearches,
+      contactStatus: contacts.contactStatus,
+      lastContactedAt: contacts.lastContactedAt,
+      lastContactChannel: contacts.lastContactChannel,
+      totalCommunications: contacts.totalCommunications,
+      totalReplies: contacts.totalReplies,
+      lastThreadId: contacts.lastThreadId,
+      companyName: companies.name,
+      companyWebsite: companies.website
     })
       .from(contactListMembers)
       .innerJoin(contacts, eq(contactListMembers.contactId, contacts.id))
+      .leftJoin(companies, eq(contacts.companyId, companies.id))
       .where(eq(contactListMembers.listId, listId));
     
-    return members.map(m => m.contact);
+    // Transform to include company as nested object for frontend compatibility
+    return members.map(m => ({
+      ...m,
+      company: m.companyName ? {
+        name: m.companyName,
+        website: m.companyWebsite
+      } : undefined,
+      // Remove the flat fields as they're now nested
+      companyName: undefined,
+      companyWebsite: undefined
+    }));
   }
 
   async addContactsToList(listId: number, contactIds: number[], source: string, addedBy: number, metadata?: any): Promise<void> {

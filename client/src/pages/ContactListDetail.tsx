@@ -371,6 +371,24 @@ export default function ContactListDetail() {
     }
   };
 
+  // Download CSV template
+  const downloadCSVTemplate = () => {
+    const template = `email,first_name,last_name,company,role,city
+john@example.com,John,Doe,Acme Inc,CEO,New York
+jane@company.com,Jane,Smith,Tech Corp,CTO,Boston
+bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
+    
+    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'contacts_import_template.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleAddContacts = () => {
     if (addMethod === 'search-list' && selectedSearchList) {
       setIsAddingContacts(true);
@@ -898,6 +916,16 @@ export default function ContactListDetail() {
                         className="hidden"
                       />
                     </div>
+                    <p className="text-xs text-center text-muted-foreground mt-2">
+                      <button
+                        type="button"
+                        onClick={downloadCSVTemplate}
+                        className="text-blue-600 hover:text-blue-700 underline"
+                      >
+                        Download CSV template
+                      </button>
+                      {' '}to see the correct format
+                    </p>
                   </div>
 
                   {csvParseError && (
