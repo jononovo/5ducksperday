@@ -39,6 +39,7 @@ const Contacts = lazy(() => import("@/pages/Contacts"));
 const ContactListDetail = lazy(() => import("@/pages/ContactListDetail"));
 const AllContacts = lazy(() => import("@/pages/AllContacts"));
 const Campaigns = lazy(() => import("@/features/campaigns").then(module => ({ default: module.CampaignsPage })));
+const CampaignDetail = lazy(() => import("@/pages/CampaignDetail"));
 
 // Lazy imports for admin pages
 const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
@@ -196,6 +197,11 @@ function Router() {
                 <ProtectedRoute path="/campaigns" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Campaigns />
+                  </Suspense>
+                } />
+                <ProtectedRoute path="/campaigns/:id" component={() => 
+                  <Suspense fallback={<LoadingScreen />}>
+                    <CampaignDetail />
                   </Suspense>
                 } />
                 <ProtectedRoute path="/contacts" component={() => 

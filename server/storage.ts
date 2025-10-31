@@ -673,6 +673,83 @@ class DatabaseStorage implements IStorage {
     return campaign;
   }
 
+  async getCampaignWithMetrics(id: number, userId: number): Promise<any> {
+    const campaign = await this.getCampaign(id, userId);
+    if (!campaign) {
+      return undefined;
+    }
+
+    // Get recipients and their activity
+    const recipients = await db.select({
+      id: campaignRecipients.id,
+      email: campaignRecipients.recipientEmail,
+      firstName: campaignRecipients.recipientFirstName,
+      lastName: campaignRecipients.recipientLastName,
+      companyName: campaignRecipients.recipientCompany,
+      status: campaignRecipients.status,
+      sentAt: campaignRecipients.sentAt,
+      openedAt: campaignRecipients.openedAt,
+      clickedAt: campaignRecipients.clickedAt,
+      repliedAt: campaignRecipients.repliedAt,
+      bouncedAt: campaignRecipients.bouncedAt,
+      unsubscribedAt: campaignRecipients.unsubscribedAt,
+      lastActivity: campaignRecipients.updatedAt
+    })
+    .from(campaignRecipients)
+    .where(eq(campaignRecipients.campaignId, id))
+    .orderBy(campaignRecipients.createdAt);
+
+    // Calculate metrics
+    const totalRecipients = recipients.length;
+    const emailsSent = recipients.filter(r => r.sentAt).length;
+    const emailsOpened = recipients.filter(r => r.openedAt).length;
+    const emailsClicked = recipients.filter(r => r.clickedAt).length;
+    const emailsReplied = recipients.filter(r => r.repliedAt).length;
+    const emailsBounced = recipients.filter(r => r.bouncedAt).length;
+    const emailsUnsubscribed = recipients.filter(r => r.unsubscribedAt).length;
+
+    const openRate = emailsSent > 0 ? (emailsOpened / emailsSent) * 100 : 0;
+    const clickRate = emailsSent > 0 ? (emailsClicked / emailsSent) * 100 : 0;
+    const replyRate = emailsSent > 0 ? (emailsReplied / emailsSent) * 100 : 0;
+    const bounceRate = emailsSent > 0 ? (emailsBounced / emailsSent) * 100 : 0;
+    const unsubscribeRate = emailsSent > 0 ? (emailsUnsubscribed / emailsSent) * 100 : 0;
+
+    // Get email template if exists
+    let emailSubject = campaign.templateSubject;
+    let emailBody = campaign.templateBody;
+    
+    if (campaign.emailTemplateId) {
+      const template = await db.select()
+        .from(emailTemplates)
+        .where(eq(emailTemplates.id, campaign.emailTemplateId))
+        .limit(1);
+      
+      if (template[0]) {
+        emailSubject = template[0].subject || emailSubject;
+        emailBody = template[0].body || emailBody;
+      }
+    }
+
+    return {
+      ...campaign,
+      totalRecipients,
+      emailsSent,
+      emailsOpened,
+      emailsClicked,
+      emailsReplied,
+      emailsBounced,
+      emailsUnsubscribed,
+      openRate,
+      clickRate,
+      replyRate,
+      bounceRate,
+      unsubscribeRate,
+      emailSubject,
+      emailBody,
+      recipients
+    };
+  }
+
   async createCampaign(data: InsertCampaign): Promise<Campaign> {
     const [campaign] = await db.insert(campaigns).values(data).returning();
     return campaign;
