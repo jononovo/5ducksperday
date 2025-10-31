@@ -30,7 +30,7 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
         return res.status(400).json({ message: 'Invalid campaign ID' });
       }
       
-      const campaign = await storage.getCampaign(campaignId, userId);
+      const campaign = await storage.getCampaignWithMetrics(campaignId, userId);
       
       if (!campaign) {
         return res.status(404).json({ message: 'Campaign not found' });

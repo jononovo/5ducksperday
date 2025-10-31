@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
@@ -243,10 +244,12 @@ export default function CampaignsPage() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-base leading-tight flex items-center gap-2">
-                              <Target className="h-4 w-4 text-muted-foreground" />
-                              {campaign.name}
-                            </h3>
+                            <Link to={`/campaigns/${campaign.id}`}>
+                              <h3 className="font-semibold text-base leading-tight flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer">
+                                <Target className="h-4 w-4 text-muted-foreground" />
+                                {campaign.name}
+                              </h3>
+                            </Link>
                             <Badge
                               {...statusBadge}
                               className={statusBadge.className}
