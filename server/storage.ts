@@ -4,6 +4,7 @@ import {
   senderProfiles, customerProfiles, campaigns, searchJobs,
   contactLists, contactListMembers, oauthTokens,
   userCredits, creditTransactions, subscriptions, userNotifications,
+  campaignRecipients,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type SearchList, type InsertSearchList,
@@ -17,7 +18,8 @@ import {
   type Campaign, type InsertCampaign,
   type SearchJob, type InsertSearchJob,
   type ContactList, type InsertContactList,
-  type ContactListMember, type InsertContactListMember
+  type ContactListMember, type InsertContactListMember,
+  type CampaignRecipient, type InsertCampaignRecipient
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, sql, desc, lt } from "drizzle-orm";
@@ -679,8 +681,42 @@ class DatabaseStorage implements IStorage {
       return undefined;
     }
 
-    // TODO: Once we have campaign_recipients table, get real metrics
-    // For now, return campaign with mock metrics
+    // Get recipients and their activity
+    const recipients = await db.select({
+      id: campaignRecipients.id,
+      email: campaignRecipients.recipientEmail,
+      firstName: campaignRecipients.recipientFirstName,
+      lastName: campaignRecipients.recipientLastName,
+      companyName: campaignRecipients.recipientCompany,
+      status: campaignRecipients.status,
+      sentAt: campaignRecipients.sentAt,
+      openedAt: campaignRecipients.openedAt,
+      clickedAt: campaignRecipients.clickedAt,
+      repliedAt: campaignRecipients.repliedAt,
+      bouncedAt: campaignRecipients.bouncedAt,
+      unsubscribedAt: campaignRecipients.unsubscribedAt,
+      openCount: campaignRecipients.openCount,
+      clickCount: campaignRecipients.clickCount,
+      lastActivity: campaignRecipients.updatedAt
+    })
+    .from(campaignRecipients)
+    .where(eq(campaignRecipients.campaignId, id))
+    .orderBy(desc(campaignRecipients.updatedAt));
+
+    // Calculate metrics
+    const totalRecipients = recipients.length || campaign.totalRecipients || 0;
+    const emailsSent = recipients.filter(r => r.sentAt).length || campaign.emailsSent || 0;
+    const emailsOpened = recipients.filter(r => r.openedAt).length;
+    const emailsClicked = recipients.filter(r => r.clickedAt).length;
+    const emailsReplied = recipients.filter(r => r.repliedAt).length;
+    const emailsBounced = recipients.filter(r => r.bouncedAt).length;
+    const emailsUnsubscribed = recipients.filter(r => r.unsubscribedAt).length;
+
+    const openRate = emailsSent > 0 ? (emailsOpened / emailsSent) * 100 : 0;
+    const clickRate = emailsSent > 0 ? (emailsClicked / emailsSent) * 100 : 0;
+    const replyRate = emailsSent > 0 ? (emailsReplied / emailsSent) * 100 : 0;
+    const bounceRate = emailsSent > 0 ? (emailsBounced / emailsSent) * 100 : 0;
+    const unsubscribeRate = emailsSent > 0 ? (emailsUnsubscribed / emailsSent) * 100 : 0;
     
     // Get email template if exists
     let emailSubject = campaign.subject;
@@ -698,15 +734,6 @@ class DatabaseStorage implements IStorage {
       }
     }
 
-    // Mock metrics for now
-    const totalRecipients = campaign.totalRecipients || 0;
-    const emailsSent = campaign.emailsSent || 0;
-    const emailsOpened = campaign.openRate ? Math.floor(emailsSent * (campaign.openRate / 100)) : 0;
-    const emailsClicked = campaign.clickRate ? Math.floor(emailsSent * (campaign.clickRate / 100)) : 0;
-    const emailsReplied = campaign.responseRate ? Math.floor(emailsSent * (campaign.responseRate / 100)) : 0;
-    const emailsBounced = campaign.bounceRate ? Math.floor(emailsSent * (campaign.bounceRate / 100)) : 0;
-    const emailsUnsubscribed = campaign.unsubscribeRate ? Math.floor(emailsSent * (campaign.unsubscribeRate / 100)) : 0;
-
     return {
       ...campaign,
       totalRecipients,
@@ -716,9 +743,14 @@ class DatabaseStorage implements IStorage {
       emailsReplied,
       emailsBounced,
       emailsUnsubscribed,
+      openRate,
+      clickRate,
+      replyRate,
+      bounceRate,
+      unsubscribeRate,
       emailSubject,
       emailBody,
-      recipients: [] // Empty for now
+      recipients
     };
   }
 
