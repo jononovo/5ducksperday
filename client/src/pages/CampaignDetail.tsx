@@ -1,11 +1,19 @@
-import { useParams, Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useParams, Link, useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   ArrowLeft, 
   Mail, 
@@ -21,7 +29,9 @@ import {
   Target,
   Eye,
   ChevronDown,
-  MoreVertical
+  MoreVertical,
+  Trash2,
+  Zap
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -62,11 +72,79 @@ interface CampaignWithMetrics extends Campaign {
 export default function CampaignDetail() {
   const params = useParams();
   const campaignId = params.id;
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   const { data: campaign, isLoading, error } = useQuery<CampaignWithMetrics>({
     queryKey: ['/api/campaigns', campaignId],
     enabled: !!campaignId
   });
+
+  const updateCampaignMutation = useMutation({
+    mutationFn: async (updates: Partial<Campaign>) => {
+      return apiRequest(`/api/campaigns/${campaignId}`, 'PUT', updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      toast({
+        title: "Campaign updated",
+        description: "Your campaign has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update campaign",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const deleteCampaignMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/campaigns/${campaignId}`, 'DELETE');
+    },
+    onSuccess: () => {
+      toast({
+        title: "Campaign deleted",
+        description: "Your campaign has been deleted successfully.",
+      });
+      setLocation('/campaigns');
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete campaign",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleCampaignAction = async (action: string) => {
+    switch (action) {
+      case 'pause':
+        updateCampaignMutation.mutate({ status: 'paused' });
+        break;
+      case 'resume':
+        updateCampaignMutation.mutate({ status: 'active' });
+        break;
+      case 'activate':
+        updateCampaignMutation.mutate({ status: 'active' });
+        break;
+      case 'edit':
+        // Navigate to edit page (to be implemented)
+        toast({
+          title: "Coming soon",
+          description: "Edit functionality will be available soon.",
+        });
+        break;
+      case 'delete':
+        if (confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
+          deleteCampaignMutation.mutate();
+        }
+        break;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -173,21 +251,69 @@ export default function CampaignDetail() {
         </div>
         <div className="flex items-center gap-2">
           {getStatusBadge(campaign.status)}
-          {campaign.status === 'active' && (
-            <Button variant="outline" size="sm">
-              <Pause className="mr-2 h-4 w-4" />
-              Pause Campaign
-            </Button>
-          )}
-          {campaign.status === 'paused' && (
-            <Button variant="outline" size="sm">
-              <Play className="mr-2 h-4 w-4" />
-              Resume Campaign
-            </Button>
-          )}
-          <Button variant="outline" size="icon">
-            <MoreVertical className="h-4 w-4" />
-          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline" 
+                data-testid="button-campaign-actions"
+              >
+                Actions
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {campaign.status === 'active' ? (
+                <DropdownMenuItem 
+                  onClick={() => handleCampaignAction('pause')}
+                  className="text-orange-600 dark:text-orange-400"
+                  data-testid="menu-pause-campaign"
+                >
+                  <Pause className="h-4 w-4 mr-2" />
+                  Pause Campaign
+                </DropdownMenuItem>
+              ) : campaign.status === 'paused' ? (
+                <DropdownMenuItem 
+                  onClick={() => handleCampaignAction('resume')}
+                  className="text-green-600 dark:text-green-400"
+                  data-testid="menu-resume-campaign"
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Resume Campaign
+                </DropdownMenuItem>
+              ) : null}
+              
+              <DropdownMenuItem 
+                onClick={() => handleCampaignAction('edit')}
+                data-testid="menu-edit-campaign"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Edit Settings
+              </DropdownMenuItem>
+              
+              {campaign.status === 'draft' && (
+                <DropdownMenuItem 
+                  onClick={() => handleCampaignAction('activate')}
+                  className="text-blue-600 dark:text-blue-400"
+                  data-testid="menu-activate-campaign"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Activate Campaign
+                </DropdownMenuItem>
+              )}
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem 
+                onClick={() => handleCampaignAction('delete')}
+                className="text-red-600 dark:text-red-400"
+                data-testid="menu-delete-campaign"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Campaign
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
