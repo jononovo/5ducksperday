@@ -449,6 +449,154 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
     }
   });
 
+  // Import contacts from CSV
+  app.post('/api/contact-lists/:id/import-csv', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const listId = parseInt(req.params.id);
+      const { contacts } = req.body;
+      
+      if (isNaN(listId)) {
+        return res.status(400).json({ message: 'Invalid list ID' });
+      }
+      
+      if (!Array.isArray(contacts) || contacts.length === 0) {
+        return res.status(400).json({ message: 'contacts must be a non-empty array' });
+      }
+      
+      // Verify contact list belongs to user
+      const contactList = await storage.getContactList(listId, userId);
+      if (!contactList) {
+        return res.status(404).json({ message: 'Contact list not found' });
+      }
+      
+      // Process CSV contacts
+      const importedContacts = [];
+      const errors = [];
+      
+      for (const csvContact of contacts) {
+        try {
+          // Validate required fields
+          if (!csvContact.email) {
+            errors.push(`Skipping contact without email: ${csvContact.name || 'Unknown'}`);
+            continue;
+          }
+          
+          // Check if contact already exists by searching all contacts
+          const allUserContacts = await storage.listContacts(userId);
+          let contact = allUserContacts.find(c => c.email === csvContact.email);
+          
+          if (!contact) {
+            // Check if company exists or create it
+            let companyId: number;
+            if (csvContact.company) {
+              // Search for existing company by name
+              const allUserCompanies = await storage.listCompanies(userId);
+              let company = allUserCompanies.find(c => c.name?.toLowerCase() === csvContact.company.toLowerCase());
+              
+              if (!company) {
+                // Create new company - pass as any to include userId
+                company = await storage.createCompany({
+                  name: csvContact.company,
+                  listId: null,
+                  description: null,
+                  age: null,
+                  size: null,
+                  website: null,
+                  alternativeProfileUrl: null,
+                  defaultContactEmail: null,
+                  ranking: null,
+                  linkedinProminence: null,
+                  customerCount: null,
+                  rating: null,
+                  services: null,
+                  validationPoints: null,
+                  differentiation: null,
+                  totalScore: null,
+                  snapshot: null,
+                  userId // Added via type cast in storage
+                } as any);
+              }
+              companyId = company.id;
+            } else {
+              // Create a default company for contacts without company info
+              const defaultCompany = await storage.createCompany({
+                name: 'Unknown Company',
+                listId: null,
+                description: null,
+                age: null,
+                size: null,
+                website: null,
+                alternativeProfileUrl: null,
+                defaultContactEmail: null,
+                ranking: null,
+                linkedinProminence: null,
+                customerCount: null,
+                rating: null,
+                services: null,
+                validationPoints: null,
+                differentiation: null,
+                totalScore: null,
+                snapshot: null,
+                userId // Added via type cast in storage
+              } as any);
+              companyId = defaultCompany.id;
+            }
+            
+            // Create new contact with userId passed separately
+            contact = await storage.createContact({
+              companyId,
+              name: csvContact.name || '',
+              email: csvContact.email,
+              role: csvContact.role || null,
+              probability: null,
+              linkedinUrl: null,
+              twitterHandle: null,
+              phoneNumber: null,
+              department: null,
+              location: csvContact.city || null,
+              verificationSource: 'csv_import',
+              nameConfidenceScore: null,
+              userFeedbackScore: null,
+              feedbackCount: 0,
+              alternativeEmails: [],
+              completedSearches: [],
+              userId // Added via type cast in storage
+            } as any);
+          }
+          
+          importedContacts.push(contact.id);
+        } catch (error) {
+          console.error(`Error importing contact ${csvContact.email}:`, error);
+          errors.push(`Failed to import ${csvContact.email}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+      
+      // Add imported contacts to the list
+      if (importedContacts.length > 0) {
+        await storage.addContactsToList(listId, importedContacts, 'csv_import', userId, {
+          totalAttempted: contacts.length,
+          imported: importedContacts.length,
+          errors: errors.length
+        });
+      }
+      
+      // Return result
+      const updatedList = await storage.getContactList(listId, userId);
+      res.json({
+        ...updatedList,
+        imported: importedContacts.length,
+        totalAttempted: contacts.length,
+        errors: errors.length > 0 ? errors.slice(0, 10) : [] // Return first 10 errors
+      });
+    } catch (error) {
+      console.error('Error importing contacts from CSV:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to import contacts from CSV' 
+      });
+    }
+  });
+
   // Add top contacts from companies
   app.post('/api/contact-lists/:id/add-from-companies', requireAuth, async (req: Request, res: Response) => {
     try {

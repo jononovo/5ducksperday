@@ -43,7 +43,7 @@ import {
   Upload,
   FileSpreadsheet,
 } from "lucide-react";
-import type { ContactList, Contact, List, Company } from "@shared/schema";
+import type { ContactList, Contact, SearchList, Company } from "@shared/schema";
 
 interface ContactWithCompany extends Contact {
   company?: {
@@ -91,7 +91,7 @@ export default function ContactListDetail() {
   });
 
   // Fetch available search lists for the "Add from Search List" option
-  const { data: searchLists = [] } = useQuery<List[]>({
+  const { data: searchLists = [] } = useQuery<SearchList[]>({
     queryKey: ["/api/lists"],
     enabled: !!user && addMethod === 'search-list',
   });
