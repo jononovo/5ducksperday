@@ -278,11 +278,11 @@ export default function ContactListDetail() {
       // If no headers detected, prepend them
       let csvTextToParse = text;
       if (!hasHeaders && lines.length > 0) {
-        // Check if the first line has 6 comma-separated values (all fields)
+        // Check if the first line looks like data (has @ for email in first position)
         const firstLineValues = firstLine.split(',').map(v => v.trim());
-        if (firstLineValues.length >= 3) {
-          // Auto-add headers
-          const headers = 'first name, last name, email, company, role, city';
+        if (firstLineValues.length >= 2 && firstLineValues[0].includes('@')) {
+          // Auto-add headers for new format: email, first_name, last_name, company, role, city
+          const headers = 'email, first_name, last_name, company, role, city';
           csvTextToParse = headers + '\n' + text;
         }
       }
@@ -291,7 +291,7 @@ export default function ContactListDetail() {
       const result = Papa.parse<Record<string, string>>(csvTextToParse, {
         header: true, // First row contains headers
         skipEmptyLines: true,
-        transformHeader: (header) => header.toLowerCase().trim(),
+        transformHeader: (header) => header.toLowerCase().trim().replace(' ', '_'), // Convert "first name" to "first_name"
       });
 
       if (result.errors.length > 0) {
@@ -306,8 +306,8 @@ export default function ContactListDetail() {
         return;
       }
 
-      // Check required headers
-      const requiredHeaders = ['first name', 'last name', 'email'];
+      // Check required headers (only email and first_name are required now)
+      const requiredHeaders = ['email', 'first_name'];
       const headers = Object.keys(result.data[0] || {});
       
       // Check if required headers are present
@@ -322,20 +322,20 @@ export default function ContactListDetail() {
       const contacts = [];
       for (const row of result.data) {
         // Get values with defaults for optional fields
-        const firstName = (row['first name'] || '').toString().trim();
-        const lastName = (row['last name'] || '').toString().trim();
         const email = (row['email'] || '').toString().trim();
+        const firstName = (row['first_name'] || '').toString().trim();
+        const lastName = (row['last_name'] || '').toString().trim();
         const company = (row['company'] || '').toString().trim();
         const role = (row['role'] || '').toString().trim();
         const city = (row['city'] || '').toString().trim();
         
-        // Skip rows without email
-        if (!email) {
+        // Skip rows without required fields
+        if (!email || !firstName) {
           continue;
         }
 
         const contact = {
-          name: `${firstName} ${lastName}`.trim() || 'Unknown',
+          name: lastName ? `${firstName} ${lastName}`.trim() : firstName,
           email: email,
           company: company || '',
           role: role || '',
@@ -346,7 +346,7 @@ export default function ContactListDetail() {
       }
 
       if (contacts.length === 0) {
-        setCsvParseError("No valid contacts found in CSV (all rows missing email)");
+        setCsvParseError("No valid contacts found in CSV (all rows missing required fields: email and/or first_name)");
         return;
       }
 
@@ -845,17 +845,19 @@ export default function ContactListDetail() {
                   <div>
                     <label className="text-sm font-medium">CSV Format Requirements</label>
                     <div className="mt-2 p-3 bg-gray-50 rounded-md text-xs text-gray-600">
-                      <p className="font-semibold mb-1">Expected format (headers optional - will be auto-added if missing):</p>
-                      <code>first name, last name, email, company, role, city</code>
-                      <p className="mt-2">You can paste data directly without headers, e.g.:</p>
-                      <code>John, Doe, john@example.com, Acme Inc, CEO, New York</code>
+                      <p className="font-semibold mb-1">Format: email first, then first name (only these two are required)</p>
+                      <code>email, first_name, last_name, company, role, city</code>
+                      <p className="mt-2">Simple examples (headers auto-added):</p>
+                      <code className="block">john@example.com, John</code>
+                      <code className="block">jane@company.com, Jane, Smith, Acme Inc, CEO, NYC</code>
+                      <p className="mt-2 text-green-600">✓ Only email and first name are required!</p>
                     </div>
                   </div>
 
                   <div>
                     <label className="text-sm font-medium">Paste CSV Data</label>
                     <textarea
-                      placeholder="Paste your CSV data here...&#10;Example with headers:&#10;first name, last name, email, company, role, city&#10;John, Doe, john@example.com, Acme Inc, CEO, New York&#10;&#10;Or just data (headers auto-added):&#10;Jane, Smith, jane@example.com, Tech Corp, CTO, Boston"
+                      placeholder="Paste your CSV data here...&#10;Examples:&#10;john@example.com, John&#10;jane@company.com, Jane, Smith&#10;bob@acme.com, Bob, Johnson, Acme Inc, CEO, NYC&#10;&#10;Or with headers:&#10;email, first_name, last_name, company, role, city&#10;alice@test.com, Alice, Lee, Tech Corp, CTO, Boston"
                       value={csvText}
                       onChange={(e) => {
                         setCsvText(e.target.value);

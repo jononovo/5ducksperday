@@ -481,9 +481,9 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
       
       for (const csvContact of contacts) {
         try {
-          // Validate required fields
-          if (!csvContact.email) {
-            errors.push(`Skipping contact without email: ${csvContact.name || 'Unknown'}`);
+          // Validate required fields (email and name are required)
+          if (!csvContact.email || !csvContact.name) {
+            errors.push(`Skipping contact: missing ${!csvContact.email ? 'email' : 'name'} for ${csvContact.email || csvContact.name || 'Unknown'}`);
             continue;
           }
           
