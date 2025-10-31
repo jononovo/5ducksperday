@@ -10,13 +10,13 @@ export interface GenerationMode {
 const GENERATION_MODES: GenerationMode[] = [
   { 
     id: 'ai_unique', 
-    label: 'AI Each Unique', 
+    label: 'AI - Each email unique', 
     buttonText: 'Generate Sample',
     description: 'Generate unique email for each recipient'
   },
   { 
     id: 'merge_field', 
-    label: 'Merge-field Template', 
+    label: 'Template with merge-fields', 
     buttonText: 'Generate Template',
     description: 'Use merge fields for personalization'
   }
@@ -33,22 +33,42 @@ export function EmailGenerationTabs({
   onModeChange, 
   className 
 }: EmailGenerationTabsProps) {
+  const renderLabel = (label: string, isAI: boolean) => {
+    if (isAI) {
+      // "AI - Each email unique"
+      return (
+        <>
+          <span className="font-semibold">AI</span>
+          <span className="font-normal"> - Each email unique</span>
+        </>
+      );
+    } else {
+      // "Template with merge-fields"
+      return (
+        <>
+          <span className="font-semibold">Template</span>
+          <span className="font-normal"> with merge-fields</span>
+        </>
+      );
+    }
+  };
+
   return (
-    <div className={cn("flex rounded-lg border bg-muted/30 p-1 gap-1", className)}>
+    <div className={cn("inline-flex rounded-lg border bg-muted/30 p-0.5 gap-0.5", className)}>
       {GENERATION_MODES.map((mode) => (
         <button
           key={mode.id}
           type="button"
           onClick={() => onModeChange(mode.id)}
           className={cn(
-            "flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all",
+            "px-3 py-1 text-xs rounded-md transition-all min-w-fit",
             selectedMode === mode.id
               ? "bg-background shadow-sm text-foreground"
               : "text-muted-foreground hover:text-foreground"
           )}
           title={mode.description}
         >
-          {mode.label}
+          {renderLabel(mode.label, mode.id === 'ai_unique')}
         </button>
       ))}
     </div>
