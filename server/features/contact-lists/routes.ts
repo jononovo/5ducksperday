@@ -1,6 +1,6 @@
 import { Request, Response, Application } from 'express';
 import { storage } from '../../storage';
-import { insertContactListSchema } from '@shared/schema';
+import { insertContactListSchema, type Company } from '@shared/schema';
 import { z } from 'zod';
 
 function getUserId(req: Request): number {
@@ -474,6 +474,11 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
       const importedContacts = [];
       const errors = [];
       
+      // Cache database lookups to avoid O(n²) performance
+      const allUserContacts = await storage.listContacts(userId);
+      const allUserCompanies = await storage.listCompanies(userId);
+      const companyCache = new Map<string, Company>(); // Cache created companies
+      
       for (const csvContact of contacts) {
         try {
           // Validate required fields
@@ -482,17 +487,17 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
             continue;
           }
           
-          // Check if contact already exists by searching all contacts
-          const allUserContacts = await storage.listContacts(userId);
+          // Check if contact already exists (using cached contacts)
           let contact = allUserContacts.find(c => c.email === csvContact.email);
           
           if (!contact) {
             // Check if company exists or create it
             let companyId: number;
             if (csvContact.company) {
-              // Search for existing company by name
-              const allUserCompanies = await storage.listCompanies(userId);
-              let company = allUserCompanies.find(c => c.name?.toLowerCase() === csvContact.company.toLowerCase());
+              // Search for existing company by name (check cache first, then database)
+              const companyNameLower = csvContact.company.toLowerCase();
+              let company = companyCache.get(companyNameLower) || 
+                          allUserCompanies.find(c => c.name?.toLowerCase() === companyNameLower);
               
               if (!company) {
                 // Create new company - pass as any to include userId
@@ -516,6 +521,8 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
                   snapshot: null,
                   userId // Added via type cast in storage
                 } as any);
+                // Add to cache to avoid recreating the same company
+                companyCache.set(companyNameLower, company);
               }
               companyId = company.id;
             } else {

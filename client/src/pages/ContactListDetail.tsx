@@ -44,6 +44,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import type { ContactList, Contact, SearchList, Company } from "@shared/schema";
+import Papa from "papaparse";
 
 interface ContactWithCompany extends Contact {
   company?: {
@@ -266,28 +267,33 @@ export default function ContactListDetail() {
   const parseCSV = (text: string) => {
     try {
       setCsvParseError(null);
-      const lines = text.trim().split('\n');
       
-      if (lines.length < 2) {
-        setCsvParseError("CSV must have headers and at least one data row");
+      // Parse CSV using papaparse
+      const result = Papa.parse<Record<string, string>>(text, {
+        header: true, // First row contains headers
+        skipEmptyLines: true,
+        transformHeader: (header) => header.toLowerCase().trim(),
+      });
+
+      if (result.errors.length > 0) {
+        // Report the first parsing error
+        const firstError = result.errors[0];
+        setCsvParseError(`CSV parsing error at row ${firstError.row}: ${firstError.message}`);
         return;
       }
 
-      // Parse headers
-      const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
-      
+      if (result.data.length === 0) {
+        setCsvParseError("CSV must contain at least one data row");
+        return;
+      }
+
       // Check required headers
       const requiredHeaders = ['first name', 'last name', 'email'];
-      const optionalHeaders = ['company', 'role', 'city'];
+      const headers = Object.keys(result.data[0] || {});
       
-      const headerMap: { [key: string]: number } = {};
-      headers.forEach((header, index) => {
-        headerMap[header] = index;
-      });
-
       // Check if required headers are present
       for (const required of requiredHeaders) {
-        if (!(required in headerMap)) {
+        if (!headers.includes(required)) {
           setCsvParseError(`Missing required header: ${required}`);
           return;
         }
@@ -295,40 +301,39 @@ export default function ContactListDetail() {
 
       // Parse data rows
       const contacts = [];
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim());
+      for (const row of result.data) {
+        // Get values with defaults for optional fields
+        const firstName = (row['first name'] || '').toString().trim();
+        const lastName = (row['last name'] || '').toString().trim();
+        const email = (row['email'] || '').toString().trim();
+        const company = (row['company'] || '').toString().trim();
+        const role = (row['role'] || '').toString().trim();
+        const city = (row['city'] || '').toString().trim();
         
-        if (values.length < headers.length) {
-          continue; // Skip incomplete rows
-        }
-
-        const firstName = values[headerMap['first name']] || '';
-        const lastName = values[headerMap['last name']] || '';
-        const email = values[headerMap['email']] || '';
-        
+        // Skip rows without email
         if (!email) {
-          continue; // Skip rows without email
+          continue;
         }
 
         const contact = {
-          name: `${firstName} ${lastName}`.trim(),
+          name: `${firstName} ${lastName}`.trim() || 'Unknown',
           email: email,
-          company: headerMap['company'] !== undefined ? values[headerMap['company']] || '' : '',
-          role: headerMap['role'] !== undefined ? values[headerMap['role']] || '' : '',
-          city: headerMap['city'] !== undefined ? values[headerMap['city']] || '' : '',
+          company: company || '',
+          role: role || '',
+          city: city || '',
         };
 
         contacts.push(contact);
       }
 
       if (contacts.length === 0) {
-        setCsvParseError("No valid contacts found in CSV");
+        setCsvParseError("No valid contacts found in CSV (all rows missing email)");
         return;
       }
 
       setParsedContacts(contacts);
     } catch (error) {
-      setCsvParseError("Failed to parse CSV. Please check the format.");
+      setCsvParseError(`Failed to parse CSV: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
