@@ -4,11 +4,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { 
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -24,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, Type, Wand2, Loader2, Box, Palette, Gift, Check, Info, Lock, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Mail, Type, Lock, ChevronDown, ChevronUp, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QuickTemplates from "./quick-templates";
 import { EmailSendButton } from "./email-fallback/EmailSendButton";
@@ -42,6 +37,7 @@ import { RecipientSelectionModal, type RecipientSelection } from "@/components/r
 import { CampaignSettings, type CampaignSettingsData } from "@/components/campaign-settings";
 import { CampaignSendButton } from "@/components/campaign-send-button/CampaignSendButton";
 import { EmailGenerationTabs, getGenerationModeConfig } from "@/components/email-generation-tabs";
+import { EmailGenerationControls } from "./email-composer/EmailGenerationControls";
 
 // Component prop types
 interface EmailComposerProps {
@@ -145,10 +141,6 @@ export function EmailComposer({
   const setSelectedOfferStrategy = setSelectedOfferStrategyProp ?? setLocalSelectedOfferStrategy;
   // Removed isGenerating state - will come from the hook
   const [isSent, setIsSent] = useState(false);
-  const [productPopoverOpen, setProductPopoverOpen] = useState(false);
-  const [tonePopoverOpen, setTonePopoverOpen] = useState(false);
-  const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
-  const [tooltipOpen, setTooltipOpen] = useState(false);
   const [generateConfirmDialogOpen, setGenerateConfirmDialogOpen] = useState(false);
   const [productChangeDialogOpen, setProductChangeDialogOpen] = useState(false);
   const [pendingProduct, setPendingProduct] = useState<StrategicProfile | null>(null);
@@ -569,7 +561,6 @@ export function EmailComposer({
       setSelectedProductData(null);
       setEmailPrompt("");
       setOriginalEmailPrompt("");
-      setProductPopoverOpen(false);
     }
   };
 
@@ -585,7 +576,6 @@ export function EmailComposer({
       setEmailPrompt("");
       setOriginalEmailPrompt("");
     }
-    setProductPopoverOpen(false);
   };
 
   const handleConfirmProductChange = () => {
@@ -807,236 +797,31 @@ export function EmailComposer({
           </div>
         )}
         
-        {/* Email Prompt Field */}
-        <div className="relative border-t border-b rounded-tr-lg md:border-t-0 md:border-b-0 md:mb-6 mb-4 overflow-hidden">
-        <Textarea
-          ref={promptTextareaRef}
-          placeholder="Add product, e.g.: Stationary products & printers"
-          value={getDisplayValue(emailPrompt, originalEmailPrompt)}
-          onChange={(e) => {
-            setEmailPrompt(e.target.value);
-            setOriginalEmailPrompt(e.target.value);
-            handlePromptTextareaResize();
+        {/* Email Prompt Field with Generation Controls */}
+        <EmailGenerationControls
+          selectedProduct={selectedProduct}
+          selectedProductData={selectedProductData}
+          onProductSelect={handleSelectProduct}
+          onProductClear={handleSelectNone}
+          selectedTone={selectedTone}
+          onToneSelect={setSelectedTone}
+          selectedOfferStrategy={selectedOfferStrategy}
+          onOfferStrategySelect={setSelectedOfferStrategy}
+          products={products}
+          emailPrompt={emailPrompt}
+          originalEmailPrompt={originalEmailPrompt}
+          onPromptChange={(value) => {
+            setEmailPrompt(value);
+            setOriginalEmailPrompt(value);
           }}
-          className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
-          style={{ minHeight: '32px', maxHeight: '120px' }}
+          onPromptResize={handlePromptTextareaResize}
+          promptTextareaRef={promptTextareaRef}
+          getDisplayValue={getDisplayValue}
+          onGenerate={handleGenerateEmail}
+          isGenerating={isGenerating}
+          drawerMode={drawerMode}
+          generationMode={generationMode}
         />
-        <div className="absolute bottom-1 left-2 flex items-center gap-2">
-          {/* Product Selection */}
-          <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen}>
-            <PopoverTrigger asChild>
-              <button 
-                className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
-                title="Select product context"
-              >
-                <Box className="w-3 h-3" />
-                {selectedProductData && (
-                  <span className="max-w-20 truncate">{selectedProductData.title || selectedProductData.productService || 'Product'}</span>
-                )}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-0" align="start">
-              <div className="p-4 border-b bg-muted/30">
-                <div className="flex items-center gap-2">
-                  <Box className="w-4 h-4 text-primary" />
-                  <h4 className="font-semibold text-sm">Product Context</h4>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Insert from your existing product list</p>
-              </div>
-              <div className="p-2">
-                {/* None Option */}
-                <button
-                  className={cn(
-                    "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                    selectedProduct === null && "bg-accent"
-                  )}
-                  onClick={handleSelectNone}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs">
-                      <span className="font-medium">None</span>
-                      <span className="text-muted-foreground"> - No specific product context</span>
-                    </div>
-                    {selectedProduct === null && (
-                      <Check className="w-3 h-3 text-primary" />
-                    )}
-                  </div>
-                </button>
-                
-                {/* Product Options */}
-                {products.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground text-sm">
-                    <p>No products created yet.</p>
-                    <p className="text-xs mt-1">Create one in Strategy Dashboard</p>
-                  </div>
-                ) : (
-                  products.map((product) => (
-                    <button
-                      key={product.id}
-                      className={cn(
-                        "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                        selectedProduct === product.id && "bg-accent"
-                      )}
-                      onClick={() => handleSelectProduct(product)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="text-xs flex-1 min-w-0">
-                          <div className="font-medium truncate">
-                            {product.title || product.productService || 'Untitled Product'}
-                          </div>
-                          {product.productService && product.title !== product.productService && (
-                            <div className="text-muted-foreground truncate mt-0.5">
-                              {product.productService}
-                            </div>
-                          )}
-                        </div>
-                        {selectedProduct === product.id && (
-                          <Check className="w-3 h-3 text-primary" />
-                        )}
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          {/* Tone Selection */}
-          <Popover open={tonePopoverOpen} onOpenChange={setTonePopoverOpen}>
-            <PopoverTrigger asChild>
-              <button 
-                className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
-                title="Select email tone"
-              >
-                <Palette className="w-3 h-3" />
-                <span>{TONE_OPTIONS.find(t => t.id === selectedTone)?.name || 'Casual'}</span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-0" align="start">
-              <div className="p-4 border-b bg-muted/30">
-                <div className="flex items-center gap-2">
-                  <Palette className="w-4 h-4 text-primary" />
-                  <h4 className="font-semibold text-sm">Email Tone</h4>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Choose the personality for your email</p>
-              </div>
-              <div className="p-2">
-                {TONE_OPTIONS.map((tone) => (
-                  <button
-                    key={tone.id}
-                    className={cn(
-                      "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                      selectedTone === tone.id && "bg-accent"
-                    )}
-                    onClick={() => {
-                      setSelectedTone(tone.id);
-                      setTonePopoverOpen(false);
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs">
-                        <span className="font-medium">{tone.name}</span>
-                        <span className="text-muted-foreground"> - {tone.description}</span>
-                      </div>
-                      {selectedTone === tone.id && (
-                        <Check className="w-3 h-3 text-primary" />
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          {/* Offer Strategy Selection */}
-          <Popover open={offerPopoverOpen} onOpenChange={setOfferPopoverOpen}>
-            <PopoverTrigger asChild>
-              <button 
-                className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
-                title="Select offer strategy"
-              >
-                <Gift className="w-3 h-3" />
-                {selectedOfferStrategy !== 'none' && (
-                  <span>{OFFER_OPTIONS.find(o => o.id === selectedOfferStrategy)?.name}</span>
-                )}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-0" align="start">
-              <div className="p-4 border-b bg-muted/30">
-                <div className="flex items-center gap-2">
-                  <Gift className="w-4 h-4 text-primary" />
-                  <h4 className="font-semibold text-sm">Offer Strategy</h4>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Optional: Structure your offer for maximum impact</p>
-              </div>
-              <div className="p-2">
-                {OFFER_OPTIONS.map((offer) => (
-                  <button
-                    key={offer.id}
-                    className={cn(
-                      "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                      selectedOfferStrategy === offer.id && "bg-accent"
-                    )}
-                    onClick={() => {
-                      setSelectedOfferStrategy(offer.id);
-                      setOfferPopoverOpen(false);
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs">
-                        <span className="font-medium">{offer.name}</span>
-                        <span className="text-muted-foreground"> - {offer.description}</span>
-                      </div>
-                      {selectedOfferStrategy === offer.id && (
-                        <Check className="w-3 h-3 text-primary" />
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-        <div className="absolute bottom-2 right-2 flex items-center gap-2">
-          <TooltipProvider>
-            <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
-              <TooltipTrigger asChild>
-              <button 
-                className="p-1 rounded hover:bg-accent transition-colors"
-                onClick={() => setTooltipOpen(!tooltipOpen)}
-                onBlur={() => setTooltipOpen(false)}
-              >
-                <Info className="w-3 h-3 text-muted-foreground" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-sm max-w-xs">
-              <p>Give us a sentence about your offer and we'll generate the email for you. It'll be awesome.</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <Button 
-          onClick={handleGenerateEmail} 
-          variant={drawerMode === 'campaign' ? "default" : "yellow"}
-          disabled={isGenerating}
-          className={cn(
-            "h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out",
-            drawerMode === 'campaign' && getGenerationModeConfig(generationMode).buttonColor
-          )}
-        >
-          {isGenerating ? (
-            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-          ) : (
-            <Wand2 className="w-3 h-3 mr-1" />
-          )}
-          {isGenerating 
-            ? "Generating..." 
-            : drawerMode === 'campaign' 
-              ? getGenerationModeConfig(generationMode).buttonText
-              : "Generate Email"
-          }
-        </Button>
-      </div>
-    </div>
     </div>
 
     {/* To Email Field / Campaign Recipients */}
