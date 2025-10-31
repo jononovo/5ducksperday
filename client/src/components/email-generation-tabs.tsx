@@ -38,6 +38,7 @@ export function EmailGenerationTabs({
       {GENERATION_MODES.map((mode) => (
         <button
           key={mode.id}
+          type="button"
           onClick={() => onModeChange(mode.id)}
           className={cn(
             "flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all",
