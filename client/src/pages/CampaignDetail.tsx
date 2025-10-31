@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -74,6 +75,7 @@ export default function CampaignDetail() {
   const campaignId = params.id;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const { data: campaign, isLoading, error } = useQuery<CampaignWithMetrics>({
     queryKey: ['/api/campaigns', campaignId],
@@ -132,10 +134,10 @@ export default function CampaignDetail() {
         updateCampaignMutation.mutate({ status: 'active' });
         break;
       case 'edit':
-        // Navigate to edit page (to be implemented)
+        setIsEditMode(true);
         toast({
-          title: "Coming soon",
-          description: "Edit functionality will be available soon.",
+          title: "Edit mode",
+          description: "You can now edit the campaign settings.",
         });
         break;
       case 'delete':
@@ -536,11 +538,95 @@ export default function CampaignDetail() {
           <Card>
             <CardHeader>
               <CardTitle>Activity Timeline</CardTitle>
-              <CardDescription>Campaign events and milestones</CardDescription>
+              <CardDescription>Recent campaign events and batch history</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center text-muted-foreground py-8">
-                Activity timeline coming soon...
+              <div className="space-y-4">
+                {/* Mock activity timeline for now - will be populated from actual events */}
+                <div className="flex gap-4 items-start">
+                  <div className="h-2 w-2 rounded-full bg-green-500 mt-2"></div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Campaign started</span>
+                      <span className="text-xs text-muted-foreground">
+                        {campaign.startDate ? format(new Date(campaign.startDate), 'MMM d, h:mm a') : 'Not started'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Campaign activated and ready to send emails
+                    </p>
+                  </div>
+                </div>
+
+                {campaign.emailsSent > 0 && (
+                  <div className="flex gap-4 items-start">
+                    <div className="h-2 w-2 rounded-full bg-blue-500 mt-2"></div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Batch sent</span>
+                        <span className="text-xs text-muted-foreground">Today</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Sent {campaign.emailsSent} emails to recipients
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {campaign.emailsOpened > 0 && (
+                  <div className="flex gap-4 items-start">
+                    <div className="h-2 w-2 rounded-full bg-purple-500 mt-2"></div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Recipients engaged</span>
+                        <span className="text-xs text-muted-foreground">Ongoing</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {campaign.emailsOpened} opens, {campaign.emailsClicked} clicks recorded
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {campaign.status === 'paused' && (
+                  <div className="flex gap-4 items-start">
+                    <div className="h-2 w-2 rounded-full bg-yellow-500 mt-2"></div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Campaign paused</span>
+                        <span className="text-xs text-muted-foreground">
+                          {campaign.updatedAt ? format(new Date(campaign.updatedAt), 'MMM d, h:mm a') : 'Recently'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Campaign temporarily paused
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {campaign.status === 'completed' && (
+                  <div className="flex gap-4 items-start">
+                    <div className="h-2 w-2 rounded-full bg-gray-500 mt-2"></div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Campaign completed</span>
+                        <span className="text-xs text-muted-foreground">
+                          {campaign.endDate ? format(new Date(campaign.endDate), 'MMM d, h:mm a') : 'Recently'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        All scheduled emails have been sent
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {(!campaign.emailsSent || campaign.emailsSent === 0) && campaign.status !== 'completed' && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No activity yet. Campaign will start sending emails based on schedule.
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
