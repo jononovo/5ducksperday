@@ -704,20 +704,22 @@ export function EmailComposer({
   };
 
   return (
-    <div className="space-y-0 md:space-y-6">
-      {/* Generation Mode Tabs - Only shown in campaign mode */}
-      {drawerMode === 'campaign' && (
-        <div className="mb-4">
-          <EmailGenerationTabs
-            selectedMode={generationMode}
-            onModeChange={setGenerationMode}
-            className=""
-          />
-        </div>
-      )}
-      
-      {/* Email Prompt Field */}
-      <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
+    <div className={drawerMode === 'campaign' ? "space-y-0" : "space-y-0 md:space-y-4"}>
+      {/* Tabs and Prompt grouped together in campaign mode */}
+      <div className={drawerMode === 'campaign' ? "relative" : ""}>
+        {/* Generation Mode Tabs - Only shown in campaign mode */}
+        {drawerMode === 'campaign' && (
+          <div className="relative z-20">
+            <EmailGenerationTabs
+              selectedMode={generationMode}
+              onModeChange={setGenerationMode}
+              className=""
+            />
+          </div>
+        )}
+        
+        {/* Email Prompt Field */}
+        <div className="relative border-t border-b rounded-tr-lg md:border-t-0 md:border-b-0 md:mb-6 mb-4 overflow-hidden">
         <Textarea
           ref={promptTextareaRef}
           placeholder="Add product, e.g.: Stationary products & printers"
@@ -727,7 +729,7 @@ export function EmailComposer({
             setOriginalEmailPrompt(e.target.value);
             handlePromptTextareaResize();
           }}
-          className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
           style={{ minHeight: '32px', maxHeight: '120px' }}
         />
         <div className="absolute bottom-1 left-2 flex items-center gap-2">
@@ -925,9 +927,12 @@ export function EmailComposer({
         </TooltipProvider>
         <Button 
           onClick={handleGenerateEmail} 
-          variant={drawerMode === 'campaign' ? "pink" : "yellow"}
+          variant={drawerMode === 'campaign' ? "default" : "yellow"}
           disabled={isGenerating}
-          className="h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out"
+          className={cn(
+            "h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out",
+            drawerMode === 'campaign' && getGenerationModeConfig(generationMode).buttonColor
+          )}
         >
           {isGenerating ? (
             <Loader2 className="w-3 h-3 mr-1 animate-spin" />
@@ -943,9 +948,10 @@ export function EmailComposer({
         </Button>
       </div>
     </div>
+    </div>
 
     {/* To Email Field / Campaign Recipients */}
-    <div className="relative border-b md:border-b-0 md:mb-6">
+    <div className="relative border-b md:border-b-0 md:mb-6" style={{ marginBottom: '-1px' }}>
       {drawerMode === 'compose' ? (
         <>
           <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -955,7 +961,7 @@ export function EmailComposer({
             value={getDisplayValue(toEmail)}
             onChange={(e) => setToEmail(e.target.value)}
             type="email"
-            className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-t-md focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
           />
         </>
       ) : (
@@ -963,10 +969,10 @@ export function EmailComposer({
           <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <div
             onClick={() => setRecipientModalOpen(true)}
-            className="mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-md cursor-pointer transition-colors hover:bg-muted/50 flex items-center justify-between"
+            className="mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-t-md cursor-pointer transition-colors hover:bg-muted/50 flex items-center justify-between"
           >
             {(campaignRecipients || currentQuery) ? (
-              <span className="inline-flex items-center px-2.5 py-1 rounded bg-primary/10 text-primary text-sm font-medium truncate max-w-full">
+              <span className="inline-flex items-center px-2.5 py-1 rounded bg-muted/50 hover:bg-primary/10 text-muted-foreground hover:text-primary text-sm font-normal truncate max-w-full transition-colors">
                 {getRecipientDisplayText()}
               </span>
             ) : (
@@ -989,7 +995,7 @@ export function EmailComposer({
     </div>
 
     {/* Email Subject Field */}
-    <div className="relative border-b md:border-b-0 md:mb-6">
+    <div className="relative border-b md:border-b-0 md:mb-6" style={{ marginTop: '-1px' }}>
       <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
       <Input
         ref={emailSubjectRef}
@@ -999,12 +1005,12 @@ export function EmailComposer({
           setEmailSubject(e.target.value);
           setOriginalEmailSubject(e.target.value);
         }}
-        className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-md focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
       />
     </div>
 
     {/* Email Content Field */}
-    <div className="relative md:mb-6">
+    <div className="relative md:mb-6" style={{ marginTop: '-1px' }}>
       <Textarea
         ref={emailContentRef}
         placeholder="Enter or edit the generated email content..."
@@ -1014,7 +1020,7 @@ export function EmailComposer({
           setOriginalEmailContent(e.target.value);
           handleTextareaResize();
         }}
-        className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
         style={{ minHeight: '160px', maxHeight: '400px' }}
       />
       <div className="absolute bottom-2 right-2 flex items-center gap-2">
@@ -1123,7 +1129,7 @@ export function EmailComposer({
     </div>
 
     {/* Settings and Templates Buttons Row */}
-    <div className="mt-4">
+    <div className="mt-8 pt-4">
       <div className="flex justify-end gap-2">
         {/* Campaign Settings Button - Only shown in campaign mode */}
         {drawerMode === 'campaign' && (
