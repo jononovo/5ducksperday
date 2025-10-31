@@ -46,7 +46,7 @@ export function EmailDrawer({
             className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
               mode === 'campaign'
                 ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted'
             }`}
             data-testid="button-campaign-tab"
           >
@@ -59,7 +59,7 @@ export function EmailDrawer({
             className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
               mode === 'compose'
                 ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted'
             }`}
             data-testid="button-compose-tab"
           >
