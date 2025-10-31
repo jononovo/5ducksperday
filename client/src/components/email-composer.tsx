@@ -707,7 +707,7 @@ export function EmailComposer({
     <div className="space-y-0 md:space-y-4">
       {/* Generation Mode Tabs - Only shown in campaign mode */}
       {drawerMode === 'campaign' && (
-        <div className="mb-0.5 -mt-2">
+        <div className="-mb-px -mt-2">
           <EmailGenerationTabs
             selectedMode={generationMode}
             onModeChange={setGenerationMode}
