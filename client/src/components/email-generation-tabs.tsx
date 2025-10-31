@@ -27,8 +27,8 @@ const GENERATION_MODES: GenerationMode[] = [
     buttonText: 'Generate Template',
     description: 'Use merge fields for personalization',
     icon: FileText,
-    activeColor: 'text-pink-600 dark:text-pink-400',
-    buttonColor: 'bg-pink-100/80 hover:bg-pink-200/80 text-pink-700 dark:bg-pink-900/40 dark:hover:bg-pink-900/60 dark:text-pink-300'
+    activeColor: '[&]:text-[pink]',
+    buttonColor: '[&]:bg-[pink]/20 [&]:hover:bg-[pink]/30 [&]:text-[pink] dark:[&]:bg-[pink]/20 dark:[&]:hover:bg-[pink]/30 dark:[&]:text-[pink]'
   }
 ];
 
