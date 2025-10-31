@@ -41,6 +41,7 @@ import { OFFER_OPTIONS, DEFAULT_OFFER } from "@/lib/offer-options";
 import { RecipientSelectionModal, type RecipientSelection } from "@/components/recipient-selection-modal";
 import { CampaignSettings, type CampaignSettingsData } from "@/components/campaign-settings";
 import { CampaignSendButton } from "@/components/campaign-send-button/CampaignSendButton";
+import { EmailGenerationTabs, getGenerationModeConfig } from "@/components/email-generation-tabs";
 
 // Component prop types
 interface EmailComposerProps {
@@ -167,6 +168,8 @@ export function EmailComposer({
     trackEmails: true, // Default to on like in the screenshot
     unsubscribeLink: false,
   });
+  // Generation mode state for campaign mode
+  const [generationMode, setGenerationMode] = useState<'ai_unique' | 'merge_field'>('merge_field');
 
   // Refs
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -193,7 +196,7 @@ export function EmailComposer({
     toEmail,
     tone: selectedTone,
     offerStrategy: selectedOfferStrategy,
-    generateTemplate: drawerMode === 'campaign', // Generate template when in campaign mode
+    generateTemplate: drawerMode === 'campaign' && generationMode === 'merge_field', // Only generate template in campaign mode with merge_field
     setEmailSubject,
     setOriginalEmailSubject,
     setToEmail,
@@ -322,6 +325,7 @@ export function EmailComposer({
         // Email generation settings
         tone: selectedTone,
         offerType: selectedOfferStrategy,
+        generationType: generationMode, // Track which generation mode was used
         
         // Scheduling settings
         sendTimePreference: type,
@@ -701,6 +705,17 @@ export function EmailComposer({
 
   return (
     <div className="space-y-0 md:space-y-6">
+      {/* Generation Mode Tabs - Only shown in campaign mode */}
+      {drawerMode === 'campaign' && (
+        <div className="mb-4">
+          <EmailGenerationTabs
+            selectedMode={generationMode}
+            onModeChange={setGenerationMode}
+            className=""
+          />
+        </div>
+      )}
+      
       {/* Email Prompt Field */}
       <div className="relative border-t border-b md:border-t-0 md:border-b-0 md:mb-6 mb-4">
         <Textarea
@@ -922,7 +937,7 @@ export function EmailComposer({
           {isGenerating 
             ? "Generating..." 
             : drawerMode === 'campaign' 
-              ? "Generate Template" 
+              ? getGenerationModeConfig(generationMode).buttonText
               : "Generate Email"
           }
         </Button>

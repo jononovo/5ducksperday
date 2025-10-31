@@ -46,6 +46,8 @@ import {
   Pause,
   Edit,
   Trash2,
+  Sparkles,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Campaign } from "@shared/schema";
@@ -252,6 +254,25 @@ export default function CampaignsPage() {
                             >
                               {campaign.status}
                             </Badge>
+                            {campaign.generationType && (
+                              <Badge
+                                variant="secondary"
+                                className="flex items-center gap-1"
+                                data-testid={`badge-generation-type-${campaign.id}`}
+                              >
+                                {campaign.generationType === 'ai_unique' ? (
+                                  <>
+                                    <Sparkles className="h-3 w-3" />
+                                    AI Unique
+                                  </>
+                                ) : (
+                                  <>
+                                    <FileText className="h-3 w-3" />
+                                    Template
+                                  </>
+                                )}
+                              </Badge>
+                            )}
                           </div>
 
                           <div className="flex items-center gap-3 mt-1 flex-wrap">
@@ -371,6 +392,21 @@ export default function CampaignsPage() {
                             {campaign.targetCustomerProfileId || 'Not set'}
                           </span>
                         </div>
+                        {campaign.generationType && (
+                          <div className="flex items-center gap-2 text-sm">
+                            {campaign.generationType === 'ai_unique' ? (
+                              <Sparkles className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                            )}
+                            <span className="font-medium">Generation Type:</span>
+                            <span className="text-muted-foreground">
+                              {campaign.generationType === 'ai_unique' 
+                                ? 'AI Unique Emails' 
+                                : 'Merge-field Template'}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="space-y-2">

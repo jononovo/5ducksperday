@@ -688,6 +688,8 @@ export const campaigns = pgTable("campaigns", {
   // Human Review settings
   requiresHumanReview: boolean("requires_human_review").default(true), // true = notification/review flow, false = auto-send
   emailTemplateId: integer("email_template_id").references(() => emailTemplates.id), // template for auto-send campaigns
+  // Generation type settings
+  generationType: text("generation_type").default("merge_field"), // 'ai_unique' = generate unique email per recipient, 'merge_field' = use template with merge fields
   // Tracking settings
   trackEmails: boolean("track_emails").default(true),
   unsubscribeLink: boolean("unsubscribe_link").default(true),
