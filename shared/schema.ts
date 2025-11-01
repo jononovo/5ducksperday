@@ -142,7 +142,7 @@ export const companies = pgTable("companies", {
 export const contacts = pgTable("contacts", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("user_id").notNull().references(() => users.id),
-  companyId: integer("company_id").notNull(),
+  companyId: integer("company_id"),
   name: text("name").notNull(),
   role: text("role"),
   email: text("email"),

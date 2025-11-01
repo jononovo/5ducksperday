@@ -492,7 +492,7 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
           
           if (!contact) {
             // Check if company exists or create it
-            let companyId: number;
+            let companyId: number | null = null;
             if (csvContact.company) {
               // Search for existing company by name (check cache first, then database)
               const companyNameLower = csvContact.company.toLowerCase();
@@ -525,30 +525,8 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
                 companyCache.set(companyNameLower, company);
               }
               companyId = company.id;
-            } else {
-              // Create a default company for contacts without company info
-              const defaultCompany = await storage.createCompany({
-                name: 'Unknown Company',
-                listId: null,
-                description: null,
-                age: null,
-                size: null,
-                website: null,
-                alternativeProfileUrl: null,
-                defaultContactEmail: null,
-                ranking: null,
-                linkedinProminence: null,
-                customerCount: null,
-                rating: null,
-                services: null,
-                validationPoints: null,
-                differentiation: null,
-                totalScore: null,
-                snapshot: null,
-                userId // Added via type cast in storage
-              } as any);
-              companyId = defaultCompany.id;
             }
+            // If no company is provided, companyId remains null
             
             // Create new contact with userId passed separately
             contact = await storage.createContact({
