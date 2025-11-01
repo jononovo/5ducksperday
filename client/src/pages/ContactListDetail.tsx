@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { usePagination } from "@/hooks/use-pagination";
 import {
   Table,
   TableBody,
@@ -42,6 +43,8 @@ import {
   Briefcase,
   Upload,
   FileSpreadsheet,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import type { ContactList, Contact, SearchList, Company } from "@shared/schema";
 import Papa from "papaparse";
@@ -90,6 +93,17 @@ export default function ContactListDetail() {
     queryKey: [`/api/contact-lists/${id}/contacts`],
     enabled: !!user && !!id,
   });
+
+  // Use pagination hook for contacts
+  const {
+    currentPage,
+    totalPages,
+    startIndex,
+    endIndex,
+    paginatedItems: paginatedContacts,
+    handlePreviousPage,
+    handleNextPage,
+  } = usePagination(contacts, { itemsPerPage: 10 });
 
   // Fetch available search lists for the "Add from Search List" option
   const { data: searchLists = [] } = useQuery<SearchList[]>({
@@ -512,7 +526,7 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
       {/* Contacts Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Contacts in this List</CardTitle>
+          <CardTitle>{contactList.name}</CardTitle>
         </CardHeader>
         <CardContent>
           {contacts.length === 0 ? (
@@ -542,7 +556,7 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contacts.map((contact) => (
+                {paginatedContacts.map((contact) => (
                   <TableRow key={contact.id} data-testid={`row-contact-${contact.id}`}>
                     <TableCell className="font-medium">
                       {contact.name}
@@ -592,6 +606,40 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
                 ))}
               </TableBody>
             </Table>
+            
+          )}
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-2 py-4 border-t mt-4">
+              <div className="text-sm text-muted-foreground">
+                Viewing {startIndex + 1}—
+                {Math.min(endIndex, contacts.length)} over{" "}
+                {contacts.length} results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  data-testid="button-previous-page"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  data-testid="button-next-page"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
