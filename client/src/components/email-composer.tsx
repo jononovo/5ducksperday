@@ -4,11 +4,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { 
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -24,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, Type, Wand2, Loader2, Box, Palette, Gift, Check, Info, Lock, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Mail, Type, Lock, ChevronDown, ChevronUp, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QuickTemplates from "./quick-templates";
 import { EmailSendButton } from "./email-fallback/EmailSendButton";
@@ -42,6 +37,9 @@ import { RecipientSelectionModal, type RecipientSelection } from "@/components/r
 import { CampaignSettings, type CampaignSettingsData } from "@/components/campaign-settings";
 import { CampaignSendButton } from "@/components/campaign-send-button/CampaignSendButton";
 import { EmailGenerationTabs, getGenerationModeConfig } from "@/components/email-generation-tabs";
+import { EmailGenerationControls } from "./email-composer/EmailGenerationControls";
+import { TemplateManager } from "./email-composer/TemplateManager";
+import EmailForm from "./email-composer/EmailForm";
 
 // Component prop types
 interface EmailComposerProps {
@@ -145,19 +143,11 @@ export function EmailComposer({
   const setSelectedOfferStrategy = setSelectedOfferStrategyProp ?? setLocalSelectedOfferStrategy;
   // Removed isGenerating state - will come from the hook
   const [isSent, setIsSent] = useState(false);
-  const [productPopoverOpen, setProductPopoverOpen] = useState(false);
-  const [tonePopoverOpen, setTonePopoverOpen] = useState(false);
-  const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
-  const [tooltipOpen, setTooltipOpen] = useState(false);
   const [generateConfirmDialogOpen, setGenerateConfirmDialogOpen] = useState(false);
   const [productChangeDialogOpen, setProductChangeDialogOpen] = useState(false);
   const [pendingProduct, setPendingProduct] = useState<StrategicProfile | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
-  const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [isMergeViewMode, setIsMergeViewMode] = useState(false);
   const [isGmailButtonHovered, setIsGmailButtonHovered] = useState(false);
-  const [isTemplatesExpanded, setIsTemplatesExpanded] = useState(false);
   const [recipientModalOpen, setRecipientModalOpen] = useState(false);
   const [campaignRecipients, setCampaignRecipients] = useState<RecipientSelection | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -185,9 +175,7 @@ export function EmailComposer({
 
   // Refs
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const emailContentRef = useRef<HTMLTextAreaElement>(null);
   const toEmailRef = useRef<HTMLInputElement>(null);
-  const emailSubjectRef = useRef<HTMLInputElement>(null);
 
   // Helper functions to get/set the correct state based on generation mode
   const getCurrentSubject = () => {
@@ -341,16 +329,6 @@ export function EmailComposer({
     }
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async (template: EmailTemplate) => {
-      const res = await apiRequest("PUT", `/api/email-templates/${template.id}`, template);
-      return await res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/email-templates'] });
-      toast({ title: "Template updated successfully!" });
-    }
-  });
 
   // Campaign creation mutation
   const createCampaignMutation = useMutation({
@@ -541,9 +519,6 @@ export function EmailComposer({
   };
 
   const getDisplayValue = (currentValue: string, originalValue?: string) => {
-    // In edit mode, show the current value being edited
-    if (isEditMode) return currentValue;
-    
     // In merge view mode, show the raw template with merge fields
     if (isMergeViewMode) return originalValue || currentValue;
     
@@ -569,7 +544,6 @@ export function EmailComposer({
       setSelectedProductData(null);
       setEmailPrompt("");
       setOriginalEmailPrompt("");
-      setProductPopoverOpen(false);
     }
   };
 
@@ -585,7 +559,6 @@ export function EmailComposer({
       setEmailPrompt("");
       setOriginalEmailPrompt("");
     }
-    setProductPopoverOpen(false);
   };
 
   const handleConfirmProductChange = () => {
@@ -666,37 +639,6 @@ export function EmailComposer({
     window.open(`/api/gmail/auth?userId=${user.id}`, '_blank');
   };
 
-  const handleSaveEmail = async (templateName: string) => {
-    try {
-      await apiRequest("POST", '/api/email-templates', {
-        name: templateName,
-        subject: getCurrentOriginalSubject() || getCurrentSubject(),
-        content: getCurrentOriginalContent() || getCurrentContent(),
-        description: originalEmailPrompt || emailPrompt
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ['/api/email-templates'] });
-      toast({ title: "Template saved successfully!" });
-    } catch (error) {
-      console.error('Save template error:', error);
-      toast({
-        title: "Failed to save template",
-        description: "Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const saveCurrentTemplate = async () => {
-    if (!editingTemplateId || !editingTemplate) return;
-    
-    updateMutation.mutate({
-      ...editingTemplate,
-      subject: originalEmailSubject || emailSubject,
-      content: originalEmailContent || emailContent,
-      description: originalEmailPrompt || emailPrompt
-    } as EmailTemplate);
-  };
 
   const handleMergeFieldInsert = (field: string) => {
     if (emailContentRef.current) {
@@ -716,16 +658,6 @@ export function EmailComposer({
     }
   };
 
-  const enterEditMode = (template: any) => {
-    setIsEditMode(true);
-    setEditingTemplateId(template.id);
-    setEditingTemplate(template);
-  };
-
-  const exitEditMode = () => {
-    setIsEditMode(false);
-    setEditingTemplateId(null);
-  };
 
   const toggleMergeView = () => {
     setIsMergeViewMode(!isMergeViewMode);
@@ -807,236 +739,31 @@ export function EmailComposer({
           </div>
         )}
         
-        {/* Email Prompt Field */}
-        <div className="relative border-t border-b rounded-tr-lg md:border-t-0 md:border-b-0 md:mb-6 mb-4 overflow-hidden">
-        <Textarea
-          ref={promptTextareaRef}
-          placeholder="Add product, e.g.: Stationary products & printers"
-          value={getDisplayValue(emailPrompt, originalEmailPrompt)}
-          onChange={(e) => {
-            setEmailPrompt(e.target.value);
-            setOriginalEmailPrompt(e.target.value);
-            handlePromptTextareaResize();
+        {/* Email Prompt Field with Generation Controls */}
+        <EmailGenerationControls
+          selectedProduct={selectedProduct}
+          selectedProductData={selectedProductData}
+          onProductSelect={handleSelectProduct}
+          onProductClear={handleSelectNone}
+          selectedTone={selectedTone}
+          onToneSelect={setSelectedTone}
+          selectedOfferStrategy={selectedOfferStrategy}
+          onOfferStrategySelect={setSelectedOfferStrategy}
+          products={products}
+          emailPrompt={emailPrompt}
+          originalEmailPrompt={originalEmailPrompt}
+          onPromptChange={(value) => {
+            setEmailPrompt(value);
+            setOriginalEmailPrompt(value);
           }}
-          className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
-          style={{ minHeight: '32px', maxHeight: '120px' }}
+          onPromptResize={handlePromptTextareaResize}
+          promptTextareaRef={promptTextareaRef}
+          getDisplayValue={getDisplayValue}
+          onGenerate={handleGenerateEmail}
+          isGenerating={isGenerating}
+          drawerMode={drawerMode}
+          generationMode={generationMode}
         />
-        <div className="absolute bottom-1 left-2 flex items-center gap-2">
-          {/* Product Selection */}
-          <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen}>
-            <PopoverTrigger asChild>
-              <button 
-                className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
-                title="Select product context"
-              >
-                <Box className="w-3 h-3" />
-                {selectedProductData && (
-                  <span className="max-w-20 truncate">{selectedProductData.title || selectedProductData.productService || 'Product'}</span>
-                )}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-0" align="start">
-              <div className="p-4 border-b bg-muted/30">
-                <div className="flex items-center gap-2">
-                  <Box className="w-4 h-4 text-primary" />
-                  <h4 className="font-semibold text-sm">Product Context</h4>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Insert from your existing product list</p>
-              </div>
-              <div className="p-2">
-                {/* None Option */}
-                <button
-                  className={cn(
-                    "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                    selectedProduct === null && "bg-accent"
-                  )}
-                  onClick={handleSelectNone}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs">
-                      <span className="font-medium">None</span>
-                      <span className="text-muted-foreground"> - No specific product context</span>
-                    </div>
-                    {selectedProduct === null && (
-                      <Check className="w-3 h-3 text-primary" />
-                    )}
-                  </div>
-                </button>
-                
-                {/* Product Options */}
-                {products.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground text-sm">
-                    <p>No products created yet.</p>
-                    <p className="text-xs mt-1">Create one in Strategy Dashboard</p>
-                  </div>
-                ) : (
-                  products.map((product) => (
-                    <button
-                      key={product.id}
-                      className={cn(
-                        "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                        selectedProduct === product.id && "bg-accent"
-                      )}
-                      onClick={() => handleSelectProduct(product)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="text-xs flex-1 min-w-0">
-                          <div className="font-medium truncate">
-                            {product.title || product.productService || 'Untitled Product'}
-                          </div>
-                          {product.productService && product.title !== product.productService && (
-                            <div className="text-muted-foreground truncate mt-0.5">
-                              {product.productService}
-                            </div>
-                          )}
-                        </div>
-                        {selectedProduct === product.id && (
-                          <Check className="w-3 h-3 text-primary" />
-                        )}
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          {/* Tone Selection */}
-          <Popover open={tonePopoverOpen} onOpenChange={setTonePopoverOpen}>
-            <PopoverTrigger asChild>
-              <button 
-                className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
-                title="Select email tone"
-              >
-                <Palette className="w-3 h-3" />
-                <span>{TONE_OPTIONS.find(t => t.id === selectedTone)?.name || 'Casual'}</span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-0" align="start">
-              <div className="p-4 border-b bg-muted/30">
-                <div className="flex items-center gap-2">
-                  <Palette className="w-4 h-4 text-primary" />
-                  <h4 className="font-semibold text-sm">Email Tone</h4>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Choose the personality for your email</p>
-              </div>
-              <div className="p-2">
-                {TONE_OPTIONS.map((tone) => (
-                  <button
-                    key={tone.id}
-                    className={cn(
-                      "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                      selectedTone === tone.id && "bg-accent"
-                    )}
-                    onClick={() => {
-                      setSelectedTone(tone.id);
-                      setTonePopoverOpen(false);
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs">
-                        <span className="font-medium">{tone.name}</span>
-                        <span className="text-muted-foreground"> - {tone.description}</span>
-                      </div>
-                      {selectedTone === tone.id && (
-                        <Check className="w-3 h-3 text-primary" />
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          {/* Offer Strategy Selection */}
-          <Popover open={offerPopoverOpen} onOpenChange={setOfferPopoverOpen}>
-            <PopoverTrigger asChild>
-              <button 
-                className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
-                title="Select offer strategy"
-              >
-                <Gift className="w-3 h-3" />
-                {selectedOfferStrategy !== 'none' && (
-                  <span>{OFFER_OPTIONS.find(o => o.id === selectedOfferStrategy)?.name}</span>
-                )}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-0" align="start">
-              <div className="p-4 border-b bg-muted/30">
-                <div className="flex items-center gap-2">
-                  <Gift className="w-4 h-4 text-primary" />
-                  <h4 className="font-semibold text-sm">Offer Strategy</h4>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Optional: Structure your offer for maximum impact</p>
-              </div>
-              <div className="p-2">
-                {OFFER_OPTIONS.map((offer) => (
-                  <button
-                    key={offer.id}
-                    className={cn(
-                      "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                      selectedOfferStrategy === offer.id && "bg-accent"
-                    )}
-                    onClick={() => {
-                      setSelectedOfferStrategy(offer.id);
-                      setOfferPopoverOpen(false);
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs">
-                        <span className="font-medium">{offer.name}</span>
-                        <span className="text-muted-foreground"> - {offer.description}</span>
-                      </div>
-                      {selectedOfferStrategy === offer.id && (
-                        <Check className="w-3 h-3 text-primary" />
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-        <div className="absolute bottom-2 right-2 flex items-center gap-2">
-          <TooltipProvider>
-            <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
-              <TooltipTrigger asChild>
-              <button 
-                className="p-1 rounded hover:bg-accent transition-colors"
-                onClick={() => setTooltipOpen(!tooltipOpen)}
-                onBlur={() => setTooltipOpen(false)}
-              >
-                <Info className="w-3 h-3 text-muted-foreground" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-sm max-w-xs">
-              <p>Give us a sentence about your offer and we'll generate the email for you. It'll be awesome.</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <Button 
-          onClick={handleGenerateEmail} 
-          variant={drawerMode === 'campaign' ? "default" : "yellow"}
-          disabled={isGenerating}
-          className={cn(
-            "h-8 px-3 text-xs hover:scale-105 transition-all duration-300 ease-out",
-            drawerMode === 'campaign' && getGenerationModeConfig(generationMode).buttonColor
-          )}
-        >
-          {isGenerating ? (
-            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-          ) : (
-            <Wand2 className="w-3 h-3 mr-1" />
-          )}
-          {isGenerating 
-            ? "Generating..." 
-            : drawerMode === 'campaign' 
-              ? getGenerationModeConfig(generationMode).buttonText
-              : "Generate Email"
-          }
-        </Button>
-      </div>
-    </div>
     </div>
 
     {/* To Email Field / Campaign Recipients */}
@@ -1083,139 +810,42 @@ export function EmailComposer({
       )}
     </div>
 
-    {/* Email Subject Field */}
-    <div className="relative border-b md:border-b-0 md:mb-6" style={{ marginTop: '-1px' }}>
-      <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-      <Input
-        ref={emailSubjectRef}
-        placeholder="Email Subject"
-        value={getDisplayValue(getCurrentSubject(), getCurrentOriginalSubject())}
-        onChange={(e) => {
-          setCurrentSubject(e.target.value);
-          setCurrentOriginalSubject(e.target.value);
-        }}
-        className="mobile-input mobile-input-text-fix pl-10 border-0 rounded-none md:border md:rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
-      />
-    </div>
-
-    {/* Email Content Field */}
-    <div className="relative md:mb-6" style={{ marginTop: '-1px' }}>
-      <Textarea
-        ref={emailContentRef}
-        placeholder="Enter or edit the generated email content..."
-        value={getDisplayValue(getCurrentContent(), getCurrentOriginalContent())}
-        onChange={(e) => {
-          setCurrentContent(e.target.value);
-          setCurrentOriginalContent(e.target.value);
-          handleTextareaResize();
-        }}
-        className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
-        style={{ minHeight: '160px', maxHeight: '400px' }}
-      />
-      <div className="absolute bottom-2 right-2 flex items-center gap-2">
-        {/* Gmail Connection Button/Status */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {gmailStatus?.authorized ? (
-                <Button
-                  onClick={handleGmailConnect}
-                  variant="outline"
-                  size="sm"
-                  className="h-8 text-xs bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400 transition-all duration-300 group overflow-hidden"
-                  style={{ 
-                    width: 'auto',
-                    minWidth: '32px',
-                    maxWidth: '32px',
-                    padding: '0 8px',
-                    transition: 'max-width 0.3s ease-out, padding 0.3s ease-out'
-                  }}
-                  onMouseEnter={(e) => {
-                    const button = e.currentTarget;
-                    button.style.maxWidth = '200px';
-                    button.style.padding = '0 12px';
-                  }}
-                  onMouseLeave={(e) => {
-                    const button = e.currentTarget;
-                    button.style.maxWidth = '32px';
-                    button.style.padding = '0 8px';
-                  }}
-                >
-                  <Mail className="w-3 h-3 shrink-0" />
-                  <span 
-                    className="ml-1.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{ transitionDelay: '0.1s' }}
-                  >
-                    {gmailUserInfo?.email 
-                      ? (gmailUserInfo as any).email.length > 20 
-                        ? `${(gmailUserInfo as any).email.substring(0, 20)}...`
-                        : (gmailUserInfo as any).email
-                      : 'Gmail Connected'
-                    }
-                  </span>
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleGmailConnect}
-                  onMouseEnter={() => setIsGmailButtonHovered(true)}
-                  onMouseLeave={() => setIsGmailButtonHovered(false)}
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    "h-8 text-xs transition-all duration-300 ease-out overflow-hidden",
-                    isGmailButtonHovered 
-                      ? "px-3 bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100" 
-                      : "px-2 w-8 bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
-                  )}
-                >
-                  <Lock className="w-3 h-3 shrink-0" />
-                  {isGmailButtonHovered && (
-                    <span className="ml-1 whitespace-nowrap">Gmail API BETA</span>
-                  )}
-                </Button>
-              )}
-            </TooltipTrigger>
-            <TooltipContent>
-              {gmailStatus?.authorized 
-                ? <p>Gmail connected. Click to reconnect or change account.</p>
-                : <p>Connect via Gmail API so that your emails send automatically when you click send here.</p>
-              }
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        
-        {/* Send Email Button / Schedule Campaign Button */}
-        {drawerMode === 'compose' ? (
-          <EmailSendButton
-            to={toEmail}
-            subject={emailSubject}
-            body={emailContent}
-            contact={selectedContact ?? undefined}
-            company={selectedCompany ?? undefined}
-            isGmailAuthenticated={(gmailStatus as any)?.authorized}
-            onSendViaGmail={handleSendEmail}
-            onManualSend={handleManualSend}
-            isPending={sendEmailMutation.isPending}
-            isSuccess={isSent}
-            className="h-8 px-3 text-xs"
-          />
-        ) : (
-          <CampaignSendButton
-            recipients={campaignRecipients}
-            listId={currentListId}
-            currentQuery={currentQuery}
-            subject={getCurrentSubject()}
-            body={getCurrentContent()}
-            onSchedule={() => handleCreateCampaign('scheduled')}
-            onStartNow={() => handleCreateCampaign('immediate')}
-            onSaveDraft={() => handleCreateCampaign('draft')}
-            isPending={createCampaignMutation.isPending}
-            isSuccess={false}
-            className="h-8 px-3 text-xs"
-          />
-        )}
-      </div>
-    </div>
+    {/* Email Form */}
+    <EmailForm
+      drawerMode={drawerMode}
+      toEmail={toEmail}
+      emailSubject={getCurrentSubject()}
+      originalEmailSubject={getCurrentOriginalSubject()}
+      emailContent={getCurrentContent()}
+      originalEmailContent={getCurrentOriginalContent()}
+      onSubjectChange={(value) => {
+        setCurrentSubject(value);
+        setCurrentOriginalSubject(value);
+      }}
+      onContentChange={(value) => {
+        setCurrentContent(value);
+        setCurrentOriginalContent(value);
+      }}
+      gmailStatus={gmailStatus}
+      gmailUserInfo={gmailUserInfo}
+      isGmailButtonHovered={isGmailButtonHovered}
+      onGmailButtonHover={setIsGmailButtonHovered}
+      onGmailConnect={handleGmailConnect}
+      sendEmailMutation={sendEmailMutation}
+      isSent={isSent}
+      selectedContact={selectedContact}
+      selectedCompany={selectedCompany}
+      onSendEmail={handleSendEmail}
+      onManualSend={handleManualSend}
+      campaignRecipients={campaignRecipients}
+      currentListId={currentListId}
+      currentQuery={currentQuery}
+      onCreateCampaign={handleCreateCampaign}
+      generationType={generationType}
+      creatingCampaign={createCampaignMutation.isPending}
+      isMergeViewMode={isMergeViewMode}
+      getDisplayValue={getDisplayValue}
+    />
 
     {/* Settings and Templates Buttons Row */}
     <div className="mt-8 pt-4">
@@ -1235,18 +865,30 @@ export function EmailComposer({
           </button>
         )}
         
-        {/* Templates Button - Always visible */}
-        <button
-          onClick={() => setIsTemplatesExpanded(!isTemplatesExpanded)}
-          className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
-        >
-          <span>Templates</span>
-          {isTemplatesExpanded ? (
-            <ChevronUp className="w-3.5 h-3.5" />
-          ) : (
-            <ChevronDown className="w-3.5 h-3.5" />
-          )}
-        </button>
+        {/* Templates Manager */}
+        <TemplateManager
+          templates={templates}
+          templatesLoading={templatesLoading}
+          onTemplateSelect={(template: EmailTemplate) => {
+            setEmailPrompt(template.description || "");
+            setCurrentContent(template.content);
+            setCurrentSubject(template.subject || "");
+            setOriginalEmailPrompt(template.description || "");
+            setCurrentOriginalContent(template.content);
+            setCurrentOriginalSubject(template.subject || "");
+          }}
+          currentContent={getCurrentContent()}
+          currentSubject={getCurrentSubject()}
+          emailPrompt={emailPrompt}
+          isMergeViewMode={isMergeViewMode}
+          onMergeViewToggle={toggleMergeView}
+          onMergeFieldInsert={handleMergeFieldInsert}
+          selectedContact={selectedContact}
+          selectedCompany={selectedCompany}
+          user={user}
+          editingTemplateId={null}
+          editingTemplate={null}
+        />
       </div>
       
       {/* Campaign Settings Collapsible Container - Only shown when open and in campaign mode */}
@@ -1265,35 +907,6 @@ export function EmailComposer({
           />
         </div>
       )}
-      
-      {/* Templates Collapsible Container */}
-      <div className={cn(
-        "overflow-hidden transition-all duration-300 ease-in-out",
-        isTemplatesExpanded ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
-      )}>
-        <QuickTemplates
-          templates={templates}
-          templatesLoading={templatesLoading}
-          onSelectTemplate={(template: EmailTemplate) => {
-            setEmailPrompt(template.description || "");
-            setCurrentContent(template.content);
-            setCurrentSubject(template.subject || "");
-            setOriginalEmailPrompt(template.description || "");
-            setCurrentOriginalContent(template.content);
-            setCurrentOriginalSubject(template.subject || "");
-          }}
-          onSaveTemplate={handleSaveEmail}
-          onUpdateTemplate={saveCurrentTemplate}
-          onMergeFieldInsert={handleMergeFieldInsert}
-          onEditTemplate={enterEditMode}
-          isEditMode={isEditMode}
-          editingTemplateId={editingTemplateId}
-          onExitEditMode={exitEditMode}
-          isMergeViewMode={isMergeViewMode}
-          onToggleMergeView={toggleMergeView}
-          isSavingTemplate={updateMutation.isPending}
-        />
-      </div>
     </div>
 
     {/* Generate Email Confirmation Dialog */}
