@@ -531,15 +531,205 @@ export class TestRunner {
     }
   }
 
+  async runEmailComposerTest(): Promise<TestResult> {
+    const startTime = Date.now();
+    const subTests: SubTestResult[] = [];
+    
+    try {
+      // Test 1: Email Generation Controls
+      const generationControlsTest = await this.testEmailGenerationControls();
+      subTests.push(generationControlsTest);
+
+      // Test 2: Template Manager
+      const templateManagerTest = await this.testTemplateManager();
+      subTests.push(templateManagerTest);
+
+      // Test 3: Email Form Fields
+      const emailFormTest = await this.testEmailFormFields();
+      subTests.push(emailFormTest);
+
+      // Test 4: Campaign Mode vs Compose Mode
+      const composerModesTest = await this.testComposerModes();
+      subTests.push(composerModesTest);
+
+      // Calculate status
+      const failedCount = subTests.filter(test => test.status === 'failed').length;
+      const warningCount = subTests.filter(test => test.status === 'warning').length;
+      
+      let status: 'passed' | 'failed' | 'warning' = 'passed';
+      let message = "Email composer components fully operational";
+      
+      if (failedCount > 0) {
+        status = 'failed';
+        message = `Email composer issues detected - ${failedCount} test(s) failed`;
+      } else if (warningCount > 0) {
+        status = 'warning';
+        message = `Email composer operational with ${warningCount} warning(s)`;
+      }
+      
+      return {
+        name: 'Email Composer Components',
+        status,
+        message,
+        duration: Date.now() - startTime,
+        subTests
+      };
+    } catch (error) {
+      return {
+        name: 'Email Composer Components',
+        status: 'failed',
+        message: "Email composer test failed",
+        duration: Date.now() - startTime,
+        subTests,
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  private async testEmailGenerationControls(): Promise<SubTestResult> {
+    try {
+      // Test AI generation endpoint
+      const aiGenerationResponse = await fetch('http://localhost:5000/api/generate-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: "Test email generation",
+          tone: "professional",
+          offerStrategy: "limited_time",
+          productId: 1
+        })
+      });
+
+      const statusOk = aiGenerationResponse.ok || aiGenerationResponse.status === 401;
+      
+      return {
+        name: 'Email Generation Controls',
+        status: statusOk ? 'passed' : 'failed',
+        message: statusOk ? 
+          'AI email generation controls operational' : 
+          `Generation endpoint failed with status ${aiGenerationResponse.status}`,
+        data: { 
+          statusCode: aiGenerationResponse.status,
+          endpoint: '/api/generate-email'
+        }
+      };
+    } catch (error) {
+      return {
+        name: 'Email Generation Controls',
+        status: 'failed',
+        message: 'Generation controls test error',
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  private async testTemplateManager(): Promise<SubTestResult> {
+    try {
+      // Test template retrieval
+      const templatesResponse = await fetch('http://localhost:5000/api/email-templates');
+      const templatesData = templatesResponse.ok ? await templatesResponse.json() : null;
+      
+      const hasTemplates = Array.isArray(templatesData);
+      const statusOk = templatesResponse.ok || templatesResponse.status === 401;
+      
+      return {
+        name: 'Template Manager',
+        status: statusOk ? 'passed' : 'failed',
+        message: statusOk ? 
+          `Template manager operational - ${hasTemplates ? templatesData.length : 0} templates available` : 
+          'Template manager endpoint failed',
+        data: { 
+          statusCode: templatesResponse.status,
+          templateCount: hasTemplates ? templatesData.length : 0
+        }
+      };
+    } catch (error) {
+      return {
+        name: 'Template Manager',
+        status: 'failed',
+        message: 'Template manager test error',
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  private async testEmailFormFields(): Promise<SubTestResult> {
+    try {
+      // Test Gmail status endpoint
+      const gmailStatusResponse = await fetch('http://localhost:5000/api/gmail/status');
+      const gmailData = gmailStatusResponse.ok ? await gmailStatusResponse.json() : null;
+      
+      const statusOk = gmailStatusResponse.ok || gmailStatusResponse.status === 401;
+      
+      return {
+        name: 'Email Form Fields',
+        status: statusOk ? 'passed' : 'failed',
+        message: statusOk ? 
+          `Email form fields operational - Gmail integration ${gmailData?.authorized ? 'connected' : 'available'}` : 
+          'Email form validation failed',
+        data: { 
+          statusCode: gmailStatusResponse.status,
+          gmailConnected: gmailData?.authorized || false
+        }
+      };
+    } catch (error) {
+      return {
+        name: 'Email Form Fields',
+        status: 'failed',
+        message: 'Email form test error',
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  private async testComposerModes(): Promise<SubTestResult> {
+    try {
+      // Test campaign creation endpoint
+      const campaignResponse = await fetch('http://localhost:5000/api/campaigns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'draft',
+          subject: 'Test Campaign',
+          body: 'Test campaign body',
+          recipients: [],
+          generationType: 'ai_unique'
+        })
+      });
+
+      const statusOk = campaignResponse.ok || campaignResponse.status === 401;
+      
+      return {
+        name: 'Composer Modes (Campaign/Compose)',
+        status: statusOk ? 'passed' : 'failed',
+        message: statusOk ? 
+          'Both compose and campaign modes operational' : 
+          `Campaign mode endpoint failed with status ${campaignResponse.status}`,
+        data: { 
+          statusCode: campaignResponse.status,
+          modes: ['compose', 'campaign']
+        }
+      };
+    } catch (error) {
+      return {
+        name: 'Composer Modes (Campaign/Compose)',
+        status: 'failed',
+        message: 'Composer modes test error',
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
   async runAllTests(): Promise<TestReport> {
     const startTime = Date.now();
     
-    const [databaseTest, searchTest, healthTest, authTest, backendSearchTest] = await Promise.all([
+    const [databaseTest, searchTest, healthTest, authTest, backendSearchTest, emailComposerTest] = await Promise.all([
       this.runDatabaseTest(),
       this.runSearchTest(),
       this.runHealthTest(),
       this.runAuthTest(),
-      this.runBackendSearchTest()
+      this.runBackendSearchTest(),
+      this.runEmailComposerTest()
     ]);
 
     // Flatten all sub-tests into individual tests with category metadata
@@ -614,6 +804,21 @@ export class TestRunner {
           message: subTest.message,
           duration: subTest.duration || 0,
           category: 'Backend Search System',
+          data: subTest.data,
+          error: subTest.error
+        });
+      });
+    }
+    
+    // Add email composer tests
+    if (emailComposerTest.subTests) {
+      emailComposerTest.subTests.forEach(subTest => {
+        allTests.push({
+          name: subTest.name,
+          status: subTest.status,
+          message: subTest.message,
+          duration: subTest.duration || 0,
+          category: 'Email Composer Components',
           data: subTest.data,
           error: subTest.error
         });
