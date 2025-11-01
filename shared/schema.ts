@@ -1039,6 +1039,38 @@ export const contactListMembers = pgTable("contact_list_members", {
   uniqueIndex('idx_contact_list_unique').on(table.listId, table.contactId)
 ]);
 
+// Campaign recipients - Track individual email recipient activity
+export const campaignRecipients = pgTable("campaign_recipients", {
+  id: serial("id").primaryKey(),
+  campaignId: integer("campaign_id").notNull().references(() => campaigns.id, { onDelete: 'cascade' }),
+  contactId: integer("contact_id").references(() => contacts.id, { onDelete: 'set null' }),
+  recipientEmail: text("recipient_email").notNull(),
+  recipientFirstName: text("recipient_first_name"),
+  recipientLastName: text("recipient_last_name"),
+  recipientCompany: text("recipient_company"),
+  status: text("status").notNull().default('pending'), // pending, sent, bounced, failed
+  sentAt: timestamp("sent_at"),
+  openedAt: timestamp("opened_at"),
+  clickedAt: timestamp("clicked_at"),
+  repliedAt: timestamp("replied_at"),
+  bouncedAt: timestamp("bounced_at"),
+  unsubscribedAt: timestamp("unsubscribed_at"),
+  emailContent: text("email_content"),
+  emailSubject: text("email_subject"),
+  sendgridMessageId: text("sendgrid_message_id"),
+  errorMessage: text("error_message"),
+  openCount: integer("open_count").default(0),
+  clickCount: integer("click_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => [
+  index('idx_campaign_recipients_campaign_id').on(table.campaignId),
+  index('idx_campaign_recipients_contact_id').on(table.contactId),
+  index('idx_campaign_recipients_email').on(table.recipientEmail),
+  index('idx_campaign_recipients_status').on(table.status),
+  uniqueIndex('idx_campaign_recipient_unique').on(table.campaignId, table.recipientEmail)
+]);
+
 // Contact list schemas
 const contactListSchema = z.object({
   name: z.string().min(1, "List name is required"),
@@ -1066,6 +1098,27 @@ export type ContactList = typeof contactLists.$inferSelect;
 export type InsertContactList = z.infer<typeof insertContactListSchema>;
 export type ContactListMember = typeof contactListMembers.$inferSelect;
 export type InsertContactListMember = z.infer<typeof insertContactListMemberSchema>;
+
+// Campaign recipient schema
+const campaignRecipientSchema = z.object({
+  campaignId: z.number(),
+  contactId: z.number().optional().nullable(),
+  recipientEmail: z.string().email(),
+  recipientFirstName: z.string().optional().nullable(),
+  recipientLastName: z.string().optional().nullable(),
+  recipientCompany: z.string().optional().nullable(),
+  status: z.enum(['pending', 'sent', 'bounced', 'failed']).default('pending'),
+  emailContent: z.string().optional().nullable(),
+  emailSubject: z.string().optional().nullable(),
+  sendgridMessageId: z.string().optional().nullable(),
+  errorMessage: z.string().optional().nullable()
+});
+
+export const insertCampaignRecipientSchema = campaignRecipientSchema;
+
+// Campaign recipient types
+export type CampaignRecipient = typeof campaignRecipients.$inferSelect;
+export type InsertCampaignRecipient = z.infer<typeof insertCampaignRecipientSchema>;
 
 // Search jobs types
 export type SearchJob = typeof searchJobs.$inferSelect;

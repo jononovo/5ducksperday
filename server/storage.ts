@@ -4,6 +4,7 @@ import {
   senderProfiles, customerProfiles, campaigns, searchJobs,
   contactLists, contactListMembers, oauthTokens,
   userCredits, creditTransactions, subscriptions, userNotifications,
+  campaignRecipients,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type SearchList, type InsertSearchList,
@@ -17,7 +18,8 @@ import {
   type Campaign, type InsertCampaign,
   type SearchJob, type InsertSearchJob,
   type ContactList, type InsertContactList,
-  type ContactListMember, type InsertContactListMember
+  type ContactListMember, type InsertContactListMember,
+  type CampaignRecipient, type InsertCampaignRecipient
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, sql, desc, lt } from "drizzle-orm";
@@ -671,6 +673,85 @@ class DatabaseStorage implements IStorage {
       .from(campaigns)
       .where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)));
     return campaign;
+  }
+
+  async getCampaignWithMetrics(id: number, userId: number): Promise<any> {
+    const campaign = await this.getCampaign(id, userId);
+    if (!campaign) {
+      return undefined;
+    }
+
+    // Get recipients and their activity
+    const recipients = await db.select({
+      id: campaignRecipients.id,
+      email: campaignRecipients.recipientEmail,
+      firstName: campaignRecipients.recipientFirstName,
+      lastName: campaignRecipients.recipientLastName,
+      companyName: campaignRecipients.recipientCompany,
+      status: campaignRecipients.status,
+      sentAt: campaignRecipients.sentAt,
+      openedAt: campaignRecipients.openedAt,
+      clickedAt: campaignRecipients.clickedAt,
+      repliedAt: campaignRecipients.repliedAt,
+      bouncedAt: campaignRecipients.bouncedAt,
+      unsubscribedAt: campaignRecipients.unsubscribedAt,
+      openCount: campaignRecipients.openCount,
+      clickCount: campaignRecipients.clickCount,
+      lastActivity: campaignRecipients.updatedAt
+    })
+    .from(campaignRecipients)
+    .where(eq(campaignRecipients.campaignId, id))
+    .orderBy(desc(campaignRecipients.updatedAt));
+
+    // Calculate metrics
+    const totalRecipients = recipients.length || campaign.totalRecipients || 0;
+    const emailsSent = recipients.filter(r => r.sentAt).length || campaign.emailsSent || 0;
+    const emailsOpened = recipients.filter(r => r.openedAt).length;
+    const emailsClicked = recipients.filter(r => r.clickedAt).length;
+    const emailsReplied = recipients.filter(r => r.repliedAt).length;
+    const emailsBounced = recipients.filter(r => r.bouncedAt).length;
+    const emailsUnsubscribed = recipients.filter(r => r.unsubscribedAt).length;
+
+    const openRate = emailsSent > 0 ? (emailsOpened / emailsSent) * 100 : 0;
+    const clickRate = emailsSent > 0 ? (emailsClicked / emailsSent) * 100 : 0;
+    const replyRate = emailsSent > 0 ? (emailsReplied / emailsSent) * 100 : 0;
+    const bounceRate = emailsSent > 0 ? (emailsBounced / emailsSent) * 100 : 0;
+    const unsubscribeRate = emailsSent > 0 ? (emailsUnsubscribed / emailsSent) * 100 : 0;
+    
+    // Get email template if exists
+    let emailSubject = campaign.subject;
+    let emailBody = campaign.body;
+    
+    if (campaign.emailTemplateId) {
+      const template = await db.select()
+        .from(emailTemplates)
+        .where(eq(emailTemplates.id, campaign.emailTemplateId))
+        .limit(1);
+      
+      if (template[0]) {
+        emailSubject = template[0].subject || emailSubject;
+        emailBody = template[0].content || emailBody;
+      }
+    }
+
+    return {
+      ...campaign,
+      totalRecipients,
+      emailsSent,
+      emailsOpened,
+      emailsClicked,
+      emailsReplied,
+      emailsBounced,
+      emailsUnsubscribed,
+      openRate,
+      clickRate,
+      replyRate,
+      bounceRate,
+      unsubscribeRate,
+      emailSubject,
+      emailBody,
+      recipients
+    };
   }
 
   async createCampaign(data: InsertCampaign): Promise<Campaign> {

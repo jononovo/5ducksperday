@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Link, useLocation } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
@@ -60,6 +61,7 @@ const createCampaignSchema = z.object({
 
 export default function CampaignsPage() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<number>>(new Set());
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
@@ -233,17 +235,20 @@ export default function CampaignsPage() {
               <Card
                 key={campaign.id}
                 className={cn(
-                  "rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm"
+                  "rounded-lg transition-all duration-200 hover:shadow-md hover:border-purple-200 dark:hover:border-purple-800"
                 )}
                 data-testid={`campaign-card-${campaign.id}`}
               >
-                <div onClick={() => toggleExpand(campaign.id)} className="p-3">
+                <div 
+                  onClick={() => setLocation(`/campaigns/${campaign.id}`)} 
+                  className="p-3 cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-800/30 rounded-t-lg transition-colors"
+                >
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-base leading-tight flex items-center gap-2">
+                            <h3 className="font-semibold text-base leading-tight flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
                               <Target className="h-4 w-4 text-muted-foreground" />
                               {campaign.name}
                             </h3>
@@ -301,6 +306,10 @@ export default function CampaignsPage() {
                           <Badge
                             variant="outline"
                             className="text-xs cursor-pointer hover:bg-accent"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpand(campaign.id);
+                            }}
                           >
                             {isExpanded ? (
                               <ChevronUp className="h-3 w-3" />
@@ -342,7 +351,10 @@ export default function CampaignsPage() {
                                 )}
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setLocation(`/campaigns/${campaign.id}`);
+                                }}
                                 data-testid={`menu-edit-${campaign.id}`}
                               >
                                 <Edit className="mr-2 h-4 w-4" />
