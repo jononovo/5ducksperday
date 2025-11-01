@@ -295,10 +295,17 @@ export default function ContactListDetail() {
       });
 
       if (result.errors.length > 0) {
-        // Report the first parsing error
-        const firstError = result.errors[0];
-        setCsvParseError(`CSV parsing error at row ${firstError.row}: ${firstError.message}`);
-        return;
+        // Filter out "TooFewFields" errors since optional fields are allowed to be missing
+        const significantErrors = result.errors.filter(error => 
+          error.code !== 'TooFewFields'
+        );
+        
+        if (significantErrors.length > 0) {
+          // Report the first significant parsing error
+          const firstError = significantErrors[0];
+          setCsvParseError(`CSV parsing error at row ${firstError.row}: ${firstError.message}`);
+          return;
+        }
       }
 
       if (result.data.length === 0) {
