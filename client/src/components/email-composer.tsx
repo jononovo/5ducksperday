@@ -394,6 +394,13 @@ export function EmailComposer({
         offerType: selectedOfferStrategy,
         generationType: generationMode, // Track which generation mode was used
         
+        // Set start_date based on campaign type with smart business hours scheduling
+        start_date: type === 'immediate' 
+          ? new Date().toISOString() // Immediate campaigns start right away
+          : (campaignSettings.scheduleSend && campaignSettings.scheduleDate 
+              ? new Date(campaignSettings.scheduleDate).toISOString() // Use user-selected schedule
+              : getNextBusinessHourStart().toISOString()), // Smart scheduling for business hours
+        
         // Scheduling settings
         sendTimePreference: type,
         scheduleDate: campaignSettings.scheduleSend && campaignSettings.scheduleDate ? campaignSettings.scheduleDate : undefined,
@@ -661,6 +668,60 @@ export function EmailComposer({
     }
     
     return "Select recipients";
+  };
+
+  // Helper function for smart business hour scheduling
+  const getNextBusinessHourStart = () => {
+    const now = new Date();
+    const hour = now.getHours();
+    const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+    
+    // If it's a weekend, schedule for Monday 9 AM
+    if (day === 0 || day === 6) {
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + ((8 - day) % 7)); // Move to next Monday
+      monday.setHours(9, 0, 0, 0);
+      return monday;
+    }
+    
+    // If before business hours (before 9 AM), schedule for 9 AM today
+    if (hour < 9) {
+      const today9am = new Date(now);
+      today9am.setHours(9, 0, 0, 0);
+      return today9am;
+    }
+    
+    // If after business hours (5 PM or later), schedule for 9 AM next business day
+    if (hour >= 17) {
+      const nextDay = new Date(now);
+      // If Friday, jump to Monday
+      if (day === 5) {
+        nextDay.setDate(now.getDate() + 3);
+      } else {
+        nextDay.setDate(now.getDate() + 1);
+      }
+      nextDay.setHours(9, 0, 0, 0);
+      return nextDay;
+    }
+    
+    // During business hours (9 AM - 4:59 PM), round up to next hour
+    const nextHour = new Date(now);
+    nextHour.setHours(hour + 1, 0, 0, 0);
+    
+    // But if rounding up would go past 5 PM, schedule for next business day 9 AM
+    if (nextHour.getHours() >= 17) {
+      const nextDay = new Date(now);
+      // If Friday, jump to Monday
+      if (day === 5) {
+        nextDay.setDate(now.getDate() + 3);
+      } else {
+        nextDay.setDate(now.getDate() + 1);
+      }
+      nextDay.setHours(9, 0, 0, 0);
+      return nextDay;
+    }
+    
+    return nextHour;
   };
 
   const handleCreateCampaign = (type: 'scheduled' | 'immediate' | 'draft' = 'scheduled') => {
