@@ -309,8 +309,24 @@ export default function ContactListDetail() {
         // Check if the first line looks like data (has @ for email in first position)
         const firstLineValues = firstLine.split(',').map(v => v.trim());
         if (firstLineValues.length >= 2 && firstLineValues[0].includes('@')) {
-          // Auto-add headers for new format: email, first_name, last_name, company, role, city
-          const headers = 'email, first_name, last_name, company, role, city';
+          // Auto-add headers based on the actual number of fields
+          // Common formats:
+          // 2 fields: email, name
+          // 3 fields: email, first_name, last_name
+          // 4 fields: email, first_name, last_name, company
+          // 5 fields: email, first_name, last_name, company, role
+          // 6 fields: email, first_name, last_name, company, role, city
+          
+          let headers = 'email, first_name';
+          if (firstLineValues.length === 3) {
+            headers = 'email, first_name, last_name';
+          } else if (firstLineValues.length === 4) {
+            headers = 'email, first_name, last_name, company';
+          } else if (firstLineValues.length === 5) {
+            headers = 'email, first_name, last_name, company, role';
+          } else if (firstLineValues.length >= 6) {
+            headers = 'email, first_name, last_name, company, role, city';
+          }
           csvTextToParse = headers + '\n' + text;
         }
       }
@@ -372,9 +388,10 @@ export default function ContactListDetail() {
         const contact = {
           name: lastName ? `${firstName} ${lastName}`.trim() : firstName,
           email: email,
-          company: company || '',
-          role: role || '',
-          city: city || '',
+          // Only include optional fields if they have values
+          ...(company && { company }),
+          ...(role && { role }),
+          ...(city && { city }),
         };
 
         contacts.push(contact);
