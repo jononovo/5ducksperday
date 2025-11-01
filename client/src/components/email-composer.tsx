@@ -888,8 +888,8 @@ export function EmailComposer({
       getDisplayValue={getDisplayValue}
     />
 
-    {/* Settings and Templates Buttons Row */}
-    <div className="mt-8">
+    {/* Settings and Templates Buttons Row - with proper spacing from email field */}
+    <div className="mt-6 md:mt-8 pt-4">
       <div className="flex justify-end gap-2">
         {/* Campaign Settings Button - Only shown in campaign mode */}
         {drawerMode === 'campaign' && (
