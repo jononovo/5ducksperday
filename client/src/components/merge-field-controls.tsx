@@ -1,5 +1,4 @@
 import { Plus, Save, Eye, EyeOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface MergeFieldControlsProps {
   isMergeViewMode?: boolean;
@@ -19,46 +18,43 @@ export function MergeFieldControls({
   return (
     <div className={`flex flex-wrap gap-2 ${className}`}>
       {onToggleMergeView && (
-        <Button
-          variant="secondary"
-          className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-300 ease-out"
+        <button
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
           onClick={onToggleMergeView}
           data-testid="button-merge-view"
         >
           {isMergeViewMode ? (
             <>
-              <EyeOff className="w-3 h-3 mr-0.5" />
-              Normal View
+              <EyeOff className="w-3.5 h-3.5" />
+              <span>Normal View</span>
             </>
           ) : (
             <>
-              <Eye className="w-3 h-3 mr-0.5" />
-              Merge View
+              <Eye className="w-3.5 h-3.5" />
+              <span>Merge View</span>
             </>
           )}
-        </Button>
+        </button>
       )}
       {onMergeFieldClick && (
-        <Button
-          variant="secondary"
-          className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-300 ease-out"
+        <button
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
           onClick={onMergeFieldClick}
           data-testid="button-merge-field"
         >
-          <Plus className="w-3 h-3 mr-0.5" />
-          Merge Field
-        </Button>
+          <Plus className="w-3.5 h-3.5" />
+          <span>Merge Field</span>
+        </button>
       )}
       {onSaveTemplateClick && (
-        <Button
-          variant="secondary"
+        <button
           onClick={onSaveTemplateClick}
-          className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground mr-2 hover:scale-105 transition-all duration-300 ease-out"
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
           data-testid="button-save-template"
         >
-          <Save className="w-3 h-3 mr-0.5" />
-          Save as Template
-        </Button>
+          <Save className="w-3.5 h-3.5" />
+          <span>Save as Template</span>
+        </button>
       )}
     </div>
   );

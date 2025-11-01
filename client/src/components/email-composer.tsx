@@ -934,7 +934,7 @@ export function EmailComposer({
 
     {/* Merge Field Controls - Show immediately after EmailForm in Campaign Template mode */}
     {drawerMode === 'campaign' && generationMode === 'merge_field' && (
-      <div className="mt-4 flex justify-start">
+      <div className="mt-6 pt-2 flex justify-end">
         <MergeFieldControls 
           isMergeViewMode={isMergeViewMode}
           onToggleMergeView={toggleMergeView}
