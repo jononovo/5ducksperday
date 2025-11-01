@@ -943,7 +943,6 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
                   <div>
                     <label className="text-sm font-medium">CSV Format Requirements</label>
                     <div className="mt-2 p-3 bg-gray-50 rounded-md text-xs text-gray-600">
-                      <p className="font-semibold mb-1">Format: email first, then first name (only these two are required)</p>
                       <code>email, first_name, last_name, company, role, city</code>
                       <p className="mt-2">Simple examples (headers auto-added):</p>
                       <code className="block">john@example.com, John</code>
@@ -1004,7 +1003,6 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
                       >
                         Download CSV template
                       </button>
-                      {' '}to see the correct format
                     </p>
                   </div>
 
