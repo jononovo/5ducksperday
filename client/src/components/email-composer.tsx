@@ -151,6 +151,7 @@ export function EmailComposer({
   const [recipientModalOpen, setRecipientModalOpen] = useState(false);
   const [campaignRecipients, setCampaignRecipients] = useState<RecipientSelection | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [campaignSettings, setCampaignSettings] = useState<CampaignSettingsData>({
     scheduleSend: false,
     autopilot: false,
@@ -905,7 +906,43 @@ export function EmailComposer({
           </button>
         )}
         
-        {/* Templates Manager */}
+        {/* Templates Button */}
+        <button
+          onClick={() => setTemplatesOpen(!templatesOpen)}
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
+          data-testid="button-templates-toggle"
+        >
+          <span>Templates</span>
+          {templatesOpen ? (
+            <ChevronUp className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronDown className="w-3.5 h-3.5" />
+          )}
+        </button>
+      </div>
+      
+      {/* Campaign Settings Collapsible Container - Only shown when open and in campaign mode */}
+      {drawerMode === 'campaign' && (
+        <div className={cn(
+          "overflow-hidden transition-all duration-300 ease-in-out",
+          settingsOpen ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
+        )}>
+          <CampaignSettings
+            open={true} // Always true since we control visibility with the container
+            onOpenChange={() => {}} // No-op since we handle it above
+            settings={campaignSettings}
+            onSettingsChange={setCampaignSettings}
+            totalRecipients={campaignRecipients ? 100 : 50}
+            className=""
+          />
+        </div>
+      )}
+      
+      {/* Templates Collapsible Container */}
+      <div className={cn(
+        "overflow-hidden transition-all duration-300 ease-in-out",
+        templatesOpen ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
+      )}>
         <TemplateManager
           templates={templates}
           templatesLoading={templatesLoading}
@@ -930,23 +967,6 @@ export function EmailComposer({
           editingTemplate={null}
         />
       </div>
-      
-      {/* Campaign Settings Collapsible Container - Only shown when open and in campaign mode */}
-      {drawerMode === 'campaign' && (
-        <div className={cn(
-          "overflow-hidden transition-all duration-300 ease-in-out",
-          settingsOpen ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
-        )}>
-          <CampaignSettings
-            open={true} // Always true since we control visibility with the container
-            onOpenChange={() => {}} // No-op since we handle it above
-            settings={campaignSettings}
-            onSettingsChange={setCampaignSettings}
-            totalRecipients={campaignRecipients ? 100 : 50}
-            className=""
-          />
-        </div>
-      )}
     </div>
 
     {/* Generate Email Confirmation Dialog */}

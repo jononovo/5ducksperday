@@ -95,42 +95,20 @@ export function TemplateManager({
   };
 
   return (
-    <>
-      {/* Templates Button */}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
-        data-testid="button-templates-toggle"
-      >
-        <span>Templates</span>
-        {isExpanded ? (
-          <ChevronUp className="w-3.5 h-3.5" />
-        ) : (
-          <ChevronDown className="w-3.5 h-3.5" />
-        )}
-      </button>
-
-      {/* Templates Collapsible Container */}
-      <div className={cn(
-        "overflow-hidden transition-all duration-300 ease-in-out",
-        isExpanded ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
-      )}>
-        <QuickTemplates
-          templates={templates}
-          templatesLoading={templatesLoading}
-          onSelectTemplate={onTemplateSelect}
-          onSaveTemplate={handleSaveTemplate}
-          onUpdateTemplate={handleUpdateTemplate}
-          onMergeFieldInsert={handleMergeFieldInsert}
-          onEditTemplate={enterEditMode}
-          isEditMode={isEditMode}
-          editingTemplateId={editingTemplateId}
-          onExitEditMode={exitEditMode}
-          isMergeViewMode={isMergeViewMode}
-          onToggleMergeView={onMergeViewToggle}
-          isSavingTemplate={updateMutation.isPending}
-        />
-      </div>
-    </>
+    <QuickTemplates
+      templates={templates}
+      templatesLoading={templatesLoading}
+      onSelectTemplate={onTemplateSelect}
+      onSaveTemplate={handleSaveTemplate}
+      onUpdateTemplate={handleUpdateTemplate}
+      onMergeFieldInsert={handleMergeFieldInsert}
+      onEditTemplate={enterEditMode}
+      isEditMode={isEditMode}
+      editingTemplateId={editingTemplateId}
+      onExitEditMode={exitEditMode}
+      isMergeViewMode={isMergeViewMode}
+      onToggleMergeView={onMergeViewToggle}
+      isSavingTemplate={updateMutation.isPending}
+    />
   );
 }
