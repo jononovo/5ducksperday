@@ -491,21 +491,10 @@ export function EmailComposer({
   }, [selectedContact, drawerMode, currentListId, currentQuery]);
 
   useEffect(() => {
-    handleTextareaResize();
     handlePromptTextareaResize();
-  }, [emailContent, emailPrompt]);
+  }, [emailPrompt]);
 
   // Handlers
-  const handleTextareaResize = () => {
-    if (emailContentRef.current) {
-      emailContentRef.current.style.height = 'auto';
-      const scrollHeight = emailContentRef.current.scrollHeight;
-      const maxHeight = 400;
-      const minHeight = 160;
-      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
-      emailContentRef.current.style.height = `${newHeight}px`;
-    }
-  };
 
   const handlePromptTextareaResize = () => {
     if (promptTextareaRef.current) {
@@ -641,21 +630,11 @@ export function EmailComposer({
 
 
   const handleMergeFieldInsert = (field: string) => {
-    if (emailContentRef.current) {
-      const start = emailContentRef.current.selectionStart;
-      const end = emailContentRef.current.selectionEnd;
-      const text = emailContent;
-      const newText = text.substring(0, start) + field + text.substring(end);
-      setEmailContent(newText);
-      setOriginalEmailContent(newText);
-      
-      setTimeout(() => {
-        if (emailContentRef.current) {
-          emailContentRef.current.focus();
-          emailContentRef.current.setSelectionRange(start + field.length, start + field.length);
-        }
-      }, 0);
-    }
+    // Since the textarea is now in EmailForm component, we append the field to the end
+    const currentContent = getCurrentContent();
+    const newText = currentContent + field;
+    setCurrentContent(newText);
+    setCurrentOriginalContent(newText);
   };
 
 
