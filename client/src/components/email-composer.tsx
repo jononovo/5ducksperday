@@ -888,7 +888,7 @@ export function EmailComposer({
     />
 
     {/* Settings and Templates Buttons Row */}
-    <div className="mt-8 pt-4">
+    <div className="mt-2">
       <div className="flex justify-end gap-2">
         {/* Campaign Settings Button - Only shown in campaign mode */}
         {drawerMode === 'campaign' && (
