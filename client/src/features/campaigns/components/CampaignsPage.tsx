@@ -235,13 +235,13 @@ export default function CampaignsPage() {
               <Card
                 key={campaign.id}
                 className={cn(
-                  "rounded-lg transition-all duration-200 hover:shadow-sm"
+                  "rounded-lg transition-all duration-200 hover:shadow-md hover:border-purple-200 dark:hover:border-purple-800"
                 )}
                 data-testid={`campaign-card-${campaign.id}`}
               >
                 <div 
                   onClick={() => setLocation(`/campaigns/${campaign.id}`)} 
-                  className="p-3 cursor-pointer"
+                  className="p-3 cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-800/30 rounded-t-lg transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
