@@ -841,7 +841,7 @@ export function EmailComposer({
       currentListId={currentListId}
       currentQuery={currentQuery}
       onCreateCampaign={handleCreateCampaign}
-      generationType={generationType}
+      generationType={generationMode}
       creatingCampaign={createCampaignMutation.isPending}
       isMergeViewMode={isMergeViewMode}
       getDisplayValue={getDisplayValue}
