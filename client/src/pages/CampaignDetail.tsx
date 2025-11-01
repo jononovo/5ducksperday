@@ -237,12 +237,14 @@ export default function CampaignDetail() {
           <div>
             <h1 className="text-2xl font-bold">{campaign.name}</h1>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-muted-foreground">
-                Created {format(new Date(campaign.createdAt!), 'MMM d, yyyy')}
-              </span>
+              {campaign.createdAt && (
+                <span className="text-sm text-muted-foreground">
+                  Created {format(new Date(campaign.createdAt), 'MMM d, yyyy')}
+                </span>
+              )}
               {campaign.startDate && (
                 <>
-                  <span className="text-muted-foreground">•</span>
+                  {campaign.createdAt && <span className="text-muted-foreground">•</span>}
                   <span className="text-sm text-muted-foreground">
                     {campaign.status === 'completed' ? 'Ended' : 'Started'} {format(new Date(campaign.startDate), 'MMM d, yyyy')}
                   </span>
