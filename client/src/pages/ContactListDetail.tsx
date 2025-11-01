@@ -21,6 +21,16 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -77,6 +87,10 @@ export default function ContactListDetail() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [parsedContacts, setParsedContacts] = useState<any[]>([]);
   const [csvParseError, setCsvParseError] = useState<string | null>(null);
+  
+  // Delete confirmation state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [contactToDelete, setContactToDelete] = useState<number | null>(null);
 
   // Fetch the contact list details
   const { data: contactList, isLoading: listLoading } = useQuery<ContactList>({
@@ -430,9 +444,16 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
   };
 
   const handleRemoveContact = (contactId: number) => {
-    if (window.confirm("Are you sure you want to remove this contact from the list?")) {
-      removeContactMutation.mutate(contactId);
+    setContactToDelete(contactId);
+    setDeleteConfirmOpen(true);
+  };
+  
+  const confirmDeleteContact = () => {
+    if (contactToDelete) {
+      removeContactMutation.mutate(contactToDelete);
     }
+    setDeleteConfirmOpen(false);
+    setContactToDelete(null);
   };
 
   useEffect(() => {
@@ -525,10 +546,7 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
 
       {/* Contacts Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>{contactList.name}</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {contacts.length === 0 ? (
             <div className="text-center py-8">
               <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -1096,6 +1114,27 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Contact</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this contact from the list? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setContactToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteContact}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
