@@ -503,36 +503,23 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Header with back button */}
-      <div className="mb-6">
+      {/* Compact header with everything on one row */}
+      <div className="flex items-center justify-between mb-6">
         <Button
           variant="ghost"
           onClick={() => navigate("/contacts")}
-          className="mb-4"
           data-testid="button-back"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Contacts
         </Button>
 
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold" data-testid="text-list-name">
-              {contactList.name}
-            </h1>
-            {contactList.description && (
-              <p className="text-muted-foreground mt-2" data-testid="text-list-description">
-                {contactList.description}
-              </p>
-            )}
-            <div className="flex items-center gap-4 mt-4">
-              <Badge variant="secondary" className="text-sm">
-                <Users className="h-3 w-3 mr-1" />
-                {contacts.length} contact{contacts.length !== 1 ? 's' : ''}
-              </Badge>
-            </div>
-          </div>
-
+        <div className="flex items-center gap-4">
+          <Badge variant="secondary" className="text-sm">
+            <Users className="h-3 w-3 mr-1" />
+            {contacts.length} contact{contacts.length !== 1 ? 's' : ''}
+          </Badge>
+          
           <Button
             onClick={() => setAddContactsModalOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -542,6 +529,18 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
             Add Contacts
           </Button>
         </div>
+      </div>
+
+      {/* List name and description */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold" data-testid="text-list-name">
+          {contactList.name}
+        </h1>
+        {contactList.description && (
+          <p className="text-muted-foreground mt-2" data-testid="text-list-description">
+            {contactList.description}
+          </p>
+        )}
       </div>
 
       {/* Contacts Table */}
@@ -581,30 +580,21 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
                     </TableCell>
                     <TableCell>
                       {contact.email ? (
-                        <div className="flex items-center gap-1">
-                          <Mail className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm">{contact.email}</span>
-                        </div>
+                        <span className="text-sm">{contact.email}</span>
                       ) : (
-                        <span className="text-muted-foreground text-sm">No email</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     <TableCell>
                       {contact.company?.name ? (
-                        <div className="flex items-center gap-1">
-                          <Building2 className="h-3 w-3 text-muted-foreground" />
-                          <span>{contact.company.name}</span>
-                        </div>
+                        <span>{contact.company.name}</span>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     <TableCell>
                       {contact.role ? (
-                        <div className="flex items-center gap-1">
-                          <Briefcase className="h-3 w-3 text-muted-foreground" />
-                          <span>{contact.role}</span>
-                        </div>
+                        <span>{contact.role}</span>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
