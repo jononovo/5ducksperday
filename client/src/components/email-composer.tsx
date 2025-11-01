@@ -40,6 +40,16 @@ import { EmailGenerationTabs, getGenerationModeConfig } from "@/components/email
 import { EmailGenerationControls } from "./email-composer/EmailGenerationControls";
 import { TemplateManager } from "./email-composer/TemplateManager";
 import EmailForm from "./email-composer/EmailForm";
+import { MergeFieldControls } from "./merge-field-controls";
+import MergeFieldDialog from "./merge-field-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Component prop types
 interface EmailComposerProps {
@@ -161,6 +171,11 @@ export function EmailComposer({
   });
   // Generation mode state for campaign mode
   const [generationMode, setGenerationMode] = useState<'ai_unique' | 'merge_field'>('merge_field');
+  
+  // Dialog states for merge field controls
+  const [mergeFieldDialogOpen, setMergeFieldDialogOpen] = useState(false);
+  const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
   
   // Separate state for Template mode (merge_field)
   const [templateSubject, setTemplateSubject] = useState("");
@@ -650,6 +665,35 @@ export function EmailComposer({
     setIsMergeViewMode(!isMergeViewMode);
   };
 
+  const handleSaveAsTemplate = () => {
+    setTemplateName("");
+    setSaveTemplateDialogOpen(true);
+  };
+
+  const handleConfirmSaveTemplate = async () => {
+    if (!templateName.trim()) return;
+    try {
+      await apiRequest("POST", '/api/email-templates', {
+        name: templateName,
+        subject: getCurrentSubject(),
+        content: getCurrentContent(),
+        description: emailPrompt
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/email-templates'] });
+      toast({ title: "Template saved successfully!" });
+      setSaveTemplateDialogOpen(false);
+      setTemplateName("");
+    } catch (error) {
+      console.error('Save template error:', error);
+      toast({
+        title: "Failed to save template",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleRecipientSelect = (selection: RecipientSelection) => {
     setCampaignRecipients(selection);
     setRecipientModalOpen(false);
@@ -888,6 +932,18 @@ export function EmailComposer({
       getDisplayValue={getDisplayValue}
     />
 
+    {/* Merge Field Controls - Show immediately after EmailForm in Campaign Template mode */}
+    {drawerMode === 'campaign' && generationMode === 'merge_field' && (
+      <div className="mt-4 flex justify-start">
+        <MergeFieldControls 
+          isMergeViewMode={isMergeViewMode}
+          onToggleMergeView={toggleMergeView}
+          onMergeFieldClick={() => setMergeFieldDialogOpen(true)}
+          onSaveTemplateClick={handleSaveAsTemplate}
+        />
+      </div>
+    )}
+
     {/* Settings and Templates Buttons Row - with proper spacing from email field */}
     <div className="mt-6 md:mt-8 pt-4">
       <div className="flex justify-end gap-2">
@@ -1008,6 +1064,52 @@ export function EmailComposer({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    {/* Merge Field Dialog */}
+    <MergeFieldDialog 
+      open={mergeFieldDialogOpen} 
+      onOpenChange={setMergeFieldDialogOpen}
+      onMergeFieldInsert={handleMergeFieldInsert}
+    />
+
+    {/* Save Template Dialog */}
+    <Dialog open={saveTemplateDialogOpen} onOpenChange={setSaveTemplateDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Save as Template</DialogTitle>
+          <DialogDescription>
+            Enter name of new template:
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <Input
+            placeholder="Sales Genius 2027"
+            value={templateName}
+            onChange={(e) => setTemplateName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && templateName.trim()) {
+                handleConfirmSaveTemplate();
+              }
+            }}
+            className="w-full"
+          />
+        </div>
+        <DialogFooter>
+          <Button 
+            variant="outline" 
+            onClick={() => setSaveTemplateDialogOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirmSaveTemplate}
+            disabled={!templateName.trim()}
+          >
+            Save Template
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </div>
   );
 }
