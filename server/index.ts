@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { outreachScheduler } from "./features/daily-outreach";
+import { CampaignScheduler } from "./features/campaigns/services/campaign-scheduler";
 import { sql } from "drizzle-orm";
 import dotenv from "dotenv";
 
@@ -113,6 +114,15 @@ app.get('/api/health', async (_req, res) => {
       console.log('Daily outreach scheduler initialized');
     } catch (schedulerError) {
       console.warn('Outreach scheduler initialization failed (non-critical):', schedulerError);
+    }
+    
+    // Initialize campaign scheduler to activate scheduled campaigns
+    try {
+      const campaignScheduler = CampaignScheduler.getInstance();
+      await campaignScheduler.start();
+      console.log('Campaign scheduler initialized');
+    } catch (campaignSchedulerError) {
+      console.warn('Campaign scheduler initialization failed (non-critical):', campaignSchedulerError);
     }
 
     const server = registerRoutes(app);
