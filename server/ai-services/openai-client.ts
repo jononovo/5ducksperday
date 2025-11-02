@@ -16,6 +16,31 @@ export function getOpenAIClient(): OpenAI {
   return openaiClient;
 }
 
+/**
+ * Simple wrapper to use OpenAI for email generation instead of Perplexity
+ * Maintains the same interface as queryPerplexity for easy swapping
+ */
+export async function queryOpenAIForEmail(messages: PerplexityMessage[]): Promise<string> {
+  try {
+    const openAIMessages: ChatCompletionMessageParam[] = messages.map(msg => ({
+      role: msg.role as 'system' | 'user' | 'assistant',
+      content: msg.content
+    }));
+    
+    const response = await getOpenAIClient().chat.completions.create({
+      model: 'gpt-4o-mini',  // Using mini for faster response times
+      messages: openAIMessages,
+      temperature: 0.7,
+      max_tokens: 1000
+    });
+    
+    return response.choices[0]?.message?.content || '';
+  } catch (error) {
+    console.error('OpenAI email generation error:', error);
+    throw error;
+  }
+}
+
 interface FunctionCallResult {
   type: 'conversation' | 'product_summary' | 'email_strategy' | 'sales_approach' | 'progressive_strategy' | 'product_offers';
   message: string;

@@ -40,6 +40,16 @@ import { EmailGenerationTabs, getGenerationModeConfig } from "@/components/email
 import { EmailGenerationControls } from "./email-composer/EmailGenerationControls";
 import { TemplateManager } from "./email-composer/TemplateManager";
 import EmailForm from "./email-composer/EmailForm";
+import { MergeFieldControls } from "./merge-field-controls";
+import MergeFieldDialog from "./merge-field-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Component prop types
 interface EmailComposerProps {
@@ -151,6 +161,7 @@ export function EmailComposer({
   const [recipientModalOpen, setRecipientModalOpen] = useState(false);
   const [campaignRecipients, setCampaignRecipients] = useState<RecipientSelection | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [campaignSettings, setCampaignSettings] = useState<CampaignSettingsData>({
     scheduleSend: false,
     autopilot: false,
@@ -160,6 +171,11 @@ export function EmailComposer({
   });
   // Generation mode state for campaign mode
   const [generationMode, setGenerationMode] = useState<'ai_unique' | 'merge_field'>('merge_field');
+  
+  // Dialog states for merge field controls
+  const [mergeFieldDialogOpen, setMergeFieldDialogOpen] = useState(false);
+  const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
   
   // Separate state for Template mode (merge_field)
   const [templateSubject, setTemplateSubject] = useState("");
@@ -393,6 +409,13 @@ export function EmailComposer({
         tone: selectedTone,
         offerType: selectedOfferStrategy,
         generationType: generationMode, // Track which generation mode was used
+        
+        // Set start_date based on campaign type with smart business hours scheduling
+        start_date: type === 'immediate' 
+          ? new Date().toISOString() // Immediate campaigns start right away
+          : (campaignSettings.scheduleSend && campaignSettings.scheduleDate 
+              ? new Date(campaignSettings.scheduleDate).toISOString() // Use user-selected schedule
+              : getNextBusinessHourStart().toISOString()), // Smart scheduling for business hours
         
         // Scheduling settings
         sendTimePreference: type,
@@ -642,6 +665,35 @@ export function EmailComposer({
     setIsMergeViewMode(!isMergeViewMode);
   };
 
+  const handleSaveAsTemplate = () => {
+    setTemplateName("");
+    setSaveTemplateDialogOpen(true);
+  };
+
+  const handleConfirmSaveTemplate = async () => {
+    if (!templateName.trim()) return;
+    try {
+      await apiRequest("POST", '/api/email-templates', {
+        name: templateName,
+        subject: getCurrentSubject(),
+        content: getCurrentContent(),
+        description: emailPrompt
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/email-templates'] });
+      toast({ title: "Template saved successfully!" });
+      setSaveTemplateDialogOpen(false);
+      setTemplateName("");
+    } catch (error) {
+      console.error('Save template error:', error);
+      toast({
+        title: "Failed to save template",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleRecipientSelect = (selection: RecipientSelection) => {
     setCampaignRecipients(selection);
     setRecipientModalOpen(false);
@@ -661,6 +713,60 @@ export function EmailComposer({
     }
     
     return "Select recipients";
+  };
+
+  // Helper function for smart business hour scheduling
+  const getNextBusinessHourStart = () => {
+    const now = new Date();
+    const hour = now.getHours();
+    const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+    
+    // If it's a weekend, schedule for Monday 9 AM
+    if (day === 0 || day === 6) {
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + ((8 - day) % 7)); // Move to next Monday
+      monday.setHours(9, 0, 0, 0);
+      return monday;
+    }
+    
+    // If before business hours (before 9 AM), schedule for 9 AM today
+    if (hour < 9) {
+      const today9am = new Date(now);
+      today9am.setHours(9, 0, 0, 0);
+      return today9am;
+    }
+    
+    // If after business hours (5 PM or later), schedule for 9 AM next business day
+    if (hour >= 17) {
+      const nextDay = new Date(now);
+      // If Friday, jump to Monday
+      if (day === 5) {
+        nextDay.setDate(now.getDate() + 3);
+      } else {
+        nextDay.setDate(now.getDate() + 1);
+      }
+      nextDay.setHours(9, 0, 0, 0);
+      return nextDay;
+    }
+    
+    // During business hours (9 AM - 4:59 PM), round up to next hour
+    const nextHour = new Date(now);
+    nextHour.setHours(hour + 1, 0, 0, 0);
+    
+    // But if rounding up would go past 5 PM, schedule for next business day 9 AM
+    if (nextHour.getHours() >= 17) {
+      const nextDay = new Date(now);
+      // If Friday, jump to Monday
+      if (day === 5) {
+        nextDay.setDate(now.getDate() + 3);
+      } else {
+        nextDay.setDate(now.getDate() + 1);
+      }
+      nextDay.setHours(9, 0, 0, 0);
+      return nextDay;
+    }
+    
+    return nextHour;
   };
 
   const handleCreateCampaign = (type: 'scheduled' | 'immediate' | 'draft' = 'scheduled') => {
@@ -826,8 +932,28 @@ export function EmailComposer({
       getDisplayValue={getDisplayValue}
     />
 
-    {/* Settings and Templates Buttons Row */}
-    <div className="mt-8 pt-4">
+    {/* Merge Field Controls - Show immediately after EmailForm in Campaign Template mode */}
+    {drawerMode === 'campaign' && generationMode === 'merge_field' && (
+      <>
+        {/* Merge View Mode Notification Banner */}
+        {isMergeViewMode && (
+          <div className="mt-8 mb-3 bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded-md text-sm">
+            Merge View Mode - Showing technical merge fields
+          </div>
+        )}
+        <div className="mt-4 pt-2 flex justify-end">
+          <MergeFieldControls 
+            isMergeViewMode={isMergeViewMode}
+            onToggleMergeView={toggleMergeView}
+            onMergeFieldClick={() => setMergeFieldDialogOpen(true)}
+            onSaveTemplateClick={handleSaveAsTemplate}
+          />
+        </div>
+      </>
+    )}
+
+    {/* Settings and Templates Buttons Row - with proper spacing from email field */}
+    <div className="mt-6 md:mt-8 pt-4">
       <div className="flex justify-end gap-2">
         {/* Campaign Settings Button - Only shown in campaign mode */}
         {drawerMode === 'campaign' && (
@@ -844,7 +970,43 @@ export function EmailComposer({
           </button>
         )}
         
-        {/* Templates Manager */}
+        {/* Templates Button */}
+        <button
+          onClick={() => setTemplatesOpen(!templatesOpen)}
+          className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md"
+          data-testid="button-templates-toggle"
+        >
+          <span>Templates</span>
+          {templatesOpen ? (
+            <ChevronUp className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronDown className="w-3.5 h-3.5" />
+          )}
+        </button>
+      </div>
+      
+      {/* Campaign Settings Collapsible Container - Only shown when open and in campaign mode */}
+      {drawerMode === 'campaign' && (
+        <div className={cn(
+          "overflow-hidden transition-all duration-300 ease-in-out",
+          settingsOpen ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
+        )}>
+          <CampaignSettings
+            open={true} // Always true since we control visibility with the container
+            onOpenChange={() => {}} // No-op since we handle it above
+            settings={campaignSettings}
+            onSettingsChange={setCampaignSettings}
+            totalRecipients={campaignRecipients ? 100 : 50}
+            className=""
+          />
+        </div>
+      )}
+      
+      {/* Templates Collapsible Container */}
+      <div className={cn(
+        "overflow-hidden transition-all duration-300 ease-in-out",
+        templatesOpen ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
+      )}>
         <TemplateManager
           templates={templates}
           templatesLoading={templatesLoading}
@@ -869,23 +1031,6 @@ export function EmailComposer({
           editingTemplate={null}
         />
       </div>
-      
-      {/* Campaign Settings Collapsible Container - Only shown when open and in campaign mode */}
-      {drawerMode === 'campaign' && (
-        <div className={cn(
-          "overflow-hidden transition-all duration-300 ease-in-out",
-          settingsOpen ? "max-h-[500px] opacity-100 mt-2" : "max-h-0 opacity-0"
-        )}>
-          <CampaignSettings
-            open={true} // Always true since we control visibility with the container
-            onOpenChange={() => {}} // No-op since we handle it above
-            settings={campaignSettings}
-            onSettingsChange={setCampaignSettings}
-            totalRecipients={campaignRecipients ? 100 : 50}
-            className=""
-          />
-        </div>
-      )}
     </div>
 
     {/* Generate Email Confirmation Dialog */}
@@ -927,6 +1072,52 @@ export function EmailComposer({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    {/* Merge Field Dialog */}
+    <MergeFieldDialog 
+      open={mergeFieldDialogOpen} 
+      onOpenChange={setMergeFieldDialogOpen}
+      onMergeFieldInsert={handleMergeFieldInsert}
+    />
+
+    {/* Save Template Dialog */}
+    <Dialog open={saveTemplateDialogOpen} onOpenChange={setSaveTemplateDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Save as Template</DialogTitle>
+          <DialogDescription>
+            Enter name of new template:
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <Input
+            placeholder="Sales Genius 2027"
+            value={templateName}
+            onChange={(e) => setTemplateName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && templateName.trim()) {
+                handleConfirmSaveTemplate();
+              }
+            }}
+            className="w-full"
+          />
+        </div>
+        <DialogFooter>
+          <Button 
+            variant="outline" 
+            onClick={() => setSaveTemplateDialogOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirmSaveTemplate}
+            disabled={!templateName.trim()}
+          >
+            Save Template
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </div>
   );
 }

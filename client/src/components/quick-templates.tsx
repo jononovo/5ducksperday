@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, Save, Plus, Edit, Eye, EyeOff } from "lucide-react";
+import { FileText, Edit, Save } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import type { EmailTemplate } from "@shared/schema";
 import MergeFieldDialog from "./merge-field-dialog";
+import { MergeFieldControls } from "./merge-field-controls";
 
 interface QuickTemplatesProps {
   templates: EmailTemplate[];
@@ -123,41 +124,12 @@ export default function QuickTemplates({ templates, templatesLoading, onSelectTe
       )}
       
       <div className="flex items-center justify-end gap-1.5 mb-4">
-        <Button 
-          variant="outline" 
-          className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-300 ease-out"
-          onClick={onToggleMergeView}
-        >
-          {isMergeViewMode ? (
-            <>
-              <EyeOff className="w-3 h-3 mr-0.5" />
-              Normal View
-            </>
-          ) : (
-            <>
-              <Eye className="w-3 h-3 mr-0.5" />
-              Merge View
-            </>
-          )}
-        </Button>
-        <Button 
-          variant="outline" 
-          className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-300 ease-out"
-          onClick={() => setMergeFieldDialogOpen(true)}
-        >
-          <Plus className="w-3 h-3 mr-0.5" />
-          Merge Field
-        </Button>
-        {onSaveTemplate && (
-          <Button
-            variant="secondary"
-            onClick={handleSaveTemplate}
-            className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground mr-2 hover:scale-105 transition-all duration-300 ease-out"
-          >
-            <Save className="w-3 h-3 mr-0.5" />
-            Save as Template
-          </Button>
-        )}
+        <MergeFieldControls 
+          isMergeViewMode={isMergeViewMode}
+          onToggleMergeView={onToggleMergeView}
+          onMergeFieldClick={() => setMergeFieldDialogOpen(true)}
+          onSaveTemplateClick={onSaveTemplate ? handleSaveTemplate : undefined}
+        />
       </div>
 
       <div className="space-y-2">

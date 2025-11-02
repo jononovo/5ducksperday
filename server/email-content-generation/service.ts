@@ -1,4 +1,4 @@
-import { queryPerplexity } from "../search/perplexity/perplexity-client";
+import { queryOpenAIForEmail } from "../ai-services/openai-client";
 import type { PerplexityMessage } from "../search/perplexity/perplexity-types";
 import type { EmailGenerationRequest, EmailGenerationResponse, EmailGenerationContext } from "./types";
 import { resolveSenderNames } from "../lib/name-resolver";
@@ -55,7 +55,7 @@ ${toneConfig.additionalInstructions}`;
     }
   ];
 
-  const response = await queryPerplexity(messages);
+  const response = await queryOpenAIForEmail(messages);
 
   // Parse subject and content from AI response
   return parseEmailResponse(response);
