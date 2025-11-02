@@ -704,11 +704,11 @@ class DatabaseStorage implements IStorage {
     .where(eq(campaignRecipients.campaignId, id))
     .orderBy(desc(campaignRecipients.updatedAt));
 
-    // Calculate metrics - if no recipients in campaign_recipients table, get count from contact list
+    // Calculate metrics
     let totalRecipients = recipients.length;
     
-    // If no campaign_recipients entries exist but we have a contact list, use its count
-    if (totalRecipients === 0 && campaign.contactListId) {
+    // Always fetch contact list name if campaign has a contact list
+    if (campaign.contactListId) {
       const contactList = await db.select({
         contactCount: contactLists.contactCount,
         name: contactLists.name
@@ -718,9 +718,13 @@ class DatabaseStorage implements IStorage {
       .limit(1);
       
       if (contactList[0]) {
-        totalRecipients = contactList[0].contactCount || 0;
-        // Also store the list name for display
+        // Store the list name for display
         (campaign as any).contactListName = contactList[0].name;
+        
+        // If no campaign_recipients entries exist, use contact list count as fallback
+        if (totalRecipients === 0) {
+          totalRecipients = contactList[0].contactCount || 0;
+        }
       }
     }
     
