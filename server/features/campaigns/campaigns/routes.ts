@@ -102,7 +102,7 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
               recipientFirstName: contact.name?.split(' ')[0] || '',
               recipientLastName: contact.name?.split(' ').slice(1).join(' ') || '',
               recipientCompany: contact.company?.name || '',
-              status: 'pending' as const,
+              status: 'queued' as const,  // Start with 'queued' status for processing
               createdAt: new Date(),
               updatedAt: new Date()
             }));
@@ -124,6 +124,66 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
       console.error('Error creating campaign:', error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : 'Failed to create campaign' 
+      });
+    }
+  });
+
+  // Approve emails in review queue
+  router.post('/:id/review/approve', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const campaignId = parseInt(req.params.id);
+      const { recipientIds } = req.body;
+      
+      if (isNaN(campaignId)) {
+        return res.status(400).json({ message: 'Invalid campaign ID' });
+      }
+      
+      // Verify campaign belongs to user
+      const campaign = await storage.getCampaign(campaignId, userId);
+      if (!campaign) {
+        return res.status(404).json({ message: 'Campaign not found or access denied' });
+      }
+      
+      // Use the email queue processor to approve the batch
+      const { emailQueueProcessor } = await import('../email-queue-processor');
+      await emailQueueProcessor.approveBatch(campaignId, recipientIds);
+      
+      res.json({ message: 'Emails approved for sending' });
+    } catch (error) {
+      console.error('Error approving emails:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to approve emails' 
+      });
+    }
+  });
+
+  // Reject emails in review queue
+  router.post('/:id/review/reject', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const campaignId = parseInt(req.params.id);
+      const { recipientIds } = req.body;
+      
+      if (isNaN(campaignId)) {
+        return res.status(400).json({ message: 'Invalid campaign ID' });
+      }
+      
+      // Verify campaign belongs to user
+      const campaign = await storage.getCampaign(campaignId, userId);
+      if (!campaign) {
+        return res.status(404).json({ message: 'Campaign not found or access denied' });
+      }
+      
+      // Use the email queue processor to reject the batch
+      const { emailQueueProcessor } = await import('../email-queue-processor');
+      await emailQueueProcessor.rejectBatch(campaignId, recipientIds);
+      
+      res.json({ message: 'Emails rejected for regeneration' });
+    } catch (error) {
+      console.error('Error rejecting emails:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to reject emails' 
       });
     }
   });

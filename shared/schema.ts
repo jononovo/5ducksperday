@@ -1051,7 +1051,7 @@ export const campaignRecipients = pgTable("campaign_recipients", {
   recipientFirstName: text("recipient_first_name"),
   recipientLastName: text("recipient_last_name"),
   recipientCompany: text("recipient_company"),
-  status: text("status").notNull().default('pending'), // pending, sent, bounced, failed
+  status: text("status").notNull().default('queued'), // queued, generating, in_review, scheduled, sending, sent, failed_generation, failed_send, bounced
   sentAt: timestamp("sent_at"),
   openedAt: timestamp("opened_at"),
   clickedAt: timestamp("clicked_at"),

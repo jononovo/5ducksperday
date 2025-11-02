@@ -107,6 +107,7 @@ export interface IStorage {
   // Campaigns
   listCampaigns(userId: number): Promise<Campaign[]>;
   getCampaign(id: number, userId: number): Promise<Campaign | undefined>;
+  getCampaignWithMetrics(id: number, userId: number): Promise<any>;
   createCampaign(data: InsertCampaign): Promise<Campaign>;
   updateCampaign(id: number, data: Partial<Campaign>): Promise<Campaign>;
   deleteCampaign(id: number, userId: number): Promise<void>;
@@ -758,6 +759,14 @@ class DatabaseStorage implements IStorage {
       }
     }
 
+    // Get recipients in review status for the review queue
+    const recipientsInReview = recipients.filter(r => r.status === 'in_review')
+      .map(r => ({
+        ...r,
+        emailSubject: r.emailSubject || campaign.subject,
+        emailContent: r.emailContent || campaign.body
+      }));
+
     return {
       ...campaign,
       totalRecipients,
@@ -774,7 +783,9 @@ class DatabaseStorage implements IStorage {
       unsubscribeRate,
       emailSubject,
       emailBody,
-      recipients
+      recipients,
+      recipientsInReview,
+      reviewCount: recipientsInReview.length
     };
   }
 
