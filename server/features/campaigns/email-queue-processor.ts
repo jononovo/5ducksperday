@@ -315,7 +315,7 @@ export class EmailQueueProcessor {
         and(
           eq(campaignRecipients.campaignId, campaignId),
           eq(campaignRecipients.status, 'in_review'),
-          sql`${campaignRecipients.id} = ANY(${recipientIds})`
+          inArray(campaignRecipients.id, recipientIds)
         )
       );
 
@@ -338,7 +338,7 @@ export class EmailQueueProcessor {
         and(
           eq(campaignRecipients.campaignId, campaignId),
           eq(campaignRecipients.status, 'in_review'),
-          sql`${campaignRecipients.id} = ANY(${recipientIds})`
+          inArray(campaignRecipients.id, recipientIds)
         )
       );
 
