@@ -22,7 +22,7 @@ import {
   type CampaignRecipient, type InsertCampaignRecipient
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, sql, desc, lt } from "drizzle-orm";
+import { eq, and, or, sql, desc, lt, inArray } from "drizzle-orm";
 import { encrypt, decrypt } from "./utils/encryption";
 
 export interface IStorage {
@@ -963,7 +963,7 @@ class DatabaseStorage implements IStorage {
     await db.delete(contactListMembers)
       .where(and(
         eq(contactListMembers.listId, listId),
-        sql`${contactListMembers.contactId} = ANY(${contactIds})`
+        inArray(contactListMembers.contactId, contactIds)
       ));
     
     // Update contact count

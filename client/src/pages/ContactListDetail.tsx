@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { usePagination } from "@/hooks/use-pagination";
 import {
   Table,
   TableBody,
@@ -19,6 +20,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -42,6 +53,8 @@ import {
   Briefcase,
   Upload,
   FileSpreadsheet,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import type { ContactList, Contact, SearchList, Company } from "@shared/schema";
 import Papa from "papaparse";
@@ -74,6 +87,10 @@ export default function ContactListDetail() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [parsedContacts, setParsedContacts] = useState<any[]>([]);
   const [csvParseError, setCsvParseError] = useState<string | null>(null);
+  
+  // Delete confirmation state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [contactToDelete, setContactToDelete] = useState<number | null>(null);
 
   // Fetch the contact list details
   const { data: contactList, isLoading: listLoading } = useQuery<ContactList>({
@@ -90,6 +107,17 @@ export default function ContactListDetail() {
     queryKey: [`/api/contact-lists/${id}/contacts`],
     enabled: !!user && !!id,
   });
+
+  // Use pagination hook for contacts
+  const {
+    currentPage,
+    totalPages,
+    startIndex,
+    endIndex,
+    paginatedItems: paginatedContacts,
+    handlePreviousPage,
+    handleNextPage,
+  } = usePagination(contacts, { itemsPerPage: 10 });
 
   // Fetch available search lists for the "Add from Search List" option
   const { data: searchLists = [] } = useQuery<SearchList[]>({
@@ -281,8 +309,24 @@ export default function ContactListDetail() {
         // Check if the first line looks like data (has @ for email in first position)
         const firstLineValues = firstLine.split(',').map(v => v.trim());
         if (firstLineValues.length >= 2 && firstLineValues[0].includes('@')) {
-          // Auto-add headers for new format: email, first_name, last_name, company, role, city
-          const headers = 'email, first_name, last_name, company, role, city';
+          // Auto-add headers based on the actual number of fields
+          // Common formats:
+          // 2 fields: email, name
+          // 3 fields: email, first_name, last_name
+          // 4 fields: email, first_name, last_name, company
+          // 5 fields: email, first_name, last_name, company, role
+          // 6 fields: email, first_name, last_name, company, role, city
+          
+          let headers = 'email, first_name';
+          if (firstLineValues.length === 3) {
+            headers = 'email, first_name, last_name';
+          } else if (firstLineValues.length === 4) {
+            headers = 'email, first_name, last_name, company';
+          } else if (firstLineValues.length === 5) {
+            headers = 'email, first_name, last_name, company, role';
+          } else if (firstLineValues.length >= 6) {
+            headers = 'email, first_name, last_name, company, role, city';
+          }
           csvTextToParse = headers + '\n' + text;
         }
       }
@@ -295,10 +339,17 @@ export default function ContactListDetail() {
       });
 
       if (result.errors.length > 0) {
-        // Report the first parsing error
-        const firstError = result.errors[0];
-        setCsvParseError(`CSV parsing error at row ${firstError.row}: ${firstError.message}`);
-        return;
+        // Filter out "TooFewFields" errors since optional fields are allowed to be missing
+        const significantErrors = result.errors.filter(error => 
+          error.code !== 'TooFewFields'
+        );
+        
+        if (significantErrors.length > 0) {
+          // Report the first significant parsing error
+          const firstError = significantErrors[0];
+          setCsvParseError(`CSV parsing error at row ${firstError.row}: ${firstError.message}`);
+          return;
+        }
       }
 
       if (result.data.length === 0) {
@@ -337,9 +388,10 @@ export default function ContactListDetail() {
         const contact = {
           name: lastName ? `${firstName} ${lastName}`.trim() : firstName,
           email: email,
-          company: company || '',
-          role: role || '',
-          city: city || '',
+          // Only include optional fields if they have values
+          ...(company && { company }),
+          ...(role && { role }),
+          ...(city && { city }),
         };
 
         contacts.push(contact);
@@ -409,9 +461,16 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
   };
 
   const handleRemoveContact = (contactId: number) => {
-    if (window.confirm("Are you sure you want to remove this contact from the list?")) {
-      removeContactMutation.mutate(contactId);
+    setContactToDelete(contactId);
+    setDeleteConfirmOpen(true);
+  };
+  
+  const confirmDeleteContact = () => {
+    if (contactToDelete) {
+      removeContactMutation.mutate(contactToDelete);
     }
+    setDeleteConfirmOpen(false);
+    setContactToDelete(null);
   };
 
   useEffect(() => {
@@ -461,36 +520,23 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Header with back button */}
-      <div className="mb-6">
+      {/* Compact header with everything on one row */}
+      <div className="flex items-center justify-between mb-6">
         <Button
           variant="ghost"
           onClick={() => navigate("/contacts")}
-          className="mb-4"
           data-testid="button-back"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Contacts
         </Button>
 
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold" data-testid="text-list-name">
-              {contactList.name}
-            </h1>
-            {contactList.description && (
-              <p className="text-muted-foreground mt-2" data-testid="text-list-description">
-                {contactList.description}
-              </p>
-            )}
-            <div className="flex items-center gap-4 mt-4">
-              <Badge variant="secondary" className="text-sm">
-                <Users className="h-3 w-3 mr-1" />
-                {contacts.length} contact{contacts.length !== 1 ? 's' : ''}
-              </Badge>
-            </div>
-          </div>
-
+        <div className="flex items-center gap-4">
+          <Badge variant="secondary" className="text-sm">
+            <Users className="h-3 w-3 mr-1" />
+            {contacts.length} contact{contacts.length !== 1 ? 's' : ''}
+          </Badge>
+          
           <Button
             onClick={() => setAddContactsModalOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -502,12 +548,21 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
         </div>
       </div>
 
+      {/* List name and description */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold" data-testid="text-list-name">
+          {contactList.name}
+        </h1>
+        {contactList.description && (
+          <p className="text-muted-foreground mt-2" data-testid="text-list-description">
+            {contactList.description}
+          </p>
+        )}
+      </div>
+
       {/* Contacts Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Contacts in this List</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {contacts.length === 0 ? (
             <div className="text-center py-8">
               <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -535,37 +590,28 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contacts.map((contact) => (
+                {paginatedContacts.map((contact) => (
                   <TableRow key={contact.id} data-testid={`row-contact-${contact.id}`}>
                     <TableCell className="font-medium">
                       {contact.name}
                     </TableCell>
                     <TableCell>
                       {contact.email ? (
-                        <div className="flex items-center gap-1">
-                          <Mail className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm">{contact.email}</span>
-                        </div>
+                        <span className="text-sm">{contact.email}</span>
                       ) : (
-                        <span className="text-muted-foreground text-sm">No email</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     <TableCell>
                       {contact.company?.name ? (
-                        <div className="flex items-center gap-1">
-                          <Building2 className="h-3 w-3 text-muted-foreground" />
-                          <span>{contact.company.name}</span>
-                        </div>
+                        <span>{contact.company.name}</span>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     <TableCell>
                       {contact.role ? (
-                        <div className="flex items-center gap-1">
-                          <Briefcase className="h-3 w-3 text-muted-foreground" />
-                          <span>{contact.role}</span>
-                        </div>
+                        <span>{contact.role}</span>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
@@ -585,6 +631,40 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
                 ))}
               </TableBody>
             </Table>
+            
+          )}
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-2 py-4 border-t mt-4">
+              <div className="text-sm text-muted-foreground">
+                Viewing {startIndex + 1}—
+                {Math.min(endIndex, contacts.length)} over{" "}
+                {contacts.length} results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  data-testid="button-previous-page"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  data-testid="button-next-page"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -863,7 +943,6 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
                   <div>
                     <label className="text-sm font-medium">CSV Format Requirements</label>
                     <div className="mt-2 p-3 bg-gray-50 rounded-md text-xs text-gray-600">
-                      <p className="font-semibold mb-1">Format: email first, then first name (only these two are required)</p>
                       <code>email, first_name, last_name, company, role, city</code>
                       <p className="mt-2">Simple examples (headers auto-added):</p>
                       <code className="block">john@example.com, John</code>
@@ -924,7 +1003,6 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
                       >
                         Download CSV template
                       </button>
-                      {' '}to see the correct format
                     </p>
                   </div>
 
@@ -1041,6 +1119,27 @@ bob@startup.com,Bob,Johnson,StartupCo,VP Sales,Austin`;
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Contact</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this contact from the list? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setContactToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteContact}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

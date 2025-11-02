@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { usePagination } from "@/hooks/use-pagination";
 import {
   Table,
   TableBody,
@@ -213,15 +214,12 @@ function NewListModal({
 }
 
 export default function Contacts() {
-  const [currentPage, setCurrentPage] = useState(1);
   const [newListModalOpen, setNewListModalOpen] = useState(false);
   const [selectedLists, setSelectedLists] = useState<Set<number>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  
-  const itemsPerPage = 10;
 
   // Fetch contact lists
   const { data: contactLists = [], isLoading: listsLoading, refetch: refetchLists } = useQuery<ContactList[]>({
@@ -244,11 +242,17 @@ export default function Contacts() {
     blocklist: 0, // Mock value matching the design
   };
 
-  // Pagination logic
-  const totalPages = Math.ceil(contactLists.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedLists = contactLists.slice(startIndex, endIndex);
+  // Use pagination hook for contact lists
+  const {
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    startIndex,
+    endIndex,
+    paginatedItems: paginatedLists,
+    handlePreviousPage,
+    handleNextPage,
+  } = usePagination(contactLists, { itemsPerPage: 10 });
 
   const handleNewList = () => {
     // Open the new list modal
@@ -257,14 +261,6 @@ export default function Contacts() {
 
   const handleListClick = (listId: number) => {
     navigate(`/contact-lists/${listId}`);
-  };
-
-  const handlePreviousPage = () => {
-    setCurrentPage((prev) => Math.max(1, prev - 1));
-  };
-
-  const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
   };
 
   // Handle select all checkbox
