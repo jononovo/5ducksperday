@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -17,13 +17,24 @@ import {
   Settings,
   ChevronUp,
   ChevronDown,
-  UserCheck
+  UserCheck,
+  Mail,
+  CheckCircle,
+  XCircle,
+  AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScheduleSendModal } from "@/components/schedule-send-modal";
 import { AutopilotModal, type AutopilotSettings } from "@/components/autopilot-modal";
 import { format } from "date-fns";
 import { Send } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+
+interface GmailAuthStatus {
+  authorized: boolean;
+  hasValidToken: boolean;
+}
 
 export interface CampaignSettingsData {
   scheduleSend: boolean;
@@ -57,6 +68,12 @@ export function CampaignSettings({
   const [localSettings, setLocalSettings] = useState<CampaignSettingsData>(settings);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [autopilotModalOpen, setAutopilotModalOpen] = useState(false);
+
+  // Check Gmail connection status
+  const { data: gmailStatus } = useQuery<GmailAuthStatus>({
+    queryKey: ['/api/gmail/auth-status'],
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
 
   const handleToggle = (key: keyof CampaignSettingsData, value: boolean) => {
     const updated = { ...localSettings, [key]: value };
@@ -93,6 +110,58 @@ export function CampaignSettings({
   return (
     <>
     <div className={cn("space-y-1 pt-1 pb-4", className)}>
+          {/* Sending Method Status */}
+          <div className="w-full px-2 py-2 bg-muted/30 rounded-lg mb-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground">
+                  Sending Method
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {gmailStatus?.authorized ? 'Gmail' : 'Manual'}
+                </span>
+                {gmailStatus?.authorized ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p>Gmail connected - emails will be sent automatically</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <AlertCircle className="h-4 w-4 text-yellow-500" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <p>Gmail not connected - you'll need to send emails manually after approval</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+            </div>
+            {!gmailStatus?.authorized && (
+              <div className="mt-2 pt-2 border-t border-border/50">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs"
+                  onClick={() => window.open(`/api/gmail/auth?userId=${(window as any).userId || 1}`, '_blank')}
+                >
+                  Connect Gmail to enable automatic sending
+                </Button>
+              </div>
+            )}
+          </div>
+
           {/* Schedule Send Button */}
           <Button
             variant="ghost"

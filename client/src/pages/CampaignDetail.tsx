@@ -117,6 +117,8 @@ const RecipientTable = ({ recipients, showError = false, errorMessage }: Recipie
         return <Badge variant="secondary">Queued</Badge>;
       case 'sent':
         return <Badge variant="outline">Sent</Badge>;
+      case 'manual_send_required':
+        return <Badge className="bg-yellow-500 text-white">Manual Send Required</Badge>;
       case 'failed_generation':
         return <Badge variant="destructive">Failed Generation</Badge>;
       case 'failed_send':
@@ -822,7 +824,7 @@ export default function CampaignDetail() {
             <CardContent>
               {/* Status filter tabs */}
               <Tabs defaultValue="all" className="mb-4">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-6">
                   <TabsTrigger value="all">
                     All ({campaign.recipients?.length || 0})
                   </TabsTrigger>
@@ -831,6 +833,9 @@ export default function CampaignDetail() {
                   </TabsTrigger>
                   <TabsTrigger value="sent">
                     Sent ({campaign.recipients?.filter(r => r.status === 'sent').length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="manual">
+                    Manual ({campaign.recipients?.filter(r => r.status === 'manual_send_required').length || 0})
                   </TabsTrigger>
                   <TabsTrigger value="engaged">
                     Engaged ({campaign.recipients?.filter(r => r.openedAt || r.clickedAt || r.repliedAt).length || 0})
@@ -854,6 +859,57 @@ export default function CampaignDetail() {
                 
                 <TabsContent value="engaged" className="mt-4">
                   <RecipientTable recipients={campaign.recipients?.filter(r => r.openedAt || r.clickedAt || r.repliedAt) || []} />
+                </TabsContent>
+
+                <TabsContent value="manual" className="mt-4">
+                  <div className="space-y-4">
+                    {campaign.recipients?.filter(r => r.status === 'manual_send_required').length > 0 ? (
+                      <>
+                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                            <div className="flex-1">
+                              <h4 className="font-medium text-yellow-800 dark:text-yellow-300">Manual Send Required</h4>
+                              <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
+                                Gmail is not connected for automatic sending. You'll need to send these emails manually.
+                              </p>
+                              <div className="flex gap-2 mt-3">
+                                <Button 
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open('/api/gmail/auth?userId=1', '_blank')}
+                                >
+                                  Connect Gmail
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const manualRecipients = campaign.recipients?.filter(r => r.status === 'manual_send_required') || [];
+                                    if (manualRecipients.length > 0) {
+                                      // Open first email in Gmail compose
+                                      const recipient = manualRecipients[0];
+                                      const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(recipient.email)}&su=${encodeURIComponent(recipient.emailSubject || '')}&body=${encodeURIComponent(recipient.emailContent || '')}`;
+                                      window.open(gmailUrl, '_blank');
+                                    }
+                                  }}
+                                >
+                                  Open in Gmail
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <RecipientTable recipients={campaign.recipients?.filter(r => r.status === 'manual_send_required') || []} />
+                      </>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Check className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                        <p>No manual sends required</p>
+                        <p className="text-sm mt-1">All emails are being sent automatically</p>
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
                 
                 <TabsContent value="failed" className="mt-4">

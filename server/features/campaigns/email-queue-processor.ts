@@ -1,16 +1,18 @@
 import { storage } from "../../storage";
 import { db } from "../../db";
-import { campaignRecipients, campaigns } from "@shared/schema";
+import { campaignRecipients, campaigns, communicationHistory } from "@shared/schema";
 import { eq, and, sql, inArray } from "drizzle-orm";
 import { generateEmailContent } from "../email-generation/generator";
 import type { Campaign, CampaignRecipient } from "@shared/schema";
 import sgMail from '@sendgrid/mail';
+import { GmailOAuthService } from '../../gmail-api-service/oauth/service';
+import { TokenService } from '../billing/tokens/service';
 
 const BATCH_SIZE = 20; // Process 20 recipients at a time
 const PROCESSING_INTERVAL = 10000; // Check every 10 seconds
 const SENDING_INTERVAL = 5000; // Check for emails to send every 5 seconds
 
-// Initialize SendGrid
+// Initialize SendGrid (optional, not default)
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 }
@@ -356,19 +358,16 @@ export class EmailQueueProcessor {
     this.isSending = true;
 
     try {
-      if (!process.env.SENDGRID_API_KEY) {
-        console.log("[EmailQueueProcessor] SendGrid not configured, skipping email send");
-        return;
-      }
-
-      // Find scheduled recipients ready to send
+      // Find scheduled recipients ready to send  
       const scheduledRecipients = await db
         .select({
           id: campaignRecipients.id,
           campaignId: campaignRecipients.campaignId,
+          userId: campaigns.userId,
           recipientEmail: campaignRecipients.recipientEmail,
           recipientFirstName: campaignRecipients.recipientFirstName,
           recipientLastName: campaignRecipients.recipientLastName,
+          recipientCompany: campaignRecipients.recipientCompany,
           emailSubject: campaignRecipients.emailSubject,
           emailContent: campaignRecipients.emailContent,
         })
@@ -388,64 +387,123 @@ export class EmailQueueProcessor {
 
       console.log(`[EmailQueueProcessor] Processing ${scheduledRecipients.length} scheduled emails`);
 
-      // Process each email
-      const results = await Promise.allSettled(
-        scheduledRecipients.map(async (recipient) => {
-          try {
-            // Send email via SendGrid
-            await sgMail.send({
-              to: recipient.recipientEmail,
-              from: {
-                email: process.env.SENDGRID_FROM_EMAIL || 'hello@yourdomain.com',
-                name: process.env.SENDGRID_FROM_NAME || 'Your Company'
-              },
-              subject: recipient.emailSubject || 'No subject',
-              html: recipient.emailContent || 'No content',
-              trackingSettings: {
-                clickTracking: { enable: true },
-                openTracking: { enable: true }
+      // Group recipients by user to check their Gmail auth status
+      const recipientsByUser = scheduledRecipients.reduce((acc, recipient) => {
+        if (!acc[recipient.userId]) {
+          acc[recipient.userId] = [];
+        }
+        acc[recipient.userId].push(recipient);
+        return acc;
+      }, {} as Record<number, typeof scheduledRecipients>);
+
+      // Process each user's recipients
+      for (const [userId, userRecipients] of Object.entries(recipientsByUser)) {
+        const userIdNum = parseInt(userId);
+        
+        // Check if user has Gmail connected
+        const hasGmailAuth = await TokenService.hasValidGmailAuth(userIdNum);
+        
+        if (!hasGmailAuth) {
+          console.log(`[EmailQueueProcessor] User ${userIdNum} doesn't have Gmail connected, marking emails for manual send`);
+          
+          // Mark these emails as requiring manual send
+          await db
+            .update(campaignRecipients)
+            .set({
+              status: 'manual_send_required',
+              errorMessage: 'Gmail not connected - manual send required',
+              updatedAt: new Date()
+            })
+            .where(
+              inArray(campaignRecipients.id, userRecipients.map(r => r.id))
+            );
+          
+          continue;
+        }
+
+        // Get user info for sending
+        const user = await storage.getUserById(userIdNum);
+        if (!user) {
+          console.error(`[EmailQueueProcessor] User ${userIdNum} not found`);
+          continue;
+        }
+
+        // Process each email for this user
+        const results = await Promise.allSettled(
+          userRecipients.map(async (recipient) => {
+            try {
+              // Send email via Gmail
+              const gmailResult = await GmailOAuthService.sendEmail(
+                userIdNum,
+                user.email,
+                recipient.recipientEmail,
+                recipient.emailSubject || 'No subject',
+                recipient.emailContent || 'No content'
+              );
+
+              // Update status to sent
+              await db
+                .update(campaignRecipients)
+                .set({
+                  status: 'sent',
+                  sentAt: new Date(),
+                  updatedAt: new Date()
+                })
+                .where(eq(campaignRecipients.id, recipient.id));
+
+              // TODO: Save to communication history once we have contact/company IDs
+              // For now, campaign emails are tracked in campaign_recipients table
+              // await db.insert(communicationHistory).values({
+              //   userId: userIdNum,
+              //   contactId: null, // Requires non-null in schema
+              //   companyId: null, // Requires non-null in schema
+              //   campaignId: recipient.campaignId,
+              //   ...
+              // });
+
+              console.log(`[EmailQueueProcessor] Sent email via Gmail to ${recipient.recipientEmail}`);
+              return { success: true, recipientId: recipient.id };
+            } catch (error: any) {
+              console.error(`[EmailQueueProcessor] Failed to send email to ${recipient.recipientEmail}:`, error);
+              
+              // Check if it's an auth error
+              if (error.status === 401) {
+                // Mark as manual send required
+                await db
+                  .update(campaignRecipients)
+                  .set({
+                    status: 'manual_send_required',
+                    errorMessage: 'Gmail authentication expired - manual send required',
+                    updatedAt: new Date()
+                  })
+                  .where(eq(campaignRecipients.id, recipient.id));
+              } else {
+                // Update status to failed_send
+                await db
+                  .update(campaignRecipients)
+                  .set({
+                    status: 'failed_send',
+                    errorMessage: error instanceof Error ? error.message : 'Send failed',
+                    updatedAt: new Date()
+                  })
+                  .where(eq(campaignRecipients.id, recipient.id));
               }
-            });
+              
+              throw error;
+            }
+          })
+        );
 
-            // Update status to sent
-            await db
-              .update(campaignRecipients)
-              .set({
-                status: 'sent',
-                sentAt: new Date(),
-                updatedAt: new Date()
-              })
-              .where(eq(campaignRecipients.id, recipient.id));
-
-            console.log(`[EmailQueueProcessor] Sent email to ${recipient.recipientEmail}`);
-            return { success: true, recipientId: recipient.id };
-          } catch (error) {
-            console.error(`[EmailQueueProcessor] Failed to send email to ${recipient.recipientEmail}:`, error);
-            
-            // Update status to failed_send
-            await db
-              .update(campaignRecipients)
-              .set({
-                status: 'failed_send',
-                errorMessage: error instanceof Error ? error.message : 'Send failed',
-                updatedAt: new Date()
-              })
-              .where(eq(campaignRecipients.id, recipient.id));
-            
-            throw error;
-          }
-        })
-      );
-
-      // Log results
-      const successful = results.filter(r => r.status === 'fulfilled').length;
-      const failed = results.filter(r => r.status === 'rejected').length;
-      
-      if (successful > 0) {
-        console.log(`[EmailQueueProcessor] Successfully sent ${successful} emails`);
-      }
-      if (failed > 0) {
-        console.log(`[EmailQueueProcessor] Failed to send ${failed} emails`);
+        // Log results for this user
+        const successful = results.filter(r => r.status === 'fulfilled').length;
+        const failed = results.filter(r => r.status === 'rejected').length;
+        
+        if (successful > 0) {
+          console.log(`[EmailQueueProcessor] Successfully sent ${successful} emails for user ${userIdNum}`);
+        }
+        if (failed > 0) {
+          console.log(`[EmailQueueProcessor] Failed to send ${failed} emails for user ${userIdNum}`);
+        }
       }
 
     } catch (error) {
