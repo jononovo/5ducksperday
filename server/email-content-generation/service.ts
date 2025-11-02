@@ -72,10 +72,11 @@ CRITICAL: Generate the actual email template directly. DO NOT include explanatio
 
 Required merge fields to use:
 - {{first_name}} - Use this in greetings (e.g., "Hi {{first_name}},")
-- {{company_name}} - Use when referencing the target company
+- {{contact_company_name}} - Use when referencing the target company
 - {{contact_role}} - Use when mentioning their position
-- {{full_sender_name}} - Use in signature
+- {{sender_full_name}} - Use in signature
 - {{sender_first_name}} - Use in casual references to yourself
+- {{sender_company_name}} - Use when referencing your company
 
 Optional merge fields you can also use:
 - {{last_name}} - Target's last name
@@ -91,9 +92,9 @@ ${contact && contact.role ? `Target Role: ${contact.role} (use {{contact_role}} 
 FORMAT REQUIREMENTS (MUST FOLLOW EXACTLY):
 1. Start with "Subject: " followed by an engaging subject line using merge fields
    Good examples:
-   - Subject: Freshen Up {{company_name}} with Premium Commercial Orange Juicers
-   - Subject: {{first_name}}, quick question about {{company_name}}'s operations
-   - Subject: Transform {{company_name}}'s efficiency with our solution
+   - Subject: Freshen Up {{contact_company_name}} with Premium Commercial Orange Juicers
+   - Subject: {{first_name}}, quick question about {{contact_company_name}}'s operations
+   - Subject: Transform {{contact_company_name}}'s efficiency with our solution
    
 2. Then on a new line, write the email body starting with the greeting
 3. Use merge fields naturally throughout the email
@@ -114,9 +115,10 @@ Prompt: ${userPrompt}
 Available merge fields for personalization:
 - {{first_name}} - Target contact's first name
 - {{contact_name}} - Target contact's full name  
-- {{company_name}} - Target company name
+- {{contact_company_name}} - Target company name
 - {{sender_first_name}} - Your first name
-- {{full_sender_name}} - Your full name
+- {{sender_full_name}} - Your full name
+- {{sender_company_name}} - Your company name
 
 TARGET COMPANY: ${company.name}
 ${company.description ? `About: ${company.description}` : ''}
