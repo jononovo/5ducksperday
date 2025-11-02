@@ -937,7 +937,7 @@ export function EmailComposer({
       <>
         {/* Merge View Mode Notification Banner */}
         {isMergeViewMode && (
-          <div className="mt-6 mb-2 bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded-md text-sm">
+          <div className="mt-8 mb-3 bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded-md text-sm">
             Merge View Mode - Showing technical merge fields
           </div>
         )}
