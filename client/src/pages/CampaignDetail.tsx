@@ -270,7 +270,7 @@ export default function CampaignDetail() {
 
   const deleteCampaignMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/campaigns/${campaignId}`, 'DELETE');
+      return apiRequest('DELETE', `/api/campaigns/${campaignId}`);
     },
     onSuccess: () => {
       toast({
@@ -291,7 +291,7 @@ export default function CampaignDetail() {
   // Handler functions for review queue
   const handleApproveBatch = async (campaignId: number, recipientIds: number[]) => {
     try {
-      await apiRequest(`/api/campaigns/${campaignId}/review/approve`, 'POST', { recipientIds });
+      await apiRequest('POST', `/api/campaigns/${campaignId}/review/approve`, { recipientIds });
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns', campaignId] });
       toast({
         title: "Emails approved",
@@ -308,7 +308,7 @@ export default function CampaignDetail() {
 
   const handleRejectBatch = async (campaignId: number, recipientIds: number[]) => {
     try {
-      await apiRequest(`/api/campaigns/${campaignId}/review/reject`, 'POST', { recipientIds });
+      await apiRequest('POST', `/api/campaigns/${campaignId}/review/reject`, { recipientIds });
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns', campaignId] });
       toast({
         title: "Emails rejected",
