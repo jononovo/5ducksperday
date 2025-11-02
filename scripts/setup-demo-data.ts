@@ -45,10 +45,10 @@ async function setupDemoData() {
         {
           userId: 1,  // Still use demo user ID for backwards compatibility
           name: 'Cold Outreach - Introduction',
-          subject: 'Quick question about {{company_name}}',
+          subject: 'Quick question about {{contact_company_name}}',
           content: `Hi {{contact_name}},
 
-I hope this email finds you well. I came across {{company_name}} and was impressed by your work in the industry.
+I hope this email finds you well. I came across {{contact_company_name}} and was impressed by your work in the industry.
 
 [Your message here]
 
@@ -61,10 +61,10 @@ Best regards,
         {
           userId: 1,
           name: 'Follow-up Email', 
-          subject: 'Following up on {{company_name}}',
+          subject: 'Following up on {{contact_company_name}}',
           content: `Hi {{contact_name}},
 
-I wanted to follow up on my previous email regarding {{company_name}}.
+I wanted to follow up on my previous email regarding {{contact_company_name}}.
 
 [Your follow-up message]
 
@@ -79,7 +79,7 @@ Best,
         {
           userId: 1,
           name: 'Partnership Inquiry',
-          subject: 'Partnership opportunity with {{company_name}}',
+          subject: 'Partnership opportunity with {{contact_company_name}}',
           content: `Dear {{contact_name}},
 
 I'm reaching out to explore potential partnership opportunities between our companies.
@@ -97,10 +97,10 @@ Best regards,
         {
           userId: 1,
           name: 'Service Introduction',
-          subject: 'How we can help {{company_name}}',
+          subject: 'How we can help {{contact_company_name}}',
           content: `Hi {{contact_name}},
 
-I noticed that {{company_name}} might benefit from our services.
+I noticed that {{contact_company_name}} might benefit from our services.
 
 [Service description]
 
