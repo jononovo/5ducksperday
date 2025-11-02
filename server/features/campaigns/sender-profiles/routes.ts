@@ -39,6 +39,41 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
     }
   });
 
+  // Get default sender profile for the authenticated user
+  router.get('/default', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      let profiles = await storage.listSenderProfiles(userId);
+      
+      // Auto-generate a default profile if user has none
+      if (profiles.length === 0) {
+        console.log(`Auto-generating default sender profile for user ${userId}`);
+        
+        // Get user details to create default profile
+        const user = await storage.getUserById(userId);
+        if (user) {
+          const defaultProfile = await storage.createSenderProfile({
+            userId,
+            displayName: user.username || user.email.split('@')[0],
+            email: user.email,
+            isDefault: true
+          });
+          return res.json(defaultProfile);
+        }
+        return res.json(null);
+      }
+      
+      // Find the default profile or return the first one
+      const defaultProfile = profiles.find(p => p.isDefault) || profiles[0];
+      res.json(defaultProfile);
+    } catch (error) {
+      console.error('Error fetching default sender profile:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to fetch default sender profile' 
+      });
+    }
+  });
+
   // Get specific sender profile
   router.get('/:id', requireAuth, async (req: Request, res: Response) => {
     try {

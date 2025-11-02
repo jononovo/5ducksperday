@@ -12,6 +12,7 @@ export interface MergeFieldContext {
   sender?: {
     name?: string;
     firstName?: string;
+    companyName?: string;
   };
 }
 
@@ -63,6 +64,9 @@ export function resolveMergeField(field: string, context: MergeFieldContext): st
     
     case '{{sender_first_name}}':
       return sender?.firstName || sender?.name?.split(' ')[0] || 'User';
+    
+    case '{{sender_company_name}}':
+      return sender?.companyName || '[Your Company]';
     
     default:
       return DEFAULT_VALUES[field] || field;

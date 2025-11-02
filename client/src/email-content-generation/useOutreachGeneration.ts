@@ -5,11 +5,13 @@ import {
   shouldAutoFillSubject, 
   shouldAutoFillEmail, 
   formatGeneratedContent,
-  validateEmailGenerationRequest 
+  validateEmailGenerationRequest,
+  buildDynamicPromptInstructions
 } from "./outreach-utils";
 import { applySmartReplacements } from "./smart-replacements";
 import type { EmailGenerationPayload, EmailGenerationResponse } from "./types";
 import type { Contact, Company } from "@shared/schema";
+import type { MergeFieldContext } from "@/lib/merge-field-resolver";
 
 /**
  * Email Generation Hook
@@ -26,6 +28,7 @@ interface UseEmailGenerationProps {
   tone?: string;
   offerStrategy?: string;
   generateTemplate?: boolean; // For campaign template generation
+  mergeFieldContext?: MergeFieldContext; // For building dynamic prompts
   
   // State setters
   setEmailSubject: (subject: string) => void;
@@ -48,6 +51,7 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
     tone = 'default',
     offerStrategy = 'none',
     generateTemplate = false,
+    mergeFieldContext,
     setEmailSubject,
     setOriginalEmailSubject,
     setToEmail,
@@ -57,8 +61,15 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
 
   const generateEmailMutation = useMutation({
     mutationFn: async (): Promise<EmailGenerationResponse> => {
+      // Build dynamic prompt with only available merge fields
+      let enhancedPrompt = emailPrompt;
+      if (generateTemplate && mergeFieldContext) {
+        const dynamicInstructions = buildDynamicPromptInstructions(mergeFieldContext);
+        enhancedPrompt = emailPrompt + dynamicInstructions;
+      }
+      
       const payload: EmailGenerationPayload = {
-        emailPrompt,
+        emailPrompt: enhancedPrompt,
         contact: selectedContact,
         company: selectedCompany!,
         tone,

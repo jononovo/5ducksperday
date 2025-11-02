@@ -192,6 +192,9 @@ export function EmailComposer({
   // Refs
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
   const toEmailRef = useRef<HTMLInputElement>(null);
+  
+  // Sender profile state for dynamic merge fields
+  const [senderProfile, setSenderProfile] = useState<any>(null);
 
   // Helper functions to get/set the correct state based on generation mode
   const getCurrentSubject = () => {
@@ -276,7 +279,8 @@ export function EmailComposer({
     selectedContact,
     selectedCompany,
     senderNames.fullName,
-    senderNames.firstName
+    senderNames.firstName,
+    senderProfile?.companyName || undefined // Pass sender company name if available
   );
 
   // Email generation hook
@@ -290,6 +294,7 @@ export function EmailComposer({
     tone: selectedTone,
     offerStrategy: selectedOfferStrategy,
     generateTemplate: drawerMode === 'campaign' && generationMode === 'merge_field', // Only generate template in campaign mode with merge_field
+    mergeFieldContext, // Pass context for dynamic prompt building
     setEmailSubject: setCurrentSubject,
     setOriginalEmailSubject: setCurrentOriginalSubject,
     setToEmail,
@@ -482,6 +487,28 @@ export function EmailComposer({
   });
 
   // Effects
+  // Non-blocking fetch of sender profile on component mount
+  useEffect(() => {
+    const fetchSenderProfile = async () => {
+      try {
+        const response = await fetch('/api/sender-profiles/default', {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const profile = await response.json();
+          console.log('Fetched sender profile:', profile);
+          setSenderProfile(profile);
+        }
+      } catch (error) {
+        // Silently fail - sender profile is optional for merge fields
+        console.log('Could not fetch sender profile (non-blocking):', error);
+      }
+    };
+    
+    // Fire and forget - don't block the component
+    fetchSenderProfile();
+  }, []); // Only run once on mount
+  
   useEffect(() => {
     console.log('EmailComposer useEffect - campaign recipients check:', {
       drawerMode,

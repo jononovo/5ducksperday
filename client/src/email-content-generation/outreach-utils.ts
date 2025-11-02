@@ -10,7 +10,8 @@ export function createMergeFieldContext(
   contact: Contact | null,
   company: Company | null,
   senderFullName?: string,
-  senderFirstName?: string
+  senderFirstName?: string,
+  senderCompanyName?: string
 ): MergeFieldContext {
   return {
     contact: contact ? {
@@ -23,7 +24,8 @@ export function createMergeFieldContext(
     } : null,
     sender: {
       name: senderFullName || 'User',
-      firstName: senderFirstName || senderFullName?.split(' ')[0] || 'User'
+      firstName: senderFirstName || senderFullName?.split(' ')[0] || 'User',
+      companyName: senderCompanyName // Add sender company name to context
     }
   };
 }
@@ -74,4 +76,81 @@ export function validateEmailGenerationRequest(
   }
 
   return { isValid: true };
+}
+
+/**
+ * Get available merge fields based on what data is present
+ * This prevents including merge fields in prompts when data is not available
+ */
+export function getAvailableMergeFields(mergeFieldContext: MergeFieldContext): string[] {
+  const available: string[] = [];
+  const { contact, company, sender } = mergeFieldContext;
+  
+  // Always available sender fields
+  if (sender?.name) {
+    available.push('{{sender_full_name}}');
+  }
+  if (sender?.firstName) {
+    available.push('{{sender_first_name}}');
+  }
+  
+  // Conditionally available sender fields
+  if (sender?.companyName) {
+    available.push('{{sender_company_name}}');
+  }
+  
+  // Contact fields
+  if (contact?.name) {
+    available.push('{{contact_name}}');
+    available.push('{{first_name}}');
+    available.push('{{last_name}}');
+  }
+  if (contact?.role) {
+    available.push('{{contact_role}}');
+  }
+  if (contact?.email) {
+    available.push('{{contact_email}}');
+  }
+  
+  // Company fields
+  if (company?.name) {
+    available.push('{{contact_company_name}}');
+  }
+  
+  return available;
+}
+
+/**
+ * Build dynamic prompt including only available merge fields
+ * This prevents the AI from using fields that will resolve to placeholder text
+ */
+export function buildDynamicPromptInstructions(mergeFieldContext: MergeFieldContext): string {
+  const availableFields = getAvailableMergeFields(mergeFieldContext);
+  
+  if (availableFields.length === 0) {
+    return '';
+  }
+  
+  // Group fields by type for better organization
+  const contactFields = availableFields.filter(f => 
+    f.includes('contact') || f === '{{first_name}}' || f === '{{last_name}}'
+  );
+  const senderFields = availableFields.filter(f => f.includes('sender'));
+  const companyFields = availableFields.filter(f => f.includes('company') && !f.includes('sender'));
+  
+  let instructions = '\n\nAvailable merge fields to personalize this email:';
+  
+  if (senderFields.length > 0) {
+    instructions += '\nSender fields: ' + senderFields.join(', ');
+  }
+  if (contactFields.length > 0) {
+    instructions += '\nContact fields: ' + contactFields.join(', ');
+  }
+  if (companyFields.length > 0) {
+    instructions += '\nCompany fields: ' + companyFields.join(', ');
+  }
+  
+  instructions += '\n\nUse these merge fields naturally in the email to personalize it.';
+  
+  return instructions;
 }
