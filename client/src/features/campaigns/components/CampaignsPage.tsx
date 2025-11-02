@@ -168,6 +168,7 @@ export default function CampaignsPage() {
       draft: { variant: "outline" as const, className: "text-gray-600" },
       active: { variant: "default" as const, className: "bg-green-600" },
       paused: { variant: "secondary" as const, className: "text-yellow-600" },
+      stopped: { variant: "destructive" as const, className: "" },
       completed: { variant: "outline" as const, className: "text-blue-600" },
     };
     return variants[status as keyof typeof variants] || variants.draft;

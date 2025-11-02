@@ -22,7 +22,7 @@ import {
   type CampaignRecipient, type InsertCampaignRecipient
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, sql, desc, lt, inArray } from "drizzle-orm";
+import { eq, and, or, sql, desc, lt, inArray, isNull } from "drizzle-orm";
 import { encrypt, decrypt } from "./utils/encryption";
 
 export interface IStorage {
@@ -110,6 +110,7 @@ export interface IStorage {
   createCampaign(data: InsertCampaign): Promise<Campaign>;
   updateCampaign(id: number, data: Partial<Campaign>): Promise<Campaign>;
   deleteCampaign(id: number, userId: number): Promise<void>;
+  restartCampaign(id: number, userId: number, mode: 'all' | 'unsent'): Promise<Campaign>;
 
   // Search Jobs
   createSearchJob(data: InsertSearchJob): Promise<SearchJob>;
@@ -770,6 +771,63 @@ class DatabaseStorage implements IStorage {
   async deleteCampaign(id: number, userId: number): Promise<void> {
     await db.delete(campaigns)
       .where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)));
+  }
+
+  async restartCampaign(id: number, userId: number, mode: 'all' | 'unsent'): Promise<Campaign> {
+    // Verify campaign exists and belongs to user
+    const campaign = await this.getCampaign(id, userId);
+    if (!campaign) {
+      throw new Error('Campaign not found or access denied');
+    }
+
+    // Reset campaign status to active
+    const updates: Partial<Campaign> = {
+      status: 'active',
+      startDate: new Date(),
+      endDate: null,
+      updatedAt: new Date()
+    };
+
+    if (mode === 'all') {
+      // Reset all metrics for complete restart
+      updates.totalLeadsGenerated = 0;
+      updates.responseRate = 0;
+      
+      // Clear recipient statuses for all recipients
+      await db.update(campaignRecipients)
+        .set({
+          status: 'pending',
+          sentAt: null,
+          openedAt: null,
+          clickedAt: null,
+          repliedAt: null,
+          bouncedAt: null,
+          unsubscribedAt: null,
+          openCount: 0,
+          clickCount: 0,
+          updatedAt: new Date()
+        })
+        .where(eq(campaignRecipients.campaignId, id));
+    } else if (mode === 'unsent') {
+      // Only reset unsent recipients
+      await db.update(campaignRecipients)
+        .set({
+          status: 'pending',
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(campaignRecipients.campaignId, id),
+          isNull(campaignRecipients.sentAt)
+        ));
+    }
+
+    // Update the campaign
+    const [updatedCampaign] = await db.update(campaigns)
+      .set(updates)
+      .where(eq(campaigns.id, id))
+      .returning();
+
+    return updatedCampaign;
   }
 
   // Search Jobs
