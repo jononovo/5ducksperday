@@ -949,11 +949,13 @@ export const campaignSchema = z.object({
   // Email generation settings
   tone: z.string().optional(),
   offerType: z.string().optional(),
+  generationType: z.string().optional(),
   // Scheduling settings
   sendTimePreference: z.string().optional(),
-  scheduleDate: z.date().optional(),
+  scheduleDate: z.coerce.date().optional(),
   scheduleTime: z.string().optional(),
   timezone: z.string().default("America/New_York"),
+  start_date: z.coerce.date().optional(),
   // Autopilot settings
   autopilotEnabled: z.boolean().default(false),
   autopilotSettings: z.record(z.unknown()).optional(),
