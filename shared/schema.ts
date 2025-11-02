@@ -694,7 +694,7 @@ export const campaigns = pgTable("campaigns", {
   trackEmails: boolean("track_emails").default(true),
   unsubscribeLink: boolean("unsubscribe_link").default(true),
   // Original fields
-  startDate: timestamp("start_date"),
+  startDate: timestamp("start_date").notNull().defaultNow(), // Always required, defaults to now
   endDate: timestamp("end_date"),
   durationDays: integer("duration_days").notNull().default(14), // Default 2 weeks
   dailyLeadTarget: integer("daily_lead_target").notNull().default(5),
@@ -955,7 +955,7 @@ export const campaignSchema = z.object({
   scheduleDate: z.coerce.date().optional(),
   scheduleTime: z.string().optional(),
   timezone: z.string().default("America/New_York"),
-  start_date: z.coerce.date().optional(),
+  start_date: z.coerce.date().optional(), // Will be set by backend if not provided
   // Autopilot settings
   autopilotEnabled: z.boolean().default(false),
   autopilotSettings: z.record(z.unknown()).optional(),

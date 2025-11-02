@@ -50,11 +50,19 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
     try {
       const userId = getUserId(req);
       
-      // Validate request body
-      const parseResult = insertCampaignSchema.safeParse({
+      // Ensure start_date is always set
+      const campaignData = {
         ...req.body,
-        userId
-      });
+        userId,
+        // If start_date is not provided or invalid, set it based on the campaign type
+        start_date: req.body.start_date || 
+                   (req.body.sendTimePreference === 'immediate' ? new Date() :
+                    req.body.scheduleDate ? new Date(req.body.scheduleDate) : 
+                    new Date()) // Default to now if nothing else is specified
+      };
+      
+      // Validate request body
+      const parseResult = insertCampaignSchema.safeParse(campaignData);
       
       if (!parseResult.success) {
         return res.status(400).json({
