@@ -1,7 +1,7 @@
 import { storage } from "../../storage";
 import { db } from "../../db";
 import { campaignRecipients, campaigns } from "@shared/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { generateEmailContent } from "../email-generation/generator";
 import type { Campaign, CampaignRecipient } from "@shared/schema";
 import sgMail from '@sendgrid/mail';
@@ -149,7 +149,7 @@ export class EmailQueueProcessor {
           .where(
             and(
               eq(campaignRecipients.campaignId, campaignToProcess.campaignId),
-              sql`${campaignRecipients.id} = ANY(${recipientIds})`
+              inArray(campaignRecipients.id, recipientIds)
             )
           );
 
@@ -182,7 +182,7 @@ export class EmailQueueProcessor {
             .where(
               and(
                 eq(campaignRecipients.campaignId, campaignToProcess.campaignId),
-                sql`${campaignRecipients.id} = ANY(${successful})`
+                inArray(campaignRecipients.id, successful)
               )
             );
           console.log(`[EmailQueueProcessor] Generated emails for ${successful.length} recipients`);
@@ -200,7 +200,7 @@ export class EmailQueueProcessor {
             .where(
               and(
                 eq(campaignRecipients.campaignId, campaignToProcess.campaignId),
-                sql`${campaignRecipients.id} = ANY(${failed})`
+                inArray(campaignRecipients.id, failed)
               )
             );
           console.log(`[EmailQueueProcessor] Failed to generate emails for ${failed.length} recipients`);
