@@ -934,14 +934,22 @@ export function EmailComposer({
 
     {/* Merge Field Controls - Show immediately after EmailForm in Campaign Template mode */}
     {drawerMode === 'campaign' && generationMode === 'merge_field' && (
-      <div className="mt-6 pt-2 flex justify-end">
-        <MergeFieldControls 
-          isMergeViewMode={isMergeViewMode}
-          onToggleMergeView={toggleMergeView}
-          onMergeFieldClick={() => setMergeFieldDialogOpen(true)}
-          onSaveTemplateClick={handleSaveAsTemplate}
-        />
-      </div>
+      <>
+        {/* Merge View Mode Notification Banner */}
+        {isMergeViewMode && (
+          <div className="mt-4 bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded-md text-sm">
+            Merge View Mode - Showing technical merge fields
+          </div>
+        )}
+        <div className="mt-4 pt-2 flex justify-end">
+          <MergeFieldControls 
+            isMergeViewMode={isMergeViewMode}
+            onToggleMergeView={toggleMergeView}
+            onMergeFieldClick={() => setMergeFieldDialogOpen(true)}
+            onSaveTemplateClick={handleSaveAsTemplate}
+          />
+        </div>
+      </>
     )}
 
     {/* Settings and Templates Buttons Row - with proper spacing from email field */}
