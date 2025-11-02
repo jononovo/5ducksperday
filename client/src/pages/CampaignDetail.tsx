@@ -32,11 +32,14 @@ import {
   ChevronDown,
   MoreVertical,
   Trash2,
-  Zap
+  Zap,
+  StopCircle,
+  RefreshCw
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Campaign } from "@shared/schema";
+import { CampaignProgressSection } from "@/components/campaign/CampaignProgressSection";
 
 interface CampaignWithMetrics extends Campaign {
   totalRecipients: number;
@@ -133,6 +136,51 @@ export default function CampaignDetail() {
       case 'activate':
         updateCampaignMutation.mutate({ status: 'active' });
         break;
+      case 'stop':
+        if (confirm('Are you sure you want to stop this campaign? This will permanently halt all sending.')) {
+          updateCampaignMutation.mutate({ status: 'stopped' });
+        }
+        break;
+      case 'restart_all':
+        if (confirm('Are you sure you want to restart this campaign for ALL recipients? This will re-send emails to everyone.')) {
+          // API call to restart for all recipients
+          apiRequest(`/api/campaigns/${campaignId}/restart`, 'POST', { mode: 'all' })
+            .then(() => {
+              queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+              toast({
+                title: "Campaign restarted",
+                description: "The campaign will re-send to all recipients.",
+              });
+            })
+            .catch((error) => {
+              toast({
+                title: "Error",
+                description: error.message || "Failed to restart campaign",
+                variant: "destructive",
+              });
+            });
+        }
+        break;
+      case 'restart_unsent':
+        if (confirm('Are you sure you want to restart this campaign for unsent recipients only?')) {
+          // API call to restart for unsent recipients only
+          apiRequest(`/api/campaigns/${campaignId}/restart`, 'POST', { mode: 'unsent' })
+            .then(() => {
+              queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+              toast({
+                title: "Campaign restarted",
+                description: "The campaign will send to recipients who haven't received emails yet.",
+              });
+            })
+            .catch((error) => {
+              toast({
+                title: "Error",
+                description: error.message || "Failed to restart campaign",
+                variant: "destructive",
+              });
+            });
+        }
+        break;
       case 'edit':
         setIsEditMode(true);
         toast({
@@ -187,6 +235,7 @@ export default function CampaignDetail() {
       scheduled: { label: 'Scheduled', variant: 'default' as const, className: '' },
       active: { label: 'Active', variant: 'default' as const, className: 'bg-green-500 hover:bg-green-600' },
       paused: { label: 'Paused', variant: 'secondary' as const, className: 'bg-yellow-500 hover:bg-yellow-600' },
+      stopped: { label: 'Stopped', variant: 'destructive' as const, className: '' },
       completed: { label: 'Completed', variant: 'secondary' as const, className: '' },
       cancelled: { label: 'Cancelled', variant: 'destructive' as const, className: '' }
     };
@@ -268,23 +317,62 @@ export default function CampaignDetail() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               {campaign.status === 'active' ? (
-                <DropdownMenuItem 
-                  onClick={() => handleCampaignAction('pause')}
-                  className="text-orange-600 dark:text-orange-400"
-                  data-testid="menu-pause-campaign"
-                >
-                  <Pause className="h-4 w-4 mr-2" />
-                  Pause Campaign
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem 
+                    onClick={() => handleCampaignAction('pause')}
+                    className="text-orange-600 dark:text-orange-400"
+                    data-testid="menu-pause-campaign"
+                  >
+                    <Pause className="h-4 w-4 mr-2" />
+                    Pause Campaign
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => handleCampaignAction('stop')}
+                    className="text-red-600 dark:text-red-400"
+                    data-testid="menu-stop-campaign"
+                  >
+                    <StopCircle className="h-4 w-4 mr-2" />
+                    Stop Campaign
+                  </DropdownMenuItem>
+                </>
               ) : campaign.status === 'paused' ? (
-                <DropdownMenuItem 
-                  onClick={() => handleCampaignAction('resume')}
-                  className="text-green-600 dark:text-green-400"
-                  data-testid="menu-resume-campaign"
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  Resume Campaign
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem 
+                    onClick={() => handleCampaignAction('resume')}
+                    className="text-green-600 dark:text-green-400"
+                    data-testid="menu-resume-campaign"
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    Resume Campaign
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => handleCampaignAction('stop')}
+                    className="text-red-600 dark:text-red-400"
+                    data-testid="menu-stop-campaign"
+                  >
+                    <StopCircle className="h-4 w-4 mr-2" />
+                    Stop Campaign
+                  </DropdownMenuItem>
+                </>
+              ) : campaign.status === 'stopped' || campaign.status === 'completed' ? (
+                <>
+                  <DropdownMenuItem 
+                    onClick={() => handleCampaignAction('restart_all')}
+                    className="text-blue-600 dark:text-blue-400"
+                    data-testid="menu-restart-all"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Restart All
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => handleCampaignAction('restart_unsent')}
+                    className="text-blue-600 dark:text-blue-400"
+                    data-testid="menu-restart-unsent"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Restart Unsent
+                  </DropdownMenuItem>
+                </>
               ) : null}
               
               <DropdownMenuItem 
@@ -320,6 +408,32 @@ export default function CampaignDetail() {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Campaign Progress Section */}
+      {campaign.status !== 'draft' && (
+        <CampaignProgressSection
+          steps={[
+            {
+              stepNumber: 1,
+              name: "Initial Email",
+              description: "Sent at campaign creation",
+              sent: campaign.emailsSent,
+              opens: campaign.emailsOpened,
+              openRate: campaign.openRate || 0,
+              clicks: campaign.emailsClicked,
+              clickRate: campaign.clickRate || 0,
+              replies: campaign.emailsReplied,
+              replyRate: campaign.replyRate || 0,
+              unsubscribes: campaign.emailsUnsubscribed,
+              unsubscribeRate: campaign.unsubscribeRate || 0,
+              triggeredAt: campaign.startDate ? new Date(campaign.startDate) : undefined,
+              status: campaign.emailsSent === campaign.totalRecipients ? 'completed' : 
+                      campaign.status === 'active' ? 'in_progress' : 'pending'
+            }
+          ]}
+          totalRecipients={campaign.totalRecipients}
+        />
+      )}
 
       {/* Overview Metrics */}
       <Card>

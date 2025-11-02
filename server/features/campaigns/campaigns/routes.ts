@@ -137,5 +137,42 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
     }
   });
 
+  // Restart campaign with different modes
+  router.post('/:id/restart', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const campaignId = parseInt(req.params.id);
+      const { mode } = req.body; // 'all' or 'unsent'
+      
+      if (isNaN(campaignId)) {
+        return res.status(400).json({ message: 'Invalid campaign ID' });
+      }
+      
+      if (!mode || !['all', 'unsent'].includes(mode)) {
+        return res.status(400).json({ message: 'Invalid restart mode. Use "all" or "unsent"' });
+      }
+      
+      // Verify campaign belongs to user
+      const existing = await storage.getCampaign(campaignId, userId);
+      if (!existing) {
+        return res.status(404).json({ message: 'Campaign not found or access denied' });
+      }
+      
+      // Restart the campaign based on mode
+      const result = await storage.restartCampaign(campaignId, userId, mode);
+      res.json({ 
+        success: true, 
+        message: `Campaign restarted in ${mode} mode`,
+        campaign: result
+      });
+      
+    } catch (error) {
+      console.error('Error restarting campaign:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to restart campaign' 
+      });
+    }
+  });
+
   app.use('/api/campaigns', router);
 }
