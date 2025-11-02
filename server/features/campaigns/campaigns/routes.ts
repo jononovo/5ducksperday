@@ -51,7 +51,7 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
       const userId = getUserId(req);
       
       // Ensure start_date is always set
-      const startDate = req.body.start_date ? new Date(req.body.start_date) :
+      const startDate = req.body.startDate ? new Date(req.body.startDate) :
                        (req.body.sendTimePreference === 'immediate' ? new Date() :
                         req.body.scheduleDate ? new Date(req.body.scheduleDate) : 
                         new Date()); // Default to now if nothing else is specified
@@ -64,8 +64,8 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
       const campaignData = {
         ...req.body,
         userId,
-        start_date: startDate,     // Using snake_case to match database columns
-        end_date: endDate,         // Using snake_case to match database columns  
+        startDate: startDate,     // Using camelCase to match Drizzle ORM expectations
+        endDate: endDate,         // Using camelCase to match Drizzle ORM expectations  
         durationDays: durationDays
       };
       
