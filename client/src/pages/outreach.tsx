@@ -613,7 +613,7 @@ export default function Outreach() {
     const lastName = contact.name?.split(' ').slice(1).join(' ') || '';
     
     return content
-      .replace(/\{\{company_name\}\}/g, selectedCompany?.name || '{{company_name}}')
+      .replace(/\{\{contact_company_name\}\}/g, selectedCompany?.name || '{{contact_company_name}}')
       .replace(/\{\{contact_name\}\}/g, contact.name || '{{contact_name}}')
       .replace(/\{\{first_name\}\}/g, firstName || '{{first_name}}')
       .replace(/\{\{last_name\}\}/g, lastName || '{{last_name}}')
