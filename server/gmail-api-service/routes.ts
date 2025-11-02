@@ -28,8 +28,11 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
         return res.status(400).json({ error: 'User not found' });
       }
       
+      // Force HTTPS for OAuth callbacks - Replit always serves via HTTPS externally
+      // even though internally the app sees HTTP
       const protocol = process.env.OAUTH_PROTOCOL || 
-        (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
+        (process.env.NODE_ENV === 'production' ? 'https' : 
+          req.get('host')?.includes('replit.dev') ? 'https' : req.protocol);
       
       const authUrl = GmailOAuthService.generateAuthUrl(
         userId, 
@@ -58,8 +61,11 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
         return res.status(400).json({ error: 'Invalid state parameter' });
       }
       
+      // Force HTTPS for OAuth callbacks - Replit always serves via HTTPS externally
+      // even though internally the app sees HTTP
       const protocol = process.env.OAUTH_PROTOCOL || 
-        (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
+        (process.env.NODE_ENV === 'production' ? 'https' : 
+          req.get('host')?.includes('replit.dev') ? 'https' : req.protocol);
       
       const { tokens } = await GmailOAuthService.exchangeCodeForTokens(
         code, 
