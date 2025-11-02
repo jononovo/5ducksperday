@@ -956,6 +956,7 @@ export const campaignSchema = z.object({
   scheduleTime: z.string().optional(),
   timezone: z.string().default("America/New_York"),
   start_date: z.coerce.date().optional(), // Will be set by backend if not provided
+  end_date: z.coerce.date().optional(), // Will be calculated by backend if not provided
   // Autopilot settings
   autopilotEnabled: z.boolean().default(false),
   autopilotSettings: z.record(z.unknown()).optional(),

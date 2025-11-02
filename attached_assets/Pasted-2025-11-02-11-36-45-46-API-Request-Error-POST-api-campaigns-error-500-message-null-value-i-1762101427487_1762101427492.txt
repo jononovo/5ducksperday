@@ -1,0 +1,30 @@
+2025-11-02 11:36:45.46
+API Request Error: POST /api/campaigns
+{error: "500: {"message":"null value in column \"end_date\" of relation \"campaigns\" violates not-null constraint"}", timestamp: "2025-11-02T16:36:45.262Z"}
+2025-11-02 11:36:45.46
+API Request Error: POST /api/campaigns
+{error: "500: {"message":"null value in column \"end_date\" of relation \"campaigns\" violates not-null constraint"}", timestamp: "2025-11-02T16:36:45.262Z"}
+2025-11-02 11:36:45.46
+API Request Error: POST /api/campaigns
+{error: "500: {"message":"null value in column \"end_date\" of relation \"campaigns\" violates not-null constraint"}", timestamp: "2025-11-02T16:36:45.262Z"}
+2025-11-02 11:36:45.46
+API Request Error: POST /api/campaigns
+{error: "500: {"message":"null value in column \"end_date\" of relation \"campaigns\" violates not-null constraint"}", timestamp: "2025-11-02T16:36:45.262Z"}
+2025-11-02 11:36:45.46
+API Request Error: POST /api/campaigns
+{error: "500: {"message":"null value in column \"end_date\" of relation \"campaigns\" violates not-null constraint"}", timestamp: "2025-11-02T16:36:45.262Z"}
+2025-11-02 11:36:45.46
+API Request Error: POST /api/campaigns
+{error: "500: {"message":"null value in column \"end_date\" of relation \"campaigns\" violates not-null constraint"}", timestamp: "2025-11-02T16:36:45.262Z"}
+2025-11-02 11:36:45.46
+API Request Error: POST /api/campaigns
+{error: "500: {"message":"null value in column \"end_date\" of relation \"campaigns\" violates not-null constraint"}", timestamp: "2025-11-02T16:36:45.262Z"}
+2025-11-02 11:36:45.46
+API Request Error: POST /api/campaigns
+{error: "500: {"message":"null value in column \"end_date\" of relation \"campaigns\" violates not-null constraint"}", timestamp: "2025-11-02T16:36:45.262Z"}
+2025-11-02 11:36:45.46
+API Request Error: POST /api/campaigns
+{error: "500: {"message":"null value in column \"end_date\" of relation \"campaigns\" violates not-null constraint"}", timestamp: "2025-11-02T16:36:45.262Z"}
+2025-11-02 11:36:45.46
+API Request Error: POST /api/campaigns
+{error: "500: {"message":"null value in column \"end_date\" of relation \"campaigns\" violates not-null constraint"}", timestamp: "2025-11-02T16:36:45.262Z"}
