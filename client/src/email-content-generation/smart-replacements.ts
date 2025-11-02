@@ -50,11 +50,11 @@ export function applySmartReplacements(
     processedSubject = replaceWithLimit(
       processedSubject,
       company.name,
-      '{{company_name}}',
+      '{{contact_company_name}}',
       2,
       companyNameCount
     );
-    companyNameCount = countReplacements(processedSubject, '{{company_name}}');
+    companyNameCount = countReplacements(processedSubject, '{{contact_company_name}}');
   }
 
   // Process email body
@@ -125,11 +125,11 @@ export function applySmartReplacements(
           processedLine = replaceWithLimit(
             processedLine,
             company.name,
-            '{{company_name}}',
+            '{{contact_company_name}}',
             2 - companyNameCount,
             0
           );
-          const afterCount = countOccurrences(processedLine, '{{company_name}}');
+          const afterCount = countOccurrences(processedLine, '{{contact_company_name}}');
           companyNameCount += afterCount;
         }
       }
