@@ -704,9 +704,28 @@ class DatabaseStorage implements IStorage {
     .where(eq(campaignRecipients.campaignId, id))
     .orderBy(desc(campaignRecipients.updatedAt));
 
-    // Calculate metrics
-    const totalRecipients = recipients.length || campaign.totalRecipients || 0;
-    const emailsSent = recipients.filter(r => r.sentAt).length || campaign.emailsSent || 0;
+    // Calculate metrics - if no recipients in campaign_recipients table, get count from contact list
+    let totalRecipients = recipients.length;
+    
+    // If no campaign_recipients entries exist but we have a contact list, use its count
+    if (totalRecipients === 0 && campaign.contactListId) {
+      const contactList = await db.select({
+        contactCount: contactLists.contactCount,
+        name: contactLists.name
+      })
+      .from(contactLists)
+      .where(eq(contactLists.id, campaign.contactListId))
+      .limit(1);
+      
+      if (contactList[0]) {
+        totalRecipients = contactList[0].contactCount || 0;
+        // Also store the list name for display
+        (campaign as any).contactListName = contactList[0].name;
+      }
+    }
+    
+    totalRecipients = totalRecipients || 0;
+    const emailsSent = recipients.filter(r => r.sentAt).length || 0;
     const emailsOpened = recipients.filter(r => r.openedAt).length;
     const emailsClicked = recipients.filter(r => r.clickedAt).length;
     const emailsReplied = recipients.filter(r => r.repliedAt).length;

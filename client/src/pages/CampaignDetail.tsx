@@ -56,6 +56,7 @@ interface CampaignWithMetrics extends Campaign {
   unsubscribeRate: number;
   emailSubject?: string;
   emailBody?: string;
+  contactListName?: string;
   recipients: Array<{
     id: number;
     email: string;
@@ -507,6 +508,10 @@ export default function CampaignDetail() {
                 <CardTitle className="text-lg">Campaign Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Contact List</span>
+                  <span className="text-sm font-medium">{campaign.contactListName || 'Not specified'}</span>
+                </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Total recipients</span>
                   <span className="text-sm font-medium">{campaign.totalRecipients}</span>
