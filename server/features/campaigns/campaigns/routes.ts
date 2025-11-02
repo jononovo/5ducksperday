@@ -69,15 +69,22 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
         durationDays: durationDays
       };
       
+      // Debug: Log what we're sending before validation
+      console.log('Campaign data before validation:', JSON.stringify(campaignData, null, 2));
+      
       // Validate request body
       const parseResult = insertCampaignSchema.safeParse(campaignData);
       
       if (!parseResult.success) {
+        console.error('Validation errors:', parseResult.error.errors);
         return res.status(400).json({
           message: 'Validation failed',
           errors: parseResult.error.errors
         });
       }
+      
+      // Debug: Log what we're sending after validation
+      console.log('Campaign data after validation (being sent to DB):', JSON.stringify(parseResult.data, null, 2));
       
       const campaign = await storage.createCampaign(parseResult.data);
       res.status(201).json(campaign);
