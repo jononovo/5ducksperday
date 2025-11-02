@@ -192,6 +192,7 @@ export function EmailComposer({
   // Refs
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
   const toEmailRef = useRef<HTMLInputElement>(null);
+  const isCreatingCampaignRef = useRef(false);
   
   // Sender profile state for dynamic merge fields
   const [senderProfile, setSenderProfile] = useState<any>(null);
@@ -797,6 +798,12 @@ export function EmailComposer({
   };
 
   const handleCreateCampaign = (type: 'scheduled' | 'immediate' | 'draft' = 'scheduled') => {
+    // Prevent multiple simultaneous campaign creations
+    if (isCreatingCampaignRef.current || createCampaignMutation.isPending) {
+      console.log('Campaign creation already in progress, ignoring duplicate request');
+      return;
+    }
+
     // Validate requirements first
     if (!currentListId && !campaignRecipients) {
       toast({
@@ -831,6 +838,9 @@ export function EmailComposer({
       ...prev,
       scheduleSend: type === 'scheduled'
     }));
+
+    // Set the flag to prevent duplicate calls
+    isCreatingCampaignRef.current = true;
 
     // Launch the campaign
     createCampaignMutation.mutate(type);
