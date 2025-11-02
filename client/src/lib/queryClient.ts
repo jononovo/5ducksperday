@@ -86,8 +86,17 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    // Handle array query keys properly
+    // If queryKey is ['/api/campaigns', 37], build URL as '/api/campaigns/37'
+    let url: string;
+    if (Array.isArray(queryKey) && queryKey.length > 1) {
+      // Join array elements with '/' for hierarchical paths
+      url = queryKey.join('/');
+    } else {
+      url = queryKey[0] as string;
+    }
+    
     try {
-      const url = queryKey[0] as string;
       
       // Get Firebase token from localStorage if available
       const authToken = localStorage.getItem('authToken');
@@ -113,7 +122,7 @@ export const getQueryFn: <T>(options: {
       await throwIfResNotOk(res);
       return await safeJsonParse(res);
     } catch (error) {
-      console.error(`Query error for ${queryKey[0]}:`, error);
+      console.error(`Query error for ${url}:`, error);
       throw error;
     }
   };

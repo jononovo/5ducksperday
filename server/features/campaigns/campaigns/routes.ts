@@ -87,12 +87,103 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
       console.log('Campaign data after validation (being sent to DB):', JSON.stringify(parseResult.data, null, 2));
       
       const campaign = await storage.createCampaign(parseResult.data);
+      
+      // If campaign has a contact list, populate campaign_recipients
+      if (campaign.contactListId) {
+        try {
+          // Get all contacts from the contact list
+          const contacts = await storage.listContactsByListId(campaign.contactListId);
+          
+          if (contacts.length > 0) {
+            // Prepare recipient records
+            const recipients = contacts.map(contact => ({
+              campaignId: campaign.id,
+              recipientEmail: contact.email,
+              recipientFirstName: contact.name?.split(' ')[0] || '',
+              recipientLastName: contact.name?.split(' ').slice(1).join(' ') || '',
+              recipientCompany: contact.company?.name || '',
+              status: 'queued' as const,  // Start with 'queued' status for processing
+              createdAt: new Date(),
+              updatedAt: new Date()
+            }));
+            
+            // Batch insert recipients
+            await storage.createCampaignRecipients(recipients);
+            console.log(`Populated ${recipients.length} recipients for campaign ${campaign.id}`);
+          }
+        } catch (recipientError) {
+          // Log error but don't fail the campaign creation
+          console.error('Error populating campaign recipients:', recipientError);
+          // Could optionally add a warning to the response
+        }
+      }
+      
       res.status(201).json(campaign);
       
     } catch (error) {
       console.error('Error creating campaign:', error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : 'Failed to create campaign' 
+      });
+    }
+  });
+
+  // Approve emails in review queue
+  router.post('/:id/review/approve', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const campaignId = parseInt(req.params.id);
+      const { recipientIds } = req.body;
+      
+      if (isNaN(campaignId)) {
+        return res.status(400).json({ message: 'Invalid campaign ID' });
+      }
+      
+      // Verify campaign belongs to user
+      const campaign = await storage.getCampaign(campaignId, userId);
+      if (!campaign) {
+        return res.status(404).json({ message: 'Campaign not found or access denied' });
+      }
+      
+      // Use the email queue processor to approve the batch
+      const { emailQueueProcessor } = await import('../email-queue-processor');
+      await emailQueueProcessor.approveBatch(campaignId, recipientIds);
+      
+      res.json({ message: 'Emails approved for sending' });
+    } catch (error) {
+      console.error('Error approving emails:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to approve emails' 
+      });
+    }
+  });
+
+  // Reject emails in review queue
+  router.post('/:id/review/reject', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const campaignId = parseInt(req.params.id);
+      const { recipientIds } = req.body;
+      
+      if (isNaN(campaignId)) {
+        return res.status(400).json({ message: 'Invalid campaign ID' });
+      }
+      
+      // Verify campaign belongs to user
+      const campaign = await storage.getCampaign(campaignId, userId);
+      if (!campaign) {
+        return res.status(404).json({ message: 'Campaign not found or access denied' });
+      }
+      
+      // Use the email queue processor to reject the batch
+      const { emailQueueProcessor } = await import('../email-queue-processor');
+      await emailQueueProcessor.rejectBatch(campaignId, recipientIds);
+      
+      res.json({ message: 'Emails rejected for regeneration' });
+    } catch (error) {
+      console.error('Error rejecting emails:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to reject emails' 
       });
     }
   });

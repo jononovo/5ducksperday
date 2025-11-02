@@ -5,6 +5,7 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { outreachScheduler } from "./features/daily-outreach";
 import { CampaignScheduler } from "./features/campaigns/services/campaign-scheduler";
+import { emailQueueProcessor } from "./features/campaigns/email-queue-processor";
 import { sql } from "drizzle-orm";
 import dotenv from "dotenv";
 
@@ -123,6 +124,14 @@ app.get('/api/health', async (_req, res) => {
       console.log('Campaign scheduler initialized');
     } catch (campaignSchedulerError) {
       console.warn('Campaign scheduler initialization failed (non-critical):', campaignSchedulerError);
+    }
+
+    // Initialize email queue processor for batch email generation
+    try {
+      emailQueueProcessor.start();
+      console.log('Email queue processor initialized');
+    } catch (emailQueueError) {
+      console.warn('Email queue processor initialization failed (non-critical):', emailQueueError);
     }
 
     const server = registerRoutes(app);

@@ -34,12 +34,32 @@ import {
   Trash2,
   Zap,
   StopCircle,
-  RefreshCw
+  RefreshCw,
+  Check,
+  X
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Campaign } from "@shared/schema";
 import { CampaignProgressSection } from "@/components/campaign/CampaignProgressSection";
+
+interface RecipientInfo {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  companyName: string;
+  status: string;
+  sentAt: Date | null;
+  openedAt: Date | null;
+  clickedAt: Date | null;
+  repliedAt: Date | null;
+  bouncedAt: Date | null;
+  unsubscribedAt: Date | null;
+  lastActivity: Date | null;
+  emailSubject?: string;
+  emailContent?: string;
+}
 
 interface CampaignWithMetrics extends Campaign {
   totalRecipients: number;
@@ -56,22 +76,165 @@ interface CampaignWithMetrics extends Campaign {
   unsubscribeRate: number;
   emailSubject?: string;
   emailBody?: string;
-  recipients: Array<{
-    id: number;
-    email: string;
-    firstName: string;
-    lastName: string;
-    companyName: string;
-    status: string;
-    sentAt: Date | null;
-    openedAt: Date | null;
-    clickedAt: Date | null;
-    repliedAt: Date | null;
-    bouncedAt: Date | null;
-    unsubscribedAt: Date | null;
-    lastActivity: Date | null;
-  }>;
+  contactListName?: string;
+  recipients: RecipientInfo[];
+  recipientsInReview?: RecipientInfo[];
+  reviewCount?: number;
 }
+
+interface RecipientTableProps {
+  recipients: RecipientInfo[];
+  showError?: boolean;
+  errorMessage?: string;
+}
+
+// RecipientTable component - displays recipients in a table format
+const RecipientTable = ({ recipients, showError = false, errorMessage }: RecipientTableProps) => {
+  const getStatusBadge = (recipient: RecipientInfo) => {
+    if (recipient.repliedAt) {
+      return <Badge className="bg-blue-500 text-white">Replied</Badge>;
+    }
+    if (recipient.clickedAt) {
+      return <Badge className="bg-green-500 text-white">Clicked</Badge>;
+    }
+    if (recipient.openedAt) {
+      return <Badge className="bg-yellow-500 text-white">Opened</Badge>;
+    }
+    if (recipient.bouncedAt) {
+      return <Badge variant="destructive">Bounced</Badge>;
+    }
+    if (recipient.unsubscribedAt) {
+      return <Badge variant="secondary">Unsubscribed</Badge>;
+    }
+    if (recipient.sentAt) {
+      return <Badge variant="outline">Sent</Badge>;
+    }
+    
+    // Status-based badges
+    switch (recipient.status) {
+      case 'queued':
+      case 'scheduled':
+        return <Badge variant="secondary">Queued</Badge>;
+      case 'sent':
+        return <Badge variant="outline">Sent</Badge>;
+      case 'failed_generation':
+        return <Badge variant="destructive">Failed Generation</Badge>;
+      case 'failed_send':
+        return <Badge variant="destructive">Failed Send</Badge>;
+      case 'in_review':
+        return <Badge>In Review</Badge>;
+      default:
+        return <Badge variant="secondary">Pending</Badge>;
+    }
+  };
+
+  const formatDate = (date: Date | null) => {
+    if (!date) return '-';
+    return format(new Date(date), 'MMM d, h:mm a');
+  };
+
+  if (recipients.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <Mail className="h-8 w-8 mx-auto mb-3 opacity-50" />
+        <p>No recipients found</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b">
+            <th className="text-left p-3 font-medium">Recipient</th>
+            <th className="text-left p-3 font-medium">Company</th>
+            <th className="text-left p-3 font-medium">Status</th>
+            <th className="text-left p-3 font-medium">Events</th>
+            {showError && <th className="text-left p-3 font-medium">Error</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {recipients.map((recipient) => (
+            <tr key={recipient.id} className="border-b hover:bg-muted/30 transition-colors">
+              <td className="p-3">
+                <div>
+                  <div className="font-medium">
+                    {recipient.firstName} {recipient.lastName}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {recipient.email}
+                  </div>
+                </div>
+              </td>
+              <td className="p-3">
+                <span className="text-sm">{recipient.companyName}</span>
+              </td>
+              <td className="p-3">
+                {getStatusBadge(recipient)}
+              </td>
+              <td className="p-3">
+                <div className="text-sm space-y-1">
+                  {recipient.sentAt && (
+                    <div className="flex items-center gap-1">
+                      <Mail className="h-3 w-3" />
+                      <span>Sent: {formatDate(recipient.sentAt)}</span>
+                    </div>
+                  )}
+                  {recipient.openedAt && (
+                    <div className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400">
+                      <Eye className="h-3 w-3" />
+                      <span>Opened: {formatDate(recipient.openedAt)}</span>
+                    </div>
+                  )}
+                  {recipient.clickedAt && (
+                    <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                      <MousePointer className="h-3 w-3" />
+                      <span>Clicked: {formatDate(recipient.clickedAt)}</span>
+                    </div>
+                  )}
+                  {recipient.repliedAt && (
+                    <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                      <Reply className="h-3 w-3" />
+                      <span>Replied: {formatDate(recipient.repliedAt)}</span>
+                    </div>
+                  )}
+                  {recipient.bouncedAt && (
+                    <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                      <AlertCircle className="h-3 w-3" />
+                      <span>Bounced: {formatDate(recipient.bouncedAt)}</span>
+                    </div>
+                  )}
+                  {recipient.unsubscribedAt && (
+                    <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                      <UserX className="h-3 w-3" />
+                      <span>Unsubscribed: {formatDate(recipient.unsubscribedAt)}</span>
+                    </div>
+                  )}
+                  {!recipient.sentAt && !recipient.openedAt && !recipient.clickedAt && 
+                   !recipient.repliedAt && !recipient.bouncedAt && !recipient.unsubscribedAt && (
+                    <span className="text-muted-foreground">No activity yet</span>
+                  )}
+                </div>
+              </td>
+              {showError && (
+                <td className="p-3">
+                  {(recipient.status === 'failed_generation' || recipient.status === 'failed_send') ? (
+                    <span className="text-sm text-red-600 dark:text-red-400">
+                      {recipient.status === 'failed_generation' ? 'Generation failed' : 'Send failed'}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">-</span>
+                  )}
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
 export default function CampaignDetail() {
   const params = useParams();
@@ -107,7 +270,7 @@ export default function CampaignDetail() {
 
   const deleteCampaignMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/campaigns/${campaignId}`, 'DELETE');
+      return apiRequest('DELETE', `/api/campaigns/${campaignId}`);
     },
     onSuccess: () => {
       toast({
@@ -124,6 +287,66 @@ export default function CampaignDetail() {
       });
     }
   });
+
+  // Handler functions for review queue
+  const handleApproveBatch = async (campaignId: number, recipientIds: number[]) => {
+    try {
+      await apiRequest('POST', `/api/campaigns/${campaignId}/review/approve`, { recipientIds });
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns', campaignId] });
+      toast({
+        title: "Emails approved",
+        description: `${recipientIds.length} emails approved for sending`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to approve emails",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRejectBatch = async (campaignId: number, recipientIds: number[]) => {
+    try {
+      await apiRequest('POST', `/api/campaigns/${campaignId}/review/reject`, { recipientIds });
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns', campaignId] });
+      toast({
+        title: "Emails rejected",
+        description: `${recipientIds.length} emails will be regenerated`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reject emails",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleApproveEmail = async (campaignId: number, recipientId: number) => {
+    await handleApproveBatch(campaignId, [recipientId]);
+  };
+
+  const handleRejectEmail = async (campaignId: number, recipientId: number) => {
+    await handleRejectBatch(campaignId, [recipientId]);
+  };
+
+  const handleRetryFailed = async (campaignId: number) => {
+    try {
+      await apiRequest(`/api/campaigns/${campaignId}/retry-failed`, 'POST');
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns', campaignId] });
+      toast({
+        title: "Retrying failed emails",
+        description: "Failed emails are being retried",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to retry emails",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleCampaignAction = async (action: string) => {
     switch (action) {
@@ -496,6 +719,9 @@ export default function CampaignDetail() {
         <TabsList>
           <TabsTrigger value="details">Campaign Details</TabsTrigger>
           <TabsTrigger value="recipients">Recipients ({campaign.totalRecipients})</TabsTrigger>
+          <TabsTrigger value="review">
+            Review Queue {campaign.reviewCount && campaign.reviewCount > 0 && `(${campaign.reviewCount})`}
+          </TabsTrigger>
           <TabsTrigger value="activity">Activity Timeline</TabsTrigger>
         </TabsList>
 
@@ -507,6 +733,10 @@ export default function CampaignDetail() {
                 <CardTitle className="text-lg">Campaign Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Contact List</span>
+                  <span className="text-sm font-medium">{campaign.contactListName || 'Not specified'}</span>
+                </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Total recipients</span>
                   <span className="text-sm font-medium">{campaign.totalRecipients}</span>
@@ -590,62 +820,160 @@ export default function CampaignDetail() {
               <CardDescription>Track engagement for each recipient</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="text-left p-3 font-medium">Recipient</th>
-                        <th className="text-left p-3 font-medium">Company</th>
-                        <th className="text-left p-3 font-medium">Status</th>
-                        <th className="text-left p-3 font-medium">Events</th>
-                        <th className="text-left p-3 font-medium">Last Activity</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {campaign.recipients?.map((recipient) => (
-                        <tr key={recipient.id} className="border-b hover:bg-muted/30">
-                          <td className="p-3">
-                            <div>
-                              <div className="font-medium">
-                                {recipient.firstName} {recipient.lastName}
-                              </div>
-                              <div className="text-xs text-muted-foreground">{recipient.email}</div>
+              {/* Status filter tabs */}
+              <Tabs defaultValue="all" className="mb-4">
+                <TabsList className="grid w-full grid-cols-5">
+                  <TabsTrigger value="all">
+                    All ({campaign.recipients?.length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="queued">
+                    Queued ({campaign.recipients?.filter(r => r.status === 'queued' || r.status === 'scheduled').length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="sent">
+                    Sent ({campaign.recipients?.filter(r => r.status === 'sent').length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="engaged">
+                    Engaged ({campaign.recipients?.filter(r => r.openedAt || r.clickedAt || r.repliedAt).length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="failed">
+                    Failed ({campaign.recipients?.filter(r => r.status === 'failed_generation' || r.status === 'failed_send').length || 0})
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="all" className="mt-4">
+                  <RecipientTable recipients={campaign.recipients || []} />
+                </TabsContent>
+                
+                <TabsContent value="queued" className="mt-4">
+                  <RecipientTable recipients={campaign.recipients?.filter(r => r.status === 'queued' || r.status === 'scheduled') || []} />
+                </TabsContent>
+                
+                <TabsContent value="sent" className="mt-4">
+                  <RecipientTable recipients={campaign.recipients?.filter(r => r.status === 'sent') || []} />
+                </TabsContent>
+                
+                <TabsContent value="engaged" className="mt-4">
+                  <RecipientTable recipients={campaign.recipients?.filter(r => r.openedAt || r.clickedAt || r.repliedAt) || []} />
+                </TabsContent>
+                
+                <TabsContent value="failed" className="mt-4">
+                  <div className="space-y-4">
+                    {campaign.recipients?.filter(r => r.status === 'failed_generation' || r.status === 'failed_send').length > 0 ? (
+                      <>
+                        <div className="flex justify-end">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleRetryFailed(campaign.id)}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-1" />
+                            Retry Failed
+                          </Button>
+                        </div>
+                        <RecipientTable recipients={campaign.recipients?.filter(r => r.status === 'failed_generation' || r.status === 'failed_send') || []} showError={true} />
+                      </>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Check className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                        <p>No failed recipients</p>
+                        <p className="text-sm mt-1">All emails processed successfully</p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="review">
+          <Card>
+            <CardHeader>
+              <CardTitle>Email Review Queue</CardTitle>
+              <CardDescription>Review and approve generated emails before sending</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {campaign.recipientsInReview && campaign.recipientsInReview.length > 0 ? (
+                <div className="space-y-4">
+                  {/* Review Actions */}
+                  <div className="flex gap-2 justify-end pb-4 border-b">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleRejectBatch(campaign.id, campaign.recipientsInReview!.map(r => r.id))}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Reject All
+                    </Button>
+                    <Button 
+                      onClick={() => handleApproveBatch(campaign.id, campaign.recipientsInReview!.map(r => r.id))}
+                    >
+                      <Check className="h-4 w-4 mr-1" />
+                      Approve All
+                    </Button>
+                  </div>
+                  
+                  {/* Email Previews */}
+                  <div className="space-y-4">
+                    {campaign.recipientsInReview!.slice(0, 3).map((recipient) => (
+                      <div key={recipient.id} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium">
+                              To: {recipient.firstName} {recipient.lastName}
                             </div>
-                          </td>
-                          <td className="p-3 text-muted-foreground">{recipient.companyName}</td>
-                          <td className="p-3">
-                            <Badge variant="outline" className="text-xs">
-                              {recipient.status}
-                            </Badge>
-                          </td>
-                          <td className="p-3">
-                            <div className="flex gap-1">
-                              {recipient.openedAt && (
-                                <Badge variant="secondary" className="text-xs">Opened</Badge>
-                              )}
-                              {recipient.clickedAt && (
-                                <Badge variant="secondary" className="text-xs">Clicked</Badge>
-                              )}
-                              {recipient.repliedAt && (
-                                <Badge className="text-xs bg-blue-500">Replied</Badge>
-                              )}
-                              {recipient.bouncedAt && (
-                                <Badge variant="destructive" className="text-xs">Bounced</Badge>
-                              )}
+                            <div className="text-sm text-muted-foreground">
+                              {recipient.email} • {recipient.companyName}
                             </div>
-                          </td>
-                          <td className="p-3 text-sm text-muted-foreground">
-                            {recipient.lastActivity ? 
-                              format(new Date(recipient.lastActivity), 'MMM d, h:mm a') 
-                              : 'No activity'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleRejectEmail(campaign.id, recipient.id)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              size="sm"
+                              onClick={() => handleApproveEmail(campaign.id, recipient.id)}
+                            >
+                              <Check className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div>
+                            <div className="text-xs text-muted-foreground mb-1">Subject</div>
+                            <div className="text-sm font-medium p-2 bg-muted rounded">
+                              {recipient.emailSubject}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground mb-1">Body</div>
+                            <div 
+                              className="text-sm p-3 bg-muted rounded max-h-48 overflow-y-auto"
+                              dangerouslySetInnerHTML={{ __html: recipient.emailContent || '' }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {campaign.recipientsInReview!.length > 3 && (
+                    <div className="text-center text-sm text-muted-foreground pt-2">
+                      Showing 3 of {campaign.recipientsInReview!.length} emails for review
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Mail className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                  <p>No emails pending review</p>
+                  <p className="text-sm mt-1">Emails will appear here after generation</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

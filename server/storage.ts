@@ -107,6 +107,7 @@ export interface IStorage {
   // Campaigns
   listCampaigns(userId: number): Promise<Campaign[]>;
   getCampaign(id: number, userId: number): Promise<Campaign | undefined>;
+  getCampaignWithMetrics(id: number, userId: number): Promise<any>;
   createCampaign(data: InsertCampaign): Promise<Campaign>;
   updateCampaign(id: number, data: Partial<Campaign>): Promise<Campaign>;
   deleteCampaign(id: number, userId: number): Promise<void>;
@@ -705,8 +706,31 @@ class DatabaseStorage implements IStorage {
     .orderBy(desc(campaignRecipients.updatedAt));
 
     // Calculate metrics
-    const totalRecipients = recipients.length || campaign.totalRecipients || 0;
-    const emailsSent = recipients.filter(r => r.sentAt).length || campaign.emailsSent || 0;
+    let totalRecipients = recipients.length;
+    
+    // Always fetch contact list name if campaign has a contact list
+    if (campaign.contactListId) {
+      const contactList = await db.select({
+        contactCount: contactLists.contactCount,
+        name: contactLists.name
+      })
+      .from(contactLists)
+      .where(eq(contactLists.id, campaign.contactListId))
+      .limit(1);
+      
+      if (contactList[0]) {
+        // Store the list name for display
+        (campaign as any).contactListName = contactList[0].name;
+        
+        // If no campaign_recipients entries exist, use contact list count as fallback
+        if (totalRecipients === 0) {
+          totalRecipients = contactList[0].contactCount || 0;
+        }
+      }
+    }
+    
+    totalRecipients = totalRecipients || 0;
+    const emailsSent = recipients.filter(r => r.sentAt).length || 0;
     const emailsOpened = recipients.filter(r => r.openedAt).length;
     const emailsClicked = recipients.filter(r => r.clickedAt).length;
     const emailsReplied = recipients.filter(r => r.repliedAt).length;
@@ -735,6 +759,14 @@ class DatabaseStorage implements IStorage {
       }
     }
 
+    // Get recipients in review status for the review queue
+    const recipientsInReview = recipients.filter(r => r.status === 'in_review')
+      .map(r => ({
+        ...r,
+        emailSubject: r.emailSubject || campaign.subject,
+        emailContent: r.emailContent || campaign.body
+      }));
+
     return {
       ...campaign,
       totalRecipients,
@@ -751,13 +783,22 @@ class DatabaseStorage implements IStorage {
       unsubscribeRate,
       emailSubject,
       emailBody,
-      recipients
+      recipients,
+      recipientsInReview,
+      reviewCount: recipientsInReview.length
     };
   }
 
   async createCampaign(data: InsertCampaign): Promise<Campaign> {
     const [campaign] = await db.insert(campaigns).values(data).returning();
     return campaign;
+  }
+
+  async createCampaignRecipients(recipients: any[]): Promise<void> {
+    if (recipients.length === 0) return;
+    
+    // Batch insert recipients
+    await db.insert(campaignRecipients).values(recipients);
   }
 
   async updateCampaign(id: number, data: Partial<Campaign>): Promise<Campaign> {
