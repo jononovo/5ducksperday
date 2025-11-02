@@ -21,7 +21,7 @@ export const MERGE_FIELDS: MergeFieldItem[] = [
     description: "Target contact's job title or position"
   },
   {
-    value: "{{full_sender_name}}",
+    value: "{{sender_full_name}}",
     label: "Sender Full Name",
     description: "Your full name as the sender"
   },

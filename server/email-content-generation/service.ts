@@ -136,7 +136,7 @@ Format requirements:
 - Keep both subject and content concise
 - Add generous white space between paragraphs (use double line breaks)
 - Add extra line spacing after the signature
-- Use one of these merge fields like {{full_sender_name}} or {{sender_first_name}} in signatures when appropriate`;
+- Use one of these merge fields like {{sender_full_name}} or {{sender_first_name}} in signatures when appropriate`;
 }
 
 function parseEmailResponse(response: string): EmailGenerationResponse {

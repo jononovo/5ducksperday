@@ -618,7 +618,7 @@ export default function Outreach() {
       .replace(/\{\{first_name\}\}/g, firstName || '{{first_name}}')
       .replace(/\{\{last_name\}\}/g, lastName || '{{last_name}}')
       .replace(/\{\{contact_role\}\}/g, contact.role || '{{contact_role}}')
-      .replace(/\{\{full_sender_name\}\}/g, senderNames.fullName || '{{full_sender_name}}')
+      .replace(/\{\{sender_full_name\}\}/g, senderNames.fullName || '{{sender_full_name}}')
       .replace(/\{\{sender_first_name\}\}/g, senderNames.firstName || '{{sender_first_name}}');
   };
 

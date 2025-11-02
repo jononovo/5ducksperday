@@ -53,7 +53,7 @@ I hope this email finds you well. I came across {{contact_company_name}} and was
 [Your message here]
 
 Best regards,
-{{full_sender_name}}`,
+{{sender_full_name}}`,
           description: 'Initial cold outreach template',
           category: 'outreach',
           isDefault: true
@@ -71,7 +71,7 @@ I wanted to follow up on my previous email regarding {{contact_company_name}}.
 Looking forward to hearing from you.
 
 Best,
-{{full_sender_name}}`,
+{{sender_full_name}}`,
           description: 'Follow-up after initial outreach',
           category: 'follow-up',
           isDefault: true
@@ -89,7 +89,7 @@ I'm reaching out to explore potential partnership opportunities between our comp
 Would you be open to a brief conversation?
 
 Best regards,
-{{full_sender_name}}`,
+{{sender_full_name}}`,
           description: 'Partnership proposal template',
           category: 'partnership',
           isDefault: true
@@ -107,7 +107,7 @@ I noticed that {{contact_company_name}} might benefit from our services.
 Would you be interested in learning more?
 
 Best,
-{{full_sender_name}}`,
+{{sender_full_name}}`,
           description: 'Service introduction template',
           category: 'introduction',
           isDefault: true

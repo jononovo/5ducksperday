@@ -50,7 +50,7 @@ export function resolveAllMergeFields(content: string, context: MergeContext): s
   
   // Sender fields
   if (context.senderNames) {
-    resolved = resolved.replace(/\{\{full_sender_name\}\}/gi, context.senderNames.fullName || '');
+    resolved = resolved.replace(/\{\{sender_full_name\}\}/gi, context.senderNames.fullName || '');
     resolved = resolved.replace(/\{\{sender_first_name\}\}/gi, context.senderNames.firstName || '');
   }
   
