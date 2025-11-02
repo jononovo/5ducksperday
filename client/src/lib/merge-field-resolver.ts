@@ -38,7 +38,8 @@ export function resolveMergeField(field: string, context: MergeFieldContext): st
   const { contact, company, sender } = context;
   
   switch (field) {
-    case '{{company_name}}':
+    case '{{company_name}}': // Backward compatibility
+    case '{{contact_company_name}}':
       return company?.name || 'Company Name';
     
     case '{{contact_name}}':
