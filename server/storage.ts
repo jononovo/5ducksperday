@@ -779,6 +779,13 @@ class DatabaseStorage implements IStorage {
     return campaign;
   }
 
+  async createCampaignRecipients(recipients: any[]): Promise<void> {
+    if (recipients.length === 0) return;
+    
+    // Batch insert recipients
+    await db.insert(campaignRecipients).values(recipients);
+  }
+
   async updateCampaign(id: number, data: Partial<Campaign>): Promise<Campaign> {
     const [campaign] = await db.update(campaigns)
       .set({ ...data, updatedAt: new Date() })
