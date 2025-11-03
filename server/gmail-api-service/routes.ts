@@ -112,7 +112,16 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
           const nameParts = userInfo.name?.split(' ') || [];
           const firstName = nameParts[0] || '';
           const lastName = nameParts.slice(1).join(' ') || '';
-          const displayName = userInfo.name || userInfo.email.split('@')[0];
+          
+          // Compose the display name using smart logic
+          let displayName: string;
+          if (lastName) {
+            // Has last name: use full name
+            displayName = userInfo.name || userInfo.email.split('@')[0];
+          } else {
+            // No last name: for now just use first name (company can be added later)
+            displayName = firstName || userInfo.email.split('@')[0];
+          }
           
           // Create new sender profile with Gmail info
           const newProfile = await storage.createSenderProfile({
@@ -120,7 +129,7 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
             displayName,
             email: userInfo.email,
             isDefault: existingProfiles.length === 0, // Make default if it's the first profile
-            companyName: undefined, // Can be updated later
+            companyName: undefined, // Can be updated later, which would update displayName
             companyWebsite: undefined,
             title: undefined
           });

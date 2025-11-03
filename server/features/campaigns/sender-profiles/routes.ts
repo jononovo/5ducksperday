@@ -104,10 +104,31 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
     try {
       const userId = getUserId(req);
       
-      // Map frontend fields to database fields (handle 'name' -> 'displayName')
+      // Get base name and company for smart composition
+      const baseName = req.body.displayName || req.body.name || 'Unknown Sender';
+      const companyName = req.body.companyName;
+      
+      // Smart composition logic for displayName
+      const nameParts = baseName.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ');
+      
+      let composedDisplayName: string;
+      if (lastName) {
+        // Has last name: use full name
+        composedDisplayName = baseName;
+      } else if (companyName) {
+        // No last name but has company: "First @ CompanyName"
+        composedDisplayName = `${firstName} @ ${companyName}`;
+      } else {
+        // No last name or company: just first name
+        composedDisplayName = firstName;
+      }
+      
+      // Map frontend fields to database fields with composed displayName
       const mappedData = {
         userId,
-        displayName: req.body.displayName || req.body.name || 'Unknown Sender',
+        displayName: composedDisplayName,
         email: req.body.email,
         companyName: req.body.companyName,
         companyWebsite: req.body.companyWebsite,
@@ -155,12 +176,42 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
       // Map frontend fields to database fields for update
       const mappedData: any = {};
       
-      // Handle both 'name' and 'displayName' from frontend
-      if (req.body.displayName !== undefined) mappedData.displayName = req.body.displayName;
-      if (req.body.name !== undefined && !req.body.displayName) mappedData.displayName = req.body.name;
+      // Get the base name and company for smart composition
+      let baseName = existing.displayName; // Start with existing displayName
+      let companyName = existing.companyName; // Start with existing company
       
+      // Update base name if provided (could be from 'name' or 'displayName' field)
+      if (req.body.displayName !== undefined) {
+        baseName = req.body.displayName;
+      } else if (req.body.name !== undefined) {
+        baseName = req.body.name;
+      }
+      
+      // Update company name if provided
+      if (req.body.companyName !== undefined) {
+        companyName = req.body.companyName;
+        mappedData.companyName = companyName;
+      }
+      
+      // Smart composition logic for displayName
+      // Parse the base name to check for last name
+      const nameParts = baseName.split(' @ ')[0].split(' '); // Remove any existing @ company first
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ');
+      
+      if (lastName) {
+        // Has last name: use full name
+        mappedData.displayName = `${firstName} ${lastName}`;
+      } else if (companyName) {
+        // No last name but has company: "First @ CompanyName"
+        mappedData.displayName = `${firstName} @ ${companyName}`;
+      } else {
+        // No last name or company: just first name
+        mappedData.displayName = firstName;
+      }
+      
+      // Map other fields
       if (req.body.email !== undefined) mappedData.email = req.body.email;
-      if (req.body.companyName !== undefined) mappedData.companyName = req.body.companyName;
       if (req.body.companyWebsite !== undefined) mappedData.companyWebsite = req.body.companyWebsite;
       if (req.body.title !== undefined) mappedData.title = req.body.title;
       if (req.body.isDefault !== undefined) mappedData.isDefault = req.body.isDefault;
