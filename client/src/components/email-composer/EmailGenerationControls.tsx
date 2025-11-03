@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Box, Palette, Gift, Check, Info, Wand2, Loader2, User } from "lucide-react";
+import { Box, Palette, Gift, Check, Info, Wand2, Loader2, IdCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TONE_OPTIONS } from "@/lib/tone-options";
 import { OFFER_OPTIONS } from "@/lib/offer-options";
@@ -48,6 +48,9 @@ export function EmailGenerationControls({
   const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
   const [senderPopoverOpen, setSenderPopoverOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
+  
+  // Find the selected sender profile from the list
+  const selectedSenderProfileData = senderProfiles.find(p => p.id === selectedSenderProfile);
 
   const handleSelectProduct = (product: any) => {
     onProductSelect(product);
@@ -60,7 +63,7 @@ export function EmailGenerationControls({
   };
 
   const handleSelectSenderProfile = (profile: any) => {
-    onSenderProfileSelect(profile);
+    onSenderProfileSelect(profile.id);
     setSenderPopoverOpen(false);
   };
 
@@ -268,16 +271,16 @@ export function EmailGenerationControls({
               title="Select sender profile"
               data-testid="button-sender-selector"
             >
-              <User className="w-3 h-3" />
-              {selectedSenderProfile && (
-                <span className="max-w-32 truncate">{selectedSenderProfile.displayName}</span>
+              <IdCard className="w-3 h-3" />
+              {selectedSenderProfileData && (
+                <span className="max-w-32 truncate">{selectedSenderProfileData.displayName}</span>
               )}
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-72 p-0" align="start">
             <div className="p-4 border-b bg-muted/30">
               <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-primary" />
+                <IdCard className="w-4 h-4 text-primary" />
                 <h4 className="font-semibold text-sm">Sender Profile</h4>
               </div>
               <p className="text-xs text-muted-foreground mt-1">Choose who's sending this email</p>
@@ -294,7 +297,7 @@ export function EmailGenerationControls({
                     key={profile.id}
                     className={cn(
                       "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                      selectedSenderProfile?.id === profile.id && "bg-accent"
+                      selectedSenderProfile === profile.id && "bg-accent"
                     )}
                     onClick={() => handleSelectSenderProfile(profile)}
                     data-testid={`button-sender-${profile.id}`}
@@ -310,7 +313,7 @@ export function EmailGenerationControls({
                           </div>
                         )}
                       </div>
-                      {selectedSenderProfile?.id === profile.id && (
+                      {selectedSenderProfile === profile.id && (
                         <Check className="w-3 h-3 text-primary" />
                       )}
                     </div>
