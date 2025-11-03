@@ -13,6 +13,15 @@ export class GmailOAuthService {
 
   static generateAuthUrl(userId: string, host: string, protocol: string): string {
     const redirectUri = `${protocol}://${host}/api/gmail/callback`;
+    
+    console.log('[GmailOAuthService] Creating OAuth client with redirect URI:', {
+      protocol,
+      host,
+      redirectUri,
+      hasClientId: !!process.env.GMAIL_CLIENT_ID,
+      hasClientSecret: !!process.env.GMAIL_CLIENT_SECRET
+    });
+    
     const oauth2Client = this.getOAuth2Client(redirectUri);
     
     const scopes = [
@@ -21,12 +30,23 @@ export class GmailOAuthService {
       'https://www.googleapis.com/auth/userinfo.profile'
     ];
     
-    return oauth2Client.generateAuthUrl({
+    const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: scopes,
       prompt: 'consent',
       state: userId
     });
+    
+    // Parse the generated URL to see what redirect_uri is actually being sent
+    const generatedUrl = new URL(authUrl);
+    console.log('[GmailOAuthService] Generated OAuth URL parameters:', {
+      redirect_uri: generatedUrl.searchParams.get('redirect_uri'),
+      client_id: generatedUrl.searchParams.get('client_id')?.slice(0, 20) + '...',
+      scope: generatedUrl.searchParams.get('scope')?.split(' ').length + ' scopes',
+      state: generatedUrl.searchParams.get('state')
+    });
+    
+    return authUrl;
   }
 
   static async exchangeCodeForTokens(

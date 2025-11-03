@@ -34,11 +34,25 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
         (process.env.NODE_ENV === 'production' ? 'https' : 
           req.get('host')?.includes('replit.dev') ? 'https' : req.protocol);
       
+      // Debug logging
+      console.log('[Gmail OAuth] Generating auth URL with:', {
+        host: req.get('host'),
+        protocol,
+        userId,
+        NODE_ENV: process.env.NODE_ENV,
+        OAUTH_PROTOCOL: process.env.OAUTH_PROTOCOL,
+        reqProtocol: req.protocol,
+        includesReplitDev: req.get('host')?.includes('replit.dev'),
+        constructedRedirectUri: `${protocol}://${req.get('host')}/api/gmail/callback`
+      });
+      
       const authUrl = GmailOAuthService.generateAuthUrl(
         userId, 
         req.get('host')!, 
         protocol
       );
+      
+      console.log('[Gmail OAuth] Generated auth URL:', authUrl);
       
       res.redirect(authUrl);
     } catch (error) {
