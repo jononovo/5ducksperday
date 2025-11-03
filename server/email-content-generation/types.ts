@@ -11,6 +11,16 @@ export interface EmailGenerationRequest {
   tone?: string;
   offerStrategy?: string;
   generateTemplate?: boolean; // Flag to generate template with merge fields
+  senderProfile?: {
+    displayName: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    title?: string;
+    companyPosition?: string;
+    companyName?: string;
+    companyWebsite?: string;
+  };
 }
 
 export interface EmailGenerationResponse {
@@ -22,6 +32,15 @@ export interface EmailGenerationContext {
   contact: Contact | null;
   company: Company;
   userPrompt: string;
-  senderNames?: SenderNames;
+  senderProfile?: {
+    displayName: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    title?: string;
+    companyPosition?: string;
+    companyName?: string;
+    companyWebsite?: string;
+  };
   generateTemplate?: boolean;
 }

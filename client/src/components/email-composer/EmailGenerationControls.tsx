@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Box, Palette, Gift, Check, Info, Wand2, Loader2 } from "lucide-react";
+import { Box, Palette, Gift, Check, Info, Wand2, Loader2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TONE_OPTIONS } from "@/lib/tone-options";
 import { OFFER_OPTIONS } from "@/lib/offer-options";
@@ -28,6 +28,9 @@ export function EmailGenerationControls({
   onToneSelect,
   selectedOfferStrategy,
   onOfferStrategySelect,
+  selectedSenderProfile,
+  onSenderProfileSelect,
+  senderProfiles,
   products,
   emailPrompt,
   originalEmailPrompt,
@@ -43,6 +46,7 @@ export function EmailGenerationControls({
   const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [tonePopoverOpen, setTonePopoverOpen] = useState(false);
   const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
+  const [senderPopoverOpen, setSenderPopoverOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
   const handleSelectProduct = (product: any) => {
@@ -53,6 +57,11 @@ export function EmailGenerationControls({
   const handleSelectNone = () => {
     onProductClear();
     setProductPopoverOpen(false);
+  };
+
+  const handleSelectSenderProfile = (profile: any) => {
+    onSenderProfileSelect(profile);
+    setSenderPopoverOpen(false);
   };
 
   return (
@@ -247,6 +256,67 @@ export function EmailGenerationControls({
                   </div>
                 </button>
               ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Sender Profile Selection */}
+        <Popover open={senderPopoverOpen} onOpenChange={setSenderPopoverOpen}>
+          <PopoverTrigger asChild>
+            <button 
+              className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
+              title="Select sender profile"
+              data-testid="button-sender-selector"
+            >
+              <User className="w-3 h-3" />
+              {selectedSenderProfile && (
+                <span className="max-w-32 truncate">{selectedSenderProfile.displayName}</span>
+              )}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-0" align="start">
+            <div className="p-4 border-b bg-muted/30">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-primary" />
+                <h4 className="font-semibold text-sm">Sender Profile</h4>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Choose who's sending this email</p>
+            </div>
+            <div className="p-2">
+              {senderProfiles.length === 0 ? (
+                <div className="p-4 text-center text-muted-foreground text-sm">
+                  <p>No sender profiles created yet.</p>
+                  <p className="text-xs mt-1">Connect Gmail to create one</p>
+                </div>
+              ) : (
+                senderProfiles.map((profile) => (
+                  <button
+                    key={profile.id}
+                    className={cn(
+                      "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
+                      selectedSenderProfile?.id === profile.id && "bg-accent"
+                    )}
+                    onClick={() => handleSelectSenderProfile(profile)}
+                    data-testid={`button-sender-${profile.id}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs flex-1 min-w-0">
+                        <div className="font-medium truncate">
+                          {profile.displayName}
+                        </div>
+                        {profile.companyPosition && (
+                          <div className="text-muted-foreground truncate mt-0.5">
+                            {profile.companyPosition} {profile.companyName && `at ${profile.companyName}`}
+                          </div>
+                        )}
+                      </div>
+                      {selectedSenderProfile?.id === profile.id && (
+                        <Check className="w-3 h-3 text-primary" />
+                      )}
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
           </PopoverContent>
         </Popover>

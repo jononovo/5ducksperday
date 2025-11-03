@@ -195,6 +195,8 @@ export function EmailComposer({
   
   // Sender profile state for dynamic merge fields
   const [senderProfile, setSenderProfile] = useState<any>(null);
+  const [senderProfiles, setSenderProfiles] = useState<any[]>([]);
+  const [selectedSenderProfileId, setSelectedSenderProfileId] = useState<number | null>(null);
 
   // Helper functions to get/set the correct state based on generation mode
   const getCurrentSubject = () => {
@@ -489,24 +491,32 @@ export function EmailComposer({
   // Effects
   // Non-blocking fetch of sender profile on component mount
   useEffect(() => {
-    const fetchSenderProfile = async () => {
+    const fetchSenderProfiles = async () => {
       try {
-        const response = await fetch('/api/sender-profiles/default', {
+        // Fetch all sender profiles
+        const profilesResponse = await fetch('/api/sender-profiles', {
           credentials: 'include'
         });
-        if (response.ok) {
-          const profile = await response.json();
-          console.log('Fetched sender profile:', profile);
-          setSenderProfile(profile);
+        if (profilesResponse.ok) {
+          const profiles = await profilesResponse.json();
+          console.log('Fetched sender profiles:', profiles);
+          setSenderProfiles(profiles);
+          
+          // Set the default profile as selected
+          const defaultProfile = profiles.find((p: any) => p.isDefault) || profiles[0];
+          if (defaultProfile) {
+            setSenderProfile(defaultProfile);
+            setSelectedSenderProfileId(defaultProfile.id);
+          }
         }
       } catch (error) {
-        // Silently fail - sender profile is optional for merge fields
-        console.log('Could not fetch sender profile (non-blocking):', error);
+        // Silently fail - sender profile is optional
+        console.log('Could not fetch sender profiles (non-blocking):', error);
       }
     };
     
     // Fire and forget - don't block the component
-    fetchSenderProfile();
+    fetchSenderProfiles();
   }, []); // Only run once on mount
   
   useEffect(() => {
@@ -875,6 +885,15 @@ export function EmailComposer({
           isGenerating={isGenerating}
           drawerMode={drawerMode}
           generationMode={generationMode}
+          selectedSenderProfile={selectedSenderProfileId}
+          onSenderProfileSelect={(profileId) => {
+            setSelectedSenderProfileId(profileId);
+            const profile = senderProfiles.find(p => p.id === profileId);
+            if (profile) {
+              setSenderProfile(profile);
+            }
+          }}
+          senderProfiles={senderProfiles}
         />
     </div>
 
@@ -949,7 +968,7 @@ export function EmailComposer({
       selectedCompany={selectedCompany}
       onSendEmail={handleSendEmail}
       onManualSend={handleManualSend}
-      campaignRecipients={campaignRecipients}
+      campaignRecipients={campaignRecipients || undefined}
       currentListId={currentListId}
       currentQuery={currentQuery}
       onCreateCampaign={handleCreateCampaign}

@@ -17,6 +17,7 @@ interface MergeContext {
     website?: string;
     location?: string;
   };
+  // User fields kept for legacy support only
   user?: {
     username?: string;
     email?: string;
@@ -24,12 +25,7 @@ interface MergeContext {
     lastName?: string;
     companyName?: string;
   };
-  senderNames?: {
-    fullName?: string;
-    firstName?: string;
-    lastName?: string;
-    companyName?: string;
-  };
+  // Note: senderNames removed - sender data is now static context, not merge fields
 }
 
 /**
@@ -40,10 +36,6 @@ const DEFAULT_VALUES: Record<string, string> = {
   last_name: '',
   email: '',
   contact_company_name: 'your company',
-  sender_first_name: 'The Team',
-  sender_last_name: '',
-  sender_company_name: '',
-  sender_email: '',
   title: '',
 };
 
@@ -72,26 +64,9 @@ export function resolveAllMergeFields(content: string, context: MergeContext): s
     // We're not including website and industry as requested
   }
   
-  // Sender fields - prioritize senderNames, fallback to user
-  const senderFirstName = context.senderNames?.firstName || 
-                          context.user?.firstName || 
-                          context.user?.username?.split(' ')[0] || 
-                          DEFAULT_VALUES.sender_first_name;
-  const senderLastName = context.senderNames?.lastName || 
-                         context.user?.lastName || 
-                         context.user?.username?.split(' ').slice(1).join(' ') || 
-                         DEFAULT_VALUES.sender_last_name;
-  const senderCompanyName = context.senderNames?.companyName || 
-                            context.user?.companyName || 
-                            DEFAULT_VALUES.sender_company_name;
-  const senderEmail = context.user?.email || DEFAULT_VALUES.sender_email;
-  
-  resolved = resolved.replace(/\{\{sender_first_name\}\}/gi, senderFirstName);
-  resolved = resolved.replace(/\{\{sender_last_name\}\}/gi, senderLastName);
-  resolved = resolved.replace(/\{\{sender_full_name\}\}/gi, 
-    context.senderNames?.fullName || `${senderFirstName} ${senderLastName}`.trim());
-  resolved = resolved.replace(/\{\{sender_company_name\}\}/gi, senderCompanyName);
-  resolved = resolved.replace(/\{\{sender_email\}\}/gi, senderEmail);
+  // Sender fields are no longer supported as merge fields
+  // They should be passed as static context to email generation instead
+  // This is a breaking change - sender data is now static per campaign
   
   // User fields (legacy support)
   if (context.user) {
@@ -145,18 +120,14 @@ export function buildMergeContext(
     } : {
       name: recipient.company || undefined  
     },
+    // User fields kept for legacy support only
     user: {
       email: sender.email,
       firstName: sender.firstName || undefined,
       lastName: sender.lastName || undefined,
       username: sender.name || `${sender.firstName || ''} ${sender.lastName || ''}`.trim() || undefined,
       companyName: sender.company || undefined
-    },
-    senderNames: {
-      firstName: sender.firstName || undefined,
-      lastName: sender.lastName || undefined,
-      fullName: sender.name || `${sender.firstName || ''} ${sender.lastName || ''}`.trim() || undefined,
-      companyName: sender.company || undefined
     }
+    // Note: senderNames removed - sender data is now static context
   };
 }

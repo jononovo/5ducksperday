@@ -14,9 +14,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import type { RecipientSelection } from '@/components/recipient-selection-modal';
 
 interface CampaignSendButtonProps {
-  recipients?: any;
+  recipients?: RecipientSelection | null;
   listId?: number | null;
   currentQuery?: string | null;
   subject?: string;
