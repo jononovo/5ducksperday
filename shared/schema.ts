@@ -640,6 +640,8 @@ export const senderProfiles = pgTable("sender_profiles", {
   companyName: text("company_name"),
   companyWebsite: text("company_website"),
   isDefault: boolean("is_default").default(false),
+  source: text("source").default("manual"), // 'registered' | 'gmail' | 'manual'
+  gmailAccountEmail: text("gmail_account_email"), // Email of connected Gmail account
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -854,7 +856,9 @@ export const senderProfileSchema = z.object({
   companyPosition: z.string().optional(),
   companyName: z.string().optional(),
   companyWebsite: z.string().optional(),
-  isDefault: z.boolean().default(false)
+  isDefault: z.boolean().default(false),
+  source: z.enum(['registered', 'gmail', 'manual']).default('manual'),
+  gmailAccountEmail: z.string().optional()
 });
 
 // Target Customer Profile schemas

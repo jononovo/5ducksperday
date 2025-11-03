@@ -10,9 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { Lock } from 'lucide-react';
 import type { SenderProfile } from '@shared/schema';
 
 interface SenderProfileModalProps {
@@ -41,7 +43,9 @@ export function SenderProfileModal({
     companyName: '',
     companyPosition: '',
     companyWebsite: '',
-    title: ''
+    title: '',
+    isDefault: false,
+    source: 'manual' as 'registered' | 'gmail' | 'manual'
   });
 
   // Update form data when modal opens or profile changes
@@ -57,7 +61,9 @@ export function SenderProfileModal({
           companyName: profile.companyName || '',
           companyPosition: profile.companyPosition || '',
           companyWebsite: profile.companyWebsite || '',
-          title: profile.title || ''
+          title: profile.title || '',
+          isDefault: profile.isDefault || false,
+          source: (profile.source || 'manual') as 'registered' | 'gmail' | 'manual'
         });
       } else {
         // Creating new profile - reset to empty
@@ -69,7 +75,9 @@ export function SenderProfileModal({
           companyName: '',
           companyPosition: '',
           companyWebsite: '',
-          title: ''
+          title: '',
+          isDefault: false,
+          source: 'manual'
         });
       }
     }
@@ -214,16 +222,31 @@ export function SenderProfileModal({
           <div className="space-y-2">
             <Label htmlFor="email">
               Email <span className="text-red-500">*</span>
+              {(formData.source === 'registered' || formData.source === 'gmail') && (
+                <Lock className="w-3 h-3 inline-block ml-2 text-muted-foreground" />
+              )}
             </Label>
             <Input
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) => {
+                // Only allow changes if not a connected profile
+                if (formData.source !== 'registered' && formData.source !== 'gmail') {
+                  setFormData({ ...formData, email: e.target.value });
+                }
+              }}
               placeholder="john.doe@company.com"
               required
+              disabled={formData.source === 'registered' || formData.source === 'gmail'}
+              className={formData.source === 'registered' || formData.source === 'gmail' ? 'bg-muted' : ''}
               data-testid="input-email"
             />
+            {(formData.source === 'registered' || formData.source === 'gmail') && (
+              <p className="text-xs text-muted-foreground">
+                Email is synced with {formData.source === 'registered' ? 'your registered account' : 'Gmail API'}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -272,6 +295,23 @@ export function SenderProfileModal({
                 data-testid="input-company-website"
               />
             </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="isDefault"
+              checked={formData.isDefault}
+              onCheckedChange={(checked) => 
+                setFormData({ ...formData, isDefault: checked === true })
+              }
+              data-testid="checkbox-is-default"
+            />
+            <Label 
+              htmlFor="isDefault"
+              className="text-sm cursor-pointer"
+            >
+              Set as default sender profile
+            </Label>
           </div>
 
           <DialogFooter>

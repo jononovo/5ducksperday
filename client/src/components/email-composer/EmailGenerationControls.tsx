@@ -400,8 +400,14 @@ export function EmailGenerationControls({
                 >
                   <div className="flex items-center justify-between">
                     <div className="text-xs flex-1 min-w-0">
-                      <div className="font-medium truncate">
-                        {profile.displayName}
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium truncate">{profile.displayName}</span>
+                        {profile.source === 'registered' && (
+                          <span className="text-xs text-muted-foreground">(Registered User)</span>
+                        )}
+                        {profile.source === 'gmail' && (
+                          <span className="text-xs text-muted-foreground">(Gmail API)</span>
+                        )}
                       </div>
                       {profile.companyPosition && (
                         <div className="text-muted-foreground truncate mt-0.5">

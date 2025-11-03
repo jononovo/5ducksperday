@@ -13,6 +13,8 @@ export interface SenderProfile {
   companyName?: string;
   companyWebsite?: string;
   isDefault: boolean;
+  source?: 'registered' | 'gmail' | 'manual';
+  gmailAccountEmail?: string;
 }
 
 export interface EmailGenerationControlsProps {
