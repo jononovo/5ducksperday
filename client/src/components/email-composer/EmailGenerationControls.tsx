@@ -10,15 +10,28 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Box, Palette, Gift, Check, Info, Wand2, Loader2, IdCard, Plus, Edit2 } from "lucide-react";
+import { Box, Palette, Gift, Check, Info, Wand2, Loader2, IdCard, Plus, Edit2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TONE_OPTIONS } from "@/lib/tone-options";
 import { OFFER_OPTIONS } from "@/lib/offer-options";
 import { getGenerationModeConfig } from "@/components/email-generation-tabs";
 import type { EmailGenerationControlsProps, SenderProfile } from './types';
 import { SenderProfileModal } from './SenderProfileModal';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 export function EmailGenerationControls({
   selectedProduct,
@@ -52,6 +65,11 @@ export function EmailGenerationControls({
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<SenderProfile | null>(null);
   const [hoveredProfileId, setHoveredProfileId] = useState<number | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [profileToDelete, setProfileToDelete] = useState<SenderProfile | null>(null);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Find the selected sender profile from the list
   const selectedSenderProfileData = senderProfiles.find(p => p.id === selectedSenderProfile);
@@ -82,6 +100,47 @@ export function EmailGenerationControls({
     setEditingProfile(profile);
     setModalOpen(true);
     setSenderPopoverOpen(false);
+  };
+
+  const handleDeleteClick = (profile: SenderProfile, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent selecting the profile
+    setProfileToDelete(profile);
+    setDeleteDialogOpen(true);
+    setSenderPopoverOpen(false);
+  };
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (profileId: number) =>
+      apiRequest('DELETE', `/api/sender-profiles/${profileId}`),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Sender profile deleted successfully"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/sender-profiles'] });
+      
+      // If the deleted profile was selected, clear the selection
+      if (selectedSenderProfile === profileToDelete?.id) {
+        onSenderProfileSelect(null);
+      }
+      
+      setDeleteDialogOpen(false);
+      setProfileToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete sender profile",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleConfirmDelete = () => {
+    if (profileToDelete) {
+      deleteMutation.mutate(profileToDelete.id);
+    }
   };
 
   return (
@@ -350,19 +409,29 @@ export function EmailGenerationControls({
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      {selectedSenderProfile === profile.id && (
+                    <div className="flex items-center gap-1">
+                      {selectedSenderProfile === profile.id && !hoveredProfileId && (
                         <Check className="w-3 h-3 text-primary" />
                       )}
                       {hoveredProfileId === profile.id && (
-                        <button
-                          onClick={(e) => handleEditProfile(profile, e)}
-                          className="p-1 rounded hover:bg-accent-foreground/10"
-                          title="Edit profile"
-                          data-testid={`button-edit-sender-${profile.id}`}
-                        >
-                          <Edit2 className="w-3 h-3 text-muted-foreground" />
-                        </button>
+                        <>
+                          <button
+                            onClick={(e) => handleEditProfile(profile, e)}
+                            className="p-1 rounded hover:bg-accent-foreground/10"
+                            title="Edit profile"
+                            data-testid={`button-edit-sender-${profile.id}`}
+                          >
+                            <Edit2 className="w-3 h-3 text-muted-foreground" />
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteClick(profile, e)}
+                            className="p-1 rounded hover:bg-accent-foreground/10 hover:text-destructive"
+                            title="Delete profile"
+                            data-testid={`button-delete-sender-${profile.id}`}
+                          >
+                            <Trash2 className="w-3 h-3 text-muted-foreground" />
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -439,6 +508,30 @@ export function EmailGenerationControls({
           setEditingProfile(null);
         }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Sender Profile</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the sender profile "{profileToDelete?.displayName}"? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
