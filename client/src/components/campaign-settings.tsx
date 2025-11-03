@@ -122,6 +122,24 @@ export function CampaignSettings({
     onSettingsChange(updated);
   };
 
+  // Smart sender name composition logic
+  const composeSenderName = (profile: SenderProfile): string => {
+    const nameParts = profile.displayName.split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ');
+    
+    if (lastName) {
+      // Has last name: "First Last"
+      return profile.displayName;
+    } else if (profile.companyName) {
+      // No last name but has company: "First @ CompanyName"
+      return `${firstName} @ ${profile.companyName}`;
+    } else {
+      // No last name or company: just "First"
+      return firstName;
+    }
+  };
+
   const handleScheduleApply = (date: Date, time: string) => {
     // Combine date and time
     const [hours, minutes] = time.split(':').map(Number);
@@ -210,7 +228,7 @@ export function CampaignSettings({
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium text-muted-foreground">
-                    Send from
+                    Sender profile
                   </span>
                 </div>
                 <Select
@@ -223,12 +241,11 @@ export function CampaignSettings({
                   <SelectContent>
                     {senderProfiles.map((profile) => (
                       <SelectItem key={profile.id} value={profile.id.toString()}>
-                        <div className="flex flex-col">
-                          <span>{profile.displayName}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {profile.email}
-                            {profile.isDefault && ' (default)'}
-                          </span>
+                        <div className="flex items-center gap-1">
+                          <span>{composeSenderName(profile)}</span>
+                          {profile.isDefault && (
+                            <span className="text-xs text-muted-foreground">(default)</span>
+                          )}
                         </div>
                       </SelectItem>
                     ))}
