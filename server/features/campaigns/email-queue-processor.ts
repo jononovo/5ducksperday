@@ -365,6 +365,7 @@ export class EmailQueueProcessor {
           id: campaignRecipients.id,
           campaignId: campaignRecipients.campaignId,
           userId: campaigns.userId,
+          senderProfileId: campaigns.senderProfileId,
           recipientEmail: campaignRecipients.recipientEmail,
           recipientFirstName: campaignRecipients.recipientFirstName,
           recipientLastName: campaignRecipients.recipientLastName,
@@ -429,6 +430,23 @@ export class EmailQueueProcessor {
           continue;
         }
 
+        // Get the sender profile for the campaign (if specified)
+        let senderProfile = null;
+        const campaignSenderProfileId = userRecipients[0].senderProfileId; // All recipients in this group have same campaign
+        
+        if (campaignSenderProfileId) {
+          senderProfile = await storage.getSenderProfile(campaignSenderProfileId, userIdNum);
+          if (!senderProfile) {
+            console.warn(`[EmailQueueProcessor] Sender profile ${campaignSenderProfileId} not found, using default`);
+          }
+        }
+        
+        // If no sender profile, try to get the default one for the user
+        if (!senderProfile) {
+          const userProfiles = await storage.listSenderProfiles(userIdNum);
+          senderProfile = userProfiles.find(p => p.isDefault) || userProfiles[0];
+        }
+        
         // Process each email for this user
         const results = await Promise.allSettled(
           userRecipients.map(async (recipient) => {
@@ -443,15 +461,29 @@ export class EmailQueueProcessor {
                 title: undefined // Not available in current schema
               };
               
-              // Parse username to extract sender name if possible
-              const senderNameParts = user.username?.split(' ') || [];
-              const senderData = {
-                email: user.email,
-                firstName: senderNameParts[0] || undefined,
-                lastName: senderNameParts.slice(1).join(' ') || undefined,
-                name: user.username || undefined,
-                company: '5Ducks' // Default company name for now
-              };
+              // Use sender profile data or fall back to user data
+              let senderData;
+              if (senderProfile) {
+                // Parse the display name to get first and last name
+                const senderNameParts = senderProfile.displayName?.split(' ') || [];
+                senderData = {
+                  email: senderProfile.email,
+                  firstName: senderNameParts[0] || undefined,
+                  lastName: senderNameParts.slice(1).join(' ') || undefined,
+                  name: senderProfile.displayName || undefined,
+                  company: senderProfile.companyName || undefined
+                };
+              } else {
+                // Fallback to parsing username if no sender profile
+                const senderNameParts = user.username?.split(' ') || [];
+                senderData = {
+                  email: user.email,
+                  firstName: senderNameParts[0] || undefined,
+                  lastName: senderNameParts.slice(1).join(' ') || undefined,
+                  name: user.username || undefined,
+                  company: undefined // No default company
+                };
+              }
               
               // Build the merge context
               const mergeContext = buildMergeContext(recipientData, senderData);

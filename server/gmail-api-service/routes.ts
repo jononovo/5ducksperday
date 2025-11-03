@@ -97,6 +97,54 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
       
       await GmailOAuthService.storeTokens(userId, tokens, userInfo);
       
+      // Create or update sender profile for this Gmail account
+      try {
+        const { storage } = await import('../storage');
+        
+        // Get existing profiles for this user
+        const existingProfiles = await storage.listSenderProfiles(userId);
+        
+        // Check if a profile already exists with this Gmail email
+        const existingGmailProfile = existingProfiles.find(p => p.email === userInfo.email);
+        
+        if (!existingGmailProfile) {
+          // Parse the name from Gmail userInfo
+          const nameParts = userInfo.name?.split(' ') || [];
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || '';
+          const displayName = userInfo.name || userInfo.email.split('@')[0];
+          
+          // Create new sender profile with Gmail info
+          const newProfile = await storage.createSenderProfile({
+            userId,
+            displayName,
+            email: userInfo.email,
+            isDefault: existingProfiles.length === 0, // Make default if it's the first profile
+            companyName: undefined, // Can be updated later
+            companyWebsite: undefined,
+            title: undefined
+          });
+          
+          console.log(`[Gmail OAuth] Created sender profile for Gmail account:`, {
+            userId,
+            email: userInfo.email,
+            displayName,
+            isDefault: existingProfiles.length === 0
+          });
+        } else {
+          // Optionally update the existing profile with latest name from Gmail
+          if (userInfo.name && existingGmailProfile.displayName !== userInfo.name) {
+            await storage.updateSenderProfile(existingGmailProfile.id, {
+              displayName: userInfo.name
+            });
+            console.log(`[Gmail OAuth] Updated sender profile display name for ${userInfo.email}`);
+          }
+        }
+      } catch (error) {
+        // Log but don't fail the OAuth flow if profile creation fails
+        console.error('[Gmail OAuth] Failed to create/update sender profile:', error);
+      }
+      
       res.send(`
         <html>
           <body>
