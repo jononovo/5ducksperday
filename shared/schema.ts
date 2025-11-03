@@ -848,9 +848,12 @@ export const userOutreachPreferencesSchema = z.object({
 export const senderProfileSchema = z.object({
   displayName: z.string().min(1, "Display name is required"),
   email: z.string().email("Invalid email address"),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  title: z.string().optional(),
+  companyPosition: z.string().optional(),
   companyName: z.string().optional(),
   companyWebsite: z.string().optional(),
-  title: z.string().optional(),
   isDefault: z.boolean().default(false)
 });
 
