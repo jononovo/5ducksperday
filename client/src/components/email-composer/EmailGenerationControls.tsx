@@ -615,7 +615,7 @@ export function EmailGenerationControls({
 
       {/* Sender Profile Modal */}
       <ProfileModal
-        type="sender"
+        profileType="sender"
         isOpen={senderModalOpen}
         onClose={() => {
           setSenderModalOpen(false);
@@ -630,7 +630,7 @@ export function EmailGenerationControls({
 
       {/* Product Modal */}
       <ProfileModal
-        type="product"
+        profileType="product"
         isOpen={productModalOpen}
         onClose={() => {
           setProductModalOpen(false);
