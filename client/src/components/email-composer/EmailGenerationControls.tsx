@@ -28,7 +28,7 @@ import { TONE_OPTIONS } from "@/lib/tone-options";
 import { OFFER_OPTIONS } from "@/lib/offer-options";
 import { getGenerationModeConfig } from "@/components/email-generation-tabs";
 import type { EmailGenerationControlsProps, SenderProfile } from './types';
-import { SenderProfileModal } from './SenderProfileModal';
+import { ProfileModal } from './ProfileModal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -62,11 +62,20 @@ export function EmailGenerationControls({
   const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
   const [senderPopoverOpen, setSenderPopoverOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingProfile, setEditingProfile] = useState<SenderProfile | null>(null);
-  const [hoveredProfileId, setHoveredProfileId] = useState<number | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [profileToDelete, setProfileToDelete] = useState<SenderProfile | null>(null);
+  
+  // Sender profile state
+  const [senderModalOpen, setSenderModalOpen] = useState(false);
+  const [editingSenderProfile, setEditingSenderProfile] = useState<SenderProfile | null>(null);
+  const [hoveredSenderProfileId, setHoveredSenderProfileId] = useState<number | null>(null);
+  const [deleteSenderDialogOpen, setDeleteSenderDialogOpen] = useState(false);
+  const [senderProfileToDelete, setSenderProfileToDelete] = useState<SenderProfile | null>(null);
+  
+  // Product state
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [hoveredProductId, setHoveredProductId] = useState<number | null>(null);
+  const [deleteProductDialogOpen, setDeleteProductDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<any>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -89,28 +98,50 @@ export function EmailGenerationControls({
     setSenderPopoverOpen(false);
   };
 
-  const handleAddNewProfile = () => {
-    setEditingProfile(null);
-    setModalOpen(true);
+  // Sender profile handlers
+  const handleAddNewSenderProfile = () => {
+    setEditingSenderProfile(null);
+    setSenderModalOpen(true);
     setSenderPopoverOpen(false);
   };
 
-  const handleEditProfile = (profile: SenderProfile, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent selecting the profile
-    setEditingProfile(profile);
-    setModalOpen(true);
+  const handleEditSenderProfile = (profile: SenderProfile, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingSenderProfile(profile);
+    setSenderModalOpen(true);
     setSenderPopoverOpen(false);
   };
 
-  const handleDeleteClick = (profile: SenderProfile, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent selecting the profile
-    setProfileToDelete(profile);
-    setDeleteDialogOpen(true);
+  const handleDeleteSenderClick = (profile: SenderProfile, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSenderProfileToDelete(profile);
+    setDeleteSenderDialogOpen(true);
     setSenderPopoverOpen(false);
   };
 
-  // Delete mutation
-  const deleteMutation = useMutation({
+  // Product handlers
+  const handleAddNewProduct = () => {
+    setEditingProduct(null);
+    setProductModalOpen(true);
+    setProductPopoverOpen(false);
+  };
+
+  const handleEditProduct = (product: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingProduct(product);
+    setProductModalOpen(true);
+    setProductPopoverOpen(false);
+  };
+
+  const handleDeleteProductClick = (product: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setProductToDelete(product);
+    setDeleteProductDialogOpen(true);
+    setProductPopoverOpen(false);
+  };
+
+  // Delete sender profile mutation
+  const deleteSenderMutation = useMutation({
     mutationFn: async (profileId: number) =>
       apiRequest('DELETE', `/api/sender-profiles/${profileId}`),
     onSuccess: () => {
@@ -121,12 +152,12 @@ export function EmailGenerationControls({
       queryClient.invalidateQueries({ queryKey: ['/api/sender-profiles'] });
       
       // If the deleted profile was selected, clear the selection
-      if (selectedSenderProfile === profileToDelete?.id) {
+      if (selectedSenderProfile === senderProfileToDelete?.id) {
         onSenderProfileSelect(null);
       }
       
-      setDeleteDialogOpen(false);
-      setProfileToDelete(null);
+      setDeleteSenderDialogOpen(false);
+      setSenderProfileToDelete(null);
     },
     onError: (error: any) => {
       toast({
@@ -137,9 +168,43 @@ export function EmailGenerationControls({
     }
   });
 
-  const handleConfirmDelete = () => {
-    if (profileToDelete) {
-      deleteMutation.mutate(profileToDelete.id);
+  const handleConfirmDeleteSender = () => {
+    if (senderProfileToDelete) {
+      deleteSenderMutation.mutate(senderProfileToDelete.id);
+    }
+  };
+
+  // Delete product mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: async (productId: number) =>
+      apiRequest('DELETE', `/api/strategic-profiles/${productId}`),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Product deleted successfully"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/strategic-profiles'] });
+      
+      // If the deleted product was selected, clear the selection
+      if (selectedProduct === productToDelete?.id) {
+        onProductClear();
+      }
+      
+      setDeleteProductDialogOpen(false);
+      setProductToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete product",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleConfirmDeleteProduct = () => {
+    if (productToDelete) {
+      deleteProductMutation.mutate(productToDelete.id);
     }
   };
 
@@ -201,40 +266,78 @@ export function EmailGenerationControls({
               </button>
               
               {/* Product Options */}
-              {products.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground text-sm">
-                  <p>No products created yet.</p>
-                  <p className="text-xs mt-1">Create one in Strategy Dashboard</p>
-                </div>
-              ) : (
-                products.map((product) => (
-                  <button
-                    key={product.id}
-                    className={cn(
-                      "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                      selectedProduct === product.id && "bg-accent"
-                    )}
-                    onClick={() => handleSelectProduct(product)}
-                    data-testid={`button-product-${product.id}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs flex-1 min-w-0">
-                        <div className="font-medium truncate">
-                          {product.title || product.productService || 'Untitled Product'}
-                        </div>
-                        {product.productService && product.title !== product.productService && (
-                          <div className="text-muted-foreground truncate mt-0.5">
-                            {product.productService}
-                          </div>
-                        )}
+              {products.map((product) => (
+                <button
+                  key={product.id}
+                  className={cn(
+                    "w-full text-left p-3 rounded-md hover:bg-accent transition-colors group relative",
+                    selectedProduct === product.id && "bg-accent"
+                  )}
+                  onClick={() => handleSelectProduct(product)}
+                  onMouseEnter={() => setHoveredProductId(product.id)}
+                  onMouseLeave={() => setHoveredProductId(null)}
+                  data-testid={`button-product-${product.id}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs flex-1 min-w-0">
+                      <div className="font-medium truncate">
+                        {product.title || product.productService || 'Untitled Product'}
                       </div>
-                      {selectedProduct === product.id && (
-                        <Check className="w-3 h-3 text-primary" />
+                      {product.productService && product.title !== product.productService && (
+                        <div className="text-muted-foreground truncate mt-0.5">
+                          {product.productService}
+                        </div>
                       )}
                     </div>
-                  </button>
-                ))
-              )}
+                    <div className="flex items-center gap-1">
+                      {/* Show check/star when not hovering THIS specific product */}
+                      {hoveredProductId !== product.id && (
+                        <>
+                          {selectedProduct === product.id && (
+                            <Check className="w-3 h-3 text-primary" />
+                          )}
+                          {product.isDefault && (
+                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                          )}
+                        </>
+                      )}
+                      {/* Show edit/delete when hovering THIS specific product */}
+                      {hoveredProductId === product.id && (
+                        <>
+                          <button
+                            onClick={(e) => handleEditProduct(product, e)}
+                            className="p-1 rounded hover:bg-accent-foreground/10"
+                            title="Edit product"
+                            data-testid={`button-edit-product-${product.id}`}
+                          >
+                            <Edit2 className="w-3 h-3 text-muted-foreground" />
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteProductClick(product, e)}
+                            className="p-1 rounded hover:bg-accent-foreground/10 hover:text-destructive"
+                            title="Delete product"
+                            data-testid={`button-delete-product-${product.id}`}
+                          >
+                            <Trash2 className="w-3 h-3 text-muted-foreground" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))}
+              
+              {/* Add New Product button */}
+              <button
+                className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40"
+                onClick={handleAddNewProduct}
+                data-testid="button-add-new-product"
+              >
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Plus className="w-3 h-3" />
+                  <span>Add New Product</span>
+                </div>
+              </button>
             </div>
           </PopoverContent>
         </Popover>
@@ -394,8 +497,8 @@ export function EmailGenerationControls({
                     selectedSenderProfile === profile.id && "bg-accent"
                   )}
                   onClick={() => handleSelectSenderProfile(profile)}
-                  onMouseEnter={() => setHoveredProfileId(profile.id)}
-                  onMouseLeave={() => setHoveredProfileId(null)}
+                  onMouseEnter={() => setHoveredSenderProfileId(profile.id)}
+                  onMouseLeave={() => setHoveredSenderProfileId(null)}
                   data-testid={`button-sender-${profile.id}`}
                 >
                   <div className="flex items-center justify-between">
@@ -417,7 +520,7 @@ export function EmailGenerationControls({
                     </div>
                     <div className="flex items-center gap-1">
                       {/* Show check/star when not hovering THIS specific profile */}
-                      {hoveredProfileId !== profile.id && (
+                      {hoveredSenderProfileId !== profile.id && (
                         <>
                           {selectedSenderProfile === profile.id && (
                             <Check className="w-3 h-3 text-primary" />
@@ -428,10 +531,10 @@ export function EmailGenerationControls({
                         </>
                       )}
                       {/* Show edit/delete when hovering THIS specific profile */}
-                      {hoveredProfileId === profile.id && (
+                      {hoveredSenderProfileId === profile.id && (
                         <>
                           <button
-                            onClick={(e) => handleEditProfile(profile, e)}
+                            onClick={(e) => handleEditSenderProfile(profile, e)}
                             className="p-1 rounded hover:bg-accent-foreground/10"
                             title="Edit profile"
                             data-testid={`button-edit-sender-${profile.id}`}
@@ -439,7 +542,7 @@ export function EmailGenerationControls({
                             <Edit2 className="w-3 h-3 text-muted-foreground" />
                           </button>
                           <button
-                            onClick={(e) => handleDeleteClick(profile, e)}
+                            onClick={(e) => handleDeleteSenderClick(profile, e)}
                             className="p-1 rounded hover:bg-accent-foreground/10 hover:text-destructive"
                             title="Delete profile"
                             data-testid={`button-delete-sender-${profile.id}`}
@@ -456,7 +559,7 @@ export function EmailGenerationControls({
               {/* Add New button */}
               <button
                 className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40"
-                onClick={handleAddNewProfile}
+                onClick={handleAddNewSenderProfile}
                 data-testid="button-add-new-sender"
               >
                 <div className="flex items-center gap-2 text-xs">
@@ -511,35 +614,75 @@ export function EmailGenerationControls({
       </div>
 
       {/* Sender Profile Modal */}
-      <SenderProfileModal
-        isOpen={modalOpen}
+      <ProfileModal
+        type="sender"
+        isOpen={senderModalOpen}
         onClose={() => {
-          setModalOpen(false);
-          setEditingProfile(null);
+          setSenderModalOpen(false);
+          setEditingSenderProfile(null);
         }}
-        profile={editingProfile}
+        profile={editingSenderProfile}
         onSuccess={() => {
-          setModalOpen(false);
-          setEditingProfile(null);
+          setSenderModalOpen(false);
+          setEditingSenderProfile(null);
         }}
       />
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      {/* Product Modal */}
+      <ProfileModal
+        type="product"
+        isOpen={productModalOpen}
+        onClose={() => {
+          setProductModalOpen(false);
+          setEditingProduct(null);
+        }}
+        profile={editingProduct}
+        onSuccess={() => {
+          setProductModalOpen(false);
+          setEditingProduct(null);
+        }}
+      />
+
+      {/* Delete Sender Profile Dialog */}
+      <AlertDialog open={deleteSenderDialogOpen} onOpenChange={setDeleteSenderDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Sender Profile</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the sender profile "{profileToDelete?.displayName}"? 
+              Are you sure you want to delete the sender profile "{senderProfileToDelete?.displayName}"? 
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>
+            <AlertDialogCancel onClick={() => setDeleteSenderDialogOpen(false)}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleConfirmDelete}
+              onClick={handleConfirmDeleteSender}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Product Dialog */}
+      <AlertDialog open={deleteProductDialogOpen} onOpenChange={setDeleteProductDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Product</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the product "{productToDelete?.title || productToDelete?.productService}"? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteProductDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDeleteProduct}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete

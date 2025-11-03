@@ -157,6 +157,11 @@ export function registerStrategicProfilesRoutes(app: Application, requireAuth: a
         return;
       }
 
+      // If setting as default, clear other defaults first
+      if (req.body.isDefault === true) {
+        await storage.clearDefaultStrategicProfiles(userId);
+      }
+
       // Update the profile
       const updatedProfile = await storage.updateStrategicProfile(productId, req.body);
       

@@ -24,7 +24,8 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
             userId,
             displayName: user.username || user.email.split('@')[0],
             email: user.email,
-            isDefault: true
+            isDefault: true,
+            source: 'registered' // Auto-generated profile from registered user
           });
           profiles = [defaultProfile];
         }
@@ -56,7 +57,8 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
             userId,
             displayName: user.username || user.email.split('@')[0],
             email: user.email,
-            isDefault: true
+            isDefault: true,
+            source: 'registered' // Auto-generated profile from registered user
           });
           return res.json(defaultProfile);
         }

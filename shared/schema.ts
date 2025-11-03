@@ -738,6 +738,7 @@ export const strategicProfiles = pgTable("strategic_profiles", {
   strategicPlan: jsonb("strategic_plan").default({}),
   searchPrompts: text("search_prompts").array(),
   status: text("status").default("in_progress"), // "in_progress", "completed"
+  isDefault: boolean("is_default").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
