@@ -416,8 +416,8 @@ export function EmailGenerationControls({
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      {/* Show check/star when not hovering */}
-                      {!hoveredProfileId && (
+                      {/* Show check/star when not hovering THIS specific profile */}
+                      {hoveredProfileId !== profile.id && (
                         <>
                           {selectedSenderProfile === profile.id && (
                             <Check className="w-3 h-3 text-primary" />
@@ -427,7 +427,7 @@ export function EmailGenerationControls({
                           )}
                         </>
                       )}
-                      {/* Show edit/delete when hovering */}
+                      {/* Show edit/delete when hovering THIS specific profile */}
                       {hoveredProfileId === profile.id && (
                         <>
                           <button
