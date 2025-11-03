@@ -464,7 +464,7 @@ export function EmailGenerationControls({
               </div>
               <p className="text-xs text-muted-foreground mt-1">Choose who's sending this email</p>
             </div>
-            <div className="p-2 space-y-1">
+            <div className="p-2">
               {/* None Option */}
               <button
                 className={cn(
