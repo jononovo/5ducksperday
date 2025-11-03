@@ -105,10 +105,10 @@ export class GmailOAuthService {
     subject: string,
     content: string
   ): Promise<{ threadId: string; messageId: string }> {
-    const gmailToken = await TokenService.getGmailAccessToken(userId);
+    const userTokens = await TokenService.getUserTokens(userId);
+    const gmailToken = userTokens?.gmailAccessToken;
     
     if (!gmailToken) {
-      const userTokens = await TokenService.getUserTokens(userId);
       const hasRefreshToken = !!userTokens?.gmailRefreshToken;
       
       throw {
