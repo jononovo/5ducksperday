@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Box, Palette, Gift, Check, Info, Wand2, Loader2, IdCard, Plus, Edit2, Trash2 } from "lucide-react";
+import { Box, Palette, Gift, Check, Info, Wand2, Loader2, IdCard, Plus, Edit2, Trash2, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TONE_OPTIONS } from "@/lib/tone-options";
 import { OFFER_OPTIONS } from "@/lib/offer-options";
@@ -416,9 +416,18 @@ export function EmailGenerationControls({
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      {selectedSenderProfile === profile.id && !hoveredProfileId && (
-                        <Check className="w-3 h-3 text-primary" />
+                      {/* Show check/star when not hovering */}
+                      {!hoveredProfileId && (
+                        <>
+                          {selectedSenderProfile === profile.id && (
+                            <Check className="w-3 h-3 text-primary" />
+                          )}
+                          {profile.isDefault && (
+                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                          )}
+                        </>
                       )}
+                      {/* Show edit/delete when hovering */}
                       {hoveredProfileId === profile.id && (
                         <>
                           <button
