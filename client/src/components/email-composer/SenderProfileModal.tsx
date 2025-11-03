@@ -61,7 +61,7 @@ export function SenderProfileModal({
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => 
-      apiRequest('/api/sender-profiles', 'POST', data),
+      apiRequest('POST', '/api/sender-profiles', data),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -83,7 +83,7 @@ export function SenderProfileModal({
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async (data: typeof formData) =>
-      apiRequest(`/api/sender-profiles/${profile?.id}`, 'PUT', data),
+      apiRequest('PUT', `/api/sender-profiles/${profile?.id}`, data),
     onSuccess: () => {
       toast({
         title: "Success",
