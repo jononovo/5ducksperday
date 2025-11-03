@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -34,15 +34,46 @@ export function SenderProfileModal({
 
   // Form state
   const [formData, setFormData] = useState({
-    firstName: profile?.firstName || '',
-    lastName: profile?.lastName || '',
-    displayName: profile?.displayName || '',
-    email: profile?.email || '',
-    companyName: profile?.companyName || '',
-    companyPosition: profile?.companyPosition || '',
-    companyWebsite: profile?.companyWebsite || '',
-    title: profile?.title || ''
+    firstName: '',
+    lastName: '',
+    displayName: '',
+    email: '',
+    companyName: '',
+    companyPosition: '',
+    companyWebsite: '',
+    title: ''
   });
+
+  // Update form data when modal opens or profile changes
+  useEffect(() => {
+    if (isOpen) {
+      if (profile) {
+        // Editing existing profile - populate with current values
+        setFormData({
+          firstName: profile.firstName || '',
+          lastName: profile.lastName || '',
+          displayName: profile.displayName || '',
+          email: profile.email || '',
+          companyName: profile.companyName || '',
+          companyPosition: profile.companyPosition || '',
+          companyWebsite: profile.companyWebsite || '',
+          title: profile.title || ''
+        });
+      } else {
+        // Creating new profile - reset to empty
+        setFormData({
+          firstName: '',
+          lastName: '',
+          displayName: '',
+          email: '',
+          companyName: '',
+          companyPosition: '',
+          companyWebsite: '',
+          title: ''
+        });
+      }
+    }
+  }, [isOpen, profile]);
 
   // Auto-generate display name when first/last name changes
   const handleNameChange = (field: 'firstName' | 'lastName', value: string) => {
