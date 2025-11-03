@@ -12,12 +12,14 @@ import {
 } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Box, Palette, Gift, Check, Info, Wand2, Loader2, IdCard } from "lucide-react";
+import { Box, Palette, Gift, Check, Info, Wand2, Loader2, IdCard, Plus, Edit2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TONE_OPTIONS } from "@/lib/tone-options";
 import { OFFER_OPTIONS } from "@/lib/offer-options";
 import { getGenerationModeConfig } from "@/components/email-generation-tabs";
 import type { EmailGenerationControlsProps } from './types';
+import { SenderProfileModal } from './SenderProfileModal';
+import type { SenderProfile } from '@shared/schema';
 
 export function EmailGenerationControls({
   selectedProduct,
@@ -48,6 +50,9 @@ export function EmailGenerationControls({
   const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
   const [senderPopoverOpen, setSenderPopoverOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<SenderProfile | null>(null);
+  const [hoveredProfileId, setHoveredProfileId] = useState<number | null>(null);
   
   // Find the selected sender profile from the list
   const selectedSenderProfileData = senderProfiles.find(p => p.id === selectedSenderProfile);
@@ -64,6 +69,19 @@ export function EmailGenerationControls({
 
   const handleSelectSenderProfile = (profile: any) => {
     onSenderProfileSelect(profile.id);
+    setSenderPopoverOpen(false);
+  };
+
+  const handleAddNewProfile = () => {
+    setEditingProfile(null);
+    setModalOpen(true);
+    setSenderPopoverOpen(false);
+  };
+
+  const handleEditProfile = (profile: SenderProfile, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent selecting the profile
+    setEditingProfile(profile);
+    setModalOpen(true);
     setSenderPopoverOpen(false);
   };
 
@@ -285,41 +303,61 @@ export function EmailGenerationControls({
               </div>
               <p className="text-xs text-muted-foreground mt-1">Choose who's sending this email</p>
             </div>
-            <div className="p-2">
-              {senderProfiles.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground text-sm">
-                  <p>No sender profiles created yet.</p>
-                  <p className="text-xs mt-1">Connect Gmail to create one</p>
-                </div>
-              ) : (
-                senderProfiles.map((profile) => (
-                  <button
-                    key={profile.id}
-                    className={cn(
-                      "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                      selectedSenderProfile === profile.id && "bg-accent"
-                    )}
-                    onClick={() => handleSelectSenderProfile(profile)}
-                    data-testid={`button-sender-${profile.id}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs flex-1 min-w-0">
-                        <div className="font-medium truncate">
-                          {profile.displayName}
-                        </div>
-                        {profile.companyPosition && (
-                          <div className="text-muted-foreground truncate mt-0.5">
-                            {profile.companyPosition} {profile.companyName && `at ${profile.companyName}`}
-                          </div>
-                        )}
+            <div className="p-2 space-y-1">
+              {/* Existing sender profiles */}
+              {senderProfiles.map((profile) => (
+                <button
+                  key={profile.id}
+                  className={cn(
+                    "w-full text-left p-3 rounded-md hover:bg-accent transition-colors group relative",
+                    selectedSenderProfile === profile.id && "bg-accent"
+                  )}
+                  onClick={() => handleSelectSenderProfile(profile)}
+                  onMouseEnter={() => setHoveredProfileId(profile.id)}
+                  onMouseLeave={() => setHoveredProfileId(null)}
+                  data-testid={`button-sender-${profile.id}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs flex-1 min-w-0">
+                      <div className="font-medium truncate">
+                        {profile.displayName}
                       </div>
+                      {profile.companyPosition && (
+                        <div className="text-muted-foreground truncate mt-0.5">
+                          {profile.companyPosition} {profile.companyName && `at ${profile.companyName}`}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
                       {selectedSenderProfile === profile.id && (
                         <Check className="w-3 h-3 text-primary" />
                       )}
+                      {hoveredProfileId === profile.id && (
+                        <button
+                          onClick={(e) => handleEditProfile(profile, e)}
+                          className="p-1 rounded hover:bg-accent-foreground/10"
+                          title="Edit profile"
+                          data-testid={`button-edit-sender-${profile.id}`}
+                        >
+                          <Edit2 className="w-3 h-3 text-muted-foreground" />
+                        </button>
+                      )}
                     </div>
-                  </button>
-                ))
-              )}
+                  </div>
+                </button>
+              ))}
+              
+              {/* Add New button */}
+              <button
+                className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40"
+                onClick={handleAddNewProfile}
+                data-testid="button-add-new-sender"
+              >
+                <div className="flex items-center gap-2 text-xs">
+                  <Plus className="w-3 h-3 text-muted-foreground" />
+                  <span className="font-medium text-muted-foreground">Add New Profile</span>
+                </div>
+              </button>
             </div>
           </PopoverContent>
         </Popover>
@@ -365,6 +403,20 @@ export function EmailGenerationControls({
           }
         </Button>
       </div>
+
+      {/* Sender Profile Modal */}
+      <SenderProfileModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingProfile(null);
+        }}
+        profile={editingProfile}
+        onSuccess={() => {
+          setModalOpen(false);
+          setEditingProfile(null);
+        }}
+      />
     </div>
   );
 }
