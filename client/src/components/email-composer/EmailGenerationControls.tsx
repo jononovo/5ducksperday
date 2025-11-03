@@ -29,6 +29,7 @@ import { OFFER_OPTIONS } from "@/lib/offer-options";
 import { getGenerationModeConfig } from "@/components/email-generation-tabs";
 import type { EmailGenerationControlsProps, SenderProfile } from './types';
 import { ProfileModal } from './ProfileModal';
+import { ProfileDropdown } from './ProfileDropdown';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -73,7 +74,6 @@ export function EmailGenerationControls({
   // Product state
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [hoveredProductId, setHoveredProductId] = useState<number | null>(null);
   const [deleteProductDialogOpen, setDeleteProductDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<any>(null);
   
@@ -223,124 +223,42 @@ export function EmailGenerationControls({
       />
       <div className="absolute bottom-1 left-2 flex items-center gap-2">
         {/* Product Selection */}
-        <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen}>
-          <PopoverTrigger asChild>
-            <button 
-              className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
-              title="Select product context"
-              data-testid="button-product-selector"
-            >
-              <Box className="w-3 h-3" />
-              {selectedProductData && (
-                <span className="max-w-20 truncate">{selectedProductData.title || selectedProductData.productService || 'Product'}</span>
-              )}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-72 p-0" align="start">
-            <div className="p-4 border-b bg-muted/30">
-              <div className="flex items-center gap-2">
-                <Box className="w-4 h-4 text-primary" />
-                <h4 className="font-semibold text-sm">Product Context</h4>
+        <ProfileDropdown
+          items={products}
+          selectedId={selectedProduct}
+          onSelect={(product) => {
+            if (product) {
+              handleSelectProduct(product);
+            } else {
+              handleSelectNone();
+            }
+          }}
+          triggerIcon={<Box className="w-3 h-3" />}
+          triggerLabel={selectedProductData ? (selectedProductData.title || selectedProductData.productService || 'Product') : undefined}
+          headerIcon={<Box className="w-4 h-4 text-primary" />}
+          headerTitle="Product Context"
+          headerDescription="Insert from your existing product list"
+          noneDescription="No specific product context"
+          onAddNew={handleAddNewProduct}
+          addNewLabel="Add New Product"
+          onEdit={handleEditProduct}
+          onDelete={handleDeleteProductClick}
+          renderItem={(product) => (
+            <>
+              <div className="font-medium truncate">
+                {product.title || product.productService || 'Untitled Product'}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Insert from your existing product list</p>
-            </div>
-            <div className="p-2">
-              {/* None Option */}
-              <button
-                className={cn(
-                  "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                  selectedProduct === null && "bg-accent"
-                )}
-                onClick={handleSelectNone}
-                data-testid="button-product-none"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="text-xs">
-                    <span className="font-medium">None</span>
-                    <span className="text-muted-foreground"> - No specific product context</span>
-                  </div>
-                  {selectedProduct === null && (
-                    <Check className="w-3 h-3 text-primary" />
-                  )}
+              {product.productService && product.title !== product.productService && (
+                <div className="text-muted-foreground truncate mt-0.5">
+                  {product.productService}
                 </div>
-              </button>
-              
-              {/* Product Options */}
-              {products.map((product) => (
-                <button
-                  key={product.id}
-                  className={cn(
-                    "w-full text-left p-3 rounded-md hover:bg-accent transition-colors group relative",
-                    selectedProduct === product.id && "bg-accent"
-                  )}
-                  onClick={() => handleSelectProduct(product)}
-                  onMouseEnter={() => setHoveredProductId(product.id)}
-                  onMouseLeave={() => setHoveredProductId(null)}
-                  data-testid={`button-product-${product.id}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs flex-1 min-w-0">
-                      <div className="font-medium truncate">
-                        {product.title || product.productService || 'Untitled Product'}
-                      </div>
-                      {product.productService && product.title !== product.productService && (
-                        <div className="text-muted-foreground truncate mt-0.5">
-                          {product.productService}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {/* Show check/star when not hovering THIS specific product */}
-                      {hoveredProductId !== product.id && (
-                        <>
-                          {selectedProduct === product.id && (
-                            <Check className="w-3 h-3 text-primary" />
-                          )}
-                          {product.isDefault && (
-                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                          )}
-                        </>
-                      )}
-                      {/* Show edit/delete when hovering THIS specific product */}
-                      {hoveredProductId === product.id && (
-                        <>
-                          <button
-                            onClick={(e) => handleEditProduct(product, e)}
-                            className="p-1 rounded hover:bg-accent-foreground/10"
-                            title="Edit product"
-                            data-testid={`button-edit-product-${product.id}`}
-                          >
-                            <Edit2 className="w-3 h-3 text-muted-foreground" />
-                          </button>
-                          <button
-                            onClick={(e) => handleDeleteProductClick(product, e)}
-                            className="p-1 rounded hover:bg-accent-foreground/10 hover:text-destructive"
-                            title="Delete product"
-                            data-testid={`button-delete-product-${product.id}`}
-                          >
-                            <Trash2 className="w-3 h-3 text-muted-foreground" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              ))}
-              
-              {/* Add New Product button */}
-              <button
-                className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40"
-                onClick={handleAddNewProduct}
-                data-testid="button-add-new-product"
-              >
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Plus className="w-3 h-3" />
-                  <span>Add New Product</span>
-                </div>
-              </button>
-            </div>
-          </PopoverContent>
-        </Popover>
+              )}
+            </>
+          )}
+          isOpen={productPopoverOpen}
+          onOpenChange={setProductPopoverOpen}
+          testIdPrefix="product"
+        />
 
         {/* Tone Selection */}
         <Popover open={tonePopoverOpen} onOpenChange={setTonePopoverOpen}>
