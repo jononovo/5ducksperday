@@ -104,25 +104,36 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
     try {
       const userId = getUserId(req);
       
-      // Get base name and company for smart composition
-      const baseName = req.body.displayName || req.body.name || 'Unknown Sender';
+      // Get first and last names from request or parse from display/name field
+      let firstName = req.body.firstName;
+      let lastName = req.body.lastName;
+      
+      // If first/last names not provided separately, parse from displayName or name
+      if (!firstName && !lastName) {
+        const baseName = req.body.displayName || req.body.name || 'Unknown Sender';
+        const nameParts = baseName.split(' ');
+        firstName = nameParts[0] || '';
+        lastName = nameParts.slice(1).join(' ');
+      }
+      
       const companyName = req.body.companyName;
+      const title = req.body.title; // Honorific (Dr., Mr., Ms.)
       
       // Smart composition logic for displayName
-      const nameParts = baseName.split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ');
-      
       let composedDisplayName: string;
+      
+      // Include title if present
+      const namePrefix = title ? `${title} ` : '';
+      
       if (lastName) {
-        // Has last name: use full name
-        composedDisplayName = baseName;
+        // Has last name: use full name with optional title
+        composedDisplayName = `${namePrefix}${firstName} ${lastName}`.trim();
       } else if (companyName) {
         // No last name but has company: "First @ CompanyName"
-        composedDisplayName = `${firstName} @ ${companyName}`;
+        composedDisplayName = `${namePrefix}${firstName} @ ${companyName}`.trim();
       } else {
-        // No last name or company: just first name
-        composedDisplayName = firstName;
+        // No last name or company: just first name with optional title
+        composedDisplayName = `${namePrefix}${firstName}`.trim();
       }
       
       // Map frontend fields to database fields with composed displayName
@@ -130,9 +141,12 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
         userId,
         displayName: composedDisplayName,
         email: req.body.email,
+        firstName,
+        lastName,
+        title: req.body.title, // Honorific
+        companyPosition: req.body.companyPosition, // Job role
         companyName: req.body.companyName,
         companyWebsite: req.body.companyWebsite,
-        title: req.body.title,
         isDefault: req.body.isDefault || false
       };
       
@@ -176,44 +190,49 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
       // Map frontend fields to database fields for update
       const mappedData: any = {};
       
-      // Get the base name and company for smart composition
-      let baseName = existing.displayName; // Start with existing displayName
-      let companyName = existing.companyName; // Start with existing company
+      // Get the current values or update with new ones
+      let firstName = req.body.firstName !== undefined ? req.body.firstName : existing.firstName;
+      let lastName = req.body.lastName !== undefined ? req.body.lastName : existing.lastName;
+      let companyName = req.body.companyName !== undefined ? req.body.companyName : existing.companyName;
+      let title = req.body.title !== undefined ? req.body.title : existing.title;
       
-      // Update base name if provided (could be from 'name' or 'displayName' field)
-      if (req.body.displayName !== undefined) {
-        baseName = req.body.displayName;
-      } else if (req.body.name !== undefined) {
-        baseName = req.body.name;
+      // If first/last names not provided but displayName is, parse it
+      if (!firstName && !lastName && (req.body.displayName || req.body.name)) {
+        const baseName = req.body.displayName || req.body.name;
+        const nameParts = baseName.split(' @ ')[0].split(' '); // Remove any existing @ company first
+        firstName = nameParts[0] || '';
+        lastName = nameParts.slice(1).join(' ');
       }
       
-      // Update company name if provided
-      if (req.body.companyName !== undefined) {
-        companyName = req.body.companyName;
-        mappedData.companyName = companyName;
-      }
+      // Update the individual fields
+      if (req.body.firstName !== undefined) mappedData.firstName = req.body.firstName;
+      if (req.body.lastName !== undefined) mappedData.lastName = req.body.lastName;
+      if (req.body.companyName !== undefined) mappedData.companyName = req.body.companyName;
+      if (req.body.title !== undefined) mappedData.title = req.body.title; // Honorific
+      if (req.body.companyPosition !== undefined) mappedData.companyPosition = req.body.companyPosition; // Job role
       
       // Smart composition logic for displayName
-      // Parse the base name to check for last name
-      const nameParts = baseName.split(' @ ')[0].split(' '); // Remove any existing @ company first
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ');
+      let composedDisplayName: string;
+      
+      // Include title if present
+      const namePrefix = title ? `${title} ` : '';
       
       if (lastName) {
-        // Has last name: use full name
-        mappedData.displayName = `${firstName} ${lastName}`;
+        // Has last name: use full name with optional title
+        composedDisplayName = `${namePrefix}${firstName} ${lastName}`.trim();
       } else if (companyName) {
         // No last name but has company: "First @ CompanyName"
-        mappedData.displayName = `${firstName} @ ${companyName}`;
+        composedDisplayName = `${namePrefix}${firstName} @ ${companyName}`.trim();
       } else {
-        // No last name or company: just first name
-        mappedData.displayName = firstName;
+        // No last name or company: just first name with optional title
+        composedDisplayName = `${namePrefix}${firstName}`.trim();
       }
+      
+      mappedData.displayName = composedDisplayName;
       
       // Map other fields
       if (req.body.email !== undefined) mappedData.email = req.body.email;
       if (req.body.companyWebsite !== undefined) mappedData.companyWebsite = req.body.companyWebsite;
-      if (req.body.title !== undefined) mappedData.title = req.body.title;
       if (req.body.isDefault !== undefined) mappedData.isDefault = req.body.isDefault;
       
       // Validate update data

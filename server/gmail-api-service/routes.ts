@@ -128,10 +128,13 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
             userId,
             displayName,
             email: userInfo.email,
+            firstName, // Store first name separately
+            lastName, // Store last name separately
             isDefault: existingProfiles.length === 0, // Make default if it's the first profile
             companyName: undefined, // Can be updated later, which would update displayName
             companyWebsite: undefined,
-            title: undefined
+            title: undefined, // For honorifics
+            companyPosition: undefined // For job role
           });
           
           console.log(`[Gmail OAuth] Created sender profile for Gmail account:`, {

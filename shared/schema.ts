@@ -633,7 +633,10 @@ export const senderProfiles = pgTable("sender_profiles", {
   userId: integer("user_id").notNull().references(() => users.id),
   displayName: text("display_name").notNull(),
   email: text("email").notNull(),
-  title: text("title"),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  title: text("title"), // For honorifics like Dr., Mr., Ms.
+  companyPosition: text("company_position"), // For role/designation like CEO, Engineer
   companyName: text("company_name"),
   companyWebsite: text("company_website"),
   isDefault: boolean("is_default").default(false),
