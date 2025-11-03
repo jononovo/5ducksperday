@@ -17,9 +17,8 @@ import { cn } from "@/lib/utils";
 import { TONE_OPTIONS } from "@/lib/tone-options";
 import { OFFER_OPTIONS } from "@/lib/offer-options";
 import { getGenerationModeConfig } from "@/components/email-generation-tabs";
-import type { EmailGenerationControlsProps } from './types';
+import type { EmailGenerationControlsProps, SenderProfile } from './types';
 import { SenderProfileModal } from './SenderProfileModal';
-import type { SenderProfile } from '@shared/schema';
 
 export function EmailGenerationControls({
   selectedProduct,
@@ -285,14 +284,14 @@ export function EmailGenerationControls({
         <Popover open={senderPopoverOpen} onOpenChange={setSenderPopoverOpen}>
           <PopoverTrigger asChild>
             <button 
-              className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
+              className={cn(
+                "flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs text-muted-foreground",
+                selectedSenderProfile ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-blue-50"
+              )}
               title="Select sender profile"
               data-testid="button-sender-selector"
             >
               <IdCard className="w-3 h-3" />
-              {selectedSenderProfileData && (
-                <span className="max-w-32 truncate">{selectedSenderProfileData.displayName}</span>
-              )}
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-72 p-0" align="start">
@@ -304,6 +303,29 @@ export function EmailGenerationControls({
               <p className="text-xs text-muted-foreground mt-1">Choose who's sending this email</p>
             </div>
             <div className="p-2 space-y-1">
+              {/* None Option */}
+              <button
+                className={cn(
+                  "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
+                  selectedSenderProfile === null && "bg-accent"
+                )}
+                onClick={() => {
+                  onSenderProfileSelect(null);
+                  setSenderPopoverOpen(false);
+                }}
+                data-testid="button-sender-none"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="text-xs">
+                    <span className="font-medium">None</span>
+                    <span className="text-muted-foreground"> - No sender context</span>
+                  </div>
+                  {selectedSenderProfile === null && (
+                    <Check className="w-3 h-3 text-primary" />
+                  )}
+                </div>
+              </button>
+              
               {/* Existing sender profiles */}
               {senderProfiles.map((profile) => (
                 <button

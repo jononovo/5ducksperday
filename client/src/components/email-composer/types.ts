@@ -25,7 +25,7 @@ export interface EmailGenerationControlsProps {
   selectedOfferStrategy: string;
   onOfferStrategySelect: (offerId: string) => void;
   selectedSenderProfile: number | null;
-  onSenderProfileSelect: (profileId: number) => void;
+  onSenderProfileSelect: (profileId: number | null) => void;
   senderProfiles: SenderProfile[];
   products: StrategicProfile[];
   emailPrompt: string;
