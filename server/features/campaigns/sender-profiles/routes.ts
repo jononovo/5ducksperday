@@ -3,6 +3,7 @@ import { storage } from '../../../storage';
 import { insertSenderProfileSchema, type SenderProfile, type InsertSenderProfile } from '@shared/schema';
 import { getUserId } from '../../../utils/auth';
 import { z } from 'zod';
+import { senderProfileService } from './service';
 
 export function registerSenderProfilesRoutes(app: Application, requireAuth: any) {
   const router = Router();
@@ -11,26 +12,7 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
   router.get('/', requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req);
-      let profiles = await storage.listSenderProfiles(userId);
-      
-      // Auto-generate a default profile if user has none
-      if (profiles.length === 0) {
-        console.log(`Auto-generating default sender profile for user ${userId}`);
-        
-        // Get user details to create default profile
-        const user = await storage.getUserById(userId);
-        if (user) {
-          const defaultProfile = await storage.createSenderProfile({
-            userId,
-            displayName: user.username || user.email.split('@')[0],
-            email: user.email,
-            isDefault: true,
-            source: 'registered' // Auto-generated profile from registered user
-          });
-          profiles = [defaultProfile];
-        }
-      }
-      
+      const profiles = await senderProfileService.ensureDefaultProfile(userId);
       res.json(profiles);
     } catch (error) {
       console.error('Error fetching sender profiles:', error);
@@ -44,29 +26,7 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
   router.get('/default', requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = getUserId(req);
-      let profiles = await storage.listSenderProfiles(userId);
-      
-      // Auto-generate a default profile if user has none
-      if (profiles.length === 0) {
-        console.log(`Auto-generating default sender profile for user ${userId}`);
-        
-        // Get user details to create default profile
-        const user = await storage.getUserById(userId);
-        if (user) {
-          const defaultProfile = await storage.createSenderProfile({
-            userId,
-            displayName: user.username || user.email.split('@')[0],
-            email: user.email,
-            isDefault: true,
-            source: 'registered' // Auto-generated profile from registered user
-          });
-          return res.json(defaultProfile);
-        }
-        return res.json(null);
-      }
-      
-      // Find the default profile or return the first one
-      const defaultProfile = profiles.find(p => p.isDefault) || profiles[0];
+      const defaultProfile = await senderProfileService.getDefaultProfile(userId);
       res.json(defaultProfile);
     } catch (error) {
       console.error('Error fetching default sender profile:', error);
@@ -162,7 +122,7 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
         });
       }
       
-      const profile = await storage.createSenderProfile(parseResult.data);
+      const profile = await senderProfileService.createSenderProfile(parseResult.data);
       res.status(201).json(profile);
       
     } catch (error) {
@@ -248,7 +208,7 @@ export function registerSenderProfilesRoutes(app: Application, requireAuth: any)
         });
       }
       
-      const updated = await storage.updateSenderProfile(profileId, parseResult.data);
+      const updated = await senderProfileService.updateSenderProfile(profileId, userId, parseResult.data);
       res.json(updated);
       
     } catch (error) {

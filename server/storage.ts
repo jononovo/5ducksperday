@@ -620,36 +620,11 @@ class DatabaseStorage implements IStorage {
   }
 
   async createSenderProfile(data: InsertSenderProfile): Promise<SenderProfile> {
-    // If setting as default, clear other defaults first
-    if (data.isDefault === true) {
-      await db
-        .update(senderProfiles)
-        .set({ isDefault: false })
-        .where(eq(senderProfiles.userId, data.userId));
-    }
-    
     const [profile] = await db.insert(senderProfiles).values(data).returning();
     return profile;
   }
 
   async updateSenderProfile(id: number, data: Partial<SenderProfile>): Promise<SenderProfile> {
-    // Get the userId for this profile first
-    const [existingProfile] = await db.select()
-      .from(senderProfiles)
-      .where(eq(senderProfiles.id, id));
-    
-    if (!existingProfile) {
-      throw new Error('Profile not found');
-    }
-    
-    // If setting as default, clear other defaults first
-    if (data.isDefault === true) {
-      await db
-        .update(senderProfiles)
-        .set({ isDefault: false })
-        .where(eq(senderProfiles.userId, existingProfile.userId));
-    }
-    
     const [updated] = await db.update(senderProfiles)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(senderProfiles.id, id))
@@ -730,6 +705,8 @@ class DatabaseStorage implements IStorage {
       repliedAt: campaignRecipients.repliedAt,
       bouncedAt: campaignRecipients.bouncedAt,
       unsubscribedAt: campaignRecipients.unsubscribedAt,
+      emailSubject: campaignRecipients.emailSubject,
+      emailContent: campaignRecipients.emailContent,
       openCount: campaignRecipients.openCount,
       clickCount: campaignRecipients.clickCount,
       lastActivity: campaignRecipients.updatedAt
