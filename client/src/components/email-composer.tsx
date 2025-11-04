@@ -250,6 +250,11 @@ export function EmailComposer({
     campaignRecipients
   ]);
   
+  // Queries - moved here to be available for restoration logic
+  const { data: products = [] } = useQuery<StrategicProfile[]>({
+    queryKey: ['/api/strategic-profiles']
+  });
+  
   const { restoreState, clearState } = useEmailComposerPersistence(composerState);
   
   // Restore persisted state on mount
@@ -274,7 +279,16 @@ export function EmailComposer({
       if (savedState.aiContent !== undefined) setAiContent(savedState.aiContent);
       
       // Restore settings
-      if (savedState.selectedProduct !== undefined) setSelectedProduct(savedState.selectedProduct);
+      if (savedState.selectedProduct !== undefined) {
+        setSelectedProduct(savedState.selectedProduct);
+        // Also set the product data if we have products loaded
+        if (products && products.length > 0) {
+          const product = products.find(p => p.id === savedState.selectedProduct);
+          if (product) {
+            setSelectedProductData(product);
+          }
+        }
+      }
       if (savedState.selectedTone !== undefined) setSelectedTone(savedState.selectedTone);
       if (savedState.selectedOfferStrategy !== undefined) setSelectedOfferStrategy(savedState.selectedOfferStrategy);
       if (savedState.selectedSenderProfileId !== undefined) setSelectedSenderProfileId(savedState.selectedSenderProfileId);
@@ -285,6 +299,17 @@ export function EmailComposer({
       console.log('Restored email composer state from localStorage');
     }
   }, []); // Run only once on mount
+  
+  // Sync selectedProductData when products are loaded or selectedProduct changes
+  useEffect(() => {
+    if (selectedProduct && products && products.length > 0 && !selectedProductData) {
+      const product = products.find(p => p.id === selectedProduct);
+      if (product) {
+        setSelectedProductData(product);
+        console.log('Synced product data from saved product ID:', product);
+      }
+    }
+  }, [products, selectedProduct]); // Run when products are loaded or selectedProduct changes
   
   // Clear state when email is sent successfully
   const handleSuccessfulSend = () => {
@@ -417,9 +442,7 @@ export function EmailComposer({
   });
 
   // Queries
-  const { data: products = [] } = useQuery<StrategicProfile[]>({
-    queryKey: ['/api/strategic-profiles']
-  });
+  // (products query moved earlier for restoration logic)
   
   // Fetch templates at the EmailComposer level to avoid multiple fetches
   const { data: templates = [], isLoading: templatesLoading } = useQuery<EmailTemplate[]>({

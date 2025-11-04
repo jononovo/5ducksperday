@@ -54,19 +54,21 @@ export function EmailGenerationControls({
   return (
     <div className="relative border-t border-b rounded-tr-lg md:border-t-0 md:border-b-0 md:mb-6 mb-4 overflow-hidden">
       {selectedProductData ? (
-        /* Product Chip Mode - Styled like an input field */
-        <div className="mobile-input mobile-input-text-fix border-0 rounded-none md:border md:rounded-md px-3 md:px-3 py-3 bg-background min-h-[48px] flex items-center">
-          <span className="group inline-flex items-center px-2.5 py-1 rounded bg-primary/10 text-primary text-sm font-medium">
-            <Box className="w-3 h-3 mr-1.5" />
-            <span className="truncate">{selectedProductData.title}</span>
-            <button
-              onClick={onProductClear}
-              className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-destructive"
-              title="Remove product"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </span>
+        /* Product Chip Mode - Styled like an input field with controls below */
+        <div className="relative">
+          <div className="mobile-input mobile-input-text-fix border-0 rounded-none md:border md:rounded-md px-3 md:px-3 py-3 pb-10 bg-background min-h-[48px] flex items-center">
+            <span className="group inline-flex items-center px-2.5 py-1 rounded bg-primary/10 text-primary text-sm font-medium">
+              <Box className="w-3 h-3 mr-1.5" />
+              <span className="truncate">{selectedProductData.title}</span>
+              <button
+                onClick={onProductClear}
+                className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-destructive"
+                title="Remove product"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          </div>
         </div>
       ) : (
         /* Regular Textarea Mode */
@@ -82,7 +84,7 @@ export function EmailGenerationControls({
           style={{ minHeight: '32px', maxHeight: '120px' }}
         />
       )}
-      <div className="absolute bottom-1 left-2 flex items-center gap-2">
+      <div className="absolute bottom-1 left-2 flex items-center gap-2 z-10">
         {/* Product Selection */}
         <PromptContextBuilderDropdown
           contextType="product"
