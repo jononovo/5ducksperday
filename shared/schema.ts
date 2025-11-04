@@ -633,10 +633,15 @@ export const senderProfiles = pgTable("sender_profiles", {
   userId: integer("user_id").notNull().references(() => users.id),
   displayName: text("display_name").notNull(),
   email: text("email").notNull(),
-  title: text("title"),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  title: text("title"), // For honorifics like Dr., Mr., Ms.
+  companyPosition: text("company_position"), // For role/designation like CEO, Engineer
   companyName: text("company_name"),
   companyWebsite: text("company_website"),
   isDefault: boolean("is_default").default(false),
+  source: text("source").default("manual"), // 'registered' | 'gmail' | 'manual'
+  gmailAccountEmail: text("gmail_account_email"), // Email of connected Gmail account
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -733,6 +738,7 @@ export const strategicProfiles = pgTable("strategic_profiles", {
   strategicPlan: jsonb("strategic_plan").default({}),
   searchPrompts: text("search_prompts").array(),
   status: text("status").default("in_progress"), // "in_progress", "completed"
+  isDefault: boolean("is_default").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -845,10 +851,15 @@ export const userOutreachPreferencesSchema = z.object({
 export const senderProfileSchema = z.object({
   displayName: z.string().min(1, "Display name is required"),
   email: z.string().email("Invalid email address"),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  title: z.string().optional(),
+  companyPosition: z.string().optional(),
   companyName: z.string().optional(),
   companyWebsite: z.string().optional(),
-  title: z.string().optional(),
-  isDefault: z.boolean().default(false)
+  isDefault: z.boolean().default(false),
+  source: z.enum(['registered', 'gmail', 'manual']).default('manual'),
+  gmailAccountEmail: z.string().optional()
 });
 
 // Target Customer Profile schemas

@@ -11,10 +11,22 @@ import { getOfferConfig } from "./offer-configs";
  */
 
 export async function generateEmailContent(request: EmailGenerationRequest): Promise<EmailGenerationResponse> {
-  const { emailPrompt, contact, company, userId, tone = 'default', offerStrategy = 'none', generateTemplate = false } = request;
+  const { emailPrompt, contact, company, userId, tone = 'default', offerStrategy = 'none', generateTemplate = false, senderProfile } = request;
 
-  // Resolve sender names for the current user
-  const senderNames = await resolveSenderNames(userId);
+  // Use sender profile if provided, otherwise fall back to resolving from userId
+  let senderInfo = senderProfile;
+  if (!senderInfo && userId) {
+    // Fallback to old method if no sender profile provided
+    const senderNames = await resolveSenderNames(userId);
+    senderInfo = {
+      displayName: senderNames.fullName,
+      email: '',
+      firstName: senderNames.firstName,
+      lastName: '',
+      companyName: '',
+      companyPosition: ''
+    };
+  }
   
   // Get tone configuration
   const toneConfig = getToneConfig(tone);
@@ -49,7 +61,7 @@ ${toneConfig.additionalInstructions}`;
         contact, 
         company, 
         userPrompt: emailPrompt, 
-        senderNames,
+        senderProfile: senderInfo,
         generateTemplate 
       })
     }
@@ -62,23 +74,33 @@ ${toneConfig.additionalInstructions}`;
 }
 
 function buildEmailPrompt(context: EmailGenerationContext): string {
-  const { contact, company, userPrompt, senderNames, generateTemplate = false } = context;
+  const { contact, company, userPrompt, senderProfile, generateTemplate = false } = context;
   
   if (generateTemplate) {
-    // Template generation for campaigns - use merge fields extensively
+    // Template generation for campaigns - use actual sender data, merge fields only for recipients
+    const senderName = senderProfile?.displayName || 'The Team';
+    const senderFirstName = senderProfile?.firstName || senderProfile?.displayName?.split(' ')[0] || 'The Team';
+    const senderCompany = senderProfile?.companyName || '';
+    const senderPosition = senderProfile?.companyPosition || '';
+    const senderTitle = senderProfile?.title || ''; // Dr., Mr., etc.
+    
     return `Create an email template based on: ${userPrompt}
 
 CRITICAL: Generate the actual email template directly. DO NOT include explanations or descriptions.
 
-Required merge fields to use:
+SENDER CONTEXT (Use this information directly, NOT as merge fields):
+You are ${senderName}${senderPosition ? `, ${senderPosition}` : ''}${senderCompany ? ` at ${senderCompany}` : ''}.
+- Your name: ${senderName}
+- Your first name for casual references: ${senderFirstName}
+${senderCompany ? `- Your company: ${senderCompany}` : ''}
+${senderPosition ? `- Your role: ${senderPosition}` : ''}
+
+RECIPIENT MERGE FIELDS (Use these for personalization):
 - {{first_name}} - Use this in greetings (e.g., "Hi {{first_name}},")
 - {{contact_company_name}} - Use when referencing the target company
 - {{contact_role}} - Use when mentioning their position
-- {{sender_full_name}} - Use in signature
-- {{sender_first_name}} - Use in casual references to yourself
-- {{sender_company_name}} - Use when referencing your company
 
-Optional merge fields you can also use:
+Optional recipient merge fields:
 - {{last_name}} - Target's last name
 - {{contact_email}} - Their email
 - {{personal_intro}} - For personalized introductions
@@ -90,35 +112,43 @@ Industry/Company Type: ${company.description || 'B2B companies'}
 ${contact && contact.role ? `Target Role: ${contact.role} (use {{contact_role}} in template)` : 'Various decision makers'}
 
 FORMAT REQUIREMENTS (MUST FOLLOW EXACTLY):
-1. Start with "Subject: " followed by an engaging subject line using merge fields
+1. Start with "Subject: " followed by an engaging subject line using recipient merge fields
    Good examples:
    - Subject: Freshen Up {{contact_company_name}} with Premium Commercial Orange Juicers
    - Subject: {{first_name}}, quick question about {{contact_company_name}}'s operations
    - Subject: Transform {{contact_company_name}}'s efficiency with our solution
    
 2. Then on a new line, write the email body starting with the greeting
-3. Use merge fields naturally throughout the email
-4. DO NOT include any explanatory text or descriptions
+3. Use recipient merge fields naturally throughout the email
+4. Sign off with your actual name (${senderName}), NOT a merge field
+5. DO NOT include any explanatory text or descriptions
 
 CRITICAL INSTRUCTIONS:
 - Create a reusable template that works for multiple recipients
-- Use at least 4-5 different merge fields throughout the email
+- Use recipient merge fields for personalization (NOT sender merge fields)
+- Sign the email with "${senderName}" directly
 - Make the template feel personal despite being automated
 - Start immediately with "Subject: " - no preamble or explanation`;
   }
   
   // Regular email generation - use actual values
+  const senderName = senderProfile?.displayName || 'The Team';
+  const senderFirstName = senderProfile?.firstName || senderProfile?.displayName?.split(' ')[0] || 'The Team';
+  const senderCompany = senderProfile?.companyName || '';
+  const senderPosition = senderProfile?.companyPosition || '';
+  
   return `Write a business email based on this context:
 
 Prompt: ${userPrompt}
 
-Available merge fields for personalization:
+SENDER CONTEXT (Use this information directly):
+You are ${senderName}${senderPosition ? `, ${senderPosition}` : ''}${senderCompany ? ` at ${senderCompany}` : ''}.
+${senderCompany ? `Your company: ${senderCompany}` : ''}
+
+Available merge fields for recipient personalization:
 - {{first_name}} - Target contact's first name
 - {{contact_name}} - Target contact's full name  
 - {{contact_company_name}} - Target company name
-- {{sender_first_name}} - Your first name
-- {{sender_full_name}} - Your full name
-- {{sender_company_name}} - Your company name
 
 TARGET COMPANY: ${company.name}
 ${company.description ? `About: ${company.description}` : ''}
@@ -136,7 +166,7 @@ Format requirements:
 - Keep both subject and content concise
 - Add generous white space between paragraphs (use double line breaks)
 - Add extra line spacing after the signature
-- Use one of these merge fields like {{sender_full_name}} or {{sender_first_name}} in signatures when appropriate`;
+- Sign the email as "${senderName}" directly (NOT a merge field)`;
 }
 
 function parseEmailResponse(response: string): EmailGenerationResponse {

@@ -7,6 +7,7 @@ import type { Campaign, CampaignRecipient } from "@shared/schema";
 import sgMail from '@sendgrid/mail';
 import { GmailOAuthService } from '../../gmail-api-service/oauth/service';
 import { TokenService } from '../billing/tokens/service';
+import { resolveAllMergeFields, buildMergeContext } from '../../lib/merge-field-resolver';
 
 const BATCH_SIZE = 20; // Process 20 recipients at a time
 const PROCESSING_INTERVAL = 10000; // Check every 10 seconds
@@ -364,6 +365,7 @@ export class EmailQueueProcessor {
           id: campaignRecipients.id,
           campaignId: campaignRecipients.campaignId,
           userId: campaigns.userId,
+          senderProfileId: campaigns.senderProfileId,
           recipientEmail: campaignRecipients.recipientEmail,
           recipientFirstName: campaignRecipients.recipientFirstName,
           recipientLastName: campaignRecipients.recipientLastName,
@@ -428,17 +430,83 @@ export class EmailQueueProcessor {
           continue;
         }
 
+        // Get the sender profile for the campaign (if specified)
+        let senderProfile = null;
+        const campaignSenderProfileId = userRecipients[0].senderProfileId; // All recipients in this group have same campaign
+        
+        if (campaignSenderProfileId) {
+          senderProfile = await storage.getSenderProfile(campaignSenderProfileId, userIdNum);
+          if (!senderProfile) {
+            console.warn(`[EmailQueueProcessor] Sender profile ${campaignSenderProfileId} not found, using default`);
+          }
+        }
+        
+        // If no sender profile, try to get the default one for the user
+        if (!senderProfile) {
+          const userProfiles = await storage.listSenderProfiles(userIdNum);
+          senderProfile = userProfiles.find(p => p.isDefault) || userProfiles[0];
+        }
+        
         // Process each email for this user
         const results = await Promise.allSettled(
           userRecipients.map(async (recipient) => {
             try {
-              // Send email via Gmail
+              // Build merge context for this recipient
+              const recipientData = {
+                email: recipient.recipientEmail,
+                firstName: recipient.recipientFirstName || undefined,
+                lastName: recipient.recipientLastName || undefined,
+                name: `${recipient.recipientFirstName || ''} ${recipient.recipientLastName || ''}`.trim() || undefined,
+                company: recipient.recipientCompany || undefined,
+                title: undefined // Not available in current schema
+              };
+              
+              // Use sender profile data or fall back to user data
+              let senderData;
+              if (senderProfile) {
+                // Parse the display name to get first and last name
+                const senderNameParts = senderProfile.displayName?.split(' ') || [];
+                senderData = {
+                  email: senderProfile.email,
+                  firstName: senderNameParts[0] || undefined,
+                  lastName: senderNameParts.slice(1).join(' ') || undefined,
+                  name: senderProfile.displayName || undefined,
+                  company: senderProfile.companyName || undefined
+                };
+              } else {
+                // Fallback to parsing username if no sender profile
+                const senderNameParts = user.username?.split(' ') || [];
+                senderData = {
+                  email: user.email,
+                  firstName: senderNameParts[0] || undefined,
+                  lastName: senderNameParts.slice(1).join(' ') || undefined,
+                  name: user.username || undefined,
+                  company: undefined // No default company
+                };
+              }
+              
+              // Build the merge context
+              const mergeContext = buildMergeContext(recipientData, senderData);
+              
+              // Resolve merge fields in both subject and content
+              const resolvedSubject = resolveAllMergeFields(
+                recipient.emailSubject || 'No subject',
+                mergeContext
+              );
+              const resolvedContent = resolveAllMergeFields(
+                recipient.emailContent || 'No content',
+                mergeContext
+              );
+              
+              console.log(`[EmailQueueProcessor] Resolved merge fields for ${recipient.recipientEmail}`);
+              
+              // Send email via Gmail with resolved content
               const gmailResult = await GmailOAuthService.sendEmail(
                 userIdNum,
                 user.email,
                 recipient.recipientEmail,
-                recipient.emailSubject || 'No subject',
-                recipient.emailContent || 'No content'
+                resolvedSubject,
+                resolvedContent
               );
 
               // Update status to sent

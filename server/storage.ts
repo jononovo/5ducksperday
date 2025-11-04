@@ -89,6 +89,7 @@ export interface IStorage {
   createStrategicProfile(data: InsertStrategicProfile): Promise<StrategicProfile>;
   updateStrategicProfile(id: number, data: Partial<StrategicProfile>): Promise<StrategicProfile>;
   deleteStrategicProfile(id: number): Promise<void>;
+  clearDefaultStrategicProfiles(userId: number): Promise<void>;
 
   // Sender Profiles
   listSenderProfiles(userId: number): Promise<SenderProfile[]>;
@@ -594,6 +595,13 @@ class DatabaseStorage implements IStorage {
     await db
       .delete(strategicProfiles)
       .where(eq(strategicProfiles.id, id));
+  }
+
+  async clearDefaultStrategicProfiles(userId: number): Promise<void> {
+    await db
+      .update(strategicProfiles)
+      .set({ isDefault: false })
+      .where(eq(strategicProfiles.userId, userId));
   }
 
   // Sender Profiles

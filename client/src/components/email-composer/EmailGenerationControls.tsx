@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Popover,
   PopoverContent,
@@ -10,14 +10,29 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Box, Palette, Gift, Check, Info, Wand2, Loader2 } from "lucide-react";
+import { Box, Palette, Gift, Check, Info, Wand2, Loader2, IdCard, Plus, Edit2, Trash2, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TONE_OPTIONS } from "@/lib/tone-options";
 import { OFFER_OPTIONS } from "@/lib/offer-options";
 import { getGenerationModeConfig } from "@/components/email-generation-tabs";
-import type { EmailGenerationControlsProps } from './types';
+import type { EmailGenerationControlsProps, SenderProfile } from './types';
+import { ProfileModal } from './ProfileModal';
+import { ProfileDropdown } from './ProfileDropdown';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 export function EmailGenerationControls({
   selectedProduct,
@@ -28,6 +43,9 @@ export function EmailGenerationControls({
   onToneSelect,
   selectedOfferStrategy,
   onOfferStrategySelect,
+  selectedSenderProfile,
+  onSenderProfileSelect,
+  senderProfiles,
   products,
   emailPrompt,
   originalEmailPrompt,
@@ -43,7 +61,34 @@ export function EmailGenerationControls({
   const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [tonePopoverOpen, setTonePopoverOpen] = useState(false);
   const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
+  const [senderPopoverOpen, setSenderPopoverOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
+  
+  // Sender profile state
+  const [senderModalOpen, setSenderModalOpen] = useState(false);
+  const [editingSenderProfile, setEditingSenderProfile] = useState<SenderProfile | null>(null);
+  const [hoveredSenderProfileId, setHoveredSenderProfileId] = useState<number | null>(null);
+  const [deleteSenderDialogOpen, setDeleteSenderDialogOpen] = useState(false);
+  const [senderProfileToDelete, setSenderProfileToDelete] = useState<SenderProfile | null>(null);
+  
+  // Reset hover state when sender dropdown closes
+  useEffect(() => {
+    if (!senderPopoverOpen) {
+      setHoveredSenderProfileId(null);
+    }
+  }, [senderPopoverOpen]);
+  
+  // Product state
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [deleteProductDialogOpen, setDeleteProductDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<any>(null);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // Find the selected sender profile from the list
+  const selectedSenderProfileData = senderProfiles.find(p => p.id === selectedSenderProfile);
 
   const handleSelectProduct = (product: any) => {
     onProductSelect(product);
@@ -53,6 +98,121 @@ export function EmailGenerationControls({
   const handleSelectNone = () => {
     onProductClear();
     setProductPopoverOpen(false);
+  };
+
+  const handleSelectSenderProfile = (profile: any) => {
+    onSenderProfileSelect(profile.id);
+    setSenderPopoverOpen(false);
+  };
+
+  // Sender profile handlers
+  const handleAddNewSenderProfile = () => {
+    setEditingSenderProfile(null);
+    setSenderModalOpen(true);
+    setSenderPopoverOpen(false);
+  };
+
+  const handleEditSenderProfile = (profile: SenderProfile, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingSenderProfile(profile);
+    setSenderModalOpen(true);
+    setSenderPopoverOpen(false);
+  };
+
+  const handleDeleteSenderClick = (profile: SenderProfile, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSenderProfileToDelete(profile);
+    setDeleteSenderDialogOpen(true);
+    setSenderPopoverOpen(false);
+  };
+
+  // Product handlers
+  const handleAddNewProduct = () => {
+    setEditingProduct(null);
+    setProductModalOpen(true);
+    setProductPopoverOpen(false);
+  };
+
+  const handleEditProduct = (product: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingProduct(product);
+    setProductModalOpen(true);
+    setProductPopoverOpen(false);
+  };
+
+  const handleDeleteProductClick = (product: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setProductToDelete(product);
+    setDeleteProductDialogOpen(true);
+    setProductPopoverOpen(false);
+  };
+
+  // Delete sender profile mutation
+  const deleteSenderMutation = useMutation({
+    mutationFn: async (profileId: number) =>
+      apiRequest('DELETE', `/api/sender-profiles/${profileId}`),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Sender profile deleted successfully"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/sender-profiles'] });
+      
+      // If the deleted profile was selected, clear the selection
+      if (selectedSenderProfile === senderProfileToDelete?.id) {
+        onSenderProfileSelect(null);
+      }
+      
+      setDeleteSenderDialogOpen(false);
+      setSenderProfileToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete sender profile",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleConfirmDeleteSender = () => {
+    if (senderProfileToDelete) {
+      deleteSenderMutation.mutate(senderProfileToDelete.id);
+    }
+  };
+
+  // Delete product mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: async (productId: number) =>
+      apiRequest('DELETE', `/api/strategic-profiles/${productId}`),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Product deleted successfully"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/strategic-profiles'] });
+      
+      // If the deleted product was selected, clear the selection
+      if (selectedProduct === productToDelete?.id) {
+        onProductClear();
+      }
+      
+      setDeleteProductDialogOpen(false);
+      setProductToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete product",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleConfirmDeleteProduct = () => {
+    if (productToDelete) {
+      deleteProductMutation.mutate(productToDelete.id);
+    }
   };
 
   return (
@@ -70,86 +230,42 @@ export function EmailGenerationControls({
       />
       <div className="absolute bottom-1 left-2 flex items-center gap-2">
         {/* Product Selection */}
-        <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen}>
-          <PopoverTrigger asChild>
-            <button 
-              className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
-              title="Select product context"
-              data-testid="button-product-selector"
-            >
-              <Box className="w-3 h-3" />
-              {selectedProductData && (
-                <span className="max-w-20 truncate">{selectedProductData.title || selectedProductData.productService || 'Product'}</span>
-              )}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-72 p-0" align="start">
-            <div className="p-4 border-b bg-muted/30">
-              <div className="flex items-center gap-2">
-                <Box className="w-4 h-4 text-primary" />
-                <h4 className="font-semibold text-sm">Product Context</h4>
+        <ProfileDropdown
+          items={products}
+          selectedId={selectedProduct}
+          onSelect={(product) => {
+            if (product) {
+              handleSelectProduct(product);
+            } else {
+              handleSelectNone();
+            }
+          }}
+          triggerIcon={<Box className="w-3 h-3" />}
+          triggerLabel={selectedProductData ? (selectedProductData.title || selectedProductData.productService || 'Product') : undefined}
+          headerIcon={<Box className="w-4 h-4 text-primary" />}
+          headerTitle="Product Context"
+          headerDescription="Insert from your existing product list"
+          noneDescription="No specific product context"
+          onAddNew={handleAddNewProduct}
+          addNewLabel="Add New Product"
+          onEdit={handleEditProduct}
+          onDelete={handleDeleteProductClick}
+          renderItem={(product) => (
+            <>
+              <div className="font-medium truncate">
+                {product.title || product.productService || 'Untitled Product'}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Insert from your existing product list</p>
-            </div>
-            <div className="p-2">
-              {/* None Option */}
-              <button
-                className={cn(
-                  "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                  selectedProduct === null && "bg-accent"
-                )}
-                onClick={handleSelectNone}
-                data-testid="button-product-none"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="text-xs">
-                    <span className="font-medium">None</span>
-                    <span className="text-muted-foreground"> - No specific product context</span>
-                  </div>
-                  {selectedProduct === null && (
-                    <Check className="w-3 h-3 text-primary" />
-                  )}
+              {product.productService && product.title !== product.productService && (
+                <div className="text-muted-foreground truncate mt-0.5">
+                  {product.productService}
                 </div>
-              </button>
-              
-              {/* Product Options */}
-              {products.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground text-sm">
-                  <p>No products created yet.</p>
-                  <p className="text-xs mt-1">Create one in Strategy Dashboard</p>
-                </div>
-              ) : (
-                products.map((product) => (
-                  <button
-                    key={product.id}
-                    className={cn(
-                      "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
-                      selectedProduct === product.id && "bg-accent"
-                    )}
-                    onClick={() => handleSelectProduct(product)}
-                    data-testid={`button-product-${product.id}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs flex-1 min-w-0">
-                        <div className="font-medium truncate">
-                          {product.title || product.productService || 'Untitled Product'}
-                        </div>
-                        {product.productService && product.title !== product.productService && (
-                          <div className="text-muted-foreground truncate mt-0.5">
-                            {product.productService}
-                          </div>
-                        )}
-                      </div>
-                      {selectedProduct === product.id && (
-                        <Check className="w-3 h-3 text-primary" />
-                      )}
-                    </div>
-                  </button>
-                ))
               )}
-            </div>
-          </PopoverContent>
-        </Popover>
+            </>
+          )}
+          isOpen={productPopoverOpen}
+          onOpenChange={setProductPopoverOpen}
+          testIdPrefix="product"
+        />
 
         {/* Tone Selection */}
         <Popover open={tonePopoverOpen} onOpenChange={setTonePopoverOpen}>
@@ -164,12 +280,12 @@ export function EmailGenerationControls({
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-72 p-0" align="start">
-            <div className="p-4 border-b bg-muted/30">
+            <div className="px-3 py-2 border-b bg-muted/30">
               <div className="flex items-center gap-2">
                 <Palette className="w-4 h-4 text-primary" />
                 <h4 className="font-semibold text-sm">Email Tone</h4>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Choose the personality for your email</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Choose the personality for your email</p>
             </div>
             <div className="p-2">
               {TONE_OPTIONS.map((tone) => (
@@ -215,12 +331,12 @@ export function EmailGenerationControls({
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-72 p-0" align="start">
-            <div className="p-4 border-b bg-muted/30">
+            <div className="px-3 py-2 border-b bg-muted/30">
               <div className="flex items-center gap-2">
                 <Gift className="w-4 h-4 text-primary" />
                 <h4 className="font-semibold text-sm">Offer Strategy</h4>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Optional: Structure your offer for maximum impact</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Optional: Structure your offer for maximum impact</p>
             </div>
             <div className="p-2">
               {OFFER_OPTIONS.map((offer) => (
@@ -247,6 +363,135 @@ export function EmailGenerationControls({
                   </div>
                 </button>
               ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Sender Profile Selection */}
+        <Popover open={senderPopoverOpen} onOpenChange={setSenderPopoverOpen}>
+          <PopoverTrigger asChild>
+            <button 
+              className={cn(
+                "flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs text-muted-foreground",
+                selectedSenderProfile ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-blue-50"
+              )}
+              title="Select sender profile"
+              data-testid="button-sender-selector"
+            >
+              <IdCard className="w-3 h-3" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-0" align="start">
+            <div className="px-3 py-2 border-b bg-muted/30">
+              <div className="flex items-center gap-2">
+                <IdCard className="w-4 h-4 text-primary" />
+                <h4 className="font-semibold text-sm">Sender Profile</h4>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">Sender context for email generation</p>
+            </div>
+            <div className="p-2 space-y-1">
+              {/* None Option */}
+              <button
+                className={cn(
+                  "w-full text-left p-3 rounded-md hover:bg-accent transition-colors",
+                  selectedSenderProfile === null && "bg-accent"
+                )}
+                onClick={() => {
+                  onSenderProfileSelect(null);
+                  setSenderPopoverOpen(false);
+                }}
+                data-testid="button-sender-none"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="text-xs">
+                    <span className="font-medium">None</span>
+                    <span className="text-muted-foreground"> - No sender context</span>
+                  </div>
+                  {selectedSenderProfile === null && (
+                    <Check className="w-3 h-3 text-primary" />
+                  )}
+                </div>
+              </button>
+              
+              {/* Existing sender profiles */}
+              {senderProfiles.map((profile) => (
+                <button
+                  key={profile.id}
+                  className={cn(
+                    "w-full text-left p-3 rounded-md hover:bg-accent transition-colors group relative",
+                    selectedSenderProfile === profile.id && "bg-accent"
+                  )}
+                  onClick={() => handleSelectSenderProfile(profile)}
+                  onMouseEnter={() => setHoveredSenderProfileId(profile.id)}
+                  onMouseLeave={() => setHoveredSenderProfileId(null)}
+                  data-testid={`button-sender-${profile.id}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium truncate">{profile.displayName}</span>
+                        {profile.source === 'registered' && (
+                          <span className="text-xs text-muted-foreground">(Registered User)</span>
+                        )}
+                        {profile.source === 'gmail' && (
+                          <span className="text-xs text-muted-foreground">(Gmail API)</span>
+                        )}
+                      </div>
+                      {profile.companyPosition && (
+                        <div className="text-muted-foreground truncate mt-0.5">
+                          {profile.companyPosition} {profile.companyName && `at ${profile.companyName}`}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {/* Show check/star when not hovering THIS specific profile */}
+                      {hoveredSenderProfileId !== profile.id && (
+                        <>
+                          {selectedSenderProfile === profile.id && (
+                            <Check className="w-3 h-3 text-primary" />
+                          )}
+                          {profile.isDefault && (
+                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                          )}
+                        </>
+                      )}
+                      {/* Show edit/delete when hovering THIS specific profile */}
+                      {hoveredSenderProfileId === profile.id && (
+                        <>
+                          <button
+                            onClick={(e) => handleEditSenderProfile(profile, e)}
+                            className="p-1 rounded hover:bg-accent-foreground/10"
+                            title="Edit profile"
+                            data-testid={`button-edit-sender-${profile.id}`}
+                          >
+                            <Edit2 className="w-3 h-3 text-muted-foreground" />
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteSenderClick(profile, e)}
+                            className="p-1 rounded hover:bg-accent-foreground/10 hover:text-destructive"
+                            title="Delete profile"
+                            data-testid={`button-delete-sender-${profile.id}`}
+                          >
+                            <Trash2 className="w-3 h-3 text-muted-foreground" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))}
+              
+              {/* Add New button */}
+              <button
+                className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40"
+                onClick={handleAddNewSenderProfile}
+                data-testid="button-add-new-sender"
+              >
+                <div className="flex items-center gap-2 text-xs">
+                  <Plus className="w-3 h-3 text-muted-foreground" />
+                  <span className="font-medium text-muted-foreground">Add New Profile</span>
+                </div>
+              </button>
             </div>
           </PopoverContent>
         </Popover>
@@ -292,6 +537,84 @@ export function EmailGenerationControls({
           }
         </Button>
       </div>
+
+      {/* Sender Profile Modal */}
+      <ProfileModal
+        profileType="sender"
+        isOpen={senderModalOpen}
+        onClose={() => {
+          setSenderModalOpen(false);
+          setEditingSenderProfile(null);
+        }}
+        profile={editingSenderProfile}
+        onSuccess={() => {
+          setSenderModalOpen(false);
+          setEditingSenderProfile(null);
+        }}
+      />
+
+      {/* Product Modal */}
+      <ProfileModal
+        profileType="product"
+        isOpen={productModalOpen}
+        onClose={() => {
+          setProductModalOpen(false);
+          setEditingProduct(null);
+        }}
+        profile={editingProduct}
+        onSuccess={() => {
+          setProductModalOpen(false);
+          setEditingProduct(null);
+        }}
+      />
+
+      {/* Delete Sender Profile Dialog */}
+      <AlertDialog open={deleteSenderDialogOpen} onOpenChange={setDeleteSenderDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Sender Profile</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the sender profile "{senderProfileToDelete?.displayName}"? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteSenderDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDeleteSender}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Product Dialog */}
+      <AlertDialog open={deleteProductDialogOpen} onOpenChange={setDeleteProductDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Product</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the product "{productToDelete?.title || productToDelete?.productService}"? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteProductDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDeleteProduct}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

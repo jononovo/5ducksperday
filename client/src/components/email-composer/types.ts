@@ -1,4 +1,21 @@
 import type { StrategicProfile } from '@shared/schema';
+import type { RecipientSelection } from '@/components/recipient-selection-modal';
+
+export interface SenderProfile {
+  id: number;
+  userId: number;
+  displayName: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  title?: string;
+  companyPosition?: string;
+  companyName?: string;
+  companyWebsite?: string;
+  isDefault: boolean;
+  source?: 'registered' | 'gmail' | 'manual';
+  gmailAccountEmail?: string;
+}
 
 export interface EmailGenerationControlsProps {
   selectedProduct: number | null;
@@ -9,6 +26,9 @@ export interface EmailGenerationControlsProps {
   onToneSelect: (toneId: string) => void;
   selectedOfferStrategy: string;
   onOfferStrategySelect: (offerId: string) => void;
+  selectedSenderProfile: number | null;
+  onSenderProfileSelect: (profileId: number | null) => void;
+  senderProfiles: SenderProfile[];
   products: StrategicProfile[];
   emailPrompt: string;
   originalEmailPrompt: string;
@@ -77,7 +97,7 @@ export interface EmailFormProps {
   selectedCompany: any;
   onSendEmail: () => void;
   onManualSend: () => void;
-  campaignRecipients?: any[];
+  campaignRecipients?: RecipientSelection | null;
   currentListId: number | null;
   currentQuery: string | null;
   onCreateCampaign: (type: 'scheduled' | 'immediate' | 'draft') => void;

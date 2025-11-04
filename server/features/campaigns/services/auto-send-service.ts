@@ -329,14 +329,11 @@ class AutoSendCampaignService {
   ) {
     try {
       // Prepare merge field context
+      // Note: senderNames removed - sender fields are no longer merge fields
       const mergeContext = {
         contact,
         company,
-        user,
-        senderNames: {
-          fullName: user.username || 'Your Name',
-          firstName: user.username?.split(' ')[0] || 'Your'
-        }
+        user
       };
       
       // Resolve merge fields in subject and body

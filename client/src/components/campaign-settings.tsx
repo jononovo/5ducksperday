@@ -8,6 +8,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Calendar,
   Wand2,
@@ -21,7 +28,8 @@ import {
   Mail,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScheduleSendModal } from "@/components/schedule-send-modal";
@@ -36,6 +44,17 @@ interface GmailAuthStatus {
   hasValidToken: boolean;
 }
 
+interface SenderProfile {
+  id: number;
+  userId: number;
+  displayName: string;
+  email: string;
+  companyName?: string;
+  companyWebsite?: string;
+  title?: string;
+  isDefault: boolean;
+}
+
 export interface CampaignSettingsData {
   scheduleSend: boolean;
   scheduleDate?: Date;
@@ -46,6 +65,7 @@ export interface CampaignSettingsData {
   emailTemplateId?: number;
   trackEmails: boolean;
   unsubscribeLink: boolean;
+  senderProfileId?: number;
 }
 
 interface CampaignSettingsProps {
@@ -75,8 +95,29 @@ export function CampaignSettings({
     refetchInterval: 10000, // Refresh every 10 seconds
   });
 
+  // Fetch sender profiles
+  const { data: senderProfiles } = useQuery<SenderProfile[]>({
+    queryKey: ['/api/sender-profiles'],
+  });
+
+  // Set default sender profile when profiles are loaded
+  useEffect(() => {
+    if (senderProfiles && senderProfiles.length > 0 && !localSettings.senderProfileId) {
+      const defaultProfile = senderProfiles.find(p => p.isDefault) || senderProfiles[0];
+      const updated = { ...localSettings, senderProfileId: defaultProfile.id };
+      setLocalSettings(updated);
+      onSettingsChange(updated);
+    }
+  }, [senderProfiles]);
+
   const handleToggle = (key: keyof CampaignSettingsData, value: boolean) => {
     const updated = { ...localSettings, [key]: value };
+    setLocalSettings(updated);
+    onSettingsChange(updated);
+  };
+
+  const handleSenderProfileChange = (profileId: string) => {
+    const updated = { ...localSettings, senderProfileId: parseInt(profileId) };
     setLocalSettings(updated);
     onSettingsChange(updated);
   };
@@ -161,6 +202,47 @@ export function CampaignSettings({
               </div>
             )}
           </div>
+
+          {/* Sender Profile Selector */}
+          {senderProfiles && senderProfiles.length > 0 && (
+            <div className="w-full px-2 py-2 bg-muted/30 rounded-lg mb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Sender profile
+                  </span>
+                </div>
+                <Select
+                  value={localSettings.senderProfileId?.toString() || ''}
+                  onValueChange={handleSenderProfileChange}
+                >
+                  <SelectTrigger className="w-48 h-7 text-xs">
+                    <SelectValue placeholder="Select profile" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {senderProfiles.map((profile) => (
+                      <SelectItem key={profile.id} value={profile.id.toString()}>
+                        <div className="flex items-center gap-1">
+                          <span>{profile.displayName}</span>
+                          {profile.isDefault && (
+                            <span className="text-xs text-muted-foreground">(default)</span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {!senderProfiles || senderProfiles.length === 0 && (
+                <div className="mt-2 pt-2 border-t border-border/50">
+                  <p className="text-xs text-muted-foreground">
+                    Connect Gmail to create a sender profile
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Schedule Send Button */}
           <Button

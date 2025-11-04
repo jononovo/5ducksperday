@@ -28,14 +28,31 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
         return res.status(400).json({ error: 'User not found' });
       }
       
+      // Force HTTPS for OAuth callbacks - Replit always serves via HTTPS externally
+      // even though internally the app sees HTTP
       const protocol = process.env.OAUTH_PROTOCOL || 
-        (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
+        (process.env.NODE_ENV === 'production' ? 'https' : 
+          req.get('host')?.includes('replit.dev') ? 'https' : req.protocol);
+      
+      // Debug logging
+      console.log('[Gmail OAuth] Generating auth URL with:', {
+        host: req.get('host'),
+        protocol,
+        userId,
+        NODE_ENV: process.env.NODE_ENV,
+        OAUTH_PROTOCOL: process.env.OAUTH_PROTOCOL,
+        reqProtocol: req.protocol,
+        includesReplitDev: req.get('host')?.includes('replit.dev'),
+        constructedRedirectUri: `${protocol}://${req.get('host')}/api/gmail/callback`
+      });
       
       const authUrl = GmailOAuthService.generateAuthUrl(
         userId, 
         req.get('host')!, 
         protocol
       );
+      
+      console.log('[Gmail OAuth] Generated auth URL:', authUrl);
       
       res.redirect(authUrl);
     } catch (error) {
@@ -58,8 +75,11 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
         return res.status(400).json({ error: 'Invalid state parameter' });
       }
       
+      // Force HTTPS for OAuth callbacks - Replit always serves via HTTPS externally
+      // even though internally the app sees HTTP
       const protocol = process.env.OAUTH_PROTOCOL || 
-        (process.env.NODE_ENV === 'production' ? 'https' : req.protocol);
+        (process.env.NODE_ENV === 'production' ? 'https' : 
+          req.get('host')?.includes('replit.dev') ? 'https' : req.protocol);
       
       const { tokens } = await GmailOAuthService.exchangeCodeForTokens(
         code, 
@@ -76,6 +96,66 @@ export function registerGmailRoutes(app: Application, requireAuth: any) {
       });
       
       await GmailOAuthService.storeTokens(userId, tokens, userInfo);
+      
+      // Create or update sender profile for this Gmail account
+      try {
+        const { storage } = await import('../storage');
+        
+        // Get existing profiles for this user
+        const existingProfiles = await storage.listSenderProfiles(userId);
+        
+        // Check if a profile already exists with this Gmail email
+        const existingGmailProfile = existingProfiles.find(p => p.email === userInfo.email);
+        
+        if (!existingGmailProfile) {
+          // Parse the name from Gmail userInfo
+          const nameParts = userInfo.name?.split(' ') || [];
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || '';
+          
+          // Compose the display name using smart logic
+          let displayName: string;
+          if (lastName) {
+            // Has last name: use full name
+            displayName = userInfo.name || userInfo.email.split('@')[0];
+          } else {
+            // No last name: for now just use first name (company can be added later)
+            displayName = firstName || userInfo.email.split('@')[0];
+          }
+          
+          // Create new sender profile with Gmail info
+          const newProfile = await storage.createSenderProfile({
+            userId,
+            displayName,
+            email: userInfo.email,
+            firstName, // Store first name separately
+            lastName, // Store last name separately
+            isDefault: existingProfiles.length === 0, // Make default if it's the first profile
+            companyName: undefined, // Can be updated later, which would update displayName
+            companyWebsite: undefined,
+            title: undefined, // For honorifics
+            companyPosition: undefined // For job role
+          });
+          
+          console.log(`[Gmail OAuth] Created sender profile for Gmail account:`, {
+            userId,
+            email: userInfo.email,
+            displayName,
+            isDefault: existingProfiles.length === 0
+          });
+        } else {
+          // Optionally update the existing profile with latest name from Gmail
+          if (userInfo.name && existingGmailProfile.displayName !== userInfo.name) {
+            await storage.updateSenderProfile(existingGmailProfile.id, {
+              displayName: userInfo.name
+            });
+            console.log(`[Gmail OAuth] Updated sender profile display name for ${userInfo.email}`);
+          }
+        }
+      } catch (error) {
+        // Log but don't fail the OAuth flow if profile creation fails
+        console.error('[Gmail OAuth] Failed to create/update sender profile:', error);
+      }
       
       res.send(`
         <html>
