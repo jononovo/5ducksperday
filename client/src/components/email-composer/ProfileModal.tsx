@@ -41,12 +41,12 @@ const profileConfigs: Record<ProfileType, {
   title: string;
   fields: ProfileField[];
   apiEndpoint: string;
-  queryKey: string;
+  queryKey: string[];
 }> = {
   sender: {
     title: 'Sender Profile',
     apiEndpoint: '/api/sender-profiles',
-    queryKey: '/api/sender-profiles',
+    queryKey: ['/api/sender-profiles'],
     fields: [
       {
         name: 'firstName',
@@ -105,7 +105,7 @@ const profileConfigs: Record<ProfileType, {
   product: {
     title: 'Product',
     apiEndpoint: '/api/strategic-profiles',
-    queryKey: '/api/strategic-profiles',
+    queryKey: ['/api/products'],
     fields: [
       {
         name: 'title',
@@ -235,7 +235,7 @@ export function ProfileModal({
         title: "Success",
         description: `${config.title} created successfully`
       });
-      queryClient.invalidateQueries({ queryKey: [config.queryKey] });
+      queryClient.invalidateQueries({ queryKey: config.queryKey });
       onSuccess?.();
       onClose();
     },
@@ -263,7 +263,7 @@ export function ProfileModal({
         title: "Success",
         description: `${config.title} updated successfully`
       });
-      queryClient.invalidateQueries({ queryKey: [config.queryKey] });
+      queryClient.invalidateQueries({ queryKey: config.queryKey });
       onSuccess?.();
       onClose();
     },
