@@ -16,7 +16,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Lock } from 'lucide-react';
 
-export type ProfileType = 'sender' | 'product';
+export type ProfileType = 'sender' | 'product' | 'customer';
 
 interface ProfileField {
   name: string;
@@ -134,6 +134,50 @@ const profileConfigs: Record<ProfileType, {
         label: 'Product Link',
         type: 'url',
         placeholder: 'https://myproduct.com'
+      }
+    ]
+  },
+  customer: {
+    title: 'Customer Profile',
+    apiEndpoint: '/api/customer-profiles',
+    queryKey: ['/api/customer-profiles'],
+    fields: [
+      {
+        name: 'displayName',
+        label: 'Profile Name',
+        type: 'text',
+        required: true,
+        placeholder: 'Enterprise B2B Customers'
+      },
+      {
+        name: 'targetIndustry',
+        label: 'Target Industry',
+        type: 'text',
+        placeholder: 'Technology, Healthcare, Finance...'
+      },
+      {
+        name: 'companySize',
+        label: 'Company Size',
+        type: 'text',
+        placeholder: '100-500 employees'
+      },
+      {
+        name: 'targetRole',
+        label: 'Target Role',
+        type: 'text',
+        placeholder: 'VP of Sales, Marketing Manager...'
+      },
+      {
+        name: 'painPoints',
+        label: 'Pain Points',
+        type: 'textarea',
+        placeholder: 'What problems do they face?'
+      },
+      {
+        name: 'goals',
+        label: 'Goals',
+        type: 'textarea',
+        placeholder: 'What are they trying to achieve?'
       }
     ]
   }
