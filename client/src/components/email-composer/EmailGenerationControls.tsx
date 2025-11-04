@@ -85,31 +85,33 @@ export function EmailGenerationControls({
         />
       )}
       <div className="absolute bottom-1 left-2 flex items-center gap-2 z-10">
-        {/* Product Selection */}
-        <PromptContextBuilderDropdown
-          contextType="product"
-          items={products}
-          selectedId={selectedProduct}
-          onSelect={(id) => {
-            if (id !== null) {
-              const product = products.find(p => p.id === id);
-              if (product) {
-                onProductSelect(product);
+        {/* Product Selection - Only show when no product is selected */}
+        {!selectedProductData && (
+          <PromptContextBuilderDropdown
+            contextType="product"
+            items={products}
+            selectedId={selectedProduct}
+            onSelect={(id) => {
+              if (id !== null) {
+                const product = products.find(p => p.id === id);
+                if (product) {
+                  onProductSelect(product);
+                }
+              } else {
+                onProductClear();
               }
-            } else {
-              onProductClear();
-            }
-          }}
-          triggerIcon={<Box className="w-3 h-3" />}
-          triggerClassName="text-xs text-muted-foreground"
-          headerTitle="Product Context"
-          headerDescription="Insert from your existing product list"
-          noneDescription="No specific product context"
-          addNewLabel="Add New Product"
-          showSource={false}
-          showPosition={false}
-          testIdPrefix="product"
-        />
+            }}
+            triggerIcon={<Box className="w-3 h-3" />}
+            triggerClassName="text-xs text-muted-foreground"
+            headerTitle="Product Context"
+            headerDescription="Insert from your existing product list"
+            noneDescription="No specific product context"
+            addNewLabel="Add New Product"
+            showSource={false}
+            showPosition={false}
+            testIdPrefix="product"
+          />
+        )}
 
         {/* Tone Selection */}
         <Popover open={tonePopoverOpen} onOpenChange={setTonePopoverOpen}>
