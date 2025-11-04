@@ -120,7 +120,7 @@ export function ProfileDropdown<T extends ProfileDropdownItem>({
           </div>
           <p className="text-xs text-muted-foreground mt-1">{headerDescription}</p>
         </div>
-        <div className="p-2">
+        <div className="p-2 space-y-1">
           {/* None Option */}
           {showNoneOption && (
             <button
@@ -211,7 +211,7 @@ export function ProfileDropdown<T extends ProfileDropdownItem>({
           {/* Add New button */}
           {onAddNew && (
             <button
-              className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40 mt-1"
+              className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40"
               onClick={() => {
                 onAddNew();
                 setIsOpen(false);
