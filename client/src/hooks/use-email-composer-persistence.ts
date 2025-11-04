@@ -48,10 +48,19 @@ export function useEmailComposerPersistence(
 ) {
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
   const isRestoringRef = useRef(false);
+  const hasInitializedRef = useRef(false);
+  const previousStateRef = useRef<string>('');
   
   // Save state to localStorage with debouncing
   useEffect(() => {
-    if (!isEnabled || isRestoringRef.current) return;
+    // Don't save if disabled, restoring, or not yet initialized
+    if (!isEnabled || isRestoringRef.current || !hasInitializedRef.current) return;
+    
+    // Convert state to string for comparison
+    const stateString = JSON.stringify(state);
+    
+    // Don't save if state hasn't actually changed
+    if (stateString === previousStateRef.current) return;
     
     // Clear existing timeout
     if (saveTimeoutRef.current) {
@@ -69,8 +78,20 @@ export function useEmailComposerPersistence(
           return acc;
         }, {} as EmailComposerState);
         
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-        console.log('Saved email composer state:', stateToSave);
+        // Only save if there's actual content to save
+        const hasContent = stateToSave.emailPrompt || 
+                          stateToSave.emailSubject || 
+                          stateToSave.emailContent || 
+                          stateToSave.templateSubject || 
+                          stateToSave.templateContent ||
+                          stateToSave.aiSubject ||
+                          stateToSave.aiContent;
+        
+        if (hasContent || stateToSave.selectedProduct || stateToSave.selectedTone !== 'default') {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+          previousStateRef.current = stateString;
+          console.log('Saved email composer state:', stateToSave);
+        }
       } catch (error) {
         console.error('Failed to save email composer state:', error);
       }
@@ -92,16 +113,21 @@ export function useEmailComposerPersistence(
       if (savedState) {
         const parsed = JSON.parse(savedState);
         console.log('Restored email composer state:', parsed);
-        // Reset flag after a short delay to allow state updates to propagate
+        // Reset flags after a short delay to allow state updates to propagate
         setTimeout(() => {
           isRestoringRef.current = false;
-        }, 100);
+          hasInitializedRef.current = true;
+        }, 200);
         return parsed;
       }
     } catch (error) {
       console.error('Failed to restore email composer state:', error);
     }
     isRestoringRef.current = false;
+    // Mark as initialized even if no saved state
+    setTimeout(() => {
+      hasInitializedRef.current = true;
+    }, 100);
     return null;
   };
   
@@ -109,6 +135,7 @@ export function useEmailComposerPersistence(
   const clearState = () => {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      previousStateRef.current = '';
       console.log('Cleared email composer state');
     } catch (error) {
       console.error('Failed to clear email composer state:', error);

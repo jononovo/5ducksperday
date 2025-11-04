@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -212,8 +212,8 @@ export function EmailComposer({
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 
-  // Initialize persistence hook
-  const composerState = {
+  // Initialize persistence hook with memoized state to prevent unnecessary re-renders
+  const composerState = useMemo(() => ({
     isOpen: true, // This is handled by the parent, but we track it for consistency
     drawerMode,
     emailPrompt,
@@ -231,7 +231,24 @@ export function EmailComposer({
     generationMode,
     campaignSettings,
     campaignRecipients
-  };
+  }), [
+    drawerMode,
+    emailPrompt,
+    emailSubject,
+    emailContent,
+    toEmail,
+    templateSubject,
+    templateContent,
+    aiSubject,
+    aiContent,
+    selectedProduct,
+    selectedTone,
+    selectedOfferStrategy,
+    selectedSenderProfileId,
+    generationMode,
+    campaignSettings,
+    campaignRecipients
+  ]);
   
   const { restoreState, clearState } = useEmailComposerPersistence(composerState);
   
