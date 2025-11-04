@@ -89,6 +89,11 @@ export function CampaignSettings({
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [autopilotModalOpen, setAutopilotModalOpen] = useState(false);
 
+  // Sync local settings when parent props change (e.g., after restoring from localStorage)
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
+
   // Check Gmail connection status
   const { data: gmailStatus } = useQuery<GmailAuthStatus>({
     queryKey: ['/api/gmail/auth-status'],
@@ -194,7 +199,7 @@ export function CampaignSettings({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full text-xs"
+                  className="w-full text-xs py-1 h-7"
                   onClick={() => window.open(`/api/gmail/auth?userId=${(window as any).userId || 1}`, '_blank')}
                 >
                   Connect Gmail to enable automatic sending

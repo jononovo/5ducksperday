@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Contact, Company } from '@shared/schema';
 import type { DrawerMode, UseEmailDrawerOptions, UseEmailDrawerReturn } from './types';
+import { getEmailComposerDrawerState } from '@/hooks/use-email-composer-persistence';
 
 export function useEmailDrawer(options: UseEmailDrawerOptions = {}): UseEmailDrawerReturn {
-  const [isOpen, setIsOpen] = useState(false);
-  const [mode, setMode] = useState<DrawerMode>('compose');
+  // Check for persisted drawer state on initialization
+  const savedDrawerState = getEmailComposerDrawerState();
+  const [isOpen, setIsOpen] = useState(savedDrawerState.isOpen || false);
+  const [mode, setMode] = useState<DrawerMode>(savedDrawerState.drawerMode || 'compose');
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [selectedCompanyContacts, setSelectedCompanyContacts] = useState<Contact[]>([]);

@@ -190,7 +190,7 @@ export function EmailGenerationControls({
         title: "Success",
         description: "Product deleted successfully"
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/strategic-profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       
       // If the deleted product was selected, clear the selection
       if (selectedProduct === productToDelete?.id) {

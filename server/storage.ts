@@ -705,6 +705,8 @@ class DatabaseStorage implements IStorage {
       repliedAt: campaignRecipients.repliedAt,
       bouncedAt: campaignRecipients.bouncedAt,
       unsubscribedAt: campaignRecipients.unsubscribedAt,
+      emailSubject: campaignRecipients.emailSubject,
+      emailContent: campaignRecipients.emailContent,
       openCount: campaignRecipients.openCount,
       clickCount: campaignRecipients.clickCount,
       lastActivity: campaignRecipients.updatedAt
