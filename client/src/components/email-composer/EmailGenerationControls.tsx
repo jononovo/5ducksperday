@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Popover,
   PopoverContent,
@@ -70,6 +70,13 @@ export function EmailGenerationControls({
   const [hoveredSenderProfileId, setHoveredSenderProfileId] = useState<number | null>(null);
   const [deleteSenderDialogOpen, setDeleteSenderDialogOpen] = useState(false);
   const [senderProfileToDelete, setSenderProfileToDelete] = useState<SenderProfile | null>(null);
+  
+  // Reset hover state when sender dropdown closes
+  useEffect(() => {
+    if (!senderPopoverOpen) {
+      setHoveredSenderProfileId(null);
+    }
+  }, [senderPopoverOpen]);
   
   // Product state
   const [productModalOpen, setProductModalOpen] = useState(false);
