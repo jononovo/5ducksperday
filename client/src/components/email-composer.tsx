@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, Type, Lock, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Mail, Type, Lock, ChevronDown, ChevronUp, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QuickTemplates from "./quick-templates";
 import { EmailSendButton } from "./email-fallback/EmailSendButton";
@@ -1009,8 +1009,18 @@ export function EmailComposer({
             className="mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-t-md cursor-pointer transition-colors hover:bg-muted/50 flex items-center justify-between"
           >
             {(campaignRecipients || currentQuery) ? (
-              <span className="inline-flex items-center px-2.5 py-1 rounded bg-muted/50 hover:bg-primary/10 text-muted-foreground hover:text-primary text-sm font-normal truncate max-w-full transition-colors">
-                {getRecipientDisplayText()}
+              <span className="group inline-flex items-center px-2.5 py-1 rounded bg-muted/50 hover:bg-primary/10 text-muted-foreground hover:text-primary text-sm font-normal truncate max-w-full transition-colors relative">
+                <span className="truncate">{getRecipientDisplayText()}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCampaignRecipients(null);
+                  }}
+                  className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-destructive"
+                  aria-label="Remove recipients"
+                >
+                  <X className="h-3 w-3" />
+                </button>
               </span>
             ) : (
               <span className="text-sm text-muted-foreground">
