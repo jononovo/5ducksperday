@@ -359,7 +359,7 @@ export class EmailQueueProcessor {
     this.isSending = true;
 
     try {
-      // Find scheduled recipients ready to send  
+      // Find scheduled recipients ready to send - now includes delay_between_emails
       const scheduledRecipients = await db
         .select({
           id: campaignRecipients.id,
@@ -372,6 +372,7 @@ export class EmailQueueProcessor {
           recipientCompany: campaignRecipients.recipientCompany,
           emailSubject: campaignRecipients.emailSubject,
           emailContent: campaignRecipients.emailContent,
+          delayBetweenEmails: campaigns.delayBetweenEmails,
         })
         .from(campaignRecipients)
         .innerJoin(campaigns, eq(campaignRecipients.campaignId, campaigns.id))
@@ -447,124 +448,127 @@ export class EmailQueueProcessor {
           senderProfile = userProfiles.find(p => p.isDefault) || userProfiles[0];
         }
         
-        // Process each email for this user
-        const results = await Promise.allSettled(
-          userRecipients.map(async (recipient) => {
-            try {
-              // Build merge context for this recipient
-              const recipientData = {
-                email: recipient.recipientEmail,
-                firstName: recipient.recipientFirstName || undefined,
-                lastName: recipient.recipientLastName || undefined,
-                name: `${recipient.recipientFirstName || ''} ${recipient.recipientLastName || ''}`.trim() || undefined,
-                company: recipient.recipientCompany || undefined,
-                title: undefined // Not available in current schema
+        // Process each email for this user SEQUENTIALLY with delays
+        const results: Array<{ success: boolean; recipientId?: number; error?: any }> = [];
+        
+        // Get delay setting (default to 30 seconds if not set, convert minutes to milliseconds)
+        const delayBetweenEmails = (userRecipients[0].delayBetweenEmails || 0.5) * 60 * 1000;
+        console.log(`[EmailQueueProcessor] Using delay of ${delayBetweenEmails / 1000} seconds between emails`);
+        
+        for (let i = 0; i < userRecipients.length; i++) {
+          const recipient = userRecipients[i];
+          
+          // Add delay between emails (except for the first one)
+          if (i > 0 && delayBetweenEmails > 0) {
+            console.log(`[EmailQueueProcessor] Waiting ${delayBetweenEmails / 1000} seconds before sending next email...`);
+            await new Promise(resolve => setTimeout(resolve, delayBetweenEmails));
+          }
+          
+          try {
+            // Build merge context for this recipient
+            const recipientData = {
+              email: recipient.recipientEmail,
+              firstName: recipient.recipientFirstName || undefined,
+              lastName: recipient.recipientLastName || undefined,
+              name: `${recipient.recipientFirstName || ''} ${recipient.recipientLastName || ''}`.trim() || undefined,
+              company: recipient.recipientCompany || undefined,
+              title: undefined // Not available in current schema
+            };
+            
+            // Use sender profile data or fall back to user data
+            let senderData;
+            if (senderProfile) {
+              // Parse the display name to get first and last name
+              const senderNameParts = senderProfile.displayName?.split(' ') || [];
+              senderData = {
+                email: senderProfile.email,
+                firstName: senderNameParts[0] || undefined,
+                lastName: senderNameParts.slice(1).join(' ') || undefined,
+                name: senderProfile.displayName || undefined,
+                company: senderProfile.companyName || undefined
               };
-              
-              // Use sender profile data or fall back to user data
-              let senderData;
-              if (senderProfile) {
-                // Parse the display name to get first and last name
-                const senderNameParts = senderProfile.displayName?.split(' ') || [];
-                senderData = {
-                  email: senderProfile.email,
-                  firstName: senderNameParts[0] || undefined,
-                  lastName: senderNameParts.slice(1).join(' ') || undefined,
-                  name: senderProfile.displayName || undefined,
-                  company: senderProfile.companyName || undefined
-                };
-              } else {
-                // Fallback to parsing username if no sender profile
-                const senderNameParts = user.username?.split(' ') || [];
-                senderData = {
-                  email: user.email,
-                  firstName: senderNameParts[0] || undefined,
-                  lastName: senderNameParts.slice(1).join(' ') || undefined,
-                  name: user.username || undefined,
-                  company: undefined // No default company
-                };
-              }
-              
-              // Build the merge context
-              const mergeContext = buildMergeContext(recipientData, senderData);
-              
-              // Resolve merge fields in both subject and content
-              const resolvedSubject = resolveAllMergeFields(
-                recipient.emailSubject || 'No subject',
-                mergeContext
-              );
-              const resolvedContent = resolveAllMergeFields(
-                recipient.emailContent || 'No content',
-                mergeContext
-              );
-              
-              console.log(`[EmailQueueProcessor] Resolved merge fields for ${recipient.recipientEmail}`);
-              
-              // Send email via Gmail with resolved content
-              const gmailResult = await GmailOAuthService.sendEmail(
-                userIdNum,
-                user.email,
-                recipient.recipientEmail,
-                resolvedSubject,
-                resolvedContent
-              );
+            } else {
+              // Fallback to parsing username if no sender profile
+              const senderNameParts = user.username?.split(' ') || [];
+              senderData = {
+                email: user.email,
+                firstName: senderNameParts[0] || undefined,
+                lastName: senderNameParts.slice(1).join(' ') || undefined,
+                name: user.username || undefined,
+                company: undefined // No default company
+              };
+            }
+            
+            // Build the merge context
+            const mergeContext = buildMergeContext(recipientData, senderData);
+            
+            // Resolve merge fields in both subject and content
+            const resolvedSubject = resolveAllMergeFields(
+              recipient.emailSubject || 'No subject',
+              mergeContext
+            );
+            const resolvedContent = resolveAllMergeFields(
+              recipient.emailContent || 'No content',
+              mergeContext
+            );
+            
+            console.log(`[EmailQueueProcessor] Sending email ${i + 1}/${userRecipients.length} to ${recipient.recipientEmail}`);
+            
+            // Send email via Gmail with resolved content
+            const gmailResult = await GmailOAuthService.sendEmail(
+              userIdNum,
+              user.email,
+              recipient.recipientEmail,
+              resolvedSubject,
+              resolvedContent
+            );
 
-              // Update status to sent
+            // Update status to sent
+            await db
+              .update(campaignRecipients)
+              .set({
+                status: 'sent',
+                sentAt: new Date(),
+                updatedAt: new Date()
+              })
+              .where(eq(campaignRecipients.id, recipient.id));
+
+            console.log(`[EmailQueueProcessor] Successfully sent email to ${recipient.recipientEmail}`);
+            results.push({ success: true, recipientId: recipient.id });
+            
+          } catch (error: any) {
+            console.error(`[EmailQueueProcessor] Failed to send email to ${recipient.recipientEmail}:`, error);
+            
+            // Check if it's an auth error
+            if (error.status === 401) {
+              // Mark as manual send required
               await db
                 .update(campaignRecipients)
                 .set({
-                  status: 'sent',
-                  sentAt: new Date(),
+                  status: 'manual_send_required',
+                  errorMessage: 'Gmail authentication expired - manual send required',
                   updatedAt: new Date()
                 })
                 .where(eq(campaignRecipients.id, recipient.id));
-
-              // TODO: Save to communication history once we have contact/company IDs
-              // For now, campaign emails are tracked in campaign_recipients table
-              // await db.insert(communicationHistory).values({
-              //   userId: userIdNum,
-              //   contactId: null, // Requires non-null in schema
-              //   companyId: null, // Requires non-null in schema
-              //   campaignId: recipient.campaignId,
-              //   ...
-              // });
-
-              console.log(`[EmailQueueProcessor] Sent email via Gmail to ${recipient.recipientEmail}`);
-              return { success: true, recipientId: recipient.id };
-            } catch (error: any) {
-              console.error(`[EmailQueueProcessor] Failed to send email to ${recipient.recipientEmail}:`, error);
-              
-              // Check if it's an auth error
-              if (error.status === 401) {
-                // Mark as manual send required
-                await db
-                  .update(campaignRecipients)
-                  .set({
-                    status: 'manual_send_required',
-                    errorMessage: 'Gmail authentication expired - manual send required',
-                    updatedAt: new Date()
-                  })
-                  .where(eq(campaignRecipients.id, recipient.id));
-              } else {
-                // Update status to failed_send
-                await db
-                  .update(campaignRecipients)
-                  .set({
-                    status: 'failed_send',
-                    errorMessage: error instanceof Error ? error.message : 'Send failed',
-                    updatedAt: new Date()
-                  })
-                  .where(eq(campaignRecipients.id, recipient.id));
-              }
-              
-              throw error;
+            } else {
+              // Update status to failed_send
+              await db
+                .update(campaignRecipients)
+                .set({
+                  status: 'failed_send',
+                  errorMessage: error instanceof Error ? error.message : 'Send failed',
+                  updatedAt: new Date()
+                })
+                .where(eq(campaignRecipients.id, recipient.id));
             }
-          })
-        );
+            
+            results.push({ success: false, recipientId: recipient.id, error });
+          }
+        }
 
         // Log results for this user
-        const successful = results.filter(r => r.status === 'fulfilled').length;
-        const failed = results.filter(r => r.status === 'rejected').length;
+        const successful = results.filter(r => r.success).length;
+        const failed = results.filter(r => !r.success).length;
         
         if (successful > 0) {
           console.log(`[EmailQueueProcessor] Successfully sent ${successful} emails for user ${userIdNum}`);
