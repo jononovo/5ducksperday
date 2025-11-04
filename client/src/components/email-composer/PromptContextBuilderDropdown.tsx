@@ -104,7 +104,7 @@ const contextConfigs: Record<ContextType, {
   },
   product: {
     apiEndpoint: '/api/strategic-profiles',
-    queryKey: ['/api/products'],
+    queryKey: ['/api/strategic-profiles'],
     deleteSuccessMessage: 'Product deleted successfully',
     deleteErrorMessage: 'Failed to delete product'
   }
