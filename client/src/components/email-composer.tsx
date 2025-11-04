@@ -36,6 +36,7 @@ import { OFFER_OPTIONS, DEFAULT_OFFER } from "@/lib/offer-options";
 import { RecipientSelectionModal, type RecipientSelection } from "@/components/recipient-selection-modal";
 import { CampaignSettings, type CampaignSettingsData } from "@/components/campaign-settings";
 import { CampaignSendButton } from "@/components/campaign-send-button/CampaignSendButton";
+import { useEmailComposerPersistence } from "@/hooks/use-email-composer-persistence";
 import { EmailGenerationTabs, getGenerationModeConfig } from "@/components/email-generation-tabs";
 import { EmailGenerationControls } from "./email-composer/EmailGenerationControls";
 import { TemplateManager } from "./email-composer/TemplateManager";
@@ -211,6 +212,78 @@ export function EmailComposer({
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 
+  // Initialize persistence hook
+  const composerState = {
+    isOpen: true, // This is handled by the parent, but we track it for consistency
+    drawerMode,
+    emailPrompt,
+    emailSubject,
+    emailContent,
+    toEmail,
+    templateSubject,
+    templateContent,
+    aiSubject,
+    aiContent,
+    selectedProduct,
+    selectedTone,
+    selectedOfferStrategy,
+    selectedSenderProfileId,
+    generationMode,
+    campaignSettings,
+    campaignRecipients
+  };
+  
+  const { restoreState, clearState } = useEmailComposerPersistence(composerState);
+  
+  // Restore persisted state on mount
+  useEffect(() => {
+    const savedState = restoreState();
+    if (savedState) {
+      // Restore all saved state
+      if (savedState.emailPrompt !== undefined) {
+        setEmailPrompt(savedState.emailPrompt);
+        setOriginalEmailPrompt(savedState.emailPrompt);
+      }
+      if (savedState.emailSubject !== undefined) setEmailSubject(savedState.emailSubject);
+      if (savedState.emailContent !== undefined) setEmailContent(savedState.emailContent);
+      if (savedState.toEmail !== undefined) setToEmail(savedState.toEmail);
+      
+      // Restore template mode fields
+      if (savedState.templateSubject !== undefined) setTemplateSubject(savedState.templateSubject);
+      if (savedState.templateContent !== undefined) setTemplateContent(savedState.templateContent);
+      
+      // Restore AI mode fields
+      if (savedState.aiSubject !== undefined) setAiSubject(savedState.aiSubject);
+      if (savedState.aiContent !== undefined) setAiContent(savedState.aiContent);
+      
+      // Restore settings
+      if (savedState.selectedProduct !== undefined) setSelectedProduct(savedState.selectedProduct);
+      if (savedState.selectedTone !== undefined) setSelectedTone(savedState.selectedTone);
+      if (savedState.selectedOfferStrategy !== undefined) setSelectedOfferStrategy(savedState.selectedOfferStrategy);
+      if (savedState.selectedSenderProfileId !== undefined) setSelectedSenderProfileId(savedState.selectedSenderProfileId);
+      if (savedState.generationMode !== undefined) setGenerationMode(savedState.generationMode);
+      if (savedState.campaignSettings !== undefined) setCampaignSettings(savedState.campaignSettings);
+      if (savedState.campaignRecipients !== undefined) setCampaignRecipients(savedState.campaignRecipients);
+      
+      console.log('Restored email composer state from localStorage');
+    }
+  }, []); // Run only once on mount
+  
+  // Clear state when email is sent successfully
+  const handleSuccessfulSend = () => {
+    clearState();
+    setIsSent(true);
+    // Reset form fields
+    setEmailPrompt('');
+    setEmailSubject('');
+    setEmailContent('');
+    setToEmail('');
+    setTemplateSubject('');
+    setTemplateContent('');
+    setAiSubject('');
+    setAiContent('');
+  };
+  
   // Helper functions to get/set the correct state based on generation mode
   const getCurrentSubject = () => {
     if (drawerMode === 'campaign') {
@@ -348,7 +421,7 @@ export function EmailComposer({
       return await res.json();
     },
     onSuccess: () => {
-      setIsSent(true);
+      handleSuccessfulSend();
       toast({
         title: "Email sent successfully!",
         description: "Your email has been sent via Gmail."
@@ -483,10 +556,15 @@ export function EmailComposer({
       
       toast({ title, description });
       
-      // Clear the form
+      // Clear all state after successful campaign creation
+      clearState();
       setEmailPrompt('');
       setEmailSubject('');
       setEmailContent('');
+      setTemplateSubject('');
+      setTemplateContent('');
+      setAiSubject('');
+      setAiContent('');
       setCampaignRecipients(null);
       
       // Invalidate campaign list query
