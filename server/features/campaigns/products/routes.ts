@@ -127,7 +127,12 @@ export function registerStrategicProfilesRoutes(app: Application, requireAuth: a
   app.post('/api/products', requireAuth, async (req, res) => {
     try {
       const userId = getUserId(req);
-      const { businessType, productService, customerFeedback, website, title, targetCustomers, uniqueAttributes, status } = req.body;
+      const { businessType, productService, customerFeedback, website, title, targetCustomers, uniqueAttributes, status, isDefault } = req.body;
+      
+      // If setting as default, clear other defaults first
+      if (isDefault === true) {
+        await storage.clearDefaultStrategicProfiles(userId);
+      }
       
       // Create profile data
       const profileData = {
@@ -140,7 +145,8 @@ export function registerStrategicProfilesRoutes(app: Application, requireAuth: a
         website: website || '',
         targetCustomers: targetCustomers || 'Target customers',
         status: status || 'completed' as const,
-        uniqueAttributes: uniqueAttributes || []
+        uniqueAttributes: uniqueAttributes || [],
+        isDefault: isDefault || false
       };
       
       const savedProfile = await storage.createStrategicProfile(profileData);

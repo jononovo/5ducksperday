@@ -300,7 +300,7 @@ export function ProfileModal({
         data.businessDescription = data.productService || data.businessDescription;
         data.targetCustomers = data.targetCustomers || 'General audience';
       }
-      return apiRequest('PUT', `${config.apiEndpoint}/${profile?.id}`, data);
+      return apiRequest('PATCH', `${config.apiEndpoint}/${profile?.id}`, data);
     },
     onSuccess: () => {
       toast({
