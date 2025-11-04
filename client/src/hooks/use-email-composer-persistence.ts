@@ -78,16 +78,9 @@ export function useEmailComposerPersistence(
           return acc;
         }, {} as EmailComposerState);
         
-        // Only save if there's actual content to save
-        const hasContent = stateToSave.emailPrompt || 
-                          stateToSave.emailSubject || 
-                          stateToSave.emailContent || 
-                          stateToSave.templateSubject || 
-                          stateToSave.templateContent ||
-                          stateToSave.aiSubject ||
-                          stateToSave.aiContent;
-        
-        if (hasContent || stateToSave.selectedProduct || stateToSave.selectedTone !== 'default') {
+        // Always save if drawer is open (to preserve all settings including campaign settings)
+        // This ensures that campaign settings, dropdown selections, etc. are all preserved
+        if (stateToSave.isOpen) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
           previousStateRef.current = stateString;
           console.log('Saved email composer state:', stateToSave);

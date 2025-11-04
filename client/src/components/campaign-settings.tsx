@@ -89,6 +89,11 @@ export function CampaignSettings({
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [autopilotModalOpen, setAutopilotModalOpen] = useState(false);
 
+  // Sync local settings when parent props change (e.g., after restoring from localStorage)
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
+
   // Check Gmail connection status
   const { data: gmailStatus } = useQuery<GmailAuthStatus>({
     queryKey: ['/api/gmail/auth-status'],
