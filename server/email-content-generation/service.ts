@@ -11,7 +11,7 @@ import { getOfferConfig } from "./offer-configs";
  */
 
 export async function generateEmailContent(request: EmailGenerationRequest): Promise<EmailGenerationResponse> {
-  const { emailPrompt, contact, company, userId, tone = 'default', offerStrategy = 'none', generateTemplate = false, senderProfile } = request;
+  const { emailPrompt, contact, company, userId, tone = 'default', offerStrategy = 'none', generateTemplate = false, senderProfile, productContext } = request;
 
   // Use sender profile if provided, otherwise fall back to resolving from userId
   let senderInfo = senderProfile;
@@ -61,6 +61,7 @@ ${toneConfig.additionalInstructions}`;
         contact, 
         company, 
         userPrompt: emailPrompt, 
+        productContext,
         senderProfile: senderInfo,
         generateTemplate 
       })
@@ -74,7 +75,7 @@ ${toneConfig.additionalInstructions}`;
 }
 
 function buildEmailPrompt(context: EmailGenerationContext): string {
-  const { contact, company, userPrompt, senderProfile, generateTemplate = false } = context;
+  const { contact, company, userPrompt, productContext, senderProfile, generateTemplate = false } = context;
   
   if (generateTemplate) {
     // Template generation for campaigns - use actual sender data, merge fields only for recipients
@@ -83,6 +84,15 @@ function buildEmailPrompt(context: EmailGenerationContext): string {
     const senderCompany = senderProfile?.companyName || '';
     const senderPosition = senderProfile?.companyPosition || '';
     const senderTitle = senderProfile?.title || ''; // Dr., Mr., etc.
+    
+    // Build product context section if available
+    const productContextSection = productContext ? `
+PRODUCT/SERVICE CONTEXT:
+${productContext.productService ? `Product/Service: ${productContext.productService}` : ''}
+${productContext.customerFeedback ? `Customer Feedback: ${productContext.customerFeedback}` : ''}
+${productContext.website ? `Website: ${productContext.website}` : ''}
+${productContext.reportSalesContextGuidance ? `Sales Context: ${productContext.reportSalesContextGuidance}` : ''}
+` : '';
     
     return `Create an email template based on: ${userPrompt}
 
@@ -94,6 +104,7 @@ You are ${senderName}${senderPosition ? `, ${senderPosition}` : ''}${senderCompa
 - Your first name for casual references: ${senderFirstName}
 ${senderCompany ? `- Your company: ${senderCompany}` : ''}
 ${senderPosition ? `- Your role: ${senderPosition}` : ''}
+${productContextSection}
 
 RECIPIENT MERGE FIELDS (Use these for personalization):
 - {{first_name}} - Use this in greetings (e.g., "Hi {{first_name}},")
@@ -137,13 +148,22 @@ CRITICAL INSTRUCTIONS:
   const senderCompany = senderProfile?.companyName || '';
   const senderPosition = senderProfile?.companyPosition || '';
   
+  // Build product context section if available
+  const productContextSection = productContext ? `
+
+PRODUCT/SERVICE CONTEXT:
+${productContext.productService ? `Product/Service: ${productContext.productService}` : ''}
+${productContext.customerFeedback ? `Customer Feedback: ${productContext.customerFeedback}` : ''}
+${productContext.website ? `Website: ${productContext.website}` : ''}
+${productContext.reportSalesContextGuidance ? `Sales Context: ${productContext.reportSalesContextGuidance}` : ''}` : '';
+  
   return `Write a business email based on this context:
 
 Prompt: ${userPrompt}
 
 SENDER CONTEXT (Use this information directly):
 You are ${senderName}${senderPosition ? `, ${senderPosition}` : ''}${senderCompany ? ` at ${senderCompany}` : ''}.
-${senderCompany ? `Your company: ${senderCompany}` : ''}
+${senderCompany ? `Your company: ${senderCompany}` : ''}${productContextSection}
 
 Available merge fields for recipient personalization:
 - {{first_name}} - Target contact's first name

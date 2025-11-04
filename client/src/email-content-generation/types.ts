@@ -1,5 +1,12 @@
 import type { Contact, Company } from "@shared/schema";
 
+export interface ProductContext {
+  productService?: string;
+  customerFeedback?: string;
+  website?: string;
+  reportSalesContextGuidance?: string;
+}
+
 export interface EmailGenerationPayload {
   emailPrompt: string;
   contact: Contact | null;
@@ -9,6 +16,7 @@ export interface EmailGenerationPayload {
   tone?: string;
   offerStrategy?: string;
   generateTemplate?: boolean; // Flag to generate template with merge fields
+  productContext?: ProductContext; // Rich product context for AI
 }
 
 export interface EmailGenerationResponse {

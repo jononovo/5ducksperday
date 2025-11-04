@@ -388,6 +388,14 @@ export function EmailComposer({
     senderProfile?.companyName || undefined // Pass sender company name if available
   );
 
+  // Create product context from selected product data (extract only the 4 key fields)
+  const productContext = selectedProductData ? {
+    productService: selectedProductData.productService || undefined,
+    customerFeedback: selectedProductData.customerFeedback || undefined,
+    website: selectedProductData.website || undefined,
+    reportSalesContextGuidance: selectedProductData.reportSalesContextGuidance || undefined
+  } : undefined;
+
   // Email generation hook
   const { generateEmail: performGeneration, isGenerating } = useEmailGeneration({
     selectedContact,
@@ -400,6 +408,7 @@ export function EmailComposer({
     offerStrategy: selectedOfferStrategy,
     generateTemplate: drawerMode === 'campaign' && generationMode === 'merge_field', // Only generate template in campaign mode with merge_field
     mergeFieldContext, // Pass context for dynamic prompt building
+    productContext, // Pass rich product context for AI
     setEmailSubject: setCurrentSubject,
     setOriginalEmailSubject: setCurrentOriginalSubject,
     setToEmail,
@@ -666,7 +675,8 @@ export function EmailComposer({
   };
 
   const handleSelectProduct = (product: StrategicProfile) => {
-    if (emailPrompt && emailPrompt !== (selectedProductData?.productService || '')) {
+    // If there's custom prompt text and we're switching products, confirm the change
+    if (emailPrompt && selectedProductData && product.id !== selectedProductData.id) {
       setPendingProduct(product);
       setProductChangeDialogOpen(true);
     } else {
@@ -675,7 +685,8 @@ export function EmailComposer({
   };
 
   const handleSelectNone = () => {
-    if (emailPrompt && emailPrompt !== (selectedProductData?.productService || '')) {
+    // If there's custom prompt text, confirm clearing the product
+    if (emailPrompt && selectedProductData) {
       setPendingProduct(null);
       setProductChangeDialogOpen(true);
     } else {
@@ -690,11 +701,12 @@ export function EmailComposer({
     if (product) {
       setSelectedProduct(product.id);
       setSelectedProductData(product);
-      setEmailPrompt(product.productService || "");
-      setOriginalEmailPrompt(product.productService || "");
+      // Don't paste product text into prompt anymore - keep prompt for custom instructions
+      // The product context will be sent separately during generation
     } else {
       setSelectedProduct(null);
       setSelectedProductData(null);
+      // Clear prompt when removing product
       setEmailPrompt("");
       setOriginalEmailPrompt("");
     }
@@ -722,10 +734,11 @@ export function EmailComposer({
       return;
     }
 
-    if (!emailPrompt || emailPrompt.trim() === '') {
+    // Check if either a product is selected OR prompt is provided
+    if (!selectedProductData && (!emailPrompt || emailPrompt.trim() === '')) {
       toast({
-        title: "No Prompt Provided",
-        description: "Please provide details about your product or service.",
+        title: "No Context Provided",
+        description: "Please select a product or provide details about your offering.",
         variant: "destructive",
       });
       return;

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Box, Palette, Gift, Check, Info, Wand2, Loader2, IdCard } from "lucide-react";
+import { Box, Palette, Gift, Check, Info, Wand2, Loader2, IdCard, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TONE_OPTIONS } from "@/lib/tone-options";
 import { OFFER_OPTIONS } from "@/lib/offer-options";
@@ -53,17 +53,36 @@ export function EmailGenerationControls({
 
   return (
     <div className="relative border-t border-b rounded-tr-lg md:border-t-0 md:border-b-0 md:mb-6 mb-4 overflow-hidden">
-      <Textarea
-        ref={promptTextareaRef}
-        placeholder="Add product, e.g.: Stationary products & printers"
-        value={getDisplayValue(emailPrompt, originalEmailPrompt)}
-        onChange={(e) => {
-          onPromptChange(e.target.value);
-          onPromptResize();
-        }}
-        className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
-        style={{ minHeight: '32px', maxHeight: '120px' }}
-      />
+      <div className="relative">
+        {/* Product Chip Display */}
+        {selectedProductData && (
+          <div className="flex items-center gap-2 p-2 border-b">
+            <div className="group flex items-center gap-2 px-2 py-1 bg-primary/10 text-primary rounded-md text-sm font-medium">
+              <Box className="w-3 h-3" />
+              <span>{selectedProductData.title}</span>
+              <button
+                onClick={onProductClear}
+                className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 hover:text-destructive"
+                title="Remove product"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+        )}
+        
+        <Textarea
+          ref={promptTextareaRef}
+          placeholder={selectedProductData ? "Add additional context or instructions..." : "Add product, e.g.: Stationary products & printers"}
+          value={getDisplayValue(emailPrompt, originalEmailPrompt)}
+          onChange={(e) => {
+            onPromptChange(e.target.value);
+            onPromptResize();
+          }}
+          className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 pb-8 border-0 rounded-none md:border md:rounded-md px-3 md:px-3 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
+          style={{ minHeight: '32px', maxHeight: '120px' }}
+        />
+      </div>
       <div className="absolute bottom-1 left-2 flex items-center gap-2">
         {/* Product Selection */}
         <PromptContextBuilderDropdown
