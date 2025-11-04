@@ -199,10 +199,10 @@ export function CampaignSettings({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-xs"
+                  className="w-full text-xs py-1 h-7"
                   onClick={() => window.open(`/api/gmail/auth?userId=${(window as any).userId || 1}`, '_blank')}
                 >
-                  Connect Gmail
+                  Connect Gmail to enable automatic sending
                 </Button>
               </div>
             )}
