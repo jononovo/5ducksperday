@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import {
   Popover,
   PopoverContent,
@@ -82,6 +82,13 @@ export function ProfileDropdown<T extends ProfileDropdownItem>({
   // Use controlled or local state
   const isOpen = controlledOpen !== undefined ? controlledOpen : localOpen;
   const setIsOpen = controlledOnOpenChange || setLocalOpen;
+  
+  // Reset hover state when dropdown closes
+  useEffect(() => {
+    if (!isOpen) {
+      setHoveredItemId(null);
+    }
+  }, [isOpen]);
   
   const handleSelectItem = (item: T | null) => {
     onSelect(item);
@@ -204,7 +211,7 @@ export function ProfileDropdown<T extends ProfileDropdownItem>({
           {/* Add New button */}
           {onAddNew && (
             <button
-              className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40"
+              className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40 mt-1"
               onClick={() => {
                 onAddNew();
                 setIsOpen(false);
