@@ -280,12 +280,12 @@ export function EmailGenerationControls({
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-72 p-0" align="start">
-            <div className="p-4 border-b bg-muted/30">
+            <div className="px-3 py-2 border-b bg-muted/30">
               <div className="flex items-center gap-2">
                 <Palette className="w-4 h-4 text-primary" />
                 <h4 className="font-semibold text-sm">Email Tone</h4>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Choose the personality for your email</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Choose the personality for your email</p>
             </div>
             <div className="p-2">
               {TONE_OPTIONS.map((tone) => (
@@ -331,12 +331,12 @@ export function EmailGenerationControls({
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-72 p-0" align="start">
-            <div className="p-4 border-b bg-muted/30">
+            <div className="px-3 py-2 border-b bg-muted/30">
               <div className="flex items-center gap-2">
                 <Gift className="w-4 h-4 text-primary" />
                 <h4 className="font-semibold text-sm">Offer Strategy</h4>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Optional: Structure your offer for maximum impact</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Optional: Structure your offer for maximum impact</p>
             </div>
             <div className="p-2">
               {OFFER_OPTIONS.map((offer) => (
@@ -382,12 +382,12 @@ export function EmailGenerationControls({
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-72 p-0" align="start">
-            <div className="p-4 border-b bg-muted/30">
+            <div className="px-3 py-2 border-b bg-muted/30">
               <div className="flex items-center gap-2">
                 <IdCard className="w-4 h-4 text-primary" />
                 <h4 className="font-semibold text-sm">Sender Profile</h4>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Choose who's sending this email</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Sender context for email generation</p>
             </div>
             <div className="p-2 space-y-1">
               {/* None Option */}

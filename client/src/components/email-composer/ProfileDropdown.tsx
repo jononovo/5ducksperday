@@ -113,12 +113,12 @@ export function ProfileDropdown<T extends ProfileDropdownItem>({
         </button>
       </PopoverTrigger>
       <PopoverContent className={cn("w-72 p-0", contentClassName)} align="start">
-        <div className="p-4 border-b bg-muted/30">
+        <div className="px-3 py-2 border-b bg-muted/30">
           <div className="flex items-center gap-2">
             {headerIcon}
             <h4 className="font-semibold text-sm">{headerTitle}</h4>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">{headerDescription}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{headerDescription}</p>
         </div>
         <div className="p-2 space-y-1">
           {/* None Option */}
