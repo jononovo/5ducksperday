@@ -57,8 +57,8 @@ export function EmailGenerationControls({
         /* Product Chip Mode - Styled like an input field with controls below */
         <div className="relative">
           <div className="mobile-input mobile-input-text-fix border-0 rounded-none md:border md:rounded-md px-3 md:px-3 py-3 pb-10 bg-background min-h-[48px] flex items-center">
-            <span className="group inline-flex items-center px-2.5 py-1 rounded bg-primary/10 text-primary text-sm font-medium">
-              <Box className="w-3 h-3 mr-1.5" />
+            <span className="group inline-flex items-center px-2.5 py-1 rounded bg-muted/50 hover:bg-primary/10 text-muted-foreground hover:text-primary text-sm font-normal truncate max-w-full transition-colors">
+              <Box className="w-3 h-3 mr-1.5 flex-shrink-0" />
               <span className="truncate">{selectedProductData.title}</span>
               <button
                 onClick={onProductClear}
