@@ -195,8 +195,21 @@ export function EmailComposer({
   
   // Sender profile state for dynamic merge fields
   const [senderProfile, setSenderProfile] = useState<any>(null);
-  const [senderProfiles, setSenderProfiles] = useState<any[]>([]);
   const [selectedSenderProfileId, setSelectedSenderProfileId] = useState<number | null>(null);
+  
+  // Fetch sender profiles using React Query for proper cache invalidation
+  const { data: senderProfiles = [] } = useQuery({
+    queryKey: ['/api/sender-profiles'],
+    queryFn: async () => {
+      const response = await fetch('/api/sender-profiles', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch sender profiles');
+      return response.json();
+    },
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+  });
 
   // Helper functions to get/set the correct state based on generation mode
   const getCurrentSubject = () => {
@@ -489,35 +502,17 @@ export function EmailComposer({
   });
 
   // Effects
-  // Non-blocking fetch of sender profile on component mount
+  // Set default sender profile when profiles are loaded
   useEffect(() => {
-    const fetchSenderProfiles = async () => {
-      try {
-        // Fetch all sender profiles
-        const profilesResponse = await fetch('/api/sender-profiles', {
-          credentials: 'include'
-        });
-        if (profilesResponse.ok) {
-          const profiles = await profilesResponse.json();
-          console.log('Fetched sender profiles:', profiles);
-          setSenderProfiles(profiles);
-          
-          // Set the default profile as selected
-          const defaultProfile = profiles.find((p: any) => p.isDefault) || profiles[0];
-          if (defaultProfile) {
-            setSenderProfile(defaultProfile);
-            setSelectedSenderProfileId(defaultProfile.id);
-          }
-        }
-      } catch (error) {
-        // Silently fail - sender profile is optional
-        console.log('Could not fetch sender profiles (non-blocking):', error);
+    if (senderProfiles.length > 0 && !selectedSenderProfileId) {
+      // Set the default profile as selected
+      const defaultProfile = senderProfiles.find((p: any) => p.isDefault) || senderProfiles[0];
+      if (defaultProfile) {
+        setSenderProfile(defaultProfile);
+        setSelectedSenderProfileId(defaultProfile.id);
       }
-    };
-    
-    // Fire and forget - don't block the component
-    fetchSenderProfiles();
-  }, []); // Only run once on mount
+    }
+  }, [senderProfiles]); // Run when sender profiles are loaded or changed
   
   useEffect(() => {
     console.log('EmailComposer useEffect - campaign recipients check:', {
@@ -888,7 +883,7 @@ export function EmailComposer({
           selectedSenderProfile={selectedSenderProfileId}
           onSenderProfileSelect={(profileId) => {
             setSelectedSenderProfileId(profileId);
-            const profile = senderProfiles.find(p => p.id === profileId);
+            const profile = senderProfiles.find((p: any) => p.id === profileId);
             if (profile) {
               setSenderProfile(profile);
             }
