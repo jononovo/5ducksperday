@@ -52,6 +52,7 @@ interface PromptContextBuilderDropdownProps {
   triggerIcon: React.ReactNode;
   triggerClassName?: string;
   contentClassName?: string;
+  showTriggerLabel?: boolean; // Whether to show label text next to icon
   
   // Labels and text
   headerTitle?: string;
@@ -117,6 +118,7 @@ export function PromptContextBuilderDropdown({
   triggerIcon,
   triggerClassName,
   contentClassName,
+  showTriggerLabel = true,
   headerTitle,
   headerDescription,
   noneLabel = "None",
@@ -292,7 +294,7 @@ export function PromptContextBuilderDropdown({
           onSelect(item ? item.id : null);
         }}
         triggerIcon={triggerIcon}
-        triggerLabel={getTriggerLabel()}
+        triggerLabel={showTriggerLabel ? getTriggerLabel() : undefined}
         triggerClassName={cn(
           triggerClassName,
           selectedId && "bg-blue-50 hover:bg-blue-100"

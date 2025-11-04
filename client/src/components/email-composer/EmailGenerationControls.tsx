@@ -199,6 +199,7 @@ export function EmailGenerationControls({
           onSelect={onSenderProfileSelect}
           triggerIcon={<IdCard className="w-3 h-3" />}
           triggerClassName="text-xs text-muted-foreground"
+          showTriggerLabel={false}
           headerTitle="Sender Profile"
           headerDescription="Sender context for email generation"
           noneDescription="No sender context"
