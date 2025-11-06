@@ -851,42 +851,6 @@ export default function PromptEditor({
       onComplete();
     },
   });
-  
-  // Full search mutation - now creates a job like quick search
-  const fullContactSearchMutation = useMutation({
-    mutationFn: async (searchQuery: string) => {
-      console.log("Starting full search with contacts...");
-      console.log("Creating job for comprehensive search...");
-      
-      const res = await apiRequest("POST", "/api/companies/search", { 
-        query: searchQuery,
-        strategyId: undefined,
-        includeContacts: true,
-        contactSearchConfig: contactSearchConfig,
-        sessionId: currentSessionId,
-        searchType: searchType
-      });
-      return res.json();
-    },
-    onSuccess: (data) => {
-      // Job created, polling handled by quickSearchMutation
-      console.log(`Full search job created with ID: ${data.jobId}`);
-      // The quickSearchMutation already handles all polling
-      // Call the onSearchSuccess callback to highlight the email button (if provided)
-      if (onSearchSuccess) {
-        onSearchSuccess();
-      }
-      onComplete();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Contact Search Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      onComplete();
-    },
-  });
 
   const handleSearch = async () => {
     if (!value.trim()) {
@@ -977,7 +941,7 @@ export default function PromptEditor({
           {/* Component tooltip version for comparison */}
           <LandingPageTooltip
             message="If you are happy with this prompt, click search."
-            visible={isFromLandingPage && (!user || !hasShownSearchTooltip) && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)}
+            visible={isFromLandingPage && (!user || !hasShownSearchTooltip) && !(isAnalyzing || quickSearchMutation.isPending)}
             position="custom"
             offsetX={0}
             offsetY={-20}
@@ -989,7 +953,7 @@ export default function PromptEditor({
               onChange(e.target.value);
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && !(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending)) {
+              if (e.key === 'Enter' && !e.shiftKey && !(isAnalyzing || quickSearchMutation.isPending)) {
                 e.preventDefault();
                 handleSearch();
               }
@@ -1006,7 +970,7 @@ export default function PromptEditor({
               <SearchTypeSelector
                 selectedType={searchType}
                 onTypeChange={setSearchType}
-                disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+                disabled={isAnalyzing || quickSearchMutation.isPending}
               />
               
               {/* Active role indicator button - always grayed out */}
@@ -1072,7 +1036,7 @@ export default function PromptEditor({
               <Button 
                 type="submit"
                 onClick={handleSearch} 
-                disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+                disabled={isAnalyzing || quickSearchMutation.isPending}
                 className={`
                   rounded-md
                   transition-all duration-300 flex items-center gap-2
@@ -1083,7 +1047,7 @@ export default function PromptEditor({
                 `}
                 aria-label="Search"
               >
-                {(isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending) ? (
+                {(isAnalyzing || quickSearchMutation.isPending) ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span>Searching...</span>
@@ -1105,8 +1069,8 @@ export default function PromptEditor({
             <ContactSearchChips
               config={contactSearchConfig}
               onConfigChange={handleContactSearchConfigChange}
-              disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-              isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+              disabled={isAnalyzing || quickSearchMutation.isPending}
+              isSearching={quickSearchMutation.isPending}
               hasSearchResults={hasSearchResults}
               inputHasChanged={hasSearchResults && value !== lastExecutedQuery}
             />
@@ -1119,8 +1083,8 @@ export default function PromptEditor({
             <ContactSearchChips
               config={contactSearchConfig}
               onConfigChange={handleContactSearchConfigChange}
-              disabled={isAnalyzing || quickSearchMutation.isPending || fullContactSearchMutation.isPending}
-              isSearching={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+              disabled={isAnalyzing || quickSearchMutation.isPending}
+              isSearching={quickSearchMutation.isPending}
               hasSearchResults={hasSearchResults}
               inputHasChanged={hasSearchResults && value !== lastExecutedQuery}
             />
@@ -1128,12 +1092,12 @@ export default function PromptEditor({
         )}
         
         {/* Progress Bar - moved below search input/button */}
-        {(quickSearchMutation.isPending || fullContactSearchMutation.isPending) && (
+        {quickSearchMutation.isPending && (
           <SearchProgress 
             phase={searchProgress.phase}
             completed={searchProgress.completed}
             total={searchProgress.total}
-            isVisible={quickSearchMutation.isPending || fullContactSearchMutation.isPending}
+            isVisible={quickSearchMutation.isPending}
           />
         )}
 

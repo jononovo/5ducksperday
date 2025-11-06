@@ -17,7 +17,7 @@ AI-powered B2B lead generation platform that transforms simple queries into comp
 - `SearchJobService.createJob()` - Async job creation
 - `JobProcessor.processNextJob()` - Background processing (5s interval)
 - `ExtensionSearchService.extendSearch()` - "+5 More" feature
-- **Key endpoints**: `/api/companies/search`, `/api/search-jobs`, `/api/search/extend`
+- **Key endpoints**: `/api/companies/quick-search`, `/api/search-jobs`, `/api/search/extend`
 
 ### 📊 Contact Discovery
 Multi-stage fallback with validation scoring
@@ -93,6 +93,18 @@ The `lists` table has TWO different ID fields that can cause confusion:
 - Firebase for auth, Passport for sessions
 - `requireAuth` middleware - Protected routes
 - `ENABLE_AI_TEST_MODE` - Testing bypass (demo user ID 1)
+
+## Recent Updates (November 2025)
+
+### Search Endpoint Consolidation (November 6, 2025)
+- **Removed duplicate search endpoint**: Deleted unused `/api/companies/search` endpoint
+  - Frontend always used `/api/companies/quick-search` anyway
+  - Both endpoints did exactly the same thing (just different execution timing)
+  - Quick search has immediate execution via `jobProcessor.processJobImmediately()`
+  - Eliminated confusion and reduced codebase complexity
+- **Cleaned up frontend**: Removed dead `fullContactSearchMutation` code (11 references)
+- **Updated test suite**: Tests now use the unified quick-search endpoint
+- **Result**: Cleaner, more maintainable codebase with zero functionality loss
 
 ## Recent Updates (October 2025)
 
