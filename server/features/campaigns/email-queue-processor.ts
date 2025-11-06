@@ -10,8 +10,8 @@ import { TokenService } from '../billing/tokens/service';
 import { resolveAllMergeFields, buildMergeContext } from '../../lib/merge-field-resolver';
 
 const BATCH_SIZE = 20; // Process 20 recipients at a time
-const PROCESSING_INTERVAL = 10000; // Check every 10 seconds
-const SENDING_INTERVAL = 5000; // Check for emails to send every 5 seconds
+const PROCESSING_INTERVAL = 30000; // Check every 30 seconds (reduced from 10s for efficiency)
+const SENDING_INTERVAL = 20000; // Check for emails to send every 20 seconds (reduced from 5s for efficiency)
 
 // Initialize SendGrid (optional, not default)
 if (process.env.SENDGRID_API_KEY) {

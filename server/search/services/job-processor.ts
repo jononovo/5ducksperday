@@ -8,7 +8,7 @@ export class JobProcessor {
   private processingJobs = new Set<string>();
   private intervalId: NodeJS.Timeout | null = null;
   private isProcessing = false;
-  private processingInterval = 5000; // Check every 5 seconds
+  private processingInterval = 30000; // Check every 30 seconds (reduced from 5s for efficiency)
 
   /**
    * Process the next pending job
