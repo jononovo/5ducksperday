@@ -59,10 +59,28 @@ export class SearchListsService {
   static async createSearchList(request: SearchListRequest, userId: number): Promise<SearchListResponse> {
     const { companies, prompt, contactSearchConfig } = request;
     
-    console.log(`Creating list with ${companies?.length || 0} companies for user ${userId}`);
+    console.log(`🟢 [LIST CREATION] Creating list with ${companies?.length || 0} companies for user ${userId}`);
+    console.log(`🟢 [LIST CREATION] Prompt: "${prompt}"`);
+    console.log(`🟢 [LIST CREATION] Timestamp: ${new Date().toISOString()}`);
+    
+    // Check for existing list with the same prompt to prevent duplicates
+    const existingLists = await storage.listSearchLists(userId);
+    const duplicateList = existingLists.find(list => 
+      list.prompt.toLowerCase().trim() === prompt.toLowerCase().trim()
+    );
+    
+    if (duplicateList) {
+      console.log(`🟢 [DUPLICATE PREVENTION] Found existing list with same prompt:`);
+      console.log(`🟢 [DUPLICATE PREVENTION] Existing listId: ${duplicateList.listId}`);
+      console.log(`🟢 [DUPLICATE PREVENTION] Created at: ${duplicateList.createdAt}`);
+      console.log(`🟢 [DUPLICATE PREVENTION] Returning existing list instead of creating duplicate`);
+      return duplicateList; // Return existing instead of creating new
+    }
     
     const listId = await storage.getNextSearchListId();
     const customSearchTargets = this.extractCustomSearchTargets(contactSearchConfig);
+    
+    console.log(`🟢 [LIST CREATION] Creating new list with ID: ${listId}`);
     
     const list = await storage.createSearchList({
       listId,
