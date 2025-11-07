@@ -13,7 +13,7 @@ export function CampaignIntegration() {
   const [contactThreshold, setContactThreshold] = useState("50");
 
   // Fetch campaigns
-  const { data: campaigns = [] } = useQuery({
+  const { data: campaigns = [] } = useQuery<any[]>({
     queryKey: ["/api/campaigns"],
   });
 

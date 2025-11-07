@@ -19,7 +19,7 @@ import { SearchProgress } from "./search-progress";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import ContactSearchChips, { ContactSearchConfig } from "./contact-search-chips";
 import SearchTypeSelector, { SearchType } from "./search-type-selector";
-import SearchManagementDrawer from "@/features/search-management-drawer";
+import { SearchManagementDrawer, useSearchManagementDrawer } from "@/features/search-management-drawer";
 import {
   Tooltip,
   TooltipContent,
@@ -150,8 +150,8 @@ export default function PromptEditor({
   const [showRoleSelector, setShowRoleSelector] = useState(false);
   const roleAutoHideTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Search Management Drawer state
-  const [isSearchDrawerOpen, setIsSearchDrawerOpen] = useState(false);
+  // Search Management Drawer
+  const searchDrawer = useSearchManagementDrawer();
 
   // Search type configuration state - initialize with localStorage or default to contacts
   const [searchType, setSearchType] = useState<SearchType>(() => {
@@ -1039,7 +1039,7 @@ export default function PromptEditor({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      onClick={() => setIsSearchDrawerOpen(true)}
+                      onClick={() => searchDrawer.openDrawer()}
                       className="flex items-center justify-center p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer"
                       aria-label="Search Management"
                     >
@@ -1128,8 +1128,11 @@ export default function PromptEditor({
 
       {/* Search Management Drawer */}
       <SearchManagementDrawer 
-        isOpen={isSearchDrawerOpen} 
-        onOpenChange={setIsSearchDrawerOpen} 
+        open={searchDrawer.isOpen}
+        width={searchDrawer.drawerWidth}
+        isResizing={searchDrawer.isResizing}
+        onClose={searchDrawer.closeDrawer}
+        onResizeStart={searchDrawer.handleMouseDown}
       />
     </div>
   );

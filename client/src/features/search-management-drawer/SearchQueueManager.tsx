@@ -13,7 +13,7 @@ export function SearchQueueManager() {
   const { toast } = useToast();
 
   // Fetch search queues
-  const { data: searchQueues = [], isLoading } = useQuery({
+  const { data: searchQueues = [], isLoading } = useQuery<SearchQueue[]>({
     queryKey: ["/api/search-queues"],
   });
 
@@ -116,11 +116,11 @@ export function SearchQueueManager() {
     }
   };
 
-  const handleDeleteSearch = (itemId: string) => {
+  const handleDeleteSearch = (itemId: string | number) => {
     if (!activeQueue) return;
     deleteFromQueueMutation.mutate({ 
       queueId: activeQueue.id, 
-      itemId 
+      itemId: String(itemId)
     });
   };
 
