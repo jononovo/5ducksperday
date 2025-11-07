@@ -573,7 +573,10 @@ export function EmailComposer({
         
         // Tracking settings
         trackEmails: campaignSettings.trackEmails,
-        unsubscribeLink: campaignSettings.unsubscribeLink
+        unsubscribeLink: campaignSettings.unsubscribeLink,
+        
+        // Human review setting - critical for auto-send functionality
+        requiresHumanReview: campaignSettings.requiresHumanReview
       };
       
       // Only include productId and strategicProfileId if they have valid values
