@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { X, Settings, Target, Search } from "lucide-react";
+import { X, Settings, Target, Search, Brain } from "lucide-react";
 import { SearchQueueManager } from "./SearchQueueManager";
 import { CampaignIntegration } from "./CampaignIntegration";
 import { SearchSettings } from "./SearchSettings";
+import { AISearchTab } from "./AISearchTab";
 
-export type SearchDrawerTab = 'queue' | 'campaign' | 'settings';
+export type SearchDrawerTab = 'queue' | 'campaign' | 'settings' | 'ai-search';
 
 export interface SearchManagementDrawerProps {
   open: boolean;
@@ -12,6 +13,8 @@ export interface SearchManagementDrawerProps {
   isResizing: boolean;
   onClose: () => void;
   onResizeStart: (e: React.MouseEvent) => void;
+  onTrainAI?: () => void;
+  hasSearchResults?: boolean;
 }
 
 export function SearchManagementDrawer({
@@ -20,6 +23,8 @@ export function SearchManagementDrawer({
   isResizing,
   onClose,
   onResizeStart,
+  onTrainAI = () => {},
+  hasSearchResults = false,
 }: SearchManagementDrawerProps) {
   const [activeTab, setActiveTab] = useState<SearchDrawerTab>('queue');
 
@@ -86,6 +91,24 @@ export function SearchManagementDrawer({
             }`} />
             Settings
           </button>
+          
+          {/* AI Search Tab */}
+          <button
+            onClick={() => setActiveTab('ai-search')}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors group ${
+              activeTab === 'ai-search'
+                ? 'bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary'
+                : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted'
+            }`}
+            data-testid="button-ai-search-tab"
+          >
+            <Brain className={`h-3.5 w-3.5 transition-colors ${
+              activeTab === 'ai-search' 
+                ? 'text-muted-foreground group-hover:text-primary' 
+                : ''
+            }`} />
+            AI Search
+          </button>
         </div>
         
         <button
@@ -104,6 +127,7 @@ export function SearchManagementDrawer({
           {activeTab === 'queue' && 'Manage your search queue and priorities'}
           {activeTab === 'campaign' && 'Link searches to campaigns for automation'}
           {activeTab === 'settings' && 'Configure search management preferences'}
+          {activeTab === 'ai-search' && 'Train AI on your search results to improve targeting'}
         </p>
       </div>
     </div>
@@ -144,6 +168,12 @@ export function SearchManagementDrawer({
               {activeTab === 'queue' && <SearchQueueManager />}
               {activeTab === 'campaign' && <CampaignIntegration />}
               {activeTab === 'settings' && <SearchSettings />}
+              {activeTab === 'ai-search' && (
+                <AISearchTab 
+                  onTrainAI={onTrainAI} 
+                  hasSearchResults={hasSearchResults}
+                />
+              )}
             </div>
           </div>
         )}
@@ -167,6 +197,12 @@ export function SearchManagementDrawer({
                 {activeTab === 'queue' && <SearchQueueManager />}
                 {activeTab === 'campaign' && <CampaignIntegration />}
                 {activeTab === 'settings' && <SearchSettings />}
+                {activeTab === 'ai-search' && (
+                  <AISearchTab 
+                    onTrainAI={onTrainAI} 
+                    hasSearchResults={hasSearchResults}
+                  />
+                )}
               </div>
             </div>
           </div>

@@ -854,15 +854,10 @@ export default function Home() {
     // Detect if this is a new search (different from current query)
     const isNewSearch = currentQuery !== query;
     
-    // Check if this is the user's first successful search and trigger onboarding
-    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding');
-    const isFirstSearch = !hasCompletedOnboarding && auth?.user && results.length > 0;
-    
-    if (isFirstSearch && !showOnboarding) {
-      console.log('First search detected - triggering onboarding flow');
+    // Store search results for potential AI training (but don't auto-trigger modal)
+    if (results.length > 0) {
       setOnboardingSearchQuery(query);
       setOnboardingSearchResults(results);
-      setShowOnboarding(true);
     }
     
     // Clear any stale localStorage data that might conflict with new search results
@@ -2346,7 +2341,7 @@ export default function Home() {
         onClose={emailDrawer.closeDrawer}
         onModeChange={emailDrawer.setMode}
         onContactChange={handleEmailContactChange}
-        onResizeStart={emailDrawer.handleMouseDown}
+        onResizeStart={() => {}}
       />
       
       {/* Search Management Drawer */}
@@ -2356,6 +2351,8 @@ export default function Home() {
         isResizing={searchManagementDrawer.isResizing}
         onClose={searchManagementDrawer.closeDrawer}
         onResizeStart={searchManagementDrawer.handleMouseDown}
+        onTrainAI={() => setShowOnboarding(true)}
+        hasSearchResults={onboardingSearchResults && onboardingSearchResults.length > 0}
       />
 
       {/* Notification System - Outside flex container */}
