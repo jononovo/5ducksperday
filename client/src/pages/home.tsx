@@ -17,6 +17,7 @@ import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
 import { MainSearchSummary } from "@/components/main-search-summary";
 import { OnboardingFlowOrchestrator } from "@/components/onboarding/OnboardingFlowOrchestrator";
 import { EmailDrawer, useEmailDrawer } from "@/features/email-drawer";
+import { SearchManagementDrawer, useSearchManagementDrawer } from "@/features/search-management-drawer";
 import { TopProspectsCard } from "@/features/top-prospects";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -134,6 +135,10 @@ export default function Home() {
       setSearchSectionCollapsed(false);
     }
   });
+  
+  // Search Management drawer
+  const searchManagementDrawer = useSearchManagementDrawer();
+  
   const [searchSectionCollapsed, setSearchSectionCollapsed] = useState(false);
   
   // Onboarding state
@@ -2150,6 +2155,7 @@ export default function Home() {
                         }
                       }
                     }}
+                    onOpenSearchDrawer={() => searchManagementDrawer.openDrawer()}
                   />
                 </Suspense>
                 
@@ -2341,6 +2347,15 @@ export default function Home() {
         onModeChange={emailDrawer.setMode}
         onContactChange={handleEmailContactChange}
         onResizeStart={() => emailDrawer.handleMouseDown({} as React.MouseEvent)}
+      />
+      
+      {/* Search Management Drawer */}
+      <SearchManagementDrawer
+        open={searchManagementDrawer.isOpen}
+        width={searchManagementDrawer.drawerWidth}
+        isResizing={searchManagementDrawer.isResizing}
+        onClose={searchManagementDrawer.closeDrawer}
+        onResizeStart={searchManagementDrawer.handleMouseDown}
       />
 
       {/* Notification System - Outside flex container */}
