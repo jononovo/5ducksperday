@@ -779,10 +779,58 @@ export default function CampaignDetail() {
                     {campaign.unsubscribeLink ? 'Enabled' : 'Disabled'}
                   </span>
                 </div>
+                
+                {/* Start Date and Time */}
+                {campaign.startDate && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Start date/time</span>
+                    <span className="text-sm font-medium">
+                      {format(new Date(campaign.startDate), 'MMM d, yyyy h:mm a')}
+                    </span>
+                  </div>
+                )}
+                
+                {/* Autopilot Status */}
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Autopilot</span>
+                  <span className="text-sm font-medium">
+                    {campaign.autopilotEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                
+                {/* Sending Schedule - only show if autopilot is enabled */}
+                {campaign.autopilotEnabled && campaign.autopilotSettings && (
+                  <div className="flex justify-between items-start">
+                    <span className="text-sm text-muted-foreground">Sending schedule</span>
+                    <div className="text-sm font-medium text-right">
+                      {(() => {
+                        const settings = typeof campaign.autopilotSettings === 'string' 
+                          ? JSON.parse(campaign.autopilotSettings) 
+                          : campaign.autopilotSettings;
+                        const activeDays = Object.entries(settings || {})
+                          .filter(([_, config]: [string, any]) => config.enabled)
+                          .map(([day, config]: [string, any]) => {
+                            const dayAbbr = day.slice(0, 3).charAt(0).toUpperCase() + day.slice(1, 3);
+                            return `${dayAbbr} ${config.startTime}-${config.endTime}`;
+                          });
+                        return activeDays.length > 0 ? activeDays.join(', ') : 'No schedule set';
+                      })()}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Timezone - only show if autopilot is enabled */}
+                {campaign.autopilotEnabled && campaign.timezone && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Timezone</span>
+                    <span className="text-sm font-medium">{campaign.timezone}</span>
+                  </div>
+                )}
+                
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Daily cap</span>
                   <span className="text-sm font-medium">
-                    Max {campaign.dailyLeadTarget} emails/day
+                    Max {campaign.maxEmailsPerDay || 20} emails/day
                   </span>
                 </div>
                 <div className="flex justify-between">
