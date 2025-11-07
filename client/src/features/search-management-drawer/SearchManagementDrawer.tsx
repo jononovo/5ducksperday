@@ -111,32 +111,38 @@ export function SearchManagementDrawer({
 
   return (
     <>
-      {/* Desktop & Tablet: Fixed positioned drawer without wrapper */}
+      {/* Desktop & Tablet: Drawer Container - keeps column aligned */}
       <div 
-        className={`hidden md:block ${!isResizing ? 'search-drawer-transition' : ''} ${
-          open 
-            ? 'fixed top-[2.5rem] right-0 bottom-auto max-h-[calc(100vh-2.5rem)] w-[90%] sm:w-[400px] z-40' 
-            : 'fixed w-0 right-0 top-[2.5rem]'
-        } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`} 
-        style={{ 
-          ...(open && typeof window !== 'undefined' && window.innerWidth >= 768 ? { width: `${width}px` } : {}),
-          ...(isResizing ? { transition: 'none' } : {})
-        }}
-        data-testid="drawer-search-management"
+        className={`duplicate-full-height-drawer-to-keep-column-aligned ${
+          open ? 'hidden md:block md:relative md:h-full' : 'hidden md:block md:relative w-0'
+        }`} 
+        style={{ ...(open && typeof window !== 'undefined' && window.innerWidth >= 768 ? { width: `${width}px` } : {}) }}
       >
-        {/* Resize Handle - Only show on desktop */}
-        {open && (
-          <div
-            onMouseDown={onResizeStart}
-            className="absolute -left-1.5 top-0 bottom-0 w-3 cursor-col-resize z-10 group"
-            data-testid="handle-resize"
-          >
-            <div className="absolute left-1 top-1/2 -translate-y-1/2 w-2 h-12 bg-muted-foreground/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
-        )}
-        
-        {open && (
-          <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] pb-4" style={{ minWidth: '400px' }}>
+        {/* Actual Search Drawer with dynamic height - Absolute positioned on desktop */}
+        <div 
+          className={`${!isResizing ? 'search-drawer-transition' : ''} ${
+            open 
+              ? 'fixed md:absolute top-[2.5rem] md:top-0 right-0 bottom-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen w-[90%] sm:w-[400px] z-40' 
+              : 'fixed md:absolute w-0 right-0 top-0'
+          } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`} 
+          style={{ 
+            ...(open && typeof window !== 'undefined' && window.innerWidth >= 768 ? { width: `${width}px` } : {}),
+            ...(isResizing ? { transition: 'none' } : {})
+          }}
+          data-testid="drawer-search-management"
+        >
+          {/* Resize Handle - Only show on desktop */}
+          {open && (
+            <div
+              onMouseDown={onResizeStart}
+              className="hidden md:block absolute -left-1.5 top-0 bottom-0 w-3 cursor-col-resize z-10 group"
+              data-testid="handle-resize"
+            >
+              <div className="absolute left-1 top-1/2 -translate-y-1/2 w-2 h-12 bg-muted-foreground/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+          )}
+          
+          <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen pb-4" style={{ minWidth: open ? '400px' : '0' }}>
             {renderHeader()}
             
             {/* Tab Content */}
@@ -146,7 +152,7 @@ export function SearchManagementDrawer({
               {activeTab === 'settings' && <SearchSettings />}
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Mobile: Separate drawer instance without wrapper since it's fixed positioned */}
