@@ -576,7 +576,10 @@ export function EmailComposer({
         unsubscribeLink: campaignSettings.unsubscribeLink,
         
         // Human review setting - critical for auto-send functionality
-        requiresHumanReview: campaignSettings.requiresHumanReview
+        requiresHumanReview: campaignSettings.requiresHumanReview,
+        
+        // Sender profile - links campaign to specific sender identity
+        senderProfileId: selectedSenderProfileId
       };
       
       // Only include productId and strategicProfileId if they have valid values

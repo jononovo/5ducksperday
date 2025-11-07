@@ -518,13 +518,14 @@ export class EmailQueueProcessor {
             
             console.log(`[EmailQueueProcessor] Sending email ${i + 1}/${userRecipients.length} to ${recipient.recipientEmail}`);
             
-            // Send email via Gmail with resolved content
+            // Send email via Gmail with resolved content and custom sender name
             const gmailResult = await GmailOAuthService.sendEmail(
               userIdNum,
               user.email,
               recipient.recipientEmail,
               resolvedSubject,
-              resolvedContent
+              resolvedContent,
+              senderProfile?.displayName  // Pass custom sender display name if available
             );
 
             // Track sent email in communication history (essential fields only)
