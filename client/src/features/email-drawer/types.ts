@@ -15,7 +15,7 @@ export interface EmailDrawerProps {
   onClose: () => void;
   onModeChange: (mode: DrawerMode) => void;
   onContactChange: (contact: Contact | null) => void;
-  onResizeStart: () => void;
+  onResizeStart: (e: React.MouseEvent) => void;
 }
 
 export interface UseEmailDrawerOptions {
