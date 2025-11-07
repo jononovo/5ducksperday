@@ -174,12 +174,15 @@ export class EmailQueueProcessor {
           }
         });
 
-        // Update successful recipients to in_review
+        // Update successful recipients based on human review requirement
         if (successful.length > 0) {
+          // Check if campaign requires human review
+          const targetStatus = campaign.requiresHumanReview ? 'in_review' : 'scheduled';
+          
           await db
             .update(campaignRecipients)
             .set({ 
-              status: 'in_review',
+              status: targetStatus,
               updatedAt: new Date()
             })
             .where(
@@ -188,7 +191,7 @@ export class EmailQueueProcessor {
                 inArray(campaignRecipients.id, successful)
               )
             );
-          console.log(`[EmailQueueProcessor] Generated emails for ${successful.length} recipients`);
+          console.log(`[EmailQueueProcessor] Generated emails for ${successful.length} recipients (status: ${targetStatus})`);
         }
 
         // Update failed recipients
