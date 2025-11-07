@@ -19,7 +19,6 @@ import { SearchProgress } from "./search-progress";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import ContactSearchChips, { ContactSearchConfig } from "./contact-search-chips";
 import SearchTypeSelector, { SearchType } from "./search-type-selector";
-import { SearchManagementDrawer, useSearchManagementDrawer } from "@/features/search-management-drawer";
 import {
   Tooltip,
   TooltipContent,
@@ -43,6 +42,7 @@ interface PromptEditorProps {
   onSessionIdChange?: (sessionId: string | null) => void; // Callback for session ID changes
   hideRoleButtons?: boolean; // Flag to hide role selection buttons when search is inactive
   onSearchMetricsUpdate?: (metrics: any, showSummary: boolean) => void; // Callback to update search metrics in parent
+  onOpenSearchDrawer?: () => void; // Callback to open the search management drawer
 }
 
 export default function PromptEditor({ 
@@ -60,7 +60,8 @@ export default function PromptEditor({
   hasSearchResults = false,
   onSessionIdChange,
   hideRoleButtons = false,
-  onSearchMetricsUpdate
+  onSearchMetricsUpdate,
+  onOpenSearchDrawer
 }: PromptEditorProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -150,8 +151,6 @@ export default function PromptEditor({
   const [showRoleSelector, setShowRoleSelector] = useState(false);
   const roleAutoHideTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Search Management Drawer
-  const searchDrawer = useSearchManagementDrawer();
 
   // Search type configuration state - initialize with localStorage or default to contacts
   const [searchType, setSearchType] = useState<SearchType>(() => {
@@ -1039,7 +1038,7 @@ export default function PromptEditor({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      onClick={() => searchDrawer.openDrawer()}
+                      onClick={onOpenSearchDrawer}
                       className="flex items-center justify-center p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer"
                       aria-label="Search Management"
                     >
@@ -1126,14 +1125,6 @@ export default function PromptEditor({
 
       </div>
 
-      {/* Search Management Drawer */}
-      <SearchManagementDrawer 
-        open={searchDrawer.isOpen}
-        width={searchDrawer.drawerWidth}
-        isResizing={searchDrawer.isResizing}
-        onClose={searchDrawer.closeDrawer}
-        onResizeStart={searchDrawer.handleMouseDown}
-      />
     </div>
   );
 }
