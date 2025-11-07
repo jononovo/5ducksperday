@@ -9,7 +9,7 @@ import {
   buildDynamicPromptInstructions
 } from "./outreach-utils";
 import { applySmartReplacements } from "./smart-replacements";
-import type { EmailGenerationPayload, EmailGenerationResponse } from "./types";
+import type { EmailGenerationPayload, EmailGenerationResponse, ProductContext } from "./types";
 import type { Contact, Company } from "@shared/schema";
 import type { MergeFieldContext } from "@/lib/merge-field-resolver";
 
@@ -29,6 +29,7 @@ interface UseEmailGenerationProps {
   offerStrategy?: string;
   generateTemplate?: boolean; // For campaign template generation
   mergeFieldContext?: MergeFieldContext; // For building dynamic prompts
+  productContext?: ProductContext; // Product data to send to AI
   
   // State setters
   setEmailSubject: (subject: string) => void;
@@ -52,6 +53,7 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
     offerStrategy = 'none',
     generateTemplate = false,
     mergeFieldContext,
+    productContext,
     setEmailSubject,
     setOriginalEmailSubject,
     setToEmail,
@@ -76,7 +78,8 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
         offerStrategy,
         toEmail,
         emailSubject,
-        generateTemplate
+        generateTemplate,
+        productContext // Pass product context to API
       };
       return generateEmailApi(payload);
     },

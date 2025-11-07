@@ -97,9 +97,10 @@ export default function Home() {
   
   // Wrapper to log currentListId changes
   const setCurrentListId = (newListId: number | null) => {
-    console.log('Setting currentListId:', {
+    console.log('🟢 LIST ID CHANGED:', {
       from: currentListId,
       to: newListId,
+      timestamp: new Date().toISOString(),
       stackTrace: new Error().stack?.split('\n').slice(2, 5).join('\n')
     });
     setCurrentListIdBase(newListId);
@@ -368,6 +369,8 @@ export default function Home() {
 
   // Load state from localStorage on component mount
   useEffect(() => {
+    console.log('🟣 COMPONENT MOUNT - Home page mounting');
+    
     // Check for pending search query from landing page
     const pendingQuery = localStorage.getItem('pendingSearchQuery');
     if (pendingQuery) {
@@ -418,22 +421,9 @@ export default function Home() {
           setIsSaved(true);
           console.log('[LOCALSTORAGE RESTORE] Restored saved search list with ID:', listIdToRestore);
         } else {
-          console.log('[LOCALSTORAGE RESTORE] No listId found in saved state - will trigger auto-create');
-          // If we have results but no listId, we need to create one immediately
-          // This happens when user navigated away before the 1.5s auto-create timer fired
-          if (savedState.currentResults && savedState.currentResults.length > 0 && queryToRestore) {
-            console.log('[LOCALSTORAGE RESTORE] Creating list immediately for orphaned results');
-            // Set a flag to trigger list creation after component mounts
-            setTimeout(() => {
-              if (!currentListId && savedState.currentResults && savedState.currentResults.length > 0) {
-                console.log('[LOCALSTORAGE RESTORE] Triggering immediate list creation for restored results');
-                autoCreateListMutation.mutate({ 
-                  query: queryToRestore, 
-                  companies: savedState.currentResults 
-                });
-              }
-            }, 100); // Small delay to ensure component is fully mounted
-          }
+          // Do NOT auto-create a new list for orphaned results
+          // This prevents duplicate lists when user navigates away before list creation completes
+          console.log('🔵 [LOCALSTORAGE RESTORE] No listId found - will be created if user performs new search');
         }
         
         // Always refresh contact data when restoring from localStorage to ensure emails are preserved
@@ -546,6 +536,9 @@ export default function Home() {
     
     // Cleanup function to prevent localStorage corruption during unmount
     return () => {
+      // Clear the registration callback to prevent it from being triggered on next mount
+      registrationModal.setRegistrationSuccessCallback(() => {});
+      
       isMountedRef.current = false;
     };
   }, []); // Remove dependencies to prevent re-running
@@ -621,6 +614,12 @@ export default function Home() {
   // Auto-creation mutation for silent list creation after search
   const autoCreateListMutation = useMutation({
     mutationFn: async ({ query, companies }: { query: string; companies: CompanyWithContacts[] }) => {
+      console.log('🔴 LIST CREATION - Starting auto-create mutation:', {
+        query: query,
+        companiesCount: companies?.length,
+        timestamp: new Date().toISOString()
+      });
+      
       if (!query || !companies) return;
       
       // Get current contact search config from localStorage
@@ -640,8 +639,8 @@ export default function Home() {
         contactSearchConfig: contactSearchConfig
       });
       const jsonData = await res.json();
-      console.log('[AUTO-CREATE LIST] Backend response from POST /api/lists:', jsonData);
-      console.log('[AUTO-CREATE LIST] Response fields:', Object.keys(jsonData));
+      console.log('🔴 [AUTO-CREATE LIST] Backend response from POST /api/lists:', jsonData);
+      console.log('🔴 [AUTO-CREATE LIST] Response fields:', Object.keys(jsonData));
       return jsonData;
     },
     onSuccess: (data) => {
@@ -679,6 +678,13 @@ export default function Home() {
   // Mutation for updating existing list
   const updateListMutation = useMutation({
     mutationFn: async ({ query, companies, listId }: { query: string; companies: CompanyWithContacts[]; listId: number }) => {
+      console.log('🟡 LIST UPDATE - Starting update mutation:', {
+        listId: listId,
+        query: query,
+        companiesCount: companies?.length,
+        timestamp: new Date().toISOString()
+      });
+      
       if (!query || !companies || !listId) {
         console.error('Update list validation failed:', {
           hasQuery: !!query,
@@ -912,22 +918,23 @@ export default function Home() {
       
       // Debounce list creation/update to prevent duplicate calls during progressive updates
       listUpdateTimeoutRef.current = setTimeout(() => {
-        console.log('[LIST CREATION TIMER] Timer fired after 1.5s:', {
+        console.log('🔵 LIST DECISION - Timer fired after 1.5s:', {
           listIdAtTimeOfResults,
           queryAtTimeOfResults,
           resultsCount: resultsAtTimeOfResults.length,
-          mutationInProgress: listMutationInProgressRef.current
+          mutationInProgress: listMutationInProgressRef.current,
+          timestamp: new Date().toISOString()
         });
         
         // Check if a mutation is already in progress
         if (listMutationInProgressRef.current) {
-          console.log('[LIST CREATION TIMER] List mutation already in progress, skipping duplicate call');
+          console.log('🔵 LIST DECISION - List mutation already in progress, skipping duplicate call');
           return;
         }
         
         if (!listIdAtTimeOfResults) {
           // Create new list (for new searches or when no list exists)
-          console.log('[LIST CREATION TIMER] Creating new list for search results (new search or no existing list)');
+          console.log('🔵 LIST DECISION - Creating new list for search results (new search or no existing list)');
           listMutationInProgressRef.current = true;
           autoCreateListMutation.mutate({ 
             query: queryAtTimeOfResults, 
@@ -935,7 +942,7 @@ export default function Home() {
           });
         } else {
           // Update existing list (only for progressive updates of same search)
-          console.log('[LIST CREATION TIMER] Updating existing list:', listIdAtTimeOfResults);
+          console.log('🔵 LIST DECISION - Updating existing list:', listIdAtTimeOfResults);
           listMutationInProgressRef.current = true;
           updateListMutation.mutate({ 
             query: queryAtTimeOfResults, 

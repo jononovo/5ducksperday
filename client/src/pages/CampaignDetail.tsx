@@ -785,6 +785,12 @@ export default function CampaignDetail() {
                     Max {campaign.dailyLeadTarget} emails/day
                   </span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Email delay</span>
+                  <span className="text-sm font-medium">
+                    {campaign.delayBetweenEmails || 0} {campaign.delayBetweenEmails === 1 ? 'minute' : 'minutes'} between emails
+                  </span>
+                </div>
               </CardContent>
             </Card>
 

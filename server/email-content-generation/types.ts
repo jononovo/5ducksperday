@@ -1,6 +1,13 @@
 import type { Contact, Company } from "@shared/schema";
 import type { SenderNames } from "../lib/name-resolver";
 
+export interface ProductContext {
+  productService?: string;
+  customerFeedback?: string;
+  website?: string;
+  reportSalesContextGuidance?: string;
+}
+
 export interface EmailGenerationRequest {
   emailPrompt: string;
   contact: Contact | null;
@@ -11,6 +18,7 @@ export interface EmailGenerationRequest {
   tone?: string;
   offerStrategy?: string;
   generateTemplate?: boolean; // Flag to generate template with merge fields
+  productContext?: ProductContext; // Rich product context for AI
   senderProfile?: {
     displayName: string;
     email: string;
@@ -32,6 +40,7 @@ export interface EmailGenerationContext {
   contact: Contact | null;
   company: Company;
   userPrompt: string;
+  productContext?: ProductContext; // Rich product context for AI
   senderProfile?: {
     displayName: string;
     email: string;

@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, Type, Lock, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Mail, Type, Lock, ChevronDown, ChevronUp, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QuickTemplates from "./quick-templates";
 import { EmailSendButton } from "./email-fallback/EmailSendButton";
@@ -250,6 +250,11 @@ export function EmailComposer({
     campaignRecipients
   ]);
   
+  // Queries - moved here to be available for restoration logic
+  const { data: products = [] } = useQuery<StrategicProfile[]>({
+    queryKey: ['/api/strategic-profiles']
+  });
+  
   const { restoreState, clearState } = useEmailComposerPersistence(composerState);
   
   // Restore persisted state on mount
@@ -274,7 +279,16 @@ export function EmailComposer({
       if (savedState.aiContent !== undefined) setAiContent(savedState.aiContent);
       
       // Restore settings
-      if (savedState.selectedProduct !== undefined) setSelectedProduct(savedState.selectedProduct);
+      if (savedState.selectedProduct !== undefined) {
+        setSelectedProduct(savedState.selectedProduct);
+        // Also set the product data if we have products loaded
+        if (products && products.length > 0) {
+          const product = products.find(p => p.id === savedState.selectedProduct);
+          if (product) {
+            setSelectedProductData(product);
+          }
+        }
+      }
       if (savedState.selectedTone !== undefined) setSelectedTone(savedState.selectedTone);
       if (savedState.selectedOfferStrategy !== undefined) setSelectedOfferStrategy(savedState.selectedOfferStrategy);
       if (savedState.selectedSenderProfileId !== undefined) setSelectedSenderProfileId(savedState.selectedSenderProfileId);
@@ -285,6 +299,17 @@ export function EmailComposer({
       console.log('Restored email composer state from localStorage');
     }
   }, []); // Run only once on mount
+  
+  // Sync selectedProductData when products are loaded or selectedProduct changes
+  useEffect(() => {
+    if (selectedProduct && products && products.length > 0 && !selectedProductData) {
+      const product = products.find(p => p.id === selectedProduct);
+      if (product) {
+        setSelectedProductData(product);
+        console.log('Synced product data from saved product ID:', product);
+      }
+    }
+  }, [products, selectedProduct]); // Run when products are loaded or selectedProduct changes
   
   // Clear state when email is sent successfully
   const handleSuccessfulSend = () => {
@@ -388,6 +413,14 @@ export function EmailComposer({
     senderProfile?.companyName || undefined // Pass sender company name if available
   );
 
+  // Create product context from selected product data (extract only the 4 key fields)
+  const productContext = selectedProductData ? {
+    productService: selectedProductData.productService || undefined,
+    customerFeedback: selectedProductData.customerFeedback || undefined,
+    website: selectedProductData.website || undefined,
+    reportSalesContextGuidance: selectedProductData.reportSalesContextGuidance || undefined
+  } : undefined;
+
   // Email generation hook
   const { generateEmail: performGeneration, isGenerating } = useEmailGeneration({
     selectedContact,
@@ -400,6 +433,7 @@ export function EmailComposer({
     offerStrategy: selectedOfferStrategy,
     generateTemplate: drawerMode === 'campaign' && generationMode === 'merge_field', // Only generate template in campaign mode with merge_field
     mergeFieldContext, // Pass context for dynamic prompt building
+    productContext, // Pass rich product context for AI
     setEmailSubject: setCurrentSubject,
     setOriginalEmailSubject: setCurrentOriginalSubject,
     setToEmail,
@@ -408,9 +442,7 @@ export function EmailComposer({
   });
 
   // Queries
-  const { data: products = [] } = useQuery<StrategicProfile[]>({
-    queryKey: ['/api/strategic-profiles']
-  });
+  // (products query moved earlier for restoration logic)
   
   // Fetch templates at the EmailComposer level to avoid multiple fetches
   const { data: templates = [], isLoading: templatesLoading } = useQuery<EmailTemplate[]>({
@@ -666,7 +698,8 @@ export function EmailComposer({
   };
 
   const handleSelectProduct = (product: StrategicProfile) => {
-    if (emailPrompt && emailPrompt !== (selectedProductData?.productService || '')) {
+    // If there's custom prompt text and we're switching products, confirm the change
+    if (emailPrompt && selectedProductData && product.id !== selectedProductData.id) {
       setPendingProduct(product);
       setProductChangeDialogOpen(true);
     } else {
@@ -675,7 +708,8 @@ export function EmailComposer({
   };
 
   const handleSelectNone = () => {
-    if (emailPrompt && emailPrompt !== (selectedProductData?.productService || '')) {
+    // If there's custom prompt text, confirm clearing the product
+    if (emailPrompt && selectedProductData) {
       setPendingProduct(null);
       setProductChangeDialogOpen(true);
     } else {
@@ -690,11 +724,12 @@ export function EmailComposer({
     if (product) {
       setSelectedProduct(product.id);
       setSelectedProductData(product);
-      setEmailPrompt(product.productService || "");
-      setOriginalEmailPrompt(product.productService || "");
+      // Don't paste product text into prompt anymore - keep prompt for custom instructions
+      // The product context will be sent separately during generation
     } else {
       setSelectedProduct(null);
       setSelectedProductData(null);
+      // Clear prompt when removing product
       setEmailPrompt("");
       setOriginalEmailPrompt("");
     }
@@ -722,10 +757,11 @@ export function EmailComposer({
       return;
     }
 
-    if (!emailPrompt || emailPrompt.trim() === '') {
+    // Check if either a product is selected OR prompt is provided
+    if (!selectedProductData && (!emailPrompt || emailPrompt.trim() === '')) {
       toast({
-        title: "No Prompt Provided",
-        description: "Please provide details about your product or service.",
+        title: "No Context Provided",
+        description: "Please select a product or provide details about your offering.",
         variant: "destructive",
       });
       return;
@@ -1009,8 +1045,18 @@ export function EmailComposer({
             className="mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-t-md cursor-pointer transition-colors hover:bg-muted/50 flex items-center justify-between"
           >
             {(campaignRecipients || currentQuery) ? (
-              <span className="inline-flex items-center px-2.5 py-1 rounded bg-muted/50 hover:bg-primary/10 text-muted-foreground hover:text-primary text-sm font-normal truncate max-w-full transition-colors">
-                {getRecipientDisplayText()}
+              <span className="group inline-flex items-center px-2.5 py-1 rounded bg-muted/50 hover:bg-primary/10 text-muted-foreground hover:text-primary text-sm font-normal truncate max-w-full transition-colors relative">
+                <span className="truncate">{getRecipientDisplayText()}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCampaignRecipients(null);
+                  }}
+                  className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-destructive"
+                  aria-label="Remove recipients"
+                >
+                  <X className="h-3 w-3" />
+                </button>
               </span>
             ) : (
               <span className="text-sm text-muted-foreground">

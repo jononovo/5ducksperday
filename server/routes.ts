@@ -50,6 +50,7 @@ import { registerCampaignsRoutes } from "./features/campaigns";
 import { registerAdminRoutes } from "./features/admin/routes";
 import { registerContactListRoutes } from "./features/contact-lists/routes";
 import { registerOnboardingRoutes } from "./features/onboarding/routes";
+import { registerSearchQueueRoutes } from "./features/search-queues/routes";
 
 
 // Import centralized auth utilities
@@ -192,6 +193,9 @@ export function registerRoutes(app: Express) {
 
   // Register campaigns module (includes sender profiles, customer profiles, and products)
   registerCampaignsRoutes(app, requireAuth);
+  
+  // Register search queue routes
+  registerSearchQueueRoutes(app, requireAuth);
   
   // Register dormant modules that were created but never activated
   registerEmailRepliesRoutes(app, requireAuth);

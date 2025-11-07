@@ -10,6 +10,29 @@ import { getUserId } from "../../../utils/auth";
 
 export function registerStrategicProfilesRoutes(app: Application, requireAuth: any) {
   
+  // GET strategic profiles endpoint (alias for products)
+  app.get('/api/strategic-profiles', requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      
+      // Fetch strategic profiles from storage
+      const profiles = await storage.getStrategicProfiles(userId);
+      
+      // Map to frontend interface (add 'name' field)
+      const mappedProfiles = profiles.map(profile => ({
+        ...profile,
+        name: profile.businessDescription || profile.productService || "Strategy Plan"
+      }));
+      
+      res.json(mappedProfiles);
+    } catch (error) {
+      console.error('Error fetching strategic profiles:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to fetch strategic profiles' 
+      });
+    }
+  });
+
   // Delete strategic profile endpoint (for React Strategy Chat restart)
   app.delete('/api/strategic-profiles/:id', requireAuth, async (req, res) => {
     try {
@@ -104,7 +127,12 @@ export function registerStrategicProfilesRoutes(app: Application, requireAuth: a
   app.post('/api/products', requireAuth, async (req, res) => {
     try {
       const userId = getUserId(req);
-      const { businessType, productService, customerFeedback, website, title, targetCustomers, uniqueAttributes, status } = req.body;
+      const { businessType, productService, customerFeedback, website, title, targetCustomers, uniqueAttributes, status, isDefault } = req.body;
+      
+      // If setting as default, clear other defaults first
+      if (isDefault === true) {
+        await storage.clearDefaultStrategicProfiles(userId);
+      }
       
       // Create profile data
       const profileData = {
@@ -117,7 +145,8 @@ export function registerStrategicProfilesRoutes(app: Application, requireAuth: a
         website: website || '',
         targetCustomers: targetCustomers || 'Target customers',
         status: status || 'completed' as const,
-        uniqueAttributes: uniqueAttributes || []
+        uniqueAttributes: uniqueAttributes || [],
+        isDefault: isDefault || false
       };
       
       const savedProfile = await storage.createStrategicProfile(profileData);

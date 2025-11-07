@@ -414,14 +414,18 @@ export class TestRunner {
 
   private async testFullSearchFlow(): Promise<SubTestResult> {
     try {
-      // Test the full search flow with a minimal query
-      const fullSearchResponse = await fetch('http://localhost:5000/api/companies/search', {
+      // Test the search flow with a minimal query
+      const fullSearchResponse = await fetch('http://localhost:5000/api/companies/quick-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           query: "test full search",
-          includeContacts: true,
-          enrichEmails: false // Skip email enrichment to avoid API costs
+          searchType: 'contacts', // Include contacts in the search
+          contactSearchConfig: {
+            enableCoreLeadership: true,
+            enableDepartmentHeads: true,
+            enableMiddleManagement: true
+          }
         })
       });
 
