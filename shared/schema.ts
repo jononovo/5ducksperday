@@ -1115,7 +1115,7 @@ export const searchQueueItems = pgTable("search_queue_items", {
   order: integer("order").notNull(),
   status: text("status").notNull().default('pending'), // 'pending', 'running', 'completed', 'failed'
   searchJobId: integer("search_job_id").references(() => searchJobs.id, { onDelete: 'set null' }),
-  listId: integer("list_id").references(() => lists.id, { onDelete: 'set null' }),
+  listId: integer("list_id").references(() => searchLists.id, { onDelete: 'set null' }),
   resultCount: integer("result_count"),
   errorMessage: text("error_message"),
   startedAt: timestamp("started_at"),
