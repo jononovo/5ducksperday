@@ -17,7 +17,7 @@ export interface UseSearchManagementDrawerReturn {
 
 export function useSearchManagementDrawer(options: UseSearchManagementDrawerOptions = {}): UseSearchManagementDrawerReturn {
   const [isOpen, setIsOpen] = useState(false);
-  const [drawerWidth, setDrawerWidth] = useState(500);
+  const [drawerWidth, setDrawerWidth] = useState(480); // Match EmailDrawer's default width
   const [isResizing, setIsResizing] = useState(false);
 
   // Handle resize logic
