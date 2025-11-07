@@ -1,7 +1,7 @@
 import { db } from '../../../db';
 import { campaigns } from '@shared/schema';
 import { eq, and, lte, sql } from 'drizzle-orm';
-import { autoSendCampaignService } from './auto-send-service';
+// REMOVED: autoSendCampaignService import - EmailQueueProcessor handles all campaign sending
 
 export class CampaignScheduler {
   private static instance: CampaignScheduler;
@@ -82,9 +82,9 @@ export class CampaignScheduler {
         await this.activateCampaign(campaign);
       }
       
-      // After activating campaigns, trigger the auto-send service
-      // to process any newly activated campaigns that don't require human review
-      await autoSendCampaignService.processAutoSendCampaigns();
+      // REMOVED: autoSendCampaignService.processAutoSendCampaigns() call
+      // EmailQueueProcessor handles all campaign email sending via its polling mechanism
+      // This prevents duplicate emails that were being sent when both services processed the same campaign
       
     } catch (error) {
       console.error('[CampaignScheduler] Error checking scheduled campaigns:', error);

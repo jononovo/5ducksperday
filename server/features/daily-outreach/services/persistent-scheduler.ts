@@ -16,7 +16,7 @@ import { batchGenerator } from './batch-generator';
 import { sendGridService } from './sendgrid-service';
 import { differenceInMinutes, addDays, startOfDay, format } from 'date-fns';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
-import { autoSendCampaignService } from '../../campaigns/services/auto-send-service';
+// REMOVED: autoSendCampaignService import - Campaign emails are handled by EmailQueueProcessor only
 
 export class PersistentDailyOutreachScheduler {
   private pollingInterval: NodeJS.Timeout | null = null;
@@ -439,6 +439,11 @@ export class PersistentDailyOutreachScheduler {
       }
       statusUpdates.push(`Step 1 ✓: Found user ${user.email}`);
       
+      // DISABLED: Campaign processing removed from daily outreach scheduler
+      // This scheduler is for the daily 5-email outreach feature (from streak page)
+      // Campaign emails (from email composer drawer) are handled by EmailQueueProcessor only
+      // This prevents duplicate email sending that was occurring when both services processed campaigns
+      /*
       // Check for active campaigns that don't require human review
       const autoSendCampaigns = await db
         .select()
@@ -462,6 +467,7 @@ export class PersistentDailyOutreachScheduler {
         // For auto-send campaigns, we don't generate batch or send nudge emails
         return { batchId: null, contactsProcessed: autoSendCampaigns.length * 5 }; // Approximate
       }
+      */
       
       // Check vacation mode
       statusUpdates.push('Step 2: Checking user preferences and vacation mode');
