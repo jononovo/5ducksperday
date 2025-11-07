@@ -804,16 +804,20 @@ export default function CampaignDetail() {
                     <span className="text-sm text-muted-foreground">Sending schedule</span>
                     <div className="text-sm font-medium text-right">
                       {(() => {
-                        const settings = typeof campaign.autopilotSettings === 'string' 
-                          ? JSON.parse(campaign.autopilotSettings) 
-                          : campaign.autopilotSettings;
-                        const activeDays = Object.entries(settings || {})
-                          .filter(([_, config]: [string, any]) => config.enabled)
-                          .map(([day, config]: [string, any]) => {
-                            const dayAbbr = day.slice(0, 3).charAt(0).toUpperCase() + day.slice(1, 3);
-                            return `${dayAbbr} ${config.startTime}-${config.endTime}`;
-                          });
-                        return activeDays.length > 0 ? activeDays.join(', ') : 'No schedule set';
+                        try {
+                          const settings = typeof campaign.autopilotSettings === 'string' 
+                            ? JSON.parse(campaign.autopilotSettings) 
+                            : campaign.autopilotSettings;
+                          const activeDays = Object.entries(settings || {})
+                            .filter(([_, config]: [string, any]) => config && config.enabled)
+                            .map(([day, config]: [string, any]) => {
+                              const dayAbbr = day.slice(0, 3).charAt(0).toUpperCase() + day.slice(1, 3);
+                              return `${dayAbbr} ${config.startTime || '09:00'}-${config.endTime || '17:00'}`;
+                            });
+                          return activeDays.length > 0 ? activeDays.join(', ') : 'No schedule set';
+                        } catch (e) {
+                          return 'No schedule set';
+                        }
                       })()}
                     </div>
                   </div>
