@@ -1085,6 +1085,51 @@ export const campaignRecipients = pgTable("campaign_recipients", {
   uniqueIndex('idx_campaign_recipient_unique').on(table.campaignId, table.recipientEmail)
 ]);
 
+// Search queue tables
+export const searchQueues = pgTable("search_queues", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text("name").notNull(),
+  campaignId: integer("campaign_id").references(() => campaigns.id, { onDelete: 'set null' }),
+  status: text("status").notNull().default('paused'), // 'active', 'paused', 'completed'
+  autoRunEnabled: boolean("auto_run_enabled").default(false),
+  autoRunThreshold: integer("auto_run_threshold").default(50), // Run when campaign has < X contacts
+  delayBetweenSearches: integer("delay_between_searches").default(30), // Seconds between searches
+  resultsPerSearch: integer("results_per_search").default(100),
+  continueOnFailure: boolean("continue_on_failure").default(true),
+  removeCompletedSearches: boolean("remove_completed_searches").default(false),
+  notifyOnComplete: boolean("notify_on_complete").default(false),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => [
+  index('idx_search_queues_user_id').on(table.userId),
+  index('idx_search_queues_campaign_id').on(table.campaignId),
+  index('idx_search_queues_status').on(table.status)
+]);
+
+export const searchQueueItems = pgTable("search_queue_items", {
+  id: serial("id").primaryKey(),
+  queueId: integer("queue_id").notNull().references(() => searchQueues.id, { onDelete: 'cascade' }),
+  prompt: text("prompt").notNull(),
+  order: integer("order").notNull(),
+  status: text("status").notNull().default('pending'), // 'pending', 'running', 'completed', 'failed'
+  searchJobId: integer("search_job_id").references(() => searchJobs.id, { onDelete: 'set null' }),
+  listId: integer("list_id").references(() => lists.id, { onDelete: 'set null' }),
+  resultCount: integer("result_count"),
+  errorMessage: text("error_message"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => [
+  index('idx_search_queue_items_queue_id').on(table.queueId),
+  index('idx_search_queue_items_status').on(table.status),
+  index('idx_search_queue_items_order').on(table.order),
+  uniqueIndex('idx_search_queue_item_order').on(table.queueId, table.order)
+]);
+
 // Contact list schemas
 const contactListSchema = z.object({
   name: z.string().min(1, "List name is required"),
@@ -1137,6 +1182,47 @@ export type InsertCampaignRecipient = z.infer<typeof insertCampaignRecipientSche
 // Search jobs types
 export type SearchJob = typeof searchJobs.$inferSelect;
 export type InsertSearchJob = z.infer<typeof searchJobSchema> & { userId: number };
+
+// Search queue schemas
+const searchQueueSchema = z.object({
+  name: z.string().min(1, "Queue name is required"),
+  campaignId: z.number().optional().nullable(),
+  status: z.enum(['active', 'paused', 'completed']).default('paused'),
+  autoRunEnabled: z.boolean().default(false),
+  autoRunThreshold: z.number().default(50),
+  delayBetweenSearches: z.number().default(30),
+  resultsPerSearch: z.number().default(100),
+  continueOnFailure: z.boolean().default(true),
+  removeCompletedSearches: z.boolean().default(false),
+  notifyOnComplete: z.boolean().default(false),
+  metadata: z.record(z.unknown()).optional()
+});
+
+export const insertSearchQueueSchema = searchQueueSchema.extend({
+  userId: z.number()
+});
+
+const searchQueueItemSchema = z.object({
+  queueId: z.number(),
+  prompt: z.string().min(1, "Search prompt is required"),
+  order: z.number(),
+  status: z.enum(['pending', 'running', 'completed', 'failed']).default('pending'),
+  searchJobId: z.number().optional().nullable(),
+  listId: z.number().optional().nullable(),
+  resultCount: z.number().optional().nullable(),
+  errorMessage: z.string().optional().nullable(),
+  startedAt: z.date().optional().nullable(),
+  completedAt: z.date().optional().nullable(),
+  metadata: z.record(z.unknown()).optional()
+});
+
+export const insertSearchQueueItemSchema = searchQueueItemSchema;
+
+// Search queue types
+export type SearchQueue = typeof searchQueues.$inferSelect;
+export type InsertSearchQueue = z.infer<typeof insertSearchQueueSchema>;
+export type SearchQueueItem = typeof searchQueueItems.$inferSelect;
+export type InsertSearchQueueItem = z.infer<typeof insertSearchQueueItemSchema>;
 
 // OAuth token schemas and types
 export const insertOAuthTokenSchema = z.object({
