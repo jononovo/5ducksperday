@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, HelpCircle, Crown, Building, Users, Target } from "lucide-react";
+import { Loader2, Search, HelpCircle, Crown, Building, Users, Target, Settings } from "lucide-react";
 
 
 import { useConfetti } from "@/hooks/use-confetti";
@@ -19,6 +19,7 @@ import { SearchProgress } from "./search-progress";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import ContactSearchChips, { ContactSearchConfig } from "./contact-search-chips";
 import SearchTypeSelector, { SearchType } from "./search-type-selector";
+import SearchManagementDrawer from "@/features/search-management-drawer";
 import {
   Tooltip,
   TooltipContent,
@@ -148,6 +149,9 @@ export default function PromptEditor({
   // Role selector visibility state
   const [showRoleSelector, setShowRoleSelector] = useState(false);
   const roleAutoHideTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Search Management Drawer state
+  const [isSearchDrawerOpen, setIsSearchDrawerOpen] = useState(false);
 
   // Search type configuration state - initialize with localStorage or default to contacts
   const [searchType, setSearchType] = useState<SearchType>(() => {
@@ -1029,6 +1033,24 @@ export default function PromptEditor({
                 }
                 return null;
               })()}
+
+              {/* Search Management Gear Icon */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setIsSearchDrawerOpen(true)}
+                      className="flex items-center justify-center p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer"
+                      aria-label="Search Management"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Manage Search Queue</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             
             {/* Right side: Search button */}
@@ -1103,6 +1125,12 @@ export default function PromptEditor({
 
 
       </div>
+
+      {/* Search Management Drawer */}
+      <SearchManagementDrawer 
+        isOpen={isSearchDrawerOpen} 
+        onOpenChange={setIsSearchDrawerOpen} 
+      />
     </div>
   );
 }
