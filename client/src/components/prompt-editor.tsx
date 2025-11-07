@@ -1039,7 +1039,7 @@ export default function PromptEditor({
                   <TooltipTrigger asChild>
                     <button
                       onClick={onOpenSearchDrawer}
-                      className="flex items-center justify-center p-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                      className="flex items-center justify-center p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer"
                       aria-label="Search Management"
                     >
                       <Settings className="h-4 w-4" />
