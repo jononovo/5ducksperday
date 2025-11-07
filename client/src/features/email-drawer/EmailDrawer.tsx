@@ -126,7 +126,7 @@ export function EmailDrawer({
       <div 
         className={`hidden md:block ${!isResizing ? 'email-drawer-transition' : ''} ${
           open 
-            ? 'fixed top-[2.5rem] right-0 bottom-auto max-h-[calc(100vh-2.5rem)] w-[90%] sm:w-[400px] z-[60]' 
+            ? 'fixed top-[2.5rem] right-0 bottom-auto max-h-[calc(100vh-2.5rem)] w-[90%] sm:w-[400px] z-50' 
             : 'fixed w-0 right-0 top-[2.5rem]'
         } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`} 
         style={{ 
@@ -169,7 +169,7 @@ export function EmailDrawer({
       <div 
         className={`md:hidden email-drawer-transition ${
           open 
-            ? 'fixed top-[2.5rem] right-0 bottom-auto max-h-[calc(100vh-2.5rem)] w-[90%] sm:w-[400px] z-[60]' 
+            ? 'fixed top-[2.5rem] right-0 bottom-auto max-h-[calc(100vh-2.5rem)] w-[90%] sm:w-[400px] z-50' 
             : 'fixed w-0 right-0 top-[2.5rem]'
         } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`}
       >
