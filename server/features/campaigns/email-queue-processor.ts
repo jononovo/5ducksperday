@@ -1,6 +1,6 @@
 import { storage } from "../../storage";
 import { db } from "../../db";
-import { campaignRecipients, campaigns, communicationHistory } from "@shared/schema";
+import { campaignRecipients, campaigns, communicationHistory, contacts } from "@shared/schema";
 import { eq, and, sql, inArray } from "drizzle-orm";
 import { generateEmailContent } from "../email-generation/generator";
 import type { Campaign, CampaignRecipient } from "@shared/schema";
@@ -362,11 +362,12 @@ export class EmailQueueProcessor {
     this.isSending = true;
 
     try {
-      // Find scheduled recipients ready to send - now includes delay_between_emails
+      // Find scheduled recipients ready to send - now includes delay_between_emails and contactId
       const scheduledRecipients = await db
         .select({
           id: campaignRecipients.id,
           campaignId: campaignRecipients.campaignId,
+          contactId: campaignRecipients.contactId, // Added for communication history tracking
           userId: campaigns.userId,
           senderProfileId: campaigns.senderProfileId,
           recipientEmail: campaignRecipients.recipientEmail,
@@ -525,6 +526,33 @@ export class EmailQueueProcessor {
               resolvedSubject,
               resolvedContent
             );
+
+            // Track sent email in communication history (essential fields only)
+            // This prevents duplicate sends and maintains audit trail
+            if (recipient.contactId) {
+              // Get company ID from contact
+              const contact = await db.query.contacts.findFirst({
+                where: eq(contacts.id, recipient.contactId),
+                columns: { companyId: true }
+              });
+              
+              if (contact?.companyId) {
+                await db.insert(communicationHistory).values({
+                  userId: userIdNum,
+                  contactId: recipient.contactId,
+                  companyId: contact.companyId,
+                  campaignId: recipient.campaignId,
+                  channel: 'email',
+                  direction: 'outbound',
+                  status: 'sent',
+                  subject: resolvedSubject,
+                  content: 'Campaign email sent', // Minimal content for tracking
+                  sentAt: new Date(),
+                  createdAt: new Date(),
+                  updatedAt: new Date()
+                });
+              }
+            }
 
             // Update status to sent
             await db
