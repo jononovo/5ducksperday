@@ -2346,7 +2346,7 @@ export default function Home() {
         onClose={emailDrawer.closeDrawer}
         onModeChange={emailDrawer.setMode}
         onContactChange={handleEmailContactChange}
-        onResizeStart={() => emailDrawer.handleMouseDown({} as React.MouseEvent)}
+        onResizeStart={emailDrawer.handleMouseDown}
       />
       
       {/* Search Management Drawer */}
