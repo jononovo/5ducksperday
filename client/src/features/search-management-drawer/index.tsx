@@ -428,14 +428,14 @@ export default function SearchManagementDrawer({ isOpen, onOpenChange }: SearchM
                   <div className="space-y-2">
                     <Label>Target Campaign</Label>
                     <Select
-                      value={selectedCampaignId || ""}
-                      onValueChange={setSelectedCampaignId}
+                      value={selectedCampaignId || "none"}
+                      onValueChange={(value) => setSelectedCampaignId(value === "none" ? null : value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select a campaign" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No campaign (manual)</SelectItem>
+                        <SelectItem value="none">No campaign (manual)</SelectItem>
                         {campaigns.map((campaign: any) => (
                           <SelectItem key={campaign.id} value={campaign.id.toString()}>
                             {campaign.name}
@@ -448,7 +448,7 @@ export default function SearchManagementDrawer({ isOpen, onOpenChange }: SearchM
                     </p>
                   </div>
 
-                  {selectedCampaignId && (
+                  {selectedCampaignId && selectedCampaignId !== "none" && (
                     <div className="rounded-lg border p-3 bg-accent/50">
                       <div className="flex items-start gap-2">
                         <AlertCircle className="h-4 w-4 text-primary mt-0.5" />
