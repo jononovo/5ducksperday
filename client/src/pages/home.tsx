@@ -165,13 +165,8 @@ export default function Home() {
     // Open the drawer with the selected contact
     emailDrawer.openDrawer(contact, company, companyContacts);
     
-    // Check if contact has an email and show appropriate notification
-    if (contact.email) {
-      toast({
-        title: "Email populated",
-        description: `${contact.name}'s email added to recipient field`,
-      });
-    } else {
+    // Check if contact has an email and handle accordingly
+    if (!contact.email) {
       // Check if we've already searched comprehensively for this contact
       const hasSearchedComprehensively = contact.completedSearches?.includes('comprehensive_search');
       
