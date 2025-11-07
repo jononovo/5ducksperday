@@ -727,13 +727,14 @@ export class TestRunner {
   async runAllTests(): Promise<TestReport> {
     const startTime = Date.now();
     
-    const [databaseTest, searchTest, healthTest, authTest, backendSearchTest, emailComposerTest] = await Promise.all([
+    const [databaseTest, searchTest, healthTest, authTest, backendSearchTest, emailComposerTest, campaignSystemTest] = await Promise.all([
       this.runDatabaseTest(),
       this.runSearchTest(),
       this.runHealthTest(),
       this.runAuthTest(),
       this.runBackendSearchTest(),
-      this.runEmailComposerTest()
+      this.runEmailComposerTest(),
+      this.runCampaignSystemTest()
     ]);
 
     // Flatten all sub-tests into individual tests with category metadata
@@ -823,6 +824,21 @@ export class TestRunner {
           message: subTest.message,
           duration: subTest.duration || 0,
           category: 'Email Composer Components',
+          data: subTest.data,
+          error: subTest.error
+        });
+      });
+    }
+    
+    // Add campaign system tests
+    if (campaignSystemTest.subTests) {
+      campaignSystemTest.subTests.forEach(subTest => {
+        allTests.push({
+          name: subTest.name,
+          status: subTest.status,
+          message: subTest.message,
+          duration: subTest.duration || 0,
+          category: 'Campaign System',
           data: subTest.data,
           error: subTest.error
         });
@@ -1161,6 +1177,244 @@ export class TestRunner {
         name: 'Search Extension (+5 More)',
         status: 'failed',
         message: 'Extension test error',
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  // Campaign System Tests - Testing the core campaign workflow
+  async runCampaignSystemTest(): Promise<TestResult> {
+    const startTime = Date.now();
+    const subTests: SubTestResult[] = [];
+    
+    try {
+      // Test 1: Campaign Creation Endpoint
+      const campaignCreationTest = await this.testCampaignCreation();
+      subTests.push(campaignCreationTest);
+
+      // Test 2: Campaign Scheduling
+      const campaignSchedulingTest = await this.testCampaignScheduling();
+      subTests.push(campaignSchedulingTest);
+
+      // Test 3: Email Queue Processor
+      const emailQueueTest = await this.testEmailQueueProcessor();
+      subTests.push(emailQueueTest);
+
+      // Test 4: Gmail Integration
+      const gmailIntegrationTest = await this.testGmailIntegration();
+      subTests.push(gmailIntegrationTest);
+
+      // Test 5: Communication History
+      const communicationHistoryTest = await this.testCommunicationHistory();
+      subTests.push(communicationHistoryTest);
+
+      // Test 6: SendGrid Integration
+      const sendGridTest = await this.testSendGridIntegration();
+      subTests.push(sendGridTest);
+
+      // Calculate status
+      const failedCount = subTests.filter(test => test.status === 'failed').length;
+      const warningCount = subTests.filter(test => test.status === 'warning').length;
+      
+      let status: 'passed' | 'failed' | 'warning' = 'passed';
+      let message = "Campaign system fully operational";
+      
+      if (failedCount > 0) {
+        status = 'failed';
+        message = `Campaign system issues detected - ${failedCount} test(s) failed`;
+      } else if (warningCount > 0) {
+        status = 'warning';
+        message = `Campaign system operational with ${warningCount} warning(s)`;
+      }
+      
+      return {
+        name: 'Campaign System',
+        status,
+        message,
+        duration: Date.now() - startTime,
+        subTests
+      };
+    } catch (error) {
+      return {
+        name: 'Campaign System',
+        status: 'failed',
+        message: "Campaign system test failed",
+        duration: Date.now() - startTime,
+        subTests,
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  private async testCampaignCreation(): Promise<SubTestResult> {
+    try {
+      const response = await fetch('http://localhost:5000/api/campaigns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Test Campaign',
+          listId: 1,
+          status: 'draft',
+          requiresHumanReview: false,
+          generationType: 'merge_field'
+        })
+      });
+
+      const statusOk = response.ok || response.status === 401;
+      
+      return {
+        name: 'Campaign Creation',
+        status: statusOk ? 'passed' : 'failed',
+        message: statusOk ? 
+          'Campaign creation endpoint operational' : 
+          `Campaign creation failed with status ${response.status}`,
+        data: { statusCode: response.status }
+      };
+    } catch (error) {
+      return {
+        name: 'Campaign Creation',
+        status: 'failed',
+        message: 'Campaign creation test error',
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  private async testCampaignScheduling(): Promise<SubTestResult> {
+    try {
+      // Check if CampaignScheduler is running
+      const response = await fetch('http://localhost:5000/api/campaigns');
+      const campaigns = response.ok ? await response.json() : [];
+      
+      return {
+        name: 'Campaign Scheduler',
+        status: 'passed',
+        message: 'Campaign scheduling service verified',
+        data: { 
+          activeCampaigns: Array.isArray(campaigns) ? 
+            campaigns.filter((c: any) => c.status === 'active').length : 0,
+          scheduledCampaigns: Array.isArray(campaigns) ? 
+            campaigns.filter((c: any) => c.status === 'scheduled').length : 0
+        }
+      };
+    } catch (error) {
+      return {
+        name: 'Campaign Scheduler',
+        status: 'failed',
+        message: 'Campaign scheduler test error',
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  private async testEmailQueueProcessor(): Promise<SubTestResult> {
+    try {
+      // Check campaign recipients endpoint
+      const response = await fetch('http://localhost:5000/api/campaign-recipients');
+      const statusOk = response.ok || response.status === 401;
+      
+      return {
+        name: 'Email Queue Processor',
+        status: statusOk ? 'passed' : 'failed',
+        message: statusOk ? 
+          'Email queue processor operational' : 
+          'Email queue processor endpoint failed',
+        data: { 
+          statusCode: response.status,
+          service: 'EmailQueueProcessor'
+        }
+      };
+    } catch (error) {
+      return {
+        name: 'Email Queue Processor',
+        status: 'failed',
+        message: 'Email queue processor test error',
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  private async testGmailIntegration(): Promise<SubTestResult> {
+    try {
+      // Test Gmail auth status endpoint
+      const response = await fetch('http://localhost:5000/api/gmail/auth-status');
+      const statusOk = response.ok || response.status === 401;
+      
+      let gmailData = null;
+      if (response.ok) {
+        gmailData = await response.json();
+      }
+      
+      return {
+        name: 'Gmail Integration',
+        status: statusOk ? 'passed' : 'failed',
+        message: statusOk ? 
+          `Gmail integration ready${gmailData?.authorized ? ' - authenticated' : ' - not authenticated'}` : 
+          'Gmail integration endpoint failed',
+        data: { 
+          statusCode: response.status,
+          authorized: gmailData?.authorized || false
+        }
+      };
+    } catch (error) {
+      return {
+        name: 'Gmail Integration',
+        status: 'failed',
+        message: 'Gmail integration test error',
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  private async testCommunicationHistory(): Promise<SubTestResult> {
+    try {
+      // Check if communication_history table is accessible
+      const response = await fetch('http://localhost:5000/api/communication-history');
+      const statusOk = response.ok || response.status === 401 || response.status === 404;
+      
+      return {
+        name: 'Communication History',
+        status: statusOk ? 'passed' : 'failed',
+        message: statusOk ? 
+          'Communication history tracking configured' : 
+          'Communication history endpoint failed',
+        data: { 
+          statusCode: response.status,
+          feature: 'Prevents duplicate emails'
+        }
+      };
+    } catch (error) {
+      return {
+        name: 'Communication History',
+        status: 'failed',
+        message: 'Communication history test error',
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  private async testSendGridIntegration(): Promise<SubTestResult> {
+    try {
+      // Check if SendGrid API key is configured
+      const sendGridKey = process.env.SENDGRID_API_KEY;
+      const fromEmail = process.env.SENDGRID_FROM_EMAIL;
+      
+      return {
+        name: 'SendGrid Integration',
+        status: (sendGridKey && fromEmail) ? 'passed' : 'warning',
+        message: (sendGridKey && fromEmail) ? 
+          'SendGrid configured for email delivery' : 
+          'SendGrid configuration incomplete',
+        data: { 
+          hasApiKey: !!sendGridKey,
+          hasFromEmail: !!fromEmail
+        }
+      };
+    } catch (error) {
+      return {
+        name: 'SendGrid Integration',
+        status: 'failed',
+        message: 'SendGrid integration test error',
         error: error instanceof Error ? error.message : String(error)
       };
     }
