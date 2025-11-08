@@ -91,13 +91,27 @@ export class EmailQueueProcessor {
     const timezone = campaign.timezone || 'America/New_York';
     const now = new Date();
     
-    // Get start of day in campaign timezone
-    const campaignTime = new Date(now.toLocaleString("en-US", {timeZone: timezone}));
-    const startOfDay = new Date(campaignTime);
-    startOfDay.setHours(0, 0, 0, 0);
+    // Get the current date in the campaign's timezone
+    // We'll use a simple approach: get the offset and adjust
+    // For a more robust solution, consider using a library like date-fns-tz
+    const nowString = now.toLocaleString("en-US", { timeZone: timezone });
+    const campaignDate = new Date(nowString);
     
-    // Convert back to UTC for database query
-    const utcStartOfDay = new Date(startOfDay.toLocaleString("en-US") + " " + timezone);
+    // Create start of day in the campaign's timezone
+    const year = campaignDate.getFullYear();
+    const month = campaignDate.getMonth();
+    const day = campaignDate.getDate();
+    
+    // Create a new date at start of day
+    const startOfDayLocal = new Date(year, month, day, 0, 0, 0, 0);
+    
+    // For the database query, we'll use the start of today in the server's timezone
+    // Since we're comparing UTC timestamps in the DB, we need to be careful
+    const todayUTC = new Date();
+    todayUTC.setUTCHours(0, 0, 0, 0);
+    
+    // Use todayUTC for the SQL query
+    const utcStartOfDay = todayUTC;
 
     // Count emails sent today for this campaign
     const [result] = await db
