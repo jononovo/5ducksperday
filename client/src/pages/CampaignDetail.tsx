@@ -15,6 +15,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft, 
   Mail, 
@@ -246,6 +256,8 @@ export default function CampaignDetail() {
   const { toast } = useToast();
   const [isEditMode, setIsEditMode] = useState(false);
   const [autopilotModalOpen, setAutopilotModalOpen] = useState(false);
+  const [restartDialogOpen, setRestartDialogOpen] = useState(false);
+  const [restartMode, setRestartMode] = useState<'all' | 'failed'>('failed');
 
   const { data: campaign, isLoading, error } = useQuery<CampaignWithMetrics>({
     queryKey: ['/api/campaigns', campaignId],
@@ -287,6 +299,29 @@ export default function CampaignDetail() {
       toast({
         title: "Error",
         description: error.message || "Failed to delete campaign",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const restartCampaignMutation = useMutation({
+    mutationFn: async (mode: 'all' | 'failed') => {
+      return apiRequest('POST', `/api/campaigns/${campaignId}/restart`, { mode });
+    },
+    onSuccess: (_, mode) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      setRestartDialogOpen(false);
+      toast({
+        title: "Campaign restarted",
+        description: mode === 'all' 
+          ? "The campaign will re-send to all recipients."
+          : "The campaign will queue failed recipients for retry.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to restart campaign",
         variant: "destructive",
       });
     }
@@ -368,45 +403,8 @@ export default function CampaignDetail() {
           updateCampaignMutation.mutate({ status: 'stopped' });
         }
         break;
-      case 'restart_all':
-        if (confirm('Are you sure you want to restart this campaign for ALL recipients? This will re-send emails to everyone.')) {
-          // API call to restart for all recipients
-          apiRequest(`/api/campaigns/${campaignId}/restart`, 'POST', { mode: 'all' })
-            .then(() => {
-              queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
-              toast({
-                title: "Campaign restarted",
-                description: "The campaign will re-send to all recipients.",
-              });
-            })
-            .catch((error) => {
-              toast({
-                title: "Error",
-                description: error.message || "Failed to restart campaign",
-                variant: "destructive",
-              });
-            });
-        }
-        break;
-      case 'restart_unsent':
-        if (confirm('Are you sure you want to restart this campaign for unsent recipients only?')) {
-          // API call to restart for unsent recipients only
-          apiRequest(`/api/campaigns/${campaignId}/restart`, 'POST', { mode: 'unsent' })
-            .then(() => {
-              queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
-              toast({
-                title: "Campaign restarted",
-                description: "The campaign will send to recipients who haven't received emails yet.",
-              });
-            })
-            .catch((error) => {
-              toast({
-                title: "Error",
-                description: error.message || "Failed to restart campaign",
-                variant: "destructive",
-              });
-            });
-        }
+      case 'restart':
+        setRestartDialogOpen(true);
         break;
       case 'edit':
         setIsEditMode(true);
@@ -421,6 +419,10 @@ export default function CampaignDetail() {
         }
         break;
     }
+  };
+
+  const handleRestartConfirm = () => {
+    restartCampaignMutation.mutate(restartMode);
   };
 
   if (isLoading) {
@@ -582,24 +584,14 @@ export default function CampaignDetail() {
                   </DropdownMenuItem>
                 </>
               ) : campaign.status === 'stopped' || campaign.status === 'completed' ? (
-                <>
-                  <DropdownMenuItem 
-                    onClick={() => handleCampaignAction('restart_all')}
-                    className="text-blue-600 dark:text-blue-400"
-                    data-testid="menu-restart-all"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Restart All
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => handleCampaignAction('restart_unsent')}
-                    className="text-blue-600 dark:text-blue-400"
-                    data-testid="menu-restart-unsent"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Restart Unsent
-                  </DropdownMenuItem>
-                </>
+                <DropdownMenuItem 
+                  onClick={() => handleCampaignAction('restart')}
+                  className="text-blue-600 dark:text-blue-400"
+                  data-testid="menu-restart-campaign"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Restart Campaign
+                </DropdownMenuItem>
               ) : null}
               
               <DropdownMenuItem 
@@ -1205,6 +1197,52 @@ export default function CampaignDetail() {
           totalEmails={campaign.totalRecipients || 100}
         />
       )}
+
+      {/* Restart Campaign Dialog */}
+      <Dialog open={restartDialogOpen} onOpenChange={setRestartDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Restart Campaign</DialogTitle>
+            <DialogDescription>
+              Choose how you want to restart this campaign
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <RadioGroup value={restartMode} onValueChange={(value: 'all' | 'failed') => setRestartMode(value)}>
+              <div className="flex items-start space-x-3 space-y-0">
+                <RadioGroupItem value="failed" id="failed" className="mt-1" />
+                <div className="space-y-1 leading-none">
+                  <Label htmlFor="failed" className="cursor-pointer">
+                    Only queue failed recipients
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Re-queue recipients whose emails failed to send or generate
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3 space-y-0 mt-4">
+                <RadioGroupItem value="all" id="all" className="mt-1" />
+                <div className="space-y-1 leading-none">
+                  <Label htmlFor="all" className="cursor-pointer">
+                    Resend to all campaign recipients
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Start over and re-send emails to everyone in the campaign
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRestartDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleRestartConfirm} disabled={restartCampaignMutation.isPending}>
+              {restartCampaignMutation.isPending ? "Restarting..." : "Restart Campaign"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
