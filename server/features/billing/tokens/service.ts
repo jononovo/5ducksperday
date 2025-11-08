@@ -173,8 +173,24 @@ export class TokenService {
       console.log(`Checking Gmail auth status: {
         userId: ${userId},
         hasValidAuth: ${validationResult.isValid},
+        needsRefresh: ${validationResult.needsRefresh},
+        isExpired: ${validationResult.isExpired},
         timestamp: '${new Date().toISOString()}'
       }`);
+      
+      // If token is expired or needs refresh, attempt to refresh it
+      if (tokens?.gmailRefreshToken && (validationResult.isExpired || validationResult.needsRefresh)) {
+        console.log(`[TokenService] Token expired or needs refresh for user ${userId}, attempting refresh...`);
+        const refreshSuccess = await this.refreshGmailToken(userId);
+        
+        if (refreshSuccess) {
+          console.log(`[TokenService] Token refresh successful for user ${userId}`);
+          return true; // Token was refreshed successfully
+        } else {
+          console.log(`[TokenService] Token refresh failed for user ${userId}`);
+          return false; // Refresh failed, auth is invalid
+        }
+      }
       
       return validationResult.isValid;
     } catch (error) {
