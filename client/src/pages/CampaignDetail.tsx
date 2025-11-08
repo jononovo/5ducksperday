@@ -266,7 +266,7 @@ export default function CampaignDetail() {
 
   const updateCampaignMutation = useMutation({
     mutationFn: async (updates: Partial<Campaign>) => {
-      return apiRequest(`/api/campaigns/${campaignId}`, 'PUT', updates);
+      return apiRequest('PUT', `/api/campaigns/${campaignId}`, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });

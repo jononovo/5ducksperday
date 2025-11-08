@@ -758,6 +758,37 @@ export class EmailQueueProcessor {
           
           if (successful > 0) {
             console.log(`[EmailQueueProcessor] Successfully sent ${successful} emails for user ${userIdNum}`);
+            
+            // Check if all emails in the campaign have been sent
+            const campaignStats = await db
+              .select({
+                totalRecipients: sql<number>`count(*)::int`,
+                sentCount: sql<number>`sum(case when status = 'sent' then 1 else 0 end)::int`,
+                failedCount: sql<number>`sum(case when status in ('failed_send', 'failed_generation', 'manual_send_required') then 1 else 0 end)::int`
+              })
+              .from(campaignRecipients)
+              .where(eq(campaignRecipients.campaignId, campaignIdNum));
+            
+            if (campaignStats[0]) {
+              const { totalRecipients, sentCount, failedCount } = campaignStats[0];
+              const processedCount = sentCount + failedCount;
+              
+              // If all recipients have been processed (either sent or failed)
+              if (processedCount >= totalRecipients) {
+                console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum} completed: ${sentCount} sent, ${failedCount} failed out of ${totalRecipients} total`);
+                
+                // Mark the campaign as completed
+                await db
+                  .update(campaigns)
+                  .set({
+                    status: 'completed',
+                    updatedAt: new Date()
+                  })
+                  .where(eq(campaigns.id, campaignIdNum));
+                
+                console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum} marked as completed`);
+              }
+            }
           }
           if (failed > 0) {
             console.log(`[EmailQueueProcessor] Failed to send ${failed} emails for user ${userIdNum}`);
