@@ -256,14 +256,14 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
     try {
       const userId = getUserId(req);
       const campaignId = parseInt(req.params.id);
-      const { mode } = req.body; // 'all' or 'unsent'
+      const { mode } = req.body; // 'all' or 'failed'
       
       if (isNaN(campaignId)) {
         return res.status(400).json({ message: 'Invalid campaign ID' });
       }
       
-      if (!mode || !['all', 'unsent'].includes(mode)) {
-        return res.status(400).json({ message: 'Invalid restart mode. Use "all" or "unsent"' });
+      if (!mode || !['all', 'failed'].includes(mode)) {
+        return res.status(400).json({ message: 'Invalid restart mode. Use "all" or "failed"' });
       }
       
       // Verify campaign belongs to user

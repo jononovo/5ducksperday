@@ -112,7 +112,7 @@ export interface IStorage {
   createCampaign(data: InsertCampaign): Promise<Campaign>;
   updateCampaign(id: number, data: Partial<Campaign>): Promise<Campaign>;
   deleteCampaign(id: number, userId: number): Promise<void>;
-  restartCampaign(id: number, userId: number, mode: 'all' | 'unsent'): Promise<Campaign>;
+  restartCampaign(id: number, userId: number, mode: 'all' | 'failed'): Promise<Campaign>;
 
   // Search Jobs
   createSearchJob(data: InsertSearchJob): Promise<SearchJob>;
@@ -824,7 +824,7 @@ class DatabaseStorage implements IStorage {
       .where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)));
   }
 
-  async restartCampaign(id: number, userId: number, mode: 'all' | 'unsent'): Promise<Campaign> {
+  async restartCampaign(id: number, userId: number, mode: 'all' | 'failed'): Promise<Campaign> {
     // Verify campaign exists and belongs to user
     const campaign = await this.getCampaign(id, userId);
     if (!campaign) {
@@ -847,7 +847,7 @@ class DatabaseStorage implements IStorage {
       // Clear recipient statuses for all recipients
       await db.update(campaignRecipients)
         .set({
-          status: 'pending',
+          status: 'scheduled',
           sentAt: null,
           openedAt: null,
           clickedAt: null,
@@ -859,16 +859,20 @@ class DatabaseStorage implements IStorage {
           updatedAt: new Date()
         })
         .where(eq(campaignRecipients.campaignId, id));
-    } else if (mode === 'unsent') {
-      // Only reset unsent recipients
+    } else if (mode === 'failed') {
+      // Only reset failed recipients (failed_generation, failed_send, manual_send_required)
       await db.update(campaignRecipients)
         .set({
-          status: 'pending',
+          status: 'scheduled',
           updatedAt: new Date()
         })
         .where(and(
           eq(campaignRecipients.campaignId, id),
-          isNull(campaignRecipients.sentAt)
+          or(
+            eq(campaignRecipients.status, 'failed_generation'),
+            eq(campaignRecipients.status, 'failed_send'),
+            eq(campaignRecipients.status, 'manual_send_required')
+          )
         ));
     }
 
