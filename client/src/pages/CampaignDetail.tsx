@@ -309,7 +309,9 @@ export default function CampaignDetail() {
       return apiRequest('POST', `/api/campaigns/${campaignId}/restart`, { mode });
     },
     onSuccess: (_, mode) => {
+      // Invalidate both the campaigns list and the specific campaign detail
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns', campaignId] });
       setRestartDialogOpen(false);
       toast({
         title: "Campaign restarted",
