@@ -808,14 +808,28 @@ export default function CampaignDetail() {
                           const settings = typeof campaign.autopilotSettings === 'string' 
                             ? JSON.parse(campaign.autopilotSettings) 
                             : campaign.autopilotSettings;
-                          const activeDays = Object.entries(settings || {})
+                          
+                          // Check if autopilot is enabled and has days configured
+                          if (!settings.days) {
+                            return 'No schedule set';
+                          }
+                          
+                          // Iterate over the days object, not the root settings object
+                          const activeDays = Object.entries(settings.days)
                             .filter(([_, config]: [string, any]) => config && config.enabled)
                             .map(([day, config]: [string, any]) => {
                               const dayAbbr = day.slice(0, 3).charAt(0).toUpperCase() + day.slice(1, 3);
                               return `${dayAbbr} ${config.startTime || '09:00'}-${config.endTime || '17:00'}`;
                             });
+                          
+                          // If there are many days, just show a summary
+                          if (activeDays.length > 3) {
+                            return `${activeDays.length} days scheduled`;
+                          }
+                          
                           return activeDays.length > 0 ? activeDays.join(', ') : 'No schedule set';
                         } catch (e) {
+                          console.error('Error parsing autopilot settings:', e);
                           return 'No schedule set';
                         }
                       })()}
