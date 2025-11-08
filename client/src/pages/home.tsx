@@ -543,16 +543,28 @@ export default function Home() {
     };
   }, []); // Remove dependencies to prevent re-running
 
-  // Listen for the drawer open event from the header
+  // Listen for drawer events from global navigation
   useEffect(() => {
     const handleOpenDrawer = () => {
       setSavedSearchesDrawerOpen(true);
     };
+    
+    const handleLoadSearchEvent = (event: CustomEvent) => {
+      handleLoadSavedSearch(event.detail);
+    };
+    
+    const handleNewSearchEvent = () => {
+      handleNewSearch();
+    };
 
     window.addEventListener('openSavedSearchesDrawer', handleOpenDrawer);
+    window.addEventListener('loadSavedSearch', handleLoadSearchEvent as EventListener);
+    window.addEventListener('startNewSearch', handleNewSearchEvent);
     
     return () => {
       window.removeEventListener('openSavedSearchesDrawer', handleOpenDrawer);
+      window.removeEventListener('loadSavedSearch', handleLoadSearchEvent as EventListener);
+      window.removeEventListener('startNewSearch', handleNewSearchEvent);
     };
   }, []);
 

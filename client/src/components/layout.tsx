@@ -76,13 +76,15 @@ export function AppLayout({ children }: LayoutProps) {
       </div>
       {!shouldHideFooter && <MiniFooter />}
       
-      {/* Global SavedSearchesDrawer - available on all app pages */}
-      <SavedSearchesDrawer 
-        open={savedSearchesDrawerOpen}
-        onOpenChange={setSavedSearchesDrawerOpen}
-        onLoadSearch={handleLoadSearch}
-        onNewSearch={handleNewSearch}
-      />
+      {/* Global SavedSearchesDrawer - available on all app pages except /app (which has its own) */}
+      {location !== '/app' && (
+        <SavedSearchesDrawer 
+          open={savedSearchesDrawerOpen}
+          onOpenChange={setSavedSearchesDrawerOpen}
+          onLoadSearch={handleLoadSearch}
+          onNewSearch={handleNewSearch}
+        />
+      )}
     </div>
   );
 }
