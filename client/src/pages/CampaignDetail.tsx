@@ -402,7 +402,7 @@ export default function CampaignDetail() {
         break;
       case 'stop':
         if (confirm('Are you sure you want to stop this campaign? This will permanently halt all sending.')) {
-          updateCampaignMutation.mutate({ status: 'stopped' });
+          updateCampaignMutation.mutate({ status: 'completed' });
         }
         break;
       case 'restart':
