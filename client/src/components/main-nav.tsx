@@ -45,17 +45,8 @@ export function MainNav() {
   }
 
   const handleDrawerClick = () => {
-    if (location === '/app') {
-      // If already on app page, trigger the drawer open event
-      window.dispatchEvent(new CustomEvent('openSavedSearchesDrawer'));
-    } else {
-      // If on another page, navigate to app page
-      setLocation('/app');
-      // Trigger drawer after navigation
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('openSavedSearchesDrawer'));
-      }, 100);
-    }
+    // Trigger the drawer open event on any page
+    window.dispatchEvent(new CustomEvent('openSavedSearchesDrawer'));
   };
 
   return (
