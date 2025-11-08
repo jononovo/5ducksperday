@@ -591,13 +591,6 @@ export default function CampaignDetail() {
                   </span>
                 </>
               )}
-              {/* Auto-refresh indicator */}
-              <div className="flex items-center gap-1 ml-2">
-                <RefreshCw className="h-3 w-3 text-muted-foreground animate-pulse" />
-                <span className="text-xs text-muted-foreground">
-                  Auto-refreshing every 20s
-                </span>
-              </div>
             </div>
           </div>
         </div>
