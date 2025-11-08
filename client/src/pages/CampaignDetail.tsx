@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -258,11 +258,72 @@ export default function CampaignDetail() {
   const [autopilotModalOpen, setAutopilotModalOpen] = useState(false);
   const [restartDialogOpen, setRestartDialogOpen] = useState(false);
   const [restartMode, setRestartMode] = useState<'all' | 'failed'>('failed');
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date());
 
-  const { data: campaign, isLoading, error } = useQuery<CampaignWithMetrics>({
+  const { data: campaign, isLoading, error, refetch } = useQuery<CampaignWithMetrics>({
     queryKey: ['/api/campaigns', campaignId],
-    enabled: !!campaignId
+    enabled: !!campaignId,
+    // Keep data fresh but don't refetch on window focus since we have auto-refresh
+    refetchOnWindowFocus: false
   });
+  
+  // Auto-refresh campaign data every 20 seconds when page is visible
+  useEffect(() => {
+    // Only set up auto-refresh if we have a campaign
+    if (!campaignId) return;
+    
+    let intervalId: NodeJS.Timeout | null = null;
+    
+    const startAutoRefresh = () => {
+      // Clear any existing interval
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      
+      // Set up new interval for 20 seconds
+      intervalId = setInterval(() => {
+        // Only refetch if the document is visible
+        if (document.visibilityState === 'visible') {
+          console.log('Auto-refreshing campaign data...');
+          refetch();
+          setLastRefreshTime(new Date());
+        }
+      }, 20000); // 20 seconds
+    };
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Page became visible - start auto-refresh and do immediate refresh
+        console.log('Page became visible, refreshing campaign data');
+        refetch();
+        setLastRefreshTime(new Date());
+        startAutoRefresh();
+      } else {
+        // Page became hidden - stop auto-refresh to save resources
+        console.log('Page became hidden, pausing auto-refresh');
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+      }
+    };
+    
+    // Start auto-refresh if page is currently visible
+    if (document.visibilityState === 'visible') {
+      startAutoRefresh();
+    }
+    
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Cleanup function
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [campaignId, refetch, setLastRefreshTime]);
 
   const updateCampaignMutation = useMutation({
     mutationFn: async (updates: Partial<Campaign>) => {
@@ -530,6 +591,13 @@ export default function CampaignDetail() {
                   </span>
                 </>
               )}
+              {/* Auto-refresh indicator */}
+              <div className="flex items-center gap-1 ml-2">
+                <RefreshCw className="h-3 w-3 text-muted-foreground animate-pulse" />
+                <span className="text-xs text-muted-foreground">
+                  Auto-refreshing every 20s
+                </span>
+              </div>
             </div>
           </div>
         </div>
