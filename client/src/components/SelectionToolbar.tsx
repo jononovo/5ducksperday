@@ -94,7 +94,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
   const toolbar = (
     <div className={`flex items-center gap-2 ${isMobile ? 'w-full justify-between px-4 py-2 bg-background border-t' : ''}`}>
       <span className="text-sm font-medium">
-        {selectedCount} contact{selectedCount !== 1 ? 's' : ''} selected
+        {selectedCount} selected
       </span>
       
       <div className="flex items-center gap-2">

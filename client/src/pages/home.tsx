@@ -2226,17 +2226,6 @@ export default function Home() {
                       </Tooltip>
                     </TooltipProvider>
                     </div>
-                    
-                    {/* Selection Toolbar - Desktop: inline, Mobile: handled separately */}
-                    {selectedContacts.size > 0 && (
-                      <div className="hidden md:flex items-center ml-4">
-                        <SelectionToolbar
-                          selectedCount={selectedContacts.size}
-                          onClear={() => setSelectedContacts(new Set())}
-                          selectedContactIds={Array.from(selectedContacts)}
-                        />
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -2309,6 +2298,13 @@ export default function Home() {
                       selectedEmailContact={emailDrawer.selectedContact}
                       selectedContacts={selectedContacts}
                       onContactSelectionChange={handleCheckboxChange}
+                      topActionsTrailing={selectedContacts.size > 0 ? (
+                        <SelectionToolbar
+                          selectedCount={selectedContacts.size}
+                          onClear={() => setSelectedContacts(new Set())}
+                          selectedContactIds={Array.from(selectedContacts)}
+                        />
+                      ) : undefined}
                   />
                   </Suspense>
                 </div>
@@ -2383,15 +2379,6 @@ export default function Home() {
       />
       
       {/* Mobile Selection Toolbar - Shows at bottom */}
-      {selectedContacts.size > 0 && (
-        <div className="md:hidden">
-          <SelectionToolbar
-            selectedCount={selectedContacts.size}
-            onClear={() => setSelectedContacts(new Set())}
-            selectedContactIds={Array.from(selectedContacts)}
-          />
-        </div>
-      )}
       
       {/* Onboarding Flow */}
       {showOnboarding && (

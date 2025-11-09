@@ -62,6 +62,7 @@ interface CompanyCardsProps {
   selectedEmailContact?: Contact | null;
   selectedContacts?: Set<number>;
   onContactSelectionChange?: (contactId: number) => void;
+  topActionsTrailing?: React.ReactNode;
 }
 
 // Unified CompanyCard component
@@ -351,7 +352,8 @@ export default function CompanyCards({
   onViewModeChange,
   selectedEmailContact,
   selectedContacts = new Set<number>(),
-  onContactSelectionChange
+  onContactSelectionChange,
+  topActionsTrailing
 }: CompanyCardsProps) {
   const [, setLocation] = useLocation();
   
@@ -509,44 +511,53 @@ export default function CompanyCards({
     <div className="w-full space-y-1">
       {/* View Mode Toggle */}
       <div className="flex items-center justify-between -mt-1 mb-2">
-        <div className="flex items-center gap-0.5 bg-muted/20 rounded-md p-0.5">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setViewMode('scroll');
-              onViewModeChange?.('scroll');
-            }}
-            className={cn(
-              "px-2 h-6 text-[11px] font-medium transition-all",
-              viewMode === 'scroll' 
-                ? "bg-background text-gray-600 shadow-sm" 
-                : "hover:bg-muted/50 text-gray-400/60 hover:text-gray-500"
-            )}
-          >
-            <ScrollText className="h-3 w-3 mr-0.5" />
-            Scroll
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setViewMode('slides');
-              onViewModeChange?.('slides');
-              // Highlight navigation buttons for 1 second
-              setHighlightNavButtons(true);
-              setTimeout(() => setHighlightNavButtons(false), 1000);
-            }}
-            className={cn(
-              "px-2 h-6 text-[11px] font-medium transition-all",
-              viewMode === 'slides' 
-                ? "bg-background text-gray-600 shadow-sm" 
-                : "hover:bg-muted/50 text-gray-400/60 hover:text-gray-500"
-            )}
-          >
-            <Layers className="h-3 w-3 mr-0.5" />
-            Slides
-          </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-0.5 bg-muted/20 rounded-md p-0.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setViewMode('scroll');
+                onViewModeChange?.('scroll');
+              }}
+              className={cn(
+                "px-2 h-6 text-[11px] font-medium transition-all",
+                viewMode === 'scroll' 
+                  ? "bg-background text-gray-600 shadow-sm" 
+                  : "hover:bg-muted/50 text-gray-400/60 hover:text-gray-500"
+              )}
+            >
+              <ScrollText className="h-3 w-3 mr-0.5" />
+              Scroll
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setViewMode('slides');
+                onViewModeChange?.('slides');
+                // Highlight navigation buttons for 1 second
+                setHighlightNavButtons(true);
+                setTimeout(() => setHighlightNavButtons(false), 1000);
+              }}
+              className={cn(
+                "px-2 h-6 text-[11px] font-medium transition-all",
+                viewMode === 'slides' 
+                  ? "bg-background text-gray-600 shadow-sm" 
+                  : "hover:bg-muted/50 text-gray-400/60 hover:text-gray-500"
+              )}
+            >
+              <Layers className="h-3 w-3 mr-0.5" />
+              Slides
+            </Button>
+          </div>
+          
+          {/* Desktop: Selection Toolbar */}
+          {topActionsTrailing && (
+            <div className="hidden md:flex">
+              {topActionsTrailing}
+            </div>
+          )}
         </div>
         
         {/* Slide Counter and Navigation for Slides View */}
