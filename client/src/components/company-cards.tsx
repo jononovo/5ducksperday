@@ -83,6 +83,9 @@ interface CompanyCardProps {
   pendingContactIds?: Set<number>;
   pendingComprehensiveSearchIds?: Set<number>;
   onContactClick?: (contact: ContactWithCompanyInfo, company: Company) => void;
+  onContactHover?: (contactId: number) => void;
+  onContactLeave?: () => void;
+  shouldShowCheckbox?: (contactId: number) => boolean;
   setLocation: (path: string) => void;
   topContacts: ContactWithCompanyInfo[];
   viewMode: 'scroll' | 'slides';
@@ -107,6 +110,9 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   pendingContactIds,
   pendingComprehensiveSearchIds,
   onContactClick,
+  onContactHover,
+  onContactLeave,
+  shouldShowCheckbox,
   setLocation,
   topContacts,
   viewMode,
@@ -221,13 +227,15 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                     selectedContacts.has(contact.id) && "bg-blue-50/30 dark:bg-blue-950/10"
                   )}
                   onClick={() => onContactClick?.(contact, company)}
+                  onMouseEnter={() => onContactHover?.(contact.id)}
+                  onMouseLeave={() => onContactLeave?.()}
                 >
                   <Checkbox 
                     checked={selectedContacts.has(contact.id)}
                     onCheckedChange={() => onToggleContactSelection({stopPropagation: () => {}} as React.MouseEvent, contact.id)}
                     onClick={(e) => e.stopPropagation()}
                     aria-label={`Select ${contact.name}`}
-                    className="mt-0.5 hidden"
+                    className={cn("mt-0.5", shouldShowCheckbox?.(contact.id) ? "" : "hidden")}
                   />
                   
                   <div className="flex-1 min-w-0">
@@ -357,6 +365,11 @@ export default function CompanyCards({
   // State to highlight navigation buttons
   const [highlightNavButtons, setHighlightNavButtons] = useState(false);
   
+  // Checkbox visibility state
+  const [hoveredContactId, setHoveredContactId] = useState<number | null>(null);
+  const [hoverTimer, setHoverTimer] = useState<NodeJS.Timeout | null>(null);
+  const [globalCheckboxMode, setGlobalCheckboxMode] = useState(false);
+  
   // Toggle expansion state for a company card
   const toggleCardExpansion = (companyId: number) => {
     setExpandedCards(prev => {
@@ -399,8 +412,74 @@ export default function CompanyCards({
     e.stopPropagation();
     if (onContactSelectionChange) {
       onContactSelectionChange(contactId);
+      // Activate global checkbox mode after 0.5s when any contact is selected
+      if (!globalCheckboxMode && !selectedContacts.has(contactId)) {
+        setTimeout(() => setGlobalCheckboxMode(true), 500);
+      }
     }
   };
+  
+  // Handle contact card hover
+  const handleContactHover = (contactId: number) => {
+    // Clear existing timer
+    if (hoverTimer) {
+      clearTimeout(hoverTimer);
+    }
+    
+    // Set new timer for 1.5s
+    const timer = setTimeout(() => {
+      setHoveredContactId(contactId);
+    }, 1500);
+    
+    setHoverTimer(timer);
+  };
+  
+  // Handle contact card mouse leave
+  const handleContactLeave = () => {
+    // Clear timer
+    if (hoverTimer) {
+      clearTimeout(hoverTimer);
+      setHoverTimer(null);
+    }
+    // Clear hovered contact
+    setHoveredContactId(null);
+  };
+  
+  // Handle contact card click for selection
+  const handleContactCardClick = (contact: ContactWithCompanyInfo, company: Company) => {
+    // Toggle selection on click
+    if (onContactSelectionChange) {
+      onContactSelectionChange(contact.id);
+      // Activate global checkbox mode after 0.5s
+      if (!globalCheckboxMode && !selectedContacts.has(contact.id)) {
+        setTimeout(() => setGlobalCheckboxMode(true), 500);
+      }
+    }
+    
+    // Also trigger the existing onContactClick if provided (for email drawer, etc)
+    if (onContactClick) {
+      onContactClick(contact, company);
+    }
+  };
+  
+  // Check if checkbox should be visible for a contact
+  const shouldShowCheckbox = (contactId: number) => {
+    // Always show on mobile/touch devices
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouchDevice) return true;
+    
+    // Show if: hovered OR selected OR global mode active
+    return hoveredContactId === contactId || 
+           selectedContacts.has(contactId) || 
+           globalCheckboxMode;
+  };
+  
+  // Reset global checkbox mode when no contacts selected
+  useEffect(() => {
+    if (selectedContacts.size === 0) {
+      setGlobalCheckboxMode(false);
+    }
+  }, [selectedContacts.size]);
   
   // Auto-expand first company when new search results arrive
   useEffect(() => {
@@ -524,7 +603,10 @@ export default function CompanyCards({
             pendingApolloIds={pendingApolloIds}
             pendingContactIds={pendingContactIds}
             pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
-            onContactClick={onContactClick}
+            onContactClick={handleContactCardClick}
+            onContactHover={handleContactHover}
+            onContactLeave={handleContactLeave}
+            shouldShowCheckbox={shouldShowCheckbox}
             setLocation={setLocation}
             topContacts={getTopContacts(company)}
             viewMode={viewMode}

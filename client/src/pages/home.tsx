@@ -19,6 +19,7 @@ import { OnboardingFlowOrchestrator } from "@/components/onboarding/OnboardingFl
 import { EmailDrawer, useEmailDrawer } from "@/features/email-drawer";
 import { SearchManagementDrawer, useSearchManagementDrawer } from "@/features/search-management-drawer";
 import { TopProspectsCard } from "@/features/top-prospects";
+import { SelectionToolbar } from "@/components/SelectionToolbar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
@@ -2225,6 +2226,17 @@ export default function Home() {
                       </Tooltip>
                     </TooltipProvider>
                     </div>
+                    
+                    {/* Selection Toolbar - Desktop: inline, Mobile: handled separately */}
+                    {selectedContacts.size > 0 && (
+                      <div className="hidden md:flex items-center ml-4">
+                        <SelectionToolbar
+                          selectedCount={selectedContacts.size}
+                          onClear={() => setSelectedContacts(new Set())}
+                          selectedContactIds={Array.from(selectedContacts)}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -2369,6 +2381,17 @@ export default function Home() {
         notificationState={notificationState}
         onClose={closeNotification}
       />
+      
+      {/* Mobile Selection Toolbar - Shows at bottom */}
+      {selectedContacts.size > 0 && (
+        <div className="md:hidden">
+          <SelectionToolbar
+            selectedCount={selectedContacts.size}
+            onClear={() => setSelectedContacts(new Set())}
+            selectedContactIds={Array.from(selectedContacts)}
+          />
+        </div>
+      )}
       
       {/* Onboarding Flow */}
       {showOnboarding && (
