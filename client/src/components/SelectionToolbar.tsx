@@ -128,49 +128,45 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
           </SelectContent>
         </Select>
       ) : (
-        <TooltipProvider>
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-6 px-2 text-[11px] font-medium text-gray-600">
-                      <span className="text-primary mr-1">{selectedCount}</span>
-                      Add to
-                      <ChevronDown className="h-3 w-3 ml-1" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">{selectedCount} selected • Add selected to list</p>
-                  </TooltipContent>
-                </Tooltip>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setShowListSelector(true)}>
-                  Contact List
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {
-                  toast({
-                    title: "Campaign creation",
-                    description: "Campaign creation with selected contacts is coming soon!",
-                  });
-                }}>
-                  Campaign
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-6 px-2 text-[11px] font-medium text-gray-600"
+                title={`${selectedCount} selected • Add selected to list`}
+              >
+                <span className="text-primary mr-1">{selectedCount}</span>
+                Add to
+                <ChevronDown className="h-3 w-3 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setShowListSelector(true)}>
+                Contact List
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                toast({
+                  title: "Campaign creation",
+                  description: "Campaign creation with selected contacts is coming soon!",
+                });
+              }}>
+                Campaign
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClear}
-              className="h-6 px-2 text-[11px] font-medium text-gray-600"
-            >
-              <X className="h-3 w-3 mr-1" />
-              Clear
-            </Button>
-          </div>
-        </TooltipProvider>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClear}
+            className="h-6 px-2 text-[11px] font-medium text-gray-600"
+          >
+            <X className="h-3 w-3 mr-1" />
+            Clear
+          </Button>
+        </div>
       )}
     </div>
   );
