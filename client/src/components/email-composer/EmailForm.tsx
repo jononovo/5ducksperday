@@ -92,12 +92,12 @@ export default function EmailForm({
                     onClick={onGmailConnect}
                     variant="outline"
                     size="sm"
-                    className="h-8 text-xs bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400 transition-all duration-300 group overflow-hidden flex items-center justify-center"
+                    className="h-8 text-xs bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400 transition-all duration-300 group overflow-hidden flex items-center justify-center w-8"
                     style={{ 
                       width: 'auto',
                       minWidth: '32px',
                       maxWidth: '32px',
-                      padding: '0',
+                      padding: '0 8px',
                       transition: 'max-width 0.3s ease-out, padding 0.3s ease-out'
                     }}
                     onMouseEnter={(e) => {
@@ -108,7 +108,7 @@ export default function EmailForm({
                     onMouseLeave={(e) => {
                       const button = e.currentTarget;
                       button.style.maxWidth = '32px';
-                      button.style.padding = '0';
+                      button.style.padding = '0 8px';
                     }}
                     data-testid="button-gmail-connected"
                   >
