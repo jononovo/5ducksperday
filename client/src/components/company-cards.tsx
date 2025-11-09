@@ -512,6 +512,13 @@ export default function CompanyCards({
       {/* View Mode Toggle */}
       <div className="flex items-center justify-between -mt-1 mb-2">
         <div className="flex items-center gap-2">
+          {/* Desktop: Selection Toolbar (positioned first) */}
+          {topActionsTrailing && (
+            <div className="hidden md:flex">
+              {topActionsTrailing}
+            </div>
+          )}
+          
           <div className="flex items-center gap-0.5 bg-muted/20 rounded-md p-0.5">
             <Button
               variant="ghost"
@@ -551,13 +558,6 @@ export default function CompanyCards({
               Slides
             </Button>
           </div>
-          
-          {/* Desktop: Selection Toolbar */}
-          {topActionsTrailing && (
-            <div className="hidden md:flex">
-              {topActionsTrailing}
-            </div>
-          )}
         </div>
         
         {/* Slide Counter and Navigation for Slides View */}
