@@ -1,16 +1,22 @@
 import { Button } from "@/components/ui/button";
-import { X, UserPlus } from "lucide-react";
+import { X, UserPlus, ChevronUp, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { RecipientSelectionModal } from "@/components/recipient-selection-modal";
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState, useRef, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { ContactList } from "@shared/schema";
 
 interface SelectionToolbarProps {
   selectedCount: number;
@@ -19,9 +25,15 @@ interface SelectionToolbarProps {
 }
 
 export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }: SelectionToolbarProps) {
-  const [showRecipientModal, setShowRecipientModal] = useState(false);
-  const [modalMode, setModalMode] = useState<'list' | 'campaign'>('list');
+  const [showContactListPopover, setShowContactListPopover] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Fetch contact lists
+  const { data: contactLists = [], isLoading } = useQuery<ContactList[]>({
+    queryKey: ['/api/contact-lists'],
+    enabled: showContactListPopover,
+  });
 
   const addContactsMutation = useMutation({
     mutationFn: async ({ contactListId, contactIds }: { contactListId: number; contactIds: number[] }) => {
@@ -35,14 +47,15 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       queryClient.invalidateQueries({ queryKey: ['/api/contact-lists'] });
       queryClient.invalidateQueries({ queryKey: [`/api/contact-lists/${contactListId}/contacts`] });
       
+      const list = contactLists.find(l => l.id === contactListId);
       toast({
         title: "Contacts added successfully",
-        description: `${selectedContactIds.length} contact${selectedContactIds.length !== 1 ? 's' : ''} added to the list.`,
+        description: `${selectedContactIds.length} contact${selectedContactIds.length !== 1 ? 's' : ''} added to "${list?.name || 'list'}".`,
       });
       
-      // Clear selections after successful add
+      // Clear selections and close popover
       onClear();
-      setShowRecipientModal(false);
+      setShowContactListPopover(false);
     },
     onError: (error: any) => {
       toast({
@@ -53,25 +66,20 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
     }
   });
 
-  const handleAddToClick = (mode: 'list' | 'campaign') => {
-    setModalMode(mode);
-    setShowRecipientModal(true);
+  const handleContactListSelect = async (contactListId: number) => {
+    await addContactsMutation.mutateAsync({
+      contactListId,
+      contactIds: selectedContactIds,
+    });
   };
 
-  const handleModalSelect = async (selection: any) => {
-    if (selection.type === 'existing' && selection.contactListId) {
-      // Add contacts to existing contact list
-      await addContactsMutation.mutateAsync({
-        contactListId: selection.contactListId,
-        contactIds: selectedContactIds,
+  const handleScroll = (direction: 'up' | 'down') => {
+    if (scrollRef.current) {
+      const scrollAmount = 100;
+      scrollRef.current.scrollBy({
+        top: direction === 'down' ? scrollAmount : -scrollAmount,
+        behavior: 'smooth'
       });
-    } else if (selection.type === 'current' || selection.type === 'multiple') {
-      // For campaigns, we'd need a different mutation - for now just show a toast
-      toast({
-        title: "Campaign creation",
-        description: "Campaign creation with selected contacts is coming soon!",
-      });
-      setShowRecipientModal(false);
     }
   };
 
@@ -94,10 +102,76 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => handleAddToClick('list')}>
-              Contact List
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAddToClick('campaign')}>
+            <Popover open={showContactListPopover} onOpenChange={setShowContactListPopover}>
+              <PopoverTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  Contact List
+                </DropdownMenuItem>
+              </PopoverTrigger>
+              <PopoverContent 
+                side="right" 
+                align="start"
+                className="w-[350px] p-2"
+                sideOffset={5}
+              >
+                <div className="relative">
+                  {/* Scroll buttons */}
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="absolute -top-1 right-7 h-6 w-6 z-10"
+                    onClick={() => handleScroll('up')}
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="absolute -top-1 right-0 h-6 w-6 z-10"
+                    onClick={() => handleScroll('down')}
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+
+                  <ScrollArea className="h-[300px] w-full" ref={scrollRef}>
+                    {isLoading ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        Loading contact lists...
+                      </div>
+                    ) : contactLists.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        No contact lists found. Create one first.
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        {contactLists.map((list) => (
+                          <button
+                            key={list.id}
+                            onClick={() => handleContactListSelect(list.id)}
+                            className="w-full text-left px-3 py-2 rounded hover:bg-accent hover:text-accent-foreground transition-colors"
+                            disabled={addContactsMutation.isPending}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">{list.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {list.contact_count || 0} contacts
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
+              </PopoverContent>
+            </Popover>
+            
+            <DropdownMenuItem onClick={() => {
+              toast({
+                title: "Campaign creation",
+                description: "Campaign creation with selected contacts is coming soon!",
+              });
+            }}>
               Campaign
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -113,17 +187,6 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
           Clear
         </Button>
       </div>
-
-      {/* Reuse existing modal for selection */}
-      {showRecipientModal && (
-        <RecipientSelectionModal
-          open={showRecipientModal}
-          onOpenChange={setShowRecipientModal}
-          currentListId={null}
-          currentQuery={null}
-          onSelect={handleModalSelect}
-        />
-      )}
     </div>
   );
 
