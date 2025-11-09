@@ -92,8 +92,9 @@ export default function EmailForm({
                     onClick={onGmailConnect}
                     variant="outline"
                     size="sm"
-                    className="h-8 text-xs bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400 transition-all duration-300 group overflow-hidden flex items-center justify-center w-8"
+                    className="h-8 text-xs bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400 transition-all duration-300 group overflow-hidden"
                     style={{ 
+                      width: 'auto',
                       minWidth: '32px',
                       maxWidth: '32px',
                       padding: '0 8px',
@@ -111,7 +112,7 @@ export default function EmailForm({
                     }}
                     data-testid="button-gmail-connected"
                   >
-                    <Mail className="w-4 h-4 shrink-0 text-green-600" />
+                    <Mail className="w-3 h-3 shrink-0" />
                     <span 
                       className="ml-1.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                       style={{ transitionDelay: '0.1s' }}
@@ -139,7 +140,7 @@ export default function EmailForm({
                     )}
                     data-testid="button-gmail-connect"
                   >
-                    <Lock className="w-4 h-4 shrink-0 text-gray-500" />
+                    <Lock className="w-3 h-3 shrink-0" />
                     {isGmailButtonHovered && (
                       <span className="ml-1 whitespace-nowrap">Gmail API BETA</span>
                     )}
