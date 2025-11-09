@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { X, UserPlus, ChevronUp, ChevronDown } from "lucide-react";
+import { X, UserPlus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,12 +7,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState, useRef, useEffect } from "react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -25,14 +26,13 @@ interface SelectionToolbarProps {
 }
 
 export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }: SelectionToolbarProps) {
-  const [showContactListPopover, setShowContactListPopover] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showListSelector, setShowListSelector] = useState(false);
+  const [selectedContactList, setSelectedContactList] = useState<string>("");
   const { toast } = useToast();
 
   // Fetch contact lists
-  const { data: contactLists = [], isLoading } = useQuery<ContactList[]>({
+  const { data: contactLists = [] } = useQuery<ContactList[]>({
     queryKey: ['/api/contact-lists'],
-    enabled: showContactListPopover,
   });
 
   const addContactsMutation = useMutation({
@@ -60,9 +60,10 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
         description: `${selectedContactIds.length} contact${selectedContactIds.length !== 1 ? 's' : ''} added to "${list?.name || 'list'}".`,
       });
       
-      // Clear selections and close popover
+      // Clear selections after successful add
       onClear();
-      setShowContactListPopover(false);
+      setShowListSelector(false);
+      setSelectedContactList("");
     },
     onError: (error: any) => {
       toast({
@@ -73,22 +74,18 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
     }
   });
 
-  const handleContactListSelect = async (contactListId: number) => {
-    await addContactsMutation.mutateAsync({
-      contactListId,
-      contactIds: selectedContactIds,
-    });
-  };
-
-  const handleScroll = (direction: 'up' | 'down') => {
-    if (scrollRef.current) {
-      const scrollAmount = 100;
-      scrollRef.current.scrollBy({
-        top: direction === 'down' ? scrollAmount : -scrollAmount,
-        behavior: 'smooth'
-      });
+  // Handle list selection
+  useEffect(() => {
+    if (selectedContactList && selectedContactList !== "") {
+      const listId = parseInt(selectedContactList);
+      if (!isNaN(listId)) {
+        addContactsMutation.mutate({
+          contactListId: listId,
+          contactIds: selectedContactIds,
+        });
+      }
     }
-  };
+  }, [selectedContactList]);
 
   // Mobile: Fixed bottom toolbar
   // Desktop: Inline with top buttons
@@ -101,88 +98,57 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       </span>
       
       <div className="flex items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8">
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add to
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <Popover open={showContactListPopover} onOpenChange={setShowContactListPopover}>
-              <PopoverTrigger asChild>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  Contact List
-                </DropdownMenuItem>
-              </PopoverTrigger>
-              <PopoverContent 
-                side="right" 
-                align="start"
-                className="w-[350px] p-2"
-                sideOffset={5}
-              >
-                <div className="relative">
-                  {/* Scroll buttons */}
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="absolute -top-1 right-7 h-6 w-6 z-10"
-                    onClick={() => handleScroll('up')}
-                  >
-                    <ChevronUp className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="absolute -top-1 right-0 h-6 w-6 z-10"
-                    onClick={() => handleScroll('down')}
-                  >
-                    <ChevronDown className="h-3 w-3" />
-                  </Button>
-
-                  <ScrollArea className="h-[300px] w-full" ref={scrollRef}>
-                    {isLoading ? (
-                      <div className="p-4 text-center text-sm text-muted-foreground">
-                        Loading contact lists...
-                      </div>
-                    ) : contactLists.length === 0 ? (
-                      <div className="p-4 text-center text-sm text-muted-foreground">
-                        No contact lists found. Create one first.
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        {contactLists.map((list) => (
-                          <button
-                            key={list.id}
-                            onClick={() => handleContactListSelect(list.id)}
-                            className="w-full text-left px-3 py-2 rounded hover:bg-accent hover:text-accent-foreground transition-colors"
-                            disabled={addContactsMutation.isPending}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">{list.name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {list.contactCount || 0} contacts
-                              </span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                </div>
-              </PopoverContent>
-            </Popover>
-            
-            <DropdownMenuItem onClick={() => {
-              toast({
-                title: "Campaign creation",
-                description: "Campaign creation with selected contacts is coming soon!",
-              });
-            }}>
-              Campaign
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {showListSelector ? (
+          <Select
+            value={selectedContactList}
+            onValueChange={setSelectedContactList}
+            open={true}
+            onOpenChange={(open) => {
+              if (!open) {
+                setShowListSelector(false);
+                setSelectedContactList("");
+              }
+            }}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Choose a contact list" />
+            </SelectTrigger>
+            <SelectContent>
+              {contactLists.map((list) => (
+                <SelectItem key={list.id} value={list.id.toString()}>
+                  <div className="flex items-center justify-between w-full">
+                    <span>{list.name}</span>
+                    <span className="text-xs text-muted-foreground ml-2">
+                      {list.contactCount} contacts
+                    </span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add to
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setShowListSelector(true)}>
+                Contact List
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                toast({
+                  title: "Campaign creation",
+                  description: "Campaign creation with selected contacts is coming soon!",
+                });
+              }}>
+                Campaign
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
         <Button
           variant="ghost"
