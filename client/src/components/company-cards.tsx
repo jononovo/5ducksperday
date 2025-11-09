@@ -341,7 +341,9 @@ export default function CompanyCards({
   pendingComprehensiveSearchIds,
   onContactClick,
   onViewModeChange,
-  selectedEmailContact
+  selectedEmailContact,
+  selectedContacts = new Set<number>(),
+  onContactSelectionChange
 }: CompanyCardsProps) {
   const [, setLocation] = useLocation();
   
@@ -351,10 +353,6 @@ export default function CompanyCards({
   
   // State to track which company cards are expanded
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
-  
-  // State to track selected companies and contacts
-  const [selectedCompanies, setSelectedCompanies] = useState<Set<number>>(new Set());
-  const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
   
   // State to highlight navigation buttons
   const [highlightNavButtons, setHighlightNavButtons] = useState(false);
@@ -396,52 +394,12 @@ export default function CompanyCards({
     }
   }, [companies.length, viewMode, currentSlideIndex]);
   
-  // Toggle company selection
-  const toggleCompanySelection = (e: React.MouseEvent, companyId: number) => {
-    e.stopPropagation();
-    
-    setSelectedCompanies(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(companyId)) {
-        newSet.delete(companyId);
-        // Also deselect all contacts from this company
-        const company = companies.find(c => c.id === companyId);
-        if (company?.contacts) {
-          setSelectedContacts(prev => {
-            const updatedContacts = new Set(prev);
-            company.contacts?.forEach(contact => updatedContacts.delete(contact.id));
-            return updatedContacts;
-          });
-        }
-      } else {
-        newSet.add(companyId);
-        // Also select all contacts from this company
-        const company = companies.find(c => c.id === companyId);
-        if (company?.contacts) {
-          setSelectedContacts(prev => {
-            const updatedContacts = new Set(prev);
-            company.contacts?.forEach(contact => updatedContacts.add(contact.id));
-            return updatedContacts;
-          });
-        }
-      }
-      return newSet;
-    });
-  };
-  
-  // Toggle contact selection
+  // Wrapper for contact selection to stop propagation
   const toggleContactSelection = (e: React.MouseEvent, contactId: number) => {
     e.stopPropagation();
-    
-    setSelectedContacts(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(contactId)) {
-        newSet.delete(contactId);
-      } else {
-        newSet.add(contactId);
-      }
-      return newSet;
-    });
+    if (onContactSelectionChange) {
+      onContactSelectionChange(contactId);
+    }
   };
   
   // Auto-expand first company when new search results arrive
@@ -553,8 +511,8 @@ export default function CompanyCards({
             company={company}
             isExpanded={isCardExpanded(company.id)}
             onToggleExpand={() => toggleCardExpansion(company.id)}
-            isSelected={selectedCompanies.has(company.id)}
-            onToggleSelection={toggleCompanySelection}
+            isSelected={false}
+            onToggleSelection={() => {}}
             selectedContacts={selectedContacts}
             onToggleContactSelection={toggleContactSelection}
             handleCompanyView={handleCompanyView}
@@ -581,8 +539,8 @@ export default function CompanyCards({
             company={companies[currentSlideIndex]}
             isExpanded={isCardExpanded(companies[currentSlideIndex].id)}
             onToggleExpand={() => toggleCardExpansion(companies[currentSlideIndex].id)}
-            isSelected={selectedCompanies.has(companies[currentSlideIndex].id)}
-            onToggleSelection={toggleCompanySelection}
+            isSelected={false}
+            onToggleSelection={() => {}}
             selectedContacts={selectedContacts}
             onToggleContactSelection={toggleContactSelection}
             handleCompanyView={handleCompanyView}
