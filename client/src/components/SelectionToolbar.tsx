@@ -37,10 +37,17 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
 
   const addContactsMutation = useMutation({
     mutationFn: async ({ contactListId, contactIds }: { contactListId: number; contactIds: number[] }) => {
-      return await apiRequest(`/api/contact-lists/${contactListId}/contacts`, {
+      const response = await fetch(`/api/contact-lists/${contactListId}/contacts`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ contactIds }),
       });
+      if (!response.ok) {
+        throw new Error('Failed to add contacts');
+      }
+      return response.json();
     },
     onSuccess: (_, { contactListId }) => {
       // Invalidate relevant queries
@@ -154,7 +161,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-medium">{list.name}</span>
                               <span className="text-xs text-muted-foreground">
-                                {list.contact_count || 0} contacts
+                                {list.contactCount || 0} contacts
                               </span>
                             </div>
                           </button>
