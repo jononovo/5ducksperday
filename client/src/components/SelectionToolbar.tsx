@@ -134,7 +134,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
               <DropdownMenuTrigger asChild>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-6 px-2 text-[11px] font-medium">
+                    <Button variant="outline" size="sm" className="h-6 px-2 text-[11px] font-medium text-gray-600">
                       <span className="text-primary mr-1">{selectedCount}</span>
                       Add to
                       <ChevronDown className="h-3 w-3 ml-1" />
@@ -164,7 +164,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
               variant="ghost"
               size="sm"
               onClick={onClear}
-              className="h-6 px-2 text-[11px] font-medium"
+              className="h-6 px-2 text-[11px] font-medium text-gray-600"
             >
               <X className="h-3 w-3 mr-1" />
               Clear
