@@ -144,15 +144,17 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
             aria-label={`${selectedCount} selected, click to deselect all`}
           />
           
+          {/* Selected count displayed separately */}
+          <span className="text-primary text-[11px] font-medium">{selectedCount}</span>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="outline" 
                 size="sm" 
                 className="h-6 px-2 text-[11px] font-medium text-gray-600"
-                title={`${selectedCount} selected • Add selected to list`}
+                title="Add selected to list"
               >
-                <span className="text-primary mr-1">{selectedCount}</span>
                 Add to
                 <ChevronDown className="h-3 w-3 ml-1" />
               </Button>
