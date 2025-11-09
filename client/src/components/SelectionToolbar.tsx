@@ -129,8 +129,8 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
         ) : (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8">
-                <UserPlus className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="sm" className="h-6 px-2 text-[11px] font-medium">
+                <UserPlus className="h-3 w-3 mr-1" />
                 Add to
               </Button>
             </DropdownMenuTrigger>
@@ -154,9 +154,9 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
           variant="ghost"
           size="sm"
           onClick={onClear}
-          className="h-8"
+          className="h-6 px-2 text-[11px] font-medium"
         >
-          <X className="h-4 w-4 mr-1" />
+          <X className="h-3 w-3 mr-1" />
           Clear
         </Button>
       </div>
