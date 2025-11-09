@@ -94,7 +94,6 @@ export default function EmailForm({
                     size="sm"
                     className="h-8 text-xs bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400 transition-all duration-300 group overflow-hidden flex items-center justify-center w-8"
                     style={{ 
-                      width: 'auto',
                       minWidth: '32px',
                       maxWidth: '32px',
                       padding: '0 8px',
