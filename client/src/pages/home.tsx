@@ -2295,6 +2295,8 @@ export default function Home() {
                       onContactClick={handleContactClick}
                       onViewModeChange={setCompaniesViewMode}
                       selectedEmailContact={emailDrawer.selectedContact}
+                      selectedContacts={selectedContacts}
+                      onContactSelectionChange={handleCheckboxChange}
                   />
                   </Suspense>
                 </div>

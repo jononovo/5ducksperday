@@ -60,6 +60,8 @@ interface CompanyCardsProps {
   onContactClick?: (contact: ContactWithCompanyInfo, company: Company) => void;
   onViewModeChange?: (viewMode: 'scroll' | 'slides') => void;
   selectedEmailContact?: Contact | null;
+  selectedContacts?: Set<number>;
+  onContactSelectionChange?: (contactId: number) => void;
 }
 
 // Unified CompanyCard component
