@@ -93,45 +93,40 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
 
   const toolbar = (
     <div className={`flex items-center gap-2 ${isMobile ? 'w-full justify-between px-4 py-2 bg-background border-t' : ''}`}>
-      <span className="text-sm font-medium">
-        {selectedCount} selected
-      </span>
-      
-      <div className="flex items-center gap-2">
-        {showListSelector ? (
-          <Select
-            value={selectedContactList}
-            onValueChange={setSelectedContactList}
-            open={true}
-            onOpenChange={(open) => {
-              if (!open) {
-                setShowListSelector(false);
-                setSelectedContactList("");
-              }
-            }}
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Choose a contact list" />
-            </SelectTrigger>
-            <SelectContent>
-              {contactLists.map((list) => (
-                <SelectItem key={list.id} value={list.id.toString()}>
-                  <div className="flex items-center justify-between w-full">
-                    <span>{list.name}</span>
-                    <span className="text-xs text-muted-foreground ml-2">
-                      {list.contactCount} contacts
-                    </span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
+      {showListSelector ? (
+        <Select
+          value={selectedContactList}
+          onValueChange={setSelectedContactList}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) {
+              setShowListSelector(false);
+              setSelectedContactList("");
+            }
+          }}
+        >
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Choose a contact list" />
+          </SelectTrigger>
+          <SelectContent>
+            {contactLists.map((list) => (
+              <SelectItem key={list.id} value={list.id.toString()}>
+                <div className="flex items-center justify-between w-full">
+                  <span>{list.name}</span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    {list.contactCount} contacts
+                  </span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : (
+        <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-6 px-2 text-[11px] font-medium">
-                <UserPlus className="h-3 w-3 mr-1" />
-                Add to
+                {selectedCount} Add to
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -148,18 +143,18 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )}
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClear}
-          className="h-6 px-2 text-[11px] font-medium"
-        >
-          <X className="h-3 w-3 mr-1" />
-          Clear
-        </Button>
-      </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClear}
+            className="h-6 px-2 text-[11px] font-medium"
+          >
+            <X className="h-3 w-3 mr-1" />
+            Clear
+          </Button>
+        </div>
+      )}
     </div>
   );
 
