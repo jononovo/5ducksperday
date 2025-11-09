@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { X, ChevronDown } from "lucide-react";
+import { ChevronDown, CheckSquare } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,13 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useState, useEffect } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +30,17 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
   const [showListSelector, setShowListSelector] = useState(false);
   const [selectedContactList, setSelectedContactList] = useState<string>("");
   const { toast } = useToast();
+  const checkboxRef = useRef<HTMLButtonElement>(null);
+
+  // Set indeterminate state on the checkbox element
+  useEffect(() => {
+    if (checkboxRef.current) {
+      const input = checkboxRef.current.querySelector('input');
+      if (input) {
+        input.indeterminate = selectedCount > 0;
+      }
+    }
+  }, [selectedCount]);
 
   // Fetch contact lists
   const { data: contactLists = [] } = useQuery<ContactList[]>({
@@ -128,7 +134,16 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
           </SelectContent>
         </Select>
       ) : (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* Gmail-style checkbox with indeterminate state */}
+          <Checkbox
+            ref={checkboxRef}
+            checked={selectedCount > 0 ? "indeterminate" : false}
+            onCheckedChange={() => onClear()}
+            className="h-4 w-4 ml-1"
+            aria-label={`${selectedCount} selected, click to deselect all`}
+          />
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
@@ -156,16 +171,6 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClear}
-            className="h-6 px-2 text-[11px] font-medium text-gray-600"
-          >
-            <X className="h-3 w-3 mr-1" />
-            Clear
-          </Button>
         </div>
       )}
     </div>
