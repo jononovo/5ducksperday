@@ -32,7 +32,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
   const { toast } = useToast();
   const checkboxRef = useRef<HTMLButtonElement>(null);
 
-  // Set indeterminate state on the checkbox element
+  // Set indeterminate state on the checkbox element and apply blue styling
   useEffect(() => {
     if (checkboxRef.current) {
       const input = checkboxRef.current.querySelector('input');
@@ -140,7 +140,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
             ref={checkboxRef}
             checked={selectedCount > 0 ? "indeterminate" : false}
             onCheckedChange={() => onClear()}
-            className="h-4 w-4 ml-1"
+            className="h-4 w-4 ml-1 data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground data-[state=indeterminate]:border-primary"
             aria-label={`${selectedCount} selected, click to deselect all`}
           />
           
