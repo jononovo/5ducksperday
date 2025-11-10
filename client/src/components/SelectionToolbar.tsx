@@ -31,6 +31,15 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
   const [selectedContactList, setSelectedContactList] = useState<string>("");
   const { toast } = useToast();
   const checkboxRef = useRef<HTMLButtonElement>(null);
+  
+  // Log initial state for debugging
+  useEffect(() => {
+    console.log('[SelectionToolbar] Component mounted/updated:', {
+      selectedCount,
+      selectedContactIds,
+      contactIdCount: selectedContactIds.length
+    });
+  }, [selectedCount, selectedContactIds]);
 
   // Set indeterminate state on the checkbox element and apply blue styling
   useEffect(() => {
@@ -49,14 +58,24 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
 
   const addContactsMutation = useMutation({
     mutationFn: async ({ contactListId, contactIds }: { contactListId: number; contactIds: number[] }) => {
+      console.log('[SelectionToolbar] Making API request to add contacts:', {
+        contactListId,
+        contactIds,
+        endpoint: `/api/contact-lists/${contactListId}/contacts`
+      });
+      
       const response = await apiRequest(
         'POST',
         `/api/contact-lists/${contactListId}/contacts`,
         { contactIds }
       );
-      return response.json();
+      const data = await response.json();
+      console.log('[SelectionToolbar] API response:', data);
+      return data;
     },
-    onSuccess: (_, { contactListId }) => {
+    onSuccess: (data, { contactListId }) => {
+      console.log('[SelectionToolbar] Mutation succeeded:', { data, contactListId });
+      
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['/api/contact-lists'] });
       queryClient.invalidateQueries({ queryKey: [`/api/contact-lists/${contactListId}/contacts`] });
@@ -73,6 +92,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       setSelectedContactList("");
     },
     onError: (error: any) => {
+      console.error('[SelectionToolbar] Mutation failed:', error);
       toast({
         title: "Error adding contacts",
         description: error.message || "Failed to add contacts to the list",
@@ -85,14 +105,31 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
   useEffect(() => {
     if (selectedContactList && selectedContactList !== "") {
       const listId = parseInt(selectedContactList);
-      if (!isNaN(listId)) {
+      console.log('[SelectionToolbar] Contact list selected:', {
+        selectedContactList,
+        listId,
+        selectedContactIds,
+        contactCount: selectedContactIds.length
+      });
+      
+      if (!isNaN(listId) && selectedContactIds.length > 0) {
+        console.log('[SelectionToolbar] Triggering mutation to add contacts');
         addContactsMutation.mutate({
           contactListId: listId,
           contactIds: selectedContactIds,
         });
+      } else if (selectedContactIds.length === 0) {
+        console.warn('[SelectionToolbar] No contacts selected to add');
+        toast({
+          title: "No contacts selected",
+          description: "Please select contacts before adding them to a list.",
+          variant: "destructive",
+        });
+        setSelectedContactList("");
+        setShowListSelector(false);
       }
     }
-  }, [selectedContactList]);
+  }, [selectedContactList, selectedContactIds, addContactsMutation, toast]);
 
   // Mobile: Fixed bottom toolbar
   // Desktop: Inline with top buttons
@@ -103,12 +140,16 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       {showListSelector ? (
         <Select
           value={selectedContactList}
-          onValueChange={setSelectedContactList}
+          onValueChange={(value) => {
+            console.log('[SelectionToolbar] List value changed:', value);
+            setSelectedContactList(value);
+          }}
           open={true}
           onOpenChange={(open) => {
+            console.log('[SelectionToolbar] Select open state changed:', open);
             if (!open) {
               setShowListSelector(false);
-              setSelectedContactList("");
+              // Don't reset selectedContactList here - let the mutation handle cleanup
             }
           }}
         >
@@ -155,7 +196,10 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setShowListSelector(true)}>
+              <DropdownMenuItem onClick={() => {
+                console.log('[SelectionToolbar] "Contact List" clicked, showing selector');
+                setShowListSelector(true);
+              }}>
                 Contact List
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => {
