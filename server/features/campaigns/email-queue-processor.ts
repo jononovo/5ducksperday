@@ -574,41 +574,8 @@ export class EmailQueueProcessor {
             continue; // Skip this campaign's recipients for now
           }
 
-          // Check daily email limit and calculate how many we can send
+          // We'll check daily limits inside the loop for each email
           let recipientsToProcess = userRecipients;
-          
-          if (campaignSettings.maxEmailsPerDay && campaignSettings.maxEmailsPerDay > 0) {
-            // Count emails already sent today
-            const todayUTC = new Date();
-            todayUTC.setUTCHours(0, 0, 0, 0);
-            
-            const [result] = await db
-              .select({ count: sql<number>`count(*)::int` })
-              .from(campaignRecipients)
-              .where(
-                and(
-                  eq(campaignRecipients.campaignId, campaignIdNum),
-                  eq(campaignRecipients.status, 'sent'),
-                  sql`${campaignRecipients.updatedAt} >= ${todayUTC}`
-                )
-              );
-            
-            const sentToday = result?.count || 0;
-            const remainingAllowance = campaignSettings.maxEmailsPerDay - sentToday;
-            
-            if (remainingAllowance <= 0) {
-              console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum}: Daily limit reached (${sentToday}/${campaignSettings.maxEmailsPerDay}), skipping batch`);
-              continue; // Skip this campaign's recipients for now
-            }
-            
-            // Only process as many as we're allowed to send today
-            if (userRecipients.length > remainingAllowance) {
-              console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum}: Limiting batch to ${remainingAllowance} emails (daily limit: ${campaignSettings.maxEmailsPerDay}, already sent: ${sentToday})`);
-              recipientsToProcess = userRecipients.slice(0, remainingAllowance);
-            } else {
-              console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum}: Processing ${userRecipients.length} emails (daily limit: ${campaignSettings.maxEmailsPerDay}, already sent: ${sentToday})`);
-            }
-          }
 
           // Continue with the existing processing logic for this campaign's recipients
           
@@ -643,8 +610,46 @@ export class EmailQueueProcessor {
           const delayBetweenEmails = (userRecipients[0].delayBetweenEmails || 0.5) * 60 * 1000;
           console.log(`[EmailQueueProcessor] Using delay of ${delayBetweenEmails / 1000} seconds between emails`);
         
+          // Query the database ONCE to get baseline count of emails sent today
+          let baselineSentToday = 0;
+          if (campaignSettings.maxEmailsPerDay && campaignSettings.maxEmailsPerDay > 0) {
+            const todayUTC = new Date();
+            todayUTC.setUTCHours(0, 0, 0, 0);
+            
+            const [result] = await db
+              .select({ count: sql<number>`count(*)::int` })
+              .from(campaignRecipients)
+              .where(
+                and(
+                  eq(campaignRecipients.campaignId, campaignIdNum),
+                  eq(campaignRecipients.status, 'sent'),
+                  sql`${campaignRecipients.updatedAt} >= ${todayUTC}`
+                )
+              );
+            
+            baselineSentToday = result?.count || 0;
+            console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum}: Starting with ${baselineSentToday}/${campaignSettings.maxEmailsPerDay} emails already sent today`);
+          }
+        
+          // Track emails sent in this batch to add to baseline count
+          let emailsSentInThisBatch = 0;
+        
           for (let i = 0; i < recipientsToProcess.length; i++) {
             const recipient = recipientsToProcess[i];
+            
+            // Check daily limit BEFORE sending each email (using baseline + batch counter)
+            if (campaignSettings.maxEmailsPerDay && campaignSettings.maxEmailsPerDay > 0) {
+              const totalSentToday = baselineSentToday + emailsSentInThisBatch;
+              
+              if (totalSentToday >= campaignSettings.maxEmailsPerDay) {
+                console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum}: Daily limit reached (${totalSentToday}/${campaignSettings.maxEmailsPerDay}). Stopping batch processing.`);
+                console.log(`[EmailQueueProcessor] ${recipientsToProcess.length - i} emails remaining in scheduled status for next processing cycle.`);
+                break; // Exit the loop, leaving remaining emails in 'scheduled' status
+              }
+              
+              const remainingAllowance = campaignSettings.maxEmailsPerDay - totalSentToday;
+              console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum}: Sending email ${i + 1}/${recipientsToProcess.length}. Daily progress: ${totalSentToday}/${campaignSettings.maxEmailsPerDay}, remaining today: ${remainingAllowance}`);
+            }
             
             // Add delay between emails (except for the first one)
             if (i > 0 && delayBetweenEmails > 0) {
@@ -751,6 +756,9 @@ export class EmailQueueProcessor {
 
             console.log(`[EmailQueueProcessor] Successfully sent email to ${recipient.recipientEmail}`);
             results.push({ success: true, recipientId: recipient.id });
+            
+            // Increment the batch counter for daily limit tracking
+            emailsSentInThisBatch++;
             
             } catch (error: any) {
               console.error(`[EmailQueueProcessor] Failed to send email to ${recipient.recipientEmail}:`, error);
