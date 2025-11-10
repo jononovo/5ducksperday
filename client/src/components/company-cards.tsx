@@ -231,20 +231,17 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                   onMouseEnter={() => onContactHover?.(contact.id)}
                   onMouseLeave={() => onContactLeave?.()}
                 >
-                  <Checkbox 
-                    checked={selectedContacts.has(contact.id)}
-                    onCheckedChange={() => onToggleContactSelection(null, contact.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label={`Select ${contact.name}`}
-                    className={cn(
-                      "mt-0.5 transition-all duration-200 ease-in-out",
-                      shouldShowCheckbox?.(contact.id) 
-                        ? "opacity-100 scale-100" 
-                        : "opacity-0 scale-95 pointer-events-none"
-                    )}
-                  />
+                  <div className={cn("transition-all duration-200 overflow-hidden", shouldShowCheckbox?.(contact.id) ? "w-6" : "w-0")}>
+                    <Checkbox 
+                      checked={selectedContacts.has(contact.id)}
+                      onCheckedChange={() => onToggleContactSelection(null, contact.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={`Select ${contact.name}`}
+                      className="mt-0.5"
+                    />
+                  </div>
                   
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 transition-all duration-200">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
                         <div className="font-medium text-sm">{contact.name}</div>
