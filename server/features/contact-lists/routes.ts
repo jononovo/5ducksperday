@@ -230,11 +230,10 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
         return res.status(400).json({ message: 'All contact IDs must be numbers' });
       }
       
-      await storage.addContactsToList(listId, contactIds, source, userId, sourceMetadata);
+      const result = await storage.addContactsToList(listId, contactIds, source, userId, sourceMetadata);
       
-      // Return updated list with new contact count
-      const updatedList = await storage.getContactList(listId, userId);
-      res.json(updatedList);
+      // Return the counts for the report dialog
+      res.json(result);
     } catch (error) {
       console.error('Error adding contacts to list:', error);
       res.status(500).json({ 

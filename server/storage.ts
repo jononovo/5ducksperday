@@ -131,7 +131,11 @@ export interface IStorage {
   
   // Contact List Members
   listContactsByListId(listId: number): Promise<any[]>;
-  addContactsToList(listId: number, contactIds: number[], source: string, addedBy: number, metadata?: any): Promise<void>;
+  addContactsToList(listId: number, contactIds: number[], source: string, addedBy: number, metadata?: any): Promise<{
+    addedCount: number;
+    duplicateCount: number;
+    noEmailCount: number;
+  }>;
   removeContactsFromList(listId: number, contactIds: number[]): Promise<void>;
   isContactInList(listId: number, contactId: number): Promise<boolean>;
   getListMemberCount(listId: number): Promise<number>;
@@ -1066,27 +1070,70 @@ class DatabaseStorage implements IStorage {
     }));
   }
 
-  async addContactsToList(listId: number, contactIds: number[], source: string, addedBy: number, metadata?: any): Promise<void> {
-    if (contactIds.length === 0) return;
+  async addContactsToList(listId: number, contactIds: number[], source: string, addedBy: number, metadata?: any): Promise<{
+    addedCount: number;
+    duplicateCount: number;
+    noEmailCount: number;
+  }> {
+    if (contactIds.length === 0) {
+      return { addedCount: 0, duplicateCount: 0, noEmailCount: 0 };
+    }
     
-    const values = contactIds.map(contactId => ({
-      listId,
-      contactId,
-      source,
-      addedBy,
-      sourceMetadata: metadata
-    }));
+    // 1. Fetch contact details to check for emails
+    const contactDetails = await db.select({
+      id: contacts.id,
+      email: contacts.email
+    })
+      .from(contacts)
+      .where(inArray(contacts.id, contactIds));
     
-    // Insert with ON CONFLICT DO NOTHING to handle duplicates
-    await db.insert(contactListMembers)
-      .values(values)
-      .onConflictDoNothing();
+    // Count contacts without email
+    const noEmailCount = contactDetails.filter(c => !c.email).length;
+    const contactsWithEmail = contactDetails.filter(c => c.email).map(c => c.id);
     
-    // Update contact count
-    const count = await this.getListMemberCount(listId);
-    await db.update(contactLists)
-      .set({ contactCount: count })
-      .where(eq(contactLists.id, listId));
+    // 2. Check which contacts are already in the list (duplicates)
+    const existingMembers = await db.select({
+      contactId: contactListMembers.contactId
+    })
+      .from(contactListMembers)
+      .where(and(
+        eq(contactListMembers.listId, listId),
+        inArray(contactListMembers.contactId, contactsWithEmail)
+      ));
+    
+    const existingContactIds = new Set(existingMembers.map(m => m.contactId));
+    const duplicateCount = existingContactIds.size;
+    
+    // 3. Filter out duplicates and prepare new entries
+    const newContactIds = contactsWithEmail.filter(id => !existingContactIds.has(id));
+    const addedCount = newContactIds.length;
+    
+    if (newContactIds.length > 0) {
+      const values = newContactIds.map(contactId => ({
+        listId,
+        contactId,
+        source,
+        addedBy,
+        sourceMetadata: metadata
+      }));
+      
+      // Insert new contacts
+      await db.insert(contactListMembers)
+        .values(values)
+        .onConflictDoNothing();
+      
+      // Update contact count
+      const count = await this.getListMemberCount(listId);
+      await db.update(contactLists)
+        .set({ contactCount: count })
+        .where(eq(contactLists.id, listId));
+    }
+    
+    return {
+      addedCount,
+      duplicateCount,
+      noEmailCount
+    };
   }
 
   async removeContactsFromList(listId: number, contactIds: number[]): Promise<void> {

@@ -339,6 +339,7 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
       
       // Filter contacts that have valid emails
       const validContacts = contacts.filter(contact => contact.email);
+      const noEmailCount = contacts.filter(contact => !contact.email).length;
       
       if (validContacts.length === 0) {
         return res.status(400).json({ message: 'No contacts with valid email addresses found' });
@@ -347,7 +348,7 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
       // Step 1: Add contacts to the campaign's linked contact list
       // This automatically handles duplicates with onConflictDoNothing
       const validContactIds = validContacts.map(c => c.id);
-      await storage.addContactsToList(
+      const listResult = await storage.addContactsToList(
         campaign.contactListId,
         validContactIds,
         'campaign_addition',
@@ -355,7 +356,7 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
         { campaignId, campaignName: campaign.name }
       );
       
-      console.log(`[Add to Campaign] Added ${validContactIds.length} contacts to contact list ${campaign.contactListId}`);
+      console.log(`[Add to Campaign] Added ${listResult.addedCount} new contacts to contact list ${campaign.contactListId}, ${listResult.duplicateCount} duplicates skipped`);
       
       // Step 2: Add contacts as campaign recipients
       // Prepare recipient records for all valid contacts
@@ -379,13 +380,15 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
       
       res.json({ 
         success: true,
-        message: `Successfully added ${validContacts.length} contacts to the campaign`,
-        addedCount: validContacts.length,
+        message: `Successfully added ${listResult.addedCount} contacts to the campaign`,
+        addedCount: listResult.addedCount,
+        duplicateCount: listResult.duplicateCount,
+        noEmailCount: noEmailCount,
         campaignStatus: campaign.status,
         note: statusNote,
         details: {
           contactListUpdated: true,
-          recipientsQueued: validContacts.length
+          recipientsQueued: listResult.addedCount  // Only new contacts get queued
         }
       });
       

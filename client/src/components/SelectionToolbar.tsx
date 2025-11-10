@@ -49,6 +49,16 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
   const [pendingCampaignId, setPendingCampaignId] = useState<number | null>(null);
   const [invalidContactsCount, setInvalidContactsCount] = useState(0);
   
+  // Report dialog state
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportData, setReportData] = useState<{
+    totalSubmitted: number;
+    noEmailError: number;
+    duplicationError: number;
+    successfullyAdded: number;
+    operationType: 'list' | 'campaign';
+  } | null>(null);
+  
   // Log initial state for debugging
   useEffect(() => {
     console.log('[SelectionToolbar] Component mounted/updated:', {
@@ -121,16 +131,22 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       queryClient.invalidateQueries({ queryKey: ['/api/contact-lists'] });
       queryClient.invalidateQueries({ queryKey: [`/api/contact-lists/${contactListId}/contacts`] });
       
-      const list = contactLists.find(l => l.id === contactListId);
-      toast({
-        title: "Contacts added successfully",
-        description: `${selectedContactIds.length} contact${selectedContactIds.length !== 1 ? 's' : ''} added to "${list?.name || 'list'}".`,
+      // Show report dialog with results
+      setReportData({
+        totalSubmitted: selectedContactIds.length,
+        noEmailError: data.noEmailCount || 0,
+        duplicationError: data.duplicateCount || 0,
+        successfullyAdded: data.addedCount || 0,
+        operationType: 'list'
       });
+      setReportDialogOpen(true);
       
       // Clear selections after successful add
       onClear();
       setShowListSelector(false);
       setSelectedContactList("");
+      setPendingListId(null);
+      setConfirmListDialogOpen(false);
     },
     onError: (error: any) => {
       console.error('[SelectionToolbar] Mutation failed:', error);
@@ -166,16 +182,22 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
       queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaignId}`] });
       
-      const campaign = activeCampaigns.find(c => c.id === campaignId);
-      toast({
-        title: "Contacts added to campaign",
-        description: `${data.addedCount} contact${data.addedCount !== 1 ? 's' : ''} added to "${campaign?.name || 'campaign'}". They will be processed according to campaign settings.`,
+      // Show report dialog with results
+      setReportData({
+        totalSubmitted: selectedContactIds.length,
+        noEmailError: data.noEmailCount || 0,
+        duplicationError: data.duplicateCount || 0,
+        successfullyAdded: data.addedCount || 0,
+        operationType: 'campaign'
       });
+      setReportDialogOpen(true);
       
       // Clear selections after successful add
       onClear();
       setShowCampaignSelector(false);
       setSelectedCampaign("");
+      setPendingCampaignId(null);
+      setConfirmCampaignDialogOpen(false);
     },
     onError: (error: any) => {
       console.error('[SelectionToolbar] Campaign mutation failed:', error);
@@ -428,14 +450,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
             <DialogHeader>
               <DialogTitle>Confirm Adding Contacts</DialogTitle>
               <DialogDescription>
-                <div>
-                  Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{contactLists.find(l => l.id === pendingListId)?.name}".
-                </div>
-                {invalidContactsCount > 0 && (
-                  <div className="mt-2 text-amber-600">
-                    {invalidContactsCount} contact{invalidContactsCount !== 1 ? 's are' : ' is'} invalid. No email address available.
-                  </div>
-                )}
+                Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{contactLists.find(l => l.id === pendingListId)?.name}".
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -458,14 +473,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
             <DialogHeader>
               <DialogTitle>Confirm Adding Contacts</DialogTitle>
               <DialogDescription>
-                <div>
-                  Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{campaigns.find(c => c.id === pendingCampaignId)?.contactListId && contactLists.find(l => l.id === campaigns.find(c => c.id === pendingCampaignId)?.contactListId)?.name}" and "{campaigns.find(c => c.id === pendingCampaignId)?.name}".
-                </div>
-                {invalidContactsCount > 0 && (
-                  <div className="mt-2 text-amber-600">
-                    {invalidContactsCount} contact{invalidContactsCount !== 1 ? 's are' : ' is'} invalid. No email address available.
-                  </div>
-                )}
+                Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to campaign "{campaigns.find(c => c.id === pendingCampaignId)?.name}".
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -476,6 +484,41 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
                 Cancel
               </Button>
               <Button onClick={handleConfirmAddToCampaign}>
+                OK
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Report Dialog - Shows after operation completes */}
+        <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Operation Report</DialogTitle>
+              <DialogDescription>
+                Results of adding contacts to {reportData?.operationType === 'list' ? 'contact list' : 'campaign'}:
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-4">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Total contacts submitted:</span>
+                <span className="text-sm font-medium">{reportData?.totalSubmitted || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">No email error:</span>
+                <span className="text-sm font-medium text-amber-600">{reportData?.noEmailError || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Duplication error:</span>
+                <span className="text-sm font-medium text-amber-600">{reportData?.duplicationError || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Successfully added:</span>
+                <span className="text-sm font-medium text-green-600">{reportData?.successfullyAdded || 0}</span>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => setReportDialogOpen(false)}>
                 OK
               </Button>
             </DialogFooter>
@@ -496,14 +539,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
           <DialogHeader>
             <DialogTitle>Confirm Adding Contacts</DialogTitle>
             <DialogDescription>
-              <div>
-                Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{contactLists.find(l => l.id === pendingListId)?.name}".
-              </div>
-              {invalidContactsCount > 0 && (
-                <div className="mt-2 text-amber-600">
-                  {invalidContactsCount} contact{invalidContactsCount !== 1 ? 's are' : ' is'} invalid. No email address available.
-                </div>
-              )}
+              Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{contactLists.find(l => l.id === pendingListId)?.name}".
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -526,14 +562,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
           <DialogHeader>
             <DialogTitle>Confirm Adding Contacts</DialogTitle>
             <DialogDescription>
-              <div>
-                Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{campaigns.find(c => c.id === pendingCampaignId)?.contactListId && contactLists.find(l => l.id === campaigns.find(c => c.id === pendingCampaignId)?.contactListId)?.name}" and "{campaigns.find(c => c.id === pendingCampaignId)?.name}".
-              </div>
-              {invalidContactsCount > 0 && (
-                <div className="mt-2 text-amber-600">
-                  {invalidContactsCount} contact{invalidContactsCount !== 1 ? 's are' : ' is'} invalid. No email address available.
-                </div>
-              )}
+              Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to campaign "{campaigns.find(c => c.id === pendingCampaignId)?.name}".
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -544,6 +573,41 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
               Cancel
             </Button>
             <Button onClick={handleConfirmAddToCampaign}>
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Report Dialog - Shows after operation completes */}
+      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Operation Report</DialogTitle>
+            <DialogDescription>
+              Results of adding contacts to {reportData?.operationType === 'list' ? 'contact list' : 'campaign'}:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-4">
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Total contacts submitted:</span>
+              <span className="text-sm font-medium">{reportData?.totalSubmitted || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">No email error:</span>
+              <span className="text-sm font-medium text-amber-600">{reportData?.noEmailError || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Duplication error:</span>
+              <span className="text-sm font-medium text-amber-600">{reportData?.duplicationError || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Successfully added:</span>
+              <span className="text-sm font-medium text-green-600">{reportData?.successfullyAdded || 0}</span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setReportDialogOpen(false)}>
               OK
             </Button>
           </DialogFooter>
