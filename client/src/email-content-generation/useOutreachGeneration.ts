@@ -73,7 +73,7 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
       const payload: EmailGenerationPayload = {
         emailPrompt: enhancedPrompt,
         contact: selectedContact,
-        company: selectedCompany!,
+        company: selectedCompany || { name: 'your company' } as any, // Fallback for templates
         tone,
         offerStrategy,
         toEmail,
@@ -136,17 +136,38 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
   });
 
   const handleGenerateEmail = () => {
-    const validation = validateEmailGenerationRequest(emailPrompt, selectedCompany);
+    console.log('[handleGenerateEmail] Starting generation:', {
+      generateTemplate,
+      hasCompany: !!selectedCompany,
+      companyName: selectedCompany?.name
+    });
     
-    if (!validation.isValid) {
-      toast({
-        title: validation.error!,
-        description: validation.error === "No Company Selected" 
-          ? "Please select a company first"
-          : "Please enter an email creation prompt",
-        variant: "destructive",
-      });
-      return;
+    // Skip company validation for template generation
+    if (generateTemplate) {
+      console.log('[handleGenerateEmail] Generating template - skipping company validation');
+      // For templates, we don't need a specific company
+      if (!emailPrompt || emailPrompt.trim() === '') {
+        toast({
+          title: "No Prompt Provided",
+          description: "Please enter an email creation prompt",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      // For direct emails, validate normally
+      const validation = validateEmailGenerationRequest(emailPrompt, selectedCompany);
+      
+      if (!validation.isValid) {
+        toast({
+          title: validation.error!,
+          description: validation.error === "No Company Selected" 
+            ? "Please select a company first"
+            : "Please enter an email creation prompt",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     generateEmailMutation.mutate();

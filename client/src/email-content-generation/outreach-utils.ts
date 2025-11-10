@@ -67,14 +67,24 @@ export function validateEmailGenerationRequest(
   emailPrompt: string,
   company: Company | null
 ): { isValid: boolean; error?: string } {
+  // Log for debugging
+  console.log('[validateEmailGenerationRequest] Validation check:', {
+    hasCompany: !!company,
+    companyName: company?.name,
+    promptLength: emailPrompt?.length || 0
+  });
+
   if (!company) {
+    console.log('[validateEmailGenerationRequest] Company validation failed - no company selected');
     return { isValid: false, error: "No Company Selected" };
   }
 
   if (!emailPrompt || emailPrompt.trim() === '') {
+    console.log('[validateEmailGenerationRequest] Prompt validation failed - no prompt provided');
     return { isValid: false, error: "No Prompt Provided" };
   }
 
+  console.log('[validateEmailGenerationRequest] Validation passed');
   return { isValid: true };
 }
 
