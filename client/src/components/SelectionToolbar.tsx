@@ -15,15 +15,13 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -425,11 +423,11 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
         </div>
         
         {/* Contact List Confirmation Dialog */}
-        <AlertDialog open={confirmListDialogOpen} onOpenChange={setConfirmListDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Adding Contacts</AlertDialogTitle>
-              <AlertDialogDescription>
+        <Dialog open={confirmListDialogOpen} onOpenChange={setConfirmListDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Adding Contacts</DialogTitle>
+              <DialogDescription>
                 <div>
                   Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{contactLists.find(l => l.id === pendingListId)?.name}".
                 </div>
@@ -438,21 +436,28 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
                     {invalidContactsCount} contact{invalidContactsCount !== 1 ? 's are' : ' is'} invalid. No email address available.
                   </div>
                 )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={handleCancelAddToList}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmAddToList}>OK</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={handleCancelAddToList}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmAddToList}>
+                OK
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         
         {/* Campaign Confirmation Dialog */}
-        <AlertDialog open={confirmCampaignDialogOpen} onOpenChange={setConfirmCampaignDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Adding Contacts</AlertDialogTitle>
-              <AlertDialogDescription>
+        <Dialog open={confirmCampaignDialogOpen} onOpenChange={setConfirmCampaignDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Adding Contacts</DialogTitle>
+              <DialogDescription>
                 <div>
                   Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{campaigns.find(c => c.id === pendingCampaignId)?.contactListId && contactLists.find(l => l.id === campaigns.find(c => c.id === pendingCampaignId)?.contactListId)?.name}" and "{campaigns.find(c => c.id === pendingCampaignId)?.name}".
                 </div>
@@ -461,14 +466,21 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
                     {invalidContactsCount} contact{invalidContactsCount !== 1 ? 's are' : ' is'} invalid. No email address available.
                   </div>
                 )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={handleCancelAddToCampaign}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmAddToCampaign}>OK</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={handleCancelAddToCampaign}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmAddToCampaign}>
+                OK
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </>
     );
   }
@@ -479,11 +491,11 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       {toolbar}
       
       {/* Contact List Confirmation Dialog */}
-      <AlertDialog open={confirmListDialogOpen} onOpenChange={setConfirmListDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Adding Contacts</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={confirmListDialogOpen} onOpenChange={setConfirmListDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Adding Contacts</DialogTitle>
+            <DialogDescription>
               <div>
                 Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{contactLists.find(l => l.id === pendingListId)?.name}".
               </div>
@@ -492,21 +504,28 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
                   {invalidContactsCount} contact{invalidContactsCount !== 1 ? 's are' : ' is'} invalid. No email address available.
                 </div>
               )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelAddToList}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmAddToList}>OK</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={handleCancelAddToList}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmAddToList}>
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       {/* Campaign Confirmation Dialog */}
-      <AlertDialog open={confirmCampaignDialogOpen} onOpenChange={setConfirmCampaignDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Adding Contacts</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={confirmCampaignDialogOpen} onOpenChange={setConfirmCampaignDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Adding Contacts</DialogTitle>
+            <DialogDescription>
               <div>
                 Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{campaigns.find(c => c.id === pendingCampaignId)?.contactListId && contactLists.find(l => l.id === campaigns.find(c => c.id === pendingCampaignId)?.contactListId)?.name}" and "{campaigns.find(c => c.id === pendingCampaignId)?.name}".
               </div>
@@ -515,14 +534,21 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
                   {invalidContactsCount} contact{invalidContactsCount !== 1 ? 's are' : ' is'} invalid. No email address available.
                 </div>
               )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelAddToCampaign}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmAddToCampaign}>OK</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={handleCancelAddToCampaign}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmAddToCampaign}>
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
