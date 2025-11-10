@@ -14,11 +14,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { ContactList, Campaign } from "@shared/schema";
+import type { ContactList, Campaign, Contact } from "@shared/schema";
 
 interface SelectionToolbarProps {
   selectedCount: number;
@@ -33,6 +43,13 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
   const [selectedCampaign, setSelectedCampaign] = useState<string>("");
   const { toast } = useToast();
   const checkboxRef = useRef<HTMLButtonElement>(null);
+  
+  // Confirmation dialog state
+  const [confirmListDialogOpen, setConfirmListDialogOpen] = useState(false);
+  const [confirmCampaignDialogOpen, setConfirmCampaignDialogOpen] = useState(false);
+  const [pendingListId, setPendingListId] = useState<number | null>(null);
+  const [pendingCampaignId, setPendingCampaignId] = useState<number | null>(null);
+  const [invalidContactsCount, setInvalidContactsCount] = useState(0);
   
   // Log initial state for debugging
   useEffect(() => {
@@ -65,6 +82,22 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
   
   // Filter to only show active campaigns
   const activeCampaigns = campaigns.filter(c => c.status === 'active');
+  
+  // Fetch contact details for selected IDs to check for emails
+  const { data: selectedContacts = [] } = useQuery<Contact[]>({
+    queryKey: ['/api/contacts/bulk', selectedContactIds],
+    queryFn: async () => {
+      if (selectedContactIds.length === 0) return [];
+      const response = await fetch('/api/contacts/bulk?' + new URLSearchParams({
+        ids: selectedContactIds.join(',')
+      }));
+      if (!response.ok) {
+        throw new Error('Failed to fetch contact details');
+      }
+      return response.json();
+    },
+    enabled: selectedContactIds.length > 0,
+  });
 
   const addContactsMutation = useMutation({
     mutationFn: async ({ contactListId, contactIds }: { contactListId: number; contactIds: number[] }) => {
@@ -156,7 +189,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
     }
   });
 
-  // Handle list selection
+  // Handle list selection - Show confirmation dialog
   useEffect(() => {
     if (selectedContactList && selectedContactList !== "") {
       const listId = parseInt(selectedContactList);
@@ -168,11 +201,12 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       });
       
       if (!isNaN(listId) && selectedContactIds.length > 0) {
-        console.log('[SelectionToolbar] Triggering mutation to add contacts');
-        addContactsMutation.mutate({
-          contactListId: listId,
-          contactIds: selectedContactIds,
-        });
+        // Calculate invalid contacts
+        const invalidCount = selectedContacts.filter(c => !c.email).length;
+        setInvalidContactsCount(invalidCount);
+        setPendingListId(listId);
+        setConfirmListDialogOpen(true);
+        setShowListSelector(false); // Hide selector immediately
       } else if (selectedContactIds.length === 0) {
         console.warn('[SelectionToolbar] No contacts selected to add');
         toast({
@@ -184,9 +218,9 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
         setShowListSelector(false);
       }
     }
-  }, [selectedContactList, selectedContactIds, addContactsMutation, toast]);
+  }, [selectedContactList, selectedContactIds, selectedContacts, toast]);
 
-  // Handle campaign selection
+  // Handle campaign selection - Show confirmation dialog
   useEffect(() => {
     if (selectedCampaign && selectedCampaign !== "") {
       const campaignId = parseInt(selectedCampaign);
@@ -198,11 +232,12 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       });
       
       if (!isNaN(campaignId) && selectedContactIds.length > 0) {
-        console.log('[SelectionToolbar] Triggering mutation to add contacts to campaign');
-        addContactsToCampaignMutation.mutate({
-          campaignId: campaignId,
-          contactIds: selectedContactIds,
-        });
+        // Calculate invalid contacts
+        const invalidCount = selectedContacts.filter(c => !c.email).length;
+        setInvalidContactsCount(invalidCount);
+        setPendingCampaignId(campaignId);
+        setConfirmCampaignDialogOpen(true);
+        setShowCampaignSelector(false); // Hide selector immediately
       } else if (selectedContactIds.length === 0) {
         console.warn('[SelectionToolbar] No contacts selected to add to campaign');
         toast({
@@ -214,7 +249,46 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
         setShowCampaignSelector(false);
       }
     }
-  }, [selectedCampaign, selectedContactIds, addContactsToCampaignMutation, toast]);
+  }, [selectedCampaign, selectedContactIds, selectedContacts, toast]);
+  
+  // Handlers for confirmation dialogs
+  const handleConfirmAddToList = () => {
+    if (pendingListId) {
+      console.log('[SelectionToolbar] Confirmed adding to list');
+      addContactsMutation.mutate({
+        contactListId: pendingListId,
+        contactIds: selectedContactIds,
+      });
+    }
+    setConfirmListDialogOpen(false);
+    setPendingListId(null);
+    setSelectedContactList("");
+  };
+  
+  const handleCancelAddToList = () => {
+    setConfirmListDialogOpen(false);
+    setPendingListId(null);
+    setSelectedContactList("");
+  };
+  
+  const handleConfirmAddToCampaign = () => {
+    if (pendingCampaignId) {
+      console.log('[SelectionToolbar] Confirmed adding to campaign');
+      addContactsToCampaignMutation.mutate({
+        campaignId: pendingCampaignId,
+        contactIds: selectedContactIds,
+      });
+    }
+    setConfirmCampaignDialogOpen(false);
+    setPendingCampaignId(null);
+    setSelectedCampaign("");
+  };
+  
+  const handleCancelAddToCampaign = () => {
+    setConfirmCampaignDialogOpen(false);
+    setPendingCampaignId(null);
+    setSelectedCampaign("");
+  };
 
   // Mobile: Fixed bottom toolbar
   // Desktop: Inline with top buttons
@@ -345,12 +419,110 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
   if (isMobile) {
     // Mobile: Fixed bottom position
     return (
-      <div className="fixed bottom-0 left-0 right-0 z-40 shadow-lg border-t">
-        {toolbar}
-      </div>
+      <>
+        <div className="fixed bottom-0 left-0 right-0 z-40 shadow-lg border-t">
+          {toolbar}
+        </div>
+        
+        {/* Contact List Confirmation Dialog */}
+        <AlertDialog open={confirmListDialogOpen} onOpenChange={setConfirmListDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Adding Contacts</AlertDialogTitle>
+              <AlertDialogDescription>
+                <div>
+                  Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{contactLists.find(l => l.id === pendingListId)?.name}".
+                </div>
+                {invalidContactsCount > 0 && (
+                  <div className="mt-2 text-amber-600">
+                    {invalidContactsCount} contact{invalidContactsCount !== 1 ? 's are' : ' is'} invalid. No email address available.
+                  </div>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleCancelAddToList}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmAddToList}>OK</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        
+        {/* Campaign Confirmation Dialog */}
+        <AlertDialog open={confirmCampaignDialogOpen} onOpenChange={setConfirmCampaignDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Adding Contacts</AlertDialogTitle>
+              <AlertDialogDescription>
+                <div>
+                  Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{campaigns.find(c => c.id === pendingCampaignId)?.contactListId && contactLists.find(l => l.id === campaigns.find(c => c.id === pendingCampaignId)?.contactListId)?.name}" and "{campaigns.find(c => c.id === pendingCampaignId)?.name}".
+                </div>
+                {invalidContactsCount > 0 && (
+                  <div className="mt-2 text-amber-600">
+                    {invalidContactsCount} contact{invalidContactsCount !== 1 ? 's are' : ' is'} invalid. No email address available.
+                  </div>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleCancelAddToCampaign}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmAddToCampaign}>OK</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
     );
   }
 
   // Desktop: Return inline toolbar for parent to place
-  return toolbar;
+  return (
+    <>
+      {toolbar}
+      
+      {/* Contact List Confirmation Dialog */}
+      <AlertDialog open={confirmListDialogOpen} onOpenChange={setConfirmListDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Adding Contacts</AlertDialogTitle>
+            <AlertDialogDescription>
+              <div>
+                Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{contactLists.find(l => l.id === pendingListId)?.name}".
+              </div>
+              {invalidContactsCount > 0 && (
+                <div className="mt-2 text-amber-600">
+                  {invalidContactsCount} contact{invalidContactsCount !== 1 ? 's are' : ' is'} invalid. No email address available.
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelAddToList}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAddToList}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Campaign Confirmation Dialog */}
+      <AlertDialog open={confirmCampaignDialogOpen} onOpenChange={setConfirmCampaignDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Adding Contacts</AlertDialogTitle>
+            <AlertDialogDescription>
+              <div>
+                Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to "{campaigns.find(c => c.id === pendingCampaignId)?.contactListId && contactLists.find(l => l.id === campaigns.find(c => c.id === pendingCampaignId)?.contactListId)?.name}" and "{campaigns.find(c => c.id === pendingCampaignId)?.name}".
+              </div>
+              {invalidContactsCount > 0 && (
+                <div className="mt-2 text-amber-600">
+                  {invalidContactsCount} contact{invalidContactsCount !== 1 ? 's are' : ' is'} invalid. No email address available.
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelAddToCampaign}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAddToCampaign}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
 }
