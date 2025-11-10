@@ -142,32 +142,14 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
       companyName: selectedCompany?.name
     });
     
-    // Skip company validation for template generation
-    if (generateTemplate) {
-      console.log('[handleGenerateEmail] Generating template - skipping company validation');
-      // For templates, we don't need a specific company
-      if (!emailPrompt || emailPrompt.trim() === '') {
-        toast({
-          title: "No Prompt Provided",
-          description: "Please enter an email creation prompt",
-          variant: "destructive",
-        });
-        return;
-      }
-    } else {
-      // For direct emails, validate normally
-      const validation = validateEmailGenerationRequest(emailPrompt, selectedCompany);
-      
-      if (!validation.isValid) {
-        toast({
-          title: validation.error!,
-          description: validation.error === "No Company Selected" 
-            ? "Please select a company first"
-            : "Please enter an email creation prompt",
-          variant: "destructive",
-        });
-        return;
-      }
+    // Only validate that we have a prompt
+    if (!emailPrompt || emailPrompt.trim() === '') {
+      toast({
+        title: "No Prompt Provided",
+        description: "Please enter an email creation prompt",
+        variant: "destructive",
+      });
+      return;
     }
 
     generateEmailMutation.mutate();
