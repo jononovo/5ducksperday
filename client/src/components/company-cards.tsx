@@ -73,7 +73,7 @@ interface CompanyCardProps {
   isSelected: boolean;
   onToggleSelection: (e: React.MouseEvent, companyId: number) => void;
   selectedContacts: Set<number>;
-  onToggleContactSelection: (e: React.MouseEvent, contactId: number) => void;
+  onToggleContactSelection: (e: React.MouseEvent | null, contactId: number) => void;
   handleCompanyView: (companyId: number) => void;
   handleHunterSearch?: (contactId: number) => void;
   handleApolloSearch?: (contactId: number) => void;
@@ -233,7 +233,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                 >
                   <Checkbox 
                     checked={selectedContacts.has(contact.id)}
-                    onCheckedChange={() => onToggleContactSelection({stopPropagation: () => {}} as React.MouseEvent, contact.id)}
+                    onCheckedChange={() => onToggleContactSelection(null, contact.id)}
                     onClick={(e) => e.stopPropagation()}
                     aria-label={`Select ${contact.name}`}
                     className={cn("mt-0.5", shouldShowCheckbox?.(contact.id) ? "" : "hidden")}
@@ -410,8 +410,10 @@ export default function CompanyCards({
   }, [companies.length, viewMode, currentSlideIndex]);
   
   // Wrapper for contact selection to stop propagation
-  const toggleContactSelection = (e: React.MouseEvent, contactId: number) => {
-    e.stopPropagation();
+  const toggleContactSelection = (e: React.MouseEvent | null, contactId: number) => {
+    if (e) {
+      e.stopPropagation();
+    }
     if (onContactSelectionChange) {
       onContactSelectionChange(contactId);
       // Activate global checkbox mode after 0.5s when any contact is selected
@@ -447,20 +449,22 @@ export default function CompanyCards({
     setHoveredContactId(null);
   };
   
-  // Handle contact card click for selection
+  // Handle contact card click - ONLY for email composer, NOT selection
   const handleContactCardClick = (contact: ContactWithCompanyInfo, company: Company) => {
-    // Toggle selection on click
-    if (onContactSelectionChange) {
-      onContactSelectionChange(contact.id);
-      // Activate global checkbox mode after 0.5s
-      if (!globalCheckboxMode && !selectedContacts.has(contact.id)) {
-        setTimeout(() => setGlobalCheckboxMode(true), 500);
-      }
-    }
-    
-    // Also trigger the existing onContactClick if provided (for email drawer, etc)
+    // Only trigger the email composer/drawer - no selection
     if (onContactClick) {
       onContactClick(contact, company);
+    }
+  };
+  
+  // Handle checkbox click for contact selection
+  const handleContactCheckboxClick = (contactId: number) => {
+    if (onContactSelectionChange) {
+      onContactSelectionChange(contactId);
+      // Activate global checkbox mode after 0.5s when selecting
+      if (!globalCheckboxMode && !selectedContacts.has(contactId)) {
+        setTimeout(() => setGlobalCheckboxMode(true), 500);
+      }
     }
   };
   
